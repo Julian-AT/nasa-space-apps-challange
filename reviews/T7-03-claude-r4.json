@@ -158,7 +158,11 @@
       "claim": "AC2 says the footer reads 'Bundle <bundle_version>', but the footer reads 'Bundle version: <v> · Schema <v>'.",
       "evidence": "It follows the orchestrator decision of 2026-11-14T21:24:28Z and T0-05's smoke assertion, which make web-smoke still passes. It is a literal-reading difference only, and the author rebutted it earlier as claude-r2-1 and claude-r3-1.",
       "id": "claude-r4-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The footer wording is set by the orchestrator decision recorded in the T7-03 notes (ralph orchestrator 2026-11-14T21:24:28Z): \"The footer keeps T0-05's 'Bundle version: <bundle_version>' and appends ' · Schema <schema_version>'.\" site-footer.tsx renders exactly that, and page-check.ts asserts it as the whole <footer> text, which make web-smoke passes. The finding itself says it is a literal-reading difference only, as claude-r2-1 and claude-r3-1 were."
+      }
     },
     {
       "severity": "low",
@@ -166,7 +170,11 @@
       "claim": "I did not reproduce the gzip -9 measurement of the initial JavaScript on /.",
       "evidence": "The command needs a loop or pipe, which the review permissions forbid. The build shows / as static and site-header.tsx is the only client module in the story's files. The author's figure of 177,190 B is within the 250 kB budget.",
       "id": "claude-r4-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Reproduced after make web-build at 938d4aa (the round 4 fix changed only apps/web/scripts/page-check.ts, which is not bundled into the page). The <script src> files of apps/web/.next/server/app/index.html at gzip -9 are 48,186 + 71,595 + 3,936 + 6,629 + 39,390 + 7,454 = 177,190 B over 6 scripts. That is 3,216 B over the T0 baseline of 173,974 B and within the PRD 8.10 budget of 250 kB, matching the story notes. __RSC_MANIFEST[\"/page\"].clientModules lists 9 modules, and the only one outside next is [project]/apps/web/components/site-header.tsx. make web-build shows / and /_not-found as static."
+      }
     }
   ]
 }

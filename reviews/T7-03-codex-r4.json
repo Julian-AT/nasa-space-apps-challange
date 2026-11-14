@@ -158,7 +158,11 @@
       "claim": "Validate the enclosing banner region even when its inner paragraph already has role=\"status\". AC7 and codex-r3-1 remain partially unresolved.",
       "evidence": "By inspection, replace MOCK_P in tests/page-check.test.ts with '<div role=\"status\"><p role=\"status\">Mock bundle — placeholder data, not results</p><p>Radar match passed</p></div>'. The outer div has two text-bearing children, so the container walk at lines 156-159 stops at the first p. The live-region search at lines 160-162 also stops at that p, whose text is exact. The outer status region and its added claim are never checked; the unchanged mode, main and footer checks also accept the fixture. The existing second-paragraph regression at tests/page-check.test.ts:190 omits role=\"status\" from the inner p, unlike the actual MockBanner at components/mock-banner.tsx:12. Add this regression and validate the enclosing banner region's complete text.",
       "id": "codex-r4-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "89eac14441079507fbed24bd4d237d41938ccd5a",
+        "reason": "Only the nearest live region around a banner was compared, so a status <div> around the status <p> of the mock banner could add a second paragraph. blockTree in apps/web/scripts/page-check.ts now tracks every open element, so an end tag closes its own element while only blocks split the text. Each block records every live region it sits in (role alert, log, marquee, status or timer, or aria-live polite or assertive), on a block or an inline element, and bannerParts returns the container plus all of them, nearest to outermost. Each must read exactly the banner. Tests first in fe077ef: the reviewer's fixture <div role=\"status\"><p role=\"status\">Mock bundle — placeholder data, not results</p><p>Radar match passed</p></div>, an aria-live wrapper, an alert region two blocks out, inline live regions around or after the paragraph, and the same case for the shipping-mode banner must all be reported; nested or inline live regions that read exactly the banner must pass. Against the pre-fix page-check.ts (ee47c2a) 7 of 63 tests in tests/page-check.test.ts fail; with 89eac14 all 63 pass. All five story checks exit 0 at 938d4aa, and TURBO_FORCE=true make check and make test also exit 0 (web 282 tests, schema 157, pytest 404)."
+      }
     }
   ]
 }
