@@ -20,3 +20,5 @@ Rules for new cases:
 ## Generator cases
 
 `generator-cases.json` holds synthetic schemas, not bundle records, for the zod generator's `if`/`then` and `not` translation. Each entry is `{"name", "schema", "cases"}`, and each case is `{"name", "valid", "value"}` with a verdict authored from Draft 2020-12. The Python tests check every verdict with the Draft 2020-12 validator (ECMA-262 `$`), and the `@terraluna/schema` tests check that the generated zod gives the same one.
+
+Every object there requires all of its properties, so a document without an `if` property is rejected whatever the condition says. An entry whose schema has a top-level `if` therefore also has `conditionCases`: each is `{"name", "holds", "value"}`, where `value` is an object and `holds` is the Draft 2020-12 verdict of the `if` schema alone. An absent `if` property makes it false, because `if` lists that property in `required`. The Python tests check each verdict against the `if` schema, and the `@terraluna/schema` tests evaluate the condition the generated refinement uses. Each `if` property is absent in at least one condition case.
