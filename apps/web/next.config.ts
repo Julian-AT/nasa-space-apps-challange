@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@terraluna/schema'],
   poweredByHeader: false,
   reactStrictMode: true,
+  // next dev otherwise writes apps/web/AGENTS.md when it detects a coding agent. The repository's
+  // agent instructions are the root CLAUDE.md and AGENTS.md (PRD 23).
+  agentRules: false,
 };
 
 export default nextConfig;
