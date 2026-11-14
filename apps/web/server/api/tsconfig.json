@@ -1,0 +1,8 @@
+{
+  // The Hono API and its route tests (PRD 8.5). apps/web/tsconfig.json includes app, lib, scripts
+  // and tests but not server, so this project checks server/api with the same compiler options:
+  // the package's typecheck script runs `tsc --noEmit -p server/api`, and typed linting finds this
+  // file as the closest tsconfig.
+  "extends": "../../tsconfig.json",
+  "include": ["**/*.ts"]
+}

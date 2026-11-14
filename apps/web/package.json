@@ -11,7 +11,7 @@
     "start": "next start",
     "smoke": "node scripts/smoke.ts",
     "lint": "eslint .",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p server/api",
     "test": "vitest run"
   },
   "dependencies": {
