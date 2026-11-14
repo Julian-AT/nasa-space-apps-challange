@@ -18,6 +18,10 @@ these functions, so they never guess a value:
   decoded again offline. It counts the bytes received and logs every range request
   (``RangeExchange``: status, Content-Range, bytes received, retrieval time), and with
   ``with_header`` also reads the COG header (``read_geotiff_header``) through the same ranges.
+  ``read_remote_cog_window`` reads the header first and chooses the window from it, and also
+  reads the COG layout (``read_cog_layout``: the block grid, the overviews and the internal
+  tiles the window touches, with their byte offsets and sizes); every logged request is tagged
+  with the phase that sent it (header or window), so the bytes each phase cost are counted.
 - ``stac_search_url``, ``parse_stac_item_collection`` and ``fetch_stac_search`` run a STAC API
   item search and follow its ``next`` links; the pages are downloaded with ``fetch_file``.
 - ``parse_pds3_label``, ``pds3_image_layout`` and ``pds3_polar_stereographic`` read a PDS3
@@ -47,7 +51,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import IO, Any, Final, Protocol, Required, TypedDict
+from typing import IO, Any, Final, Literal, Protocol, Required, TypedDict
 
 import certifi
 import numpy as np
@@ -356,6 +360,147 @@ def read_geotiff_header(path: Path, *, ranges: ByteRanges | None = None) -> GeoT
     errors: list[Exception] = []
     container = _SingleFileContainer(ranges.name, ranges.size, ranges.read, errors)
     return _surface_errors(errors, lambda: _read_header(ranges.name, container))
+
+
+# --- COG layout: block grid, overviews and the internal tiles a window touches (PRD 8.7) ---------
+
+
+@dataclass(frozen=True)
+class CogBlock:
+    """One internal block (a tile of a tiled GeoTIFF) of one band, and where its bytes are.
+
+    ``row`` and ``col`` index the block grid from the top left. ``offset`` and ``size`` are the
+    byte offset and byte count the TIFF tile index states for the block, as GDAL reports them
+    (``BLOCK_OFFSET_<col>_<row>`` and ``BLOCK_SIZE_<col>_<row>`` in the TIFF metadata domain);
+    None when GDAL reports none.
+    """
+
+    row: int
+    col: int
+    offset: int | None
+    size: int | None
+
+
+@dataclass(frozen=True)
+class CogOverview:
+    """One overview of a band: GDAL's level (0 the largest), its decimation factor and grid."""
+
+    level: int
+    factor: int
+    width: int
+    height: int
+    block_shape: tuple[int, int]
+
+
+@dataclass(frozen=True)
+class CogLayout:
+    """How one band of a GeoTIFF is stored, and which of its blocks a window touches.
+
+    ``block_shape`` is ``(rows, columns)`` of one block, and ``blocks_across`` and
+    ``blocks_down`` the size of the block grid. ``window`` is ``(col_off, row_off, width,
+    height)`` and ``blocks`` lists every block that window intersects, in row-major order.
+    """
+
+    width: int
+    height: int
+    band: int
+    block_shape: tuple[int, int]
+    blocks_across: int
+    blocks_down: int
+    overviews: tuple[CogOverview, ...]
+    window: tuple[int, int, int, int]
+    blocks: tuple[CogBlock, ...]
+
+    @property
+    def stored_bytes(self) -> int:
+        """The bytes the touched blocks occupy in the file, as the tile index states them."""
+        return sum(block.size for block in self.blocks if block.size is not None)
+
+
+def _tag_int(src: Any, key: str, band: int) -> int | None:
+    value = src.get_tag_item(key, "TIFF", bidx=band)
+    return None if value is None else int(value)
+
+
+def _read_layout(
+    target: Path | str, label: str, window: Window, band: int, opener: FileContainer | None
+) -> CogLayout:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", NotGeoreferencedWarning)
+        with rasterio.open(target, opener=opener) as src:
+            if not 1 <= band <= src.count:
+                raise ValueError(f"{label} has bands 1 to {src.count}, not band {band}")
+            width, height = int(src.width), int(src.height)
+            col_off, row_off, w, h = _whole_pixels(window)
+            if (
+                w <= 0
+                or h <= 0
+                or col_off < 0
+                or row_off < 0
+                or col_off + w > width
+                or row_off + h > height
+            ):
+                raise ValueError(
+                    f"window (col_off={col_off}, row_off={row_off}, width={w}, height={h}) does "
+                    f"not lie inside the {width} x {height} raster {label}"
+                )
+            rows, cols = (int(value) for value in src.block_shapes[band - 1])
+            factors = tuple(int(factor) for factor in src.overviews(band))
+            blocks = tuple(
+                CogBlock(
+                    row=row,
+                    col=col,
+                    offset=_tag_int(src, f"BLOCK_OFFSET_{col}_{row}", band),
+                    size=_tag_int(src, f"BLOCK_SIZE_{col}_{row}", band),
+                )
+                for row in range(row_off // rows, (row_off + h - 1) // rows + 1)
+                for col in range(col_off // cols, (col_off + w - 1) // cols + 1)
+            )
+        overviews: list[CogOverview] = []
+        for level, factor in enumerate(factors):
+            with rasterio.open(target, opener=opener, overview_level=level) as overview:
+                o_rows, o_cols = (int(value) for value in overview.block_shapes[band - 1])
+                overviews.append(
+                    CogOverview(
+                        level=level,
+                        factor=factor,
+                        width=int(overview.width),
+                        height=int(overview.height),
+                        block_shape=(o_rows, o_cols),
+                    )
+                )
+    return CogLayout(
+        width=width,
+        height=height,
+        band=band,
+        block_shape=(rows, cols),
+        blocks_across=-(-width // cols),
+        blocks_down=-(-height // rows),
+        overviews=tuple(overviews),
+        window=(col_off, row_off, w, h),
+        blocks=blocks,
+    )
+
+
+def read_cog_layout(
+    path: Path, window: Window, *, band: int = 1, ranges: ByteRanges | None = None
+) -> CogLayout:
+    """The block grid and overviews of ``band``, and the blocks ``window`` touches (PRD 8.7).
+
+    Each touched block's byte offset and size come from the file's TIFF tile index, so the bytes
+    a reader needs for the window can be counted without decoding a pixel. Raises ValueError for
+    a band the file does not have and for a window that is empty, has fractional offsets or
+    sizes, or does not lie wholly inside the raster. When ``ranges`` is given, the file is read
+    from those stored byte ranges (opened as ``ranges.name``) and ``path`` is only used in
+    messages; a byte they do not hold raises RangeCacheError.
+    """
+    if ranges is None:
+        return _read_layout(path, str(path), window, band, None)
+    errors: list[Exception] = []
+    container = _SingleFileContainer(ranges.name, ranges.size, ranges.read, errors)
+    return _surface_errors(
+        errors, lambda: _read_layout(ranges.name, str(path), window, band, container)
+    )
 
 
 # --- read_product (PRD 8.11) --------------------------------------------------------------------
@@ -952,6 +1097,16 @@ class ByteRanges:
         """Whether every byte of the file is held, so the file was in effect downloaded whole."""
         return len(self.data) == self.size
 
+    def holds(self, first: int, last: int) -> bool:
+        """Whether every byte from ``first`` to ``last`` (inclusive) is held.
+
+        Ranges are disjoint and not adjacent, so a held span lies inside exactly one of them.
+        """
+        if first < 0 or last < first:
+            raise ValueError(f"invalid byte range {first}-{last}: need 0 <= first <= last")
+        index = bisect.bisect_right(self._starts, first) - 1
+        return index >= 0 and self.ranges[index][1] >= last
+
     def read(self, offset: int, length: int) -> bytes:
         """The bytes ``[offset, offset + length)`` clipped to the file size, like a file read.
 
@@ -1086,6 +1241,15 @@ class _SingleFileContainer(FileContainer):  # type: ignore[misc]
         return self._size
 
 
+ExchangePhase = Literal["header", "window"]
+"""Which part of a windowed read sent a range request.
+
+``header``: every request before the window is decoded (the first block, which states the file
+size, the header, the raster size and, for a COG read, the layout). ``window``: the requests
+made while the window's pixels are decoded.
+"""
+
+
 @dataclass(frozen=True)
 class RangeExchange:
     """One range request of a windowed read and what the server answered (PRD 9, Performance).
@@ -1093,7 +1257,7 @@ class RangeExchange:
     ``requested_first`` and ``requested_last`` are the inclusive byte range asked for, and
     ``status``, ``content_range`` and ``bytes_received`` the reply's HTTP status, Content-Range
     header and body length. ``retrieved_at`` is the clock's time when the reply had arrived, or
-    None when the read was given no clock.
+    None when the read was given no clock. ``phase`` is the part of the read that sent it.
     """
 
     url: str
@@ -1103,6 +1267,7 @@ class RangeExchange:
     content_range: str
     bytes_received: int
     retrieved_at: datetime | None
+    phase: ExchangePhase | None = None
 
 
 class _BlockCache:
@@ -1127,6 +1292,7 @@ class _BlockCache:
         self.requests = 0
         self.bytes_received = 0
         self.exchanges: list[RangeExchange] = []
+        self.phase: ExchangePhase = "header"
 
     def _request(self, first_block: int, last_block: int) -> None:
         first = first_block * self._block
@@ -1158,6 +1324,7 @@ class _BlockCache:
                 content_range=response.content_range,
                 bytes_received=response.bytes_received,
                 retrieved_at=None if self._now is None else self._now(),
+                phase=self.phase,
             )
         )
         if response.total_size is None:
@@ -1243,7 +1410,8 @@ class RemoteWindow:
     ``bytes_received`` the bytes they returned, which equals ``len(ranges.data)``. ``window`` is
     ``(col_off, row_off, width, height)``. ``band`` is the window as decoded. ``exchanges`` lists
     every range request in the order sent, and ``header`` is the file's header when the read was
-    asked for it (``with_header``), else None.
+    asked for it (``with_header``), else None. ``layout`` is the COG layout of the window when
+    the read was ``read_remote_cog_window``, else None.
     """
 
     url: str
@@ -1261,6 +1429,7 @@ class RemoteWindow:
     band: RasterWindow = field(repr=False, compare=False)
     exchanges: tuple[RangeExchange, ...] = ()
     header: GeoTiffHeader | None = field(default=None, compare=False)
+    layout: CogLayout | None = field(default=None, compare=False)
 
 
 def _same_decode(a: RasterWindow, b: RasterWindow) -> bool:
@@ -1313,7 +1482,73 @@ def read_remote_geotiff_window(
     domains) is read through the same cache before the window, so the stored byte ranges hold it
     too; it is read again from them and must be equal. ``now`` stamps each logged exchange.
     """
-    _check_public_http_url(url, "read_remote_geotiff_window")
+    return _read_remote(
+        url,
+        "read_remote_geotiff_window",
+        lambda header, width, height: choose_window(width, height),
+        band=band,
+        fetch=fetch,
+        block_bytes=block_bytes,
+        max_bytes=max_bytes,
+        with_header=with_header,
+        with_layout=False,
+        now=now,
+    )
+
+
+def read_remote_cog_window(
+    url: str,
+    choose_window: Callable[[GeoTiffHeader], Window],
+    *,
+    band: int = 1,
+    fetch: RangeFetcher = fetch_range,
+    block_bytes: int = RANGE_BLOCK_BYTES,
+    max_bytes: int = WHOLE_FILE_LIMIT_BYTES,
+    now: Callable[[], datetime] | None = None,
+) -> RemoteWindow:
+    """Read one window of a remote COG, chosen from its header, with the window's COG layout.
+
+    As ``read_remote_geotiff_window`` with ``with_header``, except that ``choose_window`` gets
+    the file's header (``GeoTiffHeader``: size, geotransform, CRS, tiling), so a window can be
+    placed by coordinates, and that the layout of the chosen window (``read_cog_layout``: the
+    block grid, the overviews and the touched blocks with their byte offsets and sizes) is read
+    through the same cache before the pixels. Every logged exchange is tagged ``header`` or
+    ``window`` (``ExchangePhase``). The layout is read again from the stored byte ranges and must
+    be equal, and every touched block's bytes must be held in them, or RangeReadError is raised.
+    """
+
+    def choose(header: GeoTiffHeader | None, width: int, height: int) -> Window:
+        assert header is not None
+        return choose_window(header)
+
+    return _read_remote(
+        url,
+        "read_remote_cog_window",
+        choose,
+        band=band,
+        fetch=fetch,
+        block_bytes=block_bytes,
+        max_bytes=max_bytes,
+        with_header=True,
+        with_layout=True,
+        now=now,
+    )
+
+
+def _read_remote(
+    url: str,
+    function: str,
+    choose: Callable[[GeoTiffHeader | None, int, int], Window],
+    *,
+    band: int,
+    fetch: RangeFetcher,
+    block_bytes: int,
+    max_bytes: int,
+    with_header: bool,
+    with_layout: bool,
+    now: Callable[[], datetime] | None,
+) -> RemoteWindow:
+    _check_public_http_url(url, function)
     if block_bytes <= 0:
         raise ValueError(f"block_bytes must be positive, got {block_bytes}")
     if max_bytes <= 0:
@@ -1328,16 +1563,21 @@ def read_remote_geotiff_window(
     assert cache.size is not None and cache.first is not None
     container = _SingleFileContainer(name, cache.size, cache.read, errors)
     header: GeoTiffHeader | None = None
+    layout: CogLayout | None = None
 
     def read() -> RasterWindow:
-        nonlocal header
+        nonlocal header, layout
         if with_header:
             header = _read_header(name, container)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", NotGeoreferencedWarning)
             with rasterio.open(name, opener=container) as src:
                 width, height = int(src.width), int(src.height)
-        return _read_window(name, url, choose_window(width, height), band, container)
+        chosen = choose(header, width, height)
+        if with_layout:
+            layout = _read_layout(name, url, chosen, band, container)
+        cache.phase = "window"
+        return _read_window(name, url, chosen, band, container)
 
     decoded = _surface_errors(errors, read)
     ranges = cache.byte_ranges(name)
@@ -1352,6 +1592,21 @@ def read_remote_geotiff_window(
             f"{url}: reading the header again from the stored byte ranges gave a different "
             "result; the byte ranges are not a faithful copy of what GDAL read"
         )
+    if layout is not None:
+        if read_cog_layout(Path(url), Window(*layout.window), band=band, ranges=ranges) != layout:
+            raise RangeReadError(
+                f"{url}: reading the COG layout again from the stored byte ranges gave a "
+                "different result; the byte ranges are not a faithful copy of what GDAL read"
+            )
+        for block in layout.blocks:
+            if block.offset is None or block.size is None or block.size <= 0:
+                continue
+            if not ranges.holds(block.offset, block.offset + block.size - 1):
+                raise RangeReadError(
+                    f"{url}: block (row {block.row}, column {block.col}) at bytes "
+                    f"{block.offset}-{block.offset + block.size - 1} is not held in the stored "
+                    "byte ranges, though the window touches it"
+                )
     first = cache.first
     return RemoteWindow(
         url=url,
@@ -1369,6 +1624,7 @@ def read_remote_geotiff_window(
         band=decoded,
         exchanges=tuple(cache.exchanges),
         header=header,
+        layout=layout,
     )
 
 
