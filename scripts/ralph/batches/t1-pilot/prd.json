@@ -1,0 +1,398 @@
+{
+  "project": "Terraluna",
+  "branchName": "ralph/t1-pilot",
+  "description": "PRD section 12, T1 (data pilot and product records), producing the evidence for gate G0 (section 9). Start condition: this branch includes ralph/t0-bootstrap with T0-04 passed, so that make schema and make schema-check cover the generated zod sources as well. Offline code (ProductRecord, readers, masks) is built and tested on small synthetic files first; each source then gets its own story with one small range-limited real read. Network and computation are separate. `python -m terraluna_pipeline.pilot fetch <source>` is the only command that touches the network; the author runs it while implementing, and it writes only to data/raw/ (git-ignored). `record <source>` computes the committed record from the cached data/raw files without network. `check <source>` recomputes the record in memory from data/raw without network, writes nothing, and fails if the committed record is not byte-identical or if the cached data is missing (with the message 'run: python -m terraluna_pipeline.pilot fetch <source> first'). Gate checks only use check, so they are offline and leave the git tree unchanged. Committed under outputs/: sources.json, outputs/pilot/*.json and one small preview PNG (at most 200 KB). Every recorded number comes from a real read. A source that needs an account or credentials is recorded as blocked with the reason and never blocks other stories. The shipping mode (G0) is a human checkpoint (PRD 23.6): no story writes it to config/run.yaml or marks G0 as PASS. Stokes validity and the S4-sign verdict belong to T2 (polarimetry.py, T2-02 and T2-05); T1 records raw observed statistics only. Stories run in priority order. The author iteration never sets passes; ralph.sh runs two independent reviews and a deterministic gate first. This file is Ralph's task list, not the product PRD.",
+  "userStories": [
+    {
+      "id": "T1-01",
+      "title": "ProductRecord and checksummed readers (offline)",
+      "owner": "data-engineer",
+      "prdRefs": [
+        "5 (entry rule)",
+        "8.3",
+        "8.11 (read_product)",
+        "8.12 (ProductRecord, rules)"
+      ],
+      "description": "Add the ProductRecord contract and the generic, offline-testable read layer that every source story uses.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "pipeline/src/terraluna_pipeline/io.py",
+        "packages/schema/*",
+        "pipeline/tests/test_*schema*.py",
+        "pipeline/tests/test_io*.py",
+        "pipeline/tests/data/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "Tests are written and run failing first. They use only tiny synthetic files generated in tmp_path or committed under pipeline/tests/data/ (each under 50 KB), never the network.",
+        "schema.py gains ProductRecord with exactly the PRD 8.12 fields (product_id, provider, version, source_url, local_path, checksum, body, acquisition_time, frequency_or_wavelength, transmit_receive_convention, units, calibration_type, native_grid, effective_resolution, crs_and_frame, incidence_source, qa_definition, license_or_attribution, verification_status). Existing models are unchanged. It forbids extra fields; every field is required, and unknown values are an explicit null or the string \"unknown\", never an empty string or 0. verification_status allows NOT_CHECKED, VERIFIED, PARTIAL, BLOCKED, FAILED. checksum is null or 64 lowercase hex sha256. A validator rejects source_url values containing a query string with signature or token parameters (X-Amz-Signature, Signature=, token=, access_key, Expires=) or userinfo credentials.",
+        "make schema regenerates packages/schema/json including ProductRecord and, if T0-04 has added them, the generated zod sources; make schema-check passes, with no drift in either. If T0-03 keeps the model list in the Makefile and T1-01 cannot extend it, the author stops and records that as a human decision in the notes.",
+        "io.py provides sha256_file (streaming), a range reader that fetches a byte range over HTTP (urllib; a Range header; verifies 206 status and Content-Range, and records the bytes actually received; raises a clear error on 200 full-body replies, DNS or connection failure), a windowed GeoTIFF reader built on rasterio that returns the array, nodata value, CRS string and affine transform as read from the file, and read_product(product_id, local_files, metadata) -> (arrays, ProductRecord) that fills the checksum from the file and refuses to guess units: a missing units value yields \"unknown\" and verification_status PARTIAL.",
+        "Tests cover: the checksum of a known byte string; a ProductRecord missing a field fails; a signed URL is rejected; the windowed read of a synthetic GeoTIFF returns the right shape, CRS, transform offsets and nodata; a local http.server on 127.0.0.1 serving a file with Range support returns the exact requested bytes and the reader raises when the server ignores Range.",
+        "No network access in any test. Dependencies added to pipeline/pyproject.toml only if needed and only from the standard library plus what T0 already installed; uv.lock stays consistent."
+      ],
+      "checks": [
+        "make schema-check",
+        "uv run pytest pipeline/tests/test_schema_productrecord.py",
+        "uv run pytest pipeline/tests/test_io.py",
+        "make check"
+      ],
+      "priority": 1,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Reviewer finding: schema generation can touch generated zod files outside packages/schema/json, so files widened to packages/schema/*. Engineering choice: ProductRecord tests go in pipeline/tests/test_schema_productrecord.py (matches test_*schema*.py)."
+    },
+    {
+      "id": "T1-02",
+      "title": "Quality masks (offline)",
+      "owner": "data-engineer",
+      "prdRefs": [
+        "5 (Mini-RF rows)",
+        "7 (validity rules)",
+        "8.11"
+      ],
+      "description": "quality.py: validity masks with explicit invalid reasons and a valid-fraction helper, tested on synthetic arrays. No Stokes, CPR or S4-sign logic; those belong to T2 (T2-02, T2-05).",
+      "files": [
+        "pipeline/src/terraluna_pipeline/quality.py",
+        "pipeline/tests/test_quality*.py"
+      ],
+      "acceptanceCriteria": [
+        "Tests are written and run failing first, on small synthetic numpy arrays only.",
+        "quality.py provides a validity mask function returning a boolean valid array plus an integer invalid-reason array with a documented reason-code enum (nodata, non_finite, outside_support). Explicit nodata values and ISIS null values (approximately -3.4e38, matched by a documented tolerance) are invalid; NaN and inf are invalid; missing is never replaced by 0 and no fill value is invented. A value of 0 is valid unless the product's label says it is a null. No threshold-based reason exists: an added SNR or quality threshold must first be written in config (PRD 7), and radar.snr_rule is still null.",
+        "quality.py contains no Stokes, SC/OC/CPR or S4-sign logic. Stokes validity (S1 >= |S4|, reason STOKES_S1_LT_ABS_S4) belongs to polarimetry.py (T2-02), and the lunar S4-sign check is polarimetry.lunar_s4_sign_check (T2-05), so the repository never carries two verdict vocabularies or two tolerances for the same rule.",
+        "Valid-fraction helper returns the covered fraction and the pixel counts, and raises on an empty window rather than returning 0 or 1."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_quality.py",
+        "make check"
+      ],
+      "priority": 2,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Reviewer finding: S4-sign check and Stokes consistency removed (T2 owns them, orchestrator decision 2); below_threshold reason removed."
+    },
+    {
+      "id": "T1-03",
+      "title": "Pilot runner and PGDA78 Site01 real read",
+      "owner": "data-engineer",
+      "prdRefs": [
+        "5 (row 5, pilot step 2, download table)",
+        "6.1",
+        "8.12",
+        "9 (G0)"
+      ],
+      "description": "Create pilot.py (a CLI with fetch, record and check per source) and run the first source: PGDA product 78, Site01 Connecting Ridge. Downloads (data/raw/pgda78/) are kept separate from the computation that writes the record.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/pilot.py",
+        "pipeline/src/terraluna_pipeline/io.py",
+        "pipeline/tests/test_pilot*.py",
+        "pipeline/tests/test_io*.py",
+        "pipeline/tests/data/*",
+        "outputs/sources.json",
+        "outputs/pilot/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "pilot.py is runnable as python -m terraluna_pipeline.pilot {fetch|record|check} <source>. fetch is the only command that uses the network; it writes only to data/raw/<source>/ (never inside the repo tree outside the ignored data/) together with the retrieval time, URLs, HTTP status and byte counts. record reads only data/raw/ and writes outputs/; it is deterministic (no wall-clock time; the retrieval time is copied from the fetch metadata) and re-running it reproduces outputs/ byte for byte. check recomputes the record in memory from data/raw, never uses the network and writes nothing; it exits non-zero if the committed outputs differ from the recomputed ones, and if data/raw/<source>/ is missing it fails with 'run: python -m terraluna_pipeline.pilot fetch <source> first'. Unit tests with a mocked fetch layer and a synthetic GeoTIFF cover record and check; a test makes network access fail to prove record and check are offline, and a test proves check leaves the files unchanged.",
+        "The pgda78 source reads the file list from the README at https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/ (Site01 folder), then fetches the Site01 height (_surf), count (_ldec), slope and error GeoTIFFs only as needed. Whole-file download is allowed only for files under 200 MB; larger files are read by windowed range read. It never downloads the 87S mosaic.",
+        "outputs/pilot/pgda78_site01.json records, from the real files: actual file names, URLs, byte sizes, sha256 checksums, CRS string and frame as read from the file (not assumed), pixel size, extent, nodata value, units, a decoded valid fraction of the DEM, the effective-support fraction from the count map (observed vs interpolated, never assumed to be 90%), the ROI shapefile list if present, the retrieval date (from the fetch metadata) and tool versions. Fields not found in a file are the string \"unknown\" or null with a reason. A preview PNG (outputs/pilot/pgda78_site01_preview.png, at most 200 KB) rendered from the real decoded DEM array is required, because G0 asks for a preview (PRD 9) and pilot step 2 plots the DEM with ROI outlines. The outlines are drawn when the ROI shapefiles can be read with the installed libraries; otherwise the record says they are missing and why. Any new dependency needed for the PNG or the shapefiles (for example Pillow and pyshp) is added to pipeline/pyproject.toml and uv.lock in this story.",
+        "outputs/sources.json holds a list of ProductRecords validated by the schema, upserted by product_id and sorted by product_id (re-running leaves it byte-identical when inputs are unchanged), with a record for each Site01 product read and local_path naming the data/raw/pgda78/ file. If any of the PGDA files cannot be fetched (unreachable, 404), fetch exits non-zero with a message naming the URL and error, and no record with invented values is written.",
+        "Only small files are committed: no GeoTIFF, tgz or preview over 200 KB. data/raw/ stays ignored."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests",
+        "uv run python -m terraluna_pipeline.pilot check pgda78",
+        "make check"
+      ],
+      "priority": 3,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Reviewer findings applied: offline gate with fetch/record/check split, required preview PNG, upsert. Engineering choice: Pillow and pyshp are the candidate dependencies, picked by the author and added in this story."
+    },
+    {
+      "id": "T1-04",
+      "title": "Mini-RF polar mosaic range read and raw Stokes S4 statistics",
+      "owner": "data-engineer",
+      "prdRefs": [
+        "5 (rows 1 and 2, mosaic layout)",
+        "6.2 (lunar sign check, observation only)",
+        "15 (handedness)",
+        "9 (G0)"
+      ],
+      "description": "Read the Site01 window from the Mini-RF south-polar mosaic by HTTP range request, confirm the layout against the product label, and record raw S1 and S4 statistics where Stokes layers exist. The S4-sign verdict is T2's (polarimetry.lunar_s4_sign_check, T2-05); this story computes no verdict.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/pilot.py",
+        "pipeline/src/terraluna_pipeline/io.py",
+        "pipeline/tests/test_pilot*.py",
+        "pipeline/tests/test_io*.py",
+        "outputs/sources.json",
+        "outputs/pilot/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "The minirf source locates the product through the PDS Geosciences Node or Lunar ODE landing pages for LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0 (volume LROMRF_0005). The layout values in PRD 5 (10,346 x 10,346, little-endian float32, 256 px/deg, ISIS null near -3.4e38) are leads only: each one is confirmed or contradicted against the downloaded detached .LBL/.lbl label and recorded as such. The PRD 5 lead that 'non-positive values are treated as missing' is checked against the label as well: a CPR of 0 is a valid low CPR (PRD 7, F1) and is treated as missing only if the label says so. The PDS3 label parser and the range-read helper live in io.py (PRD 8.3) with tests on a synthetic label.",
+        "Only the label and the Site01 window rows are fetched, using range requests (206 verified, bytes received recorded). The whole mosaic is never downloaded. If the server ignores Range, fetch stops and records that fact as the blocking limitation, with no full download. fetch saves the label, the window bytes and their HTTP metadata (status, Content-Range, bytes received, retrieval time) under data/raw/minirf/.",
+        "The window is located by computing the Site01 extent (from outputs/pilot/pgda78_site01.json) in the label's projection with pyproj; the projection parameters come from the label. pyproj is added to pipeline/pyproject.toml and uv.lock in this story, and it is installed here. Offsets and the converted bounds are recorded. If T1-03 has not produced the extent, the story records a PARTIAL with that reason.",
+        "outputs/pilot/minirf_mosaic.json records: label URL, data URL, label sha256, window byte ranges, bytes received, sample type and units from the label, the null value, valid fraction in the window (using quality.py), min, max and median of valid CPR, transmit handedness as the product states it (or \"not stated\"), look-direction mixing, and the incidence statement. It states that per-pixel incidence is not recoverable from the mosaic.",
+        "Stokes observation: first establish from the MOSAIC-V1.0 labels whether S1 and S4 mosaic layers cover Site01 (PRD 5 lists Stokes layers among the mosaic product types). If they do, range-read the Site01 window of S1 and S4 the same way and record only observed raw statistics under stokes_observation: layer file names, byte ranges read, units, the count of pixels valid by quality.py's mask, the counts of S4 > 0, S4 < 0 and S4 = 0 among them, and min and max of S1 and S4. The record carries no verdict label and no S1 >= |S4| validity count, and states that the S4-sign verdict is computed by polarimetry.lunar_s4_sign_check (T2-05) at integration. No minimum pixel count is introduced. If the mosaic has no Stokes layers, record stokes_observation: {\"status\": \"not_performed\", \"reason\": \"...\"} and list the MAP-V1.0 single-swath read as an open G0 item; reading a single swath is out of scope. CPR values are never used to infer or fake S4, and the sign is never flipped silently.",
+        "A ProductRecord for each product read is upserted into outputs/sources.json by product_id (sorted by product_id), with the checksum of what was actually fetched (the label, and the window bytes) and local_path naming the data/raw/minirf/ file that holds exactly those bytes; the byte ranges are stated in outputs/pilot/minirf_mosaic.json. Unreachable source: fetch exits non-zero naming the URL and error."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests",
+        "uv run python -m terraluna_pipeline.pilot check minirf",
+        "make check"
+      ],
+      "priority": 4,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Reviewer findings applied. T2 owns the S4-sign verdict and Stokes validity (orchestrator decision 2); T1 records raw counts only. The reviewer flagged the story as large; engineering choice: kept as one story with the single-swath read removed. If it does not fit one session, the author stops after the CPR window record and notes the Stokes observation as unfinished instead of faking it."
+    },
+    {
+      "id": "T1-05",
+      "title": "USGS CTX DTM via STAC search and QA read",
+      "owner": "data-engineer",
+      "prdRefs": [
+        "5 (Mars inputs, G0 check)",
+        "9 (G0: one Mars CTX DTM read)",
+        "15 (CTX QA threshold)"
+      ],
+      "description": "Query the USGS Astrogeology STAC API for CTX DTMs over Jezero and Arcadia, then read one DTM window by range request and its qa_metrics.txt.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/pilot.py",
+        "pipeline/tests/test_pilot*.py",
+        "outputs/sources.json",
+        "outputs/pilot/*",
+        "pipeline/src/terraluna_pipeline/io.py",
+        "pipeline/tests/test_io*.py"
+      ],
+      "acceptanceCriteria": [
+        "The ctx source queries https://stac.astrogeology.usgs.gov/api, collection mro_ctx_controlled_usgs_dtms, with a bbox search over a Jezero box and an Arcadia Planitia box. The boxes are stated in the record as pilot probes, not target windows; no target window is chosen. The item counts returned (with pagination handled) are recorded as found, not copied from the PRD's example of 80. The STAC, COG-header and byte-counting range readers live in io.py (PRD 8.3).",
+        "One item is chosen by a deterministic rule stated in the record (for example the lexicographically first item ID over Jezero). Its asset hrefs, COG band, CRS, pixel size, nodata, units (as the file states) and the qa_metrics.txt text are read. A 256 x 256 window (or smaller) is read by range request from the COG (not a whole download); bytes received are recorded and the valid fraction is computed with quality.py.",
+        "The record includes the CTX-MOLA standard-deviation value from qa_metrics.txt if present, quoted exactly with its source line, and does not apply or set the CTX QA threshold (an open item in PRD 15). If qa_metrics.txt is absent for the item, that is recorded as absent for that item.",
+        "Licence (CC0) and DOI 10.5066/P9JKVWR3 are recorded only if the STAC collection metadata states them; otherwise the field is \"unknown\". ProductRecords are upserted into outputs/sources.json by product_id (sorted by product_id; re-running leaves the file byte-identical when inputs are unchanged), with local_path naming the data/raw/ctx/ file that holds exactly the fetched bytes; no signed URLs.",
+        "Unreachable STAC or asset: fetch exits non-zero naming the URL and error. Unit tests use a recorded-free stub server on 127.0.0.1 with synthetic STAC JSON and a synthetic COG; no network in tests.",
+        "fetch saves the STAC responses (all pages), qa_metrics.txt, the COG header and window bytes and their HTTP metadata (status, Content-Range, bytes received, retrieval time) under data/raw/ctx/; record reads only those files and check verifies the committed outputs byte for byte, offline, as defined in T1-03."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests",
+        "uv run python -m terraluna_pipeline.pilot check ctx",
+        "make check"
+      ],
+      "priority": 5,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Reviewer findings applied: upsert, io.py readers, offline gate."
+    },
+    {
+      "id": "T1-06",
+      "title": "Copernicus GLO-30 COG range read",
+      "owner": "data-engineer",
+      "prdRefs": [
+        "5 (row 11, Earth DEM)",
+        "8.7",
+        "9 (G0)"
+      ],
+      "description": "Read a window of one Copernicus GLO-30 tile by range request from the public bucket (server-side read; the browser-origin check is T1-07).",
+      "files": [
+        "pipeline/src/terraluna_pipeline/pilot.py",
+        "pipeline/tests/test_pilot*.py",
+        "outputs/sources.json",
+        "outputs/pilot/*",
+        "pipeline/src/terraluna_pipeline/io.py",
+        "pipeline/tests/test_io*.py"
+      ],
+      "acceptanceCriteria": [
+        "The cop30 source picks one tile deterministically (a 1 degree tile over Holuhraun, Iceland, confirmed to exist in tileList.txt; if the tile is withheld or missing, that is recorded and the next documented fallback tile is stated), derives the HTTPS URL for s3://copernicus-dem-30m/ in eu-central-1 without credentials, and reads the COG header and the probe window by range request. The COG-header and byte-counting range readers live in io.py (PRD 8.3).",
+        "outputs/pilot/cop30_range_read.json records: URL, HTTP status (206), Content-Range, total object size, bytes requested and received, the internal tile size and overview structure, CRS (EPSG:4326 as read from the file), pixel size, vertical datum statement as in the file or product docs (\"unknown\" if not in the file), nodata, units, valid fraction and elevation min and max of the window, and the surface-model caveat (vegetation and buildings).",
+        "The window is the live-probe footprint, 5 km x 5 km (PRD 8.7), at a stated centre in the tile. The record gives the total bytes fetched (header plus data), the number of internal COG tiles touched, and whether the read stayed within the 4 MB live-probe DEM budget of PRD 8.7. This is an observation: an over-budget read is recorded as over budget, not hidden, and does not by itself make the subcommand fail. Whole-tile download is not allowed.",
+        "A ProductRecord is upserted into outputs/sources.json by product_id (sorted by product_id). It holds the licence/attribution string as published by the provider, or \"unknown\" if not verified, the sha256 of the fetched bytes, and a local_path naming the data/raw/cop30/ file that holds exactly those bytes. The ranges are stated in outputs/pilot/cop30_range_read.json.",
+        "Unreachable bucket: fetch exits non-zero naming the URL and error.",
+        "fetch saves tileList.txt, the fetched byte ranges and their HTTP metadata (status, Content-Range, bytes received, retrieval time) under data/raw/cop30/; record reads only those files and check verifies the committed outputs byte for byte, offline, as defined in T1-03."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests",
+        "uv run python -m terraluna_pipeline.pilot check cop30",
+        "make check"
+      ],
+      "priority": 6,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Reviewer findings applied: window is the 5 km live-probe footprint and the 4 MB budget is measured and reported, not forced; upsert; offline gate."
+    },
+    {
+      "id": "T1-07",
+      "title": "Origin-header CORS check and WorldCover read",
+      "owner": "data-engineer",
+      "prdRefs": [
+        "5 (row 12, Mars/Earth table)",
+        "8.7",
+        "9 (G0)",
+        "15 (architecture review items)"
+      ],
+      "description": "Send requests with an Origin header to the Copernicus GLO-30 and WorldCover buckets and record the actual response headers. Read one small WorldCover window. This is evidence for cop30_mode; the story does not set it.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/pilot.py",
+        "pipeline/tests/test_pilot*.py",
+        "outputs/sources.json",
+        "outputs/pilot/*",
+        "pipeline/src/terraluna_pipeline/io.py",
+        "pipeline/tests/test_io*.py"
+      ],
+      "acceptanceCriteria": [
+        "The cors source issues, for a GLO-30 tile URL and a WorldCover tile URL: an OPTIONS preflight (Origin, Access-Control-Request-Method: GET, Access-Control-Request-Headers: range) and a GET with Range: bytes=0-1023 and an Origin header. The origins tested are stated (for example https://example.org as a neutral origin and a localhost origin); no project names or personal data are sent.",
+        "outputs/pilot/cors_check.json records, per URL and per request, the status code and the raw response headers that matter (access-control-allow-origin, -allow-methods, -allow-headers, -expose-headers, -max-age, vary, content-range, accept-ranges, content-length), and the observation for each: whether the Range GET returned 206 and whether Access-Control-Expose-Headers lists Content-Range and Accept-Ranges. Missing headers are recorded as absent, not as a pass.",
+        "The record states plainly that this is a server-side request that sends an Origin header, not a real browser fetch, and that the header evidence implies but does not replace a browser run. It contains a derived field cors_evidence_supports with values direct_read, proxy_needed or inconclusive, plus the reasons, and the explicit note that cop30_mode is chosen by the team at G0. This story must not write cop30_mode anywhere, including config/run.yaml.",
+        "The wc source finds the WorldCover tile covering the same area as T1-06 for one pinned year (v100 2020 or v200 2021; the year used and why are recorded), reads a window of at most 512 x 512 by range request, and records path, CRS, class codes present with pixel counts (class names only as the provider's legend states), the bytes received and the sha256 of the fetched range. A bare-ground-class count is not described as dry bare mineral soil.",
+        "ProductRecords for the WorldCover window are upserted into outputs/sources.json by product_id (sorted by product_id), with local_path naming the data/raw/worldcover/ file that holds exactly the fetched bytes. Unreachable bucket: fetch exits non-zero naming the URL and error; a missing CORS header is a recorded observation, not a failure.",
+        "fetch cors and fetch wc save the raw status lines, response headers, fetched bytes and request times under data/raw/cors/ and data/raw/worldcover/. record and check for cors and wc read only those files and verify the committed outputs byte for byte, offline, as defined in T1-03."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests",
+        "uv run python -m terraluna_pipeline.pilot check cors",
+        "uv run python -m terraluna_pipeline.pilot check wc",
+        "make check"
+      ],
+      "priority": 7,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Reviewer findings applied. cors and wc are two sources of the same CLI (fetch cors, fetch wc). The real browser-origin CORS and range evidence is not produced by this story; it is a separate pilot step and T1-09 treats header evidence as partial."
+    },
+    {
+      "id": "T1-08",
+      "title": "Credential-gated sources recorded as blocked",
+      "owner": "data-engineer",
+      "prdRefs": [
+        "4 (fallback rules)",
+        "5 (rows 3, 4, 7, 8)",
+        "15",
+        "23.6",
+        "23.7"
+      ],
+      "description": "Record the sources that need an account (UAVSAR via ASF/Earthdata, Chandrayaan-2 DFSAR via ISRO PRADAN, PALSAR-2 via Earth Engine) as blocked, doing only what is possible without credentials. Agents never type credentials, create accounts or use signed URLs.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/pilot.py",
+        "pipeline/tests/test_pilot*.py",
+        "outputs/sources.json",
+        "outputs/pilot/*"
+      ],
+      "acceptanceCriteria": [
+        "The gated source writes outputs/pilot/uavsar_holuhraun.json, dfsar_pradan.json and palsar2_ee.json. Each carries status BLOCKED (or PARTIAL where something was actually read), the reason (account/registration required), the exact human step needed and who must do it, and ProductRecords in outputs/sources.json (upserted by product_id, sorted) with verification_status BLOCKED or NOT_CHECKED and unknown fields set to \"unknown\".",
+        "UAVSAR: fetch gated attempts an anonymous ASF Search API (https://api.daac.asf.alaska.edu/services/search/param) query for dataset UAVSAR, polarimetric products, over a Holuhraun bounding box and the May 2015 period, and saves the raw response (or the failure text) and request time under data/raw/asf/. Search metadata needs no login, so if it succeeds, record the real scene names, dates, footprints and counts returned, and mark the downloaded-data items (six products decoded, plot) as BLOCKED pending an Earthdata login. If the search itself fails or returns no polarimetric scenes, record that exactly. The acquisition ID is not asserted from the PRD; only IDs returned by the search are recorded. record and check read only the saved response; if it is absent they fail with 'run: python -m terraluna_pipeline.pilot fetch gated first'.",
+        "The UAVSAR record says where the human-downloaded scene must go: data/raw/uavsar/<scene_name>/, holding the .ann file and the six .grd products (HHHH, HVHV, VVVV, HHHV, HHVV, HVVV). It gives the exact step that lets T2-07 find it: export TERRALUNA_UAVSAR_SCENE=<absolute path of that directory> (a directory, not the .ann file; this is the form pipeline/tests/test_polarimetry_oracle.py is to read, if that file is on this branch). The code never sets the variable, and the record states that T2-07 fails with 'data not present' until a human has Earthdata access and downloads the scene. UAVSAR stays BLOCKED; no data is faked.",
+        "No download of any credential-gated product is attempted. No token, cookie, password or signed URL appears in any file or log, and the record states whether any credential environment variable was present only as a boolean, never its value.",
+        "The records say that the Earth radar ROI and the DFSAR observable required by G0 and Mode A are not available from this run, which is an access limitation to be escalated, and that no substitute measurement is used in their place.",
+        "Writing the blocked state needs no credentials, and a failed anonymous search is itself recorded and does not make the commands fail; they exit non-zero only on a malformed record or a missing saved search."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests",
+        "uv run python -m terraluna_pipeline.pilot check gated",
+        "make check"
+      ],
+      "priority": 8,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Orchestrator decision 4: documents the TERRALUNA_UAVSAR_SCENE hand-off to T2-07. Engineering choice: the variable names the scene directory, because T2-07 does not say; T2 owners should confirm. A human with Earthdata access must download the scene (a credential checkpoint). Stays BLOCKED until then."
+    },
+    {
+      "id": "T1-09",
+      "title": "G0 evidence record and recommendation (no mode choice)",
+      "owner": "data-engineer",
+      "prdRefs": [
+        "4",
+        "9 (G0)",
+        "12 (T1)",
+        "23.6"
+      ],
+      "description": "Assemble the G0 evidence checklist from the committed pilot records, with a recommendation for the team. The shipping mode is a human checkpoint: this story neither chooses it nor marks G0 PASS.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/pilot.py",
+        "pipeline/tests/test_pilot*.py",
+        "outputs/pilot/*"
+      ],
+      "acceptanceCriteria": [
+        "The g0 source reads only the committed outputs/pilot/*.json and outputs/sources.json (no network) and writes outputs/pilot/g0_evidence.json with one entry per PRD section 9 G0 evidence item: one real lunar ROI decoded with metadata, masks, units and preview; one Earth radar ROI decoded; actual coverage known; one Mars CTX DTM read; one Copernicus COG read with the CORS result recorded; the mock bundle rendering on a preview deployment. Each entry is met, partial, blocked or not_checked, with the evidence file path and a one-line reason. The Copernicus entry is at most partial while the only CORS evidence is T1-07's server-side Origin-header request. It is met only when a real browser-origin Range GET has been recorded.",
+        "The mock-bundle preview item is not_checked here (a T0/Vercel human step) and is never inferred.",
+        "The record carries a GateRecord-shaped block (schema.GateRecord) with gate_id G0 and status never PASS; the allowed values written by this command are NOT_RUN or PARTIAL, and a test asserts it cannot emit PASS or FAIL. It does not write outputs/validation.json, config/run.yaml or any shipping_mode or cop30_mode value.",
+        "A recommendation section lists, for each of Modes A, B and C in PRD section 4, whether its entry conditions are supported, partly supported or unsupported by the evidence, citing evidence paths, and flags it explicitly as a recommendation for the human G0 checkpoint. Missing evidence is cited as missing, not as a pass or zero.",
+        "The record lists unresolved access limitations (credentials, registrations, unreachable sources) and the open items they leave in PRD 15, and the human decisions required: shipping mode, cop30_mode, target windows and the CTX QA threshold.",
+        "g0_evidence.json also lists the PRD 5 'G0 check' items that no T1 story covers as not_checked with that reason: the lunar training DEM (exact file, grid, projection, nodata) and the crater catalogues (diameter and centre fields). record g0 reproduces the file byte for byte on unchanged inputs; check g0 is offline and writes nothing, and fails if an input record it needs is missing, naming the file."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests",
+        "uv run python -m terraluna_pipeline.pilot check g0",
+        "make check",
+        "make test"
+      ],
+      "priority": 9,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Reviewer findings applied. The record is a recommendation only; shipping mode, G0 pass, cop30_mode, target windows and the CTX QA threshold stay human decisions."
+    }
+  ]
+}

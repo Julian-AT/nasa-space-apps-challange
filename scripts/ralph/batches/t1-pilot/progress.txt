@@ -1,0 +1,29 @@
+# Ralph progress: t1-pilot
+
+Append-only. Each iteration adds one entry at the end. Keep general, reusable facts in Codebase Patterns.
+
+## Codebase Patterns
+- Build Mac, checked 2026-11-14: uv 0.9.26; Python 3.12.13 via uv; Node 22.23.3 (nvm); pnpm 12.16.1; jq 1.8.2; GNU Make 3.81; actionlint installed.
+- `python3` on PATH is Anaconda's 3.14. Always use `uv run`, never bare `python3`.
+- GNU Make 3.81: no .ONESHELL, no grouped targets (`&:`), no `!=` assignment. Keep recipes POSIX sh.
+- No system GDAL (`gdalinfo` is missing). GDAL comes from the rasterio wheel.
+- macOS has no coreutils `timeout`.
+- Other workers may share this repository. Stage explicit paths only.
+- Commits: commitlint (config-conventional, scopes lower case such as t0-01) runs from the husky commit-msg hook (core.hooksPath=.husky/_). The root package.json already exists for this; T0-04 extends it.
+- ralph.sh commits review files, gate results, loop notes and compact logs (logs/agents/<date>/*.jsonl). Full transcripts are in git-ignored logs/agents/<date>/raw/.
+- ralph.sh matches story `files` with bash `[[ $p == $glob ]]`, so `*` also matches `/`: `pipeline/*` covers nested paths.
+- Context7 works over plain HTTP via WebFetch: https://context7.com/api/v1/<org>/<repo>?topic=<words>&tokens=<n>. For flags of an installed CLI, `<cli> --help` is authoritative.
+- The uv workspace root is virtual (no [project]). A plain `uv sync --locked` there installs both members and the dev group (checked on a fresh copy).
+- Bundle records live in pipeline/src/terraluna_pipeline/schema.py. Base `Record` uses extra=forbid, strict=True, frozen=True and regex_engine="rust-regex". Constraints are kept to what JSON Schema can express (patterns, enums, minLength, minimum), so T0-03/T0-04 can stay in parity.
+- Parity traps for T0-03 (both checked with jsonschema 4.26.0): (1) the Python `jsonschema` package matches `pattern` with `re.search`, where `$` also matches before a trailing newline, so "<64 hex>\n" passes `^[0-9a-f]{64}$` there but fails pydantic (rust-regex) and ECMA/zod. (2) pydantic strict rejects JSON `1.0` for an int, while JSON Schema `integer` accepts it and JS cannot tell 1.0 from 1.
+- mypy --strict reports a tuple of lambdas that are called later as no-untyped-call. Call the functions directly.
+- `mktemp` + `mv` leaves a file with mode 600. Run `chmod 644` after a jq rewrite of prd.json. `jq .` reproduces prd.json's formatting byte for byte.
+- The Codex reviewer runs in a read-only sandbox, so it marks every check command NOT_RUN. Only the Claude reviewer and the gate run commands. To show that a resolution edit changed only resolution fields, compare the hash of `jq 'del(.findings[].resolution)'` before and after.
+- Bundle I/O lives in pipeline/src/terraluna_pipeline/export.py: write_bundle, validate_bundle (returns BundleError(code, path, message); codes are the ErrorCode Literal), budget_errors over BUDGETS (PRD 8.4 table order), canonical_json and the mock bundle. CLI: `uv run python -m terraluna_pipeline.export validate <dir> [--production] | mock-bundle <dir> | mock-bundle-check <dir>`. `make mock-bundle` and `make mock-bundle-check` wrap the last two.
+- Claude Code's safety check blocks shell commands with `rm -rf` on a variable (also inside heredocs or Makefile recipes) and the agent must not work around it. Design targets so nothing deletes a directory: overwrite in place, and use Python `tempfile.TemporaryDirectory` for scratch space.
+- commitlint: a body line that starts with `word:` is parsed as a footer token and gives a footer-leading-blank warning. Do not start body lines with "x:".
+- Python stdlib traps: `json.loads` accepts NaN/Infinity unless `parse_constant` refuses them, and raises RecursionError (not ValueError) on deep nesting. `Path.walk()` (3.12) puts symlinks to directories in filenames, unlike `os.walk`.
+- JSON Schema generation lives in schema.py: CONTRACTS (name as used in fixtures/schema-cases, file name, TypeAdapter), generate_json_schemas, write_json_schemas and json_schema_differences. CLI: `uv run python -m terraluna_pipeline.schema write <dir> | check <dir>`; `make schema` and `make schema-check` wrap them for packages/schema/json. pydantic's GenerateJsonSchema already orders keywords and keeps properties in field order, so the output is deterministic without sort_keys. T0-04 extends both make targets with zod.
+- How T0-03 handled the parity traps: (1) the Python tests evaluate JSON Schema `pattern` as ECMA-262 (trailing `$` becomes `\Z`) via jsonschema's validators.extend, and the translator raises on constructs that differ between the engines (\d, \w, \s, `.`, `(?`, negated or empty classes); (2) cases.json uses no integral floats and no integer beyond ±2^53, and BundleFile.bytes is capped at JS_MAX_SAFE_INTEGER. jsonschema 4.26 (draft 6 and later) treats 1.0 as an integer, as JS does; only pydantic strict rejects it.
+- types-jsonschema 4.26 leaves `validators.extend` untyped, so mypy --strict needs `# type: ignore[no-untyped-call]` on that call. It types `is_valid` input as a JSON value, so pass `Any`, not `object`.
+---
