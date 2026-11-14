@@ -312,6 +312,9 @@ describe('pageProblems', () => {
     { name: 'a paragraph between <main> and the footer', html: REAL_PAGE.replace('</main>', '</main><p>moon-cr-site01-w000</p>'), shown: REAL },
     { name: 'words in a hidden element', html: MOCK_PAGE.replace('<header>', '<div hidden>Radar match passed</div><header>'), shown: MOCK },
     { name: 'words after the body', html: REAL_PAGE.replace('</body>', '</body>Radar match passed'), shown: REAL },
+    // A browser ignores a head tag inside the body (HTML parsing, "in body" mode) and shows its text.
+    { name: 'words in a head tag inside the body', html: MOCK_PAGE.replace('<header>', '<head>Radar match passed</head><header>'), shown: MOCK },
+    { name: 'words in a second head after the body', html: REAL_PAGE.replace('</html>', '<head>Radar match passed</head></html>'), shown: REAL },
   ])('reports text outside <main> that is no banner, footer or layout label ($name)', ({ html, shown }) => {
     expect(pageProblems(html, shown).join('\n')).toMatch(/layout label/);
   });
