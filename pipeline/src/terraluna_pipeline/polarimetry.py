@@ -647,15 +647,18 @@ def _check_stokes_convention(convention: object) -> None:
 
 @dataclass(frozen=True, slots=True)
 class CircularPowers:
-    """Same-sense power SC, opposite-sense power OC and CPR = SC/OC, each with its own states.
+    """Total power, same-sense power SC, opposite-sense power OC and CPR = SC/OC.
 
-    ``sc``, ``oc`` and ``cpr`` have the same shape. SC and OC are linear powers in the units the
-    product's label defines for its Stokes parameters; CPR is a dimensionless linear ratio, not
-    the share of total echo, which is ``CPR / (1 + CPR)`` (PRD 6.2). A ``VALID`` CPR needs a
-    ``VALID`` SC and a ``VALID``, positive OC. ``convention`` is the declared Stokes convention
-    and ``tolerance`` the one the Stokes validity rules used.
+    Each field is a :class:`StatedArray` with its own states, and all have the same shape. Total
+    power, SC and OC are kept beside CPR (PRD 6.2), so they stay available where CPR is not.
+    ``total`` is S1 = SC + OC. Total, SC and OC are linear powers in the units the product's
+    label defines for its Stokes parameters. CPR is a dimensionless linear ratio, not the share
+    of total echo, which is ``CPR / (1 + CPR)`` (PRD 6.2). A ``VALID`` CPR needs a ``VALID`` SC
+    and a ``VALID``, positive OC. ``convention`` is the declared Stokes convention and
+    ``tolerance`` the one the Stokes validity rules used.
     """
 
+    total: StatedArray
     sc: StatedArray
     oc: StatedArray
     cpr: StatedArray
@@ -663,14 +666,13 @@ class CircularPowers:
     tolerance: Tolerance
 
     def __post_init__(self) -> None:
-        for name in ("sc", "oc", "cpr"):
+        fields = ("total", "sc", "oc", "cpr")
+        for name in fields:
             if type(getattr(self, name)) is not StatedArray:
                 raise TypeError(f"{name} must be a StatedArray")
-        if not self.sc.value.shape == self.oc.value.shape == self.cpr.value.shape:
-            raise ValueError(
-                "sc, oc and cpr must have the same shape, got "
-                f"{self.sc.value.shape}, {self.oc.value.shape} and {self.cpr.value.shape}"
-            )
+        shapes = [getattr(self, name).value.shape for name in fields]
+        if any(shape != shapes[0] for shape in shapes):
+            raise ValueError(f"total, sc, oc and cpr must have the same shape, got {shapes}")
         _check_stokes_convention(self.convention)
         if type(self.tolerance) is not Tolerance:
             raise TypeError(f"tolerance must be a Tolerance, got {self.tolerance!r}")
@@ -703,7 +705,7 @@ def circular_from_stokes(
     product_masked: npt.ArrayLike,
     tolerance: Tolerance = ARITHMETIC_TOLERANCE,
 ) -> CircularPowers:
-    """Convert Mini-RF Stokes parameters to SC, OC and CPR (PRD 6.2, 7; F1-F5).
+    """Convert Mini-RF Stokes parameters to total power, SC, OC and CPR (PRD 6.2, 7; F1-F5).
 
     Under the declared SIS convention ``S4 = OC - SC`` (:data:`MINIRF_SIS_CONVENTION`)::
 
@@ -741,9 +743,10 @@ def circular_from_stokes(
        rule 3, evaluated on halved inputs so no square overflows: ``INVALID``,
        ``STOKES_NONPHYSICAL``.
 
-    Then SC and OC each: ``INVALID`` with ``FLOAT64_OUT_OF_RANGE`` where the exact power is not
-    zero but its float64 magnitude is below the smallest normal float64. An exact zero is a
-    valid zero (F1), and the sums cannot overflow. Within the tolerance S4 may exceed S1 or fall
+    Then total power (S1), SC and OC each: ``INVALID`` with ``FLOAT64_OUT_OF_RANGE`` where the
+    exact power is not zero but its float64 magnitude is below the smallest normal float64. An
+    exact zero is a valid zero (F1), and the sums cannot overflow. Total power is kept where CPR
+    is unavailable (PRD 6.2). Within the tolerance S4 may exceed S1 or fall
     below -S1 slightly; SC or OC is then negative by at most half the tolerance and is reported
     as computed, never clipped or repaired (PRD 7).
 
@@ -760,8 +763,8 @@ def circular_from_stokes(
        guard so every pixel still ends with a state.
 
     Missing, invalid and valid low CPR stay distinct (PRD 7): a pixel that is not ``VALID``
-    holds NaN with its state and reason, never 0.0. Units: SC and OC in the linear power units
-    of the Stokes parameters; CPR dimensionless.
+    holds NaN with its state and reason, never 0.0. Units: total power, SC and OC in the linear
+    power units of the Stokes parameters; CPR dimensionless.
     """
     _check_stokes_convention(convention)
     if type(tolerance) is not Tolerance:
@@ -806,6 +809,9 @@ def circular_from_stokes(
     sc = half_s1 - half_s4
     oc = half_s1 + half_s4
 
+    total = np.where(valid, s1_values, np.nan)
+    total_classifier = base.copy()
+    total_classifier.mark_below_normal(total, nonzero=s1_values != 0.0)
     sc_classifier = base.copy()
     sc_classifier.mark_below_normal(sc, nonzero=s1_values != s4_values)
     oc_classifier = base.copy()
@@ -827,6 +833,7 @@ def circular_from_stokes(
     cpr_classifier.mark_below_normal(cpr, nonzero=s1_values != s4_values)
 
     return CircularPowers(
+        total=total_classifier.finish(total),
         sc=sc_classifier.finish(sc),
         oc=oc_classifier.finish(oc),
         cpr=cpr_classifier.finish(cpr),
