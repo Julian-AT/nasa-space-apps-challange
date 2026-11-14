@@ -120,6 +120,164 @@ def window_grid(width_m: float, spacing_m: float) -> WindowGrid:
     )
 
 
+class AeqdDomainError(ValueError):
+    """Raised when an AEQD centre, radius, offset or point lies outside the projection's domain."""
+
+
+LONGITUDE_RANGE_RAD: Final[tuple[float, float]] = (-math.pi, math.pi)
+"""Longitudes are radians in the half-open range [-pi, pi), with pi the float64 ``math.pi``.
+
+The inverse returns longitudes in this range, and a window centre must lie in it. The forward
+also accepts a point longitude of exactly ``math.pi``.
+"""
+
+_PI: Final = math.pi
+_TWO_PI: Final = 2.0 * math.pi
+_HALF_PI: Final = math.pi / 2.0
+
+
+def aeqd_inverse(
+    x_m: npt.ArrayLike,
+    y_m: npt.ArrayLike,
+    *,
+    lat0_rad: float,
+    lon0_rad: float,
+    radius_m: float,
+) -> tuple[FloatArray, FloatArray]:
+    """Map window coordinates to (latitude, longitude) by the inverse spherical AEQD (PRD 7).
+
+    ``x_m`` (east) and ``y_m`` (north) are metres on the sphere of radius ``radius_m``, measured
+    from the window centre ``(lat0_rad, lon0_rad)``. Returns float64 ``(lat, lon)`` in radians,
+    broadcast to the shape of the offsets, with ``lat`` in [-pi/2, pi/2] and ``lon`` in
+    [-pi, pi) (:data:`LONGITUDE_RANGE_RAD`).
+
+    The PRD formula, with rho = sqrt(x^2 + y^2) and c = rho / R::
+
+        S   = cos c * sin phi0 + y * sin c * cos phi0 / rho
+        phi = asin(S)
+        lam = lam0 + atan2(x * sin c, rho * cos phi0 * cos c - y * sin phi0 * sin c)
+
+    and (phi, lam) = (phi0, lam0) exactly at rho = 0, with no division by zero.
+
+    Evaluation: with e = x / rho and n = y / rho, ``S = cos c sin phi0 + n sin c cos phi0`` is
+    the PRD's asin argument and ``N = e sin c``, ``M = cos phi0 cos c - n sin phi0 sin c`` are
+    its atan2 arguments divided by rho, so lam = lam0 + atan2(N, M) is the PRD longitude. On
+    the unit sphere S is sin phi and hypot(N, M) is cos phi, so the latitude is evaluated as
+    phi = atan2(S, hypot(N, M)), which equals asin(S) exactly in real arithmetic. asin is not
+    used because it amplifies the rounding of S by 1 / cos phi: on the 5 km, 90 m grid centred
+    at +-89.9 deg, the literal asin evaluation was measured against 40-digit mpmath at 1.6e-7
+    to 3.9e-7 m position error (Moon to Earth), against at most 7e-10 m for this form, and it
+    fails the PRD 7 round-trip and distance tolerances there. ``@terraluna/core`` must evaluate
+    the same way (PRD 8.8).
+
+    Longitude: lam0 + atan2(N, M) lies in [-2 pi, 2 pi) and is brought into [-pi, pi) by one
+    shift of 2 * math.pi, which is exact in float64 (Sterbenz).
+
+    Raises :class:`AeqdDomainError` for a centre outside [-pi/2, pi/2] x [-pi, pi), a radius
+    that is not finite and positive, a non-finite offset, or rho > pi * R.
+    """
+    lat0, lon0, radius = _centre(lat0_rad, lon0_rad, radius_m)
+    x, y = np.broadcast_arrays(np.asarray(x_m, dtype=np.float64), np.asarray(y_m, dtype=np.float64))
+    if not (np.all(np.isfinite(x)) and np.all(np.isfinite(y))):
+        raise AeqdDomainError("window offsets must be finite")
+    rho = np.hypot(x, y)
+    if np.any(rho > _PI * radius):
+        raise AeqdDomainError(f"offsets beyond the antipode (rho > pi * {radius!r} m)")
+    at_centre = rho == 0.0
+    safe_rho = np.where(at_centre, 1.0, rho)
+    east = x / safe_rho
+    north = y / safe_rho
+    c = rho / radius
+    sin_c = np.sin(c)
+    cos_c = np.cos(c)
+    sin_lat0 = math.sin(lat0)
+    cos_lat0 = math.cos(lat0)
+
+    sin_lat = cos_c * sin_lat0 + north * sin_c * cos_lat0
+    lon_num = east * sin_c
+    lon_den = cos_lat0 * cos_c - north * sin_lat0 * sin_c
+    lat = np.where(at_centre, lat0, np.arctan2(sin_lat, np.hypot(lon_num, lon_den)))
+    lon = lon0 + np.arctan2(lon_num, lon_den)
+    lon = np.where(lon >= _PI, lon - _TWO_PI, np.where(lon < -_PI, lon + _TWO_PI, lon))
+    lon = np.where(at_centre, lon0, lon)
+    return _float_array(lat), _float_array(lon)
+
+
+def aeqd_forward(
+    lat_rad: npt.ArrayLike,
+    lon_rad: npt.ArrayLike,
+    *,
+    lat0_rad: float,
+    lon0_rad: float,
+    radius_m: float,
+) -> tuple[FloatArray, FloatArray]:
+    """Map (latitude, longitude) to window coordinates by the forward spherical AEQD.
+
+    Written from the forward formulas, not by inverting :func:`aeqd_inverse` (Snyder 1987,
+    USGS Professional Paper 1395, azimuthal equidistant projection, spherical form). With
+    d = lam - lam0::
+
+        E = cos phi * sin d
+        N = cos phi0 * sin phi - sin phi0 * cos phi * cos d
+        U = sin phi0 * sin phi + cos phi0 * cos phi * cos d      (cos c)
+        c = atan2(hypot(E, N), U)
+        x = R * c * E / hypot(E, N),  y = R * c * N / hypot(E, N)
+
+    which is Snyder's x = R k' cos phi sin d, y = R k' (cos phi0 sin phi - sin phi0 cos phi
+    cos d) with k' = c / sin c, and c from atan2 rather than acos, which loses precision for
+    short distances. The centre maps to (0, 0) exactly.
+
+    ``lat_rad`` must lie in [-pi/2, pi/2] and ``lon_rad`` in [-pi, pi]; the centre as for
+    :func:`aeqd_inverse`. When |d| > pi it is brought into [-pi, pi] as
+    (lam - pi) - (lam0 + pi) or (lam + pi) - (lam0 - pi), whose parts are exact near the
+    antimeridian. Returns float64 metres broadcast to the shape of the inputs.
+    """
+    lat0, lon0, radius = _centre(lat0_rad, lon0_rad, radius_m)
+    lat, lon = np.broadcast_arrays(
+        np.asarray(lat_rad, dtype=np.float64), np.asarray(lon_rad, dtype=np.float64)
+    )
+    if not (np.all(np.isfinite(lat)) and np.all(np.isfinite(lon))):
+        raise AeqdDomainError("latitudes and longitudes must be finite")
+    if np.any(np.abs(lat) > _HALF_PI):
+        raise AeqdDomainError("latitudes must lie in [-pi/2, pi/2]")
+    if np.any(np.abs(lon) > _PI):
+        raise AeqdDomainError("longitudes must lie in [-pi, pi]")
+    d = lon - lon0
+    d = np.where(d > _PI, (lon - _PI) - (lon0 + _PI), d)
+    d = np.where(d < -_PI, (lon + _PI) - (lon0 - _PI), d)
+    sin_lat0 = math.sin(lat0)
+    cos_lat0 = math.cos(lat0)
+    sin_lat = np.sin(lat)
+    cos_lat = np.cos(lat)
+    cos_d = np.cos(d)
+
+    east = cos_lat * np.sin(d)
+    north = cos_lat0 * sin_lat - sin_lat0 * cos_lat * cos_d
+    up = sin_lat0 * sin_lat + cos_lat0 * cos_lat * cos_d
+    horizontal = np.hypot(east, north)
+    at_centre = horizontal == 0.0
+    c = np.arctan2(horizontal, up)
+    scale = np.where(at_centre, 0.0, radius * c / np.where(at_centre, 1.0, horizontal))
+    return _float_array(scale * east), _float_array(scale * north)
+
+
+def _centre(lat0_rad: float, lon0_rad: float, radius_m: float) -> tuple[float, float, float]:
+    lat0 = float(lat0_rad)
+    lon0 = float(lon0_rad)
+    radius = float(radius_m)
+    if not (math.isfinite(radius) and radius > 0.0):
+        raise AeqdDomainError(f"radius_m must be finite and positive, got {radius!r}")
+    if not (math.isfinite(lat0) and -_HALF_PI <= lat0 <= _HALF_PI):
+        raise AeqdDomainError(f"lat0_rad must lie in [-pi/2, pi/2], got {lat0!r}")
+    if not (math.isfinite(lon0) and -_PI <= lon0 < _PI):
+        raise AeqdDomainError(f"lon0_rad must lie in [-pi, pi), got {lon0!r}")
+    return lat0, lon0, radius
+
+
+def _float_array(values: npt.ArrayLike) -> FloatArray:
+    return np.asarray(values, dtype=np.float64)
+
+
 def _read_only(values: FloatArray) -> FloatArray:
     frozen = np.array(values, dtype=np.float64, copy=True)
     frozen.flags.writeable = False
