@@ -115,6 +115,73 @@ describe('pageProblems', () => {
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/mock banner/);
   });
 
+  // A banner is its whole element, so words added inside it fail in a child element as they do
+  // in plain text (codex-r2-1). The T0-05 check of the whole page rejected all of these.
+  const MOCK_P = '<p role="status">Mock bundle — placeholder data, not results</p>';
+  const MODE_B = 'Shipping mode: B — Terrain analog candidates for Connecting Ridge, with radar context';
+
+  it.each([
+    { name: 'words in a span after its text', html: MOCK_PAGE.replace('not results</p>', 'not results<span> yet</span></p>') },
+    {
+      name: 'its text in one span and words in the next',
+      html: MOCK_PAGE.replace(
+        MOCK_P,
+        '<p role="status"><span>Mock bundle — placeholder data, not results</span><span> yet</span></p>',
+      ),
+    },
+    {
+      name: 'its text in bold, then plain words',
+      html: MOCK_PAGE.replace(
+        MOCK_P,
+        '<p role="status"><b>Mock bundle — placeholder data, not results</b>, except the radar match</p>',
+      ),
+    },
+    {
+      name: 'a block nested inside it',
+      html: MOCK_PAGE.replace('not results</p>', 'not results<div>Radar match passed</div></p>'),
+    },
+  ])('reports a mock banner with words added inside its element ($name)', ({ html }) => {
+    expect(pageProblems(html, MOCK).join('\n')).toMatch(/mock banner/);
+  });
+
+  it.each([
+    {
+      name: 'words in a span after its text',
+      html: REAL_PAGE.replace('radar context</p>', 'radar context<span>; radar match passed</span></p>'),
+      shown: REAL,
+    },
+    {
+      name: 'its text in bold, then plain words',
+      html: REAL_PAGE.replace(`<p>${MODE_B}</p>`, `<p><strong>${MODE_B}</strong> (radar match passed)</p>`),
+      shown: REAL,
+    },
+    {
+      name: 'a block nested inside it',
+      html: REAL_PAGE.replace('radar context</p>', 'radar context<div>Radar match passed</div></p>'),
+      shown: REAL,
+    },
+    {
+      name: 'a mode title in a span while no mode is chosen',
+      html: MOCK_PAGE.replace(
+        'NOT_RUN<!-- -->)</p>',
+        'NOT_RUN<!-- -->)<span> — Radar-scattering analog candidates for Connecting Ridge</span></p>',
+      ),
+      shown: MOCK,
+    },
+  ])('reports a shipping-mode banner with words added inside its element ($name)', ({ html, shown }) => {
+    expect(pageProblems(html, shown).join('\n')).toMatch(/shipping-mode banner/);
+  });
+
+  it('reports a footer with words added in a child element', () => {
+    const html = MOCK_PAGE.replace('1.0.0</footer>', '1.0.0<span> (latest)</span></footer>');
+    expect(pageProblems(html, MOCK).join('\n')).toMatch(/footer/);
+  });
+
+  it('accepts a banner split by inline markup when it reads exactly the same', () => {
+    const html = REAL_PAGE.replace('Shipping mode: B —', 'Shipping mode: <strong>B</strong> —');
+    expect(pageProblems(html, REAL)).toStrictEqual([]);
+  });
+
   it('expects the PRD 4 title wording after the shipping-mode line, word for word', () => {
     expect(PRD4_TITLES).toStrictEqual(prd4Titles());
   });
