@@ -1087,7 +1087,7 @@ LOG10_MARGIN = 1e-9  # keeps the oracle clear of rounding at the range edges
 
 def assert_range_matches(log10_exact: npt.NDArray[np.float64], result: StatedArray) -> None:
     """VALID exactly where the exact result is a normal float64, away from the edges."""
-    assert set(result.reason.tolist()) <= {"NONE", OUT_OF_RANGE}
+    assert set(np.ravel(result.reason).tolist()) <= {"NONE", OUT_OF_RANGE}
     valid = result.state == VALID
     inside = (log10_exact > LOG10_SMALLEST_NORMAL + LOG10_MARGIN) & (
         log10_exact < LOG10_FLOAT64_MAX - LOG10_MARGIN
@@ -1135,10 +1135,10 @@ def test_x_power_holds_for_any_positive_float_dn(dn_hh: float, dn_hv: float) -> 
 @given(st.floats(allow_nan=False, allow_infinity=False))
 def test_angle_conversion_holds_for_any_finite_angle(angle: float) -> None:
     result = angle_to_degrees(angle, unit="radians")
-    assert set(result.reason.tolist()) <= {"NONE", OUT_OF_RANGE}
+    assert set(np.ravel(result.reason).tolist()) <= {"NONE", OUT_OF_RANGE}
     # 180/pi is about 57.3, so below FLOAT64_MAX/60 never overflows and above /57 always does.
     if abs(angle) < FLOAT64_MAX / 60.0:
         assert result.state == VALID
-        np.testing.assert_allclose(result.value, angle * 180.0 / math.pi, rtol=RTOL, atol=ATOL)
+        np.testing.assert_allclose(result.value, angle * (180.0 / math.pi), rtol=RTOL, atol=ATOL)
     if abs(angle) > FLOAT64_MAX / 57.0:
         assert result.state == INVALID
