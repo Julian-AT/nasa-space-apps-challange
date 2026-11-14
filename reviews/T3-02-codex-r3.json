@@ -1,0 +1,110 @@
+{
+  "task_id": "T3-02",
+  "round": 3,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "a5eaba95ab8022a23cb6425b46a1b960e34678c0",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "3e9209ef8e2efafe28a4473498d6426183a2458774946099af47cb8ca0e1b996"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "f4c79368dc8e60ffcd8a587781fc0392a485047e0621c454d65f8fe62a76b2bf"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "36b32bc15871bdea57dbc09547a8296f2deeb05806012a7edbc27323ba84521a"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "f0e8fb434d2ad8116bb5c09624e0ce5ceb506cc5c01f7e313ee0ba42d0b38686"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:13:28Z",
+  "finished_utc": "2026-11-14T19:17:46Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Criterion 5 lacks the required randomized window-width and spacing coverage. Earlier metre-tolerance and continuous-offset coverage fixes are present. Numerical checks were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "1. Tests precede implementation and the initial failing run is recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The notes field at scripts/ralph/batches/t3-terrain/prd.json:112 contains the historical failure record, but notes cannot establish execution under the review rules. No failing run was independently observed; execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "2. The 5000 m / 90 m grid matches independently computed pixel centres, corners and centre.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:289-300 independently constructs the grid with loops; :353-373 asserts all coordinates and explicit corner/centre values. Execution remains unverified because checks are prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "3. Inverse AEQD, exact origin handling including poles, and independent forward round trips meet the specified tolerances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "geometry.py:210-235 implements rho, c, the algebraically equivalent latitude-increment evaluation, atan2 longitude and exact centre selection. Tests at test_geometry_aeqd.py:508-536 cover centres and poles; :565-605 cover the specified bodies/latitudes and independent forward reference. Assertions at :303-308 and :333-346 use raw metres without normalization. The asin rebuttal is mathematically supported, but numerical success cannot be established without prohibited execution."
+    },
+    {
+      "criterion": "4. Independent great-circle distances equal rho to 1e-9 relative for all three radii.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:264-268 implements an independent haversine distance; :711-721 compares all grid points using rtol=1e-9 and atol=0 across all bodies. Execution is prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "5. Hypothesis covers random D29 widths, spacings and pixel centres, plus continuous offsets against high-precision references at unchanged tolerances.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:760-789 randomizes body, centre and pixel indices only; :783 always uses window_grid(WINDOW_M, GRID_M). Those constants come from config/run.yaml:21 and :24: 5000 m and 90 m. Required random widths and spacings are absent. Continuous-offset coverage has been restored at :827-831, :862-903 and :906-965, with 40-digit references and unchanged tolerances, but was not executed."
+    },
+    {
+      "criterion": "6. Terrain distances remain metre-valued spherical geometry, separate from radar and model distances.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/geometry.py:11-18 imports only standard-library modules and NumPy. Its inverse uses offsets divided by sphere radius at :210-217; its forward scales angular distance by radius at :329-331. No radar or model distance code is imported or reused."
+    },
+    {
+      "criterion": "Required focused test command.",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user: the read-only sandbox prevents dependency/cache writes. Author-reported results were not treated as verification."
+    },
+    {
+      "criterion": "Required repository check command.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user because checks can write in the read-only sandbox. No execution result is claimed."
+    },
+    {
+      "criterion": "Previous-round mpmath dependency rebuttal.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/pyproject.toml:20-23 declares mpmath only in the dev dependency group; uv.lock:211-218 pins its artifact and checksums. Production geometry imports at geometry.py:11-18 exclude mpmath. No defect is established by adding this permitted test dependency."
+    },
+    {
+      "criterion": "Changed paths remain within the story scope.",
+      "command": "git diff --name-only 4573b4655afbab377ec9a4718c920cf798e4d605 a5eaba95ab8022a23cb6425b46a1b960e34678c0 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output lists only pipeline/pyproject.toml, pipeline/src/terraluna_pipeline/geometry.py, pipeline/tests/test_geometry_aeqd.py and uv.lock. All are allowed story paths; config/run.yaml is unchanged."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/tests/test_geometry_aeqd.py:783",
+      "claim": "Criterion 5(1) is not satisfied: the round-trip property never varies window width or spacing. Add the required randomized grid coverage, or obtain an explicit amendment covering that omitted domain.",
+      "evidence": "The strategies at :753-765 generate pixel indices for one configured grid, and :783 always constructs window_grid(WINDOW_M, GRID_M), fixed to 5000 m / 90 m by :80-83 and config/run.yaml:21,24. The other width/spacing cases at :376-396 test grid construction only. Other grids can contain zero or much smaller coordinate components than this grid's 25 m minimum, where the contracted metre tolerance is more demanding. The restored per-direction continuous-offset checks do not test those required grid round trips.",
+      "id": "codex-r3-1",
+      "resolution": null
+    }
+  ]
+}
