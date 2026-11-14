@@ -246,6 +246,42 @@ def test_latex_accent_matches_an_accented_letter() -> None:
     assert len(found(text, {"key": abstract})) == 1
 
 
+@pytest.mark.parametrize(
+    "cafe", ["caf\\'\ne", "caf\\'\n  {e}", "caf\\'{\ne}", "caf\\'{e\n}", "caf\\'\r\ne"]
+)
+def test_an_accent_split_across_lines_in_an_abstract_still_matches(cafe: str) -> None:
+    abstract = f"The {cafe} study maps roughness of lunar terrain at metre baselines for rovers."
+    for text in (
+        "The caf\\'e study maps roughness of lunar terrain at metre baselines for rovers.",
+        "The caf\u00e9 study maps roughness of lunar terrain at metre baselines for rovers.",
+    ):
+        assert [len(overlap.words) for overlap in found(text, {"key": abstract})] == [13]
+
+
+# The same LaTeX gives the same tokens in a .tex file and in an abstract.
+@pytest.mark.parametrize(
+    "spelling",
+    [
+        "caf\\'\ne",
+        "caf\\' \n {e}",
+        "caf\\'{\ne}",
+        "caf\\'{ e\n}s",
+        "caf\\'\n\ne",
+        "Ko\\v\nci",
+        "Ko\\v{\nc}i",
+        'na\\"\\i ve',
+        'na\\"\n\\i\nve',
+        'na\\"{\\i\n}ve',
+        "Gro\\ss\n  e",
+        "Gro\\ss\n\ne",
+        "\\o\nl",
+    ],
+)
+def test_accents_tokenise_alike_in_prose_and_abstracts(spelling: str) -> None:
+    text = f"one {spelling} two"
+    assert located_tokens(extract(text))[0] == tokens(text)
+
+
 def test_six_words_from_each_of_two_abstracts_pass() -> None:
     text = " ".join(WORDS[:6] + OTHER_WORDS[:6])
     assert found(text, {"a": ABSTRACT, "b": OTHER}) == []

@@ -556,6 +556,54 @@ def test_fold_latex_folds_accents_and_drops_braces() -> None:
     assert fold_latex("caf{\\'e} na\\\"ive Ko\\v{c}i {\\o}l") == "cafe naive Koci ol"
 
 
+# An accent reads its letter as TeX reads an argument, and latex.ltx's \@text@composite takes the
+# first token of the group and drops the rest. So spaces and one line break, with the indent of
+# the next line, may stand before the letter or its brace, inside the braces and after \i or \ss.
+# A blank line is \par and ends the accent.
+SPLIT_ACCENTS = [
+    ("caf\\'\ne", "cafe"),
+    ("caf\\'\n   e", "cafe"),
+    ("caf\\' \n {e}", "cafe"),
+    ("caf\\'{\ne}", "cafe"),
+    ("caf\\'\n{ e }", "cafe"),
+    ("caf\\'{ e\n}s", "cafes"),
+    ("Ko\\v\nci", "Koci"),
+    ("Ko\\v{\nc}i", "Koci"),
+    ('na\\"\\i ve', "naive"),
+    ('na\\"\\i\nve', "naive"),
+    ('na\\"\n\\i ve', "naive"),
+    ('na\\"{\\i\n}ve', "naive"),
+    ("Gro\\ss\ne", "Grosse"),
+    ("Gro\\ss\n  e", "Grosse"),
+    ("\\o\nl", "ol"),
+]
+
+
+@pytest.mark.parametrize(("text", "expected"), SPLIT_ACCENTS)
+def test_fold_latex_reads_an_accent_across_one_line_break(text: str, expected: str) -> None:
+    assert fold_latex(text) == expected
+
+
+@pytest.mark.parametrize(("text", "expected"), SPLIT_ACCENTS)
+def test_an_accent_across_one_line_break_keeps_the_word_and_the_lines(
+    text: str, expected: str
+) -> None:
+    source = extract(text)
+    assert source.prose.split() == [expected]
+    assert source.prose.count("\n") == text.count("\n")
+    assert source.prose_lines[source.prose.index(expected[0])] == 1
+
+
+@pytest.mark.parametrize("text", ["caf\\'\n\ne", "caf\\'{\n\ne}", "Gro\\ss\n\ne"])
+def test_a_blank_line_ends_an_accent(text: str) -> None:
+    assert len(re.findall("[A-Za-z]+", fold_latex(text))) == 2
+    assert len(prose(text).split()) == 2
+
+
+def test_fold_latex_reads_a_carriage_return_as_a_line_break() -> None:
+    assert fold_latex("caf\\'\r\ne na\\\"\r\\i ve") == "cafe naive"
+
+
 # --- Line numbers -------------------------------------------------------------------------------
 
 MIXED = (
