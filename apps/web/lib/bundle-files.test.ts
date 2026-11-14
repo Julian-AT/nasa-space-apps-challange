@@ -85,7 +85,10 @@ const OPTIONAL_PATHS = SERVER_PATHS.filter((path) => path !== 'validation.json')
 /** Writes release/<VERSION>/ holding `present`, with a manifest listing `listed`. */
 function addFullRelease(
   root: string,
-  { listed = { ...SERVER_FILES, ...OTHER_FILES }, present = listed } = {},
+  {
+    listed = { ...SERVER_FILES, ...OTHER_FILES },
+    present = listed,
+  }: { listed?: FileSet; present?: FileSet } = {},
 ): string {
   const dir = join(root, 'release', VERSION);
   const manifest = { ...manifestFor(new Uint8Array()), files: listing(listed), targets: [TARGET] };
@@ -293,7 +296,7 @@ describe('optional files on the mock bundle', () => {
     },
   ];
 
-  it.each(absent)('reads $name as not present after the pull and in the loader', ({ read, path }) => {
+  it.each(absent)('reads $name as not present in the pull and the loader', ({ read, path }) => {
     const outDir = join(tempDir(), 'data');
     const pulled = pullBundle({ repoRoot: REPO_ROOT, outDir, env: {} });
     expect(read(pulled)).toStrictEqual({ status: 'not_present', path });
@@ -368,7 +371,7 @@ describe('loader accessors', () => {
     expect((error as BundleFileError).reason).toBe('sha256_mismatch');
   });
 
-  it.each(OPTIONAL_PATHS)('throws a typed error with a bundle:pull hint when %s is gone', (path) => {
+  it.each(OPTIONAL_PATHS)('throws a typed error with a pull hint when %s is gone', (path) => {
     const { dataDir } = pulledRelease();
     rmSync(join(dataDir, path));
     const error = caught(() => loadBundle({ dataDir, env: ENV }));
