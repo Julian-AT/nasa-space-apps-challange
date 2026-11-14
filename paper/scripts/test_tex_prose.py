@@ -6,6 +6,7 @@ strings or files in tmp_path; no fixture .tex file is committed under paper/.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -246,6 +247,30 @@ def test_tikz_code_is_kept_as_text_on_request() -> None:
     assert "seamless;" in kept
     assert kept[0] == "before"
     assert kept[-1] == "after"
+
+
+@pytest.mark.parametrize(
+    "tikz",
+    [
+        "\\tikzset{every node/.style={label={seamless}}}",
+        "\\node[label={[above]seamless}] {x};",
+        "\\node {\\textcolor{seamless}{x}};",
+        "\\node {$\\text{seamless}$};",
+        "\\node {\\hspace{1em}\\ref{seamless}};",
+        "\\pgfplotsset{title={seamless}}",
+    ],
+)
+def test_kept_tikz_reads_every_argument_as_text(tikz: str) -> None:
+    text = f"before\n\\begin{{tikzpicture}}\n{tikz}\n\\end{{tikzpicture}}\nafter"
+    assert "seamless" in re.findall(r"[a-z]+", prose(text, keep_tikz=True))
+    assert words(text) == ["before", "after"]
+
+
+def test_kept_tikz_still_drops_and_records_its_comments() -> None:
+    text = "\\begin{tikzpicture}% a seamless path\n\\draw (a) -- (b);\n\\end{tikzpicture}"
+    source = extract(text, keep_tikz=True)
+    assert "seamless" not in source.prose
+    assert source.comments == {1: " a seamless path"}
 
 
 def test_nested_tikzpicture_is_removed_to_the_outer_end() -> None:

@@ -365,10 +365,38 @@ def test_tikz_path_syntax_passes() -> None:
             "\\begin{tikzpicture}\\node {It is\nimportant to note};\\end{tikzpicture}",
             "important-to-note",
         ),
+        (
+            "\\begin{tikzpicture}\\tikzset{every node/.style={label={seamless}}}\\end{tikzpicture}",
+            "banned-word",
+        ),
+        (
+            "\\begin{tikzpicture}\n\\tikzset{n/.style={label={it is important to note}}}\n"
+            "\\end{tikzpicture}",
+            "important-to-note",
+        ),
+        ("\\begin{tikzpicture}\\node {$\\text{leverage}$};\\end{tikzpicture}", "banned-word"),
+        (
+            "\\begin{tikzpicture}\\node {\\textcolor{pivotal}{x}};\\end{tikzpicture}",
+            "banned-word",
+        ),
     ],
 )
 def test_banned_words_and_phrase_also_run_on_tikz(text: str, rule: str) -> None:
     assert rule in rules(text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "\\begin{tikzpicture}% a seamless path\n\\draw (a) -- (b);\n\\end{tikzpicture}",
+        "\\begin{tikzpicture}\n\\node {robust}; % lint-allow robust: method name\n"
+        "\\end{tikzpicture}",
+        "\\begin{tikzpicture}\\tikzset{a/.style={->, dashed}}\\draw[a] (a) -- (b);"
+        "\\end{tikzpicture}",
+    ],
+)
+def test_tikz_comments_and_style_code_pass(text: str) -> None:
+    assert rules(text) == []
 
 
 # --- Comments before an argument ---------------------------------------------------------------
