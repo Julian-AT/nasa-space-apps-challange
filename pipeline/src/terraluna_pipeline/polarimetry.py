@@ -1,4 +1,5 @@
-"""Numerical polarimetry: decoding, angles, circular powers, block statistics (PRD 6.2, 7, 8.11).
+"""Numerical polarimetry: decoding, angles, circular powers, block statistics, hybrid-pol
+observables (PRD 6.2, 7, 8.11, D18).
 
 This module is the numerical contract of PRD section 7. Every function works elementwise on
 float64 arrays, or per pixel on one 3x3 complex covariance per pixel, and returns
@@ -22,16 +23,20 @@ Conventions that hold for every function here:
   smallest normal float64 (underflowed to zero, or a subnormal without full precision). No
   other numerical range is imposed.
 - Product validity and noise flags enter only through explicit arguments, such as ``nodata``,
-  the noise flags of :func:`x_power`, ``product_masked`` of :func:`circular_from_stokes`
-  and :func:`circular_from_covariance`, and ``validity_mask`` of :func:`derive_circular`
-  (PRD 7: keep the product's flags). Array arguments are plain numpy arrays (memory-mapped
-  ones included), scalars, or lists and tuples of them nested to any depth, all matched by
-  exact type. A numpy masked array is refused with TypeError wherever it appears, because
-  converting it to an array drops its mask and a masked element would be read as an
-  observation. Any other type is refused as well, whether it converts through ``__array__``,
-  is a custom sequence, a subclass of list, tuple or a scalar type, or a third-party ndarray
-  subclass, since its conversion can drop a mask in the same way; the caller converts it and
-  passes its mask as a flag.
+  the noise flags of :func:`x_power`, ``product_masked`` of :func:`circular_from_stokes`,
+  :func:`circular_from_covariance`, :func:`hybrid_stokes_from_covariance` and :func:`m_chi`,
+  ``validity_mask`` of :func:`derive_circular` and ``valid_mask`` of
+  :func:`lunar_s4_sign_check` (PRD 7: keep the product's flags). Array arguments are plain
+  numpy arrays (memory-mapped ones included), scalars, or lists and tuples of them nested to
+  any depth, all matched by exact type. A numpy masked array is refused with TypeError
+  wherever it appears, because converting it to an array drops its mask and a masked element
+  would be read as an observation. Any other type is refused as well, whether it converts
+  through ``__array__``, is a custom sequence, a subclass of list, tuple or a scalar type, or
+  a third-party ndarray subclass, since its conversion can drop a mask in the same way; the
+  caller converts it and passes its mask as a flag.
+- Hybrid-polarimetric observables (:func:`hybrid_stokes_from_covariance`, :func:`m_chi`) are
+  context in Mode B and enter no distance before G2 (PRD 6.2); their records carry
+  ``role = "context"``. No cross-band comparison is offered here.
 """
 
 from __future__ import annotations
@@ -49,6 +54,7 @@ import numpy.typing as npt
 __all__ = [
     "ARITHMETIC_TOLERANCE",
     "CIRCULAR_BASIS",
+    "CONTEXT_ROLE",
     "COVARIANCE_HH_HV_VV",
     "COVARIANCE_HH_SQRT2HV_VV",
     "COVARIANCE_INPUT",
@@ -61,6 +67,7 @@ __all__ = [
     "REASON_DTYPE",
     "STATE_DTYPE",
     "STOKES_INPUT",
+    "TRANSMIT_ELLIPTICITIES",
     "AngleUnit",
     "BlockAggregates",
     "BlockSupport",
@@ -70,9 +77,14 @@ __all__ = [
     "CovarianceOrdering",
     "DecibelArray",
     "HandednessConvention",
+    "HybridStokes",
     "InputKind",
     "InvalidReason",
+    "LunarSignCheck",
+    "MChi",
     "ObsState",
+    "ObservableRole",
+    "SignCheckVerdict",
     "StatedArray",
     "StokesConvention",
     "StokesInput",
@@ -84,6 +96,10 @@ __all__ = [
     "decode_db",
     "decode_linear",
     "derive_circular",
+    "hybrid_stokes_from_covariance",
+    "lunar_s4_sign_check",
+    "m_chi",
+    "m_chi_from_hybrid",
     "to_db_for_display",
     "x_power",
 ]
@@ -183,6 +199,14 @@ class InvalidReason(StrEnum):
     DB_OF_NONPOSITIVE = "DB_OF_NONPOSITIVE"
     """A zero or negative linear value has no finite dB value, so none is shown (state
     ``INVALID``). The linear value itself may be valid; only its display in dB is not."""
+
+    STOKES_S1_NONPOSITIVE = "STOKES_S1_NONPOSITIVE"
+    """Stokes ``S1 <= 0``: no received power to normalize by, so no degree of polarization or
+    ellipticity exists (state ``INVALID``)."""
+
+    M_ZERO = "M_ZERO"
+    """The degree of polarization m is exactly 0 (S2 = S3 = S4 = 0), so the ellipticity chi is
+    undefined (state ``INVALID``). m itself is a valid 0; no epsilon is added."""
 
 
 STATE_DTYPE: Final = np.dtype(np.uint8)
@@ -1156,7 +1180,14 @@ term, the 1/2 and an entry 1/(2 sqrt2) of ``_HANDEDNESS_FORM``). Each product so
 least ``2**-1021``, a normal float64, and keeps its full precision. A smaller part
 would round to a subnormal or to zero and could leave a VALID zero where the exact result is
 not zero. This is float64 representability, not a physical threshold: it binds only matrices
-whose parts span about 300 decimal orders of magnitude."""
+whose parts span about 300 decimal orders of magnitude.
+
+The hybrid-polarimetric synthesis (:func:`hybrid_stokes_from_covariance`) relies on the same
+guard. Its factors are at least 1/4 on the way into a result from ``C'`` (the 1/2 of the
+Hermitian part, at least 1/2 to express it in the (HH, HV, VV) ordering, and the entries 1/2
+of the forms), or from the declared (HH, HV, VV) matrix, whose parts are at least half the
+corresponding parts of ``C'``, the same 1/2 of the Hermitian part and the forms' 1/2. Each
+product so stays at least ``2**-1020``, also a normal float64."""
 
 
 def _scale_by_power_of_two(
@@ -2093,4 +2124,682 @@ def aggregate_blocks(
         input_kind=input_kind,
         convention=circular.convention,
         handedness_verified=handedness_verified,
+    )
+
+
+# --- Hybrid-polarimetric Stokes parameters and m-chi (PRD 6.2, D18) --------------------------
+
+TRANSMIT_ELLIPTICITIES: Final[tuple[float, float]] = (45.0, -45.0)
+"""The transmit ellipticity angles ``chi_tx`` that may be declared, in degrees (PRD 6.2).
+
+The transmit Jones vector in the (H, V) basis of the covariance is ``t(chi) = (cos chi,
+i sin chi)``, the Jones vector of a polarization ellipse of orientation 0 and ellipticity angle
+``chi`` (Lee and Pottier 2009, Polarimetric Radar Imaging, ch. 1), whose own Stokes parameter
+``-2 Im(t_H conj(t_V))`` is ``sin(2 chi)``. So ``chi_tx = -45`` is ``(1, -i)/sqrt2``, the SC_LL
+transmit vector of the LL/LR convention of Neish et al. (:data:`NEISH_SC_LL_CONVENTION`), and
+``chi_tx = +45`` is ``(1, +i)/sqrt2``, the opposite handedness (:data:`OPPOSITE_SC_CONVENTION`).
+Which one a sensor or polsartools calls left or right circular is not decided here: the
+polsartools ``simulate_CP`` docstring names +45 right circular and -45 left circular, and the
+real-scene check (T2-07) has to confirm that its convention matches this one. No other
+ellipticity is accepted, and none is assumed."""
+
+CONTEXT_ROLE: Final = "context"
+"""The role of the hybrid-polarimetric observables: context in Mode B, never a distance input
+before G2 (PRD 6.2)."""
+
+ObservableRole = Literal["context"]
+"""Roles a hybrid-polarimetric record may carry; only :data:`CONTEXT_ROLE` before G2."""
+
+_FROM_SQRT2_ORDERING: Final[npt.NDArray[np.float64]] = _read_only(
+    np.array([[1.0, _SQRT_HALF, 1.0], [_SQRT_HALF, 0.5, _SQRT_HALF], [1.0, _SQRT_HALF, 1.0]])
+)
+"""Elementwise factors ``1 / (n_i n_j)`` with ``n = (1, sqrt2, 1)`` that express a covariance
+in the (HH, sqrt2 HV, VV) ordering in the (HH, HV, VV) ordering. The middle factor is exactly
+1/2."""
+
+
+def _hybrid_forms(s: complex, sin_2chi_tx: float) -> dict[str, npt.NDArray[np.complex128]]:
+    """Matrices ``K`` with ``Re sum(R * K)`` equal to each hybrid output, for a covariance ``R``
+    in the (HH, HV, VV) ordering and the transmit ``t = (1, s)/sqrt2``.
+
+    The received field is ``E = S t = A k`` with ``k = (HH, HV, VV)`` and
+    ``A = [[t_H, t_V, 0], [0, t_H, t_V]] = B / sqrt2``, ``B = [[1, s, 0], [0, 1, s]]``. So the
+    received 2x2 covariance is ``J = A R A^H = B R B^H / 2``, and ``J_ab = sum(R * K_ab)`` with
+    ``K_ab = outer(B_a, conj(B_b)) / 2``. Each Stokes parameter is one such linear functional:
+    ``K_S1 = K_HH + K_VV``, ``K_S2 = K_HH - K_VV``, ``K_S3 = 2 K_HV`` and
+    ``K_S4 = 2i sin(2 chi_tx) K_HV``, which gives ``S4 = -2 sin(2 chi_tx) Im J_HV = OC - SC``
+    relative to the transmit (the SIS convention). Every entry of ``B`` is 0, 1 or ``+-i``, so
+    every entry of ``K`` is 0, ``+-1/2``, ``+-1``, ``+-i/2`` or ``+-i``, purely real or purely
+    imaginary: each product with a part of ``R`` is exact, and a term that cancels in ``K``
+    (such as the HV power in S2) is exactly zero instead of a difference of rounded powers.
+    """
+    rows = np.array([[1.0, s, 0.0], [0.0, 1.0, s]], dtype=np.complex128)
+    k_hh = 0.5 * _quadratic_form(rows[0])
+    k_vv = 0.5 * _quadratic_form(rows[1])
+    k_hv = 0.5 * np.outer(rows[0], rows[1].conj())
+    forms = {
+        "j_hh": k_hh,
+        "j_vv": k_vv,
+        "j_hv_real": k_hv,
+        "j_hv_imag": -1j * k_hv,
+        "s1": k_hh + k_vv,
+        "s2": k_hh - k_vv,
+        "s3": 2.0 * k_hv,
+        "s4": 2j * sin_2chi_tx * k_hv,
+    }
+    return {name: _read_only(form) for name, form in forms.items()}
+
+
+_HYBRID_TRANSMIT: Final[
+    dict[float, tuple[HandednessConvention, tuple[complex, complex], dict[str, Any]]]
+] = {
+    -45.0: (
+        NEISH_SC_LL_CONVENTION,
+        (complex(_SQRT_HALF, 0.0), complex(0.0, -_SQRT_HALF)),
+        _hybrid_forms(-1j, -1.0),
+    ),
+    45.0: (
+        OPPOSITE_SC_CONVENTION,
+        (complex(_SQRT_HALF, 0.0), complex(0.0, _SQRT_HALF)),
+        _hybrid_forms(1j, 1.0),
+    ),
+}
+"""For each declared ``chi_tx``: its handedness convention, its transmit Jones vector and the
+forms of :func:`_hybrid_forms`."""
+
+_HYBRID_FIELDS: Final = ("j_hh", "j_vv", "j_hv_real", "j_hv_imag", "s1", "s2", "s3", "s4")
+
+
+def _check_chi_tx(chi_tx: object) -> float:
+    """Return a declared transmit ellipticity as a float, or raise ValueError.
+
+    Only a real number (a Python int or float, or a numpy integer or floating scalar, not a
+    bool or an array) equal to +45 or -45 degrees is declared. Units are not inferred: +-pi/4
+    is refused, not read as radians."""
+    real = type(chi_tx) in (int, float) or (
+        _is_numpy_scalar(chi_tx) and isinstance(chi_tx, np.integer | np.floating)
+    )
+    if not real or float(cast(float, chi_tx)) not in TRANSMIT_ELLIPTICITIES:
+        raise ValueError(
+            f"chi_tx must be declared as one of {TRANSMIT_ELLIPTICITIES} degrees, got "
+            f"{chi_tx!r}; an undeclared transmit ellipticity is refused, never guessed"
+        )
+    return float(cast(float, chi_tx))
+
+
+def _check_role(role: object) -> None:
+    if type(role) is not str or role != CONTEXT_ROLE:
+        raise ValueError(
+            f"role must be {CONTEXT_ROLE!r}: hybrid-polarimetric observables are context in "
+            f"Mode B and enter no distance before G2 (PRD 6.2), got {role!r}"
+        )
+
+
+def _check_stated_fields(record: object, fields: tuple[str, ...]) -> None:
+    for name in fields:
+        if type(getattr(record, name)) is not StatedArray:
+            raise TypeError(f"{name} must be a StatedArray")
+    shapes = [getattr(record, name).value.shape for name in fields]
+    if any(shape != shapes[0] for shape in shapes):
+        raise ValueError(f"{', '.join(fields)} must have the same shape, got {shapes}")
+
+
+@dataclass(frozen=True, slots=True)
+class HybridStokes:
+    """Hybrid-polarimetric 2x2 covariance and Stokes parameters synthesized from a UAVSAR
+    covariance for a declared transmit ellipticity (PRD 6.2, D18).
+
+    The received field is ``E = S t`` for the transmit Jones vector ``t`` of ``chi_tx``
+    (:data:`TRANSMIT_ELLIPTICITIES`), with ``E = (E_H, E_V)`` in the (H, V) basis of the
+    covariance. Each field is a :class:`StatedArray` over the pixel shape, in the linear power
+    units of the covariance:
+
+    - the 2x2 covariance ``J = <E E^H>``: ``j_hh = <|E_H|**2>``, ``j_vv = <|E_V|**2>`` and
+      ``j_hv_real``, ``j_hv_imag``, the parts of ``J_HV = <E_H conj(E_V)>``
+      (:meth:`covariance_matrix` assembles them);
+    - the Stokes parameters ``s1 = J_HH + J_VV`` (received power), ``s2 = J_HH - J_VV``,
+      ``s3 = 2 Re J_HV``, and ``s4 = OC - SC`` under the Mini-RF SIS convention
+      (:data:`MINIRF_SIS_CONVENTION`), with OC and SC relative to the declared transmit:
+      ``s4 = -2 sin(2 chi_tx) Im J_HV``. So ``s1 = SC + OC`` and
+      :func:`circular_from_stokes` on ``s1`` and ``s4`` returns the SC and OC of
+      :func:`circular_from_covariance` for ``handedness``.
+
+    ``chi_tx`` is the declared transmit ellipticity in degrees, ``handedness`` the matching
+    convention (:data:`NEISH_SC_LL_CONVENTION` for -45, :data:`OPPOSITE_SC_CONVENTION` for +45)
+    and ``transmit_jones`` its Jones vector ``(t_H, t_V)``; ``stokes_convention``, ``ordering``
+    and ``tolerance`` are the declarations used. ``handedness_verified`` is False: no Earth
+    result is Mini-RF-equivalent until handedness and basis are verified on both sides
+    (PRD 6.2); a caller that has verified both may record that with ``dataclasses.replace``.
+    ``role`` is :data:`CONTEXT_ROLE`: these observables are context in Mode B and enter no
+    distance before G2 (PRD 6.2).
+    """
+
+    j_hh: StatedArray
+    j_vv: StatedArray
+    j_hv_real: StatedArray
+    j_hv_imag: StatedArray
+    s1: StatedArray
+    s2: StatedArray
+    s3: StatedArray
+    s4: StatedArray
+    chi_tx: float
+    handedness: HandednessConvention
+    transmit_jones: tuple[complex, complex]
+    stokes_convention: StokesConvention
+    ordering: CovarianceOrdering
+    tolerance: Tolerance
+    handedness_verified: bool = False
+    role: ObservableRole = CONTEXT_ROLE
+
+    def __post_init__(self) -> None:
+        _check_stated_fields(self, _HYBRID_FIELDS)
+        chi_tx = _check_chi_tx(self.chi_tx)
+        object.__setattr__(self, "chi_tx", chi_tx)
+        handedness, transmit, _ = _HYBRID_TRANSMIT[chi_tx]
+        if self.handedness != handedness:
+            raise ValueError(
+                f"handedness must be {handedness!r} for chi_tx {chi_tx}, got {self.handedness!r}"
+            )
+        if type(self.transmit_jones) is not tuple or self.transmit_jones != transmit:
+            raise ValueError(
+                f"transmit_jones must be {transmit} for chi_tx {chi_tx}, got "
+                f"{self.transmit_jones!r}"
+            )
+        _check_stokes_convention(self.stokes_convention)
+        _check_ordering(self.ordering)
+        if type(self.tolerance) is not Tolerance:
+            raise TypeError(f"tolerance must be a Tolerance, got {self.tolerance!r}")
+        if type(self.handedness_verified) is not bool:
+            raise TypeError(f"handedness_verified must be a bool, got {self.handedness_verified!r}")
+        _check_role(self.role)
+
+    def covariance_matrix(self) -> npt.NDArray[np.complex128]:
+        """The synthesized 2x2 covariance ``J`` per pixel, shape ``(..., 2, 2)``, complex128.
+
+        ``J = [[J_HH, J_HV], [conj(J_HV), J_VV]]``, exactly Hermitian. A pixel where any of
+        the four parts is not ``VALID`` holds NaN in every real and imaginary part; its state
+        and reason are in the part fields. The array is a new, writable copy.
+        """
+        shape = self.j_hh.value.shape
+        valid = (
+            _is_valid(self.j_hh)
+            & _is_valid(self.j_vv)
+            & _is_valid(self.j_hv_real)
+            & _is_valid(self.j_hv_imag)
+        )
+        j_hv = np.empty(shape, dtype=np.complex128)
+        j_hv.real = self.j_hv_real.value
+        j_hv.imag = self.j_hv_imag.value
+        out = np.empty((*shape, 2, 2), dtype=np.complex128)
+        out[..., 0, 0] = self.j_hh.value
+        out[..., 0, 1] = j_hv
+        out[..., 1, 0] = np.conj(j_hv)
+        out[..., 1, 1] = self.j_vv.value
+        out[~valid] = complex(math.nan, math.nan)
+        return out
+
+
+def hybrid_stokes_from_covariance(
+    covariance: npt.ArrayLike,
+    *,
+    ordering: CovarianceOrdering,
+    chi_tx: float,
+    product_masked: npt.ArrayLike,
+    tolerance: Tolerance = ARITHMETIC_TOLERANCE,
+) -> HybridStokes:
+    """Synthesize the hybrid-polarimetric 2x2 covariance and Stokes parameters (PRD 6.2, D18).
+
+    ``covariance`` is a UAVSAR 3x3 covariance per pixel, shape ``(..., 3, 3)``, in the declared
+    ``ordering`` (:data:`COVARIANCE_HH_HV_VV` as UAVSAR stores it, or
+    :data:`COVARIANCE_HH_SQRT2HV_VV`). ``chi_tx`` is the declared transmit ellipticity in
+    degrees, +45 or -45 (:data:`TRANSMIT_ELLIPTICITIES`, which also states the Jones vector
+    ``t(chi) = (cos chi, i sin chi)``); anything else, ``None`` included, raises ValueError and
+    nothing is returned. ``ordering``, ``chi_tx`` and ``product_masked`` are required.
+
+    The synthesis is an explicit transformation: the covariance is expressed in the
+    (HH, HV, VV) ordering, ``R``, and the received field ``E = S t = A k`` with
+    ``A = [[t_H, t_V, 0], [0, t_H, t_V]]`` gives ``J = A R A^H``. Each output is formed as one
+    linear functional of ``R`` (``_hybrid_forms``), so S2, S3 and S4 keep the precision of the
+    parts they depend on however large the powers are. With ``S4 = OC - SC`` relative to the
+    transmit (:data:`MINIRF_SIS_CONVENTION`), ``S1 = SC + OC`` and ``S4`` reproduce the SC and
+    OC of :func:`circular_from_covariance` for the matching handedness (SC_LL for -45, SC_opp
+    for +45). The record states ``chi_tx``, the handedness and the Jones vector used, and has
+    ``handedness_verified`` False and ``role`` :data:`CONTEXT_ROLE` (PRD 6.2). This module adds
+    no cross-band comparison.
+
+    The covariance first passes the shared rules 1-6 of :func:`circular_from_covariance`
+    (product mask, non-finite parts, parts float64 cannot carry at one scale, Hermitian,
+    negative diagonal, positive semidefinite), with ``tolerance`` as the Hermitian and PSD
+    tolerance and the same states and reasons; nothing is repaired (PRD 7). Its Hermitian part
+    is used, at one exact power-of-two scale per matrix. Each of the eight outputs is then
+    ``INVALID`` with ``FLOAT64_OUT_OF_RANGE`` where its scaled-back value overflows, or is not
+    zero at the matrix's scale but falls below the smallest normal float64. A zero at the
+    matrix's scale stays a valid zero. The outputs carry the transformation's rounding error, of
+    the order of float64 precision times the covariance's largest element.
+
+    Units: all outputs in the linear power units of the covariance.
+    """
+    _check_ordering(ordering)
+    chi = _check_chi_tx(chi_tx)
+    if type(tolerance) is not Tolerance:
+        raise TypeError(f"tolerance must be a Tolerance, got {tolerance!r}")
+    base, scaled, hermitian, exponent = _checked_covariance(
+        covariance, ordering=ordering, product_masked=product_masked, tolerance=tolerance
+    )
+    handedness, transmit, forms = _HYBRID_TRANSMIT[chi]
+
+    with np.errstate(over="ignore", under="ignore", invalid="ignore"):
+        if ordering == COVARIANCE_HH_HV_VV:
+            # The declared (HH, HV, VV) matrix itself, so its parts reach the forms unrounded.
+            raw = 0.5 * (scaled + np.conj(np.swapaxes(scaled, -1, -2)))
+        else:
+            raw = hermitian * _FROM_SQRT2_ORDERING
+        at_scale = {
+            name: np.asarray(np.sum(raw * forms[name], axis=(-2, -1)).real, dtype=np.float64)
+            for name in _HYBRID_FIELDS
+        }
+
+    outputs: dict[str, StatedArray] = {}
+    for name in _HYBRID_FIELDS:
+        classifier, value = _unscaled_power(base, at_scale[name], exponent)
+        outputs[name] = classifier.finish(value)
+    return HybridStokes(
+        j_hh=outputs["j_hh"],
+        j_vv=outputs["j_vv"],
+        j_hv_real=outputs["j_hv_real"],
+        j_hv_imag=outputs["j_hv_imag"],
+        s1=outputs["s1"],
+        s2=outputs["s2"],
+        s3=outputs["s3"],
+        s4=outputs["s4"],
+        chi_tx=chi,
+        handedness=handedness,
+        transmit_jones=transmit,
+        stokes_convention=MINIRF_SIS_CONVENTION,
+        ordering=ordering,
+        tolerance=tolerance,
+    )
+
+
+_MCHI_FIELDS: Final = ("m", "sin_2chi", "chi")
+
+
+@dataclass(frozen=True, slots=True)
+class MChi:
+    """Degree of polarization ``m`` and ellipticity ``chi`` from four Stokes parameters
+    (PRD 6.2, D18).
+
+    Each field is a :class:`StatedArray` over the pixel shape: ``m`` and ``sin_2chi``
+    dimensionless, ``chi`` in degrees (:data:`INTERNAL_ANGLE_UNIT`), within [-45, 45]. ``chi``
+    and ``sin_2chi`` have the same states and reasons. A ``VALID`` ``sin_2chi`` needs a
+    ``VALID``, positive ``m``. ``convention`` is the Stokes convention of the inputs and
+    ``tolerance`` the one the Stokes validity rules used. ``chi_tx`` and ``handedness`` are the
+    declared transmit ellipticity and handedness of a synthesized hybrid record
+    (:func:`m_chi_from_hybrid`), or both ``None`` for product Stokes parameters, whose label
+    defines the handedness. ``role`` is :data:`CONTEXT_ROLE` (PRD 6.2). The m-chi decomposition
+    into single-bounce, double-bounce and random parts is not part of the record (see
+    :func:`m_chi`).
+    """
+
+    m: StatedArray
+    sin_2chi: StatedArray
+    chi: StatedArray
+    convention: StokesConvention
+    tolerance: Tolerance
+    chi_tx: float | None = None
+    handedness: HandednessConvention | None = None
+    role: ObservableRole = CONTEXT_ROLE
+
+    def __post_init__(self) -> None:
+        _check_stated_fields(self, _MCHI_FIELDS)
+        _check_stokes_convention(self.convention)
+        if type(self.tolerance) is not Tolerance:
+            raise TypeError(f"tolerance must be a Tolerance, got {self.tolerance!r}")
+        if self.chi_tx is None:
+            if self.handedness is not None:
+                raise ValueError("handedness needs a declared chi_tx; both are None or both set")
+        else:
+            chi_tx = _check_chi_tx(self.chi_tx)
+            object.__setattr__(self, "chi_tx", chi_tx)
+            handedness = _HYBRID_TRANSMIT[chi_tx][0]
+            if self.handedness != handedness:
+                raise ValueError(
+                    f"handedness must be {handedness!r} for chi_tx {chi_tx}, got "
+                    f"{self.handedness!r}"
+                )
+        _check_role(self.role)
+        with np.errstate(invalid="ignore"):
+            m_positive = _is_valid(self.m) & (self.m.value > 0.0)
+        if np.any(_is_valid(self.sin_2chi) & ~m_positive):
+            raise ValueError("a VALID sin_2chi needs a VALID, positive m")
+        if not (
+            np.array_equal(self.chi.state, self.sin_2chi.state)
+            and np.array_equal(self.chi.reason, self.sin_2chi.reason)
+        ):
+            raise ValueError("chi must have the same states and reasons as sin_2chi")
+
+
+def _m_chi(
+    base: _Classifier,
+    stokes: tuple[
+        npt.NDArray[np.float64],
+        npt.NDArray[np.float64],
+        npt.NDArray[np.float64],
+        npt.NDArray[np.float64],
+    ],
+    tolerance: Tolerance,
+) -> tuple[StatedArray, StatedArray, StatedArray]:
+    """Rules 3-5 of :func:`m_chi` after the caller's rules in ``base``, then m, sin 2chi, chi."""
+    valid = base.valid
+    # Elements already marked hold zeros, so the arithmetic below stays quiet for them.
+    s1, s2, s3, s4 = (np.where(valid, x, 0.0) for x in stokes)
+    with np.errstate(over="ignore", under="ignore", invalid="ignore", divide="ignore"):
+        base.mark(s1 <= 0.0, ObsState.INVALID, InvalidReason.STOKES_S1_NONPOSITIVE)
+        base.mark(
+            _beyond_squared_bound(s1, s2, s3, s4, tolerance),
+            ObsState.INVALID,
+            InvalidReason.STOKES_NONPHYSICAL,
+        )
+        allowed = tolerance.atol + tolerance.rtol * np.abs(s1)
+        base.mark(np.abs(s4) - s1 > allowed, ObsState.INVALID, InvalidReason.STOKES_S1_LT_ABS_S4)
+
+        # The polarized norm at its own power-of-two scale, so no square overflows and the
+        # largest polarized part keeps a normal square however small m is.
+        largest = np.maximum(np.maximum(np.abs(s2), np.abs(s3)), np.abs(s4))
+        _, polarized_exponent = np.frexp(largest)
+        q2, q3, q4 = (np.ldexp(x, -polarized_exponent) for x in (s2, s3, s4))
+        norm = np.sqrt(q2 * q2 + q3 * q3 + q4 * q4)
+        s1_mantissa, s1_exponent = np.frexp(s1)
+        usable = base.valid
+        ratio = np.zeros(s1.shape)
+        np.divide(norm, s1_mantissa, out=ratio, where=usable)
+        m = np.asarray(np.ldexp(ratio, polarized_exponent - s1_exponent), dtype=np.float64)
+        polarized = np.asarray((s2 != 0.0) | (s3 != 0.0) | (s4 != 0.0))
+
+        m_classifier = base.copy()
+        m_classifier.mark_out_of_range(m, positive=False)
+        m_classifier.mark_below_normal(m, nonzero=polarized)
+
+        sin_classifier = base.copy()
+        sin_classifier.mark(~polarized, ObsState.INVALID, InvalidReason.M_ZERO)
+        sin_classifier.mark(
+            ~m_classifier.valid, ObsState.INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE
+        )
+        sin_2chi = np.full(s1.shape, np.nan)
+        np.divide(-q4, norm, out=sin_2chi, where=sin_classifier.valid)
+        chi = 0.5 * np.degrees(np.arcsin(sin_2chi))
+    chi_classifier = sin_classifier.copy()
+    return (
+        m_classifier.finish(m),
+        sin_classifier.finish(sin_2chi),
+        chi_classifier.finish(chi),
+    )
+
+
+def m_chi(
+    s1: npt.ArrayLike,
+    s2: npt.ArrayLike,
+    s3: npt.ArrayLike,
+    s4: npt.ArrayLike,
+    *,
+    convention: StokesConvention,
+    product_masked: npt.ArrayLike,
+    tolerance: Tolerance = ARITHMETIC_TOLERANCE,
+) -> MChi:
+    """Degree of polarization m and ellipticity chi from all four Stokes parameters (PRD 6.2).
+
+    PRD 6.2, where all four Stokes parameters are available::
+
+        m          = sqrt(S2**2 + S3**2 + S4**2) / S1    # degree of polarization
+        sin(2 chi) = -S4 / (m * S1)                     # sign depends on transmit handedness
+
+    ``s1`` to ``s4`` are real arrays of one shape in the product's linear power units, under the
+    declared Stokes ``convention``; only :data:`MINIRF_SIS_CONVENTION` (``S4 = OC - SC``) is
+    declared, and anything else, ``None`` included, raises ValueError. Under it S4 is relative
+    to the transmit, so ``chi < 0`` for an OC-dominant (odd-bounce) return and ``chi > 0`` for
+    an SC-dominant (even-bounce) one, whichever handedness was transmitted. ``product_masked``
+    is a boolean array that broadcasts to the shape, True where the product's validity or noise
+    flag, or a configured SNR rule, excludes the pixel (PRD 7). ``tolerance`` is the Stokes
+    validity tolerance, by default :data:`ARITHMETIC_TOLERANCE`; a real-data value is open.
+
+    The m-chi decomposition into single-bounce, double-bounce and randomly polarized parts
+    (Raney et al. 2012) is not implemented: PRD 6.2 names it but gives no formula, and the
+    formulas have not been read from the cited source, so only m and chi are returned and the
+    decomposition is deferred.
+
+    Rules shared by every output, in order (the first match wins):
+
+    1. ``product_masked``: ``MISSING``, ``PRODUCT_MASKED``.
+    2. Any Stokes parameter is NaN or infinite: ``INVALID``, ``NONFINITE``.
+    3. ``S1 <= 0``: no received power to normalize by: ``INVALID``, ``STOKES_S1_NONPOSITIVE``.
+    4. ``S2**2 + S3**2 + S4**2 - S1**2 > atol + rtol * S1**2``, that is m > 1 beyond the
+       tolerance applied to the squared inequality (PRD 7): ``INVALID``,
+       ``STOKES_NONPHYSICAL``. ``atol`` is in squared power units here, as in
+       :func:`circular_from_stokes`.
+    5. ``|S4| - S1 > atol + rtol * |S1|``, S1 >= |S4| failing beyond the tolerance (PRD 7):
+       ``INVALID``, ``STOKES_S1_LT_ABS_S4``. Rule 4 comes first, so every m > 1 beyond the
+       squared bound is ``STOKES_NONPHYSICAL``; this rule decides only where the linear bound
+       is the stricter one, near S1 = 0.
+
+    Then ``m``: an m above 1 within the tolerance is reported as computed, never clipped. Where
+    S2 = S3 = S4 = 0 exactly, m is a valid 0. ``INVALID`` with ``FLOAT64_OUT_OF_RANGE`` where m
+    overflows, or is not zero but below the smallest normal float64.
+
+    Then ``sin_2chi`` and ``chi`` (``chi = asin(sin 2chi) / 2`` in degrees):
+
+    6. m = 0 (S2 = S3 = S4 = 0 exactly): the ellipticity is undefined: ``INVALID``,
+       ``M_ZERO``. No epsilon is added and no 0 is published.
+    7. m out of float64 range: ``INVALID``, ``FLOAT64_OUT_OF_RANGE``.
+
+    Each pixel is computed at exact power-of-two scales: the polarized norm
+    ``sqrt(S2**2 + S3**2 + S4**2)`` at the scale of the largest of S2, S3 and S4, and S1 at its
+    own. So no square overflows or underflows, and ``sin(2 chi)`` is formed as ``-S4`` over that
+    norm, which equals ``-S4 / (m S1)`` and lies within [-1, 1] after rounding.
+    """
+    _check_stokes_convention(convention)
+    if type(tolerance) is not Tolerance:
+        raise TypeError(f"tolerance must be a Tolerance, got {tolerance!r}")
+    s1_values = _stokes_array("s1", s1, None)
+    shape = s1_values.shape
+    others = tuple(
+        _stokes_array(name, x, shape) for name, x in (("s2", s2), ("s3", s3), ("s4", s4))
+    )
+    masked = _bool_mask("product_masked", product_masked, shape)
+    base = _Classifier(shape)
+    base.mark(masked, ObsState.MISSING, InvalidReason.PRODUCT_MASKED)
+    finite = np.isfinite(s1_values) & np.isfinite(others[0])
+    finite &= np.isfinite(others[1]) & np.isfinite(others[2])
+    base.mark(~finite, ObsState.INVALID, InvalidReason.NONFINITE)
+    m, sin_2chi, chi = _m_chi(base, (s1_values, others[0], others[1], others[2]), tolerance)
+    return MChi(m=m, sin_2chi=sin_2chi, chi=chi, convention=convention, tolerance=tolerance)
+
+
+def m_chi_from_hybrid(hybrid: HybridStokes, *, tolerance: Tolerance = ARITHMETIC_TOLERANCE) -> MChi:
+    """m and chi of synthesized hybrid-polarimetric Stokes parameters (PRD 6.2, D18).
+
+    Runs the rules of :func:`m_chi` on ``hybrid``'s S1 to S4, which are in the SIS convention
+    relative to the declared transmit. A pixel where any of them is not ``VALID`` keeps the
+    state and reason of the first such parameter (S1, S2, S3, S4), for example
+    ``PRODUCT_MASKED`` or ``COV_NOT_PSD``, in every output. The record carries ``hybrid``'s
+    ``chi_tx`` and handedness. ``tolerance`` is the Stokes validity tolerance of rules 3-5.
+    """
+    if type(hybrid) is not HybridStokes:
+        raise TypeError(f"m_chi_from_hybrid takes a HybridStokes, got {type(hybrid).__name__}")
+    if type(tolerance) is not Tolerance:
+        raise TypeError(f"tolerance must be a Tolerance, got {tolerance!r}")
+    parts = (hybrid.s1, hybrid.s2, hybrid.s3, hybrid.s4)
+    base = _Classifier(hybrid.s1.value.shape)
+    for part in parts:
+        inherited = ~_is_valid(part) & base.valid
+        base.state[inherited] = part.state[inherited]
+        base.reason[inherited] = part.reason[inherited]
+    m, sin_2chi, chi = _m_chi(
+        base, (parts[0].value, parts[1].value, parts[2].value, parts[3].value), tolerance
+    )
+    return MChi(
+        m=m,
+        sin_2chi=sin_2chi,
+        chi=chi,
+        convention=hybrid.stokes_convention,
+        tolerance=tolerance,
+        chi_tx=hybrid.chi_tx,
+        handedness=hybrid.handedness,
+    )
+
+
+# --- Lunar S4-sign check (PRD 6.2) -----------------------------------------------------------
+
+
+class SignCheckVerdict(StrEnum):
+    """Outcome of :func:`lunar_s4_sign_check`. Only ``PASS`` lets a comparison proceed."""
+
+    PASS = "PASS"
+    """More than half of the used pixels have S4 > 0, as ordinary lunar terrain with CPR below
+    1 has under the SIS convention."""
+
+    SIGN_SUSPECT = "SIGN_SUSPECT"
+    """More than half of the used pixels have CPR above 1: the product may use another S4 sign.
+    Stop and resolve before any comparison (PRD 6.2). The sign is never flipped here."""
+
+    INCONCLUSIVE = "INCONCLUSIVE"
+    """Neither more than half with S4 > 0 nor more than half with CPR above 1. Not a pass."""
+
+    NO_VALID_PIXELS = "NO_VALID_PIXELS"
+    """No pixel has a valid CPR, so there is nothing to check. Not a pass."""
+
+
+def _sign_verdict(n_used: int, n_cpr_above_1: int, n_s4_positive: int) -> SignCheckVerdict:
+    """ "Most" is more than half (PRD 6.2), decided on integer counts."""
+    if n_used == 0:
+        return SignCheckVerdict.NO_VALID_PIXELS
+    if 2 * n_cpr_above_1 > n_used:
+        return SignCheckVerdict.SIGN_SUSPECT
+    if 2 * n_s4_positive > n_used:
+        return SignCheckVerdict.PASS
+    return SignCheckVerdict.INCONCLUSIVE
+
+
+def _check_count(name: str, value: object) -> int:
+    if type(value) is not int or value < 0:
+        raise TypeError(f"{name} must be a non-negative int, got {value!r}")
+    return value
+
+
+@dataclass(frozen=True, slots=True)
+class LunarSignCheck:
+    """Result of :func:`lunar_s4_sign_check`: counts, fractions and a verdict, no data.
+
+    ``n_pixels`` is the number of pixels checked and ``n_used`` the number with a ``VALID`` CPR
+    under the SIS convention; the others are counted by reason in ``n_excluded_by_reason``
+    (read-only). ``n_cpr_above_1`` and ``n_s4_positive`` count used pixels with CPR > 1 and
+    with S4 > 0. ``fraction_cpr_above_1`` and ``fraction_s4_positive`` are those counts over
+    ``n_used``, or ``None`` when no pixel is used. ``verdict`` follows from the counts and is
+    checked against them, so a record cannot claim ``PASS`` its counts do not support. The
+    record holds no Stokes values: the helper never returns a sign-corrected S4.
+    """
+
+    verdict: SignCheckVerdict
+    n_pixels: int
+    n_used: int
+    n_cpr_above_1: int
+    n_s4_positive: int
+    fraction_cpr_above_1: float | None
+    fraction_s4_positive: float | None
+    n_excluded_by_reason: Mapping[str, int]
+    convention: StokesConvention
+    tolerance: Tolerance
+
+    def __post_init__(self) -> None:
+        if type(self.verdict) is not SignCheckVerdict:
+            raise TypeError(f"verdict must be a SignCheckVerdict, got {self.verdict!r}")
+        for name in ("n_pixels", "n_used", "n_cpr_above_1", "n_s4_positive"):
+            _check_count(name, getattr(self, name))
+        counts = dict(self.n_excluded_by_reason)
+        for reason, count in counts.items():
+            if type(reason) is not str or reason not in _REASON_CODES or reason == "NONE":
+                raise ValueError(f"n_excluded_by_reason has an unknown reason {reason!r}")
+            _check_count(f"n_excluded_by_reason[{reason!r}]", count)
+        object.__setattr__(self, "n_excluded_by_reason", MappingProxyType(counts))
+        if self.n_used + sum(counts.values()) != self.n_pixels:
+            raise ValueError("n_used and the excluded counts must add up to n_pixels")
+        if self.n_cpr_above_1 + self.n_s4_positive > self.n_used:
+            raise ValueError("a used pixel cannot have both CPR above 1 and S4 > 0")
+        expected = (
+            (None, None)
+            if self.n_used == 0
+            else (self.n_cpr_above_1 / self.n_used, self.n_s4_positive / self.n_used)
+        )
+        if (self.fraction_cpr_above_1, self.fraction_s4_positive) != expected:
+            raise ValueError("the fractions must be the counts over n_used, or None without any")
+        verdict = _sign_verdict(self.n_used, self.n_cpr_above_1, self.n_s4_positive)
+        if self.verdict != verdict:
+            raise ValueError(f"the counts give the verdict {verdict}, not {self.verdict}")
+        _check_stokes_convention(self.convention)
+        if type(self.tolerance) is not Tolerance:
+            raise TypeError(f"tolerance must be a Tolerance, got {self.tolerance!r}")
+
+
+def lunar_s4_sign_check(
+    s1: npt.ArrayLike,
+    s4: npt.ArrayLike,
+    valid_mask: npt.ArrayLike,
+    *,
+    tolerance: Tolerance = ARITHMETIC_TOLERANCE,
+) -> LunarSignCheck:
+    """Check that lunar Stokes data follow the SIS S4 sign (PRD 6.2, lunar sign check, T1).
+
+    Under the SIS convention ``S4 = OC - SC`` (:data:`MINIRF_SIS_CONVENTION`), ordinary lunar
+    terrain with CPR below 1 has S4 > 0. If most pixels come out with CPR above 1, the selected
+    product uses a different S4 sign: stop and resolve before any comparison (PRD 6.2).
+
+    ``s1`` and ``s4`` are real arrays of one shape; ``valid_mask`` is a boolean array that
+    broadcasts to it, True where the product marks the pixel valid (the polarity of
+    :func:`derive_circular`'s ``validity_mask``); any other dtype raises TypeError. CPR comes
+    from :func:`circular_from_stokes` under the SIS convention with ``tolerance``, so a masked
+    pixel, a non-finite one, one with S1 < |S4| beyond the tolerance, or one without a valid CPR
+    (OC <= 0, for example) is not used and is counted under its reason. Over the used pixels
+    the result gives the fraction with CPR above 1 and the fraction with S4 > 0 (S4 as given).
+
+    Verdict, with "most" meaning more than half (PRD 6.2) and no other threshold:
+    ``SIGN_SUSPECT`` where more than half of the used pixels have CPR above 1; else ``PASS``
+    where more than half have S4 > 0; else ``INCONCLUSIVE``; ``NO_VALID_PIXELS`` where no pixel
+    is used. Only ``PASS`` lets a comparison proceed. The helper never flips the sign or returns
+    corrected data: it reports what the product gives, and resolving a suspect sign is a
+    decision for whoever owns the product convention.
+    """
+    _require_plain("valid_mask", valid_mask)
+    flags = np.asarray(valid_mask)
+    if flags.dtype != np.bool_:
+        raise TypeError(
+            f"valid_mask must be a boolean array, True where the product marks a pixel valid, "
+            f"got {flags.dtype}"
+        )
+    powers = circular_from_stokes(
+        s1,
+        s4,
+        s2=None,
+        s3=None,
+        convention=MINIRF_SIS_CONVENTION,
+        product_masked=~flags,
+        tolerance=tolerance,
+    )
+    s4_values = _stokes_array("s4", s4, powers.cpr.value.shape)
+    used = _is_valid(powers.cpr)
+    with np.errstate(invalid="ignore"):
+        n_cpr_above_1 = int(np.count_nonzero(used & (powers.cpr.value > 1.0)))
+        n_s4_positive = int(np.count_nonzero(used & (s4_values > 0.0)))
+    n_used = int(np.count_nonzero(used))
+    reasons, counts = np.unique(powers.cpr.reason[~used], return_counts=True)
+    excluded = {str(reason): int(count) for reason, count in zip(reasons, counts, strict=True)}
+    return LunarSignCheck(
+        verdict=_sign_verdict(n_used, n_cpr_above_1, n_s4_positive),
+        n_pixels=int(used.size),
+        n_used=n_used,
+        n_cpr_above_1=n_cpr_above_1,
+        n_s4_positive=n_s4_positive,
+        fraction_cpr_above_1=None if n_used == 0 else n_cpr_above_1 / n_used,
+        fraction_s4_positive=None if n_used == 0 else n_s4_positive / n_used,
+        n_excluded_by_reason=excluded,
+        convention=MINIRF_SIS_CONVENTION,
+        tolerance=tolerance,
     )
