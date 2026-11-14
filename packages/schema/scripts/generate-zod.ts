@@ -589,8 +589,9 @@ export function conditionSource(condition: Json | undefined, pointer = ''): stri
  * An object with `if`/`then`, as Draft 2020-12 evaluates it: when every `if` property is present
  * and equal to its constant, every `then` property that is present must match its schema.
  *
- * The object's own keywords are the converter's; the condition is a superRefine on top, which
- * adds one issue per `then` property that fails.
+ * The object's own keywords are the converter's; the condition is a superRefine on top. For each
+ * issue of a `then` property it adds one issue at the path below that property, with the nested
+ * message after a fixed prefix.
  */
 function translateConditional(node: JsonObject, refs: Refs): string {
   const { if: condition, then: consequence, description, ...rest } = node;
@@ -599,7 +600,7 @@ function translateConditional(node: JsonObject, refs: Refs): string {
     return notChecked(refs, 'then');
   }
   const holds = conditionSource(condition, `/${refs.path.join('/')}`);
-  const message = literal('Invalid input: must match the "then" schema when the "if" schema holds');
+  const prefix = literal('Invalid input: must match the "then" schema when the "if" schema holds: ');
   const checks = Object.entries(constrained).map(([key, schema]) => {
     if (!isObject(schema)) {
       return notChecked(refs, 'then');
@@ -607,8 +608,10 @@ function translateConditional(node: JsonObject, refs: Refs): string {
     const property = literal(key);
     const zod = parseSchema(schema, { ...refs, path: [...refs.path, 'then', 'properties', key] });
     return [
-      `if (Object.hasOwn(value, ${property}) && !${zod}.safeParse(value[${property}]).success) {`,
-      `ctx.addIssue({ code: 'custom', path: [${property}], input: value[${property}], message: ${message} });`,
+      `if (Object.hasOwn(value, ${property})) {`,
+      `for (const issue of ${zod}.safeParse(value[${property}]).error?.issues ?? []) {`,
+      `ctx.addIssue({ code: 'custom', path: [${property}, ...issue.path], input: value[${property}], message: ${prefix} + issue.message });`,
+      '}',
       '}',
     ].join('\n');
   });

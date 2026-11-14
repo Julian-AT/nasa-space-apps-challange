@@ -53,40 +53,46 @@ export const ProductRecordSchema = z
       Object.hasOwn(value, 'verification_status') &&
       value['verification_status'] === 'VERIFIED'
     ) {
-      if (
-        Object.hasOwn(value, 'local_path') &&
-        !z.string().safeParse(value['local_path']).success
-      ) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['local_path'],
-          input: value['local_path'],
-          message: 'Invalid input: must match the "then" schema when the "if" schema holds',
-        });
+      if (Object.hasOwn(value, 'local_path')) {
+        for (const issue of z.string().safeParse(value['local_path']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['local_path', ...issue.path],
+            input: value['local_path'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
       }
-      if (Object.hasOwn(value, 'checksum') && !z.string().safeParse(value['checksum']).success) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['checksum'],
-          input: value['checksum'],
-          message: 'Invalid input: must match the "then" schema when the "if" schema holds',
-        });
+      if (Object.hasOwn(value, 'checksum')) {
+        for (const issue of z.string().safeParse(value['checksum']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['checksum', ...issue.path],
+            input: value['checksum'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
       }
-      if (
-        Object.hasOwn(value, 'units') &&
-        !z
+      if (Object.hasOwn(value, 'units')) {
+        for (const issue of z
           .string()
           .refine((text) => !new RegExp('^[Uu][Nn][Kk][Nn][Oo][Ww][Nn]$').test(text), {
             error: 'Invalid input: must not match the "not" pattern',
           })
-          .safeParse(value['units']).success
-      ) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['units'],
-          input: value['units'],
-          message: 'Invalid input: must match the "then" schema when the "if" schema holds',
-        });
+          .safeParse(value['units']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['units', ...issue.path],
+            input: value['units'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
       }
     }
   })
