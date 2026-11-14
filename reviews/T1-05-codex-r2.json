@@ -1,0 +1,151 @@
+{
+  "task_id": "T1-05",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "3a2a5b98e25d630638928a885f890425ce7d1289",
+    "head": "34968fcb978ae05728a49d442e47a5813fdac04e",
+    "files": [
+      {
+        "path": "outputs/pilot/ctx_dtm.json",
+        "sha256": "34c0059e15b25869be9dd3fb992eb3fa791237f3b1bcf731fb76bdb0ef8b5ccf"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "271a5825167aa6c86ca58dadae863585e9ba99846a2c7f2a01c64ed5799574d4"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "51362efc48a6b3073df5fa69ea5888db8ee9504c602d88e562fb0d0a6e9513f5"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "acc875a23a865d4c1fd2b784a785b0274a02ec4256586270ae5481f62c691e58"
+      },
+      {
+        "path": "pipeline/tests/test_io_cog.py",
+        "sha256": "0f6232a02a541e298e5adbf187dbd56d89c24e9c4b52c754d74c44e3e02110d2"
+      },
+      {
+        "path": "pipeline/tests/test_io_remote_window.py",
+        "sha256": "e5f08745215fa7b0322916cdde6ddc6976c382e0b7562c74ca5b588808e04004"
+      },
+      {
+        "path": "pipeline/tests/test_io_stac.py",
+        "sha256": "f00c00a6005fbfec987803b207b80f5693f7d73d3ce8a64f7f175f93f0b99c2a"
+      },
+      {
+        "path": "pipeline/tests/test_pilot.py",
+        "sha256": "d8a65422de38dfbe46c6a67c5411fbd1d8133b63f6a22f1455e04f5bb147cd18"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_ctx.py",
+        "sha256": "3a8ebde34238bdb668c73763ebf04db3b7bb7e6f3c8351bce61803523b3bc701"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:22:29Z",
+  "finished_utc": "2026-11-14T22:27:37Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Both prior blockers are addressed in code with substantive regression tests, and all three rebuttals are supported by inspection. Required execution remains unverified because checks were prohibited in this read-only review.",
+  "checks": [
+    {
+      "criterion": "AC1: USGS STAC bbox searches, pagination, observed counts, pilot-probe labels, and readers in io.py.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:3696-3704 defines the required endpoint, collection and boxes; io.py:1540-1578 follows next links. Saved STAC pages contain Jezero feature counts 80, 0 and Arcadia counts 100, 36, 0. pilot.py:4210-4233 derives distinct counts; outputs/pilot/ctx_dtm.json:453 and :661 records 80 and 136. Probe and target-window labels appear at :366, :518 and :753. Header and range readers reside in io.py:346 and :1283."
+    },
+    {
+      "criterion": "AC2: Deterministic item selection, file metadata, partial COG window read, byte counts and quality-derived valid fraction.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static implementation is present at pilot.py:3802-3855 and :4430-4566. The committed record states band 1, a 256 x 256 window, and 1,835,008 of 14,245,180 bytes received. test_pilot_ctx.py:814-855 asserts metadata and independently expected window counts. Independent decoding and numerical verification require execution, prohibited by the read-only/no-check instructions."
+    },
+    {
+      "criterion": "AC3: Exact CTX-MOLA standard-deviation quotation, absent-QA handling, and no threshold application.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "data/raw/ctx/qa_metrics.txt:6 states 'StdDev of difference: 12.6913 meters'; outputs/pilot/ctx_dtm.json:717-728 preserves the value, unit, source line and line number, with applied=false and value=null. pilot.py:4313-4352 implements absent-item reporting and exact quotation. config/run.yaml contains no CTX QA threshold change."
+    },
+    {
+      "criterion": "AC4: Collection-derived licence/DOI, sorted reproducible ProductRecords, exact fetched-byte paths, and no signed output URLs.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Saved stac_collection.json states CC0-1.0 and DOI 10.5066/P9JKVWR3. pilot.py:4098-4115 supplies unknown fallbacks; :339-363 sorts/upserts records; :3875-3889 and :433-465 reject credential URLs. outputs/sources.json:1-43 names the raw range and QA files. Tests cover missing metadata, checksums, sorting and reproducibility at test_pilot_ctx.py:909-1027. Runtime checksum and byte-identical rerun verification were prohibited."
+    },
+    {
+      "criterion": "AC5: Unreachable URLs fail with URL/error; tests use synthetic loopback STAC and COG content.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Read the synthetic COG generator, loopback server, network guard and real HTTP calls at test_pilot_ctx.py:39-59, :173-216 and :411-449. Tests at :581-630 assert exit 1, URL and HTTP/connection errors. io.py:648-653 and :795-800 produce those errors; pilot.py:574-576 returns 1. Failure behavior was not executed because checks were prohibited."
+    },
+    {
+      "criterion": "AC6: Saved raw responses/ranges and HTTP metadata; offline deterministic record and byte-for-byte check.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "data/raw/ctx/fetch.json:10-229 lists all five search pages, QA text, stored COG ranges and exchange metadata. pilot.py:3765-3873 saves them; :3900-4094 builds from local files; :506-520 compares committed bytes without writing. test_pilot_ctx.py:465-479 and :1014-1055 covers socket refusal, reproducibility, output drift and changed raw bytes. Offline recomputation against committed outputs was prohibited."
+    },
+    {
+      "criterion": "Required pipeline test suite.",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user: this read-only review must not run checks that can write environments, temporary files or caches."
+    },
+    {
+      "criterion": "Required offline CTX output verification.",
+      "command": "uv run python -m terraluna_pipeline.pilot check ctx",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user; uv may write environment state even though pilot check itself is designed to write nothing."
+    },
+    {
+      "criterion": "Required repository quality checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user; the Makefile invokes uv, Ruff and mypy, which can write environment or cache state."
+    },
+    {
+      "criterion": "Previous codex-r1-1: whole-file transfers must not be represented as partial reads.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Code/test resolution verified by inspection: io.py:1141-1148 rejects requests completing coverage, :1189-1195 rejects whole-file first responses, and :950-953 derives coverage from validated ranges. pilot.py:4440-4446 rejects stored whole coverage and :4542 derives the output flag. Regression assertions appear at test_io_remote_window.py:354-381 and test_pilot_ctx.py:633-651, :1058-1078."
+    },
+    {
+      "criterion": "Previous codex-r1-2: signed hrefs on unfetched assets must not enter outputs.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Code/test resolution verified by inspection: pilot.py:3810 checks all chosen-item asset hrefs before asset requests, :3981 repeats validation during record, and :433-465 scans every generated JSON output. test_pilot_ctx.py:654-669 covers signed thumbnails/DTMs/QA; :1100-1161 covers saved assets and collection URLs, asserting no output changes or secret disclosure."
+    },
+    {
+      "criterion": "Previous claude-r1-1 rebuttal: local_path may name stored byte ranges rather than a complete TIFF.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "io.py:917-946 validates the range layout and byte count; :955-980 raises on unavailable bytes. pilot.py:4440-4447 and :4479-4481 decodes the header and product through those ranges. The .ranges representation satisfies the fetched-byte path requirement without inventing missing TIFF bytes."
+    },
+    {
+      "criterion": "Previous claude-r1-2 rebuttal: unstated COG units remain unknown.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "outputs/pilot/ctx_dtm.json:239-240 and :302 records null file units; outputs/sources.json:20 records units='unknown' and :21 retains PARTIAL status. io.py:441-457 derives units without assuming metres. Horizontal CRS metres are recorded separately from vertical band units."
+    },
+    {
+      "criterion": "Previous claude-r1-3 rebuttal: stub tests and unreachable-URL paths require direct review.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Directly read test_pilot_ctx.py and test_io_stac.py. They generate synthetic inputs, bind ThreadingHTTPServer to 127.0.0.1, restrict name resolution, exercise actual HTTP readers, and assert pagination and failures. This confirms substantive test coverage by inspection; previous claimed test-run results were not used."
+    },
+    {
+      "criterion": "Story scope and scientific guardrails.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The requested diff contains nine files, all matching the story's allowed paths. No config/run.yaml changes occur. outputs/pilot/ctx_dtm.json:753-774 leaves target selection false and product verification PARTIAL; no G0 PASS is emitted."
+    }
+  ],
+  "findings": []
+}

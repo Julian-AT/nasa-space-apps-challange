@@ -236,17 +236,17 @@
       "priority": 5,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 1,
+        "state": "reviewed",
+        "round": 2,
         "base": "3a2a5b98e25d630638928a885f890425ce7d1289",
-        "head": "7c54f39b0abd75065fb1ff4ce6c8b17ba8299c7d",
+        "head": "34968fcb978ae05728a49d442e47a5813fdac04e",
         "files": [
-          "reviews/T1-05-claude.json",
-          "reviews/T1-05-codex.json"
+          "reviews/T1-05-claude-r2.json",
+          "reviews/T1-05-codex-r2.json"
         ],
         "digests": {
-          "reviews/T1-05-claude.json": "dc8dcb801b3696bcc41a6a7b5df0cc4b8ea04c451ac4bdda54f2466117e289af",
-          "reviews/T1-05-codex.json": "a01f43765085cc398eddd85c305f75f8546bd24b2ba44fa9fb2e493bf49a9de8"
+          "reviews/T1-05-claude-r2.json": "318bd91a34445aa0654bc1b12612c04f0264e6659dc4d41c1b70f2274a5adb73",
+          "reviews/T1-05-codex-r2.json": "6751f7391348ed63b461537f882fd3ebe139cacca6e97a23703890dc4a56d6e5"
         }
       },
       "notes": "Reviewer findings applied: upsert, io.py readers, offline gate."

@@ -109,3 +109,9 @@
 {"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"jq '.dtm|{range_read:(.range_read|tostring|.[0:1800]),valid,units_stated_by_file}' outputs/pilot/ctx_dtm.json"}
 {"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":3}
+{"ts":"2026-11-14T22:23:02Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests"}
+{"ts":"2026-11-14T22:23:02Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"uv run python -m terraluna_pipeline.pilot check ctx"}
+{"ts":"2026-11-14T22:23:02Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T22:23:02Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"git diff --stat 3a2a5b98e25d630638928a885f890425ce7d1289 34968fcb978ae05728a49d442e47a5813fdac04e -- . ':!scripts/ralph' ':!reviews' ':!logs'"}
+{"ts":"2026-11-14T22:23:02Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T22:23:03Z","agent":"verifier","story":"T1-05","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":1}
