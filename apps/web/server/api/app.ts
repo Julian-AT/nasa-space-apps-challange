@@ -8,6 +8,10 @@
 //
 // Only GET and HEAD are served (HEAD is GET without a body). Every other method, on any path the
 // app receives, is a 405 problem with Allow: GET, HEAD.
+//
+// /openapi.json is the OpenAPI 3.1 document of every route registered below, and /docs the Scalar
+// reference to it; neither reads the bundle. /api/docs (PRD 8.6) redirects to /api/v1/docs and is
+// the only route outside the base path.
 import { OpenAPIHono } from '@hono/zod-openapi';
 import type { Context, MiddlewareHandler, ValidationTargets } from 'hono';
 
@@ -19,11 +23,13 @@ import {
   type PulledBundle,
 } from '../../lib/bundle.ts';
 import { compareHandler, compareRoute } from './compare.ts';
+import { DOCS_ALIAS_PATH, DOCS_PATH, docsHandler, docsRedirect, docsRoute } from './docs.ts';
 import { gatesHandler, gatesRoute } from './gates.ts';
 import { healthHandler, healthRoute } from './health.ts';
 import { manifestHandler, manifestRoute } from './manifest.ts';
 import { matchesHandler, matchesRoute } from './matches.ts';
 import { modelHandler, modelRoute } from './model.ts';
+import { API_INFO, OPENAPI_VERSION, openApiHandler, openApiRoute } from './openapi.ts';
 import { ProblemError, problemResponse, VALIDATION_STATUS } from './problem.ts';
 import { targetHandler, targetListHandler, targetListRoute, targetRoute } from './targets.ts';
 import { windowHandler, windowRoute } from './windows.ts';
@@ -149,5 +155,11 @@ export function createApi({
   api.openapi(windowRoute, windowHandler(read));
   api.openapi(compareRoute, compareHandler(read));
   api.openapi(modelRoute, modelHandler(read));
+  // The contract and its reference, fixed per deploy (./openapi.ts, ./docs.ts).
+  const generate = () => api.getOpenAPI31Document({ openapi: OPENAPI_VERSION, info: API_INFO });
+  api.openapi(openApiRoute, openApiHandler(generate));
+  api.openapi(docsRoute, docsHandler());
+  // On the root, which shares the router: the one route outside the base path.
+  root.get(DOCS_ALIAS_PATH, docsRedirect(`${API_BASE_PATH}${DOCS_PATH}`));
   return api;
 }
