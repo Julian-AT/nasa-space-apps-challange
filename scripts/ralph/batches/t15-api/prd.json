@@ -210,12 +210,18 @@
       "priority": 4,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "707ebfef94b5825809780745aeccd5cad11f20ed",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "22fa07b9e8357e479c4aa2685010ab1ee6a22baa",
+        "files": [
+          "reviews/T15-04-claude.json",
+          "reviews/T15-04-codex.json"
+        ],
+        "digests": {
+          "reviews/T15-04-claude.json": "d837bfc41a96e83ec34dfa94839186d270192809fa36aa7cfc5702a646c64f50",
+          "reviews/T15-04-codex.json": "db9a18666189d7c26395c192b88815f872fc39a0ba4b61df16898b8412dc9243"
+        }
       },
       "notes": "Review finding applied with the orchestrator's amendment: targets come from manifest.targets; targets.json is pulled by T15-01 but served only once a TargetRecord schema exists. Human decision needed: TargetRecord schema. Author (T15-04): (1) Human decision: @terraluna/schema has no TargetRecord schema. Until it has one, GET /api/v1/targets serves only what BundleManifestSchema validates: bundle_version, shipping_mode (null kept null) and, as items, the manifest target ids in manifest order (TargetListSchema picks those schemas from BundleManifestSchema). GET /api/v1/targets/{id} is 404 for an id manifest.targets does not list and 501 for one it lists. No route reads targets.json, so its presence or absence changes no response; whether a manifest that lists targets must also list targets.json is a bundle rule for export.py validate, not the API. (2) Target id parameter (server/api/targets.ts): TARGET_ID_PATTERN ^[A-Za-z0-9_-][A-Za-z0-9._-]*$ (one bundle path segment, because the bundle names target files comparisons/<target_id>.json) and TARGET_ID_MAX_LENGTH 128. Any other id is a 400 problem (VALIDATION_STATUS) before the bundle is read. BundleManifest.targets requires only non-empty ids, so a manifest id outside the pattern would be listed but could not be looked up. Whether schema.py should adopt the pattern is a second human decision. (3) Cache: the list is per bundle as in T15-03 (public, max-age=300, immutable; ETag W/\"<bundle_version>\"; 304 on a matching If-None-Match). The detail has no 200 yet; its 404 and 501 are problems and, like every problem (problem.ts), no-store. (4) A handler ends with an expected problem by throwing ProblemError(status, detail) (problem.ts); onError answers it with problemResponse and does not log it. A raw Response is not a valid zod-openapi handler result when every declared response has content. (5) No loader accessor was added; no app/api file was touched."
     },

@@ -1,0 +1,104 @@
+{
+  "task_id": "T15-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "707ebfef94b5825809780745aeccd5cad11f20ed",
+    "head": "22fa07b9e8357e479c4aa2685010ab1ee6a22baa",
+    "files": [
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "b5a0d2a33360153a825698783c4ae146936a4d735c918cf95e3349a4796d90ce"
+      },
+      {
+        "path": "apps/web/server/api/problem.ts",
+        "sha256": "6d6eff8fa7f9de9c82fc67da0ffae76d8274ad38581a75ba89bb1a2c60685ee1"
+      },
+      {
+        "path": "apps/web/server/api/targets.test.ts",
+        "sha256": "57c5ba978a660b91bad6db52145b57c1679c56596f2197084ffe442cb4d29a36"
+      },
+      {
+        "path": "apps/web/server/api/targets.ts",
+        "sha256": "15fc7c288a869a1933f97e61ed983e8f801e1619e78a11d1b48087b98900908f"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:19:30Z",
+  "finished_utc": "2026-11-14T20:20:01Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T15-04 meets every acceptance criterion on evidence. All five story checks passed. The diff touches only apps/web/server/api/{app,problem,targets,targets.test}.ts, all within the files list. The list serves manifest ids only. The detail returns 404 or 501 problems. targets.json is never read. No TargetRecord schema was invented. I found no blocker or high issue; the one low finding is a stale cached path in make test output.",
+  "checks": [
+    {
+      "criterion": "AC1: GET /targets returns 200 with bundle_version, shipping_mode and manifest id strings only; empty for the mock; OpenAPI says body/footprint not served",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "targets.ts:137-147 builds the list from the validated manifest; TargetListSchema is picked from BundleManifestSchema (targets.ts:60-64). The route description names body, footprint and TargetRecord (targets.ts:88-94). Tests at targets.test.ts:94-155 and 377-382 pass (6 files, 132 tests)."
+    },
+    {
+      "criterion": "AC2: targets.json is never passed through; its absence is not an error",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "targets.ts never reads targets.json. Test 'never serves targets.json' (targets.test.ts:157-171) checks that a marker and 'footprint' are absent from the response. Test 'is not an error when targets.json is absent' (173-181) passes."
+    },
+    {
+      "criterion": "AC3: detail returns 404 problem naming the id and bundle; 501 for a listed id; id pattern and length validated with 400",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "targets.ts:149-164 throws ProblemError 404 or 501. The pattern and max length are at targets.ts:36-54. Tests at targets.test.ts:245-337 cover 404, 501, 400 for malformed ids without a bundle read, and an id of exactly 128 characters."
+    },
+    {
+      "criterion": "AC4: response schemas built from the BundleManifest schema plus problem+json; no hand-written target record schema",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "targets.ts:60-64 uses BundleManifestSchema.pick and .shape.targets. Tests at targets.test.ts:384-415 assert the shape is identical to the manifest schema and that the only target-named component is TargetList. The TargetRecord gap is named in the code comments and OpenAPI descriptions. The story notes are under scripts/ralph, which the diff excludes, so I did not inspect them."
+    },
+    {
+      "criterion": "AC5: reader fixture with two test ids defined in the test file; list returns exactly them, listed id gives 501, unlisted id gives 404; nulls not coerced",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "TEST_IDS is defined at targets.test.ts:39 and the bundle is built in a temp dir. Tests at 117-126, 142-147 and 273-286 assert the exact list, a null shipping_mode kept null, and 501 for listed ids; tests at 255-271 assert 404 for unlisted ids. 294 tests passed."
+    },
+    {
+      "criterion": "AC6: Cache-Control per bundle as in T15-03",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "targets.ts:145 uses bundleCacheHeaders('per-bundle', ...) and the route uses conditionalGet. Tests at targets.test.ts:203-242 assert 'public, max-age=300, immutable', the ETag, 304 on a matching If-None-Match, HEAD, and no 304 for an invalid manifest."
+    },
+    {
+      "criterion": "Check: typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "PASS",
+      "evidence": "next typegen, tsc --noEmit and tsc --noEmit -p server/api exited 0."
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, and turbo lint and typecheck all succeeded. All four turbo tasks were cache hits."
+    },
+    {
+      "criterion": "Check: make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest: 404 passed. turbo web tests: 294 passed (targets.test.ts 44 tests), schema tests: 157 passed. Both turbo tasks were cache hits."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "make test (turbo cache replay of @terraluna/schema:test)",
+      "claim": "The replayed schema test log shows a path under the t7-shell worktree, so that result was a cache hit, not a run in this worktree.",
+      "evidence": "The log line reads '/nasa-space-apps-challange-worktrees/t7-shell/packages/schema'. The schema package is outside T15-04's diff, so this does not affect the verdict.",
+      "id": "claude-r1-1",
+      "resolution": null
+    }
+  ]
+}
