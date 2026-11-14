@@ -19,9 +19,10 @@ text. extract() works in two passes.
    prints them, so {seam}{less} reads seamless; only two arguments of one command, as in
    \textcolor{red}{x} in kept TikZ text, are separate words (argument_breaks). What TeX skips
    without printing a space is dropped (unprinted): the spaces, comments and single line break
-   after a control word or before the letter of an accent, and a comment with its line break
-   and the indent of the next line. So seam\emph {less}, seam{\bf less} and sea% with mless on
-   the next line all read seamless.
+   after a control word or before the letter of an accent, a comment with its line break and
+   the indent of the next line, and key commands that print nothing, such as \label. So
+   seam\emph {less}, seam{\bf less}, seam\label{x}less and sea% with mless on the next line all
+   read seamless.
 
 The code keeps every character offset and the prose every line break of the source. A word that
 TeX joins across a line break it skips is written whole on the line where the word starts, and
@@ -95,6 +96,37 @@ KEY_COMMANDS: dict[str, int] = {
 }
 # The \cite family: \cite, \citet, \citep, \citealp, \Citet, \citeauthor, \citeyearpar and so on.
 CITE_COMMAND = re.compile(r"[Cc]ite[A-Za-z]*")
+# Key commands that print nothing where they stand, with their keys: the text on either side prints
+# as one word, so seam\label{x}less and seam\textcolor{red}{less} read seamless. The others print
+# a citation, a number, a URL, a file, a figure or a space, which breaks a word.
+UNPRINTED_KEY_COMMANDS = frozenset(
+    {
+        "label",
+        "nocite",
+        "href",
+        "color",
+        "textcolor",
+        "vspace",
+        "hypersetup",
+        "newcommand",
+        "renewcommand",
+        "providecommand",
+        "definecolor",
+        "setlength",
+        "addtolength",
+        "tikzset",
+        "pgfplotsset",
+        "usetikzlibrary",
+        "graphicspath",
+        "multicolumn",
+        "multirow",
+        "documentclass",
+        "usepackage",
+        "RequirePackage",
+        "includeonly",
+        "bibliographystyle",
+    }
+)
 # Commands whose first argument is read verbatim, as the url package does, so % and ~ are text.
 VERBATIM_ARGUMENT = frozenset({"url", "href"})
 # hyperref's \url makes % and the end of a line active before it reads its argument
@@ -345,8 +377,9 @@ class _CodeScanner:
         self.keep_tikz = keep_tikz
         self.out = list(text)
         self.comments: dict[int, str] = {}
-        # Each comment with its line break and the indent of the next line, which TeX drops.
-        self.comment_offsets: set[int] = set()
+        # What TeX drops without printing a space: each comment with its line break and the indent
+        # of the next line, and each key command in UNPRINTED_KEY_COMMANDS with its keys.
+        self.unprinted_offsets: set[int] = set()
         self.line_starts: list[int] | None = None
 
     def line(self, offset: int) -> int:
@@ -388,7 +421,7 @@ class _CodeScanner:
         end = len(text) if end == -1 else end
         self.comments.setdefault(self.line(start), text[start + 1 : end])
         dropped_end = end if end == len(text) else _blanks_end(text, end + 1)
-        self.comment_offsets.update(range(start, dropped_end))
+        self.unprinted_offsets.update(range(start, dropped_end))
         return end
 
     def skip(self, i: int) -> int:
@@ -481,6 +514,8 @@ class _CodeScanner:
             end = self.verb_end(start, i)
         elif name in KEY_COMMANDS or CITE_COMMAND.fullmatch(name):
             end = self.key_arguments_end(start, i, name)
+            if name in UNPRINTED_KEY_COMMANDS:
+                self.unprinted_offsets.update(range(start, end))
         else:
             return i
         self.blank(start, end)
@@ -663,15 +698,16 @@ class _CodeScanner:
 
         After a control word, and before the letter of an accent such as \', TeX skips spaces,
         comments and one line break (space_end, read in the source, where a comment line is not
-        a blank line). A comment goes with its line break and the indent of the next line. So
-        seam\emph {less}, seam{\bf less} and caf\' with e on the next line print one word. A blank
-        line is \par and stays.
+        a blank line). A comment goes with its line break and the indent of the next line, and a
+        key command in UNPRINTED_KEY_COMMANDS prints nothing. So seam\emph {less}, seam{\bf less},
+        seam\label{x}less and caf\' with e on the next line print one word. A blank line is \par
+        and stays.
         """
         offsets: set[int] = set()
         for match in CONTROL_SEQUENCE.finditer(code):
             if match[1] is not None or match[0][1] in ACCENT_SYMBOLS:
                 offsets.update(range(match.end(), self.space_end(match.end())))
-        return frozenset(offsets | self.comment_offsets)
+        return frozenset(offsets | self.unprinted_offsets)
 
     def optional_arguments_end(self, i: int) -> int:
         text = self.text
@@ -797,7 +833,7 @@ def _prose(code: str, breaks: frozenset[int], unprinted: frozenset[int]) -> str:
     while i < len(code):
         char = code[i]
         if i in unprinted:
-            # White space or a blanked comment that TeX skips; see _CodeScanner.unprinted.
+            # Blanked text that TeX prints nothing for; see _CodeScanner.unprinted.
             if char == "\n":
                 out.unprinted_line_break()
             i += 1
