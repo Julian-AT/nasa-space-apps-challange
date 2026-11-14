@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "GateRecord": {
+      "additionalProperties": false,
+      "description": "One release gate's state in validation.json (PRD 8.12, section 9).",
+      "properties": {
+        "gate_id": {
+          "enum": [
+            "G0",
+            "G1",
+            "G2",
+            "G3",
+            "G4",
+            "G5",
+            "G6"
+          ],
+          "title": "Gate Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "NOT_RUN",
+            "PASS",
+            "FAIL",
+            "PARTIAL",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence_path": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Evidence Path"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Run Id"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Scope"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Result"
+        },
+        "consequence": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Consequence"
+        }
+      },
+      "required": [
+        "gate_id",
+        "status",
+        "evidence_path",
+        "run_id",
+        "scope",
+        "result",
+        "consequence"
+      ],
+      "title": "GateRecord",
+      "type": "object"
+    }
+  },
+  "description": "validation.json: the GateRecords (PRD 8.4, 8.12).",
+  "items": {
+    "$ref": "#/$defs/GateRecord"
+  },
+  "title": "Validation",
+  "type": "array"
+}
