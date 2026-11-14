@@ -440,7 +440,9 @@ def test_abstract_has_at_most_200_words() -> None:
 # --- Rule 5: planned, vector-only figures -------------------------------------------------------
 
 FIGURE_INPUT = re.compile(r"\\input\s*\{\s*figures/([^}]*?)\s*\}")
-INCLUDEGRAPHICS = re.compile(r"\\includegraphics\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}")
+INCLUDEGRAPHICS_NAME = re.compile(r"\\includegraphics(?![A-Za-z])")
+# graphicx: an optional *, at most two optional [..] arguments, then the braced path.
+INCLUDEGRAPHICS = re.compile(r"\\includegraphics\s*\*?\s*(?:\[[^\]]*\]\s*){0,2}\{([^{}]*)\}")
 FIGURE_BEGIN = re.compile(r"\\begin\s*\{figure\*?\}")
 PATH_PART = r"[A-Za-z0-9_-][A-Za-z0-9_.-]*"
 ALLOWED_GRAPHIC = re.compile(rf"figures/generated/(?:{PATH_PART}/)*{PATH_PART}\.pdf")
@@ -461,8 +463,20 @@ def figure_environments(text: str) -> int:
 
 
 def disallowed_graphics(text: str) -> list[str]:
-    paths = [path.strip() for path in INCLUDEGRAPHICS.findall(strip_comments(text))]
-    return [path for path in paths if ALLOWED_GRAPHIC.fullmatch(path) is None]
+    """Each \\includegraphics that does not load a .pdf under figures/generated/.
+
+    A command whose path cannot be read is reported as written up to the end of its line, so an
+    unrecognised form fails instead of going unchecked.
+    """
+    text = strip_comments(text)
+    problems = []
+    for name in INCLUDEGRAPHICS_NAME.finditer(text):
+        command = INCLUDEGRAPHICS.match(text, name.start())
+        if command is None:
+            problems.append(text[name.start() :].split("\n", 1)[0])
+        elif ALLOWED_GRAPHIC.fullmatch(path := command.group(1).strip()) is None:
+            problems.append(path)
+    return problems
 
 
 def raster_images(root: Path) -> list[str]:
