@@ -107,7 +107,11 @@
       "claim": "Existing test_schema.py was modified, which is not a pattern in the story's file list (pipeline/tests/* does cover it).",
       "evidence": "It adds 2**53 to the rejected byte counts. This tightens the test rather than weakening it. Informational only.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted. pipeline/tests/test_schema.py matches the story files pattern pipeline/tests/* (the finding says so itself, and ralph.sh matching [[ pipeline/tests/test_schema.py == pipeline/tests/* ]] is true). The only change, in failing-tests commit 8bb1ae9, adds 2**53 to the rejected sizes of test_bytes_rejects_negative_or_non_integer. That tightens the test and pins the new BundleFile.bytes bound le=JS_MAX_SAFE_INTEGER (schema.py:57, :104), so a byte count the web would read as a rounded JS number is rejected in pydantic and in the generated JSON Schema alike (PRD 8.4 contract, D23 parity). The accept test already stopped at 2**53-1. Removing the bound makes this case fail (recorded in the T0-03 implement entry). No change is needed."
+      }
     }
   ]
 }
