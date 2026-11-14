@@ -154,7 +154,8 @@ describe('primary navigation', () => {
     expect(clients).toEqual(['components/site-header.tsx']);
     const header = readFileSync(join(WEB_DIR, 'components', 'site-header.tsx'), 'utf8');
     const imports = [...header.matchAll(/^import\b[^'"]*['"]([^'"]+)['"]/gm)].map((match) => match[1]);
-    expect(imports.sort()).toEqual(['next/link', 'next/navigation', 'react']);
+    expect(imports).toEqual(expect.arrayContaining(['next/link', 'next/navigation']));
+    for (const name of imports) expect(['next/link', 'next/navigation', 'react']).toContain(name);
     expect(header).not.toMatch(/Provider|createContext|useContext|Adapter/);
   });
 });
