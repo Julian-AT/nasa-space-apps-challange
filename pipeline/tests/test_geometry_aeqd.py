@@ -1009,22 +1009,24 @@ def d29_pixels(draw: st.DrawFn) -> tuple[str, list[tuple[int, int]]]:
 def test_round_trip_property(
     body: str, lat0: float, lon0: float, grid_pixels: tuple[str, list[tuple[int, int]]]
 ) -> None:
-    """Random centres anywhere on the sphere, random pixel centres of the D29 grids.
+    """Random centres anywhere on the sphere, every pixel centre of a D29 grid.
 
-    Each pixel is (row, column) on one of the grids D29 resamples onto: the 5 km analysis grid
-    (``terrain`` in the run config) or the 64 x 78.125 m encoder grid (``ml``). Longitudes come
-    back in [-pi, pi) and latitudes in [-pi/2, pi/2], and the window coordinates survive
-    inverse then forward, through both the module and the exact reference, to PRD 7 tolerances
-    in plain metres.
+    The grid is one of the two D29 resamples onto: the 5 km analysis grid (``terrain`` in the
+    run config) or the 64 x 78.125 m encoder grid (``ml``). Longitudes come back in [-pi, pi)
+    and latitudes in [-pi/2, pi/2]. Every pixel centre survives inverse then forward through
+    the module forward, and the drawn (row, column) pixels also through the exact reference,
+    which costs about 0.1 ms per point, all to PRD 7 tolerances in plain metres.
     """
     name, pixels = grid_pixels
     radius = BODY_RADII_M[body]
     grid = D29_GRIDS[name]
-    x = np.array([grid.x_m[column] for _, column in pixels])
-    y = np.array([grid.y_m[row] for row, _ in pixels])
-    lat, lon = aeqd_inverse(x, y, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
+    x_all, y_all = grid.mesh_m()
+    lat, lon = aeqd_inverse(x_all, y_all, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
     assert np.all((lon >= -PI) & (lon < PI))
     assert np.all(np.abs(lat) <= HALF_PI)
+    assert_grid_round_trip(x_all, y_all, lat0=lat0, lon0=lon0, radius=radius, exact=False)
+    x = np.array([grid.x_m[column] for _, column in pixels])
+    y = np.array([grid.y_m[row] for row, _ in pixels])
     assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=True)
 
 
