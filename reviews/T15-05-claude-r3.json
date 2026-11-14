@@ -1,0 +1,148 @@
+{
+  "task_id": "T15-05",
+  "round": 3,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "aba5ce10102a42f41e1efb7aaba802817ce8320c",
+    "head": "7a9bdf2e278849c101700e506749ee34118dfa06",
+    "files": [
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "b067a900bc85c393293209263358bd19811cf930ed17eb364e9c14a1cb87ac72"
+      },
+      {
+        "path": "apps/web/server/api/compare.test.ts",
+        "sha256": "a71b54784ad98cc81f75a172d5d8f894917bf872eb8fcc18378de7e1ce8f9b99"
+      },
+      {
+        "path": "apps/web/server/api/compare.ts",
+        "sha256": "b5f34c1008fb55ab3e6c3c6c8d8c09bc15ded46dbd77e8073dd0694b24fc1192"
+      },
+      {
+        "path": "apps/web/server/api/matches.test.ts",
+        "sha256": "ce625b7d892eec48b78b10eaaaf64f49be2e15ca9e6bcbbe2f0b90c4c7d9b9ab"
+      },
+      {
+        "path": "apps/web/server/api/matches.ts",
+        "sha256": "2e06b8c0d22e35eb56981a7a56acf4dc85ea391fa509a89015e10ec6472bd610"
+      },
+      {
+        "path": "apps/web/server/api/model.test.ts",
+        "sha256": "714ee84ac24402e4f79969cee141f8c729de7481622d14d2d6cee3ff85f014db"
+      },
+      {
+        "path": "apps/web/server/api/model.ts",
+        "sha256": "b2b1c8bef08d843b182fabe61a989c75cc9bacfe7aa2ddd9cbea4fdf9c5362a1"
+      },
+      {
+        "path": "apps/web/server/api/test-support.ts",
+        "sha256": "beee7209d5188c976a0bd88cf7b95c13269f7c5b5be5326c8d1a68a886776310"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.test.ts",
+        "sha256": "0f077602dc8b55b13854256c026572ede7c0c496993c653a85693a3a217eb119"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.ts",
+        "sha256": "88acd687775b5c4e4a8c36086c98e1c838ba869dcfef68a28548c5bcf39a1702"
+      },
+      {
+        "path": "apps/web/server/api/windows.test.ts",
+        "sha256": "b988e9c4184e6c6a30de218b7a87b715d96854c3bbd09ecdfd77d21b482b954b"
+      },
+      {
+        "path": "apps/web/server/api/windows.ts",
+        "sha256": "31a353491fedbf249eb6de3be3022d1ecd55b7e851b1b55ec3082facc30ed72f"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:11:07Z",
+  "finished_utc": "2026-11-14T21:11:37Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 3 for T15-05: the five acceptance criteria pass, and all five story checks passed in this session. Round 2's findings are resolved. The 404/501 split is implemented in windows.ts, compare.ts, matches.ts and model.ts. unavailable.test.ts pins the split with two manifests that differ only in listing windows/earth.json. Changes stay within apps/web/server/api, and the diff touches no config or schema files. I found no new defects.",
+  "checks": [
+    {
+      "criterion": "AC1: the four routes are routed with validated parameters (body, family, limit 1-500 default 50, cursor) and return problem+json; status follows one documented and tested rule (404 where manifest.json rules the id out, 501 naming the missing record schema where only an unparsed listed file could hold it)",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "295 tests passed in 11 files. The rule is documented at unavailable.ts:1-21. matches.ts:56-92 is the query schema. unavailable.test.ts:146-335 pins the 404/501 cases and the with/without windows/earth.json split. The 501 detail names WindowRecord or ComparisonRecord (unavailable.test.ts:316)."
+    },
+    {
+      "criterion": "AC2: family=model is refused and returns no distances on the mock bundle; any future model-family path carries the Predicted label and is refused while G5 is not PASS, pinned by a test",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "matches.ts:124-128 refuses via modelFamilyAccess (model.ts:36-61). That function requires a model, model.g5 PASS and exactly one G5 PASS record in validation.json, and otherwise returns allowed:false. On allow it returns the PREDICTED_LABEL. model.test.ts:108-164 pins the refusal cases: no model, G5 not PASS, no G5 record and two G5 records. unavailable.test.ts:127-143 and the mock-bundle tests cover family=model."
+    },
+    {
+      "criterion": "AC3: /compare computes nothing, makes no @terraluna/core call and produces no Derived value; the notes record that on-request computation waits for T10",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "unavailable.test.ts:337-361 checks that no API source imports @terraluna/core and that the web package.json has no such dependency. expectNoResult asserts the response text does not contain 'Derived'. compare.ts:4-7 and prd.json:253 record the T10 wait. I did not read the prd.json notes field at line 280 in full."
+    },
+    {
+      "criterion": "AC4: a test scans response bodies against the mock bundle and asserts no numeric distance, rank or fingerprint field",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "unavailable.test.ts:82-125 (expectNoResult) covers every valid and every invalid request. It asserts the only number in the body is the status, that no key matches /distance|rank|fingerprint|embedding|score.../, and that the detail has no decimal numbers."
+    },
+    {
+      "criterion": "AC5: the routes appear in the OpenAPI document with their problem+json responses",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "unavailable.test.ts:363-471 checks that matches, windows, compare and model are get-only. It checks the exact response status sets, problem+json content referencing the Problem schema, the matches parameter enums and limits, and that no window, model or comparison component is defined."
+    },
+    {
+      "criterion": "Check: web test suite",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "17 files, 457 tests passed."
+    },
+    {
+      "criterion": "Check: server/api vitest",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "11 files, 295 tests passed."
+    },
+    {
+      "criterion": "Check: typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "PASS",
+      "evidence": "next typegen, tsc --noEmit and tsc --noEmit -p server/api exited cleanly."
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff and mypy passed. turbo lint and typecheck ran 4 tasks, all successful (cache hits)."
+    },
+    {
+      "criterion": "Check: make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed. The web (457) and schema (157) vitest suites passed; turbo replayed cached output for both."
+    },
+    {
+      "criterion": "Scope: changed paths stay inside the story's files list, and no config or schema paths changed",
+      "command": "git diff --stat aba5ce1..7a9bdf2 -- apps packages config pnpm-lock.yaml",
+      "outcome": "PASS",
+      "evidence": "Only 12 files under apps/web/server/api changed; nothing in packages, config or pnpm-lock.yaml."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/server/api/windows.ts:99-105",
+      "claim": "For a window or comparison id outside manifest.targets while a windows/<body>.json top-N file is listed, an unknown id gets a 501, the same answer a known id would get.",
+      "evidence": "windowSources returns every listed top-N file for any id. unavailable.ts:11-15 and unavailable.test.ts:266-272 document this as the orchestrator-approved rule for AC0, to be replaced by t15b-api once WindowRecord and ComparisonRecord exist. This is not a defect under the amended criterion.",
+      "id": "claude-r3-1",
+      "resolution": null
+    }
+  ]
+}
