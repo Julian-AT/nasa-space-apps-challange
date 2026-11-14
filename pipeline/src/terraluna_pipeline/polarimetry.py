@@ -116,7 +116,8 @@ class InvalidReason(StrEnum):
 
     FLOAT64_OUT_OF_RANGE = "FLOAT64_OUT_OF_RANGE"
     """The input is valid, but float64 cannot hold the result (state ``INVALID``): it overflows,
-    or a positive power falls below the smallest normal float64. Not a physical threshold."""
+    or a positive power falls below the smallest normal float64, or a covariance's parts lie too
+    far apart to be carried at one float64 scale. Not a physical threshold."""
 
     PRODUCT_MASKED = "PRODUCT_MASKED"
     """The product's own validity or noise flag excludes the element (state ``MISSING``)."""
@@ -1116,6 +1117,21 @@ def _covariance_array(name: str, values: npt.ArrayLike) -> npt.NDArray[np.comple
     return array.astype(np.complex128)
 
 
+_CARRIED_RANGE: Final = 1016
+"""A nonzero real or imaginary part of ``C'`` below ``2**-_CARRIED_RANGE`` times the largest
+part of ``C'`` cannot be carried through the transformation at the matrix's scale.
+
+After the power-of-two scaling the largest part of ``C'`` lies in [0.5, 2), so every part at
+least ``2**-1016`` times as large is at least ``2**-1017``. On its way into a result a part is
+multiplied by factors whose product is at least 1/16: the 1/2 of the Hermitian part, two
+basis entries of magnitude 1/2 or 1/sqrt2 and the 1/2 of OC or base_SC (for the handedness
+term, the 1/2 and an entry 1/(2 sqrt2) of ``_HANDEDNESS_FORM``). Each product so stays at
+least ``2**-1021``, a normal float64, and keeps its full precision. A smaller part
+would round to a subnormal or to zero and could leave a VALID zero where the exact result is
+not zero. This is float64 representability, not a physical threshold: it binds only matrices
+whose parts span about 300 decimal orders of magnitude."""
+
+
 def _scale_by_power_of_two(
     covariance: npt.NDArray[np.complex128],
 ) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.int32]]:
@@ -1124,8 +1140,8 @@ def _scale_by_power_of_two(
 
     ``covariance == ldexp(scaled, e)``. The scaling is exact for every part within a factor of
     about ``2**1021`` of the matrix's largest part; a smaller part is below float64 resolution
-    at the matrix's scale and may round to a subnormal or to zero. An all-zero matrix keeps
-    exponent 0. Inputs must be finite.
+    at the matrix's scale and may round to a subnormal or to zero, so the caller refuses such a
+    matrix (:data:`_CARRIED_RANGE`). An all-zero matrix keeps exponent 0. Inputs must be finite.
     """
     with np.errstate(under="ignore"):
         largest = np.asarray(
@@ -1234,18 +1250,23 @@ def circular_from_covariance(
 
     Each matrix is first scaled by one exact power of two (its largest real or imaginary part
     into [0.5, 1)); the rules and the transformation run on the scaled matrix and the powers are
-    scaled back, so no intermediate overflows or underflows. Parts smaller than about
-    ``2**-1021`` times the largest part are below float64 resolution at that scale; they can
-    decide an outcome only for an allowance below that size.
+    scaled back, so no intermediate overflows or underflows. A matrix whose parts lie too far
+    apart for one float64 scale to carry them all is refused (rule 3), so no part is lost to
+    the scaling. Every power still carries the transformation's rounding error, of the order of
+    float64 precision times ``s``.
 
     Rules shared by every output, in order (the first match wins):
 
     1. ``product_masked``: ``MISSING``, ``PRODUCT_MASKED``.
     2. Any element has a NaN or infinite real or imaginary part: ``INVALID``, ``COV_NONFINITE``.
-    3. ``max |C'_ij - conj(C'_ji)| > allowance``, an off-diagonal mismatch or an imaginary
+    3. A nonzero real or imaginary part of ``C'`` is below ``2**-1016`` times the largest part
+       of ``C'``, so float64 cannot carry it through the transformation at the matrix's scale
+       (``_CARRIED_RANGE``): ``INVALID``, ``FLOAT64_OUT_OF_RANGE``. This is representability,
+       not a physical threshold; it also keeps a lost part from deciding rules 4 to 6.
+    4. ``max |C'_ij - conj(C'_ji)| > allowance``, an off-diagonal mismatch or an imaginary
        diagonal beyond the tolerance: ``INVALID``, ``COV_NOT_HERMITIAN``.
-    4. A diagonal power of ``C'`` below ``-allowance``: ``INVALID``, ``COV_NEGATIVE_DIAGONAL``.
-    5. The smallest eigenvalue of ``C'`` below ``-allowance``: ``INVALID``, ``COV_NOT_PSD``.
+    5. A diagonal power of ``C'`` below ``-allowance``: ``INVALID``, ``COV_NEGATIVE_DIAGONAL``.
+    6. The smallest eigenvalue of ``C'`` below ``-allowance``: ``INVALID``, ``COV_NOT_PSD``.
 
     A materially nonphysical covariance is flagged with its cause and nothing is published for
     it; the input is not repaired and no eigenvalue is clipped (PRD 7). A matrix inside the
@@ -1260,18 +1281,18 @@ def circular_from_covariance(
 
     Then CPR:
 
-    6. ``OC <= 0``: ``INVALID``, ``OC_NONPOSITIVE``. No epsilon is added to a zero or
+    7. ``OC <= 0``: ``INVALID``, ``OC_NONPOSITIVE``. No epsilon is added to a zero or
        near-zero OC (PRD 7). OC carries the transformation's rounding error, of the order of
        float64 precision times ``s``, and a small positive OC gives the large CPR it implies;
        whether such an OC is reliable is the product's flag to set (``product_masked``).
-    7. ``SC < 0``, a negative SC accepted within the tolerance: ``INVALID``, ``SC_NEGATIVE``.
-    8. SC or OC out of float64 range, or a CPR float64 cannot hold: ``INVALID``,
+    8. ``SC < 0``, a negative SC accepted within the tolerance: ``INVALID``, ``SC_NEGATIVE``.
+    9. SC or OC out of float64 range, or a CPR float64 cannot hold: ``INVALID``,
        ``FLOAT64_OUT_OF_RANGE``. A valid high CPR is never truncated (PRD 7).
 
     And the handedness ratio:
 
-    9. ``base_SC <= 0``: ``INVALID``, ``BASE_SC_NONPOSITIVE``. No epsilon is added.
-    10. The handedness term or base_SC out of float64 range, or a ratio float64 cannot hold:
+    10. ``base_SC <= 0``: ``INVALID``, ``BASE_SC_NONPOSITIVE``. No epsilon is added.
+    11. The handedness term or base_SC out of float64 range, or a ratio float64 cannot hold:
         ``INVALID``, ``FLOAT64_OUT_OF_RANGE``.
 
     Missing, invalid and valid low CPR stay distinct (PRD 7): a pixel that is not ``VALID``
@@ -1299,6 +1320,18 @@ def circular_from_covariance(
         # The rules and the transformation run on the (HH, sqrt2 HV, VV) form at the matrix's
         # scale, so neither depends on the declared ordering.
         normalized = scaled * _TO_SQRT2_ORDERING[ordering]
+        # Rule 3: parts too far below the largest part to be carried at the matrix's scale.
+        largest_part = np.maximum(np.abs(normalized.real), np.abs(normalized.imag)).max(
+            axis=(-2, -1)
+        )
+        smallest_carried = np.ldexp(largest_part, -_CARRIED_RANGE)[..., np.newaxis, np.newaxis]
+        lost_real = (finite_matrices.real != 0.0) & (np.abs(normalized.real) < smallest_carried)
+        lost_imag = (finite_matrices.imag != 0.0) & (np.abs(normalized.imag) < smallest_carried)
+        base.mark(
+            np.asarray(np.any(lost_real | lost_imag, axis=(-2, -1))),
+            ObsState.INVALID,
+            InvalidReason.FLOAT64_OUT_OF_RANGE,
+        )
         adjoint = np.conj(np.swapaxes(normalized, -1, -2))
         largest = np.abs(normalized).max(axis=(-2, -1))
         allowance = np.ldexp(tolerance.atol, -exponent) + tolerance.rtol * largest
