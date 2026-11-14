@@ -779,3 +779,14 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 8ae6865 also works, but it brings in the unfinished T0-05 web package and its root Makefile targets. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
 ---
+
+## 2026-11-14T19:20Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. ralph/t16-paper still has merge base 3073be6 with ralph/t0-bootstrap, and main is still 8e3e5a9. pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. The T0 tip moved from 8ae6865 to a16bb75 (build(t0-05): ignore the local .vscode editor settings), which changes only .gitignore. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty, so the dcbce75 simulation still holds; I did not rerun it. In the T16-01 notes I changed only the iteration number and the T0 tip. prd.json hashes the same before and after with that notes field removed (a78b70a9…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty-nine author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip a16bb75 also works, but it brings in the unfinished T0-05 web package and its root Makefile targets. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
