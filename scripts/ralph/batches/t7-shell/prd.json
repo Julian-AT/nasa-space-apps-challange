@@ -98,9 +98,9 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "e095c98aa2ecc163c802024636022447c10e7a01",
         "head": null,
         "files": [],
         "digests": {}
