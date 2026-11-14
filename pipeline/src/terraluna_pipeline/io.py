@@ -350,7 +350,10 @@ def _check_public_http_url(url: str) -> None:
         raise ValueError(f"fetch_range reads http and https URLs only, not {url!r}")
     if has_url_credentials(url):
         # The URL is not repeated, so a signature or credential never reaches a log.
-        raise ValueError("the URL has credentials or a signature; fetch_range reads public URLs")
+        raise ValueError(
+            "the URL has credentials or a signature, or percent-encodes a letter, digit or -._~ "
+            "in its query or fragment; fetch_range reads public URLs"
+        )
 
 
 class _PublicRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -370,7 +373,8 @@ class _PublicRedirectHandler(urllib.request.HTTPRedirectHandler):
             fp.close()
             raise RangeReadError(
                 f"{req.full_url}: HTTP {code} redirects to a URL with credentials or a "
-                "signature, or to a scheme other than http(s); it was not followed"
+                "signature (or a percent-encoded letter, digit or -._~ in its query or "
+                "fragment), or to a scheme other than http(s); it was not followed"
             )
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 

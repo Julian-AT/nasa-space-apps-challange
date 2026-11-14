@@ -216,8 +216,15 @@ SIGNED_URL_TOKENS: tuple[str, ...] = (
 Matching is by substring, so ``signature=`` also covers ``X-Amz-Signature=`` and
 ``X-Goog-Signature=``, ``token=`` covers ``X-Amz-Security-Token=`` and ``access_token=``,
 ``credential=`` covers ``X-Amz-Credential=``, ``accesskey`` covers ``AWSAccessKeyId`` and
-``expires=`` covers ``X-Amz-Expires=``. ``sig=`` is the Azure SAS signature.
+``expires=`` covers ``X-Amz-Expires=``. ``sig=`` is the Azure SAS signature. The ``=`` also
+matches its percent-encoded form ``%3D``.
 """
+
+_ENCODED_UNRESERVED = "%(2[DEde]|3[0-9]|[46][1-9A-Fa-f]|[57][0-9Aa]|5[Ff]|7[Ee])"
+"""A percent-encoded RFC 3986 unreserved character (2.3): ``-``, ``.``, a digit, a letter, ``_``
+or ``~``, in either hex case. Encoding one never changes what a URL means, and normalizers decode
+it, so ``?%74oken=x`` is ``?token=x`` to a server. In a query or fragment it could only hide a
+parameter name from the token check, which matches the literal text."""
 
 
 def _any_case(text: str) -> str:
@@ -225,11 +232,22 @@ def _any_case(text: str) -> str:
     return "".join(f"[{c.upper()}{c.lower()}]" if c.isalpha() else c for c in text)
 
 
+def _token_pattern(token: str) -> str:
+    """``token`` in any letter case, with ``=`` also matching ``%3D`` or ``%3d``."""
+    return _any_case(token).replace("=", "(=|%3[Dd])")
+
+
 CREDENTIAL_URL_PATTERN = (
     rf"^{_SCHEME}://[{_AUTHORITY_CHARACTER}]*@"
-    rf"|[?#][{_URL_CHARACTER}]*({'|'.join(_any_case(token) for token in SIGNED_URL_TOKENS)})"
+    rf"|[?#][{_URL_CHARACTER}]*({'|'.join(_token_pattern(token) for token in SIGNED_URL_TOKENS)})"
+    rf"|[?#][{_URL_CHARACTER}]*{_ENCODED_UNRESERVED}"
 )
-"""Found in a URL that names userinfo credentials or carries a signed or token parameter.
+"""Found in a URL that names userinfo credentials, carries a signed or token parameter, or
+percent-encodes an unreserved character in its query or fragment.
+
+A URL whose query and fragment encode no unreserved character spells every parameter name with
+literal letters, digits and ``-._~``, so the substring check sees the name a server decodes. Other
+percent-encodings, such as ``%2F`` or ``%20``, stay allowed, as does any encoding in the path.
 
 The pattern is searched for, not matched in full, and is written in the subset where ECMA-262,
 Python ``re`` and Rust ``regex`` agree: explicit ASCII classes, no ``.``, no flags, no lookaround.
@@ -240,14 +258,19 @@ _CREDENTIAL_URL = re.compile(CREDENTIAL_URL_PATTERN)
 
 
 def has_url_credentials(url: str) -> bool:
-    """Whether ``url`` has userinfo credentials or a signed or token query parameter (PRD 8.12)."""
+    """Whether ``url`` has userinfo credentials or a signed or token query parameter (PRD 8.12).
+
+    A query or fragment that percent-encodes an unreserved character counts as one, because the
+    encoding could hide such a parameter (see ``CREDENTIAL_URL_PATTERN``).
+    """
     return _CREDENTIAL_URL.search(url) is not None
 
 
 def _refuse_url_credentials(url: str) -> str:
     if has_url_credentials(url):
         raise ValueError(
-            "source_url has credentials or a signature; record the public URL of the product"
+            "source_url has credentials or a signature, or percent-encodes a letter, digit or "
+            "-._~ in its query or fragment; record the public URL of the product"
         )
     return url
 

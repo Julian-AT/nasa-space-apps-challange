@@ -32,7 +32,7 @@
       "anyOf": [
         {
           "not": {
-            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*://[!$%&'()*+,.0-9:;=@A-Z\\[\\]_a-z~-]*@|[?#][!#$%&'()*+,./0-9:;=?@A-Z\\[\\]_a-z~-]*([Ss][Ii][Gg][Nn][Aa][Tt][Uu][Rr][Ee]=|[Ss][Ii][Gg]=|[Tt][Oo][Kk][Ee][Nn]=|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll]=|[Aa][Cc][Cc][Ee][Ss][Ss]_[Kk][Ee][Yy]|[Aa][Cc][Cc][Ee][Ss][Ss][Kk][Ee][Yy]|[Aa][Pp][Ii]_[Kk][Ee][Yy]|[Aa][Pp][Ii][Kk][Ee][Yy]|[Ee][Xx][Pp][Ii][Rr][Ee][Ss]=|[Kk][Ee][Yy]-[Pp][Aa][Ii][Rr]-[Ii][Dd]=|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Pp][Aa][Ss][Ss][Ww][Dd]|[Ss][Ee][Cc][Rr][Ee][Tt])"
+            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*://[!$%&'()*+,.0-9:;=@A-Z\\[\\]_a-z~-]*@|[?#][!#$%&'()*+,./0-9:;=?@A-Z\\[\\]_a-z~-]*([Ss][Ii][Gg][Nn][Aa][Tt][Uu][Rr][Ee](=|%3[Dd])|[Ss][Ii][Gg](=|%3[Dd])|[Tt][Oo][Kk][Ee][Nn](=|%3[Dd])|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll](=|%3[Dd])|[Aa][Cc][Cc][Ee][Ss][Ss]_[Kk][Ee][Yy]|[Aa][Cc][Cc][Ee][Ss][Ss][Kk][Ee][Yy]|[Aa][Pp][Ii]_[Kk][Ee][Yy]|[Aa][Pp][Ii][Kk][Ee][Yy]|[Ee][Xx][Pp][Ii][Rr][Ee][Ss](=|%3[Dd])|[Kk][Ee][Yy]-[Pp][Aa][Ii][Rr]-[Ii][Dd](=|%3[Dd])|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Pp][Aa][Ss][Ss][Ww][Dd]|[Ss][Ee][Cc][Rr][Ee][Tt])|[?#][!#$%&'()*+,./0-9:;=?@A-Z\\[\\]_a-z~-]*%(2[DEde]|3[0-9]|[46][1-9A-Fa-f]|[57][0-9Aa]|5[Ff]|7[Ee])"
           },
           "pattern": "^[A-Za-z][A-Za-z0-9+.-]*://[!#$%&'()*+,./0-9:;=?@A-Z\\[\\]_a-z~-]+$",
           "type": "string"
