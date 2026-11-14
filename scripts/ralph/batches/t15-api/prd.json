@@ -266,7 +266,7 @@
       "review": {
         "state": "pending",
         "round": 0,
-        "base": null,
+        "base": "aba5ce10102a42f41e1efb7aaba802817ce8320c",
         "head": null,
         "files": [],
         "digests": {}
