@@ -1227,35 +1227,185 @@ def test_an_s4_layer_without_an_s1_layer_on_its_grid_stops_the_fetch(
     assert not (tmp_path / RAW / "fetch.json").exists()
 
 
-def test_a_stokes_range_read_the_server_ignores_stops_the_fetch(
+def ignored_range(url: str) -> RangeNotSupportedError:
+    return RangeNotSupportedError(
+        f"{url}: the server ignored the Range header and answered HTTP 200 with the "
+        "whole file; the body was not read"
+    )
+
+
+def two_grid_labels() -> dict[str, bytes]:
+    """The combined S1 and S4 layers plus an east-looking S1 and S4 pair on a finer grid."""
+    found = labels(with_s4=True)
+    found[S1_EAST] = east_label(
+        S1_EAST, "First stokes parameter South polar mosaic.", "The First Stokes parameter."
+    )
+    found[S4_EAST] = east_label(
+        S4_EAST, "Fourth stokes parameter South polar mosaic.", "The Fourth Stokes parameter."
+    )
+    return found
+
+
+STOKES_STATISTICS = {"min", "max", "invalid_by_reason", "valid_pixels", "total_pixels"}
+
+
+def test_a_refused_s4_range_read_keeps_the_s1_window_read_before_it(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     write_site_record(tmp_path)
-    ignored = RangeNotSupportedError(
-        f"{S4_IMG_URL}: the server ignored the Range header and answered HTTP 200 with the "
-        "whole file; the body was not read"
-    )
-    read_range = MockRangeFetcher(fail_for={S4_IMG_URL: ignored})
+    read_range = MockRangeFetcher(fail_for={S4_IMG_URL: ignored_range(S4_IMG_URL)})
     served = volume(with_s4=True)
     assert run(tmp_path, "fetch", "minirf", served=served, read_range=read_range) != 0
     assert "Range" in capsys.readouterr().err
+    first, last = row_bytes((COL_OFF, ROW_OFF, WIN_W, WIN_H), RECORD_BYTES)
+    assert read_range.calls == [
+        (CPR_IMG_URL, first, last),
+        (S1_IMG_URL, first, last),
+        (S4_IMG_URL, first, last),
+    ]
     raw = tmp_path / RAW
     metadata = json.loads((raw / "fetch.json").read_bytes())
     assert metadata["window"]["status"] == "read"
     assert metadata["stokes"]["status"] == "range_not_supported"
+    assert metadata["stokes"]["refused_label_file_name"] == f"{S4}.lbl"
     assert "ignored the Range header" in metadata["stokes"]["reason"]
     assert (raw / f"{CPR}.img.rows").exists()
-    assert not (raw / f"{S1}.img.rows").exists() and not (raw / f"{S4}.img.rows").exists()
-    assert not any(e["role"] == "stokes_window_rows" for e in metadata["files"])
+    # The S1 window was read before the refusal: its bytes and HTTP metadata are kept.
+    rows = (raw / f"{S1}.img.rows").read_bytes()
+    assert rows == IMAGES[S1_IMG_URL].read(first, last)
+    (entry,) = [e for e in metadata["files"] if e["role"] == "stokes_window_rows"]
+    assert entry["quantity"] == "S1"
+    assert entry["label_file_name"] == f"{S1}.lbl"
+    assert entry["url"] == S1_IMG_URL
+    assert entry["http_status"] == 206
+    assert entry["content_range"] == f"bytes {first}-{last}/{FILE_BYTES}"
+    assert entry["bytes_received"] == len(rows) == WIN_H * RECORD_BYTES
+    assert entry["sha256"] == hashlib.sha256(rows).hexdigest()
+    assert entry["retrieved_at"] == "2026-11-14T20:40:05Z"
+    assert not (raw / f"{S4}.img.rows").exists()
 
     assert run(tmp_path, "record", "minirf") == 0
     record = mosaic_json(tmp_path)
     stokes = record["stokes_observation"]
     assert stokes["status"] == "not_performed"
     assert "ignored the Range header" in stokes["reason"]
+    assert "polarimetry.lunar_s4_sign_check (T2-05)" in stokes["reason"]
+    assert stokes["pairs"] == []
+    (pair,) = stokes["pairs_not_observed"]
+    assert pair["pixel_window"] == {
+        "col_off": COL_OFF,
+        "row_off": ROW_OFF,
+        "width": WIN_W,
+        "height": WIN_H,
+    }
+    (window,) = pair["windows_read"]
+    assert window["label_file_name"] == f"{S1}.lbl"
+    assert window["image_file_name"] == f"{S1}.img"
+    assert window["url"] == S1_IMG_URL
+    assert window["http_status"] == 206
+    assert window["content_range"] == f"bytes {first}-{last}/{FILE_BYTES}"
+    assert window["byte_ranges"] == [[first, last]]
+    assert window["bytes_received"] == len(rows)
+    assert window["retrieved_at"] == "2026-11-14T20:40:05Z"
+    assert window["local_path"] == f"{RAW}/{S1}.img.rows"
+    assert window["local_sha256"] == hashlib.sha256(rows).hexdigest()
+    # No statistics for a pair with one window: neither layer is decoded.
+    assert not STOKES_STATISTICS & (set(window) | set(pair))
+    assert not any(key.startswith("s4_") for key in pair)
+    (unread,) = pair["windows_not_read"]
+    assert unread["label_file_name"] == f"{S4}.lbl"
+    assert "ignored the Range header" in unread["reason"]
+
+    records = {r.product_id: r for r in sources(tmp_path)}
+    image = records[f"MINIRF/LROMRF_0005/{S1}.img"]
+    assert image.local_path == f"{RAW}/{S1}.img.rows"
+    assert image.checksum == hashlib.sha256(rows).hexdigest()
+    assert image.source_url == S1_IMG_URL
+    assert image.verification_status == "PARTIAL"
+    assert "not decoded" in image.qa_definition and "masked by" not in image.qa_definition
+    assert f"MINIRF/LROMRF_0005/{S4}.img" not in records
+    assert "not decoded" in record["verification"][f"MINIRF/LROMRF_0005/{S1}.img"]["basis"]
+    assert "not decoded" in record["verification"][f"MINIRF/LROMRF_0005/{S1}.lbl"]["basis"]
     assert record["cpr_statistics"]["status"] == "computed"
-    assert any("S1 and S4" in item["item"] for item in record["open_g0_items"])
+    (item,) = record["open_g0_items"]
+    assert f"{S4}.lbl" in item["item"] and f"{S1}.lbl" not in item["item"]
     assert run(tmp_path, "check", "minirf") == 0
+
+
+def test_a_refusal_keeps_the_statistics_of_the_pairs_read_before_it(tmp_path: Path) -> None:
+    write_site_record(tmp_path)
+    read_range = MockRangeFetcher(fail_for={S4_IMG_URL: ignored_range(S4_IMG_URL)})
+    served = volume(mosaic_labels=two_grid_labels())
+    assert run(tmp_path, "fetch", "minirf", served=served, read_range=read_range) != 0
+    east = _window_by_formula(EAST_SCALE_KM, EAST_OFFSET)
+    east_first, east_last = row_bytes(east, EAST_RECORD_BYTES)
+    first, last = row_bytes((COL_OFF, ROW_OFF, WIN_W, WIN_H), RECORD_BYTES)
+    assert read_range.calls == [
+        (CPR_IMG_URL, first, last),
+        (S1_EAST_IMG_URL, east_first, east_last),
+        (S4_EAST_IMG_URL, east_first, east_last),
+        (S1_IMG_URL, first, last),
+        (S4_IMG_URL, first, last),
+    ]
+    assert run(tmp_path, "record", "minirf") == 0
+
+    stokes = mosaic_json(tmp_path)["stokes_observation"]
+    assert stokes["status"] == "incomplete"
+    assert "ignored the Range header" in stokes["reason"]
+    (observed,) = stokes["pairs"]
+    assert (observed["s1"]["label_file_name"], observed["s4"]["label_file_name"]) == (
+        f"{S1_EAST}.lbl",
+        f"{S4_EAST}.lbl",
+    )
+    s4 = stokes_window("S4", east, EAST_LINES)
+    assert observed["s4"]["min"] == float(s4.astype(np.float64).min())
+    assert observed["valid_pixels"] == east[2] * east[3]
+    (unobserved,) = stokes["pairs_not_observed"]
+    assert [w["label_file_name"] for w in unobserved["windows_read"]] == [f"{S1}.lbl"]
+    assert [w["label_file_name"] for w in unobserved["windows_not_read"]] == [f"{S4}.lbl"]
+    records = {r.product_id for r in sources(tmp_path)}
+    for name in (S1_EAST, S4_EAST, S1):
+        assert f"MINIRF/LROMRF_0005/{name}.img" in records
+    assert f"MINIRF/LROMRF_0005/{S4}.img" not in records
+    assert run(tmp_path, "check", "minirf") == 0
+
+
+def test_a_refused_first_stokes_read_requests_no_other_window(tmp_path: Path) -> None:
+    write_site_record(tmp_path)
+    read_range = MockRangeFetcher(fail_for={S1_IMG_URL: ignored_range(S1_IMG_URL)})
+    served = volume(with_s4=True)
+    assert run(tmp_path, "fetch", "minirf", served=served, read_range=read_range) != 0
+    assert [call[0] for call in read_range.calls] == [CPR_IMG_URL, S1_IMG_URL]
+    assert run(tmp_path, "record", "minirf") == 0
+
+    stokes = mosaic_json(tmp_path)["stokes_observation"]
+    assert stokes["status"] == "not_performed"
+    assert stokes["pairs"] == []
+    (pair,) = stokes["pairs_not_observed"]
+    assert pair["windows_read"] == []
+    refused, skipped = pair["windows_not_read"]
+    assert refused["label_file_name"] == f"{S1}.lbl"
+    assert "ignored the Range header" in refused["reason"]
+    assert skipped["label_file_name"] == f"{S4}.lbl"
+    assert "not requested" in skipped["reason"]
+    records = {r.product_id for r in sources(tmp_path)}
+    assert not {f"MINIRF/LROMRF_0005/{name}.img" for name in (S1, S4)} & records
+    assert run(tmp_path, "check", "minirf") == 0
+
+
+def test_record_refuses_a_refused_fetch_that_lacks_the_windows_read_before_it(
+    tmp_path: Path,
+) -> None:
+    write_site_record(tmp_path)
+    read_range = MockRangeFetcher(fail_for={S4_IMG_URL: ignored_range(S4_IMG_URL)})
+    served = volume(with_s4=True)
+    assert run(tmp_path, "fetch", "minirf", served=served, read_range=read_range) != 0
+    path = tmp_path / RAW / "fetch.json"
+    metadata = json.loads(path.read_bytes())
+    metadata["files"] = [e for e in metadata["files"] if e["role"] != "stokes_window_rows"]
+    path.write_text(json.dumps(metadata))
+    with pytest.raises(pilot.PilotError, match="fetch minirf"):
+        pilot.check("minirf", root=tmp_path, sources={"minirf": SOURCE})
 
 
 def test_record_refuses_a_fetch_that_lacks_the_stokes_rows(stokes_fetched: Path) -> None:
