@@ -112,7 +112,11 @@
       "claim": "Large Site01 files abort fetch instead of using the required windowed range-read path.",
       "evidence": "Every selected product calls download with max_bytes=WHOLE_FILE_LIMIT_BYTES. io.py:593–594 and 617–618 raise FileTooLargeError, which propagates to a nonzero CLI exit without attempting range reads. test_pilot.py:411–419 enshrines this rejection. AC2 requires larger files to be read by windowed range read.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "52c037f352650034aedeb62cf32aaddec8fecd61",
+        "reason": "Fixed in 52c037f. When fetch_file refuses a Site01 GeoTIFF at or over 200 MB, fetch reads the centred 1024 x 1024 pixel window through HTTP range requests (io.read_remote_geotiff_window, added in a9abb4c with tests in df4eec3). It stores only the byte ranges read, as <file>.ranges, and writes the window, ranges, request count and refusal to fetch.json. record decodes every GeoTIFF on that shared window offline from the stored ranges; a missing byte raises instead of reading as zero. An ROI archive over the limit is recorded as not fetched, with the reason. The rejection test is replaced by tests for the fallback (c2d67fd): the height alone and all GeoTIFFs read by window, plus a tampered cache, a failed range read and an ROI archive over the limit. Every real Site01 file is about 41 MB and is still read whole, so the real record (8b02a65) only gains read whole, decoded_window null and range_read null."
+      }
     },
     {
       "severity": "blocker",
@@ -120,7 +124,11 @@
       "claim": "An unreadable ROI shapefile prevents the entire record from being produced instead of recording missing outlines and their reason.",
       "evidence": "_read_layer converts reader failures into PilotError at lines 644–645. _roi calls it through _read_roi_archive at line 1309 without recovery, so expected_outputs fails before record writes the DEM metadata or preview. Existing ROI tests cover absent archives, missing projection files, and differing CRSs, but no decoding failure. AC3 explicitly requires the record to explain unavailable outlines.",
       "id": "codex-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "6fe86bc5fb07a9a5cdb989f772ad15bb8de57df9",
+        "reason": "Fixed in 6fe86bc (tests in efeef8b). A shapefile that pyshp cannot read is now summarised with readable false, the error and any pyshp warnings, and its outlines are listed as missing with that reason. Covered cases: a corrupt or truncated .shp, a .dbf with fewer records, and a .prj that is not UTF-8. An archive that is not a readable gzip tar, or that unpacks past the limit, gives roi status unreadable with the reason and a FAILED ProductRecord. The DEM record, the effective support and the preview are still written, and check passes on each case. The real record (8b02a65) shows readable true, read_error null and read_warnings [] for Site01_ROIs."
+      }
     }
   ]
 }

@@ -112,7 +112,11 @@
       "claim": "make check runs only lint and mypy; pytest is not part of it.",
       "evidence": "The make check output shows only ruff check, ruff format --check and mypy. This matches the story's checks list, so it is not a defect.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The finding itself says this matches the story checks list and is not a defect. make check is defined in the Makefile (outside T1-03 files) as check-py: ruff check, ruff format --check and mypy. The test suite is the separate first check of the story, uv run pytest pipeline/tests, which passes after the round 1 fixes (981 passed, 2 strict xfails that belong to T1-01). No change is needed."
+      }
     },
     {
       "severity": "low",
@@ -120,7 +124,11 @@
       "claim": "The record carries first and last retrieval times copied from the fetch metadata, and the real-file output depends on a local data/raw that I could not independently re-fetch.",
       "evidence": "check passed against the local raw data. I did not run fetch, because it needs the network.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect. AC1 requires record to copy the retrieval time from the fetch metadata and never read a clock, so re-running it reproduces outputs byte for byte. The gate runs only check, which is offline by design (story list description). check is still tied to the fetched bytes: _load_fetch in pilot.py refuses any raw file whose size or sha256 differs from data/raw/pgda78/fetch.json, which records each URL, HTTP status, byte count, sha256 and retrieval time of the real fetch (2026-11-14T19:39:28Z to 19:44:51Z). After the round 1 fixes, check pgda78 again prints that the committed outputs match data/raw/pgda78/."
+      }
     }
   ]
 }
