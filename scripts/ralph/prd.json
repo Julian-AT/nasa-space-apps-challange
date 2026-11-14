@@ -252,14 +252,15 @@
       "priority": 5,
       "passes": false,
       "review": {
-        "state": "requested",
+        "state": "pending",
         "round": 0,
         "base": "aaec3d22c58e46d94cb63de5201eef04cc4f1e38",
         "head": null,
         "files": [],
-        "digests": {}
+        "digests": {},
+        "bounces": 1
       },
-      "notes": ""
+      "notes": "ralph 2026-11-14T19:04:04Z: uncommitted changes were left; commit them or restore them"
     },
     {
       "id": "T0-06",
