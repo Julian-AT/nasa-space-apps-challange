@@ -120,12 +120,29 @@ def twelve_with(change: str) -> str:
         return " ".join(w[:6]) + " % a note\n" + " ".join(w[6:])
     if change == "markup":
         return " ".join(w[:4]) + " {\\bf " + w[4] + "} \\textit{" + " ".join(w[5:]) + "}"
+    if change == "comment before a citation":
+        return " ".join(w[:6]) + " \\citep% see the note\n{a} " + " ".join(w[6:])
+    if change == "comment lines before a citation":
+        return " ".join(w[:6]) + " \\cite %\n% more\n {a,\n b} " + " ".join(w[6:])
+    if change == "comment before a reference":
+        return " ".join(w[:6]) + " (\\ref%\n{fig:map}) " + " ".join(w[6:])
     raise AssertionError(change)
 
 
 @pytest.mark.parametrize(
     "change",
-    ["case", "line break", "emph", "tie", "comment line", "trailing comment", "markup"],
+    [
+        "case",
+        "line break",
+        "emph",
+        "tie",
+        "comment line",
+        "trailing comment",
+        "markup",
+        "comment before a citation",
+        "comment lines before a citation",
+        "comment before a reference",
+    ],
 )
 def test_changes_do_not_hide_a_run(change: str) -> None:
     assert run_lengths(twelve_with(change)) == [MIN_RUN]

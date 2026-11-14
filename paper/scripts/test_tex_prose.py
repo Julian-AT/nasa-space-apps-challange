@@ -128,11 +128,93 @@ def test_percent_inside_verb_is_not_a_comment() -> None:
         "\\include{appendix}",
         "\\url{https://x.org/?q=1}",
         "\\url{https://x.org/a%20b~c#d}",
+        "\\url {https://x.org/}",
         "\\cite{a,\n b}",
     ],
 )
 def test_key_command_arguments_are_removed(command: str) -> None:
     assert words(f"before {command} after") == ["before", "after"]
+
+
+# --- Comments and line breaks before an argument -----------------------------------------------
+# TeX skips spaces, comments and single line breaks between a command and its argument, and stops
+# at a blank line, which it reads as \par.
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "\\cite% note\n{shepard2001}",
+        "\\cite %\n  % a second comment line\n {shepard2001}",
+        "\\citep%\n[p.~5]%\n{shepard2001}",
+        "\\citep[see]%\n%\n[p.~5]\n{shepard2001}",
+        "\\ref%\n{fig:a--b}",
+        "\\label % note\n{sec:a}",
+        "\\href%\n{https://x.org/?a=b%20c}{}",
+        "\\begin%\n{equation}a\\end%\n{equation}",
+        "\\begin{tikzpicture}\\draw (a) -- (b);\\end % note\n{tikzpicture}",
+        "\\\\%\n[2pt]",
+        "\\\\*\n[2pt]",
+    ],
+)
+def test_comments_before_an_argument_are_skipped(command: str) -> None:
+    assert words(f"before {command} after") == ["before", "after"]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("\\begin%\n{itemize}\\item one\\end % x\n{itemize}", ["one"]),
+        ("\\begin{tabular}%\n%\n{lcr}x & y\\end{tabular}", ["x", "&", "y"]),
+        ("\\begin{tabular*}{\\linewidth}%\n%\n[t]{l}x\\end{tabular*}", ["x"]),
+        ("\\begin{figure}%\n%\n[t]\\caption{Map}\\end{figure}", ["Map"]),
+    ],
+)
+def test_comments_before_environment_arguments_are_skipped(text: str, expected: list[str]) -> None:
+    assert words(text) == expected
+
+
+def test_comments_before_an_argument_are_recorded() -> None:
+    source = extract("\\cite% one\n% two\n{shepard2001} text")
+    assert source.comments == {1: " one", 2: " two"}
+    assert source.prose.split() == ["text"]
+
+
+def test_math_environment_end_after_a_comment_closes_it() -> None:
+    text = "\\begin{equation}x\\end%\n{equation} prose \\begin{equation}y\\end{equation} after"
+    assert words(text) == ["prose", "after"]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "\\cite\n\n{key}",
+        "\\cite%\n\n{key}",
+        "\\cite %\n \n{key}",
+        "\\begin\n\n{itemize}",
+        "\\end%\n\n{itemize}",
+        "\\begin{tabular}%\n\n{l}",
+    ],
+)
+def test_a_blank_line_before_an_argument_raises(text: str) -> None:
+    with pytest.raises(TexSyntaxError) as raised:
+        extract(f"ok\n{text}")
+    assert raised.value.line == 2
+
+
+@pytest.mark.parametrize("text", ["\\url% note\n{https://x.org/}", "\\url\n{https://x.org/}"])
+def test_url_argument_must_start_on_its_line(text: str) -> None:
+    # hyperref's \url makes % and the end of a line active before it reads its argument
+    # (\hyper@normalise), so either one would become the URL.
+    with pytest.raises(TexSyntaxError) as raised:
+        extract(f"see\n{text}")
+    assert raised.value.line == 2
+
+
+@pytest.mark.parametrize("text", ["\\begin x", "\\end x", "a \\end", "\\begin{a-b}"])
+def test_begin_or_end_without_an_environment_name_raises(text: str) -> None:
+    with pytest.raises(TexSyntaxError):
+        extract(text)
 
 
 def test_href_keeps_its_text_and_drops_its_url() -> None:

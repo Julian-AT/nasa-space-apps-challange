@@ -371,6 +371,24 @@ def test_banned_words_and_phrase_also_run_on_tikz(text: str, rule: str) -> None:
     assert rule in rules(text)
 
 
+# --- Comments before an argument ---------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("See \\ref%\n{fig:a--b} here.", []),
+        ("As \\cite% why?\n{shepard2001} shows.", []),
+        ("As \\citep% we leverage\n[p.~5]{shepard2001} shows.", []),
+        ("\\begin%\n{itemize}\\item One.\\end{itemize}", ["bullet-list"]),
+        ("\\begin{tabular}%\n%\n{l}\\textbf{x}\\end{tabular}", []),
+        ("\\begin{tabular}{l}x\\end%\n{tabular} \\textbf{y}", ["bold"]),
+    ],
+)
+def test_comment_before_an_argument_is_read_as_tex_reads_it(text: str, expected: list[str]) -> None:
+    assert rules(text) == expected
+
+
 # --- Findings -----------------------------------------------------------------------------------
 
 
