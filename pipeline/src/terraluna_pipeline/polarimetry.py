@@ -980,6 +980,25 @@ the (H, V) basis, the same-sense amplitude is ``t^T S t`` and the opposite-sense
 The rows are orthonormal, so the matrix is unitary. The array is read-only."""
 
 
+def _quadratic_form(row: npt.NDArray[np.complex128]) -> npt.NDArray[np.complex128]:
+    """``M`` with ``sum(C * M) = u C u^H`` for the row ``u``: ``M_ij = u_i conj(u_j)``."""
+    return np.outer(row, row.conj())
+
+
+_HANDEDNESS_FORM: Final[npt.NDArray[np.complex128]] = _read_only(
+    0.5 * (_quadratic_form(CIRCULAR_BASIS[2]) - _quadratic_form(CIRCULAR_BASIS[0]))
+)
+"""``K`` with ``Re sum(C' * K) = (SC_opp - SC_LL) / 2`` for a covariance ``C'`` in the
+(HH, sqrt2 HV, VV) ordering: half the difference of the quadratic forms of the SC_opp and
+SC_LL rows of :data:`CIRCULAR_BASIS`, taken as one linear functional.
+
+Rows 0 and 2 have the same HH and VV entries and conjugate HV entries, so every entry of ``K``
+that pairs HH and VV with each other is exactly zero, and so is its HV diagonal entry. The
+handedness term is then formed from the HH-HV and HV-VV elements alone (``Im D + Im E``) and
+keeps their own precision, instead of being the difference of two rounded powers that can be
+far larger."""
+
+
 def _check_declared(kind: str, value: object, allowed: tuple[str, ...]) -> None:
     if type(value) is not str or value not in allowed:
         raise ValueError(
@@ -1193,7 +1212,10 @@ def circular_from_covariance(
 
     The handedness term ``Im D + Im E = (SC_opp - SC_LL) / 2`` and the handedness-independent
     ``base_SC = (SC_LL + SC_opp) / 2`` come from the same transformation and are returned beside
-    SC, with their ratio. For natural ground near reflection symmetry the term is small. The
+    SC, with their ratio. The term is the difference of the SC_opp and SC_LL quadratic forms
+    taken as one linear functional of ``C'`` (``_HANDEDNESS_FORM``), not the difference of the
+    two rounded powers, so it keeps the precision of the HH-HV and HV-VV elements however large
+    the powers are. For natural ground near reflection symmetry the term is small. The
     threshold for "not small" is set on development data (PRD 6.2), so none is applied here.
 
     ``product_masked`` is a boolean array that broadcasts to the pixel shape and is True where
@@ -1306,7 +1328,9 @@ def circular_from_covariance(
         sc_opp = diagonal_powers[..., 2]
         sc = sc_ll if convention == NEISH_SC_LL_CONVENTION else sc_opp
         base_sc = 0.5 * (sc_ll + sc_opp)
-        handedness_term = 0.5 * (sc_opp - sc_ll)
+        # One linear functional, not sc_opp - sc_ll: the difference of two rounded powers loses
+        # a term far below the powers themselves.
+        handedness_term = np.sum(hermitian * _HANDEDNESS_FORM, axis=(-2, -1)).real
         total = sc + oc
 
     total_classifier, total_value = _unscaled_power(base, total, exponent)
