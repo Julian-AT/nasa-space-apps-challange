@@ -12,9 +12,9 @@ Status rules fixed by these tests (also in the polarimetry module docstring of t
   holds a required test failed (collection errors included).
 - ``NOT_RUN``: no required test passed (all absent or skipped).
 - ``PARTIAL``: some required tests passed and none failed, but at least one is absent from the
-  report or skipped (xfail included). The real-scene check is required, so G1 stays
-  ``PARTIAL`` until it has passed on a real scene.
-- ``PASS``: every required test passed.
+  report, skipped (xfail included) or incomplete (a listed parametrized case is absent). The
+  real-scene check is required, so G1 stays ``PARTIAL`` until it has passed on a real scene.
+- ``PASS``: every required test passed in every listed case.
 
 The junit reports built in this file are synthetic inputs, labelled as such, written only to
 temporary directories and never used as evidence. The real-run tests launch pytest on the
@@ -81,6 +81,15 @@ ALL_REQUIRED_IDS = unique(NO_SCENE_IDS + REAL_SCENE_IDS)
 STORY_1_F1_ID = (
     "pipeline/tests/test_polarimetry_stokes.py::test_F1_minirf_zero_cpr_is_valid_not_missing"
 )
+F7_ORACLES_ID = "pipeline/tests/test_polarimetry_covariance.py::test_F7_matches_both_oracles"
+UNLISTED_CASE = "synthetic-unlisted-case"
+
+
+def listed_cases(nodeid: str) -> tuple[str, ...]:
+    """The node ids pytest reports for a listed function: one per listed parametrized case."""
+    cases = REQUIRED.parametrized_cases.get(nodeid)
+    return (nodeid,) if cases is None else tuple(f"{nodeid}[{case}]" for case in cases)
+
 
 FIXTURE_NAME = re.compile(r"^test_F(?P<first>[0-9]+)(?:_to_F(?P<last>[0-9]+))?_")
 
@@ -128,6 +137,27 @@ def address(nodeid: str) -> tuple[str, str]:
     return path.removesuffix(".py").replace("/", "."), rest
 
 
+def expand(cases: Iterable[tuple[str, str]]) -> list[tuple[str, str]]:
+    """Function ids become one testcase per listed case; ids with parameters stay as given.
+
+    ``incomplete`` reports a function without one of its listed cases: a parametrized one
+    without its first case, an unparametrized one only as an unlisted parametrized case.
+    """
+    expanded: list[tuple[str, str]] = []
+    for nodeid, outcome in cases:
+        if "[" in nodeid:
+            expanded.append((nodeid, outcome))
+            continue
+        listed = listed_cases(nodeid)
+        if outcome != "incomplete":
+            expanded += [(case, outcome) for case in listed]
+        elif listed == (nodeid,):
+            expanded.append((f"{nodeid}[{UNLISTED_CASE}]", "passed"))
+        else:
+            expanded += [(case, "passed") for case in listed[1:]]
+    return expanded
+
+
 def junit_xml(
     cases: Iterable[tuple[str, str]],
     *,
@@ -139,7 +169,7 @@ def junit_xml(
     suite = ET.Element("testsuite", name="pytest", hostname="synthetic")
     suite.set("timestamp", "2026-11-14T00:00:00.000000+00:00")
     n_failures = n_errors = n_skipped = n_tests = 0
-    for nodeid, outcome in cases:
+    for nodeid, outcome in expand(cases):
         classname, name = address(nodeid)
         case = ET.SubElement(suite, "testcase", classname=classname, name=name, time="0.001")
         child = CHILDREN[outcome]
@@ -308,6 +338,20 @@ def required_list_variant(tmp_path: Path, change: str) -> Path:
         data["extra"] = []
     elif change == "string_instead_of_list":
         data["real_scene_check"] = REAL_SCENE_IDS[0]
+    elif change == "no_parametrized_cases":
+        del data["parametrized_cases"]
+    elif change == "cases_of_an_unlisted_test":
+        data["parametrized_cases"]["pipeline/tests/test_polarimetry_decode.py::test_x"] = ["a"]
+    elif change == "cases_of_a_parametrized_id":
+        data["parametrized_cases"][f"{F7_ORACLES_ID}[0.1]"] = ["a"]
+    elif change == "no_cases":
+        data["parametrized_cases"][F7_ORACLES_ID] = []
+    elif change == "duplicate_case":
+        data["parametrized_cases"][F7_ORACLES_ID] = ["0.1", "0.1"]
+    elif change == "case_holding_a_node_separator":
+        data["parametrized_cases"][F7_ORACLES_ID] = ["0.1", "a::b"]
+    elif change == "case_holding_a_line_break":
+        data["parametrized_cases"][F7_ORACLES_ID] = ["0.1", "a\nb"]
     else:
         raise AssertionError(change)
     path = tmp_path / "g1_required_tests.json"
@@ -330,6 +374,13 @@ def required_list_variant(tmp_path: Path, change: str) -> Path:
         "no_real_scene_check",
         "unknown_key",
         "string_instead_of_list",
+        "no_parametrized_cases",
+        "cases_of_an_unlisted_test",
+        "cases_of_a_parametrized_id",
+        "no_cases",
+        "duplicate_case",
+        "case_holding_a_node_separator",
+        "case_holding_a_line_break",
     ],
 )
 def test_malformed_required_lists_are_refused(tmp_path: Path, change: str) -> None:
@@ -369,13 +420,57 @@ def test_a_failing_required_test_gives_fail_with_its_id(tmp_path: Path, outcome:
 
 def test_one_failing_parametrized_case_fails_its_test(tmp_path: Path) -> None:
     nodeid = "pipeline/tests/test_polarimetry_mchi.py::test_F6_matches_the_jones_oracle"
+    listed = listed_cases(nodeid)
+    assert f"{nodeid}[HH_HV_VV-45.0]" in listed
     cases = [(key, value) for key, value in all_passed().items() if key != nodeid]
-    cases += [(f"{nodeid}[HH_HV_VV--45.0]", "passed"), (f"{nodeid}[HH_HV_VV-45.0]", "failed")]
+    cases += [(case, "failed" if case.endswith("[HH_HV_VV-45.0]") else "passed") for case in listed]
     code, record = record_from(tmp_path, cases)
     record = written(code, record)
     assert record.status == "FAIL"
     assert result_of(record)["failed"] == [nodeid]
-    assert result_of(record)["fixtures"]["F6"]["cases"] == 7 + 1
+    f6_cases = sum(len(listed_cases(test)) for test in REQUIRED.fixtures["F6"])
+    assert result_of(record)["fixtures"]["F6"]["cases"] == f6_cases
+
+
+def test_a_parametrized_test_missing_one_listed_case_is_incomplete_not_pass(
+    tmp_path: Path,
+) -> None:
+    """The review example: test_F7_matches_both_oracles[0.1] is gone, [0.9] passed."""
+    assert listed_cases(F7_ORACLES_ID) == (f"{F7_ORACLES_ID}[0.9]", f"{F7_ORACLES_ID}[0.1]")
+    cases = [(key, value) for key, value in all_passed().items() if key != F7_ORACLES_ID]
+    cases.append((f"{F7_ORACLES_ID}[0.9]", "passed"))
+    code, record = record_from(tmp_path, cases)
+    record = written(code, record)
+    assert record.status == "PARTIAL"
+    assert code == 1
+    result = result_of(record)
+    assert result["incomplete"] == [F7_ORACLES_ID]
+    assert result["absent_cases"] == [f"{F7_ORACLES_ID}[0.1]"]
+    assert result["absent"] == result["failed"] == result["skipped"] == []
+    assert result["fixtures"]["F7"]["incomplete"] == 1
+    assert result["fixtures"]["F7"]["passed"] == len(REQUIRED.fixtures["F7"]) - 1
+
+
+def test_an_unparametrized_test_reported_only_with_parameters_is_incomplete(
+    tmp_path: Path,
+) -> None:
+    assert listed_cases(STORY_1_F1_ID) == (STORY_1_F1_ID,)
+    cases = all_passed()
+    cases[STORY_1_F1_ID] = "incomplete"
+    code, record = record_from(tmp_path, cases)
+    record = written(code, record)
+    assert record.status == "PARTIAL"
+    assert result_of(record)["incomplete"] == [STORY_1_F1_ID]
+    assert result_of(record)["absent_cases"] == [STORY_1_F1_ID]
+
+
+def test_a_duplicated_case_cannot_stand_in_for_a_missing_one(tmp_path: Path) -> None:
+    cases = [(key, value) for key, value in all_passed().items() if key != F7_ORACLES_ID]
+    cases += 2 * [(f"{F7_ORACLES_ID}[0.9]", "passed")]
+    code, record = record_from(tmp_path, cases)
+    record = written(code, record)
+    assert record.status == "PARTIAL"
+    assert result_of(record)["absent_cases"] == [f"{F7_ORACLES_ID}[0.1]"]
 
 
 def test_a_failing_duplicate_of_a_passing_test_gives_fail(tmp_path: Path) -> None:
@@ -520,7 +615,7 @@ def test_failures_outside_the_g1_modules_do_not_decide_g1(tmp_path: Path) -> Non
     assert result_of(record)["other_failed"] == []
 
 
-OUTCOMES = [*sorted(CHILDREN), "absent"]
+OUTCOMES = [*sorted(CHILDREN), "absent", "incomplete"]
 
 
 def expected_status(outcomes: Mapping[str, str]) -> str:
@@ -613,17 +708,16 @@ def test_result_holds_counts_per_fixture_and_per_story(tmp_path: Path) -> None:
     for fixture in FIXTURES:
         counts = result["fixtures"][fixture]
         assert counts["tests"] == len(REQUIRED.fixtures[fixture])
-        assert (
-            counts["passed"] + counts["failed"] + counts["skipped"] + counts["absent"]
-            == (counts["tests"])
-        )
+        outcomes = ("passed", "failed", "skipped", "incomplete", "absent")
+        assert sum(counts[outcome] for outcome in outcomes) == counts["tests"]
     assert result["fixtures"]["F1"] == {
         "tests": 3,
         "passed": 2,
         "failed": 0,
         "skipped": 0,
+        "incomplete": 0,
         "absent": 1,
-        "cases": 2,
+        "cases": sum(len(listed_cases(test)) for test in REQUIRED.fixtures["F1"][1:]),
     }
     assert result["fixtures"]["F2"]["passed"] == 3
     for story in STORIES:
@@ -887,6 +981,25 @@ def test_real_run_of_the_required_tests_is_partial_without_the_real_scene_check(
     assert "PARTIAL" in completed.stdout
 
 
+def test_listed_cases_are_the_cases_pytest_reports(real_run: tuple[int, Path]) -> None:
+    """Every listed function's junit testcases in a real run are exactly its listed cases."""
+    _, junit = real_run
+    reported: dict[str, list[str]] = {}
+    for case in ET.fromstring(junit.read_bytes()).iter("testcase"):
+        classname, name = case.get("classname"), case.get("name")
+        assert classname is not None and name is not None
+        reported.setdefault(classname, []).append(name)
+    for nodeid in NO_SCENE_IDS:
+        module, function = address(nodeid)
+        names = [
+            name
+            for name in reported.get(module, [])
+            if name == function or name.startswith(function + "[")
+        ]
+        expected = [address(case)[1] for case in listed_cases(nodeid)]
+        assert sorted(names) == sorted(expected), nodeid
+
+
 def test_deliberately_failing_run_records_fail_and_its_exit_code_is_not_hidden(
     broken_run: tuple[int, Path], tmp_path: Path
 ) -> None:
@@ -912,7 +1025,13 @@ def add_synthetic_real_scene_pass(root: ET.Element) -> None:
 
 @pytest.mark.parametrize(
     "remove",
-    [None, STORY_1_F1_ID, REQUIRED.conventions["T2-02"][0], REQUIRED.invalid_data["T2-03"][0]],
+    [
+        None,
+        STORY_1_F1_ID,
+        REQUIRED.conventions["T2-02"][0],
+        REQUIRED.invalid_data["T2-03"][0],
+        f"{F7_ORACLES_ID}[0.1]",
+    ],
 )
 def test_tampered_real_report_missing_a_required_test_is_not_pass(
     real_run: tuple[int, Path], tmp_path: Path, remove: str | None
@@ -942,6 +1061,11 @@ def test_tampered_real_report_missing_a_required_test_is_not_pass(
     if remove is None:
         assert record.status == "PASS"
         assert completed.returncode == 0
+    elif "[" in remove:
+        assert record.status == "PARTIAL"
+        assert completed.returncode == 1
+        assert result_of(record)["incomplete"] == [remove.partition("[")[0]]
+        assert result_of(record)["absent_cases"] == [remove]
     else:
         assert record.status == "PARTIAL"
         assert completed.returncode == 1
@@ -997,7 +1121,7 @@ def test_committed_record_follows_the_rules_from_its_own_result() -> None:
         expected = "FAIL"
     elif not any(group["passed"] for group in groups):
         expected = "NOT_RUN"
-    elif result["absent"] or result["skipped"]:
+    elif result["absent"] or result["skipped"] or result["incomplete"]:
         expected = "PARTIAL"
     else:
         expected = "PASS"
