@@ -1,0 +1,130 @@
+{
+  "task_id": "T2-01",
+  "round": 3,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
+    "head": "77f20e6765b39bf6d32e0912de0e5e6bececafe7",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "ad294d5051fc1c30bb45ed5819cc3a246ce96f8916cb276b29be281f85255bda"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "bf27dc488717bcbbc622cd420d05ac6afba89bf6037c150464ec21c762196783"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_decode.py",
+        "sha256": "600076312fcc1807bcb98e0777601e750ea95287952814ad6a84567a046805c0"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e63ef94ad995c48d4907f9d05e24e3ab46ad40a0c2e72babb7975f3acbd38da2"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:58:19Z",
+  "finished_utc": "2026-11-14T18:04:11Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "F8–F10 formulas match the PRD, and the original masked-array examples are addressed. Static review found a remaining mask-loss path through container subclasses and unhandled numerical range failures. No checks were executed, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Only numpy is added, the lockfile is updated, and strict mypy passes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/pyproject.toml:8 and uv.lock:433,440 add only numpy; pyproject.toml:33 retains strict=true. Mypy execution was prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "AC2: Three observation states, machine-readable reasons, and per-element validity without missing-to-zero coercion.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "polarimetry.py:50–91 defines the required vocabulary; :149–155 checks value/state consistency. However, :219 accepts list and tuple subclasses whose conversion protocols can still discard masks before :240."
+    },
+    {
+      "criterion": "AC3: F8–F10 tests use the specified values and tolerances and were run failing before implementation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:36–37,213–227,346–352,454–457 contains the specified assertions. Reading git tree 670def0 confirmed the tests existed without polarimetry.py, corroborating test-first ordering. An actual failing run was not independently observed; execution was prohibited."
+    },
+    {
+      "criterion": "AC4: Failing tests first for zero, nodata, invalid denominators, no epsilon, and power-before-averaging behavior.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:244–272,278–291,363–391 exercises the stated behaviors, including the two-pixel averaging distinction. These tests also appear in tree 670def0 before implementation. Failing-run execution could not be verified under the read-only instructions."
+    },
+    {
+      "criterion": "AC5: Explicit angle units, rejection of unknown units and None, and conversion to internal degrees.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:432–448 explicitly validates the unit and converts radians to degrees. test_polarimetry_decode.py:465–485 distinguishes declared units and asserts rejection of None and unknown units."
+    },
+    {
+      "criterion": "AC6: Hypothesis properties cover monotonic decoding and agreement between dB and linear forms.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:800–819 contains both properties with the PRD tolerances, but samples only integers from 1 through 2**32. Tests were not executed because execution was prohibited; floating-point range cases remain uncovered."
+    },
+    {
+      "criterion": "AC7: Nodata and calibration offset are explicit constants or arguments, with the PRD formula documented.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:278–281 names the 83 dB offset; :313–314,340–341 requires explicit nodata and exposes the offset argument. Formulas at :333,359,416 match PRD 7: subtract 83 dB, multiply squared amplitude by 10**(-8.3), and square HV/HH."
+    },
+    {
+      "criterion": "Required focused pytest check.",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the sandbox is read-only and test/environment caches can write."
+    },
+    {
+      "criterion": "Required mypy check.",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the sandbox is read-only and environment/type-check caches can write."
+    },
+    {
+      "criterion": "Required repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "Change scope and configuration guardrails.",
+      "command": "git diff --name-only 0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef 77f20e6765b39bf6d32e0912de0e5e6bececafe7 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output contains exactly pipeline/pyproject.toml, polarimetry.py, test_polarimetry_decode.py and uv.lock. No config, production mock path, release artifact or gate result changes occur in the reviewed diff."
+    },
+    {
+      "criterion": "Previous fixes and rebuttals.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:208–225 now traverses nested plain sequences and rejects encountered MaskedArrays; regression assertions cover the previous examples at test_polarimetry_decode.py:175–199,570–679. The calibration rebuttal is consistent with PRD 7: the common factor 10**(-8.3) cancels from HV/HH power. Historical failing-run claims remain unverified, as recorded above."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:219",
+      "claim": "List and tuple subclasses can bypass mask rejection through their own NumPy conversion protocol. Restrict these containers to exact built-in types or normalize the validated contents before coercion, and add regression tests.",
+      "evidence": "Static trace, not executed: let m=np.ma.array([100.0,300.0], mask=[False,True]) and define class L(list) with __array__(self,dtype=None,copy=None) returning m. For decode_linear(L([100.0,300.0]), nodata=None), isinstance(item,list|tuple) succeeds at :219 and the walk validates only the two ordinary list entries. np.asarray at :240 instead invokes __array__, discarding the returned MaskedArray mask. Classification at :304–306 sees two positive finite DNs and :359 publishes both as VALID/NONE. The same helper protects angles, noise flags and StatedArray fields. Tests at test_polarimetry_decode.py:711–737 cover unrelated custom containers, but no list/tuple subclass with a conversion protocol. This leaves PRD 7's mask-preservation rule incompletely enforced.",
+      "id": "codex2-r3-1",
+      "resolution": null
+    },
+    {
+      "severity": "high",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:359",
+      "claim": "Accepted finite floating DNs can cause whole-array failure or silently become valid zero power. Define and enforce the supported numerical range, avoid premature overflow, and cover range failures with per-element states and reasons.",
+      "evidence": "Static arithmetic, not executed: :241 accepts floating arrays and :304–306 considers every finite positive DN valid. With DN=1e155, squaring at :359 overflows float64 before calibration, although calibrated power is representable at approximately 5.011872336e301; StatedArray then raises at :152–153, losing the entire array result. With DN=1e-160, calibrated power underflows to 0.0 and remains VALID/NONE, while decode_db returns approximately -3283 dB, so 10*log10(linear) cannot agree. The property generator at test_polarimetry_decode.py:800 excludes both cases and all fractional DNs.",
+      "id": "codex2-r3-2",
+      "resolution": null
+    }
+  ]
+}

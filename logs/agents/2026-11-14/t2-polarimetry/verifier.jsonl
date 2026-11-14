@@ -16,3 +16,12 @@
 {"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Read","input":"/Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/t2-polarimetry/pipeline/src/terraluna_pipeline/polarimetry.py"}
 {"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":0}
+{"ts":"2026-11-14T17:58:45Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_polarimetry_decode.py"}
+{"ts":"2026-11-14T17:58:45Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"uv run mypy pipeline/src pipeline/tests"}
+{"ts":"2026-11-14T17:58:45Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T17:58:45Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"git diff --stat 0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef 77f20e6765b39bf6d32e0912de0e5e6bececafe7 -- . ':!scripts/ralph' ':!reviews' ':!logs'"}
+{"ts":"2026-11-14T17:58:45Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Read","input":"/Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/t2-polarimetry/pipeline/src/terraluna_pipeline/polarimetry.py"}
+{"ts":"2026-11-14T17:58:45Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"git diff 0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef 77f20e6765b39bf6d32e0912de0e5e6bececafe7 -- pipeline/pyproject.toml uv.lock"}
+{"ts":"2026-11-14T17:58:45Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T17:58:45Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T17:58:45Z","agent":"verifier","story":"T2-01","event":"review","round":3,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":0}

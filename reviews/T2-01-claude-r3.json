@@ -1,0 +1,95 @@
+{
+  "task_id": "T2-01",
+  "round": 3,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
+    "head": "77f20e6765b39bf6d32e0912de0e5e6bececafe7",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "ad294d5051fc1c30bb45ed5819cc3a246ce96f8916cb276b29be281f85255bda"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "bf27dc488717bcbbc622cd420d05ac6afba89bf6037c150464ec21c762196783"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_decode.py",
+        "sha256": "600076312fcc1807bcb98e0777601e750ea95287952814ad6a84567a046805c0"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e63ef94ad995c48d4907f9d05e24e3ab46ad40a0c2e72babb7975f3acbd38da2"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:58:19Z",
+  "finished_utc": "2026-11-14T17:58:45Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T2-01 round 3 passes. All three checks exit 0: 226 tests pass, mypy is clean and make check is clean. The round 2 blocker (masks hidden in nested sequences) is fixed. `_require_plain` walks the input to every depth and refuses any masked array or any container that could drop a mask. The diff touches only the story's files: pyproject.toml, uv.lock, polarimetry.py and test_polarimetry_decode.py. numpy is the only dependency added. I did not re-run the author's failing-first runs. I did not read the test file line by line, so the F8, F9 and F10 values and the two-pixel mean case rest on the green run plus code reading.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "outcome": "PASS",
+      "evidence": "226 passed in 0.37s"
+    },
+    {
+      "criterion": "uv run mypy pipeline/src pipeline/tests",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 5 source files"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check and ruff format --check pass; mypy reports no issues in 6 source files"
+    },
+    {
+      "criterion": "numpy added to pyproject.toml, uv.lock updated, no other dependency added",
+      "command": "git diff -- pipeline/pyproject.toml uv.lock",
+      "outcome": "PASS",
+      "evidence": "Only numpy>=2.5,<3 was added, in pyproject.toml and in the uv.lock entries for terraluna-pipeline."
+    },
+    {
+      "criterion": "ObsState and InvalidReason vocabulary; per-element state and reason on every return; NaN never means zero",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:107-182. StatedArray requires NaN exactly where state is not VALID and reason NONE exactly where VALID, and makes the arrays read-only. All functions return StatedArray."
+    },
+    {
+      "criterion": "DN=0 and nodata handling; x_power DENOMINATOR_INVALID with no epsilon; no averaging; decode takes DN and returns power",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:285-417. Nodata is MISSING with reason NODATA. DN 0 is INVALID with reason DN_ZERO. HH nodata, zero or noise-dominated gives DENOMINATOR_INVALID. There is no epsilon and no averaging. Tests are green, but I did not read the test file line by line."
+    },
+    {
+      "criterion": "Angle conversion needs an explicit declared unit and raises otherwise",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:432-448. `unit` not in ('radians','degrees'), including None, raises ValueError. The conversion uses np.degrees, and the internal unit is documented as degrees."
+    },
+    {
+      "criterion": "Hypothesis property tests (monotone, db/linear agreement) and named constants",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "PALSAR2_CALIBRATION_OFFSET_DB = 83.0 is a named constant with the PRD 7 formula in the docstrings. hypothesis is active in the pytest session. I did not read the property tests themselves."
+    },
+    {
+      "criterion": "Masked inputs are not silently coerced, including at nested depth (round 2 blocker)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:196-230. `_require_plain` checks every member iteratively. It refuses np.ma.MaskedArray at any depth and any non-allowlisted container, and it bounds nesting depth. It is applied in _real_array, _bool_mask and StatedArray."
+    }
+  ],
+  "findings": []
+}
