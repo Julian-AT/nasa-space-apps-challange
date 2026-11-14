@@ -1,0 +1,119 @@
+{
+  "task_id": "T2-01",
+  "round": 4,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
+    "head": "903a36005d1b7dfe3f946b8b3e2960cefb03729a",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "ad294d5051fc1c30bb45ed5819cc3a246ce96f8916cb276b29be281f85255bda"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "b1980e1f7d4d688d5c67e0c164f0db7f78a859de743b1dfb3fc6e60892e80ade"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_decode.py",
+        "sha256": "4979716805406b4ed5c5bde060221e0492cbac50f89adcdfecb9ceaf529f2282"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e63ef94ad995c48d4907f9d05e24e3ab46ad40a0c2e72babb7975f3acbd38da2"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:18:33Z",
+  "finished_utc": "2026-11-14T18:22:13Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new numerical defects found by static review. Prior mask-loss and floating-point-range fixes are supported by the code and regression tests; the shared-calibration rebuttal matches PRD 7. Required execution and failing-tests-first runs remain unverified.",
+  "checks": [
+    {
+      "criterion": "AC1: Add only numpy, update uv.lock, and retain strict mypy compliance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/pyproject.toml:7 adds only numpy; uv.lock:433 and :440 record it. pyproject.toml:33 retains strict=true. Mypy execution was prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "AC2: Define three observation states, machine-readable reasons, documented conventions, and per-element validity without missing-to-zero coercion.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:57-102 defines exactly MISSING, INVALID and VALID with string reason codes. StatedArray validation at :145-169 enforces matching arrays, finite valid values, NaN unavailable values and consistent reasons. All four public numerical functions return StatedArray."
+    },
+    {
+      "criterion": "AC3: Write and run F8, F9 and F10 tests failing before implementation, using float64 and PRD tolerances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:36-37 sets the required tolerances; :213-228, :346-352 and :454-457 assert the specified fixture results, including rejection of 0.1 for F9. Historical tree 670def0 contains the tests and lacks polarimetry.py. No failing run was independently executed; execution is prohibited."
+    },
+    {
+      "criterion": "AC4: Failing tests first for zero/nodata, invalid denominators, no epsilon, and power-before-averaging behavior.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:244-272 checks amplitude-to-power behavior and the 100/300 averaging distinction; :278-291 checks unavailable zero/nodata; :363-391 checks all required denominator cases and no epsilon. Implementation at polarimetry.py:346-389 and :492-508 matches these assertions. Historical failing execution cannot be verified under the execution prohibition."
+    },
+    {
+      "criterion": "AC5: Explicit radians/degrees declaration, rejection of other units and None, and conversion to degrees without magnitude inference.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:523-543 validates the declared unit and converts radians with np.degrees. Tests at test_polarimetry_decode.py:454-485 cover F10, distinct results for 1.0 in each unit, misleading magnitudes, unknown units and None."
+    },
+    {
+      "criterion": "AC6: Hypothesis properties establish monotonic linear decoding and dB/linear agreement within PRD tolerance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:1054-1073 contains nonvacuous integer properties with validity assertions and the required tolerances. Additional properties at :1080-1132 cover positive finite floating DNs and range classification. Property execution was prohibited."
+    },
+    {
+      "criterion": "AC7: Explicit nodata and named or parameterized calibration offset with the PRD formula cited.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:339 defines the named 83 dB constant. Both decoders require nodata explicitly and accept calibration_offset_db. Docstrings at :398-413 and :428-443 cite PRD 7 and state the formulas and units."
+    },
+    {
+      "criterion": "Required focused pytest check.",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents environment/cache/test writes."
+    },
+    {
+      "criterion": "Required mypy check.",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents environment/cache writes."
+    },
+    {
+      "criterion": "Required repository check.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: its uv, ruff and mypy operations can require writes unavailable in this sandbox."
+    },
+    {
+      "criterion": "Verify previous fixes and rebuttals.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:235-274 rejects masked inputs recursively and matches containers/scalars by exact type; regression assertions cover direct, nested and conversion-protocol cases at test_polarimetry_decode.py:686-1014. Scaling before squaring and per-element range classification appear at polarimetry.py:382-388, :504-507 and :539-542, with regressions at test_polarimetry_decode.py:512-614. Shared calibration is the explicit PRD 7 assumption, so its cancellation in x_power is correct. The 3b661e1 oracle corrections fix scalar handling and premature oracle overflow without relaxing tolerances."
+    },
+    {
+      "criterion": "Changes remain within story scope and introduce no production mocks, fabricated gate results or kickoff configuration.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The specified git diff changes only pipeline/pyproject.toml, polarimetry.py, test_polarimetry_decode.py and uv.lock. config/run.yaml and production data/release paths are unchanged."
+    },
+    {
+      "criterion": "Diff whitespace validation.",
+      "command": "git diff --check 0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef 903a36005d1b7dfe3f946b8b3e2960cefb03729a -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Exit 0 with no whitespace findings; system temporary-cache attempts were denied by the sandbox."
+    }
+  ],
+  "findings": []
+}

@@ -4,3 +4,5 @@
 {"ts":"2026-11-14T17:49:56Z","agent":"codex2","story":"T2-01","event":"review","round":2,"model":"gpt-6.1-sol","status":"COMPLETED","verdict":"FAIL","findings":1}
 {"ts":"2026-11-14T18:02:26Z","agent":"codex","story":"T2-01","event":"review","round":3,"model":"gpt-6.1-sol","status":"COMPLETED","verdict":"FAIL","findings":1}
 {"ts":"2026-11-14T18:04:11Z","agent":"codex2","story":"T2-01","event":"review","round":3,"model":"gpt-6.1-sol","status":"COMPLETED","verdict":"FAIL","findings":2}
+{"ts":"2026-11-14T18:21:59Z","agent":"codex","story":"T2-01","event":"review","round":4,"model":"gpt-6.1-sol","status":"COMPLETED","verdict":"NOT_RUN","findings":0}
+{"ts":"2026-11-14T18:22:13Z","agent":"codex2","story":"T2-01","event":"review","round":4,"model":"gpt-6.1-sol","status":"COMPLETED","verdict":"NOT_RUN","findings":0}

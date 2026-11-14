@@ -40,19 +40,19 @@
       "priority": 1,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 3,
+        "state": "reviewed",
+        "round": 4,
         "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
-        "head": "77f20e6765b39bf6d32e0912de0e5e6bececafe7",
+        "head": "903a36005d1b7dfe3f946b8b3e2960cefb03729a",
         "files": [
-          "reviews/T2-01-claude-r3.json",
-          "reviews/T2-01-codex-r3.json",
-          "reviews/T2-01-codex-2-r3.json"
+          "reviews/T2-01-claude-r4.json",
+          "reviews/T2-01-codex-r4.json",
+          "reviews/T2-01-codex-2-r4.json"
         ],
         "digests": {
-          "reviews/T2-01-claude-r3.json": "6136ebcfd4ade022047df4db25e49a7c7c31f91dc2ff433a9da7f0b8f1be1262",
-          "reviews/T2-01-codex-r3.json": "5ac504348766e22f15de1291c6c92a3ea8421a8bcc1073f6fc10d677933592ee",
-          "reviews/T2-01-codex-2-r3.json": "4c39568cf8a8be08c98ec89df026e3a0cbf8e08ec9933814b615404554c8366a"
+          "reviews/T2-01-claude-r4.json": "74bbf0b805c4b809b72b7edcdb1cfe2e7f14b73ba325e8a07fd67540cce80076",
+          "reviews/T2-01-codex-r4.json": "b515ddf79fc5a0a57e602bb34723a4133d82e40d42c1d675776cbc9d059c3d21",
+          "reviews/T2-01-codex-2-r4.json": "445e88fb5dc224d4d9efe6a021deaaaca64d3190b6725ad10fbf917f86970db2"
         }
       },
       "notes": "",

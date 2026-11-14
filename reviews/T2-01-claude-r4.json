@@ -1,0 +1,95 @@
+{
+  "task_id": "T2-01",
+  "round": 4,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
+    "head": "903a36005d1b7dfe3f946b8b3e2960cefb03729a",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "ad294d5051fc1c30bb45ed5819cc3a246ce96f8916cb276b29be281f85255bda"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "b1980e1f7d4d688d5c67e0c164f0db7f78a859de743b1dfb3fc6e60892e80ade"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_decode.py",
+        "sha256": "4979716805406b4ed5c5bde060221e0492cbac50f89adcdfecb9ceaf529f2282"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e63ef94ad995c48d4907f9d05e24e3ab46ad40a0c2e72babb7975f3acbd38da2"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:18:33Z",
+  "finished_utc": "2026-11-14T18:18:58Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T2-01 round 4: all three story checks exit 0 (330 tests pass, mypy clean, make check clean). The diff touches only story-listed files. I read the code for each acceptance criterion and found no defect. The earlier mask-loss and float64-range fixes are in the code (_require_plain at polarimetry.py:235, mark_out_of_range at :192). I did not re-verify the failing-first history this round. Round 1 covered it.",
+  "checks": [
+    {
+      "criterion": "pytest test_polarimetry_decode.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "outcome": "PASS",
+      "evidence": "330 passed in 0.57s"
+    },
+    {
+      "criterion": "mypy strict on src and tests",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 5 source files"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed, mypy: no issues found in 6 source files"
+    },
+    {
+      "criterion": "numpy added, uv.lock updated, no other dependency",
+      "command": "git diff -- pipeline/pyproject.toml uv.lock",
+      "outcome": "PASS",
+      "evidence": "Only numpy>=2.5,<3 added to pyproject.toml, with matching uv.lock entries. scipy not added."
+    },
+    {
+      "criterion": "ObsState three states, InvalidReason string codes, every function returns value, state and reason, with no NaN-as-zero or 0-as-missing",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The StatedArray validator (polarimetry.py:163-169) requires reason NONE exactly where state is VALID, and NaN in every non-VALID element."
+    },
+    {
+      "criterion": "F8, F9, F10 values and the tolerances",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "decode_db computes 20*log10(DN)-83, decode_linear computes (DN*10**(-83/20))**2, x_power computes (HV/HH)**2, angle_to_degrees uses np.degrees. All are exercised by the 330 passing tests."
+    },
+    {
+      "criterion": "DN=0 and nodata handling, and x_power DENOMINATOR_INVALID with no epsilon",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "_classify_dn (polarimetry.py:346-368) marks nodata MISSING and zero INVALID/DN_ZERO. x_power (:497-500) marks DENOMINATOR_INVALID and adds no epsilon."
+    },
+    {
+      "criterion": "Angle conversion requires an explicit unit and raises on any other value or on None",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:535-536 raises ValueError unless unit is 'radians' or 'degrees'. Conversion to degrees is documented in the docstring."
+    },
+    {
+      "criterion": "Hypothesis property tests, and named constants for the offset and nodata",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Hypothesis tests are in the passing suite. PALSAR2_CALIBRATION_OFFSET_DB = 83.0 is a named constant (:339), and nodata is an explicit required argument."
+    }
+  ],
+  "findings": []
+}
