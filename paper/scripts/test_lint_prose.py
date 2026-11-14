@@ -128,6 +128,8 @@ def test_banned_words_are_the_list_of_prd_22_6() -> None:
         "seam\\emph % note\n{less}",
         "seam{\\itshape less}",
         "sea%\nmless",
+        "seam\\label{sec:a}less",
+        "seam\\textcolor{red}{less}",
         "It delves into",
         "We leveraged it",
         "showcasing results",

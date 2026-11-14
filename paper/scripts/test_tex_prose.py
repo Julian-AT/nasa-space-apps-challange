@@ -431,6 +431,32 @@ def test_a_comment_takes_its_line_break_with_it(text: str, expected: list[str]) 
     assert words(text) == expected
 
 
+# A key command that prints nothing, such as \label or the colour of \textcolor, joins the text on
+# either side. One that prints a citation, a number, a URL, a file or a space breaks it.
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("seam\\label{x}less", ["seamless"]),
+        ("seam\\label % note\n{x}less", ["seamless"]),
+        ("seam\\textcolor{red}{less}", ["seamless"]),
+        ("seam\\href{https://x.org/}{less}", ["seamless"]),
+        ("seam{\\color{red}less}", ["seamless"]),
+        ("seam\\vspace*{2pt}less", ["seamless"]),
+        ("seam\\nocite{x}less", ["seamless"]),
+        ("seam\\label{x} less", ["seam", "less"]),
+        ("seam\\cite{x}less", ["seam", "less"]),
+        ("seam\\citep[p.~5]{x}less", ["seam", "less"]),
+        ("seam\\ref{x}less", ["seam", "less"]),
+        ("seam\\url{https://x.org/}less", ["seam", "less"]),
+        ("seam\\input{x}less", ["seam", "less"]),
+        ("seam\\includegraphics{a.pdf}less", ["seam", "less"]),
+        ("seam\\hspace{1em}less", ["seam", "less"]),
+    ],
+)
+def test_key_commands_that_print_nothing_join_words(text: str, expected: list[str]) -> None:
+    assert words(text) == expected
+
+
 def test_kept_tikz_comment_takes_its_line_break_with_it() -> None:
     text = "\\begin{tikzpicture}\n\\node {sea%\nmless};\n\\end{tikzpicture}"
     assert words(text, keep_tikz=True) == ["seamless;"]

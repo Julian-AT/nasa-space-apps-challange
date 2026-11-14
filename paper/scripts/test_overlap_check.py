@@ -138,6 +138,18 @@ def twelve_with(change: str) -> str:
         return " ".join(w[:5]) + " " + w[5][:2] + "{\\itshape " + w[5][2:] + "} " + " ".join(w[6:])
     if change == "comment inside a word":
         return " ".join(w[:5]) + " " + w[5][:2] + "% a note\n" + w[5][2:] + " " + " ".join(w[6:])
+    if change == "label inside a word":
+        return " ".join(w[:5]) + " " + w[5][:2] + "\\label{x}" + w[5][2:] + " " + " ".join(w[6:])
+    if change == "colour inside a word":
+        return (
+            " ".join(w[:5])
+            + " "
+            + w[5][:2]
+            + "\\textcolor{red}{"
+            + w[5][2:]
+            + "} "
+            + " ".join(w[6:])
+        )
     if change == "unbraced input":
         return " ".join(w[:6]) + " \\input generated/numbers.tex " + " ".join(w[6:])
     if change == "unbraced input at a line end":
@@ -164,6 +176,8 @@ def twelve_with(change: str) -> str:
         "line break after a command",
         "declaration inside a word",
         "comment inside a word",
+        "label inside a word",
+        "colour inside a word",
         "unbraced input",
         "unbraced input at a line end",
     ],
