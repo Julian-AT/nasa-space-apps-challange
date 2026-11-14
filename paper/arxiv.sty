@@ -1,0 +1,20 @@
+% Page and package setup for the Terraluna paper (PRD 22.1), written for this repository.
+% Tectonic's XeTeX engine sets Latin Modern by default, so fontenc and inputenc are not loaded.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{arxiv}[2026/11/14 Terraluna paper style]
+
+\RequirePackage[letterpaper, margin=1in]{geometry}
+\RequirePackage[authoryear, round]{natbib}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{booktabs}
+\RequirePackage{xcolor}
+\RequirePackage{graphicx}
+% hyperref comes last so that it can patch the packages above.
+\RequirePackage{hyperref}
+\hypersetup{
+  colorlinks = true,
+  linkcolor = blue!60!black,
+  citecolor = blue!60!black,
+  urlcolor = blue!60!black,
+}
