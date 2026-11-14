@@ -15,7 +15,7 @@ import { NAV_ITEMS, SiteHeader, SiteNav } from '../components/site-header.tsx';
 import { SKIP_LINK_TEXT, SkipLink } from '../components/skip-link.tsx';
 import type { Bundle } from '../lib/bundle.ts';
 import { MOCK_BANNER, shellText, SITE_TITLE } from '../lib/shell.ts';
-import { HOME_LINE } from '../scripts/page-check.ts';
+import { HOME_LINE, pageProblems } from '../scripts/page-check.ts';
 import { ALL_GATES_NOT_RUN, gate, manifestFor, toBytes, WEB_DIR } from './helpers.ts';
 import { classesOf, elements, isClientModule, type MarkupElement, only, textOf } from './markup.ts';
 import { compile } from './tailwind.ts';
@@ -311,6 +311,19 @@ describe('home page', () => {
     expect(HOME_LINE).toBe('These pages show records from the bundle named in the footer.');
     expect(HOME_LINE).not.toMatch(/\d/);
     expect(elements(html).filter((element) => element.tag === 'main')).toEqual([]);
+  });
+
+  it.each([
+    { name: 'a mock bundle with no mode chosen', shown: MOCK },
+    { name: 'a real mode B bundle', shown: MODE_B },
+  ])('passes the web-smoke page check inside the root layout ($name)', ({ shown }) => {
+    state.bundle = shown;
+    const html = renderToStaticMarkup(
+      <RootLayout>
+        <Home />
+      </RootLayout>,
+    );
+    expect(pageProblems(`<!DOCTYPE html>${html}`, shown)).toStrictEqual([]);
   });
 
   it('fails the build if it would become dynamic', () => {

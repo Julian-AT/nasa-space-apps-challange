@@ -4,8 +4,9 @@ import { BundleManifestSchema, ValidationSchema } from '@terraluna/schema';
 import { describe, expect, it } from 'vitest';
 
 import type { Bundle } from '../lib/bundle.ts';
-import { HOME_LINE, pageProblems } from '../scripts/page-check.ts';
+import { HOME_LINE, pageProblems, PRD4_TITLES } from '../scripts/page-check.ts';
 import { ALL_GATES_NOT_RUN, manifestFor, toBytes } from './helpers.ts';
+import { prd4Titles } from './prd.ts';
 
 function bundle(fields: Record<string, unknown>): Bundle {
   return {
@@ -67,6 +68,55 @@ describe('pageProblems', () => {
   it('reports a bundle version that is not in the footer', () => {
     const html = MOCK_PAGE.replace(FOOTER, '<p>Bundle version: mock-0</p>');
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/footer/);
+  });
+
+  // The T0-05 check compared the whole page, so a value that only starts with the expected one
+  // failed it. Checking each protected text on its own must keep that.
+  it.each([
+    { name: 'v10 for v1', html: REAL_PAGE.replace('Bundle version: v1 ·', 'Bundle version: v10 ·'), shown: REAL },
+    { name: 'mock-01 for mock-0', html: MOCK_PAGE.replace('mock-0<!-- -->', 'mock-01<!-- -->'), shown: MOCK },
+    { name: 'no schema version', html: MOCK_PAGE.replace(' · Schema 1.0.0', ''), shown: MOCK },
+    { name: 'schema 1.0.01 for 1.0.0', html: MOCK_PAGE.replace('Schema 1.0.0', 'Schema 1.0.01'), shown: MOCK },
+    { name: 'words after the versions', html: MOCK_PAGE.replace('1.0.0</footer>', '1.0.0 (latest)</footer>'), shown: MOCK },
+  ])('reports a footer that is not exactly the bundle and schema versions ($name)', ({ html, shown }) => {
+    expect(pageProblems(html, shown).join('\n')).toMatch(/footer/);
+  });
+
+  it.each([
+    { name: 'mode BA for mode B', html: REAL_PAGE.replace('Shipping mode: B —', 'Shipping mode: BA —'), shown: REAL },
+    {
+      name: 'mode B without its PRD 4 title',
+      html: REAL_PAGE.replace(' — Terrain analog candidates for Connecting Ridge, with radar context', ''),
+      shown: REAL,
+    },
+    {
+      name: 'the mode A title on a mode B bundle',
+      html: REAL_PAGE.replace(
+        'Terrain analog candidates for Connecting Ridge, with radar context',
+        'Radar-scattering analog candidates for Connecting Ridge',
+      ),
+      shown: REAL,
+    },
+    {
+      name: 'a mode title while no mode is chosen',
+      html: MOCK_PAGE.replace(
+        'NOT_RUN<!-- -->)',
+        'NOT_RUN<!-- -->) — Terrain analog pilot for Connecting Ridge; radar comparison not completed',
+      ),
+      shown: MOCK,
+    },
+    { name: 'words after the G0 status', html: MOCK_PAGE.replace('NOT_RUN<!-- -->)', 'NOT_RUN<!-- -->) so far'), shown: MOCK },
+  ])('reports a shipping-mode banner that is not exactly the bundle mode ($name)', ({ html, shown }) => {
+    expect(pageProblems(html, shown).join('\n')).toMatch(/shipping-mode banner/);
+  });
+
+  it('reports a mock banner with words added', () => {
+    const html = MOCK_PAGE.replace('not results</p>', 'not results yet</p>');
+    expect(pageProblems(html, MOCK).join('\n')).toMatch(/mock banner/);
+  });
+
+  it('expects the PRD 4 title wording after the shipping-mode line, word for word', () => {
+    expect(PRD4_TITLES).toStrictEqual(prd4Titles());
   });
 
   it('reports a page without a <main> landmark', () => {
