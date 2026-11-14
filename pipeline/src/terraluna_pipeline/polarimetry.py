@@ -12,10 +12,15 @@ Conventions that hold for every function here:
   ``state`` and ``reason``. NaN never stands for zero, and 0.0 never stands for missing.
 - Analytical quantities are in linear power; dB is for display and summaries only (PRD 6.2).
 - Nothing is repaired, clipped or regularized: no epsilon is added to a denominator (PRD 7).
+- Product validity and noise flags enter only through explicit arguments, such as ``nodata``
+  and the noise flags of :func:`x_power` (PRD 7: keep the product's flags). A numpy masked
+  array is refused with TypeError wherever it appears, because converting it to an array drops
+  its mask and a masked element would be read as an observation.
 """
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from enum import IntEnum, StrEnum
 from typing import Any, Final, Literal
@@ -107,7 +112,7 @@ class StatedArray:
     stated by the function that returns it.
 
     The arrays are copied on construction, so later changes to the arrays passed in do not
-    reach the record.
+    reach the record. Masked arrays are refused, since copying would drop their masks.
     """
 
     value: npt.NDArray[np.float64]
@@ -117,6 +122,7 @@ class StatedArray:
     def __post_init__(self) -> None:
         # Private copies first, so no alias can later turn a blanked element into a number.
         for name in ("value", "state", "reason"):
+            _refuse_masked(name, getattr(self, name))
             object.__setattr__(self, name, np.array(getattr(self, name), copy=True))
         if self.value.dtype != np.float64:
             raise TypeError(f"value must be float64, got {self.value.dtype}")
@@ -172,11 +178,37 @@ class _Classifier:
         return StatedArray(value=value, state=self.state, reason=self.reason)
 
 
+def _refuse_masked(name: str, values: object) -> None:
+    """Raise TypeError if ``values`` is a numpy masked array or a sequence holding one.
+
+    ``np.asarray`` drops a mask without a warning, so a masked element would be classified as an
+    observation and could come out ``VALID``. The refusal does not depend on what is masked.
+    """
+    if isinstance(values, np.ma.MaskedArray):
+        masked = True
+    elif isinstance(values, np.ndarray):
+        # A plain array has no mask; object arrays are refused later by the dtype checks.
+        masked = False
+    else:
+        # Probe sequences for masked arrays or the masked constant. numpy warns when it turns a
+        # masked element into NaN here; the probe raises instead, so that warning is muted.
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            masked = np.ma.getmask(np.ma.asarray(values)) is not np.ma.nomask
+    if masked:
+        raise TypeError(
+            f"{name} must not be a numpy masked array or hold one: its mask would be dropped. "
+            "Pass product flags explicitly (nodata or a noise flag)."
+        )
+
+
 def _real_array(name: str, values: npt.ArrayLike) -> npt.NDArray[Any]:
     """Return ``values`` as an array of integer or floating dtype, or raise TypeError.
 
-    Booleans, complex numbers, strings and objects are refused rather than coerced.
+    Booleans, complex numbers, strings and objects are refused rather than coerced, and so are
+    masked arrays (:func:`_refuse_masked`).
     """
+    _refuse_masked(name, values)
     array = np.asarray(values)
     if not (np.issubdtype(array.dtype, np.integer) or np.issubdtype(array.dtype, np.floating)):
         raise TypeError(f"{name} must be a real integer or floating array, got {array.dtype}")
@@ -185,6 +217,7 @@ def _real_array(name: str, values: npt.ArrayLike) -> npt.NDArray[Any]:
 
 def _bool_mask(name: str, mask: npt.ArrayLike, shape: tuple[int, ...]) -> npt.NDArray[np.bool_]:
     """Return a boolean flag array broadcast to ``shape``, or raise TypeError or ValueError."""
+    _refuse_masked(name, mask)
     array = np.asarray(mask)
     if array.dtype != np.bool_:
         raise TypeError(f"{name} must be a boolean flag array, got {array.dtype}")
