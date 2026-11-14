@@ -116,7 +116,11 @@
       "claim": "The committed real-data record depends on a local data/raw that was not independently re-fetched in this review.",
       "evidence": "check passes against local data/raw. It cross-checks sha256 and size against fetch.json, but I did not run fetch, which needs the network.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect in the change: it states a limit of the review scope (the reviewer did not run fetch, which needs the network), and it repeats claude-r1-2, which was rebutted for the same reason. By the story design, fetch is the only network command and the gate runs only the offline check. check stays tied to the fetched bytes: _load_fetch in pilot.py (lines 257-289) refuses any raw file whose size or sha256 differs from data/raw/pgda78/fetch.json, and check pgda78 passes. For independent evidence, on 2026-11-14 from 20:15:41Z to 20:22:00Z the author downloaded every Site01 file again with curl from its recorded URL into a fresh temporary directory outside the repository; data/raw was not touched. All six returned HTTP 200 with byte counts and sha256 equal to fetch.json and to the checksums in outputs/sources.json: surf 3ba7b97c... (40980810 B), ldec 16d6ed21... (40980744 B), slp 3a90035a... (40980776 B), toterr cf2cf52f... (40980810 B), slperr 52bc3b23... (40980810 B), Site01_ROIs.tgz 40b96141... (2934 B). The committed record therefore describes the files the provider serves now. No code change is needed."
+      }
     }
   ]
 }
