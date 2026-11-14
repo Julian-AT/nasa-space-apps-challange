@@ -84,7 +84,11 @@
       "claim": "The ISIS_SATURATION code is a fourth reason beyond the three the story names. The author's rebuttal is accepted.",
       "evidence": "It matches exact ISIS special-pixel bit patterns and uses no threshold. The enum is documented and pinned by test_reason_codes_are_fixed, per the author's account. I did not read that test. Downstream stories must adopt this vocabulary.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect, and the reviewer accepts the round-1 rebuttal (claude-r1-1). ISIS_SATURATION is an exact match on the four ISIS 4-byte special-pixel bit patterns (Lrs, Lis, His, Hrs from SpecialPixel.h), not a threshold, so the story rule against threshold reasons holds. PRD 7 (Validity rules) keeps three states distinct (missing observation, invalid measurement, valid low CPR), so saturated values cannot be folded into nodata. The story requires values near -3.4e38 to be invalid, and without the code they would pass as valid numbers. The test the reviewer did not read, pipeline/tests/test_quality.py:74-81 (test_reason_codes_are_fixed), pins the enum to VALID 0, NODATA 1, NON_FINITE 2, OUTSIDE_SUPPORT 3, ISIS_SATURATION 4. test_every_reason_code_is_documented_in_the_module (:84-89) requires each label in the module docstring. On downstream adoption, grep finds no other user of InvalidReason in pipeline/ or packages/. T1-04 to T1-06 will call quality.py, and the progress log tells them to report reasons with InvalidReason.label, so there is one vocabulary. Checks run again: uv run pytest pipeline/tests/test_quality.py (92 passed, exit 0); make check (exit 0)."
+      }
     }
   ]
 }
