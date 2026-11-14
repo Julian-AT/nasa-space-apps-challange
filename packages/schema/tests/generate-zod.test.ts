@@ -14,6 +14,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { jsonSchemaToZod } from 'json-schema-to-zod';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -227,10 +228,33 @@ describe('assertSupported', () => {
     ['a nested unsupported keyword', object({ a: { type: 'string', format: 'uri' } })],
     ['an unresolved $ref', { $ref: '#/$defs/Inner' }],
     ['a non-portable pattern', { type: 'string', pattern: '^\\d+$' }],
+    ['an enum with minLength', { type: 'string', enum: ['', 'ok'], minLength: 1 }],
+    ['an enum with a pattern', { type: 'string', enum: ['a', 'B'], pattern: '^[a-z]$' }],
+    ['a const with minLength', { type: 'string', const: '', minLength: 1 }],
+    ['a const with a pattern', { type: 'string', const: 'A', pattern: '^[a-z]$' }],
+    ['an enum with a const', { type: 'string', enum: ['A', 'B'], const: 'C' }],
   ])('refuses %s', (_label, schema) => {
     expect(() => {
       assertSupported(schema);
     }).toThrow(SchemaError);
+  });
+
+  // The reason for the refusals above: json-schema-to-zod emits only the enum or const and drops
+  // the other string keywords, so {"enum": ["", "ok"], "minLength": 1} would accept "".
+  it.each([
+    ['minLength', { type: 'string', enum: ['', 'ok'], minLength: 1 }, '.min('],
+    ['pattern', { type: 'string', const: 'A', pattern: '^[a-z]$' }, '.regex('],
+    ['const', { type: 'string', enum: ['A', 'B'], const: 'C' }, '"C"'],
+  ])('documents that the pinned converter drops %s next to an enum or const', (_label, schema, kept) => {
+    const source = jsonSchemaToZod(schema, { module: 'none', zodVersion: 4 });
+    expect(source).not.toContain(kept);
+  });
+
+  it('accepts an enum or a const with only type and annotations', () => {
+    expect(() => {
+      assertSupported({ type: 'string', enum: ['A', 'B'], title: 'Mode' });
+      assertSupported({ type: 'string', const: 'A', description: 'Fixed' });
+    }).not.toThrow();
   });
 
   it('names the JSON pointer of the refused keyword', () => {
