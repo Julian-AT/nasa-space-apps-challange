@@ -41,12 +41,18 @@
       "priority": 1,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "ff620c81e84d5c79f8418d2b54e3d241faf6ca6f",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "f59015f3700130c4bb4d6b3314f64e670bba60e7",
+        "files": [
+          "reviews/T3-01-claude.json",
+          "reviews/T3-01-codex.json"
+        ],
+        "digests": {
+          "reviews/T3-01-claude.json": "bbebc88ecc905fe9e78e92ae825a0e93222c2fa9010f1f0ad0fde9d21bd4376e",
+          "reviews/T3-01-codex.json": "2fe6ecfbe1c0d0271c9afcf0d0d1776dc39271f6effeaf3e27a8853e35fd6c79"
+        }
       },
       "notes": "Failing run (2026-11-14, commit e818113, before config.py and geometry.py existed): `uv run pytest pipeline/tests/test_config.py` stopped at collection with ModuleNotFoundError: No module named 'terraluna_pipeline.config'; `uv run pytest pipeline/tests/test_geometry.py` stopped with ModuleNotFoundError: No module named 'terraluna_pipeline.geometry'. After the implementation: 93 and 20 passed, make check exit 0. types-pyyaml is in the pipeline member's own [dependency-groups].dev (pipeline/pyproject.toml), because mypy --strict needs it and the root dev group is outside this story's files; the root `uv sync --locked` installs member dev groups (checked by uninstalling and re-syncing). Sanity bounds the loader enforces, which are not PRD thresholds: lags strictly increasing and positive, min_lags_for_H an integer >= 2 (a slope needs two points), min_lag_span_factor >= 1, min_valid_fraction in (0, 1]. It also rejects unknown detrend policies, unknown terrain keys and duplicate YAML keys. Lengths load as float metres."
     },

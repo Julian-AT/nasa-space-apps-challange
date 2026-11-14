@@ -1,0 +1,103 @@
+{
+  "task_id": "T3-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "ff620c81e84d5c79f8418d2b54e3d241faf6ca6f",
+    "head": "f59015f3700130c4bb4d6b3314f64e670bba60e7",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "13dda9c53ccf88b37428c4abcbef5f783f1319a25e53c1b1b2216380bff2b76c"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/config.py",
+        "sha256": "2c4fc608a53e4db6c9f9d9a66b8cdb4251274d07ee40fbbda7be934bb2b3219e"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "5915e7dfd3af6740ab4e027f423f893aff6d6f8a2025f1d885e2b3f51e359748"
+      },
+      {
+        "path": "pipeline/tests/test_config.py",
+        "sha256": "725486cd096f2e088433719ea84a866ddddfeae1eab7054bf388b4ac0b4bac30"
+      },
+      {
+        "path": "pipeline/tests/test_geometry.py",
+        "sha256": "c67ab1a12ca4ba5de24d5a838dbafb9b626ab50d21f9745996cd3f81ae0d13db"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "79ef56a56e802d1e3cef8c4fb3abc62583a9a56c346ee9e8870f2c6888dafd3c"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:35:27Z",
+  "finished_utc": "2026-11-14T17:38:01Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static review of ff620c8..f59015f found no actionable defects or out-of-scope changes. Required execution checks and historical test-first failures could not be independently verified.",
+  "checks": [
+    {
+      "criterion": "Tests fail before implementation, with failing runs recorded in notes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The test files exist, but historical failing executions were not independently observed. Notes alone cannot establish execution; checks were prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Add only numpy, scipy, pyyaml and optional development types-PyYAML; update uv.lock.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/pyproject.toml:7 adds exactly the three runtime dependencies; :19 adds types-pyyaml to dev. uv.lock:368, :432 and :467 contain the added packages and matching dependency metadata."
+    },
+    {
+      "criterion": "Load all required terrain and target settings from YAML, with assertions for committed values.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static evidence: config.py:225 reads all nine fields from the document without threshold defaults. test_config.py:100 compares fields directly with parsed YAML; :112 asserts the committed values; :160 tests modified file inputs. config/run.yaml:21 contains the expected settings."
+    },
+    {
+      "criterion": "Reject unknown resampler, missing key and non-positive grid with named errors; preserve requested null kickoff entries.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static evidence: config.py:199, :218, :264 and :314 implement the named errors; :146 returns requested values without defaults. test_config.py:197 and :202 cover null preservation; :244, :271 and :279 exercise the required rejection cases."
+    },
+    {
+      "criterion": "Define exactly the three float64 body radii and reject unknown bodies, with tests.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static evidence: geometry.py:18 defines only moon=1737400.0, mars=3396190.0 and earth=6371008.8 as Python binary64 floats; :36 raises UnknownBodyError for missing names. test_geometry.py:25, :34 and :54 assert exact values, float64 representation and unknown-body rejection."
+    },
+    {
+      "criterion": "mypy --strict and ruff pass on the new files.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Execution was prohibited because the read-only sandbox prevents environment and cache writes. pyproject.toml:31 enables strict mypy; Makefile:22 invokes ruff, formatting verification and mypy, but successful execution was not observed."
+    },
+    {
+      "criterion": "Focused configuration tests.",
+      "command": "uv run pytest pipeline/tests/test_config.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents required environment and test-cache writes."
+    },
+    {
+      "criterion": "Focused geometry tests.",
+      "command": "uv run pytest pipeline/tests/test_geometry.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents required environment and test-cache writes."
+    },
+    {
+      "criterion": "Repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents required environment and checker-cache writes."
+    }
+  ],
+  "findings": []
+}
