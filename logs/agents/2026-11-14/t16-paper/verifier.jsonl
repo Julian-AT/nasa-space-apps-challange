@@ -98,3 +98,12 @@
 {"ts":"2026-11-14T21:42:27Z","agent":"verifier","story":"T16-02","event":"tool_use","tool":"Grep","input":"^all:|^lint:|^overlap:|^check:"}
 {"ts":"2026-11-14T21:42:27Z","agent":"verifier","story":"T16-02","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T21:42:27Z","agent":"verifier","story":"T16-02","event":"review","round":5,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":0}
+{"ts":"2026-11-14T22:00:44Z","agent":"verifier","story":"T16-02","event":"tool_use","tool":"Bash","input":"make -C paper check"}
+{"ts":"2026-11-14T22:00:44Z","agent":"verifier","story":"T16-02","event":"tool_use","tool":"Bash","input":"make -C paper lint"}
+{"ts":"2026-11-14T22:00:44Z","agent":"verifier","story":"T16-02","event":"tool_use","tool":"Bash","input":"make -C paper overlap"}
+{"ts":"2026-11-14T22:00:44Z","agent":"verifier","story":"T16-02","event":"tool_use","tool":"Bash","input":"make -C paper test"}
+{"ts":"2026-11-14T22:00:44Z","agent":"verifier","story":"T16-02","event":"tool_use","tool":"Bash","input":"make -C paper"}
+{"ts":"2026-11-14T22:00:44Z","agent":"verifier","story":"T16-02","event":"tool_use","tool":"Bash","input":"cat paper/reference-verification.json"}
+{"ts":"2026-11-14T22:00:44Z","agent":"verifier","story":"T16-02","event":"tool_use","tool":"Bash","input":"git status --short"}
+{"ts":"2026-11-14T22:00:44Z","agent":"verifier","story":"T16-02","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T22:00:44Z","agent":"verifier","story":"T16-02","event":"review","round":6,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":0}
