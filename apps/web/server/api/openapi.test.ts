@@ -3,14 +3,15 @@
 // served one. It lists every routed path, only as get operations, and is checked against the
 // official OpenAPI 3.1 JSON Schema with an offline validator. It is fixed per deploy and never reads
 // the bundle, so it is the same for every bundle and names no target and no number in its info.
+import { OpenAPIHono } from '@hono/zod-openapi';
 import { Validator } from '@seriousme/openapi-schema-validator';
 import { describe, expect, it, vi } from 'vitest';
 
 import { API_BASE_PATH, type BundleReader, createApi } from './app.ts';
 import { PER_DEPLOY_MAX_AGE } from './cache.ts';
 import { DOCS_ALIAS_PATH } from './docs.ts';
-import { API_VERSION } from './openapi.ts';
-import { PROBLEM_MEDIA_TYPE } from './problem.ts';
+import { API_VERSION, openApiHandler, openApiRoute } from './openapi.ts';
+import { PROBLEM_MEDIA_TYPE, problemResponse } from './problem.ts';
 import { expectProblem, quietApi, releaseBundleReader } from './test-support.ts';
 
 const PATH = '/api/v1/openapi.json';
@@ -279,5 +280,40 @@ describe('the document is fixed per deploy, not per bundle', () => {
     const response = await api.request(PATH, { method: 'POST' });
     await expectProblem(response, 405, 'Method Not Allowed');
     expect(response.headers.get('allow')).toBe('GET, HEAD');
+  });
+});
+
+describe('generating the document', () => {
+  const TEST_DOCUMENT = { openapi: '3.1.1', info: { title: 'test-only', version: '0' }, paths: {} };
+
+  /** Only the document route, with a 500 problem for anything thrown, as the API answers it. */
+  function documentApp(generate: () => object) {
+    const app = new OpenAPIHono();
+    app.onError((_error, c) => problemResponse(c.req.raw, 500, 'An unexpected error occurred.'));
+    app.openapi(openApiRoute, openApiHandler(generate));
+    return app;
+  }
+
+  it('generates once and serves the kept document to later requests', async () => {
+    const generate = vi.fn(() => TEST_DOCUMENT);
+    const app = documentApp(generate);
+    expect(await (await app.request('/openapi.json')).json()).toEqual(TEST_DOCUMENT);
+    expect(await (await app.request('/openapi.json')).json()).toEqual(TEST_DOCUMENT);
+    expect(generate).toHaveBeenCalledTimes(1);
+  });
+
+  it('answers a failed generation with a 500 problem and generates again on the next request', async () => {
+    const generate = vi
+      .fn<() => object>()
+      .mockImplementationOnce(() => {
+        throw new Error('generation failed');
+      })
+      .mockReturnValue(TEST_DOCUMENT);
+    const app = documentApp(generate);
+    await expectProblem(await app.request('/openapi.json'), 500, 'Internal Server Error');
+    const response = await app.request('/openapi.json');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(TEST_DOCUMENT);
+    expect(generate).toHaveBeenCalledTimes(2);
   });
 });

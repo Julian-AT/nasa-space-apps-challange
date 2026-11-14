@@ -5,11 +5,19 @@
 // Scalar's Hono integration renders a page that loads the reference script from a CDN, so the page
 // loads that one script from one other host, pinned to an exact version, and turns off every
 // option that would fetch from another host (fonts, telemetry, agent, MCP, developer tools).
+import { OpenAPIHono } from '@hono/zod-openapi';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { BundleReader } from './app.ts';
 import { PER_DEPLOY_MAX_AGE } from './cache.ts';
-import { DOCS_ALIAS_PATH, SCALAR_SCRIPT, SCALAR_SCRIPT_HOST } from './docs.ts';
+import {
+  DOCS_ALIAS_PATH,
+  docsHandler,
+  docsRoute,
+  SCALAR_SCRIPT,
+  SCALAR_SCRIPT_HOST,
+} from './docs.ts';
+import { problemResponse } from './problem.ts';
 import { expectProblem, quietApi, releaseBundleReader } from './test-support.ts';
 
 const PATH = '/api/v1/docs';
@@ -196,5 +204,38 @@ describe('GET /api/docs', () => {
     const { api } = quietApi();
     await expectProblem(await api.request('/api/docs/'), 404, 'Not Found');
     await expectProblem(await api.request('/api/docs/openapi.json'), 404, 'Not Found');
+  });
+});
+
+describe('rendering the page', () => {
+  const TEST_PAGE = '<!doctype html><title>test-only page</title>';
+
+  /** Only the docs route, with a 500 problem for anything thrown, as the API answers it. */
+  function docsApp(render: () => Promise<string>) {
+    const app = new OpenAPIHono();
+    app.onError((_error, c) => problemResponse(c.req.raw, 500, 'An unexpected error occurred.'));
+    app.openapi(docsRoute, docsHandler(render));
+    return app;
+  }
+
+  it('renders once and serves the kept page to later requests', async () => {
+    const render = vi.fn(() => Promise.resolve(TEST_PAGE));
+    const app = docsApp(render);
+    expect(await (await app.request('/docs')).text()).toBe(TEST_PAGE);
+    expect(await (await app.request('/docs')).text()).toBe(TEST_PAGE);
+    expect(render).toHaveBeenCalledTimes(1);
+  });
+
+  it('answers a failed render with a 500 problem and renders again on the next request', async () => {
+    const render = vi
+      .fn<() => Promise<string>>()
+      .mockRejectedValueOnce(new Error('render failed'))
+      .mockResolvedValue(TEST_PAGE);
+    const app = docsApp(render);
+    await expectProblem(await app.request('/docs'), 500, 'Internal Server Error');
+    const response = await app.request('/docs');
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe(TEST_PAGE);
+    expect(render).toHaveBeenCalledTimes(2);
   });
 });
