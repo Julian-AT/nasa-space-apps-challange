@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import dataclasses
 import inspect
+import itertools
 import math
 from fractions import Fraction
 from typing import TYPE_CHECKING, Any
@@ -629,6 +630,75 @@ def test_negative_sc_within_tolerance_is_averaged_as_computed() -> None:
     assert_unavailable(result.ratio_of_mean_powers, INVALID, InvalidReason.SC_NEGATIVE)
 
 
+# --- Signed powers that cancel: exact block sums -----------------------------------------------
+
+FIRST_ROW = [(0, 0), (0, 1), (0, 2), (0, 3)]
+
+
+def placed(pairs: list[tuple[float, float]], order: tuple[int, ...]) -> CircularPowers:
+    """The Stokes ``pairs`` in the first row of a 4x4 block in the given order, the other pixels
+    masked, every pair checked to give VALID SC and OC (accepted within the tolerance)."""
+    pixels = {FIRST_ROW[cell]: pairs[pair] for cell, pair in enumerate(order)}
+    s1, s4, valid = stokes_block(pixels)
+    derived = from_stokes(s1, s4, valid)
+    assert np.all(derived.sc.state[valid] == VALID)
+    assert np.all(derived.oc.state[valid] == VALID)
+    return derived
+
+
+@pytest.mark.parametrize("order", list(itertools.permutations(range(4))))
+def test_cancelling_sc_keeps_its_negative_residual_in_every_pixel_order(
+    order: tuple[int, ...],
+) -> None:
+    """Review codex-r1-1. With a = 2**-43 and b = 2**-100, the Stokes pairs (2a, 0), (0, 2a),
+    (0, 2b) and (1, 1) are each within the arithmetic tolerance and give SC a, -a, -b and 0.
+    Their exact sum is -b, so the mean SC is -b / 4 and the ratio of mean powers is SC_NEGATIVE
+    in every order of the pixels, never a VALID zero."""
+    a, b = 2.0**-43, 2.0**-100
+    derived = placed([(2 * a, 0.0), (0.0, 2 * a), (0.0, 2 * b), (1.0, 1.0)], order)
+    assert sorted(derived.sc.value[0].tolist()) == sorted([a, -a, -b, 0.0])
+    result = aggregate_blocks(derived, block_size=4)
+    assert result.mean_sc.state[0, 0] == VALID
+    assert single(result.mean_sc.value) == -(2.0**-102)
+    exact_oc = (Fraction(a) * 2 + Fraction(b) + 1) / 4
+    assert single(result.mean_oc.value) == float(exact_oc)
+    assert_unavailable(result.ratio_of_mean_powers, INVALID, InvalidReason.SC_NEGATIVE)
+
+
+@pytest.mark.parametrize("order", list(itertools.permutations(range(3))))
+def test_cancelling_powers_keep_their_residual_ratio_in_every_pixel_order(
+    order: tuple[int, ...],
+) -> None:
+    """Review codex2-r1-1. With p = 2**-44 and q = 2**-100, the Stokes pairs (0, 2p), (0, -2p)
+    and (2q, 0) are each within the arithmetic tolerance and give (SC, OC) = (-p, p), (p, -p)
+    and (q, q). Both exact sums are q, so the mean SC and mean OC are q / 3 and the ratio of mean
+    powers is exactly 1 in every order of the pixels."""
+    p, q = 2.0**-44, 2.0**-100
+    derived = placed([(0.0, 2 * p), (0.0, -2 * p), (2 * q, 0.0)], order)
+    result = aggregate_blocks(derived, block_size=4)
+    for name in ("mean_sc", "mean_oc"):
+        statistic = getattr(result, name)
+        assert statistic.state[0, 0] == VALID
+        assert single(statistic.value) == float(Fraction(q) / 3)
+    assert result.ratio_of_mean_powers.state[0, 0] == VALID
+    assert single(result.ratio_of_mean_powers.value) == 1.0
+
+
+def test_block_sums_lose_nothing_to_cancellation_at_any_magnitude() -> None:
+    """SC 2**1000, -2**1000, 2**-1000 and 0 sum to 2**-1000 exactly, and OC 1, 0, 1, 0 to 2.
+    The mean SC 2**-1002 and the ratio of mean powers 2**-1001 are normal float64 values, so
+    both are VALID and exact, not lost beside the large powers. The SC values are a range
+    fixture (power_record), not a physical block."""
+    big, small = 2.0**1000, 2.0**-1000
+    record = power_record([[big, -big, small, 0.0]], [[1.0, 0.0, 1.0, 0.0]])
+    result = aggregate_blocks(record, block_size=(1, 4))
+    for name in ("mean_sc", "mean_oc", "ratio_of_mean_powers"):
+        assert getattr(result, name).state[0, 0] == VALID
+    assert single(result.mean_sc.value) == 2.0**-1002
+    assert single(result.mean_oc.value) == 0.5
+    assert single(result.ratio_of_mean_powers.value) == 2.0**-1001
+
+
 # --- Blocks with no valid pixel ----------------------------------------------------------------
 
 
@@ -972,6 +1042,95 @@ def test_permuting_pixels_within_a_block_leaves_the_statistics_unchanged(
         np.testing.assert_array_equal(a.n_valid, b.n_valid)
         np.testing.assert_array_equal(a.n_missing, b.n_missing)
         assert invalid_counts(a) == invalid_counts(b)
+
+
+repeated_magnitude = st.sampled_from([0.0, 2.0**-100, 2.0**-60, 2.0**-44, 2.0**-43, 0.75, 1.0])
+"""A few magnitudes, so that equal and opposite powers recur within a block and cancel."""
+
+within_tolerance = st.sampled_from([0.0, 2.0**-100, 2.0**-60, 2.0**-44, 2.0**-42])
+"""Offsets of |S4| from S1, all below the arithmetic atol of 1e-12 (2**-42 is about 2.3e-13)."""
+
+signed_stokes_pixel = st.builds(
+    lambda s1, sign, offset_sign, offset, valid: (s1, sign * s1 + offset_sign * offset, valid),
+    repeated_magnitude,
+    st.sampled_from([-1.0, 1.0]),
+    st.sampled_from([-1.0, 1.0]),
+    within_tolerance,
+    st.booleans(),
+)
+"""S1, S4 and the validity flag of one pixel with S4 = +-S1 +- an offset within the arithmetic
+tolerance. Such a pair is accepted, and its SC or OC may be negative within the tolerance (review
+codex-r1-1 and codex2-r1-1)."""
+
+any_stokes_pixel = st.one_of(
+    signed_stokes_pixel,
+    stokes_pixel.map(lambda p: (p[0], p[0] * p[1], p[2])),
+)
+"""S1, S4 and the validity flag: a pixel near the tolerance boundary or an ordinary one."""
+
+
+def stokes_pair_arrays(
+    pixels: list[tuple[float, float, bool]],
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.bool_]]:
+    """S1, S4 and validity as 4x4 arrays from (S1, S4, valid) pixels."""
+    s1 = np.array([p[0] for p in pixels]).reshape(4, 4)
+    s4 = np.array([p[1] for p in pixels]).reshape(4, 4)
+    valid = np.array([p[2] for p in pixels]).reshape(4, 4)
+    return s1, s4, valid
+
+
+@settings(max_examples=300, deadline=None)
+@given(st.lists(any_stokes_pixel, min_size=16, max_size=16), st.permutations(list(range(16))))
+def test_permuting_signed_powers_within_a_block_leaves_every_statistic_identical(
+    pixels: list[tuple[float, float, bool]], order: list[int]
+) -> None:
+    """Powers negative within the tolerance included, a permutation changes no state, no reason
+    and no bit of any statistic: the block sums are exact, so they do not depend on order."""
+    before = aggregate_blocks(from_stokes(*stokes_pair_arrays(pixels)), block_size=4)
+    after = aggregate_blocks(
+        from_stokes(*stokes_pair_arrays([pixels[i] for i in order])), block_size=4
+    )
+    for name in STATISTICS:
+        a, b = getattr(after, name), getattr(before, name)
+        np.testing.assert_array_equal(a.state, b.state)
+        np.testing.assert_array_equal(a.reason, b.reason)
+        np.testing.assert_array_equal(a.value, b.value)
+
+
+def check_signed_exact(result: StatedArray, exact: Fraction) -> None:
+    """A one-block statistic against its exact value, whatever its sign."""
+    if exact != 0 and abs(exact) < Fraction(SMALLEST_NORMAL):
+        assert_unavailable(result, INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE)
+        return
+    assert result.state[0, 0] == VALID
+    assert abs(Fraction(float(result.value[0, 0])) - exact) <= Fraction(RTOL) * abs(exact)
+
+
+@settings(max_examples=300, deadline=None)
+@given(st.lists(any_stokes_pixel, min_size=16, max_size=16))
+def test_signed_block_statistics_follow_the_exact_sums(
+    pixels: list[tuple[float, float, bool]],
+) -> None:
+    """The means, and the signs and zeros that decide the ratio, are those of the exact sums of
+    the block's VALID powers (fractions.Fraction), however the powers cancel."""
+    derived = from_stokes(*stokes_pair_arrays(pixels))
+    result = aggregate_blocks(derived, block_size=4)
+    used = (derived.sc.state == VALID) & (derived.oc.state == VALID)
+    if not np.any(used):
+        for name in ("mean_sc", "mean_oc", "ratio_of_mean_powers"):
+            assert getattr(result, name).reason[0, 0] == InvalidReason.BLOCK_NO_VALID_PIXELS
+        return
+    count = int(np.sum(used))
+    sum_sc = sum((Fraction(x) for x in derived.sc.value[used].tolist()), Fraction(0))
+    sum_oc = sum((Fraction(x) for x in derived.oc.value[used].tolist()), Fraction(0))
+    check_signed_exact(result.mean_sc, sum_sc / count)
+    check_signed_exact(result.mean_oc, sum_oc / count)
+    if sum_oc <= 0:
+        assert_unavailable(result.ratio_of_mean_powers, INVALID, InvalidReason.OC_NONPOSITIVE)
+    elif sum_sc < 0:
+        assert_unavailable(result.ratio_of_mean_powers, INVALID, InvalidReason.SC_NEGATIVE)
+    else:
+        check_signed_exact(result.ratio_of_mean_powers, sum_sc / sum_oc)
 
 
 positive_power = st.floats(min_value=1e-100, max_value=1e100)
