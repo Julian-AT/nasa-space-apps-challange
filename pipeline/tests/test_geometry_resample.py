@@ -57,6 +57,7 @@ from terraluna_pipeline.geometry import (
     EquirectangularLookup,
     GeographicLookup,
     PolarStereographicLookup,
+    Pole,
     ResampledGrid,
     SourceLookupError,
     UnknownBodyError,
@@ -94,7 +95,7 @@ with mpmath.workdps(DIGITS):
 # Comparisons
 
 
-def assert_close(actual: npt.ArrayLike, expected: npt.ArrayLike) -> None:
+def assert_close(actual: Any, expected: Any) -> None:
     """PRD 7 tolerances in the quantity's own units: rtol 1e-10, atol 1e-12."""
     np.testing.assert_allclose(actual, expected, rtol=RTOL, atol=ATOL)
 
@@ -147,7 +148,7 @@ def exact_map(
     out_b = np.empty(first.shape)
     with mpmath.workdps(DIGITS):
         for index in np.ndindex(first.shape):
-            p, q = fn(mp(first[index]), mp(second[index]))
+            p, q = fn(mp(float(first[index])), mp(float(second[index])))
             out_a[index] = float(p)
             out_b[index] = float(q)
     return out_a, out_b
@@ -163,19 +164,40 @@ def geographic_unproject_mp(lon_deg: Any, lat_deg: Any) -> Pair:
 
 
 def geographic_affine_mp(lookup: GeographicLookup, lon_deg: Any, lat_deg: Any) -> Pair:
-    """Pixel coordinates in a geographic raster. Columns run east from the origin meridian."""
-    east = lon_deg - mp(lookup.origin_lon_deg)
-    east -= 360 * mpmath.floor(east / 360)
+    """Pixel coordinates in a geographic raster. Columns run east from the origin meridian.
+
+    The difference and its reduction to [0, 360) are exact (``exact=True``), so that a tiny
+    longitude next to a multiple of 360 lands on the correct side of the wrap.
+    """
+    east = mpmath.fsub(lon_deg, mp(lookup.origin_lon_deg), exact=True)
+    turns = mpmath.floor(east / 360)
+    while mpmath.fsub(east, 360 * turns, exact=True) < 0:
+        turns -= 1
+    while mpmath.fsub(east, 360 * turns, exact=True) >= 360:
+        turns += 1
+    east = mpmath.fsub(east, 360 * turns, exact=True)
     half = mpmath.mpf(1) / 2
     column = east / mp(lookup.pixel_width_deg) - half
     row = (lat_deg - mp(lookup.origin_lat_deg)) / mp(lookup.pixel_height_deg) - half
     return column, row
 
 
+def exact_sum(*terms: Any) -> Any:
+    """The exact sum of mpmath numbers, with no rounding."""
+    total = mpmath.mpf(0)
+    for term in terms:
+        total = mpmath.fadd(total, term, exact=True)
+    return total
+
+
+def exact_cell(index: Any, size: float) -> Any:
+    """(index + 0.5) * size, exactly."""
+    return mpmath.fmul(exact_sum(index, mpmath.mpf(0.5)), mp(size), exact=True)
+
+
 def geographic_inverse_affine_mp(lookup: GeographicLookup, column: Any, row: Any) -> Pair:
-    half = mpmath.mpf(1) / 2
-    lon_deg = (column + half) * mp(lookup.pixel_width_deg) + mp(lookup.origin_lon_deg)
-    lat_deg = (row + half) * mp(lookup.pixel_height_deg) + mp(lookup.origin_lat_deg)
+    lon_deg = exact_sum(exact_cell(column, lookup.pixel_width_deg), mp(lookup.origin_lon_deg))
+    lat_deg = exact_sum(exact_cell(row, lookup.pixel_height_deg), mp(lookup.origin_lat_deg))
     return lon_deg, lat_deg
 
 
@@ -247,26 +269,21 @@ ProjectedLookup = PolarStereographicLookup | EquirectangularLookup
 
 def projected_affine_mp(lookup: ProjectedLookup, easting: Any, northing: Any) -> Pair:
     half = mpmath.mpf(1) / 2
-    column = (easting + mp(lookup.false_easting_m) - mp(lookup.origin_x_m)) / mp(
-        lookup.pixel_width_m
-    ) - half
-    row = (northing + mp(lookup.false_northing_m) - mp(lookup.origin_y_m)) / mp(
-        lookup.pixel_height_m
-    ) - half
-    return column, row
+    east = exact_sum(easting, mp(lookup.false_easting_m), -mp(lookup.origin_x_m))
+    north = exact_sum(northing, mp(lookup.false_northing_m), -mp(lookup.origin_y_m))
+    return east / mp(lookup.pixel_width_m) - half, north / mp(lookup.pixel_height_m) - half
 
 
 def projected_inverse_affine_mp(lookup: ProjectedLookup, column: Any, row: Any) -> Pair:
-    half = mpmath.mpf(1) / 2
-    easting = (
-        (column + half) * mp(lookup.pixel_width_m)
-        + mp(lookup.origin_x_m)
-        - mp(lookup.false_easting_m)
+    easting = exact_sum(
+        exact_cell(column, lookup.pixel_width_m),
+        mp(lookup.origin_x_m),
+        -mp(lookup.false_easting_m),
     )
-    northing = (
-        (row + half) * mp(lookup.pixel_height_m)
-        + mp(lookup.origin_y_m)
-        - mp(lookup.false_northing_m)
+    northing = exact_sum(
+        exact_cell(row, lookup.pixel_height_m),
+        mp(lookup.origin_y_m),
+        -mp(lookup.false_northing_m),
     )
     return easting, northing
 
@@ -316,7 +333,7 @@ def exact_window_pixels(
     row = np.empty(x.shape)
     with mpmath.workdps(DIGITS):
         for index in np.ndindex(x.shape):
-            phi, dlam = window_point_mp(mp(x[index]), mp(y[index]), lat0, radius)
+            phi, dlam = window_point_mp(mp(float(x[index])), mp(float(y[index])), lat0, radius)
             first, second = project_mp(lookup, phi, mp(lon0) + dlam)
             c, r = affine_mp(lookup, first, second)
             column[index] = float(c)
@@ -500,7 +517,7 @@ def geographic_lookups(draw: st.DrawFn) -> GeographicLookup:
 
 @st.composite
 def polar_lookups(draw: st.DrawFn) -> PolarStereographicLookup:
-    pole = draw(st.sampled_from(["north", "south"]))
+    pole: Pole = "north" if draw(st.booleans()) else "south"
     sign = 1.0 if pole == "north" else -1.0
     if draw(st.booleans()):
         lat_ts, scale = sign * 90.0, draw(st.floats(0.5, 1.5))
@@ -785,6 +802,21 @@ def test_polar_projection_of_the_opposite_pole_raises() -> None:
     points=[(math.radians(18.4), math.radians(77.5)), (0.0, math.radians(77.5) - PI)],
 )
 @example(lookup=ANTIMERIDIAN_LOOKUP, points=[(0.1, -PI), (0.1, math.radians(-179.95)), (0.1, 3.14)])
+@example(
+    # lon0 = -180 deg and lon = math.pi: lon - lon0 lies 1.2e-16 rad short of a true turn, so
+    # the easting is -1.2e-16 R cos(lat_ts) only if the turn is the true 2 pi.
+    lookup=EquirectangularLookup(**{**EQUIRECTANGULAR, "center_longitude_deg": -180.0}),
+    points=[(0.3, PI), (0.3, -PI), (-0.2, 3.0)],
+)
+@example(
+    # Points on the float64 latitude of origin: the northing is R times the 1e-17 rad by which
+    # math.radians(18.4) misses 18.4 deg, so lat_0 must be carried in double-double.
+    lookup=EquirectangularLookup(**{**EQUIRECTANGULAR, "latitude_of_origin_deg": 18.4}),
+    points=[
+        (math.radians(18.4), math.radians(77.5)),
+        (math.nextafter(math.radians(18.4), 1.0), 1.0),
+    ],
+)
 def test_equirectangular_project_matches_exact_metres(
     lookup: EquirectangularLookup, points: list[tuple[float, float]]
 ) -> None:
@@ -853,6 +885,22 @@ def test_equirectangular_points_outside_the_projection_domain_raise() -> None:
 )
 @example(lookup=CTX_LOOKUP, projected=[(-5990.0, 1099990.0), (-6000.0, 1100000.0), (0.0, 0.0)])
 @example(lookup=SOUTH_POLE_LOOKUP, projected=[(-19990.0, 19990.0), (-19990.000000000004, 0.0)])
+@example(
+    # Large false offsets and origins next to each other: E + FE rounds at 1e-9 m, 1e-7 pixels
+    # at 1 cm, so the sum must be carried exactly (plain float64 misses by up to 1800 times).
+    lookup=EquirectangularLookup(
+        **{
+            **EQUIRECTANGULAR,
+            "false_easting_m": 10000000.3,
+            "origin_x_m": 10000000.4,
+            "false_northing_m": 2000000.0,
+            "origin_y_m": 1999999.9,
+            "pixel_width_m": 0.01,
+            "pixel_height_m": -0.01,
+        }
+    ),
+    projected=[(0.1, -0.1 + 1e-7), (0.123456789, -0.0987654321), (0.0999999, -0.1)],
+)
 def test_projected_pixel_coordinates_match_exact_pixels(
     lookup: ProjectedLookup, projected: list[tuple[float, float]]
 ) -> None:
@@ -871,6 +919,20 @@ def test_projected_pixel_coordinates_match_exact_pixels(
     pixels=st.lists(st.tuples(st.floats(-1e6, 1e6), st.floats(-1e6, 1e6)), min_size=1, max_size=8),
 )
 @example(lookup=CTX_LOOKUP, pixels=[(-0.5, -0.5), (0.0, 0.0), (299.5, -55000.5)])
+@example(
+    # Pixels whose metres nearly cancel a large origin: (column + 0.5) * size rounds at 1e-10 m,
+    # so the product must be carried exactly (plain float64 misses by 50 and 330 times).
+    lookup=EquirectangularLookup(
+        **{
+            **EQUIRECTANGULAR,
+            "origin_x_m": 1234567.891,
+            "pixel_width_m": 0.37,
+            "origin_y_m": -7654321.123,
+            "pixel_height_m": -0.53,
+        }
+    ),
+    pixels=[(-3336670.475675676, -14442115.826415094)],
+)
 def test_projected_from_pixel_matches_exact_metres(
     lookup: ProjectedLookup, pixels: list[tuple[float, float]]
 ) -> None:
@@ -1244,7 +1306,9 @@ def test_nodata_must_be_declared() -> None:
 # The D29 window resampler: AEQD inverse, source lookup and bilinear interpolation
 
 
-SOURCE_HALF_M = 3200.0  # Covers the 5 km window and its diagonal with a margin.
+# Half the side of each window source: covers the 5 km window in any orientation (its half
+# diagonal is 3536 m) with a margin.
+SOURCE_HALF_M = 3700.0
 
 
 def geographic_source_for(
@@ -1578,7 +1642,7 @@ def test_a_plane_in_the_window_frame_stays_a_plane_at_small_extent(body: str) ->
     a, b, c = 0.3, 0.7 / 250.0, -0.4 / 250.0
     bound = curvature_bound(pixel_m, b, c, SMALL_GRID.width_m / 2 + pixel_m, radius)
     # Stated curvature residual allowed for the best-fit plane: below half of atol, so the PRD
-    # 7 tolerance governs alone (Moon 1.3e-13, Mars 3.3e-14, Earth 9.5e-15).
+    # 7 tolerance governs alone (Moon 1.2e-13, Mars 3.3e-14, Earth 9.3e-15).
     assert least_squares_factor(SMALL_GRID) * bound < ATOL / 2
     source, lookup = window_plane_source(radius, pixel_m, half_m, a, b, c)
     result = resample_window(
@@ -1596,7 +1660,7 @@ def test_the_curvature_residual_stays_within_its_stated_bound_at_the_d29_extent(
     radius = BODY_RADII_M[body]
     pixel_m, half_m = 25.0, 2600.0
     a, b, c = 0.3, 0.7 / 2500.0, -0.4 / 2500.0
-    # Stated allowance: the curvature bound (Moon 2.3e-11, Mars 6.0e-12, Earth 1.7e-12) plus the
+    # Stated allowance: the curvature bound (Moon 1.6e-11, Mars 4.1e-12, Earth 1.2e-12) plus the
     # PRD 7 arithmetic tolerance.
     bound = curvature_bound(pixel_m, b, c, ANALYSIS_GRID.width_m / 2 + pixel_m, radius)
     source, lookup = window_plane_source(radius, pixel_m, half_m, a, b, c)
@@ -1607,6 +1671,9 @@ def test_the_curvature_residual_stays_within_its_stated_bound_at_the_d29_extent(
     x, y = ANALYSIS_GRID.mesh_m()
     plane = a + b * x + c * y
     arithmetic = ATOL + RTOL * np.abs(plane)
-    assert np.all(np.abs(result.values - plane) <= bound + arithmetic)
+    deviation = np.abs(result.values - plane)
+    assert np.all(deviation <= bound + arithmetic)
+    # The deviation is real curvature, not rounding: on this grid it reaches 0.91 of the bound.
+    assert np.max(deviation) > bound / 2
     residual = best_fit_residual(ANALYSIS_GRID, result.values)
     assert np.all(np.abs(residual) <= least_squares_factor(ANALYSIS_GRID) * bound + arithmetic)
