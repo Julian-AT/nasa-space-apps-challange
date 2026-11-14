@@ -1,0 +1,106 @@
+{
+  "task_id": "T2-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "42da1c6ec1ce7d59e432c2c9ec0f7051143d3074",
+    "head": "3a27267fffcaf2084bad3fa2a0104913c7941481",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "1a04c2b11f75370b9f468b93e9254412a33a49d073cf41f297a8dcc0b4f6a66d"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_derive.py",
+        "sha256": "b8ffbf87954e01310b25b431a40c7b191e18acf5429dee43e538a871e0d7fb77"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:03:48Z",
+  "finished_utc": "2026-11-14T20:08:14Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found a blocker: cancellation during signed power summation can make CPR validity depend on pixel order. Required checks and test-first execution remain unverified because execution was prohibited in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "AC1: derive_circular interface, declarations, F1–F7 parity, and failing-test-first execution",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Interface and dispatch: pipeline/src/terraluna_pipeline/polarimetry.py:1498–1581. Declaration and F1–F7 tests: pipeline/tests/test_polarimetry_derive.py:288–521. Runtime results and failing-first execution cannot be established by reading; checks were prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC2: distinct hand-computed aggregation statistics on a 4x4 block",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_polarimetry_derive.py:536–577 asserts mean SC=1, mean OC=2, ratio_of_mean_powers=0.5, and mean_of_pixelwise_ratios=2/3. Execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC3: support counts, unavailable empty blocks, and consistent OC<=0 handling",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Support construction and empty-block classification: pipeline/src/terraluna_pipeline/polarimetry.py:1826–1855. Tests cover counts, zero OC participation, and missing/invalid blocks at pipeline/tests/test_polarimetry_derive.py:556–662. Execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC4: linear-power aggregation, rejection of dB-tagged arrays and amplitude DN, and display helper",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Display wrapper/helper: pipeline/src/terraluna_pipeline/polarimetry.py:1587–1628. Aggregation type guard: :1955–1960. Behavioral rejection tests: pipeline/tests/test_polarimetry_derive.py:826–891; existing amplitude averaging test: pipeline/tests/test_polarimetry_decode.py:265–272. Execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC5: configurable pixel block size, block origins, and blocks_independent=False",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Required block_size argument and origin construction: pipeline/src/terraluna_pipeline/polarimetry.py:1899–1903 and :1961–1977. Independence guard: :1737–1741. Tests: pipeline/tests/test_polarimetry_derive.py:687–769. Execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC6: permutation and common-scale invariance",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Static arithmetic counterexample: _scaled_sums uses ordinary np.sum at pipeline/src/terraluna_pipeline/polarimetry.py:1874, while :1995 rejects any negative SC sum. For a=2^-43 and b=2^-100, accepted Stokes pairs (2a,0), (0,2a), (0,2b), (1,1) yield SC [a,-a,-b,0]. Summation gives -b, but permutation [a,-b,-a,0] rounds to zero, changing ratio_of_mean_powers from INVALID/SC_NEGATIVE to VALID/0. The permutation generator at pipeline/tests/test_polarimetry_derive.py:936–939 excludes negative powers. Scaling properties are present at :980–1019 but were not executed."
+    },
+    {
+      "criterion": "Required focused pytest check",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_derive.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because the read-only sandbox cannot support dependency or test-cache writes."
+    },
+    {
+      "criterion": "Required mypy check",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because the read-only sandbox cannot support dependency or cache writes."
+    },
+    {
+      "criterion": "Required repository check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox. Makefile contains concrete ruff, formatting, and mypy commands."
+    },
+    {
+      "criterion": "Changed paths remain within story scope",
+      "command": "git diff --name-status 42da1c6ec1ce7d59e432c2c9ec0f7051143d3074 3a27267fffcaf2084bad3fa2a0104913c7941481 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output lists only modified pipeline/src/terraluna_pipeline/polarimetry.py and added pipeline/tests/test_polarimetry_derive.py. No configuration, release, or out-of-scope paths changed."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:1874",
+      "claim": "Signed power summation can change CPR availability when pixels are permuted, violating AC6.",
+      "evidence": "Aggregation deliberately includes negative powers accepted within conversion tolerance. With a=2^-43 and b=2^-100, Stokes pairs (S1,S4)=(2a,0),(0,2a),(0,2b),(1,1) all pass the default tolerance and produce valid SC powers [a,-a,-b,0]. Ordinary float64 summation preserves -b in that order but loses it for [a,-b,-a,0]. The strict sign check at :1995 therefore publishes INVALID/SC_NEGATIVE for one ordering and VALID zero for the other. The permutation test's strategy at pipeline/tests/test_polarimetry_derive.py:936–939 generates only nonnegative powers, so it misses this case. Use cancellation-safe summation and cover accepted signed powers in the permutation property.",
+      "id": "codex-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "5d57ddc4da880b7f0bf3da61562ffc40783b45e2",
+        "reason": "Reproduced: with a = 2**-43 and b = 2**-100, the Stokes pairs (2a,0), (0,2a), (0,2b), (1,1) in the first row of a 4x4 block gave the ratio of mean powers SC_NEGATIVE in 8 of the 24 pixel orders and a VALID 0 in the other 16 (the float64 sum kept or lost the -b residual). Block sums are now exact Python ints counting 2**-1074 (_exact_sums), the SC_NEGATIVE and OC_NONPOSITIVE rules test the signs of the exact sums, and each statistic is rounded once (exact sum over count; exact SC sum over exact OC sum). Tests in 3ab5090033e2c66218fa36237e4ed3e446a14e68, run failing first (22 failed, 119 passed): all 24 orders of this case (mean SC exactly -2**-102, SC_NEGATIVE in every order); a permutation property over signed powers accepted within the tolerance that compares state, reason and every bit of every statistic; a property that means and sign decisions follow exact Fraction sums; and a cancellation at 2**1000 that the old per-block scaling also lost. After the fix: 141 passed; the properties pass over hypothesis seeds 1-40."
+      }
+    }
+  ]
+}

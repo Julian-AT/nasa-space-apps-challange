@@ -1,0 +1,130 @@
+{
+  "task_id": "T2-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4c7bed65810af0f32c1ce98046509d687b4c2147",
+    "head": "12aa9a91dcc9432ad8c48bd1c5f373b11ff28b83",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "450ecfb3f30a659c5e238ce6559b4471e9414a152951e2d8c1412fb7f18109f3"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/__init__.py",
+        "sha256": "b289526dda104254fa6f93383fddf1a78a39efd42c287dd17c2ccd0b2bcc7694"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/expanded_oracle.py",
+        "sha256": "ed198181d0d443868c91faa1a71c5f42465bb96bb827e53c3930d6517f339e31"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/jones_oracle.py",
+        "sha256": "3290b0f2e13ec282e07c261a0cbe866dbda63f68642bca89e6c0fb25909d02d8"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_covariance.py",
+        "sha256": "13400d795f4da692f5eb2eb1296f267aa34fb643e6f2757a16f29387c5f56b4d"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:17:17Z",
+  "finished_utc": "2026-11-14T19:24:04Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found two numerical defects: cancellation can erase the handedness diagnostic, and matrix scaling can publish valid zeros after losing nonzero components. Basis signs and normalization match the PRD. Required checks were not run.",
+  "checks": [
+    {
+      "criterion": "1. Tests written first, run failing, with independent oracles and PRD tolerances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Test-first ordering and a failing execution were not independently verified. Test tolerances are defined at pipeline/tests/test_polarimetry_covariance.py:43. The oracle implementations at pipeline/tests/polarimetry/expanded_oracle.py:71 and pipeline/tests/polarimetry/jones_oracle.py:58 do not import production polarimetry. Execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "2. F6 and F7 construction asserts Hermitian PSD properties and specified eigenvalues before use.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_polarimetry_covariance.py:104 asserts Hermitian symmetry and nonnegative eigenvalues within ATOL. F6 is constructed from (1, 0.2i, 0) at lines 141–152; F7 checks the specified eigenvalues at lines 156–165. Independent algebra confirms these eigenvalues."
+    },
+    {
+      "criterion": "3. F6 powers and F7 CPR values, including explicit two-channel ambiguity.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Assertions at pipeline/tests/test_polarimetry_covariance.py:193 and :256 cover both F6 handednesses, F7 CPR values 3/19 and 1, identical channel powers, and differing CPR. Independent PRD substitution confirms the expected numbers, but the tests were not executed because execution is prohibited."
+    },
+    {
+      "criterion": "4. Explicit unitary basis transformation and comparison with both oracles on fixtures and 200 random PSD covariances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Independent derivation gives amplitudes (HH−2iHV−VV)/2, (HH+VV)/2, and (HH+2iHV−VV)/2, matching pipeline/src/terraluna_pipeline/polarimetry.py:957 and the OC factor at :1305. Production powers use matrix multiplication rather than expanded formulas. The property test at pipeline/tests/test_polarimetry_covariance.py:923 specifies 200 examples, both orderings and both handednesses. Execution is prohibited."
+    },
+    {
+      "criterion": "5. Required convention, rejection of undeclared conventions, and handedness_verified=False.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1162 requires convention; :983 rejects unknown values before conversion; :1040 defaults handedness_verified to False. Tests at pipeline/tests/test_polarimetry_covariance.py:351 and :397 exercise missing/unknown conventions and the default flag. The output has no Mini-RF-equivalent label."
+    },
+    {
+      "criterion": "6. Invalid covariance causes, unpublished outputs, no repair/clipping, and configurable PSD tolerance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Classification branches are present at pipeline/src/terraluna_pipeline/polarimetry.py:1268–1298; default tolerance is defined at :651. Invalid-input assertions cover distinct causes and NaN outputs at pipeline/tests/test_polarimetry_covariance.py:512–549. No eigenvalue clipping appears. These tests were not executed because execution is prohibited."
+    },
+    {
+      "criterion": "7. Nonpositive OC/base_SC handling, handedness term and ratio, and no development threshold.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "OC/base_SC rejection branches exist at pipeline/src/terraluna_pipeline/polarimetry.py:1319 and :1326, with tests at pipeline/tests/test_polarimetry_covariance.py:708 and :728. However, :1309 computes the handedness term by subtracting rounded SC powers, which can return zero although Im D + Im E is exactly 1; see the blocker finding. No handedness threshold is applied."
+    },
+    {
+      "criterion": "Focused covariance tests.",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_covariance.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibits running checks in the read-only sandbox; uv and test caches may require writes."
+    },
+    {
+      "criterion": "Python type checks.",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibits running checks in the read-only sandbox; uv and mypy caches may require writes."
+    },
+    {
+      "criterion": "Repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibits running checks in the read-only sandbox. Makefile recipes invoke uv, ruff and mypy."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:1309",
+      "claim": "Subtracting rounded SC powers can erase a representable handedness term and publish an incorrect valid diagnostic.",
+      "evidence": "Static counterexample in RAW ordering: let L=2^60 and covariance=[[L,i,0],[-i,L,0],[0,0,L]]. This is Hermitian positive definite. PRD 6.2 gives base_SC=3L/2, Im D+Im E=1, and handedness_ratio=2/(3L). The circular powers 3L/2−1 and 3L/2+1 round identically in float64; line 1309 therefore produces zero, and lines 1316 and 1332 publish a VALID zero term and ratio. Compute the diagnostic without subtracting rounded powers and add a mixed-magnitude regression.",
+      "id": "codex2-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "5288770743a3e0652d501ec746d2da2da13098b5",
+        "reason": "Fixed in 5288770, failing tests first in bb173ef (10 failed, 140 passed before either fix). Reproduced: RAW [[L,i,0],[-i,L,0],[0,0,L]] with L=2**60 gave a VALID handedness_term 0.0 and a VALID ratio 0.0. The term is now Re sum(C' * K), with K = (M2 - M0)/2 built from the SC_opp and SC_LL rows of CIRCULAR_BASIS (M_ij = u_i conj(u_j)). K is exactly zero wherever the two rows agree, so only the HH-HV and HV-VV elements enter. No powers are subtracted and no expanded formula is in the code. Now term = 1.0000000000000002 and ratio = 5.782411586589358e-19 (exact 2/(3L) = 5.782411586589357e-19). Regression: test_handedness_term_is_not_lost_beside_large_powers (both orderings, both conventions) and a hypothesis property, test_handedness_term_is_accurate_relative_to_its_own_parts: diagonal powers near 2**k (k in -500..500), off-diagonal parts up to 2**-500 below them, and an exact Fraction oracle within rtol * (|Im D| + |Im E|) for the term and ratio in both orderings, so a zero term must be exactly zero. Clean over 40 hypothesis seeds."
+      }
+    },
+    {
+      "severity": "high",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:1119",
+      "claim": "Shared matrix scaling can discard a nonzero component and subsequently publish valid zero SC and CPR.",
+      "evidence": "Static counterexample: RAW covariance=[[L,0,L],[0,v,0],[L,0,L]], with L=2^1000 and v=2^-1000, is Hermitian PSD. PRD powers are SC_LL=SC_opp=base_SC=v and OC=L. Scaling by exponent 1001 at line 1119 changes v to 2^-2001, which underflows to zero. The transformed SC is then zero; :1136 and :1158 inspect only already-rounded values, so SC and CPR become VALID zeros. SC is actually representable, while CPR=2^-2000 should be unavailable under the implementation's range policy. Tests at pipeline/tests/test_polarimetry_covariance.py:865 scale all components together and miss this case.",
+      "id": "codex2-r1-2",
+      "resolution": {
+        "action": "fixed",
+        "commit": "a7ceef218d7e587faf22ba1eac6767dc40119697",
+        "reason": "Fixed in a7ceef2, failing tests first in bb173ef. Reproduced: RAW [[L,0,L],[0,v,0],[L,0,L]] with L=2**1000, v=2**-1000 gave VALID SC 0.0, base_SC 0.0 and CPR 0.0. A new shared rule 3 (after COV_NONFINITE, before the Hermitian rule) marks the pixel INVALID with FLOAT64_OUT_OF_RANGE when a nonzero real or imaginary part of C' is below 2**-1016 times its largest part (_CARRIED_RANGE). Every part that passes stays a normal float64 through the transformation (scaled largest in [0.5, 2); the factors on the way multiply to at least 1/16). A lost part can therefore neither appear as a VALID zero nor decide the tolerance rules. SC = 2**-1000 is representable, but this pixel's parts are 2**2000 apart, which one float64 scale cannot carry, so the pixel fails closed with an explicit state instead of a value the scaling could not hold. This is representability, not a physical threshold (PRD 7: no silent repair), and it binds only matrices spanning about 300 decimal orders. The test is relative, so both orderings decide alike. Regression: test_parts_float64_cannot_hold_at_one_scale_publish_nothing (the reported matrix and an Im D of 2**-1060 beside unit powers) and a hypothesis property, test_cancelling_powers_are_published_right_or_not_at_all: A = B = C = 2**(2i), V = 2**(2j), i and j in -500..500, both orderings and conventions. Every output is VALID within rtol of the exact Fraction value or INVALID with FLOAT64_OUT_OF_RANGE, and all are VALID when A and V are at most 2**1000 apart. Clean over 40 hypothesis seeds."
+      }
+    }
+  ]
+}

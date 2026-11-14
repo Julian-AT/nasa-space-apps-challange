@@ -1,0 +1,114 @@
+{
+  "task_id": "T2-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
+    "head": "0710d1ef7488076e1e912fc742c2d30bda8795b4",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "ad294d5051fc1c30bb45ed5819cc3a246ce96f8916cb276b29be281f85255bda"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "9c9861b9e8f09a2c3030e2d9d1dc87366c79ac897639bae8fefce6de475afbbd"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_decode.py",
+        "sha256": "da4ed4832e4988f5ffea271e04da5a6f333c72ad3db4d22a3ba7898ea2f83e46"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e63ef94ad995c48d4907f9d05e24e3ab46ad40a0c2e72babb7975f3acbd38da2"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:35:23Z",
+  "finished_utc": "2026-11-14T17:39:06Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found that masked inputs can silently become valid measurements. Required execution checks and failing-test runs remain unverified because this review is read-only.",
+  "checks": [
+    {
+      "criterion": "AC1: Add only numpy, update uv.lock, and preserve strict mypy passing.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/pyproject.toml:8 and uv.lock:433,440 add only numpy; pyproject.toml enables strict mypy. Execution was prohibited in the read-only sandbox, so mypy passing is unverified."
+    },
+    {
+      "criterion": "AC2: Three observation states, machine-readable reasons, and per-element values/state/reason outputs preserve missingness.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "polarimetry.py:42-83 defines the required vocabulary, and StatedArray validates outputs at lines 117-148. However, line 180 strips MaskedArray masks before classification, allowing excluded pixels to become VALID."
+    },
+    {
+      "criterion": "AC3: F8-F10 float64 fixtures use the required tolerances and were run failing before implementation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:184-199,317-323,425-428 contains the required assertions. Git tree 670def0bc3d4d522d22836343ce7e989a7f3ea62 contains the importing tests without polarimetry.py, establishing test-first file ordering. A failing execution was not independently observed; execution is prohibited."
+    },
+    {
+      "criterion": "AC4: Failing tests first for zero/nodata, invalid denominators, no epsilon, and power-before-averaging behavior.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:215-243,249-262,334-362 exercises the specified behaviors with substantive assertions. Neither the initial failing runs nor current results can be verified because execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC5: Explicit angle units, rejection of unknown/None units, and conversion to degrees without magnitude inference.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "polarimetry.py:368-384 explicitly validates units and converts radians to degrees; test_polarimetry_decode.py:436-456 covers differing declarations and rejected units. Runtime behavior remains unverified because execution is prohibited."
+    },
+    {
+      "criterion": "AC6: Hypothesis tests verify positive-DN monotonicity and dB/linear agreement.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:473-492 defines both properties with generated positive integers and the specified tolerances. Hypothesis execution is prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC7: Nodata and calibration offset are explicit constants or arguments, with the PRD formula documented.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:214 defines the 83 dB constant; lines 246-295 expose required nodata and optional calibration arguments and document the PRD 7 formulas."
+    },
+    {
+      "criterion": "Required focused pytest check.",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited execution because dependency synchronization and test caches can write in the read-only sandbox."
+    },
+    {
+      "criterion": "Required mypy check.",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited execution because uv and mypy can write synchronization or cache files in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited execution in the read-only sandbox. Makefile delegates this target to uv-run ruff and mypy commands."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:180",
+      "claim": "Preserve or explicitly reject masked inputs before array coercion. np.asarray silently discards a MaskedArray mask, allowing an excluded pixel to be published as a valid measurement.",
+      "evidence": "Static trace: decode_linear(np.ma.array([100.0], mask=[True]), nodata=None) loses its mask at line 180. Classification at lines 234-242 sees only positive finite DN, and lines 293-296 produce finite power with VALID/NONE. The same conversion serves decode_db, x_power, and angle_to_degrees. No mask handling or rejection exists in the module or tests. This violates PRD.md:415 and CLAUDE.md's requirement to preserve masks.",
+      "id": "codex-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "6a0aa160f4bd6c8821024827158549e173bfbc1f",
+        "reason": "Every array argument (decode_db/decode_linear dn, x_power dn_hh, dn_hv and both noise flags, angle_to_degrees angle) and StatedArray now call _refuse_masked before np.asarray and raise TypeError for a numpy masked array, a sequence holding one, or np.ma.masked, whatever the mask content. Product flags enter only through explicit arguments (nodata, noise flags), as PRD 7 Validity rules require; the module docstring says so. Regression tests in test_polarimetry_decode.py (commit c77bbbb, run failing first: 31 failed) include the exact trace decode_linear(np.ma.array([100.0, 300.0], mask=[False, True]), nodata=None) for every entry point; now 103 passed."
+      }
+    }
+  ]
+}

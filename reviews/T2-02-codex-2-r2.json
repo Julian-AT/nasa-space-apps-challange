@@ -1,0 +1,105 @@
+{
+  "task_id": "T2-02",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "178e0a292a416903466fa30da513acfd9ce96233",
+    "head": "06e021c61946bb394340d91623823f54ee488c8d",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "20a84fdfb2758a7c6f08f8f2c00bfaacce78be0d4d96e2ef63caa2787e984193"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_stokes.py",
+        "sha256": "709385df29c349dd3ea7c8387c759bcd1bbac4ced234ad3a54c300ed5ec69813"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:47:30Z",
+  "finished_utc": "2026-11-14T18:51:40Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Both prior squared-tolerance findings are addressed, and the SC_NEGATIVE rebuttal is supported. Execution checks and failing-first evidence remain unverified.",
+  "checks": [
+    {
+      "criterion": "AC1: F1–F5 fixtures and failing test before implementation",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_polarimetry_stokes.py:120–157 contains substantive F1–F5 assertions, including valid zero, untruncated CPR=3, and unavailable F4/F5 ratios. Arithmetic tolerances are defined at lines 34–35. Execution and the historical failing-first run cannot be verified under the explicit prohibition on running checks."
+    },
+    {
+      "criterion": "AC2: SIS formulas, required convention, and refusal of unknown conventions",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static derivation from PRD.md:299–301 and 346 agrees with the halved-input formulas at polarimetry.py:836–839 and division at line 860. Convention is required at line 732 and validated before conversion at line 798. Tests at test_polarimetry_stokes.py:265–319 exercise omission and undefined opposite-sign conventions. Runtime verification is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC3: Named tolerance, physicality, nonfinite inputs, product masks, and no hard-coded SNR rule",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "polarimetry.py:715–722 applies the tolerance to the squared inequality using power-of-two scaling. Lines 814–830 classify product masks, nonfinite inputs, and both physicality bounds per pixel. Tests at test_polarimetry_stokes.py:325–566 exercise these rules. The real-data tolerance remains explicitly open at polarimetry.py:760–761. Execution is prohibited because the sandbox is read-only."
+    },
+    {
+      "criterion": "AC4: Mixed 2x3 array with matching values, states, reasons, and unavailable CPR as NaN",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_stokes.py:590–638 defines and checks the mixed 2x3 array, including F2 inputs under a product mask and subsequently unmasked. Assertions cover shapes, powers, CPR, states, reasons, and NaN rather than zero for unavailable ratios. Runtime verification is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC5: Hypothesis power-splitting and total-echo-share property",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_stokes.py:769–792 generates positive S1 and bounded S4, asserts nonnegative powers and SC+OC=S1, and compares CPR/(1+CPR) with SC/S1 wherever OC is positive. The property test was read but cannot be executed under the review restrictions."
+    },
+    {
+      "criterion": "AC6: Docstring explains factor two and product-defined absolute powers",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:744–750 explicitly states that factor two cancels in CPR but not absolute powers and that the selected product label defines its Stokes powers."
+    },
+    {
+      "criterion": "Required focused pytest check",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_stokes.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: uv and test caches can write files, and this review must remain read-only."
+    },
+    {
+      "criterion": "Required mypy check",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: uv and mypy may write environment or cache files in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user. Makefile:25–28 invokes uv, Ruff, and mypy checks that may write caches."
+    },
+    {
+      "criterion": "Prior codex-r1-1 and codex2-r1-1 fixes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection confirms polarimetry.py:715–722 now compares scaled squared excess against scaled atol plus rtol*S1². For S1=1 and S2=1+7.5e-11 or 1+8e-11, squared excess exceeds 1.01e-10. Regression assertions at test_polarimetry_stokes.py:452–458 distinguish the previous norm-based rule; lines 476–499 cover overflow, underflow, and squared absolute units. Execution remains unverified."
+    },
+    {
+      "criterion": "Prior claude-r1-1 SC_NEGATIVE rebuttal",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:838–839 retains computed powers; line 851 makes CPR INVALID with SC_NEGATIVE, and _Classifier.finish at lines 253–257 replaces unavailable values with NaN. Tests at test_polarimetry_stokes.py:325–340 assert this behavior. The additional reason neither clips powers nor publishes a negative CPR."
+    },
+    {
+      "criterion": "Changed-file scope and unresolved kickoff configuration",
+      "command": "git diff --name-status 178e0a292a416903466fa30da513acfd9ce96233 06e021c61946bb394340d91623823f54ee488c8d -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output contains only the authorized polarimetry.py modification and new test_polarimetry_stokes.py. config/run.yaml:2–7 retains null kickoff choices; lines 33–35 retain null incidence bins, SNR rule, and radar conventions. No mock production path or invented gate result was introduced in the reviewed diff."
+    }
+  ],
+  "findings": []
+}

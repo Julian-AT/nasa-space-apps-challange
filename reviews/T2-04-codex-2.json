@@ -1,0 +1,106 @@
+{
+  "task_id": "T2-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "42da1c6ec1ce7d59e432c2c9ec0f7051143d3074",
+    "head": "3a27267fffcaf2084bad3fa2a0104913c7941481",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "1a04c2b11f75370b9f468b93e9254412a33a49d073cf41f297a8dcc0b4f6a66d"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_derive.py",
+        "sha256": "b8ffbf87954e01310b25b431a40c7b191e18acf5429dee43e538a871e0d7fb77"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:03:48Z",
+  "finished_utc": "2026-11-14T20:11:09Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found a cancellation defect in block aggregation that violates permutation invariance for accepted signed powers. Conversion formulas and handedness match the PRD. No checks were executed, as requested.",
+  "checks": [
+    {
+      "criterion": "AC1: derive_circular interface, declarations, states, F1–F7 parity, and failing-first test",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Dispatch and mask propagation are implemented at pipeline/src/terraluna_pipeline/polarimetry.py:1555. Independently expanding the circular basis at :985 reproduces base_SC minus/plus Im D + Im E and OC=(A+B+2Re C)/4. F1–F7 assertions are present at pipeline/tests/test_polarimetry_derive.py:453. Execution and the historical failing-first run cannot be verified under the read-only review restriction."
+    },
+    {
+      "criterion": "AC2: hand-computed 4x4 block with separately named statistics",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_polarimetry_derive.py:536 constructs SC=(1,1), OC=(1,3), and asserts mean SC=1, mean OC=2, ratio_of_mean_powers=0.5, and mean_of_pixelwise_ratios=2/3. Tests were not executed because the user prohibited checks in the read-only sandbox."
+    },
+    {
+      "criterion": "AC3: shared power support, exclusion counts, empty blocks, and nonpositive OC policy",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Shared SC/OC support is selected at pipeline/src/terraluna_pipeline/polarimetry.py:1980; counts and empty-block states are implemented at :1826 and :1848. Tests at pipeline/tests/test_polarimetry_derive.py:580 explicitly include zero-OC powers in both means while excluding their CPR; :635 covers empty blocks. Runtime verification was prohibited."
+    },
+    {
+      "criterion": "AC4: linear-power aggregation, dB type rejection, display helper, and amplitude rejection",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1955 rejects inputs other than circular-power records; :1604 implements 10*log10 for display. Behavioral assertions are present at pipeline/tests/test_polarimetry_derive.py:826, :862, and :882. They were not executed under the read-only review restriction."
+    },
+    {
+      "criterion": "AC5: configurable block size, block origins, and blocks_independent=False",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Required block size is declared at pipeline/src/terraluna_pipeline/polarimetry.py:1899; origins are constructed at :1972; independence is constrained at :1738. Tests at pipeline/tests/test_polarimetry_derive.py:688, :731, and :765 exercise these requirements. Runtime verification was prohibited."
+    },
+    {
+      "criterion": "AC6: permutation and common-scaling invariance",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Static cancellation counterexample identified at pipeline/src/terraluna_pipeline/polarimetry.py:1874: accepted signed powers can lose a residual depending on pixel order, changing the primary statistic from VALID to INVALID. The permutation generator at pipeline/tests/test_polarimetry_derive.py:936 excludes signed powers accepted within tolerance. See the blocker finding."
+    },
+    {
+      "criterion": "Focused pytest check",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_derive.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks because the sandbox is read-only and dependency/test-cache writes fail."
+    },
+    {
+      "criterion": "mypy check",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Repository check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Change scope and protected configuration",
+      "command": "git diff --no-ext-diff --name-status 42da1c6ec1ce7d59e432c2c9ec0f7051143d3074 3a27267fffcaf2084bad3fa2a0104913c7941481 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output lists only polarimetry.py and the added test_polarimetry_derive.py, both permitted by the story. config/run.yaml, release artifacts, and production data paths are unchanged."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:1874",
+      "claim": "The ordinary floating-point sum is not cancellation-safe for signed powers accepted within tolerance, so permuting a block can change its primary statistic's availability.",
+      "evidence": "Static IEEE-754 counterexample: let p=2**-44 and q=2**-100. Put Stokes pairs (0,2p), (0,-2p), and (2q,0) in the first three cells of a 4x4 block, masking the other 13. The validity comparison at :879 accepts all three; their SC values are (-p,p,q) and OC values (p,-p,q). Both exact sums are q, so the ratio of mean powers is 1. In the order (-p,q,p), the scaled SC reduction groups (-0.5+2**-57)+0.5, losing the residual; OC likewise rounds to zero. The code then labels the ratio OC_NONPOSITIVE at :1994 instead of returning 1. The permutation test at pipeline/tests/test_polarimetry_derive.py:936 generates only S1>=1e-3 and |S4|<=S1, excluding this supported signed-power case. Use a cancellation-safe reduction and add this regression. No reproduction command was run, per the review restriction.",
+      "id": "codex2-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "5d57ddc4da880b7f0bf3da61562ffc40783b45e2",
+        "reason": "Same defect as codex-r1-1, fixed by the same commit. Reproduced: with p = 2**-44 and q = 2**-100, the Stokes pairs (0,2p), (0,-2p), (2q,0) in a 4x4 block (the other 13 pixels masked) gave OC_NONPOSITIVE instead of a ratio of 1 in 4 of the 6 pixel orders. With exact integer block sums (_exact_sums) both sums are exactly q, so mean SC and mean OC are q/3 and the ratio of mean powers is exactly 1.0 and VALID in all 6 orders (regression test in 3ab5090033e2c66218fa36237e4ed3e446a14e68, parametrized over every order). The permutation property now also draws pixels with S4 = +-S1 +- an offset below atol, so powers negative within the tolerance and exact cancellations occur, and it asserts bitwise-identical statistics."
+      }
+    }
+  ]
+}

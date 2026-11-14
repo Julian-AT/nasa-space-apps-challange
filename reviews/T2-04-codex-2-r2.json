@@ -1,0 +1,99 @@
+{
+  "task_id": "T2-04",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "42da1c6ec1ce7d59e432c2c9ec0f7051143d3074",
+    "head": "26d6f0128f84b619d4874336d07cd84c5b39f3d1",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "7b7683bd94096246d5dc0072aaeb0d14bc619e6107037d202e88365ed824cd6e"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_derive.py",
+        "sha256": "998d8ccad552b42f004757747b404cd65bbc472a315ac1bce593b2d75a140646"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:23:02Z",
+  "finished_utc": "2026-11-14T20:26:57Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static review found no new numerical defects. Formulas, handedness signs, units, tolerances and validity handling match the PRD. Both cancellation fixes and the scope rebuttal are supported by inspected code. Runtime checks and failing-first execution remain unverified because execution was explicitly prohibited in this read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "AC1: derive_circular interface, declarations, F1–F7 parity and failing-first test",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Runtime checks prohibited in the read-only sandbox; failing-first execution cannot be established from source. Static evidence: polarimetry.py:1555–1580 validates and dispatches inputs without changing conversion rules; test_polarimetry_derive.py:303–451 checks declarations and parity, and :454–522 asserts F1–F7 values and states."
+    },
+    {
+      "criterion": "AC2: separately named ratio of mean powers and mean of pixelwise ratios",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Runtime checks prohibited in the read-only sandbox. Static evidence: test_polarimetry_derive.py:537–578 uses 4x4 blocks and asserts primary ratio 0.5 versus pixelwise mean 2/3. polarimetry.py:2016–2048 uses separate power and CPR supports and computes the two statistics independently."
+    },
+    {
+      "criterion": "AC3: mask-aware counts, unavailable empty blocks and explicit OC<=0 policy",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Runtime checks prohibited in the read-only sandbox. Static evidence: polarimetry.py:1826–1855 counts valid, missing and invalid pixels and classifies empty blocks; :2010–2019 uses one shared SC/OC support. Tests at test_polarimetry_derive.py:581–609 include zero OC in both power means while excluding its CPR; :705–732 asserts unavailable statistics remain NaN."
+    },
+    {
+      "criterion": "AC4: linear-power aggregation, dB type rejection and display helper",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Runtime checks prohibited in the read-only sandbox. Static evidence: polarimetry.py:1604–1628 implements display-only 10*log10 conversion; :1985–1990 rejects inputs other than circular-power records. test_polarimetry_derive.py:932–961 exercises rejection of dB-tagged values, amplitude DN and bare arrays. Existing amplitude-versus-power assertions remain at test_polarimetry_decode.py:244–272."
+    },
+    {
+      "criterion": "AC5: caller-selected pixel block size, origins and blocks_independent=False",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Runtime checks prohibited in the read-only sandbox. Static evidence: polarimetry.py:1924–1928 requires block_size; :1991–2007 computes the block grid and origins without a hard-coded physical support. :1738–1741 rejects independent-sample claims. test_polarimetry_derive.py:757–839 checks sizes, origins, partial-block rejection and independence metadata."
+    },
+    {
+      "criterion": "AC6: Hypothesis permutation and common-scaling properties",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Hypothesis execution prohibited in the read-only sandbox. Static evidence: test_polarimetry_derive.py:1024–1133 tests ordinary and signed-power permutations plus exact Fraction oracles; :1139–1178 tests common scaling. polarimetry.py:1862–1920 sums float64 values exactly as integer multiples of 2^-1074; :2024–2037 uses exact sum signs and quotients."
+    },
+    {
+      "criterion": "Required focused test command",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_derive.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the sandbox is read-only and dependency/test caches require writes."
+    },
+    {
+      "criterion": "Required type-check command",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the sandbox is read-only and dependency/type-check caches require writes."
+    },
+    {
+      "criterion": "Required repository check command",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited in the read-only sandbox. Makefile invokes uv-backed Ruff and mypy checks."
+    },
+    {
+      "criterion": "Previous cancellation findings: inspect both fixes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The integer reduction at polarimetry.py:1872–1878 preserves both cancelling residuals independent of order. test_polarimetry_derive.py:649–665 enumerates all 24 orders and expects negative mean SC -2^-102 with SC_NEGATIVE; :668–684 enumerates all six orders and expects means q/3 with ratio exactly 1. These assertions exercise the reported failures; execution remains unverified."
+    },
+    {
+      "criterion": "Previous scope finding: inspect rebuttal and changed paths",
+      "command": "git diff --name-only 42da1c6ec1ce7d59e432c2c9ec0f7051143d3074 26d6f0128f84b619d4874336d07cd84c5b39f3d1",
+      "outcome": "PASS",
+      "evidence": "The only product changes are polarimetry.py and test_polarimetry_derive.py. Other changes are excluded reviews/logs and the batch story/progress files. scripts/ralph/prompt.md:20 permits those batch files, and scripts/ralph/ralph.sh:49 defines the stated review exclusions. config/run.yaml is unchanged."
+    }
+  ],
+  "findings": []
+}

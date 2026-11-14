@@ -1,0 +1,120 @@
+{
+  "task_id": "T2-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
+    "head": "0710d1ef7488076e1e912fc742c2d30bda8795b4",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "ad294d5051fc1c30bb45ed5819cc3a246ce96f8916cb276b29be281f85255bda"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "9c9861b9e8f09a2c3030e2d9d1dc87366c79ac897639bae8fefce6de475afbbd"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_decode.py",
+        "sha256": "da4ed4832e4988f5ffea271e04da5a6f333c72ad3db4d22a3ba7898ea2f83e46"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e63ef94ad995c48d4907f9d05e24e3ab46ad40a0c2e72babb7975f3acbd38da2"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:35:23Z",
+  "finished_utc": "2026-11-14T17:40:55Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "F8–F10 formulas, units and fixture expectations match the PRD on static review. One blocker: input conversion silently discards validity masks. Required checks and pre-implementation failing runs remain unverified under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "AC1: Add only numpy, update uv.lock, and retain strict mypy success.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/pyproject.toml:8 adds only numpy; uv.lock:433 and uv.lock:440 declare it consistently. pyproject.toml:33 retains strict=true. Mypy success cannot be established because execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC2: Define the three observation states, machine-readable reasons, documented conventions, and correct per-element availability.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "polarimetry.py:42 defines exactly MISSING, INVALID and VALID; lines 57–83 define string reasons; lines 139–145 enforce finite VALID values and NaN unavailable values. However, np.asarray at lines 180 and 188 discards masked-array validity information before classification, allowing masked measurements to become VALID."
+    },
+    {
+      "criterion": "AC3: Write and run failing tests before implementation, including F8, F9 and F10 at the required float64 tolerances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:34–35 sets the required tolerances; lines 184–199, 317–323 and 425–428 assert the required fixtures. Independently derived: 20*log10(100)-83=-43; 10^(-4.3)=5.011872336272722e-5; (100/1000)^2=0.01; (pi/3)*180/pi=60. Execution is prohibited, and final source cannot establish a preceding failing run."
+    },
+    {
+      "criterion": "AC4: Failing tests first for zero/nodata, invalid denominators, no epsilon, and decoding before averaging.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:249–268 checks unavailable zero/nodata/nonfinite DN; lines 334–362 checks denominator failures and no epsilon. Lines 215–243 checks power scaling and the two-pixel averaging distinction: mean(DN^2)=50000 versus mean(DN)^2=40000. Tests and their required initial failures cannot be executed or established under this read-only review."
+    },
+    {
+      "criterion": "AC5: Require explicit radians/degrees, reject unknown units and None, and convert internally to degrees.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static review: polarimetry.py:378–383 rejects undeclared units and explicitly selects radians conversion or degree preservation. The docstring at line 369 states internal degrees. test_polarimetry_decode.py:436–467 covers magnitude-independent declarations, rejected units including None, and valid zero degrees."
+    },
+    {
+      "criterion": "AC6: Hypothesis properties verify positive-DN monotonicity and agreement between dB and linear forms.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:473–492 contains non-vacuous Hypothesis tests for strict monotonicity and both conversion directions using RTOL=1e-10 and ATOL=1e-12. Execution is prohibited by the read-only review restriction."
+    },
+    {
+      "criterion": "AC7: Explicit nodata and named calibration offset, with the PRD formula documented.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:214 defines PALSAR2_CALIBRATION_OFFSET_DB=83.0. Both decoders require an explicit nodata argument and expose the calibration offset; their docstrings cite PRD 7 and give the formulas. Executable formulas at lines 269 and 295 match PRD.md:403–405."
+    },
+    {
+      "criterion": "Required focused pytest check.",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the sandbox is read-only and test/environment caches may write files."
+    },
+    {
+      "criterion": "Required mypy check.",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the sandbox is read-only and uv/mypy may write environment or cache files."
+    },
+    {
+      "criterion": "Required repository check.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the sandbox is read-only. Makefile:22–25 invokes uv, ruff and mypy checks."
+    },
+    {
+      "criterion": "Changed paths remain within story scope and preserve kickoff configuration.",
+      "command": "git diff --name-only 0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef 0710d1ef7488076e1e912fc742c2d30bda8795b4 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output lists only pipeline/pyproject.toml, pipeline/src/terraluna_pipeline/polarimetry.py, pipeline/tests/test_polarimetry_decode.py and uv.lock. No config, gate, release or production mock path changes appear."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:180",
+      "claim": "Masked inputs silently lose their validity masks and can publish unavailable pixels as VALID measurements. Preserve the masks or explicitly reject masked inputs before coercion, with regression tests.",
+      "evidence": "Static trace, not executed: decode_linear(np.ma.array([100.0, 300.0], mask=[False, True]), nodata=None) reaches np.asarray at line 180, which strips the MaskedArray subclass and mask. Classification at lines 234–242 then sees two finite positive values, so both receive VALID/NONE and finite powers. angle_to_degrees uses the same helper, and _bool_mask repeats the mask-stripping conversion at line 188. This violates PRD.md:415's requirement to retain product validity/noise flags and line 421's distinction between unavailable and valid observations. The test file contains no masked-input regression.",
+      "id": "codex2-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "6a0aa160f4bd6c8821024827158549e173bfbc1f",
+        "reason": "Same defect as codex-r1-1, fixed by the same commit. _real_array and _bool_mask (the line 188 path for the noise flags) both refuse masked inputs before np.asarray, and StatedArray refuses masked fields, so no mask is dropped silently. Masked regression tests were added first (commit c77bbbb, 31 failed before the fix) for every array argument, a mask with nothing masked, a masked array inside a list, and the masked constant; now 103 passed, also with -W error."
+      }
+    }
+  ]
+}

@@ -1,0 +1,862 @@
+{
+  "description": "Tests that G1 (PRD 9, conversion correctness) requires, as pytest node ids of test functions; every parametrized case of a listed function counts. fixtures: every test named test_F<n>_ or test_F<a>_to_F<b>_ (PRD 7 fixtures F1-F10), listed under each fixture it covers. conventions: the tests of stories T2-01 (calibration offset, angle units), T2-02 (Stokes convention) and T2-03 (covariance ordering, handedness, declarations) that the conventions are declared and labelled. invalid_data: the invalid-data tests of stories T2-01 (decoding, x_power, angles, masked inputs), T2-02 (Stokes) and T2-03 (covariance): how invalid, missing, malformed or undeclared input is classified (state and reason) or refused, on either side of each validity rule, tolerance and float64 range limit. other: every remaining test of the story's test file (results on valid input, accuracy, accepted input types, records), so that every test of T2-01 to T2-03 is required. real_scene_check: the T2-07 polsartools oracle check on one real UAVSAR scene (PRD 12); G1 is not PASS until it has passed. parametrized_cases: the case ids (between the brackets of the node id) of every listed test that pytest parametrizes, in collection order; every other listed test is one case without parameters. Read by 'python -m terraluna_pipeline.polarimetry record-g1'.",
+  "fixtures": {
+    "F1": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_F1_minirf_zero_cpr_is_valid_not_missing",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_derive_circular_gives_a_valid_zero_cpr",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_to_F5_derive_circular_on_an_array_equals_circular_from_stokes"
+    ],
+    "F2": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_F2_minirf_unit_cpr",
+      "pipeline/tests/test_polarimetry_derive.py::test_F2_derive_circular_gives_unit_cpr",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_to_F5_derive_circular_on_an_array_equals_circular_from_stokes"
+    ],
+    "F3": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_F3_valid_cpr_above_the_old_bound_is_not_truncated",
+      "pipeline/tests/test_polarimetry_derive.py::test_F3_derive_circular_keeps_cpr_above_the_old_bound",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_to_F5_derive_circular_on_an_array_equals_circular_from_stokes"
+    ],
+    "F4": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_F4_invalid_stokes_pair_publishes_no_ratio",
+      "pipeline/tests/test_polarimetry_derive.py::test_F4_derive_circular_publishes_nothing_for_an_invalid_stokes_pair",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_to_F5_derive_circular_on_an_array_equals_circular_from_stokes"
+    ],
+    "F5": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_F5_zero_opposite_sense_power_leaves_cpr_unavailable",
+      "pipeline/tests/test_polarimetry_derive.py::test_F5_derive_circular_gives_no_ratio_for_zero_oc",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_to_F5_derive_circular_on_an_array_equals_circular_from_stokes"
+    ],
+    "F6": [
+      "pipeline/tests/test_polarimetry_covariance.py::test_F6_fixture_is_a_rank_one_hermitian_psd_covariance",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F6_full_covariance_handedness",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F6_matches_both_oracles",
+      "pipeline/tests/test_polarimetry_derive.py::test_F6_derive_circular_full_covariance_handedness",
+      "pipeline/tests/test_polarimetry_mchi.py::test_F6_hybrid_stokes_reproduce_story_3_sc_ll_and_oc",
+      "pipeline/tests/test_polarimetry_mchi.py::test_F6_opposite_ellipticity_gives_sc_opp",
+      "pipeline/tests/test_polarimetry_mchi.py::test_F6_matches_the_jones_oracle"
+    ],
+    "F7": [
+      "pipeline/tests/test_polarimetry_covariance.py::test_F7_fixtures_are_hermitian_psd_with_the_prd_eigenvalues",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F7_matches_both_oracles",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F7_same_hh_and_hv_powers_give_different_cpr",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F7_two_channel_data_cannot_determine_cpr",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F7_has_no_handedness_term",
+      "pipeline/tests/test_polarimetry_derive.py::test_F7_derive_circular_two_channel_data_cannot_determine_cpr"
+    ],
+    "F8": [
+      "pipeline/tests/test_polarimetry_decode.py::test_F8_palsar_amplitude_to_db",
+      "pipeline/tests/test_polarimetry_decode.py::test_F8_palsar_amplitude_to_linear"
+    ],
+    "F9": [
+      "pipeline/tests/test_polarimetry_decode.py::test_F9_palsar_power_ratio"
+    ],
+    "F10": [
+      "pipeline/tests/test_polarimetry_decode.py::test_F10_radians_to_degrees"
+    ]
+  },
+  "conventions": {
+    "T2-01": [
+      "pipeline/tests/test_polarimetry_decode.py::test_calibration_offset_is_the_prd_value_and_an_argument",
+      "pipeline/tests/test_polarimetry_decode.py::test_internal_angle_unit_is_degrees",
+      "pipeline/tests/test_polarimetry_decode.py::test_declared_unit_decides_the_result"
+    ],
+    "T2-02": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_sis_convention_is_a_named_string_constant",
+      "pipeline/tests/test_polarimetry_stokes.py::test_docstring_states_the_power_definition",
+      "pipeline/tests/test_polarimetry_stokes.py::test_convention_is_a_required_argument",
+      "pipeline/tests/test_polarimetry_stokes.py::test_constant_with_extra_text_is_not_the_declared_convention"
+    ],
+    "T2-03": [
+      "pipeline/tests/test_polarimetry_covariance.py::test_circular_basis_rows_are_the_declared_transmit_projections",
+      "pipeline/tests/test_polarimetry_covariance.py::test_docstring_states_the_ordering_transmit_vector_and_convention",
+      "pipeline/tests/test_polarimetry_covariance.py::test_orderings_and_conventions_are_named_string_constants",
+      "pipeline/tests/test_polarimetry_covariance.py::test_declarations_are_required_keyword_arguments",
+      "pipeline/tests/test_polarimetry_covariance.py::test_handedness_conventions_give_different_sc_and_the_same_oc",
+      "pipeline/tests/test_polarimetry_covariance.py::test_handedness_is_unverified_by_default",
+      "pipeline/tests/test_polarimetry_covariance.py::test_only_a_caller_marks_handedness_verified",
+      "pipeline/tests/test_polarimetry_covariance.py::test_record_carries_its_declarations"
+    ]
+  },
+  "invalid_data": {
+    "T2-01": [
+      "pipeline/tests/test_polarimetry_decode.py::test_obs_state_has_exactly_three_distinct_states",
+      "pipeline/tests/test_polarimetry_decode.py::test_no_state_is_encoded_as_zero",
+      "pipeline/tests/test_polarimetry_decode.py::test_invalid_reasons_are_machine_readable_string_codes",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_rejects_nan_for_a_valid_element",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_rejects_zero_for_a_missing_element",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_rejects_a_finite_number_for_an_invalid_element",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_ties_reason_to_state",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_rejects_unknown_states_reasons_and_shapes",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_rejects_wrong_dtypes",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_refuses_masked_fields",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_refuses_masked_fields_nested_in_lists",
+      "pipeline/tests/test_polarimetry_decode.py::test_zero_dn_is_invalid_and_never_minus_infinity",
+      "pipeline/tests/test_polarimetry_decode.py::test_declared_nodata_is_missing",
+      "pipeline/tests/test_polarimetry_decode.py::test_nonfinite_dn_is_invalid",
+      "pipeline/tests/test_polarimetry_decode.py::test_negative_dn_is_invalid",
+      "pipeline/tests/test_polarimetry_decode.py::test_decode_array_keeps_states_apart",
+      "pipeline/tests/test_polarimetry_decode.py::test_decode_rejects_non_real_input",
+      "pipeline/tests/test_polarimetry_decode.py::test_decode_rejects_a_non_integer_nodata",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_zero_hh_is_an_invalid_denominator",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_nodata_hh_is_an_invalid_denominator_and_missing",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_noise_dominated_hh_is_an_invalid_denominator",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_adds_no_epsilon",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_invalid_numerator",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_reports_the_denominator_first",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_array_with_noise_masks",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_rejects_mismatched_channels_and_non_boolean_flags",
+      "pipeline/tests/test_polarimetry_decode.py::test_units_are_not_inferred_from_magnitude",
+      "pipeline/tests/test_polarimetry_decode.py::test_undeclared_or_unknown_angle_unit_raises",
+      "pipeline/tests/test_polarimetry_decode.py::test_angle_array_marks_nonfinite_values",
+      "pipeline/tests/test_polarimetry_decode.py::test_dn_whose_square_overflows_still_decodes_when_its_power_is_representable",
+      "pipeline/tests/test_polarimetry_decode.py::test_dn_whose_power_is_just_a_normal_float64_is_valid",
+      "pipeline/tests/test_polarimetry_decode.py::test_dn_whose_power_is_out_of_float64_range_is_invalid",
+      "pipeline/tests/test_polarimetry_decode.py::test_out_of_range_dn_fails_only_its_own_element",
+      "pipeline/tests/test_polarimetry_decode.py::test_offset_whose_scale_factor_float64_cannot_hold_raises",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_out_of_float64_range_is_invalid",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_at_the_edge_of_float64_range_is_valid",
+      "pipeline/tests/test_polarimetry_decode.py::test_angle_whose_degrees_overflow_is_invalid",
+      "pipeline/tests/test_polarimetry_decode.py::test_angles_at_the_edges_of_float64_range_are_valid",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_input_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_input_is_refused_even_with_nothing_masked",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_array_inside_a_sequence_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_constant_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_review_example_masked_array_two_levels_down_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_array_nested_at_any_depth_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_constant_nested_at_any_depth_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_array_anywhere_in_nested_sequences_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_containers_that_could_hide_a_mask_are_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_review_example_list_subclass_of_an_array_like_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_list_subclass_nested_in_plain_containers_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_scalar_subclasses_are_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_refuses_fields_in_list_or_tuple_subclasses",
+      "pipeline/tests/test_polarimetry_decode.py::test_object_array_holding_a_masked_array_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_refuses_an_object_array_holding_a_masked_array",
+      "pipeline/tests/test_polarimetry_decode.py::test_self_referential_sequence_raises_instead_of_recursing"
+    ],
+    "T2-02": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_stokes_reason_codes_exist",
+      "pipeline/tests/test_polarimetry_stokes.py::test_total_power_is_kept_where_cpr_is_unavailable",
+      "pipeline/tests/test_polarimetry_stokes.py::test_total_power_below_the_smallest_normal_float64_is_out_of_range",
+      "pipeline/tests/test_polarimetry_stokes.py::test_zero_total_power_is_a_valid_zero",
+      "pipeline/tests/test_polarimetry_stokes.py::test_high_cpr_is_never_truncated",
+      "pipeline/tests/test_polarimetry_stokes.py::test_near_zero_oc_gets_no_epsilon",
+      "pipeline/tests/test_polarimetry_stokes.py::test_sums_that_would_overflow_float64_are_not_formed",
+      "pipeline/tests/test_polarimetry_stokes.py::test_extreme_opposite_stokes_give_valid_powers_and_no_ratio",
+      "pipeline/tests/test_polarimetry_stokes.py::test_powers_below_the_smallest_normal_float64_are_out_of_range",
+      "pipeline/tests/test_polarimetry_stokes.py::test_positive_oc_that_underflows_is_out_of_range_not_nonpositive",
+      "pipeline/tests/test_polarimetry_stokes.py::test_exact_zero_sc_stays_a_valid_zero_at_any_magnitude",
+      "pipeline/tests/test_polarimetry_stokes.py::test_undeclared_or_unknown_convention_raises",
+      "pipeline/tests/test_polarimetry_stokes.py::test_opposite_sign_convention_is_refused_not_reinterpreted",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s4_above_s1_within_tolerance_is_accepted_and_not_clipped",
+      "pipeline/tests/test_polarimetry_stokes.py::test_negative_sc_within_tolerance_never_gives_a_negative_cpr",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s4_above_s1_beyond_tolerance_is_invalid",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s4_below_minus_s1_within_tolerance_gives_nonpositive_oc",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s4_below_minus_s1_beyond_tolerance_is_invalid",
+      "pipeline/tests/test_polarimetry_stokes.py::test_absolute_tolerance_applies_near_zero",
+      "pipeline/tests/test_polarimetry_stokes.py::test_negative_s1_beyond_tolerance_is_invalid",
+      "pipeline/tests/test_polarimetry_stokes.py::test_tolerance_argument_decides_the_outcome",
+      "pipeline/tests/test_polarimetry_stokes.py::test_opposite_extremes_are_invalid_without_overflow_passing_them",
+      "pipeline/tests/test_polarimetry_stokes.py::test_tolerance_must_be_finite_and_nonnegative",
+      "pipeline/tests/test_polarimetry_stokes.py::test_tolerance_must_be_real_numbers",
+      "pipeline/tests/test_polarimetry_stokes.py::test_tolerance_argument_must_be_a_tolerance",
+      "pipeline/tests/test_polarimetry_stokes.py::test_full_stokes_beyond_the_polarization_bound_is_nonphysical",
+      "pipeline/tests/test_polarimetry_stokes.py::test_fully_polarized_full_stokes_is_valid",
+      "pipeline/tests/test_polarimetry_stokes.py::test_full_stokes_within_tolerance_is_valid_and_beyond_is_nonphysical",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s1_below_abs_s4_is_reported_before_the_full_bound",
+      "pipeline/tests/test_polarimetry_stokes.py::test_full_stokes_bound_does_not_overflow",
+      "pipeline/tests/test_polarimetry_stokes.py::test_squared_excess_beyond_the_tolerance_is_nonphysical",
+      "pipeline/tests/test_polarimetry_stokes.py::test_squared_excess_within_the_tolerance_is_valid",
+      "pipeline/tests/test_polarimetry_stokes.py::test_squared_tolerance_is_the_same_for_each_polarized_component",
+      "pipeline/tests/test_polarimetry_stokes.py::test_squared_tolerance_holds_where_squares_overflow",
+      "pipeline/tests/test_polarimetry_stokes.py::test_squared_tolerance_holds_where_squares_underflow",
+      "pipeline/tests/test_polarimetry_stokes.py::test_absolute_tolerance_of_the_squared_bound_is_in_squared_power_units",
+      "pipeline/tests/test_polarimetry_stokes.py::test_exact_squared_bound_with_zero_tolerance",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s2_and_s3_are_given_together_or_not_at_all",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s2_and_s3_must_be_declared_explicitly",
+      "pipeline/tests/test_polarimetry_stokes.py::test_nonfinite_input_is_invalid",
+      "pipeline/tests/test_polarimetry_stokes.py::test_product_masked_pixel_is_missing",
+      "pipeline/tests/test_polarimetry_stokes.py::test_product_mask_wins_over_every_other_rule",
+      "pipeline/tests/test_polarimetry_stokes.py::test_product_masked_is_a_required_argument",
+      "pipeline/tests/test_polarimetry_stokes.py::test_product_mask_must_be_boolean",
+      "pipeline/tests/test_polarimetry_stokes.py::test_no_snr_rule_is_hard_coded",
+      "pipeline/tests/test_polarimetry_stokes.py::test_non_real_stokes_are_refused",
+      "pipeline/tests/test_polarimetry_stokes.py::test_mismatched_shapes_raise",
+      "pipeline/tests/test_polarimetry_stokes.py::test_array_mixing_fixtures_nan_and_mask",
+      "pipeline/tests/test_polarimetry_stokes.py::test_unmasked_array_gives_f2_at_the_masked_pixel",
+      "pipeline/tests/test_polarimetry_stokes.py::test_record_refuses_a_valid_cpr_without_valid_powers",
+      "pipeline/tests/test_polarimetry_stokes.py::test_record_refuses_mismatched_shapes_and_unknown_conventions",
+      "pipeline/tests/test_polarimetry_stokes.py::test_masked_input_is_refused",
+      "pipeline/tests/test_polarimetry_stokes.py::test_masked_array_nested_in_a_list_is_refused",
+      "pipeline/tests/test_polarimetry_stokes.py::test_any_finite_stokes_pair_gives_a_published_state",
+      "pipeline/tests/test_polarimetry_stokes.py::test_full_stokes_rule_matches_exact_arithmetic_over_the_float64_range",
+      "pipeline/tests/test_polarimetry_stokes.py::test_squared_bound_is_decided_by_rtol_at_every_scale"
+    ],
+    "T2-03": [
+      "pipeline/tests/test_polarimetry_covariance.py::test_missing_convention_raises",
+      "pipeline/tests/test_polarimetry_covariance.py::test_unknown_or_missing_convention_raises_and_returns_nothing",
+      "pipeline/tests/test_polarimetry_covariance.py::test_unknown_or_missing_ordering_raises_and_returns_nothing",
+      "pipeline/tests/test_polarimetry_covariance.py::test_record_refuses_a_non_boolean_handedness_flag",
+      "pipeline/tests/test_polarimetry_covariance.py::test_record_refuses_a_valid_cpr_without_valid_powers",
+      "pipeline/tests/test_polarimetry_covariance.py::test_record_refuses_a_valid_ratio_without_a_positive_base_sc",
+      "pipeline/tests/test_polarimetry_covariance.py::test_record_refuses_mismatched_shapes_and_undeclared_choices",
+      "pipeline/tests/test_polarimetry_covariance.py::test_covariance_reason_codes_exist_and_are_distinct",
+      "pipeline/tests/test_polarimetry_covariance.py::test_nonphysical_covariance_is_invalid_with_its_cause",
+      "pipeline/tests/test_polarimetry_covariance.py::test_nonfinite_covariance_is_invalid",
+      "pipeline/tests/test_polarimetry_covariance.py::test_each_invalid_case_has_a_distinct_cause",
+      "pipeline/tests/test_polarimetry_covariance.py::test_rules_apply_in_order_and_the_product_mask_wins",
+      "pipeline/tests/test_polarimetry_covariance.py::test_hermitian_mismatch_within_the_tolerance_is_accepted",
+      "pipeline/tests/test_polarimetry_covariance.py::test_hermitian_mismatch_beyond_the_tolerance_is_refused",
+      "pipeline/tests/test_polarimetry_covariance.py::test_hermitian_tolerance_scales_with_the_matrix",
+      "pipeline/tests/test_polarimetry_covariance.py::test_absolute_hermitian_tolerance_applies_near_zero",
+      "pipeline/tests/test_polarimetry_covariance.py::test_negative_eigenvalue_within_the_tolerance_is_not_clipped",
+      "pipeline/tests/test_polarimetry_covariance.py::test_negative_eigenvalue_beyond_the_tolerance_is_not_psd",
+      "pipeline/tests/test_polarimetry_covariance.py::test_negative_diagonal_within_the_tolerance_is_reported_as_computed",
+      "pipeline/tests/test_polarimetry_covariance.py::test_negative_diagonal_beyond_the_tolerance_is_its_own_cause",
+      "pipeline/tests/test_polarimetry_covariance.py::test_tolerance_argument_decides_the_psd_outcome",
+      "pipeline/tests/test_polarimetry_covariance.py::test_psd_tolerance_scales_with_the_matrix",
+      "pipeline/tests/test_polarimetry_covariance.py::test_validity_does_not_depend_on_the_declared_ordering",
+      "pipeline/tests/test_polarimetry_covariance.py::test_both_orderings_give_the_same_states_for_any_hermitian_matrix",
+      "pipeline/tests/test_polarimetry_covariance.py::test_zero_oc_leaves_cpr_unavailable_without_an_epsilon",
+      "pipeline/tests/test_polarimetry_covariance.py::test_near_zero_oc_gets_no_epsilon",
+      "pipeline/tests/test_polarimetry_covariance.py::test_plane_gives_a_valid_zero_cpr_and_no_handedness_ratio",
+      "pipeline/tests/test_polarimetry_covariance.py::test_high_cpr_is_never_truncated",
+      "pipeline/tests/test_polarimetry_covariance.py::test_covariance_must_end_in_a_three_by_three_matrix",
+      "pipeline/tests/test_polarimetry_covariance.py::test_non_numeric_covariances_are_refused",
+      "pipeline/tests/test_polarimetry_covariance.py::test_product_mask_broadcasts_and_must_be_boolean",
+      "pipeline/tests/test_polarimetry_covariance.py::test_masked_covariance_or_mask_is_refused",
+      "pipeline/tests/test_polarimetry_covariance.py::test_tolerance_must_be_a_tolerance",
+      "pipeline/tests/test_polarimetry_covariance.py::test_powers_beyond_the_float64_range_are_out_of_range_per_pixel",
+      "pipeline/tests/test_polarimetry_covariance.py::test_powers_below_the_smallest_normal_float64_are_out_of_range",
+      "pipeline/tests/test_polarimetry_covariance.py::test_exact_zero_powers_stay_valid_zeros_at_any_magnitude",
+      "pipeline/tests/test_polarimetry_covariance.py::test_parts_float64_cannot_hold_at_one_scale_publish_nothing",
+      "pipeline/tests/test_polarimetry_covariance.py::test_cancelling_powers_are_published_right_or_not_at_all",
+      "pipeline/tests/test_polarimetry_covariance.py::test_any_finite_hermitian_matrix_gives_a_state_for_every_field"
+    ]
+  },
+  "other": {
+    "T2-01": [
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_copies_its_inputs",
+      "pipeline/tests/test_polarimetry_decode.py::test_results_are_read_only",
+      "pipeline/tests/test_polarimetry_decode.py::test_decode_takes_amplitude_dn_and_returns_power",
+      "pipeline/tests/test_polarimetry_decode.py::test_decode_offers_no_averaging",
+      "pipeline/tests/test_polarimetry_decode.py::test_mean_of_decoded_power_differs_from_power_of_mean_dn",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_is_the_ratio_of_decoded_linear_powers",
+      "pipeline/tests/test_polarimetry_decode.py::test_every_array_argument_accepts_the_plain_inputs",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_accepts_lists_of_its_own_codes",
+      "pipeline/tests/test_polarimetry_decode.py::test_numpy_scalars_are_accepted",
+      "pipeline/tests/test_polarimetry_decode.py::test_plain_values_nested_in_lists_and_tuples_are_accepted",
+      "pipeline/tests/test_polarimetry_decode.py::test_memory_mapped_arrays_are_accepted",
+      "pipeline/tests/test_polarimetry_decode.py::test_nesting_up_to_numpys_dimension_limit_is_accepted",
+      "pipeline/tests/test_polarimetry_decode.py::test_decode_linear_is_monotone_in_dn",
+      "pipeline/tests/test_polarimetry_decode.py::test_db_and_linear_agree",
+      "pipeline/tests/test_polarimetry_decode.py::test_db_and_linear_agree_for_any_positive_float_dn",
+      "pipeline/tests/test_polarimetry_decode.py::test_decode_linear_is_monotone_for_any_positive_float_dn",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_holds_for_any_positive_float_dn",
+      "pipeline/tests/test_polarimetry_decode.py::test_angle_conversion_holds_for_any_finite_angle"
+    ],
+    "T2-02": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_arithmetic_tolerance_is_the_prd_value",
+      "pipeline/tests/test_polarimetry_stokes.py::test_tolerance_defaults_to_the_arithmetic_tolerance_and_is_named",
+      "pipeline/tests/test_polarimetry_stokes.py::test_total_power_is_s1_and_kept_beside_cpr",
+      "pipeline/tests/test_polarimetry_stokes.py::test_cpr_is_sc_over_oc_not_the_share_of_total_echo",
+      "pipeline/tests/test_polarimetry_stokes.py::test_integer_stokes_inputs_are_converted_as_float64",
+      "pipeline/tests/test_polarimetry_stokes.py::test_product_mask_broadcasts_to_the_stokes_shape",
+      "pipeline/tests/test_polarimetry_stokes.py::test_results_are_read_only",
+      "pipeline/tests/test_polarimetry_stokes.py::test_record_carries_its_tolerance",
+      "pipeline/tests/test_polarimetry_stokes.py::test_every_argument_accepts_plain_inputs",
+      "pipeline/tests/test_polarimetry_stokes.py::test_sc_and_oc_split_the_total_power"
+    ],
+    "T2-03": [
+      "pipeline/tests/test_polarimetry_covariance.py::test_circular_basis_is_unitary_and_read_only",
+      "pipeline/tests/test_polarimetry_covariance.py::test_tolerance_defaults_to_the_arithmetic_tolerance",
+      "pipeline/tests/test_polarimetry_covariance.py::test_input_is_not_modified",
+      "pipeline/tests/test_polarimetry_covariance.py::test_no_handedness_threshold_is_applied",
+      "pipeline/tests/test_polarimetry_covariance.py::test_array_of_covariances_gives_per_pixel_results",
+      "pipeline/tests/test_polarimetry_covariance.py::test_single_covariance_gives_zero_dimensional_results",
+      "pipeline/tests/test_polarimetry_covariance.py::test_empty_stack_gives_empty_results",
+      "pipeline/tests/test_polarimetry_covariance.py::test_real_and_integer_covariances_are_accepted_as_complex128",
+      "pipeline/tests/test_polarimetry_covariance.py::test_nested_lists_of_complex_scalars_are_accepted",
+      "pipeline/tests/test_polarimetry_covariance.py::test_results_are_read_only",
+      "pipeline/tests/test_polarimetry_covariance.py::test_scaled_covariances_scale_their_powers_exactly",
+      "pipeline/tests/test_polarimetry_covariance.py::test_handedness_term_is_not_lost_beside_large_powers",
+      "pipeline/tests/test_polarimetry_covariance.py::test_handedness_term_is_accurate_relative_to_its_own_parts",
+      "pipeline/tests/test_polarimetry_covariance.py::test_random_psd_covariances_match_both_oracles"
+    ]
+  },
+  "real_scene_check": [
+    "pipeline/tests/test_polarimetry_oracle.py::test_real_scene_matches_polsartools"
+  ],
+  "parametrized_cases": {
+    "pipeline/tests/test_polarimetry_covariance.py::test_F6_full_covariance_handedness": [
+      "HH_HV_VV",
+      "HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_derive.py::test_F6_derive_circular_full_covariance_handedness": [
+      "HH_HV_VV",
+      "HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_mchi.py::test_F6_hybrid_stokes_reproduce_story_3_sc_ll_and_oc": [
+      "HH_HV_VV",
+      "HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_mchi.py::test_F6_opposite_ellipticity_gives_sc_opp": [
+      "HH_HV_VV",
+      "HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_mchi.py::test_F6_matches_the_jones_oracle": [
+      "HH_HV_VV--45.0",
+      "HH_HV_VV-45.0",
+      "HH_SQRT2HV_VV--45.0",
+      "HH_SQRT2HV_VV-45.0"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_F7_fixtures_are_hermitian_psd_with_the_prd_eigenvalues": [
+      "C=0.9",
+      "C=0.1"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_F7_matches_both_oracles": [
+      "0.9",
+      "0.1"
+    ],
+    "pipeline/tests/test_polarimetry_derive.py::test_F7_derive_circular_two_channel_data_cannot_determine_cpr": [
+      "HH_HV_VV",
+      "HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_declarations_are_required_keyword_arguments": [
+      "ordering",
+      "convention",
+      "product_masked"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_stated_array_ties_reason_to_state": [
+      "3-DN_ZERO",
+      "2-NONE",
+      "1-NONE"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_stated_array_refuses_masked_fields": [
+      "value",
+      "state",
+      "reason"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_stated_array_refuses_masked_fields_nested_in_lists": [
+      "value",
+      "state",
+      "reason"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_zero_dn_is_invalid_and_never_minus_infinity": [
+      "decode_db",
+      "decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_declared_nodata_is_missing": [
+      "decode_db",
+      "decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_nonfinite_dn_is_invalid": [
+      "nan-decode_db",
+      "nan-decode_linear",
+      "inf-decode_db",
+      "inf-decode_linear",
+      "-inf-decode_db",
+      "-inf-decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_negative_dn_is_invalid": [
+      "decode_db",
+      "decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_decode_rejects_non_real_input": [
+      "dn0",
+      "dn1",
+      "dn2",
+      "dn3"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_decode_rejects_a_non_integer_nodata": [
+      "0.0",
+      "True",
+      "0"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_x_power_invalid_numerator": [
+      "0-False-2",
+      "65535-False-1",
+      "100-True-2"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_undeclared_or_unknown_angle_unit_raises": [
+      "None",
+      "",
+      "rad",
+      "deg",
+      "Radians",
+      "DEGREES",
+      "gradians"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_dn_whose_power_is_out_of_float64_range_is_invalid": [
+      "power-overflows-decode_db",
+      "power-overflows-decode_linear",
+      "largest-float64-decode_db",
+      "largest-float64-decode_linear",
+      "power-subnormal-decode_db",
+      "power-subnormal-decode_linear",
+      "power-underflows-to-zero-decode_db",
+      "power-underflows-to-zero-decode_linear",
+      "smallest-subnormal-dn-decode_db",
+      "smallest-subnormal-dn-decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_out_of_range_dn_fails_only_its_own_element": [
+      "decode_db",
+      "decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_offset_whose_scale_factor_float64_cannot_hold_raises": [
+      "7000.0-decode_db",
+      "7000.0-decode_linear",
+      "-7000.0-decode_db",
+      "-7000.0-decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_x_power_out_of_float64_range_is_invalid": [
+      "ratio-overflows",
+      "square-overflows",
+      "ratio-underflows-to-zero",
+      "square-subnormal"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_input_is_refused": [
+      "decode_db:dn",
+      "decode_linear:dn",
+      "x_power:dn_hh",
+      "x_power:dn_hv",
+      "x_power:hh_noise_dominated",
+      "x_power:hv_noise_dominated",
+      "angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_input_is_refused_even_with_nothing_masked": [
+      "decode_db:dn",
+      "decode_linear:dn",
+      "x_power:dn_hh",
+      "x_power:dn_hv",
+      "x_power:hh_noise_dominated",
+      "x_power:hv_noise_dominated",
+      "angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_array_inside_a_sequence_is_refused": [
+      "decode_db:dn",
+      "decode_linear:dn",
+      "x_power:dn_hh",
+      "x_power:dn_hv",
+      "x_power:hh_noise_dominated",
+      "x_power:hv_noise_dominated",
+      "angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_constant_is_refused": [
+      "decode_db:dn",
+      "decode_linear:dn",
+      "x_power:dn_hh",
+      "x_power:dn_hv",
+      "x_power:hh_noise_dominated",
+      "x_power:hv_noise_dominated",
+      "angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_array_nested_at_any_depth_is_refused": [
+      "list-2-decode_db:dn",
+      "list-2-decode_linear:dn",
+      "list-2-x_power:dn_hh",
+      "list-2-x_power:dn_hv",
+      "list-2-x_power:hh_noise_dominated",
+      "list-2-x_power:hv_noise_dominated",
+      "list-2-angle_to_degrees:angle",
+      "list-3-decode_db:dn",
+      "list-3-decode_linear:dn",
+      "list-3-x_power:dn_hh",
+      "list-3-x_power:dn_hv",
+      "list-3-x_power:hh_noise_dominated",
+      "list-3-x_power:hv_noise_dominated",
+      "list-3-angle_to_degrees:angle",
+      "tuple-2-decode_db:dn",
+      "tuple-2-decode_linear:dn",
+      "tuple-2-x_power:dn_hh",
+      "tuple-2-x_power:dn_hv",
+      "tuple-2-x_power:hh_noise_dominated",
+      "tuple-2-x_power:hv_noise_dominated",
+      "tuple-2-angle_to_degrees:angle",
+      "tuple-3-decode_db:dn",
+      "tuple-3-decode_linear:dn",
+      "tuple-3-x_power:dn_hh",
+      "tuple-3-x_power:dn_hv",
+      "tuple-3-x_power:hh_noise_dominated",
+      "tuple-3-x_power:hv_noise_dominated",
+      "tuple-3-angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_constant_nested_at_any_depth_is_refused": [
+      "1-decode_db:dn",
+      "1-decode_linear:dn",
+      "1-x_power:dn_hh",
+      "1-x_power:dn_hv",
+      "1-x_power:hh_noise_dominated",
+      "1-x_power:hv_noise_dominated",
+      "1-angle_to_degrees:angle",
+      "2-decode_db:dn",
+      "2-decode_linear:dn",
+      "2-x_power:dn_hh",
+      "2-x_power:dn_hv",
+      "2-x_power:hh_noise_dominated",
+      "2-x_power:hv_noise_dominated",
+      "2-angle_to_degrees:angle",
+      "3-decode_db:dn",
+      "3-decode_linear:dn",
+      "3-x_power:dn_hh",
+      "3-x_power:dn_hv",
+      "3-x_power:hh_noise_dominated",
+      "3-x_power:hv_noise_dominated",
+      "3-angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_containers_that_could_hide_a_mask_are_refused": [
+      "True-custom sequence-decode_db:dn",
+      "True-custom sequence-decode_linear:dn",
+      "True-custom sequence-x_power:dn_hh",
+      "True-custom sequence-x_power:dn_hv",
+      "True-custom sequence-x_power:hh_noise_dominated",
+      "True-custom sequence-x_power:hv_noise_dominated",
+      "True-custom sequence-angle_to_degrees:angle",
+      "True-array-like-decode_db:dn",
+      "True-array-like-decode_linear:dn",
+      "True-array-like-x_power:dn_hh",
+      "True-array-like-x_power:dn_hv",
+      "True-array-like-x_power:hh_noise_dominated",
+      "True-array-like-x_power:hv_noise_dominated",
+      "True-array-like-angle_to_degrees:angle",
+      "True-array-like in a list-decode_db:dn",
+      "True-array-like in a list-decode_linear:dn",
+      "True-array-like in a list-x_power:dn_hh",
+      "True-array-like in a list-x_power:dn_hv",
+      "True-array-like in a list-x_power:hh_noise_dominated",
+      "True-array-like in a list-x_power:hv_noise_dominated",
+      "True-array-like in a list-angle_to_degrees:angle",
+      "True-ndarray subclass-decode_db:dn",
+      "True-ndarray subclass-decode_linear:dn",
+      "True-ndarray subclass-x_power:dn_hh",
+      "True-ndarray subclass-x_power:dn_hv",
+      "True-ndarray subclass-x_power:hh_noise_dominated",
+      "True-ndarray subclass-x_power:hv_noise_dominated",
+      "True-ndarray subclass-angle_to_degrees:angle",
+      "True-list subclass with __array__-decode_db:dn",
+      "True-list subclass with __array__-decode_linear:dn",
+      "True-list subclass with __array__-x_power:dn_hh",
+      "True-list subclass with __array__-x_power:dn_hv",
+      "True-list subclass with __array__-x_power:hh_noise_dominated",
+      "True-list subclass with __array__-x_power:hv_noise_dominated",
+      "True-list subclass with __array__-angle_to_degrees:angle",
+      "True-tuple subclass with __array__-decode_db:dn",
+      "True-tuple subclass with __array__-decode_linear:dn",
+      "True-tuple subclass with __array__-x_power:dn_hh",
+      "True-tuple subclass with __array__-x_power:dn_hv",
+      "True-tuple subclass with __array__-x_power:hh_noise_dominated",
+      "True-tuple subclass with __array__-x_power:hv_noise_dominated",
+      "True-tuple subclass with __array__-angle_to_degrees:angle",
+      "True-list subclass-decode_db:dn",
+      "True-list subclass-decode_linear:dn",
+      "True-list subclass-x_power:dn_hh",
+      "True-list subclass-x_power:dn_hv",
+      "True-list subclass-x_power:hh_noise_dominated",
+      "True-list subclass-x_power:hv_noise_dominated",
+      "True-list subclass-angle_to_degrees:angle",
+      "False-custom sequence-decode_db:dn",
+      "False-custom sequence-decode_linear:dn",
+      "False-custom sequence-x_power:dn_hh",
+      "False-custom sequence-x_power:dn_hv",
+      "False-custom sequence-x_power:hh_noise_dominated",
+      "False-custom sequence-x_power:hv_noise_dominated",
+      "False-custom sequence-angle_to_degrees:angle",
+      "False-array-like-decode_db:dn",
+      "False-array-like-decode_linear:dn",
+      "False-array-like-x_power:dn_hh",
+      "False-array-like-x_power:dn_hv",
+      "False-array-like-x_power:hh_noise_dominated",
+      "False-array-like-x_power:hv_noise_dominated",
+      "False-array-like-angle_to_degrees:angle",
+      "False-array-like in a list-decode_db:dn",
+      "False-array-like in a list-decode_linear:dn",
+      "False-array-like in a list-x_power:dn_hh",
+      "False-array-like in a list-x_power:dn_hv",
+      "False-array-like in a list-x_power:hh_noise_dominated",
+      "False-array-like in a list-x_power:hv_noise_dominated",
+      "False-array-like in a list-angle_to_degrees:angle",
+      "False-ndarray subclass-decode_db:dn",
+      "False-ndarray subclass-decode_linear:dn",
+      "False-ndarray subclass-x_power:dn_hh",
+      "False-ndarray subclass-x_power:dn_hv",
+      "False-ndarray subclass-x_power:hh_noise_dominated",
+      "False-ndarray subclass-x_power:hv_noise_dominated",
+      "False-ndarray subclass-angle_to_degrees:angle",
+      "False-list subclass with __array__-decode_db:dn",
+      "False-list subclass with __array__-decode_linear:dn",
+      "False-list subclass with __array__-x_power:dn_hh",
+      "False-list subclass with __array__-x_power:dn_hv",
+      "False-list subclass with __array__-x_power:hh_noise_dominated",
+      "False-list subclass with __array__-x_power:hv_noise_dominated",
+      "False-list subclass with __array__-angle_to_degrees:angle",
+      "False-tuple subclass with __array__-decode_db:dn",
+      "False-tuple subclass with __array__-decode_linear:dn",
+      "False-tuple subclass with __array__-x_power:dn_hh",
+      "False-tuple subclass with __array__-x_power:dn_hv",
+      "False-tuple subclass with __array__-x_power:hh_noise_dominated",
+      "False-tuple subclass with __array__-x_power:hv_noise_dominated",
+      "False-tuple subclass with __array__-angle_to_degrees:angle",
+      "False-list subclass-decode_db:dn",
+      "False-list subclass-decode_linear:dn",
+      "False-list subclass-x_power:dn_hh",
+      "False-list subclass-x_power:dn_hv",
+      "False-list subclass-x_power:hh_noise_dominated",
+      "False-list subclass-x_power:hv_noise_dominated",
+      "False-list subclass-angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_list_subclass_nested_in_plain_containers_is_refused": [
+      "list-1",
+      "list-2",
+      "list-3",
+      "tuple-1",
+      "tuple-2",
+      "tuple-3"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_scalar_subclasses_are_refused": [
+      "float subclass with __array__-decode_db:dn",
+      "float subclass with __array__-decode_linear:dn",
+      "float subclass with __array__-x_power:dn_hh",
+      "float subclass with __array__-x_power:dn_hv",
+      "float subclass with __array__-angle_to_degrees:angle",
+      "int subclass-decode_db:dn",
+      "int subclass-decode_linear:dn",
+      "int subclass-x_power:dn_hh",
+      "int subclass-x_power:dn_hv",
+      "int subclass-angle_to_degrees:angle",
+      "numpy float64 subclass-decode_db:dn",
+      "numpy float64 subclass-decode_linear:dn",
+      "numpy float64 subclass-x_power:dn_hh",
+      "numpy float64 subclass-x_power:dn_hv",
+      "numpy float64 subclass-angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_stated_array_refuses_fields_in_list_or_tuple_subclasses": [
+      "ListWithArray-value",
+      "ListWithArray-state",
+      "ListWithArray-reason",
+      "TupleWithArray-value",
+      "TupleWithArray-state",
+      "TupleWithArray-reason"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_object_array_holding_a_masked_array_is_refused": [
+      "decode_db:dn",
+      "decode_linear:dn",
+      "x_power:dn_hh",
+      "x_power:dn_hv",
+      "x_power:hh_noise_dominated",
+      "x_power:hv_noise_dominated",
+      "angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_undeclared_or_unknown_convention_raises": [
+      "None",
+      "",
+      "S4 = SC - OC",
+      "MINIRF_SIS_S4_SC_MINUS_OC",
+      "minirf_sis",
+      "SIS"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_tolerance_must_be_finite_and_nonnegative": [
+      "-1e-10-1e-12",
+      "1e-10--1e-12",
+      "nan-1e-12",
+      "1e-10-inf"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_tolerance_must_be_real_numbers": [
+      "True-1e-12",
+      "1e-10-0",
+      "None-1e-12"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_squared_excess_beyond_the_tolerance_is_nonphysical": [
+      "7.5e-11",
+      "8e-11"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_squared_tolerance_is_the_same_for_each_polarized_component": [
+      "s2",
+      "s3",
+      "s4"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_s2_and_s3_are_given_together_or_not_at_all": [
+      "s2",
+      "s3"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_nonfinite_input_is_invalid": [
+      "s1-nan",
+      "s1-inf",
+      "s1--inf",
+      "s4-nan",
+      "s4-inf",
+      "s4--inf",
+      "s2-nan",
+      "s2-inf",
+      "s2--inf",
+      "s3-nan",
+      "s3-inf",
+      "s3--inf"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_product_mask_wins_over_every_other_rule": [
+      "nan-0.0",
+      "1.0-2.0",
+      "2.0--2.0"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_non_real_stokes_are_refused": [
+      "s10",
+      "s11",
+      "s12",
+      "s13"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_masked_input_is_refused": [
+      "s1",
+      "s4",
+      "s2",
+      "s3",
+      "product_masked"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_masked_array_nested_in_a_list_is_refused": [
+      "s1",
+      "s4",
+      "s2",
+      "s3",
+      "product_masked"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_unknown_or_missing_convention_raises_and_returns_nothing": [
+      "None",
+      "",
+      "LL",
+      "SC_LL",
+      "LR",
+      "neish_sc_ll_tx_1_minus_i",
+      "NEISH_SC_LL_TX_1_MINUS_I ",
+      "NEISH_SC_LR_TX_1_PLUS_I",
+      "1"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_unknown_or_missing_ordering_raises_and_returns_nothing": [
+      "None",
+      "",
+      "HH_VV_HV",
+      "hh_hv_vv",
+      "lexicographic",
+      "0"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_nonphysical_covariance_is_invalid_with_its_cause": [
+      "off-diagonal",
+      "imaginary-diagonal",
+      "negative-eigenvalue",
+      "negative-diagonal"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_nonfinite_covariance_is_invalid": [
+      "position0-real-nan",
+      "position0-real-inf",
+      "position0-real--inf",
+      "position0-imag-nan",
+      "position0-imag-inf",
+      "position0-imag--inf",
+      "position1-real-nan",
+      "position1-real-inf",
+      "position1-real--inf",
+      "position1-imag-nan",
+      "position1-imag-inf",
+      "position1-imag--inf",
+      "position2-real-nan",
+      "position2-real-inf",
+      "position2-real--inf",
+      "position2-imag-nan",
+      "position2-imag-inf",
+      "position2-imag--inf",
+      "position3-real-nan",
+      "position3-real-inf",
+      "position3-real--inf",
+      "position3-imag-nan",
+      "position3-imag-inf",
+      "position3-imag--inf",
+      "position4-real-nan",
+      "position4-real-inf",
+      "position4-real--inf",
+      "position4-imag-nan",
+      "position4-imag-inf",
+      "position4-imag--inf",
+      "position5-real-nan",
+      "position5-real-inf",
+      "position5-real--inf",
+      "position5-imag-nan",
+      "position5-imag-inf",
+      "position5-imag--inf"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_hermitian_tolerance_scales_with_the_matrix": [
+      "-1000",
+      "-600",
+      "-40",
+      "0",
+      "40",
+      "600",
+      "1000"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_psd_tolerance_scales_with_the_matrix": [
+      "-1000",
+      "-500",
+      "0",
+      "500",
+      "1000"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_covariance_must_end_in_a_three_by_three_matrix": [
+      "shape0",
+      "shape1",
+      "shape2",
+      "shape3",
+      "shape4"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_non_numeric_covariances_are_refused": [
+      "bool",
+      "str",
+      "object"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_parts_float64_cannot_hold_at_one_scale_publish_nothing": [
+      "cancelling-powers-HH_HV_VV",
+      "cancelling-powers-HH_SQRT2HV_VV",
+      "tiny-handedness-term-HH_HV_VV",
+      "tiny-handedness-term-HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_every_array_argument_accepts_the_plain_inputs": [
+      "decode_db:dn",
+      "decode_linear:dn",
+      "x_power:dn_hh",
+      "x_power:dn_hv",
+      "x_power:hh_noise_dominated",
+      "x_power:hv_noise_dominated",
+      "angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_numpy_scalars_are_accepted": [
+      "300.0",
+      "scalar1",
+      "scalar2",
+      "scalar3"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_plain_values_nested_in_lists_and_tuples_are_accepted": [
+      "list",
+      "tuple"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_total_power_is_s1_and_kept_beside_cpr": [
+      "F1",
+      "F2",
+      "F3",
+      "F5"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_every_argument_accepts_plain_inputs": [
+      "s1",
+      "s4",
+      "s2",
+      "s3",
+      "product_masked"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_scaled_covariances_scale_their_powers_exactly": [
+      "-1000",
+      "-500",
+      "500",
+      "1000"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_handedness_term_is_not_lost_beside_large_powers": [
+      "NEISH_SC_LL_TX_1_MINUS_I-HH_HV_VV",
+      "NEISH_SC_LL_TX_1_MINUS_I-HH_SQRT2HV_VV",
+      "SC_OPP_TX_1_PLUS_I-HH_HV_VV",
+      "SC_OPP_TX_1_PLUS_I-HH_SQRT2HV_VV"
+    ]
+  }
+}

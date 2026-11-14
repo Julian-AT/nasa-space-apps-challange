@@ -1,0 +1,91 @@
+{
+  "task_id": "T2-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "9d01f414237e43bc4f2c5462675940f565fd39c4",
+    "head": "dce2274d9954d295c7c4f43c6e474467582ba983",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "b1364bd96fd54a56037481e59d8ddda59a4bc6ee9ced2122f8a98898d4334eee"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/hybrid_oracle.py",
+        "sha256": "e6640bbf691dfbb8abc306fae817f31b437a2a066cd4f3b1cf07cf7e74e487a6"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_mchi.py",
+        "sha256": "ee390cbdc23c5ba520208bb40f7dae49fcd067c10263f89c9369878436bbbb97"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:56:21Z",
+  "finished_utc": "2026-11-14T21:00:29Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No confirmed defects found by static review. Only the three allowed implementation/test files changed. Execution-dependent criteria and required checks remain unverified under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "1. Tests written and run failing first; independent Jones-vector oracle.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/polarimetry/hybrid_oracle.py:43–100 independently computes transmitted and received fields without importing production code. The test file exists, but failing-first execution cannot be established from source; checks were prohibited."
+    },
+    {
+      "criterion": "2. Required transmit ellipticity, recorded handedness, and F6 agreement for both ellipticities.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "polarimetry.py:2214 validates ellipticity; :2343 requires chi_tx; :2407 records handedness. test_polarimetry_mchi.py:241–285 asserts F6 powers and Stokes identities for both ellipticities. Numerical execution was prohibited by the read-only restriction."
+    },
+    {
+      "criterion": "3. Correct m and chi formulas, unpolarized unavailability, and invalid Stokes handling.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "polarimetry.py:2498–2536 implements physicality checks, m, and M_ZERO unavailability. test_polarimetry_mchi.py:713–859 covers fully polarized scatterers, the 2x2 identity covariance, nonpositive S1, and nonphysical polarization. Execution was prohibited by the read-only restriction."
+    },
+    {
+      "criterion": "4. Decomposition deferred unless sourced formulas are implemented.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:2566 explicitly records the decomposition as not implemented and deferred. MChi fields at :2445–2452 and return paths at :2615 and :2640 contain polarization/ellipticity results and metadata, with no bounce components."
+    },
+    {
+      "criterion": "5. Lunar sign helper reports fractions and strict-majority verdicts without flipping data.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "polarimetry.py:2672 uses strict integer majorities; :2778–2806 computes fractions and returns a verdict without modifying inputs. test_polarimetry_mchi.py:1077–1124 covers 95 percent CPR 0.5, negated S4, unchanged inputs, and the half boundary. Execution was prohibited by the read-only restriction."
+    },
+    {
+      "criterion": "6. Observables carry role='context'; no cross-band comparison added.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:2231 rejects other roles. HybridStokes and MChi default to context at :2293 and :2452 and validate it at :2315 and :2471. Inspection of the complete diff found no cross-band comparison function."
+    },
+    {
+      "criterion": "Focused polarimetry tests",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_mchi.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the read-only sandbox cannot support dependency synchronization or test cache writes."
+    },
+    {
+      "criterion": "Python type checking",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the read-only sandbox cannot support dependency synchronization or type-checker cache writes."
+    },
+    {
+      "criterion": "Repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited under the read-only restriction. Makefile:25–28 invokes uv-backed lint, formatting, and type checks."
+    }
+  ],
+  "findings": []
+}

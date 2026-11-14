@@ -1,0 +1,138 @@
+{
+  "task_id": "T2-01",
+  "round": 3,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
+    "head": "77f20e6765b39bf6d32e0912de0e5e6bececafe7",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "ad294d5051fc1c30bb45ed5819cc3a246ce96f8916cb276b29be281f85255bda"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "bf27dc488717bcbbc622cd420d05ac6afba89bf6037c150464ec21c762196783"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_decode.py",
+        "sha256": "600076312fcc1807bcb98e0777601e750ea95287952814ad6a84567a046805c0"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e63ef94ad995c48d4907f9d05e24e3ab46ad40a0c2e72babb7975f3acbd38da2"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:58:19Z",
+  "finished_utc": "2026-11-14T18:02:26Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "One mask-preservation blocker remains: list subclasses can bypass the new guard through __array__. The previously reported direct and nested MaskedArray cases are rejected by inspection. Required checks were not run because the sandbox is read-only.",
+  "checks": [
+    {
+      "criterion": "AC1: Only numpy is added, uv.lock is updated, and strict mypy passes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/pyproject.toml:8 adds only numpy; uv.lock:433 and :440 add the matching dependency metadata. pyproject.toml:33 retains strict=true. Mypy execution was prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "AC2: Three observation states, machine-readable reasons, documented units, and per-element validity without missing-to-zero coercion.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The enums and StatedArray invariants are implemented at polarimetry.py:50–158, but _require_plain accepts list subclasses at :219 before np.asarray invokes their conversion protocol at :240. Such conversion can discard a validity mask and publish an excluded element as VALID/NONE."
+    },
+    {
+      "criterion": "AC3: F8–F10 tests use the required values and tolerances and were run failing before implementation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:36–37, :213–227, :346–352 and :454–457 contain the required assertions. Reading commit 670def0 showed these tests present and polarimetry.py absent. This supports tests-before-implementation, but does not establish that a failing run occurred; execution was prohibited."
+    },
+    {
+      "criterion": "AC4: Failing tests first for zero/nodata, invalid denominators, no epsilon, and power-before-averaging.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:244–272, :278–291 and :363–391 exercise the required behavior and were present in the pre-implementation test tree. polarimetry.py:296–306 and :404–416 implement the corresponding guards. Historical failing runs and current passing results could not be verified without execution."
+    },
+    {
+      "criterion": "AC5: Explicit angle units, rejection of unknown units and None, and internal degrees.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:432–448 requires unit, rejects values outside radians/degrees, and converts radians with np.degrees. Tests at test_polarimetry_decode.py:454–497 cover F10, differing declarations for 1.0, unknown units, None, and valid zero degrees. Judged by reading."
+    },
+    {
+      "criterion": "AC6: Hypothesis tests establish monotonicity and dB/linear agreement.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:800–819 contains substantive Hypothesis assertions for increasing decoded power and both conversion directions using the required tolerances. Execution was prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "AC7: Nodata and calibration offset are explicit constants or arguments, with PRD formulas documented.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:278 defines PALSAR2_CALIBRATION_OFFSET_DB=83.0; decode_db, decode_linear and x_power require explicit nodata arguments. The decoding docstrings at :316–327 and :343–353 cite PRD 7 and state the formulas and units."
+    },
+    {
+      "criterion": "Required focused pytest check.",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user explicitly prohibited checks because uv and test execution can write in this read-only sandbox."
+    },
+    {
+      "criterion": "Required mypy check.",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user explicitly prohibited checks because uv and mypy caches can write in this read-only sandbox."
+    },
+    {
+      "criterion": "Required repository check.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user explicitly prohibited checks in this read-only sandbox."
+    },
+    {
+      "criterion": "Changed paths and scientific configuration stay within story scope.",
+      "command": "git diff --name-only 0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef 77f20e6765b39bf6d32e0912de0e5e6bececafe7 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output contained only pipeline/pyproject.toml, pipeline/src/terraluna_pipeline/polarimetry.py, pipeline/tests/test_polarimetry_decode.py and uv.lock. No config/run.yaml, mock bundle, release artifact or gate result changes."
+    },
+    {
+      "criterion": "Previous round-1 and round-2 masked-input fixes address their exact reported examples.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:208–225 walks ordinary lists and tuples recursively and rejects MaskedArray before coercion. All numerical array inputs and StatedArray fields use this guard. Tests at test_polarimetry_decode.py:175–199 and :570–679 cover direct, nested and masked-constant examples. A separate subclass bypass remains in the finding below."
+    },
+    {
+      "criterion": "Previous shared-calibration rebuttal is consistent with the binding PRD.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "PRD.md:403–408 explicitly defines x_power=(DN_HV/DN_HH)**2 under shared calibration. polarimetry.py:394–416 applies the ratio with required channel noise flags and validity checks. A separate calibration comparison argument is not required by this story."
+    },
+    {
+      "criterion": "Previous failing-tests-first rebuttal establishes observed failing execution.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The historical tree confirms tests existed before the implementation, but commit titles and author-reported counts are not execution evidence. Reproducing the claimed failures would require prohibited execution and temporary-file writes."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:219",
+      "claim": "The plain-input guard still admits list subclasses with custom NumPy conversion, allowing validity masks to be discarded. Reject these subclasses or convert only a reconstructed, validated plain-container tree, and add regression coverage.",
+      "evidence": "Static trace, not executed: using the existing ArrayLike helper from test_polarimetry_decode.py:697–704, define `class ListArrayLike(ArrayLike, list): pass`. Let `m = np.ma.array([100.0, 300.0], mask=[False, True])` and call `decode_linear(ListArrayLike(m), nodata=None)`. The instance is a list subclass with an empty list payload, so :219–225 accepts it without inspecting its stored array. At :240, np.asarray invokes its inherited __array__, receives m and strips the mask. Classification at :298–306 then marks both positive values VALID, and :359 publishes finite power for the excluded 300 with reason NONE. The installed NumPy conversion documentation at .venv/lib/python3.12/site-packages/numpy/_core/_add_newdocs.py:1063–1067 and :1115–1123 confirms conversion through __array__ and removal of ndarray subclasses. Existing hiding-container tests at test_polarimetry_decode.py:711–737 omit list/tuple subclasses. This leaves a variant of the prior mask-loss defect and violates PRD.md:415 and :421.",
+      "id": "codex-r3-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "0f41cd735cb97b950409779c2534fe156edd4214",
+        "reason": "Reproduced: decode_linear(L([1.0, 2.0]), nodata=None), with L a list subclass whose __array__ returns np.ma.array([100.0, 300.0], mask=[False, True]), published the masked 300 as VALID. _require_plain now matches lists, tuples and Python scalars by exact type (type(x) is list / tuple; bool, int, float, complex, str, bytes), and numpy scalars only when np.dtype(type(x)).type is type(x). ObsState and InvalidReason codes are allowed explicitly. Any list, tuple or scalar subclass now raises TypeError (\"plain numpy array\"). Failing tests first in 22f2375 (70 failed, 231 passed; 63 DID NOT RAISE). They cover your ListArrayLike example, list and tuple subclasses with __array__, a plain list subclass, subclasses nested 1-3 deep in exact lists and tuples, float, int and np.float64 subclasses, and StatedArray fields; guard tests keep numpy scalars and the enum codes accepted. After the fix: 330 passed (also with -W error); mypy and make check pass. Also probed: numpy reads a list subclass through iteration, so an overridden __iter__ cannot show the walk different members; __array__ is the live vector."
+      }
+    }
+  ]
+}

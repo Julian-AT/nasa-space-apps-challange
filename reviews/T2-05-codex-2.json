@@ -1,0 +1,91 @@
+{
+  "task_id": "T2-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "9d01f414237e43bc4f2c5462675940f565fd39c4",
+    "head": "dce2274d9954d295c7c4f43c6e474467582ba983",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "b1364bd96fd54a56037481e59d8ddda59a4bc6ee9ced2122f8a98898d4334eee"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/hybrid_oracle.py",
+        "sha256": "e6640bbf691dfbb8abc306fae817f31b437a2a066cd4f3b1cf07cf7e74e487a6"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_mchi.py",
+        "sha256": "ee390cbdc23c5ba520208bb40f7dae49fcd067c10263f89c9369878436bbbb97"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:56:21Z",
+  "finished_utc": "2026-11-14T21:09:38Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No confirmed defects found by static review and independent formula derivation. Required execution and failing-first evidence remain unverified because checks were prohibited in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "AC1: Failing-first m-chi tests and independent Jones-vector oracle.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/polarimetry/hybrid_oracle.py:43-100 independently computes received fields and circular powers without importing production polarimetry. Tests exist in pipeline/tests/test_polarimetry_mchi.py. Failing-first execution cannot be established from source, and running checks was prohibited."
+    },
+    {
+      "criterion": "AC2: Required transmit ellipticity, recorded handedness and F6 synthesis.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "polarimetry.py:2214-2228 rejects undeclared ellipticities; :2343-2349 requires chi_tx; :2407-2421 records handedness. Independent Jones derivation gives F6 (S1,S4)=(0.74,-0.24) for -45 degrees and (0.34,0.16) for +45 degrees, consistent with tests at test_polarimetry_mchi.py:241-285 and PRD tolerances. Runtime validation was prohibited."
+    },
+    {
+      "criterion": "AC3: m and chi formulas, unpolarized identity, nonpositive S1 and nonphysical Stokes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "polarimetry.py:2494-2536 implements scaled polarized norm, m, sin(2chi), validity rules and M_ZERO without publishing a valid zero ellipticity. Tests at test_polarimetry_mchi.py:713-859 cover unit m, the unpolarized 2x2 identity, S1 <= 0 and nonphysical inputs. Runtime validation was prohibited."
+    },
+    {
+      "criterion": "AC4: Unsupported m-chi decomposition remains deferred.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:2445-2452 contains m, sin_2chi, chi and metadata, with no decomposition powers; :2566-2569 explicitly documents the deferral. scripts/ralph/batches/t2-polarimetry/prd.json:261 lists the decomposition as deferred."
+    },
+    {
+      "criterion": "AC5: Synthetic lunar sign check, strict majority and no silent sign flip.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "polarimetry.py:2672-2680 uses strictly more than half; :2778-2805 computes fractions without changing S4. test_polarimetry_mchi.py:1077-1124 asserts the 95% example, negated sign, unchanged input and majority boundaries. Runtime validation was prohibited."
+    },
+    {
+      "criterion": "AC6: Context role and no cross-band comparison.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:2231-2236 rejects roles other than context; HybridStokes and MChi default to context at :2293 and :2452. Inspection of all additions found no cross-band comparison or distance function."
+    },
+    {
+      "criterion": "Focused pytest check.",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_mchi.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited executing checks in the read-only sandbox because dependency and test caches require writes."
+    },
+    {
+      "criterion": "Mypy check.",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited executing checks in the read-only sandbox because dependency and type-checker caches require writes."
+    },
+    {
+      "criterion": "Repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited executing checks in the read-only sandbox. Makefile invokes uv, Ruff and mypy."
+    }
+  ],
+  "findings": []
+}

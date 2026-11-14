@@ -1,0 +1,100 @@
+{
+  "task_id": "T2-02",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "178e0a292a416903466fa30da513acfd9ce96233",
+    "head": "06e021c61946bb394340d91623823f54ee488c8d",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "20a84fdfb2758a7c6f08f8f2c00bfaacce78be0d4d96e2ef63caa2787e984193"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_stokes.py",
+        "sha256": "709385df29c349dd3ea7c8387c759bcd1bbac4ced234ad3a54c300ed5ec69813"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:47:30Z",
+  "finished_utc": "2026-11-14T18:47:49Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 2 of T2-02 at commit 06e021c. The fix for the round-1 blocker holds, and every acceptance criterion and check passes. The squared-inequality tolerance (atol + rtol*S1^2) is now applied to S1^2 >= S2^2+S3^2+S4^2. Each pixel is rescaled by one exact power of two so the squares cannot overflow or underflow. The boundary regressions at 7.5e-11 and 8e-11 exist and pass, and the 1e200 and 1e-200 cases are covered. The diff touches only polarimetry.py and test_polarimetry_stokes.py, both on the story's files list. I accept the author's rebuttal of claude-r1-1: SC_NEGATIVE is a conservative extra reason code that is documented and tested.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests/test_polarimetry_stokes.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_stokes.py",
+      "outcome": "PASS",
+      "evidence": "120 passed in 0.46s"
+    },
+    {
+      "criterion": "uv run mypy pipeline/src pipeline/tests",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 6 source files"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed, mypy found no issues in 7 source files"
+    },
+    {
+      "criterion": "AC1 F1-F5 fixtures, F3 not truncated at 1.5, F4 NaN INVALID, F5 OC_NONPOSITIVE with no epsilon",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Tests at test_polarimetry_stokes.py:142-143 and :193 cover the F3 untruncated CPR. The F1, F2, F4 and F5 cases are in the passing suite, and polarimetry.py:850 gives OC_NONPOSITIVE with no epsilon."
+    },
+    {
+      "criterion": "AC2 formulas and required convention; unknown convention raises ValueError",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:798 and :640-645 refuse an undeclared or unknown convention. The formulas are at :838-839. The refusal tests pass."
+    },
+    {
+      "criterion": "AC3 validity rules, named tolerance, squared bound, NONFINITE, PRODUCT_MASKED, no SNR rule",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The rules are at polarimetry.py:814-830 and the squared bound at :698-723. The boundary tests are at test_polarimetry_stokes.py:452-487. No SNR rule is hard-coded."
+    },
+    {
+      "criterion": "AC4 array test with mixed inputs, and no 0.0 in CPR for invalid or missing pixels",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The classifier fills non-valid pixels with NaN (polarimetry.py:857-868). The array tests pass in the suite."
+    },
+    {
+      "criterion": "AC5 hypothesis properties",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The hypothesis properties are in the passing suite. An exact Fraction oracle and the scale-free boundary property sit around test_polarimetry_stokes.py:855-861."
+    },
+    {
+      "criterion": "AC6 docstring on the factor 2 and the label defining the power definition",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:744-746 states that the factor 2 cancels in CPR but not in absolute powers, and that the product label defines the power definition."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:851",
+      "claim": "SC_NEGATIVE is a reason code outside the PRD's named list. I accept the author's rebuttal because it is conservative, documented and tested.",
+      "evidence": "It prevents a negative CPR from being published as VALID. The author flagged it for review when the real-data Stokes tolerance is decided.",
+      "id": "claude-r2-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect, and the reviewer accepts the round-1 rebuttal in the finding itself. PRD 7 Validity rules: \"Numerator and denominator must be finite and supported\" and no clipping or epsilon is allowed, so a negative SC accepted within the Stokes tolerance (S1 < S4 by at most atol + rtol*|S1|) cannot yield a VALID CPR and cannot be clipped to a valid zero. Without the rule, S1 = 0 and S4 = 5e-13 would publish a VALID CPR of -1. The PRD lists no closed set of reason codes; InvalidReason.SC_NEGATIVE is documented at polarimetry.py:125-127 and :787-788 and tested at test_polarimetry_stokes.py:332 and :340. The story notes already flag it for review with the open real-data Stokes tolerance (PRD 7: real-data tolerances come from the product). No code change."
+      }
+    }
+  ]
+}

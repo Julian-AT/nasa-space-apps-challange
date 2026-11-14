@@ -1,0 +1,123 @@
+{
+  "task_id": "T2-03",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4c7bed65810af0f32c1ce98046509d687b4c2147",
+    "head": "a99a3fd0a73adc4e76f46a74570ade6f71c1ebf1",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "2dbed0dab226c395c9c36686dec243db6ccef0dbd6739907669ececdc9a47407"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/__init__.py",
+        "sha256": "b289526dda104254fa6f93383fddf1a78a39efd42c287dd17c2ccd0b2bcc7694"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/expanded_oracle.py",
+        "sha256": "ed198181d0d443868c91faa1a71c5f42465bb96bb827e53c3930d6517f339e31"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/jones_oracle.py",
+        "sha256": "3290b0f2e13ec282e07c261a0cbe866dbda63f68642bca89e6c0fb25909d02d8"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_covariance.py",
+        "sha256": "ff51769f163d34accd387d3bfd05c33a01ce6f3987459e069391814ea5ce1931"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:37:51Z",
+  "finished_utc": "2026-11-14T19:43:24Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No remaining static numerical defect found. Independently re-derived the basis, handedness signs, power normalization and validity rules. Both prior numerical fixes and both rebuttals are supported by the current files. Required execution and failing-test evidence remain unverified.",
+  "checks": [
+    {
+      "criterion": "1. Tests first, failing run, independent oracles and PRD tolerances",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The test file uses rtol=1e-10 and atol=1e-12 at pipeline/tests/test_polarimetry_covariance.py:44. Both oracle modules contain independent executable calculations without importing production polarimetry. No failing run was observed; execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "2. F6 and F7 construction checks Hermitian PSD properties before use",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_polarimetry_covariance.py:146 constructs F6 from (1, 0.2i, 0), checks Hermitian PSD and eigenvalues (0, 0, 1.04). The F7 helper at :161 checks Hermitian PSD and the required eigenvalue triples before returning either matrix."
+    },
+    {
+      "criterion": "3. F6 powers and F7 two-channel ambiguity",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Independent substitution gives F6 OC=0.25, SC_LL=0.49 and SC_opp=0.09; F7 gives CPR=3/19 and 1. Tests assert these values at pipeline/tests/test_polarimetry_covariance.py:194 and :257, and explicitly distinguish the CPRs at :270. Tests were not executed because the sandbox is read-only and execution was prohibited."
+    },
+    {
+      "criterion": "4. Explicit unitary transformation, declared ordering and comparison against both oracles on 200 random PSD cases",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The rows at pipeline/src/terraluna_pipeline/polarimetry.py:958 are orthonormal and yield amplitudes (HH−2iHV−VV)/2, (HH+VV)/sqrt2 and (HH+2iHV−VV)/2. The executable conversion at :1357 uses U C U^H and halves its middle diagonal, without expanded power formulas. Independent oracle comparisons cover both conventions and orderings with max_examples=200 at pipeline/tests/test_polarimetry_covariance.py:1080. Their execution remains unverified under the read-only restriction."
+    },
+    {
+      "criterion": "5. Required convention, rejection of unknown conventions and unverified handedness default",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1197 requires convention as a keyword argument; :1003 rejects undeclared values. The output field defaults to False at :1060 and the conversion does not override it. Missing/unknown convention and default-flag tests are present at pipeline/tests/test_polarimetry_covariance.py:352 and :398. No equivalence label is attached to the output."
+    },
+    {
+      "criterion": "6. Invalid covariance causes, no publication or repair, configurable PSD tolerance and open real-data decision",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Classification and eigenvalue checks appear at pipeline/src/terraluna_pipeline/polarimetry.py:1311 and :1335; _Classifier.finish blanks invalid values at :284. No eigenvalue clipping occurs. Tests at pipeline/tests/test_polarimetry_covariance.py:513 and :529 assert distinct causes and no published values. The tolerance argument defaults to ARITHMETIC_TOLERANCE at source :1203; scripts/ralph/batches/t2-polarimetry/prd.json:163 records the open real-data decision. Runtime behavior was not executed under the read-only restriction."
+    },
+    {
+      "criterion": "7. Nonpositive denominators, handedness diagnostic and open threshold",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1376 rejects OC<=0 with OC_NONPOSITIVE, and :1383 rejects base_SC<=0 with BASE_SC_NONPOSITIVE. Neither division adds epsilon. The quadratic-form difference defined at :989 and evaluated at :1366 independently expands to Im D+Im E. Powers retain covariance power units; both ratios are dimensionless. No handedness significance threshold is applied; the open decision is recorded in scripts/ralph/batches/t2-polarimetry/prd.json:163."
+    },
+    {
+      "criterion": "Required focused covariance tests",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_covariance.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the sandbox is read-only and test/dependency caches may require writes."
+    },
+    {
+      "criterion": "Required Python type checking",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the sandbox is read-only and uv/mypy caches may require writes."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the sandbox is read-only and required checks may write caches or generated files."
+    },
+    {
+      "criterion": "Round-one numerical fixes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static verification: codex2-r1-1 is addressed by _HANDEDNESS_FORM and source :1366, which exclude diagonal powers from the diagnostic; regressions are at test :932 and :962. Codex2-r1-2 is addressed by source :1327, which detects the original nonzero component even when scaling produces zero and invalidates every output; regressions are at test :1018 and :1036. These are source-level conclusions, not claimed test passes."
+    },
+    {
+      "criterion": "Round-one rebuttals",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "claude-r1-1: the actual story notes at scripts/ralph/batches/t2-polarimetry/prd.json:163 record both open decisions. claude-r1-2: COV_NEGATIVE_DIAGONAL is defined at source :148 and applied before COV_NOT_PSD at :1344, providing four distinct causes for four cases; test :543 asserts that distinction. Both rebuttals are supported."
+    },
+    {
+      "criterion": "Story scope and production/configuration guardrails",
+      "command": "git diff --stat 4c7bed65810af0f32c1ce98046509d687b4c2147 a99a3fd0a73adc4e76f46a74570ade6f71c1ebf1 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "The diff contains five files, all within the allowed source/test paths. No config/run.yaml, release artifacts or production data were changed. Synthetic scatterers and oracle helpers remain in tests; production code does not import them."
+    }
+  ],
+  "findings": []
+}

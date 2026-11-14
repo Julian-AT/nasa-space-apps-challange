@@ -1,0 +1,119 @@
+{
+  "task_id": "T2-01",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
+    "head": "73ffc221722979eb17fb815d28735a2f3c0c0f11",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "ad294d5051fc1c30bb45ed5819cc3a246ce96f8916cb276b29be281f85255bda"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "26d4442c320ebc0bde50e2eb0141ac473194c86a7b84a083e8b6c41b03426ebf"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_decode.py",
+        "sha256": "fa33ae889f56fdc61f3bb118d87613afaec5eaee9cd65802934f4cba7a40d121"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e63ef94ad995c48d4907f9d05e24e3ab46ad40a0c2e72babb7975f3acbd38da2"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:46:01Z",
+  "finished_utc": "2026-11-14T17:48:36Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. The masked-input fixes and shared-calibration rebuttal are supported by the code and PRD. Required checks and historical failing runs remain unverified because execution was prohibited in this read-only review.",
+  "checks": [
+    {
+      "criterion": "AC1: Add only NumPy, update uv.lock, and retain passing strict mypy checks.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/pyproject.toml:8 adds only numpy; uv.lock:433 and uv.lock:440 add its direct dependency metadata. pyproject.toml:33 retains strict=true. Mypy was not executed because the user prohibited checks in this read-only sandbox."
+    },
+    {
+      "criterion": "AC2: Define the observation-state vocabulary and return values with per-element states and reasons.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:47 defines exactly MISSING, INVALID and VALID; line 62 defines string reason codes. StatedArray validates matching shapes, state/reason consistency, finite valid values and NaN unavailable values at lines 127–151. All four public numerical functions return through _Classifier.finish at line 174. Their docstrings state units and conventions."
+    },
+    {
+      "criterion": "AC3: Write and run failing F8–F10 tests before implementation, using the specified values and tolerances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:35 sets the required tolerances; lines 198, 205, 331 and 439 assert the specified F8–F10 results, including rejection of 0.1 for F9. Git tree 670def0 contains the test file and no polarimetry.py, supporting tests-before-implementation ordering. No failing execution was witnessed; checks were prohibited."
+    },
+    {
+      "criterion": "AC4: Test zero/nodata DN, invalid denominators, absence of epsilon, and decoding before averaging, with failing tests first.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:229–257 tests amplitude-to-power behavior and the 100/300 averaging distinction; lines 263–276 fix zero as INVALID and declared nodata as MISSING; lines 348–376 cover zero, nodata and noise-dominated HH and no epsilon. Implementation at polarimetry.py:269–275 and lines 373–385 matches these cases statically. Required failing and passing executions were not run under the user's restriction."
+    },
+    {
+      "criterion": "AC5: Require explicit angle units, reject unknown units and None, and convert to internal degrees without magnitude inference.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "polarimetry.py:401–417 explicitly validates the unit and selects conversion to degrees. test_polarimetry_decode.py:450–470 covers differing results for 1.0 radians/degrees, magnitude independence, None and unknown units. Runtime behavior was not executed because checks were prohibited."
+    },
+    {
+      "criterion": "AC6: Include Hypothesis properties for positive-DN monotonicity and dB/linear agreement at PRD tolerances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:591–610 contains nonempty generated positive-DN inputs, strict monotonicity assertions, and both dB/linear agreement checks using RTOL and ATOL. Hypothesis was not executed because checks were prohibited in this read-only sandbox."
+    },
+    {
+      "criterion": "AC7: Name or parameterize nodata and the 83 dB calibration offset and cite the PRD formula.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:247 defines PALSAR2_CALIBRATION_OFFSET_DB=83.0; lines 282 and 309 require explicit nodata arguments. The decode docstrings cite PRD 7 and its formulas; executable formulas at lines 302 and 328 use the offset argument."
+    },
+    {
+      "criterion": "Focused decoding tests",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not attempted: the user explicitly prohibited checks because dependency synchronization and test caches can write in this read-only sandbox."
+    },
+    {
+      "criterion": "Strict type checking",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Not attempted: the user explicitly prohibited checks in this read-only sandbox."
+    },
+    {
+      "criterion": "Repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not attempted: the user explicitly prohibited checks in this read-only sandbox."
+    },
+    {
+      "criterion": "Previous masked-input findings: verify all reported fixes.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:125 rejects masked result fields before copying; lines 211 and 220 reject masked numerical inputs and noise flags before np.asarray. The direct MaskedArray branch at lines 187–188 rejects regardless of mask contents. test_polarimetry_decode.py:491–586 covers all seven array arguments, ordinary-input controls, masked inputs, empty masks, nested masked arrays and the masked constant. These are static findings; regression execution was not performed."
+    },
+    {
+      "criterion": "Previous shared-calibration finding: verify the rebuttal.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "PRD.md:405 specifies (DN_HV / DN_HH)**2 and line 408 explicitly makes shared calibration an assumption. polarimetry.py:385 implements that ratio; lines 337–338 require both noise flags and lines 376–381 apply them. An additional calibration-comparison argument is not required by this story."
+    },
+    {
+      "criterion": "Story scope and scientific configuration safeguards",
+      "command": "git diff --name-status 0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef 73ffc221722979eb17fb815d28735a2f3c0c0f11 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output lists only pipeline/pyproject.toml, polarimetry.py, test_polarimetry_decode.py and uv.lock. No config/run.yaml, gate-record, production mock-path or binding-document changes occur in the reviewed diff. Existing unresolved kickoff fields remain null."
+    }
+  ],
+  "findings": []
+}

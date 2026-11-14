@@ -1,0 +1,95 @@
+{
+  "task_id": "T2-06",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "ceaaa37ab485acf6ecabeaf5e4c9335fac6af7b8",
+    "head": "67c5b22d76dccad74f9cf9e431e625f790c1c87b",
+    "files": [
+      {
+        "path": "fixtures/polarimetry/g1-record.json",
+        "sha256": "e4ee63d4d35031e50c37838e1eccef58cbd4a964ed911d37c34c20148eded58f"
+      },
+      {
+        "path": "fixtures/polarimetry/g1_required_tests.json",
+        "sha256": "dd7ca958a38ae84ac439ba5af37de5dc1e67489e0178f05bac758197b92bbfc0"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "afd978010c3d2025c6d7c694e73c5b51d5b39ea030cd72cbb0ca4cc7d74ddba6"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_gate.py",
+        "sha256": "a1a6e2182d26ca643db35aea0bd11c1a0957878d693a02d53a967f8710ca53c9"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:00:19Z",
+  "finished_utc": "2026-11-14T22:06:18Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. The prior fixes and rebuttals are supported by the code and retained evidence. Required execution and failing-first verification remain unverified under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "AC1: Failing-first gate tests, fixed fixture IDs, and complete invalid-data inventory",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "fixtures/polarimetry/g1_required_tests.json:4 lists F1–F10; :99, :175, :181 and :226 include all four previously omitted invalid-data tests. pipeline/tests/test_polarimetry_gate.py:315 checks every story-file test is required. Actual failing-first execution was not observed; execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC2: CLI reads JUnit and writes a GateRecord without passing missing or unsuccessful required tests",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:3071 checks complete case names, addressing codex-r1-1; :3262 constructs and writes the T0 GateRecord; :3366 exposes the CLI. Regression tests at pipeline/tests/test_polarimetry_gate.py:465 and :497 cover missing and duplicated parametrized cases. CLI execution was prohibited by the read-only restriction."
+    },
+    {
+      "criterion": "AC3: Tests fix status rules and report real-scene inclusion accurately",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_polarimetry_gate.py:429–550 asserts PASS, FAIL, PARTIAL and NOT_RUN rules, including skipped and xfailed tests; :560–615 covers absent, skipped, passed and failed real-scene checks. polarimetry.py:3140 implements those rules. The committed record is PARTIAL and explicitly states the real-scene check is absent, supporting the claude-r1-3 rebuttal."
+    },
+    {
+      "criterion": "AC4: Generated fixture record contains command and commit provenance without modifying outputs/validation.json",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:3327–3362 records commands, commit, uncommitted paths and input hashes, then writes the supplied output path. fixtures/polarimetry/g1-record.json:7 contains both commands and commit 42e9f24bac97e91e0b3780925b09a20957ec2bde, addressing both prior provenance findings. The diff changes only four allowed story files; outputs/validation.json and config/run.yaml are unchanged."
+    },
+    {
+      "criterion": "AC5: Real failing-run and tampered-report tests, nonzero exit status, schema validation and null preservation",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_polarimetry_gate.py:1091 injects a broken conversion into a temporary pytest process; :1224 asserts pytest and recorder exit 1 with FAIL; :1257 removes required tests and checks PARTIAL. :690 validates the T0 model and null fields. These meaningful tests were read but could not be executed under the read-only restriction."
+    },
+    {
+      "criterion": "Required focused test command",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_gate.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents test, cache and environment writes."
+    },
+    {
+      "criterion": "Required test suite",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents test, cache and environment writes."
+    },
+    {
+      "criterion": "Required static checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents cache and environment writes."
+    },
+    {
+      "criterion": "Retained evidence integrity and external-path rebuttal",
+      "command": "shasum -a 256 /tmp/terraluna-g1-r1/junit.xml fixtures/polarimetry/g1_required_tests.json",
+      "outcome": "PASS",
+      "evidence": "Hashes match the committed record: JUnit 41e94873171fd4122be921df99030be418ee233f709248046184375d76804890; manifest dd7ca958a38ae84ac439ba5af37de5dc1e67489e0178f05bac758197b92bbfc0. Reading the retained JUnit showed 1175 tests, zero failures, errors and skips. AC2 permits external evidence paths, supporting claude-r1-2's rebuttal."
+    }
+  ],
+  "findings": []
+}
