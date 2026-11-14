@@ -1,0 +1,102 @@
+{
+  "task_id": "T2-04",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "42da1c6ec1ce7d59e432c2c9ec0f7051143d3074",
+    "head": "26d6f0128f84b619d4874336d07cd84c5b39f3d1",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "7b7683bd94096246d5dc0072aaeb0d14bc619e6107037d202e88365ed824cd6e"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_derive.py",
+        "sha256": "998d8ccad552b42f004757747b404cd65bbc472a315ac1bce593b2d75a140646"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:23:02Z",
+  "finished_utc": "2026-11-14T20:23:30Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 2 of T2-04 passes. All three story checks ran clean. The round-1 blocker (order-dependent float summation of signed powers) is fixed with exact integer block sums, and the new regression and permutation tests cover it. I found no new defects. The only changes are polarimetry.py and test_polarimetry_derive.py, both inside the story's files list.",
+  "checks": [
+    {
+      "criterion": "AC1: derive_circular(kind, data, convention, mask) returns SC/OC/CPR plus state and reason; unknown kind or undeclared convention raises; F1–F7 through the interface equal stories 2–3",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_derive.py",
+      "outcome": "PASS",
+      "evidence": "141 passed. Tests at test_polarimetry_derive.py:289-526 cover the interface, raising on unknown kind and undeclared convention, and F1–F7 equality."
+    },
+    {
+      "criterion": "AC2: 4x4 hand-computed block; ratio of mean powers and mean of pixelwise ratios are returned under different field names",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Tests at :528-580 (primary statistic, two pixels that differ, full hand-computed 4x4 block). BlockAggregates has separate ratio_of_mean_powers and mean_of_pixelwise_ratios fields (polarimetry.py:2062-2063)."
+    },
+    {
+      "criterion": "AC3: missing and invalid pixels are excluded and counted; a zero-valid block has state MISSING or INVALID with a reason and no value; OC<=0 handling is decided and documented",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "_support and BlockSupport carry n_valid, n_missing, valid_fraction and per-reason invalid counts; _no_valid_pixels at polarimetry.py:1848. Tests at :581-730 cover the zero-OC pixel and the all-missing, all-invalid and mixed blocks. The aggregate_blocks docstring at :1944-1953 documents the same-support rule."
+    },
+    {
+      "criterion": "AC4: dB-tagged and amplitude input are refused by type; a dB helper exists for display only",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "aggregate_blocks raises TypeError for any type other than the two linear-power records (polarimetry.py:1985). Tests at :896-965 cover the dB helper and the refusal of dB, amplitude and bare arrays."
+    },
+    {
+      "criterion": "AC5: block size is an argument and not hard-coded; per-block origin is returned; blocks_independent is False",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "block_size is a required keyword (polarimetry.py:1927) and block_origin is returned (:2007). blocks_independent is forced to False (:1734-1740). Tests at :758-840."
+    },
+    {
+      "criterion": "AC6: Hypothesis permutation invariance and scale invariance; round-1 summation fix",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Exact integer sums via _exact_sums (polarimetry.py:1862-1879). The signs of the exact sums drive OC_NONPOSITIVE and SC_NEGATIVE, so decisions cannot flip with pixel order. Tests: parametrized order regressions at :650-700, the signed-power permutation property at :1084 asserting bitwise equality, scaling properties at :1144-1161, and an exact-oracle test at :1199."
+    },
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_polarimetry_derive.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_derive.py",
+      "outcome": "PASS",
+      "evidence": "141 passed in 2.70s"
+    },
+    {
+      "criterion": "Check: uv run mypy pipeline/src pipeline/tests",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 11 source files"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check reported 12 files already formatted, mypy reported no issues in 12 source files."
+    },
+    {
+      "criterion": "Scope, mock and config rules",
+      "command": "git diff --stat 42da1c6 26d6f01 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Only polarimetry.py and test_polarimetry_derive.py changed. Neither config/run.yaml nor any data file was touched."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "Makefile (make check)",
+      "claim": "make check runs ruff and mypy only, not pytest, so its pass says nothing about the numerical tests.",
+      "evidence": "make check output showed only ruff check, ruff format --check and mypy. The pytest run was done separately and passed (141 tests). Informational only.",
+      "id": "claude-r2-1",
+      "resolution": null
+    }
+  ]
+}

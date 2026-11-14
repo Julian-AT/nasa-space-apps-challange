@@ -198,19 +198,19 @@
       "priority": 4,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 1,
+        "state": "reviewed",
+        "round": 2,
         "base": "42da1c6ec1ce7d59e432c2c9ec0f7051143d3074",
-        "head": "3a27267fffcaf2084bad3fa2a0104913c7941481",
+        "head": "26d6f0128f84b619d4874336d07cd84c5b39f3d1",
         "files": [
-          "reviews/T2-04-claude.json",
-          "reviews/T2-04-codex.json",
-          "reviews/T2-04-codex-2.json"
+          "reviews/T2-04-claude-r2.json",
+          "reviews/T2-04-codex-r2.json",
+          "reviews/T2-04-codex-2-r2.json"
         ],
         "digests": {
-          "reviews/T2-04-claude.json": "a2f088fb8167b121c55182cb8a439c15da732bbcaa7192e965f7def22d1a52b4",
-          "reviews/T2-04-codex.json": "5e532c4c5e0bf8ec661a35e6a7735b93d4c945a7f3ff14d2c1ccc0d954dec550",
-          "reviews/T2-04-codex-2.json": "ec666310432162b3c52e2a07fa77c94caa08717f1121244f445f8e1297bd2c73"
+          "reviews/T2-04-claude-r2.json": "df79de5798ef57f539bbf618c63f4f8b0d50905266329a2314e356c83ee3b8e5",
+          "reviews/T2-04-codex-r2.json": "64c8d008507e36d4c3afdc152e60d9be9e5a27e1bd659c21424bc4eaaa99ef33",
+          "reviews/T2-04-codex-2-r2.json": "e70a2545c9103bf541a0a1672c1342faffa400ae6f23b5a1055a39345011645c"
         }
       },
       "notes": "Decisions and open items (T2-04). (1) validity_mask is a boolean array, True where the product marks a pixel valid (the polarity of a GDAL mask band); derive_circular passes its negation as product_masked, so a False pixel is MISSING/PRODUCT_MASKED in every output, and a mask of any other dtype raises TypeError. (2) The ratio of mean powers uses the pixels whose SC and OC are both VALID. A pixel with a valid zero OC (F5), or an SC or OC negative within the conversion tolerance, enters both means as computed but not the mean of pixelwise ratios, where it is counted under its CPR reason. (3) n_valid, n_missing, n_invalid_by_reason and valid_fraction are kept per statistic, in power_support (mean SC, mean OC, ratio of mean powers) and ratio_support (mean of pixelwise ratios), because the two statistics use different pixel sets. (4) A block with no usable pixel is MISSING/BLOCK_NO_VALID_PIXELS where every pixel is missing, otherwise INVALID/BLOCK_NO_VALID_PIXELS. (5) The pixel grid must divide into whole blocks (ValueError otherwise), so there are no partial blocks and no dropped pixels. No minimum valid fraction is applied, since the PRD sets none. (6) Open, outside this story: looks and footprint in metres (PRD 6.2: recorded) need the effective resolution from the ProductRecord, and the per-window handedness ratio (Im D + Im E) / base_SC (PRD 6.2) is not aggregated here; both belong with radar_fingerprint. (7) A dB display value of a zero or negative linear value is INVALID/DB_OF_NONPOSITIVE. decode_db (T2-01) still returns an untagged StatedArray of dB values; it cannot enter aggregate_blocks or the conversions, which take only circular records or plain arrays.",

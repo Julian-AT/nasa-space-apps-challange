@@ -1,0 +1,99 @@
+{
+  "task_id": "T2-04",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "42da1c6ec1ce7d59e432c2c9ec0f7051143d3074",
+    "head": "26d6f0128f84b619d4874336d07cd84c5b39f3d1",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "7b7683bd94096246d5dc0072aaeb0d14bc619e6107037d202e88365ed824cd6e"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_derive.py",
+        "sha256": "998d8ccad552b42f004757747b404cd65bbc472a315ac1bce593b2d75a140646"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:23:02Z",
+  "finished_utc": "2026-11-14T20:26:01Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Prior cancellation fixes and the scope rebuttal are supported by the inspected code. Runtime checks and failing-first execution remain unverified because this review prohibits running checks in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "AC1: derive_circular interface, F1–F7 equivalence, and failing-first test execution",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Interface dispatch inspected at pipeline/src/terraluna_pipeline/polarimetry.py:1555; convention rejection and F1–F7 assertions at pipeline/tests/test_polarimetry_derive.py:303 and :430. Cannot verify numerical execution or the historical failing-first run by reading; checks were prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC2: Hand-computed 4x4 aggregation tests distinguish the two named statistics",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_polarimetry_derive.py:537 constructs the specified masked 4x4 example and asserts mean SC=1, mean OC=2, ratio_of_mean_powers=0.5, and mean_of_pixelwise_ratios=2/3. :528 asserts the primary statistic designation. Judged by reading the tests."
+    },
+    {
+      "criterion": "AC3: Mask-aware means, support counts, empty blocks, and OC<=0 handling",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Shared power support is constructed at pipeline/src/terraluna_pipeline/polarimetry.py:2009; CPR support is separate at :2039; empty-block classification is at :1848. Tests at pipeline/tests/test_polarimetry_derive.py:581 explicitly include zero-OC powers in both power means and exclude their CPR; :705 covers missing/invalid empty blocks. Runtime verification was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC4: Linear-power aggregation, dB-tag rejection, display helper, and amplitude rejection tests",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1985 restricts aggregation to circular-power records; :1604 implements the display conversion. pipeline/tests/test_polarimetry_derive.py:932 asserts rejection of DecibelArray by aggregation, power records, and Stokes conversion; :952 asserts amplitude and bare-array rejection. Judged by reading."
+    },
+    {
+      "criterion": "AC5: Explicit block size, per-block origins, and blocks_independent=False",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1924 requires block_size; :2001 constructs per-block origins. :1734 defaults blocks_independent to False and :1738 rejects any other value. Tests at pipeline/tests/test_polarimetry_derive.py:757, :801, and :835 exercise these requirements. No physical support size is hard-coded in aggregation."
+    },
+    {
+      "criterion": "AC6: Hypothesis permutation and common-factor scaling properties",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Properties inspected at pipeline/tests/test_polarimetry_derive.py:1024, :1082, :1139, and :1156, including signed powers accepted within tolerance. Execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Required focused tests",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_derive.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because dependency synchronization and test caches can write in the read-only sandbox."
+    },
+    {
+      "criterion": "Required type check",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because dependency synchronization and type-check caches can write in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox. Makefile recipes were inspected only."
+    },
+    {
+      "criterion": "Prior cancellation findings: codex-r1-1 and codex2-r1-1, including the duplicate report",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1872 accumulates exact integer multiples of 2^-1074; :2024 uses exact sum signs before division. pipeline/tests/test_polarimetry_derive.py:649 covers all 24 orders of the negative residual example, and :668 covers all six orders of the residual-ratio example. Static inspection supports both fixes; execution claims were not relied upon."
+    },
+    {
+      "criterion": "Change scope and prior claude-r1-1 rebuttal",
+      "command": "git diff --name-only 42da1c6ec1ce7d59e432c2c9ec0f7051143d3074 26d6f0128f84b619d4874336d07cd84c5b39f3d1",
+      "outcome": "PASS",
+      "evidence": "Product changes are limited to polarimetry.py and test_polarimetry_derive.py. Other changes are the excluded logs, reviews, batch story list, and progress log. scripts/ralph/prompt.md:20 permits the latter two; scripts/ralph/ralph.sh:49 confirms the review exclusions. config/run.yaml is unchanged and unresolved choices remain null."
+    }
+  ],
+  "findings": []
+}
