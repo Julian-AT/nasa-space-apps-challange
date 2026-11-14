@@ -18,6 +18,7 @@ Run it from paper/ as python -P -m scripts.overlap_check with PYTHONPATH=., as t
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import re
 import sys
@@ -27,7 +28,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from scripts.tex_prose import TexSyntaxError, checked_files, extract, fold_latex
+from scripts.tex_prose import Source, TexSyntaxError, checked_files, extract, fold_latex
 
 PAPER = Path(__file__).resolve().parents[1]
 RECORD_FILE = "reference-verification.json"
@@ -69,12 +70,41 @@ class Overlap:
         )
 
 
-def tokens(text: str) -> list[str]:
+def normalise(text: str) -> str:
+    """Text with LaTeX accents folded, NFKC applied, case folded and diacritics removed."""
     text = unicodedata.normalize("NFKC", fold_latex(text)).casefold()
     text = "".join(
         char for char in unicodedata.normalize("NFKD", text) if not unicodedata.combining(char)
     )
-    return TOKEN.findall(text.translate(BASE_LETTERS))
+    return text.translate(BASE_LETTERS)
+
+
+def tokens(text: str) -> list[str]:
+    return TOKEN.findall(normalise(text))
+
+
+_normalised_character = functools.cache(normalise)
+
+
+def located_tokens(source: Source) -> tuple[list[str], list[int]]:
+    """The tokens of the prose of source, with the source line where each one starts.
+
+    The prose holds no backslash, so it normalises one character at a time to the same text as
+    a whole: a combining mark that NFKC would compose with its letter is removed either way.
+    """
+    folded: list[str] = []
+    lines: list[int] = []
+    for offset, char in enumerate(source.prose):
+        normal = _normalised_character(char)
+        folded.append(normal)
+        lines += [source.prose_line(offset)] * len(normal)
+    text = "".join(folded)
+    words = []
+    starts = []
+    for match in TOKEN.finditer(text):
+        words.append(match[0])
+        starts.append(lines[match.start()])
+    return words, starts
 
 
 def shared_runs(paper: Sequence[str], abstract: Sequence[str]) -> list[tuple[int, int]]:
@@ -113,12 +143,7 @@ def shared_runs(paper: Sequence[str], abstract: Sequence[str]) -> list[tuple[int
 
 def overlaps(path: str, text: str, abstracts: Mapping[str, str]) -> list[Overlap]:
     """Shared runs between the prose of one .tex source and each abstract, by line and key."""
-    words: list[str] = []
-    lines: list[int] = []
-    for number, line in enumerate(extract(text).prose.split("\n"), start=1):
-        line_tokens = tokens(line)
-        words += line_tokens
-        lines += [number] * len(line_tokens)
+    words, lines = located_tokens(extract(text))
     found = [
         Overlap(path, lines[start], key, tuple(words[start : start + length]))
         for key, abstract in abstracts.items()

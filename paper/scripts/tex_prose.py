@@ -26,16 +26,19 @@ text. extract() works in two passes.
    all read seamless.
 
 The code keeps every character offset and the prose every line break of the source. A word that
-TeX joins across a line break it skips is written whole on the line where the word starts, and
-the line break follows the word, so line n of the prose holds the words that start on line n of
-the source. An unclosed construct raises TexSyntaxError with the line where it opens, so a check
-fails instead of reading the rest of the file wrongly.
+TeX joins across a line break it skips is written whole, and the line break follows it, so
+seamless stays one word. Text after such a break can therefore sit on the line before in the
+prose: TeX prints Text.robust for Text.% with robust on the next line. Source.prose_line() gives
+the source line of each prose character, where its text starts, and the checks report that line.
+An unclosed construct raises TexSyntaxError with the line where it opens, so a check fails
+instead of reading the rest of the file wrongly.
 """
 
 from __future__ import annotations
 
 import bisect
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -296,11 +299,17 @@ class TexSyntaxError(ValueError):
 
 @dataclass(frozen=True)
 class Source:
-    """The two passes over one file, and its comments by line."""
+    """The two passes over one file, its comments by line, and the source line of each prose
+    character."""
 
     code: str
     prose: str
     comments: dict[int, str]
+    prose_lines: tuple[int, ...]
+
+    def prose_line(self, offset: int) -> int:
+        """The 1-based source line where the text of prose[offset] starts."""
+        return self.prose_lines[offset]
 
 
 def line_at(text: str, offset: int) -> int:
@@ -319,7 +328,8 @@ def extract(text: str, *, keep_tikz: bool = False) -> Source:
     scanner = _CodeScanner(text, keep_tikz)
     code = scanner.run()
     breaks = scanner.argument_breaks(code)
-    return Source(code, _prose(code, breaks, scanner.unprinted(code)), scanner.comments)
+    text_prose, lines = _prose(code, breaks, scanner.unprinted(code), scanner.line)
+    return Source(code, text_prose, scanner.comments, lines)
 
 
 def prose(text: str, *, keep_tikz: bool = False) -> str:
@@ -837,57 +847,76 @@ def _code_bracket_end(code: str, start: int) -> int:
 
 
 class _ProseWriter:
-    r"""The prose of pass 2.
+    r"""The prose of pass 2, with the source line of each character.
 
     A line break that TeX skips inside a word, as in seam\emph, a line break and {less}, is held
     back until the word ends, so the word is written whole and the prose keeps every line break.
+    Each character keeps the line of the source offset it is written from, and a held line break
+    the line of the character before it, so the lines never decrease.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, line: Callable[[int], int]) -> None:
+        self.line = line
         self.parts: list[str] = []
+        self.lines: list[int] = []
         self.held = 0
 
-    def write(self, text: str) -> None:
+    def write(self, text: str, offset: int) -> None:
+        """Write text from the source offset offset; a line break in it starts the next line."""
         if self.held and text[0].isspace():
-            self.parts.append("\n" * self.held)
-            self.held = 0
+            self.release()
+        line = self.line(offset)
+        for char in text:
+            self.lines.append(line)
+            if char == "\n":
+                line += 1
         self.parts.append(text)
 
-    def unprinted_line_break(self) -> None:
+    def unprinted_line_break(self, offset: int) -> None:
         if self.parts and not self.parts[-1][-1].isspace():
             self.held += 1
         else:
-            self.parts.append("\n")
+            self.write("\n", offset)
 
-    def text(self) -> str:
-        return "".join(self.parts) + "\n" * self.held
+    def release(self) -> None:
+        self.parts.append("\n" * self.held)
+        self.lines += [self.lines[-1]] * self.held
+        self.held = 0
+
+    def result(self) -> tuple[str, tuple[int, ...]]:
+        if self.held:
+            self.release()
+        return "".join(self.parts), tuple(self.lines)
 
 
-def _prose(code: str, breaks: frozenset[int], unprinted: frozenset[int]) -> str:
-    out = _ProseWriter()
+def _prose(
+    code: str, breaks: frozenset[int], unprinted: frozenset[int], line: Callable[[int], int]
+) -> tuple[str, tuple[int, ...]]:
+    """The prose of the code, and the source line of each of its characters."""
+    out = _ProseWriter(line)
     i = 0
     while i < len(code):
         char = code[i]
         if i in unprinted:
             # Blanked text that TeX prints nothing for; see _CodeScanner.unprinted.
             if char == "\n":
-                out.unprinted_line_break()
+                out.unprinted_line_break(i)
             i += 1
         elif char == "\\":
             i = _prose_command(code, i, out)
         elif i in breaks:
             # The end of one argument when the next one follows, as in \textcolor{red}{x}.
-            out.write(" ")
+            out.write(" ", i)
             i += 1
         elif char in "{}":
             i += 1
         elif char == "~":
-            out.write(" ")
+            out.write(" ", i)
             i += 1
         else:
-            out.write(char)
+            out.write(char, i)
             i += 1
-    return out.text()
+    return out.result()
 
 
 def _removed(span: str) -> str:
@@ -898,11 +927,11 @@ def _removed(span: str) -> str:
 def _prose_command(code: str, start: int, out: _ProseWriter) -> int:
     accent = ACCENT.match(code, start)
     if accent is not None:
-        out.write(next(group for group in accent.groups() if group))
+        out.write(next(group for group in accent.groups() if group), start)
         return accent.end()
     letter = SPECIAL_LETTER.match(code, start)
     if letter is not None:
-        out.write(SPECIAL_LETTERS[letter[1]])
+        out.write(SPECIAL_LETTERS[letter[1]], start)
         return letter.end()
     if start + 1 >= len(code):
         return len(code)
@@ -916,25 +945,25 @@ def _prose_command(code: str, start: int, out: _ProseWriter) -> int:
             environment = CODE_ENVIRONMENT.match(code, start)
             if environment is not None:
                 end = environment.end()
-            out.write(_removed(code[start:end]))
+            out.write(_removed(code[start:end]), start)
             return end
         if code.startswith("*", end):
             end += 1
         if name not in PRINTS_NO_TEXT:
-            out.write(" ")
+            out.write(" ", start)
         return end
     if following == "\\":
         # A line break; pass 1 has blanked its * and [length].
-        out.write(" ")
+        out.write(" ", start)
         return start + 2
     if following in "-/@" or following in ACCENT_SYMBOLS:
         # A discretionary hyphen, an italic correction, \@, or an accent whose letter is not on
         # its line; the letter follows as text.
         return start + 2
     if following in "%&#$_{}":
-        out.write(following)
+        out.write(following, start)
     elif following == "\n":
-        out.write("\n")
+        out.write("\n", start + 1)
     else:
-        out.write(" ")
+        out.write(" ", start)
     return start + 2

@@ -230,7 +230,7 @@ def test_only_robust_can_be_allowed(text: str) -> None:
 def test_allow_comment_does_not_reach_a_word_that_starts_on_the_next_line(text: str) -> None:
     findings = lint_text(SECTION, text)
     assert [(finding.line, finding.rule) for finding in findings] == [(2, "banned-word")]
-    assert "robust estimator" in findings[0].text
+    assert findings[0].text.endswith(f": {text.splitlines()[1]}")
 
 
 def test_allow_comment_covers_a_word_that_starts_on_its_line() -> None:

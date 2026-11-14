@@ -125,9 +125,14 @@ class _Hit:
     match: str
 
 
-def hit(text: str, offset: int, rule: str, match: str) -> _Hit:
-    """A match at text[offset]; text is the code or prose, which keep the source lines."""
-    return _Hit(line_at(text, offset), rule, match)
+def code_hit(code: str, offset: int, rule: str, match: str) -> _Hit:
+    """A match at code[offset]; the code keeps every source offset."""
+    return _Hit(line_at(code, offset), rule, match)
+
+
+def prose_hit(source: Source, offset: int, rule: str, match: str) -> _Hit:
+    """A match at source.prose[offset], on the source line where its text starts."""
+    return _Hit(source.prose_line(offset), rule, match)
 
 
 def is_dash(char: str) -> bool:
@@ -142,20 +147,20 @@ def dash_hits(plain: Source) -> Iterator[_Hit]:
     prose = plain.prose
     for offset, char in enumerate(prose):
         if is_dash(char) and not (char == EN_DASH and between_digits(prose, offset, offset + 1)):
-            yield hit(prose, offset, "dash", f"U+{ord(char):04X}")
+            yield prose_hit(plain, offset, "dash", f"U+{ord(char):04X}")
     for run in HYPHEN_RUN.finditer(prose):
         if len(run[0]) > 2 or not between_digits(prose, run.start(), run.end()):
-            yield hit(prose, run.start(), "dash", run[0])
+            yield prose_hit(plain, run.start(), "dash", run[0])
     for hyphen in LONE_HYPHEN.finditer(prose):
-        yield hit(prose, hyphen.start(), "dash", "spaced hyphen")
+        yield prose_hit(plain, hyphen.start(), "dash", "spaced hyphen")
     for command in DASH_COMMAND.finditer(plain.code):
-        yield hit(plain.code, command.start(), "dash", command[0])
+        yield code_hit(plain.code, command.start(), "dash", command[0])
 
 
 def banned_word_hits(full: Source) -> Iterator[_Hit]:
     for word, pattern in BANNED_PATTERNS.items():
         for match in pattern.finditer(full.prose):
-            found = hit(full.prose, match.start(), "banned-word", match[0])
+            found = prose_hit(full, match.start(), "banned-word", match[0])
             if word != ALLOWABLE_WORD:
                 yield found
             elif not ALLOW_COMMENT.match(full.comments.get(found.line, "")):
@@ -164,13 +169,13 @@ def banned_word_hits(full: Source) -> Iterator[_Hit]:
 
 def phrase_hits(full: Source) -> Iterator[_Hit]:
     for match in IMPORTANT_TO_NOTE.finditer(full.prose):
-        yield hit(full.prose, match.start(), "important-to-note", " ".join(match[0].split()))
+        yield prose_hit(full, match.start(), "important-to-note", " ".join(match[0].split()))
 
 
 def question_hits(plain: Source) -> Iterator[_Hit]:
     for offset, char in enumerate(plain.prose):
         if char in QUESTION_MARKS:
-            yield hit(plain.prose, offset, "question-mark", char)
+            yield prose_hit(plain, offset, "question-mark", char)
 
 
 def lists_allowed(name: str) -> bool:
@@ -181,7 +186,7 @@ def lists_allowed(name: str) -> bool:
 def list_hits(plain: Source) -> Iterator[_Hit]:
     for match in LIST_ENVIRONMENT.finditer(plain.code):
         if match[1] == "begin":
-            yield hit(plain.code, match.start(), "bullet-list", f"\\begin{{{match[2]}}}")
+            yield code_hit(plain.code, match.start(), "bullet-list", f"\\begin{{{match[2]}}}")
 
 
 def tabular_spans(code: str) -> list[tuple[int, int]]:
@@ -206,7 +211,7 @@ def bold_hits(plain: Source) -> Iterator[_Hit]:
     spans = tabular_spans(plain.code)
     for match in BOLD.finditer(plain.code):
         if not any(start <= match.start() < end for start, end in spans):
-            yield hit(plain.code, match.start(), "bold", match[0])
+            yield code_hit(plain.code, match.start(), "bold", match[0])
 
 
 def lint_text(name: str, text: str) -> list[Finding]:

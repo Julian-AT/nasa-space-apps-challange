@@ -17,10 +17,12 @@ from scripts.overlap_check import (
     RecordError,
     build_parser,
     load_abstracts,
+    located_tokens,
     main,
     overlaps,
     tokens,
 )
+from scripts.tex_prose import extract
 
 ABSTRACT = (
     "We measure the roughness of lunar and martian terrain at baselines from metres to "
@@ -68,6 +70,19 @@ def test_test_abstract_has_more_than_twenty_words() -> None:
 )
 def test_tokens(text: str, expected: list[str]) -> None:
     assert tokens(text) == expected
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "caf\\'e cafe\u0301 caf{\\'e} \ufb01eld Stra\u00dfe x\u00b2",
+        "\u00d8resund \u0141\u00f3d\u017a a~b\nc",
+        "\\{x\\} 50\\% a\\&b sea%\nmless self-supervised 9--11",
+    ],
+)
+def test_located_tokens_are_the_tokens_of_the_prose(text: str) -> None:
+    source = extract(text)
+    assert located_tokens(source)[0] == tokens(source.prose)
 
 
 # --- Runs ---------------------------------------------------------------------------------------
