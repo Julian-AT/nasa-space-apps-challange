@@ -152,7 +152,11 @@
       "claim": "The then-branch is applied per property by safeParse inside superRefine, with only a generic issue message. The verdicts are equivalent, but the zod error detail from the nested schema is lost.",
       "evidence": "Lines 589-600: ctx.addIssue uses a fixed message and discards the nested issues. Accept/reject parity is tested through the shared and generator cases, so this is diagnostics only.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "0b1852c4a9cf8ebd5c4531427e07db07280f3bdc",
+        "reason": "The refinement now adds one issue per nested issue of a failing then property, at [property, ...nested path], with the message 'Invalid input: must match the \"then\" schema when the \"if\" schema holds: ' followed by the nested message. Tests first in 65039b7: for done-label-null-and-code-x the issues are label 'expected string, received null' and code 'must not match the \"not\" pattern', and a then array property reports at ['tags', 1]. A zod failure always carries at least one issue, so the verdicts are unchanged; all shared and generator cases pass. product-record.ts and sources.ts were regenerated with make schema; make schema-check reports no drift."
+      }
     },
     {
       "severity": "low",
@@ -160,7 +164,11 @@
       "claim": "The README does not mention the trailing-newline case ('unknown' followed by a newline), which is valid on all three evaluators. It may sit in fixtures/schema-cases/README.md instead, but I did not confirm that.",
       "evidence": "A search of packages/schema/README.md for 'newline' found no match.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The trailing-newline case is documented where the shared cases are described: fixtures/schema-cases/README.md line 18 says a VERIFIED ProductRecord needs units other than unknown in any letter case, and that 'unknown' followed by a newline is not that value and all three evaluators accept it. The case itself is product-verified-units-unknown-trailing-newline in cases.json (valid), and the story notes record the agreement of pydantic, the ECMA oracle and zod. packages/schema/README.md describes the package and its generator, and points to fixtures/schema-cases for the cases, so it does not repeat individual cases."
+      }
     },
     {
       "severity": "low",
@@ -168,7 +176,11 @@
       "claim": "The implementer proposes that the turbo test task hash schema.py, because a cache hit can be stale for the contract-mirror test. This is a risk outside the story's files.",
       "evidence": "The progress.txt Learnings entry. The turbo-cached runs of make check and make test above did not rerun the tests, so the orchestrator may want to force a rerun at merge.",
       "id": "claude-r1-3",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "cca38d76e8459431f489e6b5b06067a72770ad2a",
+        "reason": "Fixed inside the story's files rather than proposed for the orchestrator: packages/schema/turbo.json (a package configuration that extends the root) appends schema.py to the test inputs with $TURBO_EXTENDS$, so a schema.py-only change now changes the @terraluna/schema#test hash (turbo --dry=json lists ../../pipeline/src/terraluna_pipeline/schema.py). The root turbo.json is unchanged, and the progress-log proposal is superseded. The final checks in this resolution were run with TURBO_FORCE=true (0 cached), so none of them replayed a cached result."
+      }
     }
   ]
 }

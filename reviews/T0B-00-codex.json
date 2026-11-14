@@ -152,7 +152,11 @@
       "claim": "The absent-condition fixtures do not exercise AC2's requirement that a missing condition field leaves then inactive.",
       "evidence": "The outer required list at :40 includes status. Both absent-status cases at :192 and :201 therefore fail regardless of conditional behavior. The Vitest assertion at packages/schema/tests/generate-zod.test.ts:249 observes only overall success. Add a test with an independently observable inactive consequence, or directly test the condition evaluator.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "8d525f9a1f70a1d014a820d1d11f5a4a73391685",
+        "reason": "Every synthetic object requires all of its properties (the generator's subset), so a document without the if property is rejected by the base object whatever the condition does, and zod skips the refinement after that issue. The absent case is now tested on the condition itself. 9b45810 adds conditionCases to fixtures/schema-cases/generator-cases.json: each is the Draft 2020-12 verdict of the if schema alone on an object, as the refinement sees it, and the Python tests check every verdict with the ECMA oracle (test_condition_cases_get_their_verdict_from_the_if_schema; test_every_top_level_condition_has_condition_cases_with_an_absent_property requires each if property to be absent in a case, with verdict false). A new group conditional-two-keys covers one of two if properties absent. 8d525f9 exports conditionSource, the condition the superRefine uses; Vitest evaluates it on every condition case and requires zodExpression to contain 'if (<condition>) {'. Mutation check: changing each term to (!Object.hasOwn(value, key) || value[key] === constant), which treats an absent property as matching, fails exactly the five absent-property condition cases (plus the committed-module drift tests) while all 38 full-document cases still pass, which confirms the finding and shows the new tests catch it. Generated modules unchanged by 8d525f9 (make schema-check: both match)."
+      }
     },
     {
       "severity": "medium",
@@ -160,7 +164,11 @@
       "claim": "Declare schema.py as a Turbo test input so cached runs cannot skip the new contract-mirroring assertion after that dependency changes.",
       "evidence": "pythonContracts() now reads pipeline/src/terraluna_pipeline/schema.py, but turbo.json:25 hashes only package defaults and root fixtures for test tasks. A schema.py-only change leaves the schema task's cache key unchanged, allowing make test-ts to reuse an earlier result instead of checking the changed CONTRACTS.",
       "id": "codex-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "cca38d76e8459431f489e6b5b06067a72770ad2a",
+        "reason": "turbo.json at the root is outside the story's files, so the fix is a package configuration inside packages/schema: packages/schema/turbo.json with extends [\"//\"] and tasks.test.inputs [\"$TURBO_EXTENDS$\", \"$TURBO_ROOT$/pipeline/src/terraluna_pipeline/schema.py\"] (Turborepo package-configurations docs: $TURBO_EXTENDS$ must come first and appends to the inherited inputs; available since 2.7, the repo pins 2.11.11). pnpm exec turbo run test --filter=@terraluna/schema --dry=json now lists ../../pipeline/src/terraluna_pipeline/schema.py among the task inputs, next to the fixtures and the 17 package files, and the task hash changed from 3e664da910fc9cf9 to 6fdbee87234bd164. Tests first in 67ff44f: generate-zod.test.ts 'turbo test inputs' requires the package config to extend the root inputs and to list schema.py by the same path SCHEMA_PY the contract-mirror test reads."
+      }
     }
   ]
 }
