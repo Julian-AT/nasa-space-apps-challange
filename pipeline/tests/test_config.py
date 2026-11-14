@@ -113,7 +113,7 @@ def test_committed_terrain_values_are_pinned() -> None:
     # The values committed in config/run.yaml (PRD 8.13) at the time T3 was written.
     terrain = load_terrain_config(RUN_YAML)
     assert terrain.analysis_grid_m == 90
-    assert terrain.lags_m == (270, 360, 540, 720, 1080)
+    assert terrain.lags_m == (270.0, 360.0, 540.0, 720.0, 1080.0)
     assert terrain.min_lags_for_H == 4
     assert terrain.min_lag_span_factor == 4
     assert terrain.detrend == ("none", "plane")
@@ -159,7 +159,7 @@ def test_loading_does_not_modify_the_file() -> None:
 
 def test_loader_reads_the_file_not_a_built_in_copy(tmp_path: Path) -> None:
     path = write_config(tmp_path, set_key("terrain", "lags_m", [300, 600, 1200, 2400]))
-    assert load_terrain_config(path).lags_m == (300, 600, 1200, 2400)
+    assert load_terrain_config(path).lags_m == (300.0, 600.0, 1200.0, 2400.0)
     path = write_config(tmp_path, set_key("targets", "window_m", 4000))
     assert load_terrain_config(path).window_m == 4000
 
