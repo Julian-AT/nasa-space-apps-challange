@@ -1,0 +1,172 @@
+{
+  "task_id": "T16-02",
+  "round": 5,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "c158b1730ff5722421d9ea5081974fcec76bd4a7",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "bcd14b36861854f50304b62e2191281fcd7a52aab9972676bb1a8599701d82a5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "e38fd48c8ee57a805e5c2984e124b977b24530b276f01a2af351d8cb883b7267"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "631b4d702a7c9bc26762cd1ce5b6c6634b34b8b3447fbe4e6dab9213ce37b1f1"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "71d28ea6cab2d1f2721aeba0e373f5af52a6b8986f5d1b0edb55b6307d20f805"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "6d931f2a11a17df7b568243cd1cc9e29f2049ed0922b8e5d85b92f453073559d"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "aa4eb12ae6f28293f4003774079c2b3bca1b72db3aeb5e0bbfaa1fac7a19b9de"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:42:10Z",
+  "finished_utc": "2026-11-14T21:47:51Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "One blocking overlap-normalization defect found by static review. Previous fixes and rebuttals were checked. No files changed; all five requested checks remain NOT_RUN as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX-to-prose extraction with source lines and required exclusions.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/scripts/tex_prose.py:320 connects both extraction passes; :428 handles comments, math and commands; :563 handles environments; :628 removes key arguments; :906 preserves formatting text and converts ties. Both consumers import and call extract."
+    },
+    {
+      "criterion": "AC2: Check every required .tex file, report file:line:rule:text, and fail without rule-disabling options.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/scripts/tex_prose.py:390 recursively selects .tex files with only figures/styles.tex excluded. paper/scripts/lint_prose.py:116 formats findings; :252 exposes only --root; :260 returns 1 for findings."
+    },
+    {
+      "criterion": "AC3: Enforce all six prose rules, including line-local robust allowances and raw TikZ word checks.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/scripts/lint_prose.py:57 defines banned forms; :85 defines the robust allowance; :147 implements dashes; :161 implements word and phrase checks; :176 implements questions; :187 and :211 implement lists and bold. :218 applies word rules to kept TikZ and other rules to the plain extraction. Regression assertions cover each rule in test_lint_prose.py."
+    },
+    {
+      "criterion": "AC4: Normalize both sides consistently and report maximal shared runs of at least 12 tokens.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "paper/scripts/tex_prose.py:259 permits only horizontal whitespace inside accent spellings. Abstracts reach fold_latex directly through overlap_check.py:75 and :150, so an accent split across a newline produces different tokens from the extracted manuscript. See the blocking finding. The constant, maximal-run matching, record validation and null-count summary are otherwise present at overlap_check.py:37, :110, :163 and :229."
+    },
+    {
+      "criterion": "AC5: Create the empty reference-verification record.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1 contains exactly an object whose references value is an empty object."
+    },
+    {
+      "criterion": "AC6: Required tests exist and were run failing before implementation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Required assertions are present in test_lint_prose.py and test_overlap_check.py; inputs use strings or tmp_path. The fbf3c38 tree contains the tests without the implementation modules. A historical failing execution was not independently observed, and executing tests is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC7: Build integration, current manuscript passes, and README command documentation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5 disables parallel execution; :25 orders numbers, lint, overlap, test and pdf; :43 and :47 invoke the scripts. paper/README.md:22 documents both commands. Current manuscript passes and successful command execution require checks that the user prohibited running."
+    },
+    {
+      "criterion": "Previous fixes codex-r1-1 and codex-r1-2.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: tex_prose.py:706 skips and records comments before arguments; :575 retains raw TikZ except comments. Consumer regressions appear in test_lint_prose.py:409 and :464 and test_overlap_check.py:144."
+    },
+    {
+      "criterion": "Previous fix codex-r2-1.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "tex_prose.py:350 assigns known command arities and :724 inserts argument boundaries selectively. Ordinary grouped-word regressions appear in test_tex_prose.py:363, test_lint_prose.py:122 and test_overlap_check.py:150."
+    },
+    {
+      "criterion": "Previous fixes codex-r3-1 and codex-r3-2.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: tex_prose.py:756 drops nonprinting control-word whitespace; :547 records nonprinting key commands; :662 scans complete unbraced input filenames. Regressions appear in test_tex_prose.py:409, :465 and :142 and test_overlap_check.py:154."
+    },
+    {
+      "criterion": "Previous fixes codex-r4-1 through codex-r4-4.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: tex_prose.py:644 drops gaps before kept text arguments; :680 continues filenames through comments; :878 records source locations per character; :374 matches actual control sequences. Corresponding assertions appear in test_tex_prose.py:158, :492 and :590 and test_lint_prose.py:220 and :483."
+    },
+    {
+      "criterion": "Previous rebuttals claude-r1-1, claude-r1-2 and claude-r3-1; scope and scientific guardrails.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The listed implementation commits touch only the nine scoped paths. scripts/ralph/prompt.md:21 and :36 permit bookkeeping and resolution records. Bare bold declarations are detected at lint_prose.py:105 and :211. Unknown-macro argument separation remains an explicit limitation at tex_prose.py:350 and :724; promised formatting commands have known arities. No config, measurements, production mocks or scientific thresholds are changed."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; this build also writes generated files and PDF artifacts."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:259",
+      "claim": "LaTeX accent commands split across lines in a stored abstract can hide a shared passage, violating AC4's normalization requirement.",
+      "evidence": "Static trace, not executed: use manuscript text 'The café study maps roughness of lunar terrain at metre baselines for rovers.' and the identical abstract with café spelled as caf\\' followed by a newline and e. The manuscript produces 13 tokens including cafe. Abstract normalization calls fold_latex(), whose ACCENT pattern accepts only [ \\t]* before the letter, so the abstract instead produces caf and e as separate tokens. The longest remaining shared suffix is only 11 tokens, so shared_runs reports nothing. The existing accent test at test_overlap_check.py:241 only puts LaTeX accents on the manuscript side. Fold supported multiline accent spellings consistently on the abstract side and add a regression for this direction.",
+      "id": "codex-r5-1",
+      "resolution": null
+    }
+  ]
+}
