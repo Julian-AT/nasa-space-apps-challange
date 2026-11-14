@@ -124,7 +124,11 @@
       "claim": "Percent-encoded credential parameter names bypass the published-record credential guard.",
       "evidence": "has_url_credentials only searches the original URL with a regex, while URL_PATTERN permits percent escapes. Consequently, https://example.org/a.tif?%74oken=abc passes these guards although its decoded query key is token. The generated JSON schemas repeat the same restriction, and fetch_range also uses this helper. Decode and inspect query parameter names, or reject encoded forms that cannot be validated consistently, and add regression cases.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "53a72be675d2dc991d71e2b426888dba365360e3",
+        "reason": "has_url_credentials and the JSON Schema not-pattern now also refuse a query or fragment that percent-encodes an RFC 3986 unreserved character (letters, digits, -._~ in either hex case; 2.3 says such encodings never change meaning and normalizers decode them), so every parameter name the token check sees is spelled literally, as the server decodes it. The = after a token also matches %3D, so ?token%3Dx is refused. Reserved encodings (%2F, %20) and any encoding in the path stay allowed. The rule is still one regex in the ECMA-262/Python/Rust subset, and make schema regenerated product-record and sources schemas. Tests added in 47cddc0 (failing first): encoded SIGNED_URLS cases, a hypothesis test that encoding any subset of a signed token in any case is refused, an every-byte RFC 3986 oracle for query, fragment and path, pydantic/JSON Schema parity for every encoded byte, and fetch_range refusing encoded names before any request."
+      }
     },
     {
       "severity": "blocker",
@@ -132,7 +136,11 @@
       "claim": "The required three-argument read_product interface is unavailable.",
       "evidence": "root is a required keyword-only parameter with no default. Calling read_product(product_id, local_files, metadata), as specified by AC4, fails with a missing-argument TypeError. The tests consistently supply root, including pipeline/tests/test_io.py:316, so they do not exercise the contracted call. Preserve that call by making root an optional override and test it without the override.",
       "id": "codex-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "524c1daae1422cb9d38aff62de55d13194c1e586",
+        "reason": "root is now an optional keyword (root: Path | None = None) and defaults to the working directory, from which the Makefile and uv run commands run, so the PRD 8.11 call read_product(product_id, local_files, metadata) works. A file not under data/raw, data/interim or data/processed of that root is refused with a message to run from the repository root or pass root, so a run from another directory fails instead of recording a wrong local_path. Tests added in e46d836 (failing first with the missing-root TypeError): the three-argument call from the root gives local_path data/raw/synthetic/dem.tif and the same record as an explicit root (also for a relative file path), and calls from data, data/raw, an unrelated directory and the parent raise."
+      }
     }
   ]
 }

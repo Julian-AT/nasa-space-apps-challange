@@ -118,7 +118,11 @@
       "claim": "make check runs only ruff and mypy, not pytest. The tests are covered only by the separate pytest checks.",
       "evidence": "make check output contained ruff check, ruff format --check and mypy only.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "make check is the lint and type target that T0-01 defined (Makefile: check -> check-py, which runs ruff check, ruff format --check and mypy; added in 7f9c0e7 build(t0-01): add makefile with python setup, check and test targets). pytest runs under make test (test -> test-py), matching PRD 12 Commands, where make test is the unit-test command. The story checks run the T1-01 tests explicitly: uv run pytest pipeline/tests/test_schema_productrecord.py gives 248 passed and uv run pytest pipeline/tests/test_io.py gives 75 passed after this round, and make test passes in full (771 passed, 2 strict xfailed). The Makefile is outside T1-01 files, and the finding names no defect in the T1-01 change."
+      }
     }
   ]
 }
