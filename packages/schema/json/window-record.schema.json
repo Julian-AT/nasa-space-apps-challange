@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "EnvironmentFlags": {
+      "additionalProperties": false,
+      "description": "Environment records of a window (PRD 5) and its permanent shadow (PRD 6.1).\n\nA flag that applies but was not checked is ``\"unknown\"``; on the Moon and Mars the Earth\nflags are null. A null permanent_shadow_fraction carries a reason in the WindowRecord's\nevidence_status_by_field.",
+      "properties": {
+        "search_region_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Search Region Id"
+        },
+        "scene_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Scene Ids",
+          "type": "array"
+        },
+        "acquisition_dates": {
+          "items": {
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string"
+          },
+          "title": "Acquisition Dates",
+          "type": "array"
+        },
+        "snow_or_freeze": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Snow Or Freeze"
+        },
+        "moisture_state": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Moisture State"
+        },
+        "surface_change_since_acquisition": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Surface Change Since Acquisition"
+        },
+        "permanent_shadow_fraction": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Permanent Shadow Fraction"
+        },
+        "surface_model_note": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Surface Model Note"
+        }
+      },
+      "required": [
+        "search_region_id",
+        "scene_ids",
+        "acquisition_dates",
+        "snow_or_freeze",
+        "moisture_state",
+        "surface_change_since_acquisition",
+        "permanent_shadow_fraction",
+        "surface_model_note"
+      ],
+      "title": "EnvironmentFlags",
+      "type": "object"
+    },
+    "ObservedInterpolatedQuality": {
+      "additionalProperties": false,
+      "description": "How much of the window's DEM was observed rather than interpolated (PGDA78 count map).",
+      "properties": {
+        "observed_fraction": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Observed Fraction"
+        },
+        "interpolated_fraction": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Interpolated Fraction"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "observed_fraction",
+        "interpolated_fraction",
+        "source",
+        "reason"
+      ],
+      "title": "ObservedInterpolatedQuality",
+      "type": "object"
+    },
+    "WindowPolygon": {
+      "additionalProperties": false,
+      "description": "A window outline in its frame's metres and in degrees (WGS84 for Earth, planetocentric\nfor the Moon and Mars). ``crs`` is read from the product, never assumed.",
+      "properties": {
+        "frame": {
+          "enum": [
+            "utm",
+            "polar_stereographic",
+            "equirectangular",
+            "aeqd_sphere"
+          ],
+          "title": "Frame",
+          "type": "string"
+        },
+        "crs": {
+          "minLength": 1,
+          "title": "Crs",
+          "type": "string"
+        },
+        "epsg": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Epsg"
+        },
+        "utm_zone": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Utm Zone"
+        },
+        "ring_m": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "minItems": 4,
+          "title": "Ring M",
+          "type": "array"
+        },
+        "ring_lonlat": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "minItems": 4,
+          "title": "Ring Lonlat",
+          "type": "array"
+        }
+      },
+      "required": [
+        "frame",
+        "crs",
+        "epsg",
+        "utm_zone",
+        "ring_m",
+        "ring_lonlat"
+      ],
+      "title": "WindowPolygon",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One analysis window (PRD 8.12). UTM zone and EPSG live in ``polygon``; search region,\nscenes and environment live in ``environment_flags``.",
+  "properties": {
+    "window_id": {
+      "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+      "title": "Window Id",
+      "type": "string"
+    },
+    "body": {
+      "enum": [
+        "moon",
+        "mars",
+        "earth"
+      ],
+      "title": "Body",
+      "type": "string"
+    },
+    "polygon": {
+      "$ref": "#/$defs/WindowPolygon"
+    },
+    "area_m2": {
+      "exclusiveMinimum": 0,
+      "title": "Area M2",
+      "type": "number"
+    },
+    "analysis_grid_m": {
+      "exclusiveMinimum": 0,
+      "title": "Analysis Grid M",
+      "type": "number"
+    },
+    "product_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Product Ids",
+      "type": "array"
+    },
+    "valid_fraction_by_observable": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Valid Fraction By Observable",
+      "type": "object"
+    },
+    "observed_interpolated_quality": {
+      "$ref": "#/$defs/ObservedInterpolatedQuality"
+    },
+    "environment_flags": {
+      "$ref": "#/$defs/EnvironmentFlags"
+    },
+    "evidence_status_by_field": {
+      "additionalProperties": {
+        "enum": [
+          "Observed",
+          "Derived",
+          "Predicted",
+          "Assumed",
+          "Unavailable"
+        ],
+        "type": "string"
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Evidence Status By Field",
+      "type": "object"
+    }
+  },
+  "required": [
+    "window_id",
+    "body",
+    "polygon",
+    "area_m2",
+    "analysis_grid_m",
+    "product_ids",
+    "valid_fraction_by_observable",
+    "observed_interpolated_quality",
+    "environment_flags",
+    "evidence_status_by_field"
+  ],
+  "title": "WindowRecord",
+  "type": "object"
+}

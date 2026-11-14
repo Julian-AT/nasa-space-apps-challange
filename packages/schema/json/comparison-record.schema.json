@@ -1,0 +1,1028 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "DistanceEntry": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "status": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "reference_spread_reason": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "reference_spread": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "reference_spread"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reference_spread_reason": {
+                "type": "string"
+              },
+              "tied": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "background_percentile_reason": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "background_percentile": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "background_percentile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "background_percentile_reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One family's distance between a target and an Earth window (PRD 6.5).\n\n``value`` is set exactly when status is available, and ``reason`` exactly when it is not.\nA value of 0 is a real zero (identical fingerprints) and never stands for missing. Exactly\none of each spread and percentile pair is null, and ``tied`` is null without a spread.",
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "evidence_label": {
+          "enum": [
+            "Observed",
+            "Derived",
+            "Predicted",
+            "Assumed",
+            "Unavailable"
+          ],
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "available",
+            "unavailable",
+            "not_comparable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "reference_spread": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReferenceSpread"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reference_spread_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reference Spread Reason"
+        },
+        "background_percentile": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Background Percentile"
+        },
+        "background_percentile_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Background Percentile Reason"
+        },
+        "tied": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tied"
+        },
+        "tie_group": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tie Group"
+        },
+        "tie_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tie Reason"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "evidence_label",
+        "status",
+        "reason",
+        "reference_spread",
+        "reference_spread_reason",
+        "background_percentile",
+        "background_percentile_reason",
+        "tied",
+        "tie_group",
+        "tie_reason"
+      ],
+      "title": "DistanceEntry",
+      "type": "object"
+    },
+    "DistancesByFamily": {
+      "additionalProperties": false,
+      "description": "The four family distances, every key always present (D07: never combined). Indexing by\nfamily name reads it like the ``dict[Family, DistanceEntry]`` of CONTRACTS a.4.",
+      "properties": {
+        "terrain_relief": {
+          "$ref": "#/$defs/DistanceEntry"
+        },
+        "terrain_texture": {
+          "$ref": "#/$defs/DistanceEntry"
+        },
+        "radar_cpr": {
+          "$ref": "#/$defs/DistanceEntry"
+        },
+        "model_embedding": {
+          "$ref": "#/$defs/ModelEmbeddingDistanceEntry"
+        }
+      },
+      "required": [
+        "terrain_relief",
+        "terrain_texture",
+        "radar_cpr",
+        "model_embedding"
+      ],
+      "title": "DistancesByFamily",
+      "type": "object"
+    },
+    "ExcludedObservable": {
+      "additionalProperties": false,
+      "description": "An observable left out of the comparison, with every reason (PRD 6.5 step 1).",
+      "properties": {
+        "observable": {
+          "minLength": 1,
+          "title": "Observable",
+          "type": "string"
+        },
+        "reasons": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "observable",
+        "reasons"
+      ],
+      "title": "ExcludedObservable",
+      "type": "object"
+    },
+    "FamilySpread": {
+      "additionalProperties": false,
+      "description": "The spread of one family's values across clones or within the window.",
+      "properties": {
+        "spread_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Spread Min"
+        },
+        "spread_median": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Spread Median"
+        },
+        "spread_max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Spread Max"
+        },
+        "n": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N"
+        }
+      },
+      "required": [
+        "spread_min",
+        "spread_median",
+        "spread_max",
+        "n"
+      ],
+      "title": "FamilySpread",
+      "type": "object"
+    },
+    "ModelEmbeddingDistanceEntry": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "status": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "reference_spread_reason": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "reference_spread": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "reference_spread"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reference_spread_reason": {
+                "type": "string"
+              },
+              "tied": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "background_percentile_reason": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "background_percentile": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "background_percentile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "background_percentile_reason": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_label": {
+                "const": "Predicted",
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "The model_embedding distance: a value is a model prediction, so it is labelled\nPredicted.",
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "evidence_label": {
+          "enum": [
+            "Observed",
+            "Derived",
+            "Predicted",
+            "Assumed",
+            "Unavailable"
+          ],
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "available",
+            "unavailable",
+            "not_comparable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "reference_spread": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReferenceSpread"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reference_spread_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reference Spread Reason"
+        },
+        "background_percentile": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Background Percentile"
+        },
+        "background_percentile_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Background Percentile Reason"
+        },
+        "tied": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tied"
+        },
+        "tie_group": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tie Group"
+        },
+        "tie_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tie Reason"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "evidence_label",
+        "status",
+        "reason",
+        "reference_spread",
+        "reference_spread_reason",
+        "background_percentile",
+        "background_percentile_reason",
+        "tied",
+        "tie_group",
+        "tie_reason"
+      ],
+      "title": "ModelEmbeddingDistanceEntry",
+      "type": "object"
+    },
+    "RankFrequency": {
+      "additionalProperties": false,
+      "description": "How often a rank held across runs: a frequency, never the probability that a site is a\nvalid analog (PRD 6.6).",
+      "properties": {
+        "frequency": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Frequency",
+          "type": "number"
+        },
+        "count": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Count",
+          "type": "integer"
+        },
+        "n": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "N",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "frequency",
+        "count",
+        "n"
+      ],
+      "title": "RankFrequency",
+      "type": "object"
+    },
+    "ReferenceSpread": {
+      "additionalProperties": false,
+      "description": "The spread of distances within the target reference set (PRD 6.5 step 5).",
+      "properties": {
+        "min": {
+          "minimum": 0,
+          "title": "Min",
+          "type": "number"
+        },
+        "median": {
+          "minimum": 0,
+          "title": "Median",
+          "type": "number"
+        },
+        "max": {
+          "minimum": 0,
+          "title": "Max",
+          "type": "number"
+        },
+        "n": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "N",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "min",
+        "median",
+        "max",
+        "n"
+      ],
+      "title": "ReferenceSpread",
+      "type": "object"
+    },
+    "Scenario": {
+      "additionalProperties": false,
+      "description": "One named scenario run (PRD 6.6). It carries no probability or weight.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "change": {
+          "minLength": 1,
+          "title": "Change",
+          "type": "string"
+        },
+        "values_by_family": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "terrain_relief",
+              "terrain_texture",
+              "radar_cpr",
+              "model_embedding"
+            ]
+          },
+          "title": "Values By Family",
+          "type": "object"
+        },
+        "rank_by_family": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "terrain_relief",
+              "terrain_texture",
+              "radar_cpr",
+              "model_embedding"
+            ]
+          },
+          "title": "Rank By Family",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "change",
+        "values_by_family",
+        "rank_by_family"
+      ],
+      "title": "Scenario",
+      "type": "object"
+    },
+    "UncertaintyComponent": {
+      "additionalProperties": false,
+      "description": "One uncertainty category of PRD 6.6. Families stay separate; ``scenarios`` is used by\nscenario_sensitivity only.",
+      "properties": {
+        "status": {
+          "enum": [
+            "available",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence_label": {
+          "enum": [
+            "Observed",
+            "Derived",
+            "Predicted",
+            "Assumed",
+            "Unavailable"
+          ],
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Note"
+        },
+        "by_family": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/FamilySpread"
+              },
+              "propertyNames": {
+                "enum": [
+                  "terrain_relief",
+                  "terrain_texture",
+                  "radar_cpr",
+                  "model_embedding"
+                ]
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "By Family"
+        },
+        "n_requested": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Requested"
+        },
+        "n_used": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Used"
+        },
+        "scenarios": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Scenario"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Scenarios"
+        },
+        "rank_frequency": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/RankFrequency"
+              },
+              "propertyNames": {
+                "enum": [
+                  "terrain_relief",
+                  "terrain_texture",
+                  "radar_cpr",
+                  "model_embedding"
+                ]
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Rank Frequency"
+        }
+      },
+      "required": [
+        "status",
+        "evidence_label",
+        "reason",
+        "note",
+        "by_family",
+        "n_requested",
+        "n_used",
+        "scenarios",
+        "rank_frequency"
+      ],
+      "title": "UncertaintyComponent",
+      "type": "object"
+    },
+    "UncertaintyComponents": {
+      "additionalProperties": false,
+      "description": "The four uncertainty categories of PRD 6.6, kept separate and never combined.",
+      "properties": {
+        "heterogeneity": {
+          "$ref": "#/$defs/UncertaintyComponent"
+        },
+        "measurement_error": {
+          "$ref": "#/$defs/UncertaintyComponent"
+        },
+        "statistical_prediction_error": {
+          "$ref": "#/$defs/UncertaintyComponent"
+        },
+        "scenario_sensitivity": {
+          "$ref": "#/$defs/UncertaintyComponent"
+        }
+      },
+      "required": [
+        "heterogeneity",
+        "measurement_error",
+        "statistical_prediction_error",
+        "scenario_sensitivity"
+      ],
+      "title": "UncertaintyComponents",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A target window compared with one Earth window (PRD 8.12). Shortlist membership lives on\nthe TargetRecord, and there is no score or combined distance (D07).",
+  "properties": {
+    "target_window_id": {
+      "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+      "title": "Target Window Id",
+      "type": "string"
+    },
+    "earth_window_id": {
+      "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+      "title": "Earth Window Id",
+      "type": "string"
+    },
+    "shipping_mode": {
+      "anyOf": [
+        {
+          "enum": [
+            "A",
+            "B",
+            "C"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Shipping Mode"
+    },
+    "comparable_observables": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Comparable Observables",
+      "type": "array"
+    },
+    "excluded_observables_and_reasons": {
+      "items": {
+        "$ref": "#/$defs/ExcludedObservable"
+      },
+      "title": "Excluded Observables And Reasons",
+      "type": "array"
+    },
+    "distances_by_family": {
+      "$ref": "#/$defs/DistancesByFamily"
+    },
+    "uncertainty_components": {
+      "$ref": "#/$defs/UncertaintyComponents"
+    },
+    "sort_rule": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Sort Rule"
+    },
+    "claim_limits": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Claim Limits",
+      "type": "array"
+    },
+    "source_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Source Ids",
+      "type": "array"
+    },
+    "run_id": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Run Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "target_window_id",
+    "earth_window_id",
+    "shipping_mode",
+    "comparable_observables",
+    "excluded_observables_and_reasons",
+    "distances_by_family",
+    "uncertainty_components",
+    "sort_rule",
+    "claim_limits",
+    "source_ids",
+    "run_id"
+  ],
+  "title": "ComparisonRecord",
+  "type": "object"
+}

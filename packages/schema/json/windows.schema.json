@@ -1,0 +1,1212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Distribution": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "values": {
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "min": {
+                "type": "number"
+              },
+              "median": {
+                "type": "number"
+              },
+              "p05": {
+                "type": "number"
+              },
+              "p95": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "n": {
+                "const": 0
+              }
+            },
+            "required": [
+              "n"
+            ]
+          },
+          "then": {
+            "properties": {
+              "values": {
+                "items": {
+                  "type": "number"
+                },
+                "maxItems": 0,
+                "type": "array"
+              },
+              "min": {
+                "type": "null"
+              },
+              "median": {
+                "type": "null"
+              },
+              "p05": {
+                "type": "null"
+              },
+              "p95": {
+                "type": "null"
+              },
+              "max": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Block values of one observable in one window, sorted ascending, and their order\nstatistics. ``n`` counts the values; the five statistics are null exactly when n is 0.",
+      "properties": {
+        "n": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "N",
+          "type": "integer"
+        },
+        "values": {
+          "items": {
+            "type": "number"
+          },
+          "title": "Values",
+          "type": "array"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Min"
+        },
+        "median": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Median"
+        },
+        "p05": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "P05"
+        },
+        "p95": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "P95"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Max"
+        }
+      },
+      "required": [
+        "n",
+        "values",
+        "min",
+        "median",
+        "p05",
+        "p95",
+        "max"
+      ],
+      "title": "Distribution",
+      "type": "object"
+    },
+    "EnvironmentFlags": {
+      "additionalProperties": false,
+      "description": "Environment records of a window (PRD 5) and its permanent shadow (PRD 6.1).\n\nA flag that applies but was not checked is ``\"unknown\"``; on the Moon and Mars the Earth\nflags are null. A null permanent_shadow_fraction carries a reason in the WindowRecord's\nevidence_status_by_field.",
+      "properties": {
+        "search_region_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Search Region Id"
+        },
+        "scene_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Scene Ids",
+          "type": "array"
+        },
+        "acquisition_dates": {
+          "items": {
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string"
+          },
+          "title": "Acquisition Dates",
+          "type": "array"
+        },
+        "snow_or_freeze": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Snow Or Freeze"
+        },
+        "moisture_state": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Moisture State"
+        },
+        "surface_change_since_acquisition": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Surface Change Since Acquisition"
+        },
+        "permanent_shadow_fraction": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Permanent Shadow Fraction"
+        },
+        "surface_model_note": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Surface Model Note"
+        }
+      },
+      "required": [
+        "search_region_id",
+        "scene_ids",
+        "acquisition_dates",
+        "snow_or_freeze",
+        "moisture_state",
+        "surface_change_since_acquisition",
+        "permanent_shadow_fraction",
+        "surface_model_note"
+      ],
+      "title": "EnvironmentFlags",
+      "type": "object"
+    },
+    "FingerprintRecord": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "terrain"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "radar": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "radar"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "terrain": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "terrain": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "terrain"
+            ]
+          },
+          "then": {
+            "properties": {
+              "kind": {
+                "const": "radar",
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "radar": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "radar"
+            ]
+          },
+          "then": {
+            "properties": {
+              "kind": {
+                "const": "terrain",
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "The terrain or radar fingerprint of a window: ``terrain`` is set exactly when kind is\nterrain and ``radar`` exactly when kind is radar.",
+      "properties": {
+        "window_id": {
+          "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+          "title": "Window Id",
+          "type": "string"
+        },
+        "body": {
+          "enum": [
+            "moon",
+            "mars",
+            "earth"
+          ],
+          "title": "Body",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "terrain",
+            "radar"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "product_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Product Ids",
+          "type": "array"
+        },
+        "evidence_label": {
+          "enum": [
+            "Observed",
+            "Derived",
+            "Predicted",
+            "Assumed",
+            "Unavailable"
+          ],
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "input_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "run_id": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "terrain": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TerrainFingerprint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "radar": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RadarFingerprint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "window_id",
+        "body",
+        "kind",
+        "product_ids",
+        "evidence_label",
+        "input_hash",
+        "run_id",
+        "terrain",
+        "radar"
+      ],
+      "title": "FingerprintRecord",
+      "type": "object"
+    },
+    "IncidenceRange": {
+      "additionalProperties": false,
+      "description": "The incidence angles of the radar product over the window, in degrees.",
+      "properties": {
+        "min": {
+          "title": "Min",
+          "type": "number"
+        },
+        "max": {
+          "title": "Max",
+          "type": "number"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "title": "IncidenceRange",
+      "type": "object"
+    },
+    "ObservedInterpolatedQuality": {
+      "additionalProperties": false,
+      "description": "How much of the window's DEM was observed rather than interpolated (PGDA78 count map).",
+      "properties": {
+        "observed_fraction": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Observed Fraction"
+        },
+        "interpolated_fraction": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Interpolated Fraction"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "observed_fraction",
+        "interpolated_fraction",
+        "source",
+        "reason"
+      ],
+      "title": "ObservedInterpolatedQuality",
+      "type": "object"
+    },
+    "RadarFingerprint": {
+      "additionalProperties": false,
+      "description": "Radar block statistics of one product over a window (PRD 6.2). Blocks are never\nindependent samples, and CPR is aggregated as a ratio of mean powers.",
+      "properties": {
+        "product_id": {
+          "minLength": 1,
+          "title": "Product Id",
+          "type": "string"
+        },
+        "band": {
+          "minLength": 1,
+          "title": "Band",
+          "type": "string"
+        },
+        "frequency_or_wavelength": {
+          "minLength": 1,
+          "title": "Frequency Or Wavelength",
+          "type": "string"
+        },
+        "convention": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Convention"
+        },
+        "support_m": {
+          "exclusiveMinimum": 0,
+          "title": "Support M",
+          "type": "number"
+        },
+        "aggregation": {
+          "const": "ratio_of_mean_powers",
+          "title": "Aggregation",
+          "type": "string"
+        },
+        "blocks_independent": {
+          "const": false,
+          "title": "Blocks Independent",
+          "type": "boolean"
+        },
+        "n_blocks": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "N Blocks",
+          "type": "integer"
+        },
+        "n_valid": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "N Valid",
+          "type": "integer"
+        },
+        "valid_fraction": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Valid Fraction",
+          "type": "number"
+        },
+        "cpr_ratio_of_mean_powers": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Distribution"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cpr_mean_of_pixelwise_ratios": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Distribution"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Distribution"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "oc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Distribution"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "total_power": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Distribution"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "incidence_deg": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IncidenceRange"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "handedness_ratio": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Distribution"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "product_id",
+        "band",
+        "frequency_or_wavelength",
+        "convention",
+        "support_m",
+        "aggregation",
+        "blocks_independent",
+        "n_blocks",
+        "n_valid",
+        "valid_fraction",
+        "cpr_ratio_of_mean_powers",
+        "cpr_mean_of_pixelwise_ratios",
+        "sc",
+        "oc",
+        "total_power",
+        "incidence_deg",
+        "handedness_ratio",
+        "reason"
+      ],
+      "title": "RadarFingerprint",
+      "type": "object"
+    },
+    "TerrainFingerprint": {
+      "additionalProperties": false,
+      "description": "Terrain observables of a window on the analysis grid (PRD 6.3, D29 resampler).",
+      "properties": {
+        "analysis_grid_m": {
+          "exclusiveMinimum": 0,
+          "title": "Analysis Grid M",
+          "type": "number"
+        },
+        "coarsening_factor": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Coarsening Factor"
+        },
+        "resampler": {
+          "const": "aeqd_sphere",
+          "title": "Resampler",
+          "type": "string"
+        },
+        "valid_fraction": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Valid Fraction",
+          "type": "number"
+        },
+        "relief": {
+          "$ref": "#/$defs/TerrainVariant"
+        },
+        "texture": {
+          "$ref": "#/$defs/TerrainVariant"
+        }
+      },
+      "required": [
+        "analysis_grid_m",
+        "coarsening_factor",
+        "resampler",
+        "valid_fraction",
+        "relief",
+        "texture"
+      ],
+      "title": "TerrainFingerprint",
+      "type": "object"
+    },
+    "TerrainVariant": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "hurst_reason": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "hurst": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "hurst"
+            ]
+          },
+          "then": {
+            "properties": {
+              "hurst_reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "nu over the window's lags for one variant: relief (raw) or texture (plane removed).\n\n``nu_m`` keys are lags in metres as T3 writes them. Exactly one of ``hurst`` and\n``hurst_reason`` is null. ``tilt`` holds the fitted plane coefficients (texture only).",
+      "properties": {
+        "detrend": {
+          "enum": [
+            "none",
+            "plane"
+          ],
+          "title": "Detrend",
+          "type": "string"
+        },
+        "supported_lags_m": {
+          "items": {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          "title": "Supported Lags M",
+          "type": "array"
+        },
+        "unsupported_lags": {
+          "items": {
+            "$ref": "#/$defs/UnsupportedLag"
+          },
+          "title": "Unsupported Lags",
+          "type": "array"
+        },
+        "nu_m": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Nu M",
+          "type": "object"
+        },
+        "nu_by_direction_m": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "propertyNames": {
+              "minLength": 1
+            },
+            "type": "object"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Nu By Direction M",
+          "type": "object"
+        },
+        "hurst": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Hurst"
+        },
+        "hurst_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Hurst Reason"
+        },
+        "tilt": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tilt"
+        }
+      },
+      "required": [
+        "detrend",
+        "supported_lags_m",
+        "unsupported_lags",
+        "nu_m",
+        "nu_by_direction_m",
+        "hurst",
+        "hurst_reason",
+        "tilt"
+      ],
+      "title": "TerrainVariant",
+      "type": "object"
+    },
+    "UnsupportedLag": {
+      "additionalProperties": false,
+      "description": "A lag that is not supported in this window, with the reason.",
+      "properties": {
+        "lag_m": {
+          "exclusiveMinimum": 0,
+          "title": "Lag M",
+          "type": "number"
+        },
+        "reason": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lag_m",
+        "reason"
+      ],
+      "title": "UnsupportedLag",
+      "type": "object"
+    },
+    "WindowEntry": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "reasons": {
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "status": {
+                "const": "eligible"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reasons": {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One row of windows/{body}.json: a window, its fingerprints and its eligibility. A\nrejected or unknown window lists its reasons in order; an eligible one lists none.",
+      "properties": {
+        "window": {
+          "$ref": "#/$defs/WindowRecord"
+        },
+        "terrain": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FingerprintRecord"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "radar": {
+          "items": {
+            "$ref": "#/$defs/FingerprintRecord"
+          },
+          "title": "Radar",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "eligible",
+            "rejected",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reasons": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "grid_index": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Grid Index"
+        },
+        "card_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Card Id"
+        }
+      },
+      "required": [
+        "window",
+        "terrain",
+        "radar",
+        "status",
+        "reasons",
+        "grid_index",
+        "card_id"
+      ],
+      "title": "WindowEntry",
+      "type": "object"
+    },
+    "WindowPolygon": {
+      "additionalProperties": false,
+      "description": "A window outline in its frame's metres and in degrees (WGS84 for Earth, planetocentric\nfor the Moon and Mars). ``crs`` is read from the product, never assumed.",
+      "properties": {
+        "frame": {
+          "enum": [
+            "utm",
+            "polar_stereographic",
+            "equirectangular",
+            "aeqd_sphere"
+          ],
+          "title": "Frame",
+          "type": "string"
+        },
+        "crs": {
+          "minLength": 1,
+          "title": "Crs",
+          "type": "string"
+        },
+        "epsg": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Epsg"
+        },
+        "utm_zone": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Utm Zone"
+        },
+        "ring_m": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "minItems": 4,
+          "title": "Ring M",
+          "type": "array"
+        },
+        "ring_lonlat": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "minItems": 4,
+          "title": "Ring Lonlat",
+          "type": "array"
+        }
+      },
+      "required": [
+        "frame",
+        "crs",
+        "epsg",
+        "utm_zone",
+        "ring_m",
+        "ring_lonlat"
+      ],
+      "title": "WindowPolygon",
+      "type": "object"
+    },
+    "WindowRecord": {
+      "additionalProperties": false,
+      "description": "One analysis window (PRD 8.12). UTM zone and EPSG live in ``polygon``; search region,\nscenes and environment live in ``environment_flags``.",
+      "properties": {
+        "window_id": {
+          "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+          "title": "Window Id",
+          "type": "string"
+        },
+        "body": {
+          "enum": [
+            "moon",
+            "mars",
+            "earth"
+          ],
+          "title": "Body",
+          "type": "string"
+        },
+        "polygon": {
+          "$ref": "#/$defs/WindowPolygon"
+        },
+        "area_m2": {
+          "exclusiveMinimum": 0,
+          "title": "Area M2",
+          "type": "number"
+        },
+        "analysis_grid_m": {
+          "exclusiveMinimum": 0,
+          "title": "Analysis Grid M",
+          "type": "number"
+        },
+        "product_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Product Ids",
+          "type": "array"
+        },
+        "valid_fraction_by_observable": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Valid Fraction By Observable",
+          "type": "object"
+        },
+        "observed_interpolated_quality": {
+          "$ref": "#/$defs/ObservedInterpolatedQuality"
+        },
+        "environment_flags": {
+          "$ref": "#/$defs/EnvironmentFlags"
+        },
+        "evidence_status_by_field": {
+          "additionalProperties": {
+            "enum": [
+              "Observed",
+              "Derived",
+              "Predicted",
+              "Assumed",
+              "Unavailable"
+            ],
+            "type": "string"
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Evidence Status By Field",
+          "type": "object"
+        }
+      },
+      "required": [
+        "window_id",
+        "body",
+        "polygon",
+        "area_m2",
+        "analysis_grid_m",
+        "product_ids",
+        "valid_fraction_by_observable",
+        "observed_interpolated_quality",
+        "environment_flags",
+        "evidence_status_by_field"
+      ],
+      "title": "WindowRecord",
+      "type": "object"
+    }
+  },
+  "description": "windows/{body}.json: the WindowEntries (PRD 8.4).",
+  "items": {
+    "$ref": "#/$defs/WindowEntry"
+  },
+  "title": "Windows",
+  "type": "array"
+}

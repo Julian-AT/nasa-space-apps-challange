@@ -66,6 +66,36 @@ export const CONTRACTS: readonly Contract[] = [
     schemaName: 'SourcesSchema',
     typeName: 'Sources',
   },
+  {
+    json: 'window-record.schema.json',
+    module: 'window-record.ts',
+    schemaName: 'WindowRecordSchema',
+    typeName: 'WindowRecord',
+  },
+  {
+    json: 'fingerprint-record.schema.json',
+    module: 'fingerprint-record.ts',
+    schemaName: 'FingerprintRecordSchema',
+    typeName: 'FingerprintRecord',
+  },
+  {
+    json: 'windows.schema.json',
+    module: 'windows.ts',
+    schemaName: 'WindowsSchema',
+    typeName: 'Windows',
+  },
+  {
+    json: 'comparison-record.schema.json',
+    module: 'comparison-record.ts',
+    schemaName: 'ComparisonRecordSchema',
+    typeName: 'ComparisonRecord',
+  },
+  {
+    json: 'comparisons.schema.json',
+    module: 'comparisons.ts',
+    schemaName: 'ComparisonsSchema',
+    typeName: 'Comparisons',
+  },
 ];
 
 /** The JSON Schema could not be translated faithfully, or is missing or malformed. */

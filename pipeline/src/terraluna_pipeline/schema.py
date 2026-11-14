@@ -964,6 +964,11 @@ CONTRACTS: tuple[Contract, ...] = (
     Contract("Validation", "validation.schema.json", TypeAdapter(ValidationFile)),
     Contract("ProductRecord", "product-record.schema.json", TypeAdapter(ProductRecord)),
     Contract("Sources", "sources.schema.json", TypeAdapter(SourcesFile)),
+    Contract("WindowRecord", "window-record.schema.json", TypeAdapter(WindowRecord)),
+    Contract("FingerprintRecord", "fingerprint-record.schema.json", TypeAdapter(FingerprintRecord)),
+    Contract("Windows", "windows.schema.json", TypeAdapter(WindowsFile)),
+    Contract("ComparisonRecord", "comparison-record.schema.json", TypeAdapter(ComparisonRecord)),
+    Contract("Comparisons", "comparisons.schema.json", TypeAdapter(ComparisonsFile)),
 )
 
 
