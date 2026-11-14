@@ -708,11 +708,52 @@ class PlainSubclass(np.ndarray[Any, Any]):
     """An ndarray subclass other than numpy's own; third-party subclasses may carry masks."""
 
 
+# Review codex-r3-1 / codex2-r3-1: list and tuple subclasses passed the walk by isinstance, and
+# numpy then converted them by their own protocol, so the masked 300 came out VALID. Containers
+# are now matched by exact type.
+
+
+class ListWithArray(list[object]):
+    """A list subclass holding the plain data, while ``__array__`` returns ``array``.
+
+    The walk sees only the plain list members; numpy converts through ``__array__``.
+    """
+
+    def __init__(self, array: npt.NDArray[Any]) -> None:
+        super().__init__(np.ma.getdata(array).tolist())
+        self.array = array
+
+    def __array__(self, dtype: object = None, copy: object = None) -> npt.NDArray[Any]:
+        return self.array
+
+
+class TupleWithArray(tuple[object, ...]):
+    """The tuple counterpart of :class:`ListWithArray`."""
+
+    array: npt.NDArray[Any]
+
+    def __new__(cls, array: npt.NDArray[Any]) -> TupleWithArray:
+        self = super().__new__(cls, np.ma.getdata(array).tolist())
+        self.array = array
+        return self
+
+    def __array__(self, dtype: object = None, copy: object = None) -> npt.NDArray[Any]:
+        return self.array
+
+
+class ListSubclass(list[object]):
+    """A list subclass that overrides nothing. It is refused all the same: a subclass can change
+    how numpy converts it, so only exact lists and tuples are walked."""
+
+
 HIDING_CONTAINERS: dict[str, Callable[[npt.NDArray[Any]], object]] = {
     "custom sequence": OneMemberSequence,
     "array-like": ArrayLike,
     "array-like in a list": lambda array: [ArrayLike(array)],
     "ndarray subclass": lambda array: np.asarray(array).view(PlainSubclass),
+    "list subclass with __array__": ListWithArray,
+    "tuple subclass with __array__": TupleWithArray,
+    "list subclass": lambda array: ListSubclass(list(array)),
 }
 
 
@@ -735,6 +776,103 @@ def test_containers_that_could_hide_a_mask_are_refused(
         flag = np.array([False, False])
     with pytest.raises(TypeError, match="plain numpy array"):
         call_with(argument, wrapper(dn), wrapper(flag))  # type: ignore[arg-type]
+
+
+def test_review_example_list_subclass_of_an_array_like_is_refused() -> None:
+    # codex-r3-1: an empty list payload, and __array__ hands numpy the masked array.
+    class ListArrayLike(ArrayLike, list[object]):
+        pass
+
+    masked = np.ma.array([100.0, 300.0], mask=[False, True])
+    with pytest.raises(TypeError, match="plain numpy array"):
+        decode_linear(ListArrayLike(masked), nodata=None)
+
+
+@pytest.mark.parametrize("depth", [1, 2, 3])
+@pytest.mark.parametrize("container", CONTAINERS)
+def test_list_subclass_nested_in_plain_containers_is_refused(
+    depth: int, container: Container
+) -> None:
+    # The walk descends through exact lists and tuples and still refuses the subclass inside.
+    # Shape-free entry points only: nesting adds leading dimensions of size 1.
+    masked = np.ma.array([100.0, 300.0], mask=[False, True])
+    dn = nest(ListWithArray(masked), depth, container)
+    with pytest.raises(TypeError, match="plain numpy array"):
+        decode_db(dn, nodata=None)  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="plain numpy array"):
+        decode_linear(dn, nodata=None)  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="plain numpy array"):
+        angle_to_degrees(dn, unit="degrees")  # type: ignore[arg-type]
+
+
+class FloatWithArray(float):
+    """A float subclass whose ``__array__`` returns a masked element."""
+
+    def __array__(self, dtype: object = None, copy: object = None) -> npt.NDArray[Any]:
+        return np.ma.array(float(self), mask=True)
+
+
+class IntSubclass(int):
+    """An int subclass; scalars are matched by exact type, like containers."""
+
+
+class Float64Subclass(np.float64):
+    """A numpy scalar subclass other than numpy's own."""
+
+
+SCALAR_SUBCLASSES: dict[str, Callable[[float], object]] = {
+    "float subclass with __array__": FloatWithArray,
+    "int subclass": lambda value: IntSubclass(int(value)),
+    "numpy float64 subclass": Float64Subclass,
+}
+
+# Boolean flags have no scalar subclass to test: bool cannot be subclassed, and a subclass of
+# np.bool_ constructs plain np.bool_ values.
+DN_ARGUMENTS = [argument for argument in ARRAY_ARGUMENTS if "noise" not in argument]
+
+
+@pytest.mark.parametrize("argument", DN_ARGUMENTS)
+@pytest.mark.parametrize("scalar", list(SCALAR_SUBCLASSES))
+def test_scalar_subclasses_are_refused(argument: str, scalar: str) -> None:
+    # numpy may convert a subclass by its own protocol, so only exact scalar types are accepted.
+    dn = [100.0, SCALAR_SUBCLASSES[scalar](300.0)]
+    with pytest.raises(TypeError, match="plain numpy array"):
+        call_with(argument, dn, np.array([False, False]))  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("field", ["value", "state", "reason"])
+@pytest.mark.parametrize("container", [ListWithArray, TupleWithArray])
+def test_stated_array_refuses_fields_in_list_or_tuple_subclasses(
+    field: str, container: Callable[[npt.NDArray[Any]], object]
+) -> None:
+    fields: dict[str, Any] = {
+        "value": np.array([1.0]),
+        "state": np.array([VALID], dtype=STATE_DTYPE),
+        "reason": np.array([InvalidReason.NONE], dtype=REASON_DTYPE),
+    }
+    fields[field] = container(np.ma.array(fields[field], mask=[True]))
+    with pytest.raises(TypeError, match="plain numpy array"):
+        StatedArray(**fields)
+
+
+def test_stated_array_accepts_lists_of_its_own_codes() -> None:
+    # Guards the exact-type rule: ObsState and InvalidReason members are int and str subclasses
+    # defined here, and they convert to their plain codes.
+    record = StatedArray(
+        value=np.array([1.0, np.nan]),
+        state=np.array([VALID, INVALID], dtype=STATE_DTYPE),
+        reason=[InvalidReason.NONE, InvalidReason.DN_ZERO],  # type: ignore[arg-type]
+    )
+    assert record.reason.tolist() == ["NONE", "DN_ZERO"]
+
+
+@pytest.mark.parametrize(
+    "scalar", [np.float64(300.0), np.float32(300.0), np.int64(300), np.uint16(300)]
+)
+def test_numpy_scalars_are_accepted(scalar: np.generic) -> None:
+    # Guards the exact-type rule: numpy's own scalar types are plain scalars.
+    dn: list[Any] = [100, scalar]
+    assert np.all(decode_linear(dn, nodata=None).state == VALID)
 
 
 @pytest.mark.parametrize("argument", ARRAY_ARGUMENTS)
