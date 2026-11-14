@@ -1779,8 +1779,10 @@ _STOKES_QUANTITIES: Final = ("S1", "S2", "S3", "S4")
 _COMBINED_LOOK: Final = re.compile(r"This is a combined East and West-looking mosaic\.")
 _CPR_DEFINITION: Final = re.compile(r"\(CPR = [^)]*\)")
 _TRANSMIT_SENTENCE: Final = re.compile(r"The Mini-RF instrument transmits[^.]*\.")
-_S_BAND_SENTENCE: Final = re.compile(r"Mini-RF operated in S-band \([^)]*\)[^.]*\.")
-_PA_SENTENCE: Final = re.compile(r"[^.]*\bMoon Princip\w* Axis \(PA\) coordinate system[^.]*\.")
+_S_BAND_SENTENCE: Final = re.compile(r"Mini-RF operated in S-band \([^)]*\)")
+_PA_SENTENCE: Final = re.compile(
+    r"[A-Z][^.=]*\bMoon Princip\w* Axis \(PA\) coordinate system[^.]*\."
+)
 _DSMAP_FORMULAS: Final = ("x = (Sample - S0) * Scale", "y = (L0 - Line) * Scale")
 _DSMAP_CENTRES: Final = "Integral values of line and sample correspond to the center of a pixel."
 _VALUE_RULE_WORDS: Final = ("VALID_MIN", "VALID_MAX", "MISSING", "INVALID")
@@ -2304,7 +2306,7 @@ class MinirfSource:
                 f"{projection.crs.srs}, from the label's IMAGE_MAP_PROJECTION "
                 f"(COORDINATE_SYSTEM_NAME = {map_block.require('COORDINATE_SYSTEM_NAME').raw}, "
                 f"COORDINATE_SYSTEM_TYPE = {map_block.require('COORDINATE_SYSTEM_TYPE').raw})"
-                + ("" if pa is None else f"; the data set catalog states '{pa.group(0).strip()}'")
+                + ("" if pa is None else f"; the data set catalog states '{pa.group(0)}'")
             ),
             "incidence_source": incidence,
             "qa_definition": (
@@ -2536,8 +2538,12 @@ class MinirfSource:
                 "mixed": True if combined else (False if look is not None else None),
                 "label_text": None if combined is None else combined.group(0),
                 "look_direction_keyword": None if look is None else look.raw,
-                "single_look_mosaics_listed": [
-                    layer["file_name"] for layer in layers if layer["look_direction"] is not None
+                "single_look_mosaics_covering_site01": [
+                    layer["file_name"]
+                    for layer in layers
+                    if layer["look_direction"] is not None
+                    and layer["quantity"] == "CPR"
+                    and layer["covers_site01"] is True
                 ],
             },
             "incidence": {
