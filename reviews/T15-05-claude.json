@@ -136,7 +136,11 @@
       "claim": "The story's own commits also changed prd.json, progress.txt and the ralph scripts (new-batch.sh, prompt.md, ralph.sh, review.sh). Those are outside the story's files list.",
       "evidence": "git diff --stat across the range shows scripts/ralph/* and logs/agents/*.jsonl alongside the apps/web/server/api files. The prd.json change is the review-state bookkeeping, and the ralph scripts are orchestration. I did not inspect the script changes.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The paths outside the story's files in aba5ce1..71f9f7f were not changed by the author. scripts/ralph/batches/t15-api/prd.json and progress.txt are this batch's story list and progress log, which the author prompt (section 2) allows, and the prd.json change is the review.state bookkeeping. scripts/ralph/new-batch.sh, prompt.md, ralph.sh and review.sh came in only through c51a7a6 (Merge branch 'ralph/tooling' into ralph/t15-api, an orchestrator merge). git log --first-parent over the range for those files lists only that merge, and its second-parent commits (a6dfe83, c02fb70, c97ca63, 3dc1c63) are ralph tooling work. The only commit in the range touching logs/agents/2026-11-14/t15-api/*.jsonl is 7300356 (chore(ralph): record t15-api loop state after branch restore), the loop's own state commit. No product file outside apps/web/server/api changed."
+      }
     },
     {
       "severity": "low",
@@ -144,7 +148,11 @@
       "claim": "/windows/{id} and /compare answer 501 for any valid id once a window or comparison file is listed, so an unknown id and a known id look the same. The 404-for-unknown-ids criterion is met only for the case where the bundle lists no such file.",
       "evidence": "The windows.ts header comment and the prd.json notes item (2) state this, and it follows from no WindowRecord schema existing. I did not read the windows tests to see whether they pin it.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "88300c2354a1cfd44d326a8be6d5fe175f3b4f43",
+        "reason": "This is the same defect as codex-r1-1, fixed in 88300c2 (tests in 0151847). 404 now covers every id the manifest can rule out, not only bundles that list no window or comparison file. Examples: an id outside manifest.targets when only targets.json is listed, and a comparison whose comparisons/<a>.json and comparisons/<b>.json are both unlisted and whose two windows no listed file could hold. 501 remains only when a listed file could hold the record. In practice that is a windows/<body>.json top-N file, whose ids cannot be read without parsing a file that has no schema. windows.test.ts and compare.test.ts pin both sides."
+      }
     }
   ]
 }

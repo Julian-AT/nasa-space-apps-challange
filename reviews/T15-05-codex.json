@@ -136,7 +136,11 @@
       "claim": "Preserve the required 404 response for unknown window and comparison IDs. Both handlers currently return 501 whenever any source file exists, regardless of the requested IDs.",
       "evidence": "windows.ts:71-80 never looks up id; compare.ts:63-73 similarly ignores a and b when selecting 501. By inspection, a bundle listing only comparisons/known.json makes /compare?a=missing&b=other return 501, and listing targets.json makes /windows/missing return 501. windows.test.ts:56-68 and compare.test.ts:55-67 pin this blanket behavior instead of testing the criterion's unknown-ID 404 rule.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "88300c2354a1cfd44d326a8be6d5fe175f3b4f43",
+        "reason": "Fixed in 88300c2, with the tests written first in 0151847. The status now depends on the requested ids, and manifest.json alone decides it. targets.json can hold only the target windows that manifest.targets lists, because a target id is the id of its target window (PRD 8.4: moon-cr-site01-w000, which also keys comparisons/<target_id>.json). A precomputed comparison of a and b can only be in comparisons/<a>.json or comparisons/<b>.json (PRD 8.4, 8.12). An on-request comparison is possible only when listed window files could hold both windows. Both examples in the finding now return 404: /compare?a=missing&b=other with only comparisons/known.json listed, and /windows/missing with only targets.json listed. windows.test.ts, compare.test.ts and the UNKNOWN_IDS cases in unavailable.test.ts pin this. One case still returns 501: an id outside manifest.targets while a windows/<body>.json top-N file is listed. That file can hold any window, and its ids could only be found by parsing a file with no @terraluna/schema schema. T15-01 AC3 and the story notes rule that out (no hand-written substitute schema). In that case the 501 detail names only the files that could hold the id and says the id is not looked up in them. Mutation checks: each of seven changes to the new logic failed between 1 and 12 tests."
+      }
     }
   ]
 }
