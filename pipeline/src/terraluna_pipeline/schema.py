@@ -19,7 +19,10 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 SCHEMA_VERSION = "1.0.0"
-"""Version of the bundle records. Change it whenever a model in this module changes."""
+"""Version of the bundle records, as in the PRD 8.4 manifest example these models implement.
+
+A test keeps the two equal, so a new version of the records also needs a PRD amendment.
+"""
 
 GateId = Literal["G0", "G1", "G2", "G3", "G4", "G5", "G6"]
 """The release gates of PRD section 9."""

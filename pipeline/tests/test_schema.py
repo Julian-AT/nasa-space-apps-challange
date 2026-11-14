@@ -160,6 +160,11 @@ def test_schema_version_is_semver() -> None:
     assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", SCHEMA_VERSION)
 
 
+def test_schema_version_is_the_prd_example_version() -> None:
+    # The models implement exactly the PRD 8.4 example's fields, so they carry its version too.
+    assert prd_manifest_example()["schema_version"] == SCHEMA_VERSION
+
+
 # --- BundleManifest -----------------------------------------------------------------------------
 
 
