@@ -25,6 +25,9 @@ include = [
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["terraluna_pipeline", "terraluna_ml"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
