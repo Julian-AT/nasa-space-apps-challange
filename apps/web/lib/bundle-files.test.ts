@@ -238,6 +238,23 @@ describe('pullBundle refuses a server-side file that does not match its manifest
     expectFileError(root, 'targets.json', 'listed_twice');
   });
 
+  it('refuses a manifest for another bundle_version before reading the files it lists', () => {
+    const root = repoWithMock();
+    const dir = join(root, 'release', VERSION);
+    const manifest = {
+      ...manifestFor(new Uint8Array()),
+      bundle_version: 'other-version',
+      files: listing(SERVER_FILES),
+    };
+    writeFiles(dir, { 'manifest.json': toBytes(manifest) });
+    const error = caught(() =>
+      pullBundle({ repoRoot: root, outDir: join(tempDir(), 'data'), env: ENV }),
+    );
+    expect(error).toBeInstanceOf(BundleError);
+    expect(error).not.toBeInstanceOf(BundleFileError);
+    expect((error as BundleError).message).toMatch(/other-version/);
+  });
+
   it('writes nothing when an output path is blocked', () => {
     const root = repoWithMock();
     addFullRelease(root, { listed: SERVER_FILES });
