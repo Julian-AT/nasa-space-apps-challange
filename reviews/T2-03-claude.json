@@ -114,7 +114,11 @@
       "claim": "The acceptance criteria say 'the notes record' the open real-data PSD tolerance and the open handedness threshold. These are recorded only in docstrings, and no notes file was changed.",
       "evidence": "The diff contains no notes or docs file. The open decisions appear in the circular_from_covariance docstring (lines 1195-1203) and in ARITHMETIC_TOLERANCE (lines 651-654). The orchestrator may need to confirm this counts.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted. The criterion's 'the notes record' refers to the story's own notes field in scripts/ralph/batches/t2-polarimetry/prd.json, which records both open decisions: item (1), no real-data Hermitian or PSD tolerance is set and the argument defaults to ARITHMETIC_TOLERANCE (rtol 1e-10, atol 1e-12); item (2), no 'not small' handedness threshold appears in code (PRD 6.2: set on development data). The progress log entry for the implement iteration (2026-11-14T20:40Z, 'Open decisions') records them too, and the docstrings repeat them. The story's files list names no separate notes file, so nothing is missing."
+      }
     },
     {
       "severity": "low",
@@ -122,7 +126,11 @@
       "claim": "The criterion lists three cause codes (COV_NOT_HERMITIAN, COV_NOT_PSD, COV_NONFINITE). The implementation adds a fourth, COV_NEGATIVE_DIAGONAL, for a negative diagonal. It is distinct and INVALID, so this is probably acceptable.",
       "evidence": "polarimetry.py:1289-1293 marks COV_NEGATIVE_DIAGONAL before the eigenvalue check. Tests test_negative_diagonal_beyond_the_tolerance_is_its_own_cause and test_each_invalid_case_has_a_distinct_cause pass.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted. The criterion names four invalid cases (non-Hermitian, negative eigenvalue below -tol, negative diagonal, NaN) and requires that 'each give INVALID with a distinct cause code'. Four distinct causes need four codes; the parenthesis lists three. A negative diagonal also implies a negative eigenvalue (the smallest eigenvalue is at most the smallest diagonal entry), so without its own code it would share COV_NOT_PSD and the criterion would fail. test_each_invalid_case_has_a_distinct_cause asserts four distinct reasons, and story notes item (3) records the choice. No change."
+      }
     }
   ]
 }

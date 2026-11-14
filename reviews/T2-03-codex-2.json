@@ -108,7 +108,11 @@
       "claim": "Subtracting rounded SC powers can erase a representable handedness term and publish an incorrect valid diagnostic.",
       "evidence": "Static counterexample in RAW ordering: let L=2^60 and covariance=[[L,i,0],[-i,L,0],[0,0,L]]. This is Hermitian positive definite. PRD 6.2 gives base_SC=3L/2, Im D+Im E=1, and handedness_ratio=2/(3L). The circular powers 3L/2−1 and 3L/2+1 round identically in float64; line 1309 therefore produces zero, and lines 1316 and 1332 publish a VALID zero term and ratio. Compute the diagnostic without subtracting rounded powers and add a mixed-magnitude regression.",
       "id": "codex2-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "5288770743a3e0652d501ec746d2da2da13098b5",
+        "reason": "Fixed in 5288770, failing tests first in bb173ef (10 failed, 140 passed before either fix). Reproduced: RAW [[L,i,0],[-i,L,0],[0,0,L]] with L=2**60 gave a VALID handedness_term 0.0 and a VALID ratio 0.0. The term is now Re sum(C' * K), with K = (M2 - M0)/2 built from the SC_opp and SC_LL rows of CIRCULAR_BASIS (M_ij = u_i conj(u_j)). K is exactly zero wherever the two rows agree, so only the HH-HV and HV-VV elements enter. No powers are subtracted and no expanded formula is in the code. Now term = 1.0000000000000002 and ratio = 5.782411586589358e-19 (exact 2/(3L) = 5.782411586589357e-19). Regression: test_handedness_term_is_not_lost_beside_large_powers (both orderings, both conventions) and a hypothesis property, test_handedness_term_is_accurate_relative_to_its_own_parts: diagonal powers near 2**k (k in -500..500), off-diagonal parts up to 2**-500 below them, and an exact Fraction oracle within rtol * (|Im D| + |Im E|) for the term and ratio in both orderings, so a zero term must be exactly zero. Clean over 40 hypothesis seeds."
+      }
     },
     {
       "severity": "high",
@@ -116,7 +120,11 @@
       "claim": "Shared matrix scaling can discard a nonzero component and subsequently publish valid zero SC and CPR.",
       "evidence": "Static counterexample: RAW covariance=[[L,0,L],[0,v,0],[L,0,L]], with L=2^1000 and v=2^-1000, is Hermitian PSD. PRD powers are SC_LL=SC_opp=base_SC=v and OC=L. Scaling by exponent 1001 at line 1119 changes v to 2^-2001, which underflows to zero. The transformed SC is then zero; :1136 and :1158 inspect only already-rounded values, so SC and CPR become VALID zeros. SC is actually representable, while CPR=2^-2000 should be unavailable under the implementation's range policy. Tests at pipeline/tests/test_polarimetry_covariance.py:865 scale all components together and miss this case.",
       "id": "codex2-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "a7ceef218d7e587faf22ba1eac6767dc40119697",
+        "reason": "Fixed in a7ceef2, failing tests first in bb173ef. Reproduced: RAW [[L,0,L],[0,v,0],[L,0,L]] with L=2**1000, v=2**-1000 gave VALID SC 0.0, base_SC 0.0 and CPR 0.0. A new shared rule 3 (after COV_NONFINITE, before the Hermitian rule) marks the pixel INVALID with FLOAT64_OUT_OF_RANGE when a nonzero real or imaginary part of C' is below 2**-1016 times its largest part (_CARRIED_RANGE). Every part that passes stays a normal float64 through the transformation (scaled largest in [0.5, 2); the factors on the way multiply to at least 1/16). A lost part can therefore neither appear as a VALID zero nor decide the tolerance rules. SC = 2**-1000 is representable, but this pixel's parts are 2**2000 apart, which one float64 scale cannot carry, so the pixel fails closed with an explicit state instead of a value the scaling could not hold. This is representability, not a physical threshold (PRD 7: no silent repair), and it binds only matrices spanning about 300 decimal orders. The test is relative, so both orderings decide alike. Regression: test_parts_float64_cannot_hold_at_one_scale_publish_nothing (the reported matrix and an Im D of 2**-1060 beside unit powers) and a hypothesis property, test_cancelling_powers_are_published_right_or_not_at_all: A = B = C = 2**(2i), V = 2**(2j), i and j in -500..500, both orderings and conventions. Every output is VALID within rtol of the exact Fraction value or INVALID with FLOAT64_OUT_OF_RANGE, and all are VALID when A and V are at most 2**1000 apart. Clean over 40 hypothesis seeds."
+      }
     }
   ]
 }
