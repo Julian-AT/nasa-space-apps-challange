@@ -29,3 +29,15 @@
 {"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":0}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_schema_science.py"}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_provenance.py"}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_json_schema.py"}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"Bash","input":"pnpm --filter @terraluna/schema test"}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"Bash","input":"make schema-check"}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"Bash","input":"git diff --stat 548c2ec2184a698afb2d9eeadbda7b32cd4c0331 7b44de6933bb0733d61d33f3ed3d40dd682e0436"}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"Bash","input":"git diff 548c2ec2184a698afb2d9eeadbda7b32cd4c0331 7b44de6933bb0733d61d33f3ed3d40dd682e0436 -- pipeline/src/terraluna_pipeline/schema.py pipeline/src/terraluna_pipeline/provenance.py"}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"Bash","input":"git diff 548c2ec2184a698afb2d9eeadbda7b32cd4c0331 7b44de6933bb0733d61d33f3ed3d40dd682e0436 -- scripts/ralph/batches/t0b-contracts/progress.txt scripts/ralph/batches/t0b-contracts/prd.json"}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"Grep","input":"PRD|8\\.12|read_text|def test_.*(field_list|fields_equal|prd)"}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T22:10:58Z","agent":"verifier","story":"T0B-01","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":3}
