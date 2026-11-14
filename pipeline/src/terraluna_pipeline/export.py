@@ -10,16 +10,19 @@ Command line::
 
     python -m terraluna_pipeline.export validate <bundle_dir> [--production]
     python -m terraluna_pipeline.export mock-bundle <out_dir>
+    python -m terraluna_pipeline.export mock-bundle-check <bundle_dir>
 """
 
 from __future__ import annotations
 
 import argparse
+import difflib
 import functools
 import hashlib
 import json
 import re
 import sys
+import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -227,17 +230,10 @@ def _check_paths(paths: set[str]) -> None:
                 raise ValueError(f"{first!r} and {name!r} differ only in case")
 
 
-def write_bundle(
-    out_dir: Path, files: Mapping[str, object], manifest_fields: Mapping[str, object]
-) -> BundleManifest:
-    """Write a bundle and its manifest.json, and return the manifest.
-
-    ``files`` maps bundle paths to contents: ``bytes`` are written as they are, and any other
-    value is written as canonical JSON. ``manifest_fields`` holds every manifest field except
-    ``files``, which lists each written file with its SHA-256 and byte count. Everything is
-    checked before anything is written, and ``out_dir`` must be new or empty, since a bundle
-    is immutable once written (PRD 8.4).
-    """
+def _encode_bundle(
+    files: Mapping[str, object], manifest_fields: Mapping[str, object]
+) -> tuple[BundleManifest, dict[str, bytes]]:
+    """Check a bundle and encode every file, manifest.json last, without writing anything."""
     if "files" in manifest_fields:
         raise ValueError("manifest_fields must not contain 'files'; write_bundle lists them")
     if MANIFEST in files:
@@ -252,17 +248,38 @@ def write_bundle(
     ]
     _check_paths(set(encoded))
     manifest = BundleManifest.model_validate({**manifest_fields, "files": listing})
-    manifest_data = canonical_json(manifest.model_dump(mode="json"))
+    encoded[MANIFEST] = canonical_json(manifest.model_dump(mode="json"))
+    return manifest, encoded
 
-    out = Path(out_dir)
-    if out.exists() and (not out.is_dir() or any(out.iterdir())):
-        raise FileExistsError(f"{out} exists and is not an empty directory")
+
+def _write_files(out: Path, encoded: Mapping[str, bytes]) -> None:
     out.mkdir(parents=True, exist_ok=True)
     for path, data in encoded.items():
         target = out.joinpath(*path.split("/"))
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
-    (out / MANIFEST).write_bytes(manifest_data)
+
+
+def _refuse_non_empty(out: Path) -> None:
+    if out.exists() and (not out.is_dir() or any(out.iterdir())):
+        raise FileExistsError(f"{out} exists and is not an empty directory")
+
+
+def write_bundle(
+    out_dir: Path, files: Mapping[str, object], manifest_fields: Mapping[str, object]
+) -> BundleManifest:
+    """Write a bundle and its manifest.json, and return the manifest.
+
+    ``files`` maps bundle paths to contents: ``bytes`` are written as they are, and any other
+    value is written as canonical JSON. ``manifest_fields`` holds every manifest field except
+    ``files``, which lists each written file with its SHA-256 and byte count. Everything is
+    checked before anything is written, and ``out_dir`` must be new or empty, since a bundle
+    is immutable once written (PRD 8.4).
+    """
+    manifest, encoded = _encode_bundle(files, manifest_fields)
+    out = Path(out_dir)
+    _refuse_non_empty(out)
+    _write_files(out, encoded)
     return manifest
 
 
@@ -472,10 +489,81 @@ def mock_gate_records() -> list[GateRecord]:
     ]
 
 
-def write_mock_bundle(out_dir: Path) -> BundleManifest:
-    """Write the mock bundle: manifest.json and validation.json, and no other file."""
+def _encode_mock_bundle() -> tuple[BundleManifest, dict[str, bytes]]:
     records = [record.model_dump(mode="json") for record in mock_gate_records()]
-    return write_bundle(out_dir, {VALIDATION: records}, mock_manifest_fields())
+    return _encode_bundle({VALIDATION: records}, mock_manifest_fields())
+
+
+def _refuse_to_replace(out: Path, written: Mapping[str, bytes]) -> None:
+    """Allow replacing ``out`` only if it is a mock bundle holding no file the mock does not write.
+
+    Nothing is ever deleted: a file the mock bundle no longer writes has to be removed by hand.
+    """
+    if not out.exists():
+        return
+    if not out.is_dir():
+        raise FileExistsError(f"{out} exists and is not a directory")
+    sizes, irregular = _scan(out)
+    others = sorted(set(irregular) | (set(sizes) - set(written)))
+    if others:
+        raise FileExistsError(
+            f"{out} holds files the mock bundle does not write, so it is left as it is: "
+            + ", ".join(others)
+        )
+    if MANIFEST not in sizes:
+        return
+    try:
+        manifest = _load_json((out / MANIFEST).read_bytes())
+    except ValueError:
+        manifest = None
+    if not (isinstance(manifest, dict) and manifest.get("mock") is True):
+        raise FileExistsError(f"{out}/{MANIFEST} is not marked mock, so it is left as it is")
+
+
+def write_mock_bundle(out_dir: Path, *, replace: bool = False) -> BundleManifest:
+    """Write the mock bundle: manifest.json and validation.json, and no other file.
+
+    With ``replace=True`` an existing mock bundle in ``out_dir`` is overwritten in place.
+    """
+    manifest, encoded = _encode_mock_bundle()
+    out = Path(out_dir)
+    if replace:
+        _refuse_to_replace(out, encoded)
+    else:
+        _refuse_non_empty(out)
+    _write_files(out, encoded)
+    return manifest
+
+
+def mock_bundle_differences(committed: Path) -> list[str]:
+    """Regenerate the mock bundle in a temporary directory and list how ``committed`` differs."""
+    with tempfile.TemporaryDirectory() as temporary:
+        fresh = Path(temporary) / "mock-bundle"
+        write_mock_bundle(fresh)
+        generated = {path: (fresh / path).read_bytes() for path in _scan(fresh)[0]}
+    root = Path(committed)
+    if not root.is_dir():
+        return [f"{root}: not a directory"]
+    sizes, irregular = _scan(root)
+    differences: list[str] = []
+    for path in sorted(set(generated) | set(sizes) | set(irregular)):
+        if path in irregular:
+            differences.append(f"{path}: not a regular file")
+        elif path not in sizes:
+            differences.append(f"{path}: generated but missing from {root}")
+        elif path not in generated:
+            differences.append(f"{path}: in {root} but not generated")
+        else:
+            current = (root / path).read_bytes()
+            if current != generated[path]:
+                diff = difflib.unified_diff(
+                    current.decode("utf-8", "replace").splitlines(keepends=True),
+                    generated[path].decode("utf-8", "replace").splitlines(keepends=True),
+                    fromfile=f"{root}/{path}",
+                    tofile=f"generated/{path}",
+                )
+                differences.append(f"{path}: differs from the generated file\n" + "".join(diff))
+    return differences
 
 
 # --- Command line -------------------------------------------------------------------------------
@@ -494,23 +582,41 @@ def main(argv: Sequence[str] | None = None) -> int:
         action="store_true",
         help="also refuse a mock bundle and a null shipping_mode",
     )
-    mock = commands.add_parser("mock-bundle", help="write the mock bundle to a new directory")
+    mock = commands.add_parser(
+        "mock-bundle", help="write the mock bundle, replacing an existing mock bundle in place"
+    )
     mock.add_argument("out_dir", type=Path)
+    check = commands.add_parser(
+        "mock-bundle-check",
+        help="regenerate the mock bundle in a temporary directory and compare it with a copy",
+    )
+    check.add_argument("bundle_dir", type=Path)
     args = parser.parse_args(argv)
 
+    problems: list[str] = []
     if args.command == "validate":
         bundle_dir: Path = args.bundle_dir
-        errors = validate_bundle(bundle_dir, production=args.production)
         label = "production bundle" if args.production else "bundle"
-    else:
+        problems += map(str, validate_bundle(bundle_dir, production=args.production))
+    elif args.command == "mock-bundle":
         bundle_dir = args.out_dir
-        write_mock_bundle(bundle_dir)
-        errors = validate_bundle(bundle_dir, production=False)
         label = f"mock bundle {MOCK_BUNDLE_VERSION}"
-    for error in errors:
-        print(error)
-    if errors:
-        print(f"{len(errors)} problem(s) in {bundle_dir}", file=sys.stderr)
+        try:
+            write_mock_bundle(bundle_dir, replace=True)
+        except FileExistsError as error:
+            print(f"mock-bundle: {error}", file=sys.stderr)
+            return 1
+        problems += map(str, validate_bundle(bundle_dir, production=False))
+    else:
+        bundle_dir = args.bundle_dir
+        label = "mock bundle, identical to the generated one,"
+        problems += mock_bundle_differences(bundle_dir)
+        if not problems:
+            problems += map(str, validate_bundle(bundle_dir, production=False))
+    for problem in problems:
+        print(problem)
+    if problems:
+        print(f"{len(problems)} problem(s) in {bundle_dir}", file=sys.stderr)
         return 1
     print(f"valid {label}: {bundle_dir}")
     return 0
