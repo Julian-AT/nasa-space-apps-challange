@@ -1,0 +1,124 @@
+{
+  "task_id": "T1-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "323dfbaaf26b88b1aa75a143d0b1b6ad4c7895c2",
+    "head": "169dcf1bfae510b68a4321770dfce664cbe3d54e",
+    "files": [
+      {
+        "path": "packages/schema/json/product-record.schema.json",
+        "sha256": "9df5b47de573da876c76793594fd74141dde49513216e2f5819c161ecf079a00"
+      },
+      {
+        "path": "packages/schema/json/sources.schema.json",
+        "sha256": "61b2b8d527ea1b9ee97ef027e5966fe2b73b85b2291cde5f95aeef4aaecd5fc2"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "fc1c1ed7e06024c1bc9d5699faf9acb6b59a6977398ce7941703b91de12d934f"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "7a03c6dfa16716a87be49e8eb56e7648972fa861e24360568c7041e7d1ecb567"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "bc605a4e2be99d5921254a63898afa858ef37700f7f26da8701c308024be3d5b"
+      },
+      {
+        "path": "pipeline/tests/test_io.py",
+        "sha256": "f177addc289f659711de0dca5abe469da51927c5375574f2c203285a1f18b1d3"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "d398e53abdf4e0cae82be9981f8935d7166ae972dd9c626113cb8fb8e6a5790b"
+      },
+      {
+        "path": "pipeline/tests/test_schema_productrecord.py",
+        "sha256": "32c532d29c7af53ea1cc4bdd5e826bf4400be3e1732d962b6fdff99734230321"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "bbce3c617c0976356d076c009d3c5930f37d0dfbc1b832dc6ad669876762eaa7"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:28:15Z",
+  "finished_utc": "2026-11-14T18:28:35Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "All four story checks ran and exited cleanly. The diff stays within the story's files list. The implementation matches each acceptance criterion I could read in code. I did not review the test bodies line by line; I relied on the pass counts and on reading io.py and schema.py. There is one low-severity note about make check coverage.",
+  "checks": [
+    {
+      "criterion": "make schema-check passes with no drift",
+      "command": "make schema-check",
+      "outcome": "PASS",
+      "evidence": "\"JSON Schemas match schema.py: packages/schema/json\". The diff adds product-record.schema.json and sources.schema.json."
+    },
+    {
+      "criterion": "ProductRecord tests (missing field fails, signed URL rejected, etc.)",
+      "command": "uv run pytest pipeline/tests/test_schema_productrecord.py",
+      "outcome": "PASS",
+      "evidence": "236 passed"
+    },
+    {
+      "criterion": "io tests (sha256, windowed GeoTIFF read, local Range server, 200 reply raises)",
+      "command": "uv run pytest pipeline/tests/test_io.py",
+      "outcome": "PASS",
+      "evidence": "68 passed"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed, mypy found no issues in 10 source files"
+    },
+    {
+      "criterion": "ProductRecord has exactly the PRD 8.12 fields, forbids extras, requires every field, accepts only the five verification statuses, takes a null or 64-hex checksum, and rejects signed or credentialed URLs",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "schema.py ProductRecord lists the 19 required fields with no defaults. VerificationStatus has the five required values. SourceUrl combines a URL pattern with has_url_credentials, which covers signature=, token=, access_key, expires= and userinfo. The existing models are untouched in the diff. Extra constraints are a VERIFIED validator and a data/... local_path pattern."
+    },
+    {
+      "criterion": "io.py provides sha256_file, fetch_range, a windowed GeoTIFF reader and read_product",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "io.py:42 streams the checksum in chunks. fetch_range (io.py:378) sends a Range header, requires status 206 and a matching Content-Range, raises RangeNotSupportedError on 200, and wraps DNS and connection errors. read_geotiff_window (io.py:89) returns the array, nodata, CRS WKT and transform as stored. read_product (io.py:263) takes the checksum from the file, returns \"unknown\" units and status PARTIAL when units are missing, and raises if metadata units contradict the file."
+    },
+    {
+      "criterion": "Dependencies and uv.lock stay consistent; no network in tests",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pyproject.toml adds affine and numpy, both already in the lock as rasterio dependencies. uv.lock matches, and make schema-check uses --locked and passed. fetch_range is exercised against a local 127.0.0.1 http.server, per the task."
+    },
+    {
+      "criterion": "Tests written failing-first",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Not checkable from the final diff; no pre-implementation run was available to me."
+    },
+    {
+      "criterion": "Zod sources regenerated if T0-04 added them",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "I did not look for zod-generation tooling, and the diff touches no zod files. The criterion applies only if T0-04 added them."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "Makefile (make check)",
+      "claim": "make check runs only ruff and mypy, not pytest. The tests are covered only by the separate pytest checks.",
+      "evidence": "make check output contained ruff check, ruff format --check and mypy only.",
+      "id": "claude-r1-1",
+      "resolution": null
+    }
+  ]
+}

@@ -41,12 +41,18 @@
       "priority": 1,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "323dfbaaf26b88b1aa75a143d0b1b6ad4c7895c2",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "169dcf1bfae510b68a4321770dfce664cbe3d54e",
+        "files": [
+          "reviews/T1-01-claude.json",
+          "reviews/T1-01-codex.json"
+        ],
+        "digests": {
+          "reviews/T1-01-claude.json": "08d38c3ca537bd9f76784372f7564ce2ce1a79221f4c927d70488b81db83985f",
+          "reviews/T1-01-codex.json": "defd29c4ab0c6c5d9c88b9c88740a871a2bebbb27817d11c97b3ef9d12d1a9ae"
+        }
       },
       "notes": "Reviewer finding: schema generation can touch generated zod files outside packages/schema/json, so files widened to packages/schema/*. Engineering choice: ProductRecord tests go in pipeline/tests/test_schema_productrecord.py (matches test_*schema*.py)."
     },
