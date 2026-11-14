@@ -1,0 +1,152 @@
+{
+  "task_id": "T15-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "6aab6258fa35a843038f26e77e84c94b5d37ff5f",
+    "head": "a2de10e0e9cae4df97dfd9f86774bb1129888534",
+    "files": [
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "970cfc940bd584ac8e81fdb6469ea7c9cd94ce8cfc4dbc0962a13b08af83f6e9"
+      },
+      {
+        "path": "apps/web/server/api/cache.test.ts",
+        "sha256": "92b4b00799672f722234c23d32d23405c87462eb3ee514b4c68f07233bbc685d"
+      },
+      {
+        "path": "apps/web/server/api/cache.ts",
+        "sha256": "45920d61f0a775c891d4b2ac4213b25e7f31164e7d4858da977f48d1134f0b9f"
+      },
+      {
+        "path": "apps/web/server/api/gates.test.ts",
+        "sha256": "14ad55115bafcfec0bc4cd0cf1f09bd8453827e2041c5d1e9230fe181af26597"
+      },
+      {
+        "path": "apps/web/server/api/gates.ts",
+        "sha256": "f0a973b592a8b191928ceac57c9c9e5300cc82d2d5865aab0a475b9bff0b7d04"
+      },
+      {
+        "path": "apps/web/server/api/manifest.test.ts",
+        "sha256": "24e0160a39b1f38034f0b7545d0b30b235d745c779e3fbf8313a7e3e6c56c462"
+      },
+      {
+        "path": "apps/web/server/api/manifest.ts",
+        "sha256": "ca3d3aec7c745d99dd4804844114e2d213b53cae3f8a2515dfe2f49762105ae7"
+      },
+      {
+        "path": "apps/web/server/api/records.ts",
+        "sha256": "1a184448e4cbb993414ee3f0e5b0bcff2d96cdf833e8d029486fba2a05806c95"
+      },
+      {
+        "path": "apps/web/server/api/test-support.ts",
+        "sha256": "e5bb2b2eeb8e0c1246f6b938deeec848834f387d73262f549744c8363cc0e112"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:06:12Z",
+  "finished_utc": "2026-11-14T20:06:44Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T15-03 passes review round 1. All five acceptance criteria hold, backed by passing tests and the code I read. All five story checks exit 0. The diff touches only apps/web/server/api/*, inside the story's files list. I found no blocker or high findings and only two low observations. This review is by claude-sonnet-5-5, on commit a2de10e0e9cae4df97dfd9f86774bb1129888534. I did not hash the inputs. I ran the checks directly rather than relying on the commit messages or progress logs.",
+  "checks": [
+    {
+      "criterion": "AC1: GET /manifest returns manifest.json unchanged and valid, mock=true included; test asserts deep equality with the fixture",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "manifest.test.ts:42-50 uses toEqual against mockFile('manifest.json') and asserts mock===true. manifest.test.ts:52-56 validates against BundleManifestSchema. The same run passes 5 files, 88 tests."
+    },
+    {
+      "criterion": "AC2: GET /gates returns validation.json unchanged; statuses are in the five-value set and equal the fixture's, so nothing becomes PASS",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "gates.test.ts:62-78 checks deep equality, that every status is in STATUSES, that statuses equal the fixture's, and that no status is PASS. gates.test.ts:86-92 passes through a mixed-status bundle. gates.test.ts:104-117 gives 500 for status 'PASSED' with no gate content leaked."
+    },
+    {
+      "criterion": "AC3: responses validated against their schema; a corrupted reader (wrong schema_version type) gives 500 problem+json",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "records.ts:25-39 parseBundleFile re-parses with the generated schema and throws BundleFileError. manifest.test.ts:78-87 uses schema_version:1 and expects 500 problem+json with no passthrough fields. gates.test.ts:94-102 does the same for gates."
+    },
+    {
+      "criterion": "AC4: Cache-Control public, max-age, immutable per the 8.5 table; ETag derived from bundle_version; 304 on matching If-None-Match",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "cache.ts:29,35,61 sets 60 s per deploy and 300 s per bundle with `public, max-age=N, immutable`. ETag is W/\"<bundle_version>\" (cache.ts:52). manifest.test.ts:90-149 and gates.test.ts:120-157 assert the headers, 304 with an empty body and headers kept, a non-matching tag giving 200, HEAD, and that a corrupt file never gives 304. The full web suite passes 250/250."
+    },
+    {
+      "criterion": "AC5: no response fields beyond @terraluna/schema; OpenAPI components reference the generated schemas",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "records.ts:15,18 clone the generated schemas and rename them. Tests assert `_zod.def` identity with the generated schema (manifest.test.ts:169, gates.test.ts:177), $ref to #/components/schemas/BundleManifest and #/components/schemas/Validation, and field parity with the Python-generated JSON Schema."
+    },
+    {
+      "criterion": "Check: pnpm --filter @terraluna/web test",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "11 files, 250 tests passed."
+    },
+    {
+      "criterion": "Check: vitest run server/api",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "5 files, 88 tests passed."
+    },
+    {
+      "criterion": "Check: typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "PASS",
+      "evidence": "next typegen, tsc --noEmit and tsc -p server/api all finished with exit 0."
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, and turbo lint and typecheck all passed (the turbo tasks were cache hits)."
+    },
+    {
+      "criterion": "Check: make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed. Turbo test passed for web (250) and schema (157), both as cache hits. The schema test log came from a different worktree path (t7-shell), but the result is a cache replay."
+    },
+    {
+      "criterion": "Scope, mocks and run.yaml",
+      "command": "git diff --stat",
+      "outcome": "PASS",
+      "evidence": "Only apps/web/server/api/* files changed. Mocks are only read through the injected reader (mockReader is in test-support.ts, which the app never imports). config/run.yaml is untouched."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/server/api/cache.ts:61",
+      "claim": "`immutable` is paired with a short max-age. The ETag is a weak W/\"bundle_version\" and the mock bundle's version stays mock-0 while its content changes, so a client may briefly hold a stale mock.",
+      "evidence": "The cache.ts header comment (lines 19-21) already documents this, and mock bundles are not served on production. Optional: no change needed.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "No change is needed, as the finding itself says. AC4 asks for public caching with a documented max-age and immutable semantics tied to bundle_version, plus an ETag derived from bundle_version. PRD 8.4 (PRD.md:558) says a published bundle is immutable and any change gets a new bundle_version, so for one bundle_version the response never changes. The short max-age (60 s per deploy, 300 s per bundle, cache.ts:29,35) exists because the URLs carry no bundle_version and a deploy may pin a new bundle (PRD 8.9): it bounds how long a client keeps a response. The weak ETag is correct under RFC 9110 8.8.1, since bundle_version names the content and not one serialization, and If-None-Match always compares weakly. The only exception is the mock bundle, whose bundle_version stays mock-0 (MOCK_BUNDLE_VERSION, pipeline/src/terraluna_pipeline/export.py:459, outside this story) while its fixture changes. That is documented in cache.ts:19-21 and in story notes item (2). Mocks are placeholders and assertDeployable (apps/web/lib/bundle.ts:166) refuses them on production, so a stale mock can only reach a preview client."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/server/api/gates.ts:45-48",
+      "claim": "/gates also reads and validates manifest.json to get the ETag, so a manifest fault gives 500 for gates too.",
+      "evidence": "This is deliberate and tested at gates.test.ts:94-102. It is consistent with the story, which asks for an ETag derived from bundle_version.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "No change is needed: the behaviour is intended, as the finding itself says. AC4 asks for an ETag derived from bundle_version for /gates too, and the bundle_version lives only in manifest.json (validation.json has no such field), so /gates must read the manifest. The handler validates it with the generated schema before using it (gates.ts:46), because an ETag built from an unchecked value could confirm, through a 304, a bundle that fails its schema. A manifest fault therefore gives a 500 problem naming manifest.json rather than a /gates response with an unverified ETag, and gates.test.ts:94-102 pins this. If the manifest is invalid, the loader would refuse the whole bundle anyway (loadBundle validates both files, T15-01), so this adds no new failure mode for a real reader."
+      }
+    }
+  ]
+}

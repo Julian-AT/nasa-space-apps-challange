@@ -1,0 +1,152 @@
+{
+  "task_id": "T15-05",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "aba5ce10102a42f41e1efb7aaba802817ce8320c",
+    "head": "6e6a46a515f2d9c8b0b9199548b15698a31701b2",
+    "files": [
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "b067a900bc85c393293209263358bd19811cf930ed17eb364e9c14a1cb87ac72"
+      },
+      {
+        "path": "apps/web/server/api/compare.test.ts",
+        "sha256": "a71b54784ad98cc81f75a172d5d8f894917bf872eb8fcc18378de7e1ce8f9b99"
+      },
+      {
+        "path": "apps/web/server/api/compare.ts",
+        "sha256": "b5f34c1008fb55ab3e6c3c6c8d8c09bc15ded46dbd77e8073dd0694b24fc1192"
+      },
+      {
+        "path": "apps/web/server/api/matches.test.ts",
+        "sha256": "ce625b7d892eec48b78b10eaaaf64f49be2e15ca9e6bcbbe2f0b90c4c7d9b9ab"
+      },
+      {
+        "path": "apps/web/server/api/matches.ts",
+        "sha256": "2e06b8c0d22e35eb56981a7a56acf4dc85ea391fa509a89015e10ec6472bd610"
+      },
+      {
+        "path": "apps/web/server/api/model.test.ts",
+        "sha256": "714ee84ac24402e4f79969cee141f8c729de7481622d14d2d6cee3ff85f014db"
+      },
+      {
+        "path": "apps/web/server/api/model.ts",
+        "sha256": "b2b1c8bef08d843b182fabe61a989c75cc9bacfe7aa2ddd9cbea4fdf9c5362a1"
+      },
+      {
+        "path": "apps/web/server/api/test-support.ts",
+        "sha256": "beee7209d5188c976a0bd88cf7b95c13269f7c5b5be5326c8d1a68a886776310"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.test.ts",
+        "sha256": "845cdab20760f91fde8f76609c557c06757dece2b34484c205539e3ad6bbc968"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.ts",
+        "sha256": "51db1fc70ca8f74f1b6f30215c6f717fe340a64a5f82972cf39ed428dceab236"
+      },
+      {
+        "path": "apps/web/server/api/windows.test.ts",
+        "sha256": "b988e9c4184e6c6a30de218b7a87b715d96854c3bbd09ecdfd77d21b482b954b"
+      },
+      {
+        "path": "apps/web/server/api/windows.ts",
+        "sha256": "31a353491fedbf249eb6de3be3022d1ecd55b7e851b1b55ec3082facc30ed72f"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:57:09Z",
+  "finished_utc": "2026-11-14T21:00:42Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "The round-one scope rebuttal is supported, but the unknown-ID 404 fix remains incomplete. No checks were executed, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Validated unavailable-data routes, explicit problems, and 404 for unknown IDs",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "apps/web/server/api/windows.ts:64-68 includes every listed top-N file regardless of the requested ID; lines 98-104 then return 501. apps/web/server/api/compare.ts:41-44 and 85-92 propagate this behavior. Unknown IDs therefore still receive 501 whenever a top-N file is listed."
+    },
+    {
+      "criterion": "AC2: Model-family refusal without a model or G5 PASS, with Predicted labeling",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static inspection supports the guard: model.ts:43-60 requires a model and exactly one validation G5 PASS alongside manifest G5 PASS, and supplies Predicted. matches.ts:124-127 invokes it; matches.test.ts:167-261 exercises refusal and labeling. Runtime verification was not performed because the read-only sandbox prohibits test writes."
+    },
+    {
+      "criterion": "AC3: No comparison computation or Derived-on-request values; deferral recorded",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/server/api/compare.ts:80-102 only inspects manifest metadata and throws problems; its imports contain no @terraluna/core. unavailable.test.ts:266-288 checks imports and dependencies. The T15-05 notes in scripts/ralph/batches/t15-api/prd.json explicitly defer computation until T10 and real fingerprints."
+    },
+    {
+      "criterion": "AC4: A substantive test scans mock responses for fabricated numeric fields",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/server/api/unavailable.test.ts:37-48 covers all four routes. Lines 63-108 recursively inspect numbers and keys, allow only the HTTP status number, reject result fields, and call the API with mockReader. This establishes the required test's presence and substance; it was not executed."
+    },
+    {
+      "criterion": "AC5: OpenAPI includes these routes and matching problem responses",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "app.ts:148-151 registers all four OpenAPI routes; unavailable.ts:55-76 defines problem responses. unavailable.test.ts:292-398 inspects the generated document and parameter schemas. Document generation and those assertions could not be executed under the read-only restriction."
+    },
+    {
+      "criterion": "Required web tests",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks because tests create temporary files and caches in the read-only sandbox."
+    },
+    {
+      "criterion": "Required focused API tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks because tests create temporary files and caches in the read-only sandbox."
+    },
+    {
+      "criterion": "Required web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; this script invokes next typegen, which writes generated files."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository tests",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Previous-round scope rebuttal",
+      "command": "git log --first-parent --no-merges --format='%h %s' --name-only aba5ce10102a42f41e1efb7aaba802817ce8320c..6e6a46a515f2d9c8b0b9199548b15698a31701b2",
+      "outcome": "PASS",
+      "evidence": "The five specified story commits touch only the 12 scoped API files. Separate path-specific history attributes the Ralph tooling changes to merge c51a7a6. scripts/ralph/prompt.md:21 permits story-list and progress-log changes."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "apps/web/server/api/windows.ts:64-68",
+      "claim": "The round-one fix still violates AC1's unconditional 404 requirement for unknown window and comparison IDs.",
+      "evidence": "windowSources includes windows/<body>.json for every ID without checking membership, and windowHandler:98-104 returns 501 whenever that list is nonempty. comparisonSources in compare.ts:41-44 likewise treats that file as a source for both arbitrary IDs, leading to 501 at lines 85-92. By inspection, a checksum-correct top-N file containing none of the requested IDs still makes /windows/missing and /compare?a=missing&b=other return 501. windows.test.ts:57 and compare.test.ts:98 pin file-presence behavior instead of distinguishing present and absent records within a listed file. The original examples are fixed, but codex-r1-1 and claude-r1-2 remain partially unresolved. The missing schema explains the limitation; it requires an approved contract decision rather than silently narrowing the unknown-ID requirement.",
+      "id": "codex-r2-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "7fea61d98ded2a895cba3fa4101d49f1faf5c2c5",
+        "reason": "Fixed in 7fea61d against AC0 as amended by the orchestrator (option a, prd.json notes, 2026-11-14T21:07:20Z). AC0 no longer asks for an unconditional 404 for unknown ids. It asks for 404 where manifest.json rules an id out, and for 501 problem+json naming the missing record schema where only a listed file without a schema (windows/<body>.json, comparisons/<target_id>.json) could resolve the id, because PRD 8.5 and T15-01 forbid parsing those files. The behaviour this finding describes (windows.ts windowSources and windowHandler, compare.ts comparisonSources and compareHandler) is that rule, so no handler changed. As the decision asks, 7fea61d adds a paired test to unavailable.test.ts. It builds two release manifests with the same targets (none of the requested ids), targets.json and comparisons/<other>.json, which differ only in listing windows/earth.json, and a test asserts that difference. Without that file, /windows/test-window-alpha and /compare?a=test-window-alpha&b=test-window-beta give 404 with a detail saying not in bundle <bundle_version>. With it, both give 501 naming windows/earth.json and the missing WindowRecord or ComparisonRecord schema, without passing the file bytes through. /targets/{id} and matches stay 404 for the unlisted target either way. Mutations, each written back afterwards, all fail the new tests: option (c) (top-N file only for listed targets), top-N files ignored, targets.json holding any window, and a 501 detail without the schema name. d4d80a1 adds the amended rule and the t15b-api follow-up to the rule comment in unavailable.ts. t15b-api T15B-02, T15B-03 and T15B-05 replace these 501s once WindowRecord and ComparisonRecord exist."
+      }
+    }
+  ]
+}

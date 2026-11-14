@@ -1,0 +1,151 @@
+{
+  "task_id": "T15-05",
+  "round": 3,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "aba5ce10102a42f41e1efb7aaba802817ce8320c",
+    "head": "7a9bdf2e278849c101700e506749ee34118dfa06",
+    "files": [
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "b067a900bc85c393293209263358bd19811cf930ed17eb364e9c14a1cb87ac72"
+      },
+      {
+        "path": "apps/web/server/api/compare.test.ts",
+        "sha256": "a71b54784ad98cc81f75a172d5d8f894917bf872eb8fcc18378de7e1ce8f9b99"
+      },
+      {
+        "path": "apps/web/server/api/compare.ts",
+        "sha256": "b5f34c1008fb55ab3e6c3c6c8d8c09bc15ded46dbd77e8073dd0694b24fc1192"
+      },
+      {
+        "path": "apps/web/server/api/matches.test.ts",
+        "sha256": "ce625b7d892eec48b78b10eaaaf64f49be2e15ca9e6bcbbe2f0b90c4c7d9b9ab"
+      },
+      {
+        "path": "apps/web/server/api/matches.ts",
+        "sha256": "2e06b8c0d22e35eb56981a7a56acf4dc85ea391fa509a89015e10ec6472bd610"
+      },
+      {
+        "path": "apps/web/server/api/model.test.ts",
+        "sha256": "714ee84ac24402e4f79969cee141f8c729de7481622d14d2d6cee3ff85f014db"
+      },
+      {
+        "path": "apps/web/server/api/model.ts",
+        "sha256": "b2b1c8bef08d843b182fabe61a989c75cc9bacfe7aa2ddd9cbea4fdf9c5362a1"
+      },
+      {
+        "path": "apps/web/server/api/test-support.ts",
+        "sha256": "beee7209d5188c976a0bd88cf7b95c13269f7c5b5be5326c8d1a68a886776310"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.test.ts",
+        "sha256": "0f077602dc8b55b13854256c026572ede7c0c496993c653a85693a3a217eb119"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.ts",
+        "sha256": "88acd687775b5c4e4a8c36086c98e1c838ba869dcfef68a28548c5bcf39a1702"
+      },
+      {
+        "path": "apps/web/server/api/windows.test.ts",
+        "sha256": "b988e9c4184e6c6a30de218b7a87b715d96854c3bbd09ecdfd77d21b482b954b"
+      },
+      {
+        "path": "apps/web/server/api/windows.ts",
+        "sha256": "31a353491fedbf249eb6de3be3022d1ecd55b7e851b1b55ec3082facc30ed72f"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:11:07Z",
+  "finished_utc": "2026-11-14T21:13:54Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new findings from static review. Prior fixes match the amended 404/501 contract, and the tooling-scope rebuttal is supported by Git history. Runtime behavior and required checks remain unverified because execution was prohibited in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "Validated unavailable-data routes, problem+json responses, and manifest-based 404/501 split",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Registration: apps/web/server/api/app.ts:148-151. Validation: matches.ts:56-97, windows.ts:39-47, compare.ts:48-58. Status selection: matches.ts:129-140, windows.ts:63-67 and 98-115, compare.ts:39-45 and 85-100, model.ts:83-88. Paired regression tests: unavailable.test.ts:273-335. Runtime verification requires executing tests, prohibited in this read-only sandbox."
+    },
+    {
+      "criterion": "Model-family refusal without a model or G5 PASS, with Predicted labeling",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "model.ts:41-60 requires a model and exactly one PASS G5 record alongside manifest.model.g5=PASS; allowed access carries Predicted. matches.ts:124-127 applies this guard. matches.test.ts:164-285 covers absent models, non-PASS states, missing/duplicate G5 records, and labeling. Tests were not executed because sandbox writes are prohibited."
+    },
+    {
+      "criterion": "/compare performs no computation; story notes defer computation until T10 and real fingerprints",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/server/api/compare.ts:80-102 only validates manifest-derived availability and throws problems; its imports contain no @terraluna/core dependency. apps/web/package.json:17-35 has no core dependency. scripts/ralph/batches/t15-api/prd.json:280 explicitly records the T10 and real-fingerprint prerequisite."
+    },
+    {
+      "criterion": "A test scans mock-bundle responses for numeric distance, rank, and fingerprint fields",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/server/api/unavailable.test.ts:37-49 enumerates all four routes and match families. Lines 63-108 recursively inspect numbers and keys, permit only the HTTP status number, and reject result fields. This verifies substantive test coverage by reading; test execution remains unverified."
+    },
+    {
+      "criterion": "OpenAPI document includes the routes and their problem+json responses",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/server/api/app.ts:148-151 registers all four OpenAPI routes; unavailable.ts:61-82 defines problem+json responses. unavailable.test.ts:363-470 checks generated paths, statuses, schemas, and parameters. Document generation was not executed because checks may write files."
+    },
+    {
+      "criterion": "Prior round-one unknown-ID findings: codex-r1-1 and claude-r1-2",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "windows.ts:64-66 limits targets.json to manifest-listed target IDs. compare.ts:40-44 limits precomputed sources to the requested IDs and requires sources for both windows before treating comparison as computable. windows.test.ts:95-123 and compare.test.ts:48-77 cover the original counterexamples. Static resolution confirmed; tests not executed."
+    },
+    {
+      "criterion": "Prior round-two findings: codex-r2-1 and claude-r2-1",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Against the supplied amended contract, windows.ts:63-67 and compare.ts:39-45 correctly preserve 501 when a listed top-N file could resolve the IDs. unavailable.test.ts:273-335 compares manifests with and without windows/earth.json, asserting 404 versus 501 and missing schema names. Static resolution confirmed."
+    },
+    {
+      "criterion": "Prior scope rebuttal: claude-r1-1",
+      "command": "git show --format='%h %s' --stat d4d80a1 7fea61d 88300c2 8a186d3 0151847 f31760f 323a0b3",
+      "outcome": "PASS",
+      "evidence": "All seven supplied story commits touch only the twelve scoped apps/web/server/api files. First-parent history for the disputed Ralph tooling files identifies only merge c51a7a6; the earlier agent log change identifies bookkeeping commit 7300356. No config/run.yaml, AGENTS.md, or CLAUDE.md change appears in the range."
+    },
+    {
+      "criterion": "Required web test suite",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks because test caches and temporary fixtures require writes in this read-only sandbox."
+    },
+    {
+      "criterion": "Required focused API tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; API test fixtures create temporary directories and files."
+    },
+    {
+      "criterion": "Required web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; the script includes next typegen, which writes generated types."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks because environment and tool caches require writes."
+    },
+    {
+      "criterion": "Required repository tests",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks because test fixtures and caches require writes."
+    }
+  ],
+  "findings": []
+}

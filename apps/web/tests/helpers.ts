@@ -1,8 +1,16 @@
 // Shared test helpers: temporary repository roots holding a mock bundle and release bundles.
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach } from 'vitest';
@@ -101,4 +109,35 @@ export function addRelease(root: string, version: string, files: BundleFiles): s
   const dir = join(root, 'release', version);
   writeBundle(dir, files);
   return dir;
+}
+
+/** Bundle files by bundle path (POSIX, relative to the bundle root), as bytes. */
+export type FileSet = Readonly<Record<string, Uint8Array>>;
+
+/** The manifest `files` entries listing each of the given files, in path order. */
+export function listing(files: FileSet): { bytes: number; path: string; sha256: string }[] {
+  return Object.keys(files)
+    .sort()
+    .map((path) => {
+      const bytes = files[path] ?? new Uint8Array();
+      return { bytes: bytes.byteLength, path, sha256: sha256(bytes) };
+    });
+}
+
+/** Writes each file under dir, creating the subdirectories its path names. */
+export function writeFiles(dir: string, files: FileSet): void {
+  for (const [path, bytes] of Object.entries(files)) {
+    const target = join(dir, ...path.split('/'));
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, bytes);
+  }
+}
+
+/** Every regular file under dir as a sorted POSIX path relative to dir; [] if dir is missing. */
+export function filesUnder(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => relative(dir, join(entry.parentPath, entry.name)).split(sep).join('/'))
+    .sort();
 }

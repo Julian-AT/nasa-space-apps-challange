@@ -1,0 +1,113 @@
+{
+  "task_id": "T15-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "707ebfef94b5825809780745aeccd5cad11f20ed",
+    "head": "22fa07b9e8357e479c4aa2685010ab1ee6a22baa",
+    "files": [
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "b5a0d2a33360153a825698783c4ae146936a4d735c918cf95e3349a4796d90ce"
+      },
+      {
+        "path": "apps/web/server/api/problem.ts",
+        "sha256": "6d6eff8fa7f9de9c82fc67da0ffae76d8274ad38581a75ba89bb1a2c60685ee1"
+      },
+      {
+        "path": "apps/web/server/api/targets.test.ts",
+        "sha256": "57c5ba978a660b91bad6db52145b57c1679c56596f2197084ffe442cb4d29a36"
+      },
+      {
+        "path": "apps/web/server/api/targets.ts",
+        "sha256": "15fc7c288a869a1933f97e61ed983e8f801e1619e78a11d1b48087b98900908f"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:19:30Z",
+  "finished_utc": "2026-11-14T20:21:57Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No defects found by static review. Runtime acceptance remains unverified: all five required checks were intentionally not run in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "Manifest-only target list, empty mock response, and documented deferral of body and footprint.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/server/api/targets.ts:60 derives the response schema from BundleManifestSchema; :139 returns manifest fields directly. OpenAPI deferral appears at :89. Tests at targets.test.ts:94 and :117 assert mock and populated responses. Runtime behavior requires execution, prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "No unvalidated targets.json records are served; absence is allowed for an empty manifest.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "targets.ts:132 reads only the validated manifest; neither handler accesses checksumOnly or targetsFile. targets.test.ts:157 and :173 cover withheld records and absent targets.json. These runtime cases were not executed because tests write temporary files."
+    },
+    {
+      "criterion": "Target detail returns the required 404/501 problems and validates documented id constraints using the established status.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "targets.ts:36 defines the pattern, :43 limits ids to 128 characters, :109 registers parameter validation, and :155 selects 404 or 501 with the required details. app.ts:122 uses VALIDATION_STATUS; problem.ts:15 sets 400 and :95 sets application/problem+json. Tests at targets.test.ts:245, :255, :273 and :321 exercise these branches. Execution is prohibited in this read-only sandbox."
+    },
+    {
+      "criterion": "Response schemas reuse BundleManifest and Problem without inventing a target record schema; notes identify the human decision.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "targets.ts:60 uses BundleManifestSchema.pick and :64 reuses its targets schema; :76 reuses ProblemSchema. packages/schema/src/index.ts exports no TargetRecord schema. scripts/ralph/batches/t15-api/prd.json:220 explicitly records the missing TargetRecord schema as a human decision."
+    },
+    {
+      "criterion": "A test-local two-id reader fixture asserts exact list contents, listed-id 501, unlisted-id 404, and null preservation.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "targets.test.ts:39 defines both test ids locally; :52 constructs the reader fixture; :117 injects it and asserts exact items; :255 asserts unlisted-id 404; :273 asserts listed-id 501. Null assertions appear at :109 and :142. targets.ts:142 assigns shipping_mode directly without coercion. Test definitions were verified by reading; their execution remains unverified."
+    },
+    {
+      "criterion": "Cache-Control follows the per-bundle policy established in T15-03.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "targets.ts:86 installs conditionalGet and :145 applies bundleCacheHeaders('per-bundle', manifest.bundle_version). cache.ts:35 sets 300 seconds and :61 adds immutable; problem.ts:95 keeps problem responses no-store. targets.test.ts:203 covers cache headers and conditional responses. Runtime verification is prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Required web test suite",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited executing checks because test caches and temporary fixtures require writes unavailable in this read-only sandbox."
+    },
+    {
+      "criterion": "Required focused API tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited executing checks in the read-only sandbox; API tests create and remove temporary bundle files."
+    },
+    {
+      "criterion": "Required web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited executing checks; the script includes next typegen, which writes generated files."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited executing checks; uv and Turborepo may require environment and cache writes."
+    },
+    {
+      "criterion": "Required repository tests",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited executing checks; test fixtures and tool caches require writes."
+    },
+    {
+      "criterion": "Changed paths remain within story ownership.",
+      "command": "git diff --name-only 707ebfef94b5825809780745aeccd5cad11f20ed 22fa07b9e8357e479c4aa2685010ab1ee6a22baa -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output lists only apps/web/server/api/app.ts, problem.ts, targets.test.ts and targets.ts. No configuration, schema, mock fixture or release artifact changes appear in the scoped diff."
+    }
+  ],
+  "findings": []
+}

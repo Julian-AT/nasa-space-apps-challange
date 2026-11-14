@@ -1,0 +1,152 @@
+{
+  "task_id": "T15-05",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "aba5ce10102a42f41e1efb7aaba802817ce8320c",
+    "head": "6e6a46a515f2d9c8b0b9199548b15698a31701b2",
+    "files": [
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "b067a900bc85c393293209263358bd19811cf930ed17eb364e9c14a1cb87ac72"
+      },
+      {
+        "path": "apps/web/server/api/compare.test.ts",
+        "sha256": "a71b54784ad98cc81f75a172d5d8f894917bf872eb8fcc18378de7e1ce8f9b99"
+      },
+      {
+        "path": "apps/web/server/api/compare.ts",
+        "sha256": "b5f34c1008fb55ab3e6c3c6c8d8c09bc15ded46dbd77e8073dd0694b24fc1192"
+      },
+      {
+        "path": "apps/web/server/api/matches.test.ts",
+        "sha256": "ce625b7d892eec48b78b10eaaaf64f49be2e15ca9e6bcbbe2f0b90c4c7d9b9ab"
+      },
+      {
+        "path": "apps/web/server/api/matches.ts",
+        "sha256": "2e06b8c0d22e35eb56981a7a56acf4dc85ea391fa509a89015e10ec6472bd610"
+      },
+      {
+        "path": "apps/web/server/api/model.test.ts",
+        "sha256": "714ee84ac24402e4f79969cee141f8c729de7481622d14d2d6cee3ff85f014db"
+      },
+      {
+        "path": "apps/web/server/api/model.ts",
+        "sha256": "b2b1c8bef08d843b182fabe61a989c75cc9bacfe7aa2ddd9cbea4fdf9c5362a1"
+      },
+      {
+        "path": "apps/web/server/api/test-support.ts",
+        "sha256": "beee7209d5188c976a0bd88cf7b95c13269f7c5b5be5326c8d1a68a886776310"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.test.ts",
+        "sha256": "845cdab20760f91fde8f76609c557c06757dece2b34484c205539e3ad6bbc968"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.ts",
+        "sha256": "51db1fc70ca8f74f1b6f30215c6f717fe340a64a5f82972cf39ed428dceab236"
+      },
+      {
+        "path": "apps/web/server/api/windows.test.ts",
+        "sha256": "b988e9c4184e6c6a30de218b7a87b715d96854c3bbd09ecdfd77d21b482b954b"
+      },
+      {
+        "path": "apps/web/server/api/windows.ts",
+        "sha256": "31a353491fedbf249eb6de3be3022d1ecd55b7e851b1b55ec3082facc30ed72f"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:57:09Z",
+  "finished_utc": "2026-11-14T20:57:44Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T15-05 round 2: all five acceptance criteria pass on evidence. All five checks pass: web tests 452/452, server/api 290/290, typecheck, make check, make test. The round-1 blocker (codex-r1-1) is fixed. /windows/{id} and /compare now choose 404 or 501 from the requested ids and manifest.json alone. No fabricated values, no @terraluna/core use, and no files outside the story scope were touched in apps/web. Reviewed at HEAD 6e6a46a515f2d9c8b0b9199548b15698a31701b2, base aba5ce10102a42f41e1efb7aaba802817ce8320c. Reviewer: claude (claude-sonnet-5-5, Claude Code).",
+  "checks": [
+    {
+      "criterion": "AC1: matches, windows, compare, model routed with validated params (body, family, limit 1-500 default 50, cursor); problem+json naming bundle version; 404/501 rule documented and tested",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Read matches.ts:56-92 (Zod schema; limit default 50, 1-500; cursor), windows.ts:63-118 and compare.ts:39-103 (404 vs 501 by ids from manifest), unavailable.ts:1-33 (one rule in a comment), app.ts registers all four routes. Handlers throw notInBundle/notServedYet with `bundle ${bundle_version}` in the detail. unavailable.test.ts pins the 404/501 rule and constants. Passing vitest runs below."
+    },
+    {
+      "criterion": "AC2: family=model refused with explanation; never distances; Predicted label and G5 gate pinned by test",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "model.ts:36-61 modelFamilyAccess refuses unless model is named and G5 is PASS in both manifest.json and exactly one validation.json record; allowed path carries PREDICTED_LABEL. matches.ts:124-127 calls it before any other check; with G5 PASS the route still answers 501 with the Predicted label. model.test.ts (16 tests) passes."
+    },
+    {
+      "criterion": "AC3: /compare not computed; no @terraluna/core; notes record T10 wait",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Grep for terraluna/core in apps/web/server/api finds only comments and the unavailable.test.ts guard tests (lines 272-287: no import, no dependency). compare.ts only throws problems. prd.json notes item (3) states that on-request computation waits for T10 and real fingerprints."
+    },
+    {
+      "criterion": "AC4: test scans mock-bundle response bodies for numeric distance/rank/fingerprint",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "unavailable.test.ts:82-143: expectNoResult asserts the only number in the body is status, no key matches /distance|rank|fingerprint|.../, no decimal in detail, no 'Derived'. It runs for valid, invalid and HEAD requests, and for a bundle whose files hold test numbers."
+    },
+    {
+      "criterion": "AC5: routes appear in OpenAPI with problem+json responses",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Every route uses unavailableResponses() (unavailable.ts:58-77), which declares 404, 500, 501 and 400 as application/problem+json. unavailable.test.ts around line 295 checks the OpenAPI 3.1 document. Test file passes."
+    },
+    {
+      "criterion": "Round-1 fix codex-r1-1 / claude-r1-2 (404 for unknown window and compare ids)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "windows.ts:63-68 windowSources includes targets.json only if manifest.targets lists the id. compare.ts:39-46 comparisonSources uses comparisons/<a>|<b>.json plus window sources for both ids. Handlers return 404 when no source could hold the record. The residual 501 when a windows/<body>.json top-N file is listed is justified (no WindowRecord schema) and documented."
+    },
+    {
+      "criterion": "Check: pnpm --filter @terraluna/web test",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "17 files, 452 tests passed"
+    },
+    {
+      "criterion": "Check: vitest run server/api",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "11 files, 290 tests passed"
+    },
+    {
+      "criterion": "Check: typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "PASS",
+      "evidence": "next typegen && tsc --noEmit && tsc --noEmit -p server/api exited with no errors"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, and turbo lint/typecheck all succeeded (4 tasks successful, from cache)"
+    },
+    {
+      "criterion": "Check: make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed; turbo test 2 successful (web 452, schema 157). Turbo replayed cached logs, so the turbo results were not freshly executed, but the direct vitest runs above were."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/server/api/windows.ts:99-105",
+      "claim": "For an id outside manifest.targets while a windows/<body>.json top-N file is listed, /windows/{id} and /compare return 501, so an unknown id looks the same as a known one.",
+      "evidence": "windowSources returns every listed top-N window file for any id, so sources.length > 0 and the handler throws notServedYet. This is documented in the module comment and prd.json notes item (2), and it follows from the missing WindowRecord schema. Revisit once WindowRecord and ComparisonRecord schemas exist.",
+      "id": "claude-r2-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "7fea61d98ded2a895cba3fa4101d49f1faf5c2c5",
+        "reason": "Fixed in 7fea61d, the same case as codex-r2-1. Under AC0 as amended by the orchestrator (option a), 501 is required for an id outside manifest.targets while a windows/<body>.json top-N file is listed, and it must name the missing record schema. An unknown id and a known one look the same there by design, until t15b-api adds WindowRecord and ComparisonRecord and replaces the 501 with a real 404 or 200. 7fea61d pins the split in unavailable.test.ts with two manifests that differ only in listing windows/earth.json. /windows/{id} and /compare give 404 without that file and 501 naming WindowRecord or ComparisonRecord with it, and the unlisted target stays 404 for /targets/{id} and matches. d4d80a1 records the rule and the follow-up in the unavailable.ts rule comment."
+      }
+    }
+  ]
+}

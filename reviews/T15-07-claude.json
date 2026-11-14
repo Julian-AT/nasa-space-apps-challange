@@ -1,0 +1,184 @@
+{
+  "task_id": "T15-07",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "3cf8875408538600f00f7218027e535b169a737f",
+    "head": "b641329b82e67a442977d0094bc0843b28995571",
+    "files": [
+      {
+        "path": "apps/web/app/api/[[...route]]/route.ts",
+        "sha256": "fdce8771c80714a24a40ddbc007e20e1cc9161c3ecc0d5d42160df4642020ee5"
+      },
+      {
+        "path": "apps/web/next.config.ts",
+        "sha256": "8d2747bb43cfb9bda502861c6188f440e24c5553fb8028f9fd9270c6f9ac7312"
+      },
+      {
+        "path": "apps/web/server/api/app.test.ts",
+        "sha256": "1ce0274b944187a5a05066d2775469c9e6d310a8db75bbaab37d0890454204fa"
+      },
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "25a37ac7a58c3b0dee9d2714bf8d5302fc99e739df60ad518d6a50ff81b9518b"
+      },
+      {
+        "path": "apps/web/server/api/gates.ts",
+        "sha256": "7f23f3dfbb1e4083a7b230318be7b4d0f90e5f1be0c94cdb3f19619affb88c26"
+      },
+      {
+        "path": "apps/web/server/api/health.ts",
+        "sha256": "9f2bf8629cd4e93de580479bf5a9025feb67998f6ef6ab425458ddb762fc095e"
+      },
+      {
+        "path": "apps/web/server/api/index.ts",
+        "sha256": "cefa1c8ed316c3180253c4e787518e487cbb639d98794cae5d727d6947e764e0"
+      },
+      {
+        "path": "apps/web/server/api/manifest.ts",
+        "sha256": "1866d0145c90128adb44376daa278e8ad1df31d2e2a728fb3b429385c46f1737"
+      },
+      {
+        "path": "apps/web/server/api/mount.test.ts",
+        "sha256": "580341a8ccfbf78487df75fc30d1c5d7f8d57d4133a10f90d7b3955356e1e43b"
+      },
+      {
+        "path": "apps/web/server/api/openapi.test.ts",
+        "sha256": "6466164d7d0d0cbda8fe153a0522191c8607916e7ed193c5c65430c6f5d63257"
+      },
+      {
+        "path": "apps/web/server/api/problem.ts",
+        "sha256": "87903790f577f62e9cc22971868c2089b2f2d9596b6208d2baa2cc2d387148bf"
+      },
+      {
+        "path": "apps/web/server/api/targets.test.ts",
+        "sha256": "4e52a24d1543144075e6adec40279cc3260b264398a4d14843a35c1517493502"
+      },
+      {
+        "path": "apps/web/server/api/targets.ts",
+        "sha256": "5034c24f6f86404e84cd04d6e4959a1ea197331c7e290978d39c1c2ff0061db0"
+      },
+      {
+        "path": "apps/web/server/api/test-support.ts",
+        "sha256": "94a9428bf678ee72d003b3a5c59d3e62cfcf2a254b2f50b249a821f4ce7e01d9"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.test.ts",
+        "sha256": "87433062da921c4e46951e2b503a734af6603931a4d1e46428346c53274502ee"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.ts",
+        "sha256": "8ced457cab4f089edb38f3d4f94e72e5ff33aed4cb32a9d55d0ecc067edd0aac"
+      },
+      {
+        "path": "apps/web/tests/next-config.test.ts",
+        "sha256": "d7b796dfc5ca2dc5c66a376b7242b774b9d3a939101109ef24760edd55d4fdcd"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:53:00Z",
+  "finished_utc": "2026-11-14T21:53:38Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T15-07 review round 1, reviewer Claude Sonnet 5.5 (claude-sonnet-5-5) via Claude Code. Range 3cf8875..b641329. All six story checks ran and exited 0. Every changed path is inside the story's files list. I could not run the built server myself (Bash permission denied), so the `next start` check of /api/v1/health is NOT_RUN. Its coverage here is the mount tests, which pull the mock bundle, call the route module and assert 200 and 503. The author's recorded commands are in the prd.json notes. I found no blocker or high finding. One low finding asks for the recorded `next start` evidence to be re-run.",
+  "checks": [
+    {
+      "criterion": "Check: pnpm --filter @terraluna/web test",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "21 files, 537 tests passed"
+    },
+    {
+      "criterion": "Check: vitest run server/api",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "14 files, 371 tests passed"
+    },
+    {
+      "criterion": "Check: typecheck (AC2, first half)",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "PASS",
+      "evidence": "next typegen, tsc and tsc -p server/api ran with no errors, so Next's route validator accepts the route module"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, turbo lint and typecheck all passed"
+    },
+    {
+      "criterion": "Check: make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed; web 537 passed; schema 157 passed"
+    },
+    {
+      "criterion": "AC2: make web-build passes with the mock bundle and lists the API route",
+      "command": "make web-build",
+      "outcome": "PASS",
+      "evidence": "Route table shows ○ /, ○ /_not-found and ƒ /api/[[...route]]; the bundle pulled was mock-0"
+    },
+    {
+      "criterion": "AC1: GET and HEAD are typed (req: Request) => app.fetch(req) wrappers, not handle(app); comment cites hono issue 4877; other methods get 405 through the app; /api/docs redirect; runtime nodejs",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "route.ts:15-34 exports `serve: ApiHandler = (req) => app.fetch(req)` for GET, HEAD, POST, PUT, PATCH, DELETE and OPTIONS, runtime='nodejs', and a comment with the issue-4877 URL. mount.test.ts:67-116 asserts that app.fetch is called with the request alone, the 405 problem with Allow: GET, HEAD, and the 308 from /api/docs to /api/v1/docs. The source-grep test (mount.test.ts:80-90) ignores comment lines."
+    },
+    {
+      "criterion": "AC3: outputFileTracingIncludes set for the API route; built server returns bundle_version at /api/v1/health",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "next.config.ts:18-20 sets the escaped route key with './data/**/*.json', and tests/next-config.test.ts (4 tests) passes. I could not start `next start` because Bash permission was denied. The mount test 'serves the pulled mock bundle' (mount.test.ts:119-135) covers the same loader path over a pulled bundle. The author's recorded commands are in the prd.json notes (item 5), which also say Vercel tracing cannot be proven locally."
+    },
+    {
+      "criterion": "AC4: route test uses the same app instance and the loader's guard by import; mock manifest with VERCEL_ENV=production gives 503 problem+json on /health and /manifest",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "mount.test.ts:138-169 imports `app` from ./index.ts and calls the route. app.ts imports assertDeployable and MockBundleError from lib/bundle.ts and applies the guard in guarded(). The test asserts 503, application/problem+json, that the body contains no 'mock-0' or 'bundle_version', and that the logged error is a MockBundleError."
+    },
+    {
+      "criterion": "AC5: mount path /api/v1/* plus /api/docs redirect",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "mount.test.ts:100-116 gets 200 at /api/v1/openapi.json, 404 problems at /api, /api/v2/health and /api/health, and a 308 at /api/docs"
+    },
+    {
+      "criterion": "AC6: DEM proxy not built; notes state the human checkpoint and bounds; OpenAPI does not list it",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Grep for cop30 and /dem/ in apps/web (excluding node_modules) found no files. The prd.json note (6) states the G0 cop30_mode=proxy checkpoint is unrecorded and lists the bounds: tile pattern, 4 MB Range limit, one allowed host, 1-day cache."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t15-api/prd.json (T15-07 notes, item 5)",
+      "claim": "The built-server health evidence for AC3 was recorded by the author and not re-run in this review.",
+      "evidence": "Bash permission was denied for `next start`, so this reviewer could not reproduce the 200 mock-0 response from the built server. Recommend the orchestrator re-run the recorded `next start` and curl commands.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Re-ran the recorded evidence on this head (db0c1d2; no code has changed since b641329) at 2026-11-14T21:57Z. make web-build exited 0 with the route table ○ /, ○ /_not-found, ƒ /api/[[...route]] and the pulled mock-0 bundle. The route's trace .next/server/app/api/[[...route]]/route.js.nft.json lists ../../../../../data/manifest.json and ../../../../../data/validation.json. Then from apps/web the recorded next start command (story notes item 5) on 127.0.0.1:3157 returned HTTP/1.1 200 OK, cache-control: no-store, content-type: application/json, body {\"bundle_version\":\"mock-0\",\"schema_version\":\"1.0.0\",\"status\":\"ok\"} for /api/v1/health, 200 application/json for /api/v1/manifest and 308 to /api/v1/docs for /api/docs. The same start with VERCEL_ENV=production (port 3158) returned 503 application/problem+json for /api/v1/health and /api/v1/manifest and 200 application/json for /api/v1/openapi.json. The recorded evidence holds, so nothing needs to change. The reviewer's NOT_RUN came from its own Bash permission, not from the change. That Vercel ships the traced files still cannot be proven locally (notes item 4)."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/app/api/[[...route]]/route.ts:8-10",
+      "claim": "The comment says handle(app) type-checks with next 16.4.6 and hono 4.13.18, so the wrapper is not needed for tsc.",
+      "evidence": "This is a candid note and AC1 asks for the wrapper. PRD 8.5 still names handle(app), and the author's proposed README and PRD wording is left for a human to apply. No action is needed in this story.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The finding itself says no action is needed in this story. PRD 8.5 (PRD.md:594) asks for the mount to be wrapped in a typed (req: Request) => app.fetch(req) because of hono issue 4877, and T15-07 AC1 asks for exactly that wrapper with a comment citing the issue. route.ts:5-10 has both and also records that handle(app) type-checks with next 16.4.6 and hono 4.13.18, which keeps the comment accurate. Next's route validator still checks the explicit handler type (.next/types/validator.ts, story notes item 2). The PRD 8.5 sentence about handle(app) is a human change, since PRD.md is read-only for this loop. It is proposed under \"Proposed instruction changes\" in the T15-07 implement entry of the progress log."
+      }
+    }
+  ]
+}

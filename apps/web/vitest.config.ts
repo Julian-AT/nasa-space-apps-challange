@@ -2,6 +2,9 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['tests/**/*.test.ts'],
+    // T0-05's tests live in tests/; the loader's T15-01 tests sit beside it as lib/bundle*.test.ts,
+    // so `vitest run lib/bundle` selects them. The API's route tests sit beside the Hono app in
+    // server/api/ (T15-02), so `vitest run server/api` selects them.
+    include: ['tests/**/*.test.ts', 'lib/**/*.test.ts', 'server/**/*.test.ts'],
   },
 });
