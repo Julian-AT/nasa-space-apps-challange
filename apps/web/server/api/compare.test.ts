@@ -47,7 +47,12 @@ describe('GET /api/v1/compare', () => {
   // on request from the fingerprints of both windows. A bundle with neither does not hold it.
   const NOT_HELD: readonly [string, readonly string[], readonly string[], string][] = [
     ['no comparison or window file', [A], [], `${A} or ${B}`],
-    ['only the comparison file of another target', [OTHER], [comparisonPath(OTHER)], `${A} or ${B}`],
+    [
+      'only the comparison file of another target',
+      [OTHER],
+      [comparisonPath(OTHER)],
+      `${A} or ${B}`,
+    ],
     ['targets.json, which could hold only a', [A], ['targets.json'], B],
     ['targets.json, which could hold only b', [B, OTHER], ['targets.json'], A],
     [

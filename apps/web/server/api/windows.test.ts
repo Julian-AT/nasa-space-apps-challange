@@ -101,7 +101,11 @@ describe('GET /api/v1/windows/{id}', () => {
       [OTHER],
       ['targets.json', comparisonPath(WINDOW), comparisonPath(OTHER)],
     ],
-    ['an id that only shares a prefix with targets', [WINDOW.slice(0, -1), `${WINDOW}-x`], ['targets.json']],
+    [
+      'an id that only shares a prefix with targets',
+      [WINDOW.slice(0, -1), `${WINDOW}-x`],
+      ['targets.json'],
+    ],
     ['an id a target matches only without case', [WINDOW.toUpperCase()], ['targets.json']],
   ];
 
