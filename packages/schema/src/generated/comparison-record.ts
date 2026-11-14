@@ -713,7 +713,7 @@ export const ComparisonRecordSchema = z
       })
       .strict()
       .describe(
-        'The four family distances, every key always present (D07: never combined). Indexing by\nfamily name reads it like the ``dict[Family, DistanceEntry]`` of CONTRACTS a.4.',
+        'The four family distances, every key always present (D07: never combined). In Python it\nreads as the read-only ``dict[Family, DistanceEntry]`` of CONTRACTS a.4.',
       ),
     uncertainty_components: z
       .object({

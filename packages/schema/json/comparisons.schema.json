@@ -346,7 +346,7 @@
     },
     "DistancesByFamily": {
       "additionalProperties": false,
-      "description": "The four family distances, every key always present (D07: never combined). Indexing by\nfamily name reads it like the ``dict[Family, DistanceEntry]`` of CONTRACTS a.4.",
+      "description": "The four family distances, every key always present (D07: never combined). In Python it\nreads as the read-only ``dict[Family, DistanceEntry]`` of CONTRACTS a.4.",
       "properties": {
         "terrain_relief": {
           "$ref": "#/$defs/DistanceEntry"

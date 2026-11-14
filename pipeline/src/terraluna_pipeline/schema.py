@@ -30,11 +30,11 @@ import json
 import re
 import sys
 import tempfile
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self, get_args
 
 from pydantic import (
     AfterValidator,
@@ -376,6 +376,8 @@ EvidenceLabel = Literal["Observed", "Derived", "Predicted", "Assumed", "Unavaila
 
 Family = Literal["terrain_relief", "terrain_texture", "radar_cpr", "model_embedding"]
 """The distance families, which are never combined into one score (D07)."""
+
+_FAMILIES: tuple[Family, ...] = get_args(Family)
 
 REASON_CODE_PATTERN = r"^[a-z][a-z0-9_]*$"
 
@@ -839,20 +841,55 @@ class ModelEmbeddingDistanceEntry(DistanceEntry):
         return self
 
 
+def _as_model_embedding(value: object) -> object:
+    # A producer may hold the dict[Family, DistanceEntry] of CONTRACTS a.4. The model_embedding
+    # entry is then validated again from its fields, so the Predicted rule still applies.
+    if isinstance(value, DistanceEntry) and not isinstance(value, ModelEmbeddingDistanceEntry):
+        return value.model_dump()
+    return value
+
+
 class DistancesByFamily(Record):
-    """The four family distances, every key always present (D07: never combined). Indexing by
-    family name reads it like the ``dict[Family, DistanceEntry]`` of CONTRACTS a.4."""
+    """The four family distances, every key always present (D07: never combined). In Python it
+    reads as the read-only ``dict[Family, DistanceEntry]`` of CONTRACTS a.4."""
 
     terrain_relief: DistanceEntry
     terrain_texture: DistanceEntry
     radar_cpr: DistanceEntry
-    model_embedding: ModelEmbeddingDistanceEntry
+    model_embedding: Annotated[ModelEmbeddingDistanceEntry, BeforeValidator(_as_model_embedding)]
 
+    # The mapping protocol over the family names. BaseModel iterates (name, value) pairs, so
+    # without these ``"radar_cpr" in distances`` would be False. pydantic itself iterates
+    # ``__dict__``, never the model.
     def __getitem__(self, family: Family) -> DistanceEntry:
-        if family not in type(self).model_fields:
+        if family not in _FAMILIES:
             raise KeyError(family)
         entry: DistanceEntry = getattr(self, family)
         return entry
+
+    def __iter__(self) -> Iterator[Family]:  # type: ignore[override]
+        return iter(_FAMILIES)
+
+    def __len__(self) -> int:
+        return len(_FAMILIES)
+
+    def __contains__(self, family: object) -> bool:
+        return family in _FAMILIES
+
+    def keys(self) -> tuple[Family, ...]:
+        return _FAMILIES
+
+    def values(self) -> tuple[DistanceEntry, ...]:
+        return tuple(self[family] for family in _FAMILIES)
+
+    def items(self) -> tuple[tuple[Family, DistanceEntry], ...]:
+        return tuple((family, self[family]) for family in _FAMILIES)
+
+    def get(self, family: object, default: DistanceEntry | None = None) -> DistanceEntry | None:
+        for name in _FAMILIES:
+            if family == name:
+                return self[name]
+        return default
 
 
 class FamilySpread(Record):
