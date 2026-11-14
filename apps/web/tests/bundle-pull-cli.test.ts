@@ -11,14 +11,11 @@ import { MOCK_DIR, REPO_ROOT, tempDir, WEB_DIR } from './helpers.ts';
 const SCRIPT = join(WEB_DIR, 'scripts', 'bundle-pull.ts');
 
 function run(env: Record<string, string>, outDir: string, root = REPO_ROOT) {
-  const base = Object.fromEntries(
-    Object.entries(process.env).filter(
-      (entry): entry is [string, string] =>
-        entry[0] !== 'BUNDLE_VERSION' && entry[0] !== 'VERCEL_ENV' && entry[1] !== undefined,
-    ),
-  );
+  const childEnv: NodeJS.ProcessEnv = { ...process.env };
+  delete childEnv.BUNDLE_VERSION;
+  delete childEnv.VERCEL_ENV;
   return spawnSync(process.execPath, [SCRIPT, '--root', root, '--out', outDir], {
-    env: { ...base, ...env },
+    env: { ...childEnv, ...env },
     encoding: 'utf8',
   });
 }
