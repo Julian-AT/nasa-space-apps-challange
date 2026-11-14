@@ -142,7 +142,11 @@
       "claim": "For an id outside manifest.targets while a windows/<body>.json top-N file is listed, /windows/{id} and /compare return 501, so an unknown id looks the same as a known one.",
       "evidence": "windowSources returns every listed top-N window file for any id, so sources.length > 0 and the handler throws notServedYet. This is documented in the module comment and prd.json notes item (2), and it follows from the missing WindowRecord schema. Revisit once WindowRecord and ComparisonRecord schemas exist.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "7fea61d98ded2a895cba3fa4101d49f1faf5c2c5",
+        "reason": "Fixed in 7fea61d, the same case as codex-r2-1. Under AC0 as amended by the orchestrator (option a), 501 is required for an id outside manifest.targets while a windows/<body>.json top-N file is listed, and it must name the missing record schema. An unknown id and a known one look the same there by design, until t15b-api adds WindowRecord and ComparisonRecord and replaces the 501 with a real 404 or 200. 7fea61d pins the split in unavailable.test.ts with two manifests that differ only in listing windows/earth.json. /windows/{id} and /compare give 404 without that file and 501 naming WindowRecord or ComparisonRecord with it, and the unlisted target stays 404 for /targets/{id} and matches. d4d80a1 records the rule and the follow-up in the unavailable.ts rule comment."
+      }
     }
   ]
 }
