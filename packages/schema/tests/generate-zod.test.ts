@@ -12,7 +12,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 import { jsonSchemaToZod } from 'json-schema-to-zod';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -198,6 +198,29 @@ describe('contracts', () => {
       'ProductRecord',
       'Sources',
     ]);
+  });
+});
+
+// Turborepo replays a cached test run unless one of its hashed inputs changed. These tests read
+// schema.py and the shared fixtures, both outside the package.
+describe('turbo test inputs', () => {
+  interface PackageTurbo {
+    readonly extends?: readonly string[];
+    readonly tasks?: { readonly test?: { readonly inputs?: readonly string[] } };
+  }
+  const readConfig = (): PackageTurbo =>
+    JSON.parse(readFileSync(join(PACKAGE_DIR, 'turbo.json'), 'utf8')) as PackageTurbo;
+  const repoRoot = join(PACKAGE_DIR, '..', '..');
+
+  it('extend the root test inputs', () => {
+    const config = readConfig();
+    expect(config.extends).toEqual(['//']);
+    expect(config.tasks?.test?.inputs?.[0]).toBe('$TURBO_EXTENDS$');
+  });
+
+  it('hash schema.py, whose CONTRACTS the generator mirrors', () => {
+    const inputs = readConfig().tasks?.test?.inputs;
+    expect(inputs).toContain(`$TURBO_ROOT$/${relative(repoRoot, SCHEMA_PY)}`);
   });
 });
 
