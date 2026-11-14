@@ -85,3 +85,15 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at 54fc7a5 (T0-02 passed, pipeline tests green) or at a later tip once T0-03 passes. This is the only thing blocking T16-01. Consider pausing this batch's loop until then, since further author iterations cannot unblock it.
 ---
+
+## 2026-11-14T18:03Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6). ralph/t0-bootstrap moved from 8bb1ae9 to dcbce75 (T0-03 implemented, review requested; T0-01 and T0-02 passed). The new commits change pipeline/src/terraluna_pipeline/schema.py, the root Makefile, packages/schema/json/*.schema.json and pipeline/tests/test_json_schema.py. export.py and fixtures/mock-bundle are unchanged since 54fc7a5, and paper/ is untouched. Because validate_bundle depends on schema.py, I reran the scratch-copy simulation at dcbce75 and updated the T16-01 notes. The scratch copy is deleted.
+- Commits: chore(ralph): record that t16-01 still passes against t0-bootstrap at dcbce75
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Checks on the simulated merge (HEAD plus pipeline/, fixtures/, packages/, Makefile, pyproject.toml and uv.lock from ralph/t0-bootstrap at dcbce75; not this branch): `uv sync --locked` exit 0; check PASS (ruff, ruff format, mypy --strict on 6 files); numbers-check PASS; test PASS (179 passed); make -C paper PASS (check_log.py: main.log clean).
+- Docs used: none new.
+- Learnings: the T0-03 schema changes do not affect numbers.py or its tests. The T0 story list on ralph/t0-bootstrap is scripts/ralph/prd.json, not a batches/ path. Read pass states with `git show ralph/t0-bootstrap:scripts/ralph/prd.json | jq`.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at 54fc7a5 (T0-02 passed) or at dcbce75 or later once T0-03 passes its review. This is still the only thing blocking T16-01. Consider pausing this batch's loop until then: six author iterations have now confirmed the block and cannot clear it.
+---
