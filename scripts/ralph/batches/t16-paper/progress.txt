@@ -152,3 +152,14 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
 ---
+
+## 2026-11-14T18:10Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6). ralph/t0-bootstrap is still at fcf539b (T0-01 to T0-03 passed), so the dcbce75 simulation still applies and I did not rerun it. main (8e3e5a9), ralph/t2-polarimetry, ralph/t3-terrain and ralph/tooling still have no pipeline/src/terraluna_pipeline/export.py; ralph/t1-pilot (323dfba, another batch) does. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twelve author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
