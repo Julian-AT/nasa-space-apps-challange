@@ -9,12 +9,13 @@ from __future__ import annotations
 
 import inspect
 import math
+from fractions import Fraction
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 import pytest
-from hypothesis import given
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
 from terraluna_pipeline.polarimetry import (
@@ -443,6 +444,69 @@ def test_full_stokes_bound_does_not_overflow() -> None:
     assert_unavailable(extreme.cpr, INVALID, InvalidReason.STOKES_NONPHYSICAL)
 
 
+# The tolerance applies to the squared inequality itself (S2^2 + S3^2 + S4^2 may exceed S1^2 by
+# at most atol + rtol * S1^2), not to the polarization norm. On the norm the relative part
+# would be about twice as loose, since a relative norm excess d is a squared excess of 2d.
+
+
+@pytest.mark.parametrize("excess", [7.5e-11, 8e-11])
+def test_squared_excess_beyond_the_tolerance_is_nonphysical(excess: float) -> None:
+    # S1 = 1, S2 = 1 + d: the squared excess 2d + d^2 exceeds 1.01e-10 though the norm excess d
+    # does not (codex-r1-1, codex2-r1-1).
+    result = convert(1.0, 0.0, s2=1.0 + excess, s3=0.0)
+    for field in (result.total, result.sc, result.oc, result.cpr):
+        assert_unavailable(field, INVALID, InvalidReason.STOKES_NONPHYSICAL)
+
+
+def test_squared_excess_within_the_tolerance_is_valid() -> None:
+    result = convert(1.0, 0.0, s2=1.0 + 4e-11, s3=0.0)
+    assert_value(result.total, 1.0)
+    assert_value(result.cpr, 1.0)
+
+
+@pytest.mark.parametrize("position", ["s2", "s3", "s4"])
+def test_squared_tolerance_is_the_same_for_each_polarized_component(position: str) -> None:
+    beyond = {"s2": 0.0, "s3": 0.0, "s4": 0.0, position: 1.0 + 7.5e-11}
+    result = convert(1.0, beyond["s4"], s2=beyond["s2"], s3=beyond["s3"])
+    assert_unavailable(result.total, INVALID, InvalidReason.STOKES_NONPHYSICAL)
+    within = {"s2": 0.0, "s3": 0.0, "s4": 0.0, position: 1.0 + 4e-11}
+    assert convert(1.0, within["s4"], s2=within["s2"], s3=within["s3"]).total.state == VALID
+
+
+def test_squared_tolerance_holds_where_squares_overflow() -> None:
+    # (1e200)^2 overflows float64; atol is negligible beside rtol * S1^2 here.
+    beyond = convert(1e200, 0.0, s2=1e200 * (1.0 + 7.5e-11), s3=0.0)
+    assert_unavailable(beyond.total, INVALID, InvalidReason.STOKES_NONPHYSICAL)
+    assert convert(1e200, 0.0, s2=1e200 * (1.0 + 4e-11), s3=0.0).total.state == VALID
+
+
+def test_squared_tolerance_holds_where_squares_underflow() -> None:
+    # (1e-200)^2 underflows to 0.0, so squaring directly would accept any S2 here. Without an
+    # absolute part the tolerance is scale-free and the relative rule decides.
+    relative = Tolerance(rtol=1e-10, atol=0.0)
+    beyond = convert(1e-200, 0.0, s2=1e-200 * (1.0 + 7.5e-11), s3=0.0, tolerance=relative)
+    assert_unavailable(beyond.total, INVALID, InvalidReason.STOKES_NONPHYSICAL)
+    within = convert(1e-200, 0.0, s2=1e-200 * (1.0 + 4e-11), s3=0.0, tolerance=relative)
+    assert within.total.state == VALID
+
+
+def test_absolute_tolerance_of_the_squared_bound_is_in_squared_power_units() -> None:
+    # With S1 = 0 the bound is S2^2 <= atol, so atol = 1e-12 admits |S2| up to 1e-6. This is
+    # the stated tolerance on the squared inequality; a real-data value is an open decision.
+    absolute = Tolerance(rtol=0.0, atol=1e-12)
+    assert convert(0.0, 0.0, s2=0.9e-6, s3=0.0, tolerance=absolute).total.state == VALID
+    beyond = convert(0.0, 0.0, s2=1.1e-6, s3=0.0, tolerance=absolute)
+    assert_unavailable(beyond.total, INVALID, InvalidReason.STOKES_NONPHYSICAL)
+
+
+def test_exact_squared_bound_with_zero_tolerance() -> None:
+    exact = Tolerance(rtol=0.0, atol=0.0)
+    assert convert(0.0, 0.0, s2=0.0, s3=0.0, tolerance=exact).total.state == VALID
+    assert convert(1.0, 0.0, s2=1.0, s3=0.0, tolerance=exact).total.state == VALID
+    beyond = convert(1.0, 0.0, s2=1.0 + 2.0**-52, s3=0.0, tolerance=exact)
+    assert_unavailable(beyond.total, INVALID, InvalidReason.STOKES_NONPHYSICAL)
+
+
 @pytest.mark.parametrize("given_only", ["s2", "s3"])
 def test_s2_and_s3_are_given_together_or_not_at_all(given_only: str) -> None:
     kwargs: dict[str, Any] = {"s2": None, "s3": None, given_only: 0.0}
@@ -749,3 +813,56 @@ def test_any_finite_stokes_pair_gives_a_published_state(pairs: list[tuple[float,
         beyond = np.abs(s4) - s1 > ATOL + RTOL * np.abs(s1)
     assert np.all(result.sc.reason[beyond] == InvalidReason.STOKES_S1_LT_ABS_S4)
     assert not np.any(result.sc.reason[~beyond] == InvalidReason.STOKES_S1_LT_ABS_S4)
+
+
+def _exact_squared_excess(s1: float, s2: float, s3: float, s4: float) -> tuple[Fraction, Fraction]:
+    """Return the exact squared excess S2^2 + S3^2 + S4^2 - S1^2 beyond the arithmetic tolerance,
+    and the scale of the comparison (the sum of all four squares), in rational arithmetic."""
+    p = Fraction(s1) ** 2
+    q = Fraction(s2) ** 2 + Fraction(s3) ** 2 + Fraction(s4) ** 2
+    allowed = Fraction(ATOL) + Fraction(RTOL) * p
+    return q - p - allowed, p + q
+
+
+@settings(deadline=None)
+@given(st.lists(st.tuples(ANY_FINITE, ANY_FINITE, ANY_FINITE, ANY_FINITE), min_size=1, max_size=20))
+def test_full_stokes_rule_matches_exact_arithmetic_over_the_float64_range(
+    quads: list[tuple[float, float, float, float]],
+) -> None:
+    s1, s2, s3, s4 = (np.array([q[i] for q in quads]) for i in range(4))
+    result = convert(s1, s4, s2=s2, s3=s3)
+    for index, quad in enumerate(quads):
+        reason = result.total.reason[index]
+        if reason == InvalidReason.STOKES_S1_LT_ABS_S4:
+            continue  # rule 3 comes first and has its own oracle
+        excess, scale = _exact_squared_excess(*quad)
+        # Outside a rounding band of 1e-13 of the squares, float64 decides as exact arithmetic.
+        if excess > Fraction(1, 10**13) * scale:
+            assert reason == InvalidReason.STOKES_NONPHYSICAL, quad
+        elif excess < -Fraction(1, 10**13) * scale:
+            assert reason != InvalidReason.STOKES_NONPHYSICAL, quad
+
+
+SCALES = st.tuples(st.floats(min_value=1.0, max_value=9.99), st.integers(-300, 300))
+DIRECTIONS = st.tuples(*(st.floats(min_value=-1.0, max_value=1.0) for _ in range(3)))
+
+
+@given(SCALES, DIRECTIONS)
+def test_squared_bound_is_decided_by_rtol_at_every_scale(
+    scale: tuple[float, int], direction: tuple[float, float, float]
+) -> None:
+    # Without atol the rule is scale-free: a squared excess of 0.5 * rtol * S1^2 is accepted
+    # and one of 1.5 * rtol * S1^2 is not, at any magnitude, though squares overflow or
+    # underflow. A norm-based rule would accept both.
+    norm = math.sqrt(sum(u * u for u in direction))
+    assume(norm >= 0.1)
+    s1 = scale[0] * 10.0 ** scale[1]
+    relative = Tolerance(rtol=1e-10, atol=0.0)
+    for factor, accepted in ((0.5, True), (1.5, False)):
+        length = s1 * math.sqrt(1.0 + factor * relative.rtol) / norm
+        s2, s3, s4 = (length * u for u in direction)
+        result = convert(s1, s4, s2=s2, s3=s3, tolerance=relative)
+        if accepted:
+            assert result.total.state == VALID
+        else:
+            assert_unavailable(result.total, INVALID, InvalidReason.STOKES_NONPHYSICAL)
