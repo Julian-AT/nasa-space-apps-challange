@@ -600,9 +600,7 @@ class _CodeScanner:
 
     def line_break_end(self, start: int) -> int:
         """Index past the \\\\ at text[start] with its optional * and [length]."""
-        i = start + 2
-        if self.text.startswith("*", i):
-            i += 1
+        i = self.star_end(start + 2)
         j = self.space_end(i)
         return self.bracket_end(j) if self.text.startswith("[", j) else i
 
@@ -675,8 +673,7 @@ class _CodeScanner:
         if name == "input":
             return self.input_argument_end(start, i)
         count = 1 if CITE_COMMAND.fullmatch(name) else KEY_COMMANDS[name]
-        if self.text.startswith("*", i):
-            i += 1
+        i = self.star_end(i, same_line=name in SAME_LINE_ARGUMENT)
         for index in range(count):
             if index == 0 and name in SAME_LINE_ARGUMENT:
                 i = self.same_line_argument_start(start, i, name)
@@ -686,6 +683,17 @@ class _CodeScanner:
                 start, i, name, verbatim=index == 0 and name in VERBATIM_ARGUMENT
             )
         return i
+
+    def star_end(self, i: int, *, same_line: bool = False) -> int:
+        r"""Index past the * of a starred command whose name ends at text[i], or i without one.
+
+        TeX skips the spaces after a control word, and LaTeX's \@ifstar looks for the * with
+        \@ifnextchar, which skips space tokens. So the * may follow a space, a comment or one line
+        break, as in \citep *{key} and \\ with *[2pt] on the next line (space_end). A blank line
+        is \par and ends the search. Before the argument of SAME_LINE_ARGUMENT only spaces count.
+        """
+        j = _blanks_end(self.text, i) if same_line else self.space_end(i)
+        return j + 1 if self.text.startswith("*", j) else i
 
     def drop_text_argument_gaps(self, start: int, i: int, name: str) -> None:
         r"""Blank and drop the gap before each text argument after the keys, which end at text[i].
