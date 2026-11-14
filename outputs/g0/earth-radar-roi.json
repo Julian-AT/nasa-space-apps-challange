@@ -1,0 +1,248 @@
+{
+  "convention": {
+    "element_mapping": "HHHV=<HH HV*>=D, HHVV=<HH VV*>=C, HVVV=<HV VV*>=E; k=(HH,HV,VV), C_ij=<k_i k_j*>",
+    "handedness": "NEISH_SC_LL_TX_1_MINUS_I",
+    "handedness_verified": false,
+    "mini_rf_equivalent": false,
+    "ordering": "HH_HV_VV",
+    "tolerance": {
+      "atol": 1E-12,
+      "rtol": 1E-10
+    },
+    "tolerance_note": "T2 default ARITHMETIC_TOLERANCE; a real-data tolerance is an open decision"
+  },
+  "environment": {
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.4",
+    "python": "3.12.16"
+  },
+  "evidence_label": "Derived (UAVSAR L-band, 2015-05-30)",
+  "generated_utc": "2026-11-14T21:53:41Z",
+  "incidence": {
+    "grid": "GRD ROI (not MLC box)",
+    "label": "Derived",
+    "max_deg": 62.38032942559072,
+    "median_deg": 61.24254968346084,
+    "min_deg": 60.06760005186773,
+    "n_fill_minus10000": 0,
+    "n_valid": 122740,
+    "p05_deg": 60.21007574889744,
+    "p95_deg": 62.27274711597386,
+    "source": ".inc local incidence angle, radians, converted with polarimetry.angle_to_degrees(unit='radians')"
+  },
+  "inputs": {
+    "files": {
+      "Icelnd_00208_15083_004_150530_L090HHHH_CX_01.grd": "5b725712885641dac3b97f545c2de0986a4cbbaa489d2bb509ba0ab3123e1eeb",
+      "Icelnd_00208_15083_004_150530_L090HHHH_CX_01.mlc": "694be3c979419bdc6c264e0dc4eaf26592530ddd197b4dda0f77f60dcc84801b",
+      "Icelnd_00208_15083_004_150530_L090HHHV_CX_01.mlc": "663d7c71151949ec86c0e6252299871dbc73744e9f8489b15465792ad2aaba75",
+      "Icelnd_00208_15083_004_150530_L090HHVV_CX_01.mlc": "b30b7c8f440beea213e83afbec30faa4b458ee581ac7a4ea85916ac6669d7804",
+      "Icelnd_00208_15083_004_150530_L090HVHV_CX_01.grd": "c27950c5f1d07899ca5f8f39c30b0261a97f4b513de391edbfdfdfb0e84e3020",
+      "Icelnd_00208_15083_004_150530_L090HVHV_CX_01.mlc": "073f56a353e868a8b24f4243fef9e86ba08cb2faee4a1aaa08e38963fdfb50c4",
+      "Icelnd_00208_15083_004_150530_L090HVVV_CX_01.mlc": "cdfad34f2ff026d10d6744e28ce28cb1fb9fca6e838855eb0bd3978c4043cf4d",
+      "Icelnd_00208_15083_004_150530_L090VVVV_CX_01.mlc": "6d36a3163fbfe0d20a73747308c0924b8981e73f6363ea29e34a2e0e11132c16",
+      "Icelnd_00208_15083_004_150530_L090_CX_01.ann": "054ccd747e3576886f1e00066fff031fc33b6e0285086a315cc0b4717f2783ed",
+      "Icelnd_00208_15083_004_150530_L090_CX_01.inc": "f110064acbc04f41aaa5e109a5a1baa4ce2056f261f5b5ab7ee53428a3759281"
+    },
+    "note": "hashes copied from PROVENANCE.json (recorded at download); not recomputed by this script",
+    "source": "PROVENANCE.json files[].sha256"
+  },
+  "labels": {
+    "SC_OC_CPR": "Derived",
+    "incidence": "Derived",
+    "look_counts": "Observed (.ann)",
+    "raw_covariance_elements": "Observed"
+  },
+  "looks": {
+    "azimuth_looks_mlc": 12,
+    "label": "Observed (.ann)",
+    "nominal_looks_per_pixel": 36,
+    "note": "nominal looks per MLC pixel; effective independent looks not assessed",
+    "range_looks_mlc": 3
+  },
+  "preview_png": "g0_earth_roi_cpr.png",
+  "product_validity": {
+    "grd_fill_check": {
+      "n_sampled_pixels_with_inc_fill": 905707,
+      "note": "every 50th GRD row sampled",
+      "of_these_grd_hhhh_equal_zero": 905707,
+      "of_these_grd_hhhh_nonzero_or_nonfinite": 0
+    },
+    "n_masked": 0,
+    "rule": "validity_mask = not (all six covariance elements exactly 0); .ann has no nodata field"
+  },
+  "record_type": "terraluna G0 pilot evidence: one Earth radar ROI (pilot, not a production output)",
+  "registration": {
+    "fraction_of_GRD_ROI_HHHH_values_found_in_MLC_box": 0.99661886915431,
+    "fraction_of_GRD_ROI_HVHV_values_found_in_MLC_box_independent_channel": 0.9966107218510672,
+    "method": "GRD is a Nearest Neighbor projection of the MLC (.ann Ground Projection Method); ROI placed on GRD from lat/lon, MLC box located by exact float32 HHHH value recurrence, bbox of rows/cols whose match count exceeds 30% of the peak",
+    "mlc_box_cols": [
+      2242,
+      2599
+    ],
+    "mlc_box_rows": [
+      5319,
+      5600
+    ],
+    "n_unique_grd_roi_hhhh_values": 97386,
+    "peak_col_match_count": 342,
+    "peak_row_match_count": 372
+  },
+  "roi": {
+    "centre_lat": 64.885,
+    "centre_lon": -16.72,
+    "extent_m_ew": 2000.394911640571,
+    "extent_m_ns": 2000.801900955073,
+    "grd_geographic": {
+      "lat_north_pixel_centre": 64.89396888000002,
+      "lat_south_pixel_centre": 64.87607856000001,
+      "lon_east_pixel_centre": -16.69905523,
+      "lon_west_pixel_centre": -16.74116592
+    },
+    "grd_pixel_box": {
+      "col_spacing_m": 5.264197135896239,
+      "cols": [
+        933,
+        1313
+      ],
+      "grid_shape": [
+        30474,
+        5784
+      ],
+      "n_cols": 380,
+      "n_rows": 323,
+      "row_spacing_m": 6.194433129891867,
+      "rows": [
+        23826,
+        24149
+      ]
+    },
+    "mlc_orientation": "MLC rows increase toward the north-ish azimuth direction and columns toward far range (west, Left look); GRD row index runs south, column east",
+    "mlc_pixel_box": {
+      "azimuth_extent_m": 2023.2,
+      "cols": [
+        2242,
+        2599
+      ],
+      "mlc_grid_shape": [
+        26045,
+        3216
+      ],
+      "n_cols": 357,
+      "n_rows": 281,
+      "rows": [
+        5319,
+        5600
+      ],
+      "slant_range_extent_m": 1783.76512986
+    },
+    "nominal_side_m": 2000.0
+  },
+  "roi_choice": {
+    "basis": "Centre of the bright (L-band-rough) elongated field in the scene overview, at the known location of the 2014-2015 Holuhraun lava field; the scene has no flow polygon, so this is not checked against a published flow outline. UAVSAR data take 004 covers the main body of the flow-field (Tolometti et al. 2022 via PROVENANCE.json scene_selection).",
+    "overview_method": "block-mean GRD HHHH, 16x16 pixels, visual inspection"
+  },
+  "scene": {
+    "acquisition": "30-May-2015 06:01:16 UTC",
+    "band": "L (centre wavelength 0.238403545E+02 cm)",
+    "cross_talk_removed": "Yes",
+    "look_direction": "Left",
+    "scene_id": "Icelnd_00208_15083_004_150530_L090_CX_01",
+    "site": "Holuhraun lava field, Iceland"
+  },
+  "script": {
+    "path": "~/terraluna-tools/g0_roi.py",
+    "sha256": "f5279c4f91c99671b1d103533ad7fae8d5455b1e0b76b85dab3812b75b3e566b"
+  },
+  "statistics": {
+    "cpr": {
+      "median": 0.35990381107546054,
+      "n": 100317,
+      "p05": 0.15417284726570424,
+      "p95": 0.8205459384599455
+    },
+    "handedness_ratio_to_base_sc": {
+      "median": 0.08799229218525727,
+      "n": 100317,
+      "p05": -0.28317507108305323,
+      "p95": 0.43499468494533583
+    },
+    "handedness_term_linear_power": {
+      "median": 0.0012278766371309757,
+      "n": 100317,
+      "p05": -0.006287037720903754,
+      "p95": 0.011354435235261914
+    },
+    "label": "Derived",
+    "note": "percentile method numpy linear interpolation; pixels are neighbouring multilooked samples, not independent",
+    "oc_linear_power": {
+      "median": 0.04654501378536225,
+      "n": 100317,
+      "p05": 0.012579025235027077,
+      "p95": 0.11674998402595521
+    },
+    "oc_own_valid": {
+      "median": 0.04654501378536225,
+      "n": 100317,
+      "p05": 0.012579025235027077,
+      "p95": 0.11674998402595521
+    },
+    "sc_linear_power": {
+      "median": 0.01685534231364727,
+      "n": 100317,
+      "p05": 0.004276303842198103,
+      "p95": 0.04176275071222334
+    },
+    "sc_own_valid": {
+      "median": 0.01685534231364727,
+      "n": 100317,
+      "p05": 0.004276303842198103,
+      "p95": 0.04176275071222334
+    },
+    "set": "pixels where CPR state is VALID (same pixels for SC and OC)",
+    "total_linear_power": {
+      "median": 0.06570286490023136,
+      "n": 100317,
+      "p05": 0.018184252554056,
+      "p95": 0.15002860287204386
+    }
+  },
+  "t2": {
+    "branch": "ralph/t2-polarimetry",
+    "commit_sha_full": "9091e83ecb6394c2c855847be58aa8516ff93e2c",
+    "commit_sha_short": "9091e83",
+    "functions_called": [
+      "terraluna_pipeline.polarimetry.derive_circular('COVARIANCE', CovarianceInput(cov, 'HH_HV_VV'), 'NEISH_SC_LL_TX_1_MINUS_I', validity_mask) -> circular_from_covariance",
+      "terraluna_pipeline.polarimetry.angle_to_degrees(inc_radians, unit='radians')"
+    ]
+  },
+  "units": "linear power (MLC Data Units per .ann: linear power); CPR dimensionless linear ratio SC/OC",
+  "validity": {
+    "cpr": {
+      "counts": {
+        "INVALID": 0,
+        "MISSING": 0,
+        "VALID": 100317
+      },
+      "reasons": {}
+    },
+    "oc": {
+      "counts": {
+        "INVALID": 0,
+        "MISSING": 0,
+        "VALID": 100317
+      },
+      "reasons": {}
+    },
+    "pixels_total": 100317,
+    "sc": {
+      "counts": {
+        "INVALID": 0,
+        "MISSING": 0,
+        "VALID": 100317
+      },
+      "reasons": {}
+    },
+    "valid_fraction_cpr": 1.0
+  },
+  "wall_seconds": 18.360148
+}
