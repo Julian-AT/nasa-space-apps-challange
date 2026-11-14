@@ -1,0 +1,282 @@
+{
+  "project": "Terraluna",
+  "branchName": "ralph/t0-bootstrap",
+  "description": "PRD section 12, T0 (repository and contracts), without the Vercel preview, which needs a human account step. Stories run in priority order. The author iteration never sets passes; ralph.sh runs two independent reviews and a deterministic gate first. This file is Ralph's task list, not the product PRD.",
+  "userStories": [
+    {
+      "id": "T0-01",
+      "title": "Python uv workspace and first bundle records",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.2",
+        "8.3",
+        "8.4",
+        "8.12",
+        "12 (T0 and Commands)"
+      ],
+      "description": "Create the uv workspace and the first pydantic records, so the bundle contract is generated from Python (D23).",
+      "files": [
+        "pyproject.toml",
+        "uv.lock",
+        "Makefile",
+        "pipeline/*",
+        "ml/*",
+        ".gitignore"
+      ],
+      "acceptanceCriteria": [
+        "Root pyproject.toml defines a uv workspace with members pipeline and ml. The distributions terraluna-pipeline and terraluna-ml use src layout, the import names terraluna_pipeline and terraluna_ml, and py.typed markers; requires-python is \"==3.12.*\"; uv.lock is committed.",
+        "Dependencies: pydantic v2 and rasterio (for the GDAL check) in terraluna-pipeline; pytest, hypothesis, ruff and mypy in a dev group. Nothing else. schema.py is the only PRD 8.3 module created; no empty placeholder modules.",
+        "ruff (lint and format) and mypy --strict cover pipeline/src, ml/src and pipeline/tests, configured in the root pyproject.toml.",
+        "schema.py defines SCHEMA_VERSION and pydantic v2 models BundleFile {path, sha256, bytes}, ModelSummary {id, status, g5}, BundleManifest (every field of the PRD 8.4 example, with model typed ModelSummary | None) and GateRecord (every PRD 8.12 field). All models forbid extra fields. Every field is required with no default; optional values are typed X | None and must still be present.",
+        "Constraints: sha256 is 64 lowercase hex characters; bytes >= 0; mock is a bool; shipping_mode is A, B, C or null; gate_id is G0 to G6; GateRecord.status and ModelSummary.g5 are NOT_RUN, PASS, FAIL, PARTIAL or NOT_APPLICABLE; ModelSummary.status allows only EXPERIMENTAL, the only value the PRD defines.",
+        "pipeline/tests/test_schema.py is written and run failing before schema.py exists. It covers: the PRD 8.4 example manifest parses once each \"…\" is replaced by a concrete value; a manifest without mock fails; an unknown field fails; an uppercase or 63-character sha256 fails; a GateRecord without status fails; a GateRecord with result null is still null after a JSON round trip, never 0 or an empty string.",
+        "Makefile (POSIX sh recipes, GNU Make 3.81): setup-py runs uv sync --locked, then prints the Python version and the GDAL version from rasterio, failing if Python is not 3.12 or rasterio cannot import; check-py runs ruff check, ruff format --check and mypy; test-py runs pytest. setup, check and test depend on these targets."
+      ],
+      "checks": [
+        "make setup",
+        "make check",
+        "make test"
+      ],
+      "priority": 1,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T0-02",
+      "title": "Bundle writer, validator and mock bundle",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.4",
+        "8.12",
+        "12 (T0 and end-to-end checks)"
+      ],
+      "description": "Write and validate release bundles, and generate the labelled mock bundle the web work starts from.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/export.py",
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "pipeline/tests/*",
+        "fixtures/mock-bundle/*",
+        "Makefile",
+        "pyproject.toml",
+        "pipeline/pyproject.toml",
+        "uv.lock",
+        ".gitignore"
+      ],
+      "acceptanceCriteria": [
+        "export.py provides write_bundle(out_dir, files, manifest_fields) and validate_bundle(bundle_dir, *, production) returning a list of errors, each with a machine-readable code and a path.",
+        "write_bundle lists every written file except manifest.json in manifest.files with its SHA-256 and byte count, and writes JSON deterministically: sorted keys, 2-space indent, LF line endings, trailing newline.",
+        "validate_bundle reports: manifest schema errors; a present but unlisted file; a listed but missing file; a SHA-256 or byte-count mismatch; a blown budget for every PRD 8.4 path with a numeric budget, in SI units (1 kB = 1000 bytes); validation.json entries that are not valid GateRecords; and, with production=True, mock=true or shipping_mode=null.",
+        "uv run python -m terraluna_pipeline.export validate <dir> [--production] prints every error and exits 1 if there are any, otherwise 0.",
+        "make mock-bundle regenerates fixtures/mock-bundle/ from code: manifest.json with mock=true, bundle_version \"mock-0\", schema_version equal to SCHEMA_VERSION, run_id null, git_sha null, a fixed created_utc constant, shipping_mode null, targets [] and model null; validation.json with one GateRecord for each of G0 to G6, all NOT_RUN, with every other optional field null. It contains no other files and no invented values.",
+        "make mock-bundle-check regenerates into a temporary directory and fails if the result differs from the committed fixtures/mock-bundle/.",
+        "Tests are written first, each on a temporary bundle: unlisted file, missing file, checksum mismatch, byte-count mismatch, a 51,200-byte targets.json, an invalid GateRecord, mock on production, null shipping_mode on production. A further test asserts that the committed mock bundle validates with production=False and fails with production=True."
+      ],
+      "checks": [
+        "make check",
+        "make test",
+        "make mock-bundle-check"
+      ],
+      "priority": 2,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T0-03",
+      "title": "Generated JSON Schemas, shared schema cases and drift check",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.3",
+        "8.4",
+        "8.9",
+        "D23"
+      ],
+      "description": "Generate JSON Schema from the pydantic models and fail CI on drift, with one set of accept/reject cases that both languages will use.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "pipeline/tests/*",
+        "packages/schema/json/*",
+        "fixtures/schema-cases/*",
+        "Makefile",
+        "pyproject.toml",
+        "pipeline/pyproject.toml",
+        "uv.lock",
+        ".gitignore"
+      ],
+      "acceptanceCriteria": [
+        "make schema writes packages/schema/json/bundle-manifest.schema.json, gate-record.schema.json and validation.schema.json (an array of GateRecord) from schema.py as JSON Schema 2020-12. Output is deterministic.",
+        "make schema-check regenerates into a temporary directory and exits non-zero, printing the diff, when the committed files differ.",
+        "fixtures/schema-cases/cases.json lists cases {name, schema, valid, value} with schema one of BundleManifest, GateRecord, Validation. At minimum: a valid real-shaped manifest, the mock manifest, missing mock, an unknown field, a bad sha256, a bad gate status, a missing gate status, and a GateRecord with result null.",
+        "Tests are written first: every case gets its expected verdict from pydantic and from the generated JSON Schema, checked with the jsonschema package as a dev-only dependency; the mock bundle's manifest.json and validation.json validate against the generated schemas; a model with one extra field produces a schema that differs from the committed one."
+      ],
+      "checks": [
+        "make schema-check",
+        "make check",
+        "make test"
+      ],
+      "priority": 3,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T0-04",
+      "title": "pnpm and Turborepo workspace with generated zod in @terraluna/schema",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.2",
+        "8.3",
+        "8.9",
+        "D23"
+      ],
+      "description": "Set up the strict TypeScript workspace and generate zod schemas from the committed JSON Schemas.",
+      "files": [
+        "package.json",
+        "pnpm-workspace.yaml",
+        "pnpm-lock.yaml",
+        "turbo.json",
+        "tsconfig.base.json",
+        "eslint.config.*",
+        ".npmrc",
+        ".gitignore",
+        "packages/schema/*",
+        "Makefile"
+      ],
+      "acceptanceCriteria": [
+        "Root package.json is private, sets packageManager to the installed pnpm version (pnpm --version) and engines.node to \"22.x\". pnpm-workspace.yaml includes packages/* and apps/*. pnpm-lock.yaml is committed. turbo.json defines build, typecheck, lint and test.",
+        "tsconfig.base.json enables strict, noUncheckedIndexedAccess and exactOptionalPropertyTypes. Lint uses an ESLint 9 flat config with typescript-eslint; tests use Vitest. Exact versions come from the lockfile.",
+        "@terraluna/schema exports zod 4 schemas and inferred types for BundleManifest, GateRecord and the validation file. They are generated from packages/schema/json/*.schema.json by a pinned generator chosen after reading current documentation; generated files are committed and carry a do-not-edit header.",
+        "make schema also regenerates the zod sources, and make schema-check fails on drift in either the JSON Schema or the zod output.",
+        "Vitest tests are written first: every case in fixtures/schema-cases/cases.json gets its expected verdict from zod, and fixtures/mock-bundle/manifest.json and validation.json parse.",
+        "Makefile: setup-ts checks that Node's major version is 22 and runs pnpm install --frozen-lockfile; check-ts runs lint and typecheck through Turborepo; test-ts runs Vitest through Turborepo. setup, check and test now include them.",
+        "The existing commitlint and husky setup keeps working: package.json keeps the prepare script and the @commitlint/cli, @commitlint/config-conventional and husky dev dependencies at their pinned versions, and pnpm install --frozen-lockfile still installs the commit-msg hook."
+      ],
+      "checks": [
+        "make setup",
+        "make schema-check",
+        "make check",
+        "make test"
+      ],
+      "priority": 4,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T0-05",
+      "title": "Web shell renders / from the bundle with mock and mode banners",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.4",
+        "8.5 (bundle:pull paragraph)",
+        "8.6",
+        "8.9",
+        "12 (end-to-end checks)"
+      ],
+      "description": "Create the smallest @terraluna/web that reads the bundle at build time, refuses mock data in production, and renders / with the required banners.",
+      "files": [
+        "apps/web/*",
+        "Makefile",
+        ".gitignore",
+        "package.json",
+        "pnpm-lock.yaml",
+        "turbo.json"
+      ],
+      "acceptanceCriteria": [
+        "apps/web is @terraluna/web: Next.js 16 App Router, React 19.2 and strict TypeScript. No Tailwind or UI kit yet; T7 owns styling.",
+        "pnpm --filter @terraluna/web bundle:pull copies manifest.json and validation.json into apps/web/data/ (git-ignored). The source is fixtures/mock-bundle/ when BUNDLE_VERSION is unset or empty, and release/<BUNDLE_VERSION>/ otherwise. Both files are validated with @terraluna/schema. A missing or invalid requested bundle fails; it never falls back to the mock.",
+        "bundle:pull and next build fail with a clear message when the manifest has mock=true and VERCEL_ENV=production.",
+        "Vitest tests are written first: mock with VERCEL_ENV=production throws; mock with VERCEL_ENV=preview or unset passes; a missing requested BUNDLE_VERSION throws instead of using the mock; an invalid manifest throws.",
+        "/ is statically rendered and shows: a red banner reading \"Mock bundle — placeholder data, not results\" when mock=true; \"Shipping mode: not chosen (G0 <status>)\" with the G0 status read from validation.json when shipping_mode is null, otherwise \"Shipping mode: <mode>\"; and the bundle version in the footer. It shows no other numbers, targets or claims.",
+        "make web-build runs bundle:pull and then next build. make web-smoke builds, starts next start on a free port, fetches /, asserts the banner text, the shipping-mode line and the manifest's bundle_version, and always stops the server. make web-dev starts the dev server on the current bundle."
+      ],
+      "checks": [
+        "make check",
+        "make test",
+        "make web-build",
+        "make web-smoke"
+      ],
+      "priority": 5,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T0-06",
+      "title": "CI jobs py, ts, schema and commitlint, and README build commands",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.9",
+        "12 (T0 and Commands)"
+      ],
+      "description": "Add the T0 CI jobs and document only the commands that have run successfully.",
+      "files": [
+        ".github/*",
+        "README.md",
+        "Makefile",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        ".github/workflows/ci.yml runs on pull_request and on push to main, with jobs py (make setup-py check-py test-py), ts (make setup-ts check-ts test-ts), schema (make schema-check mock-bundle-check) and commitlint (pnpm exec commitlint over the pull request commits, from the base SHA to the head SHA, with full fetch depth). Toolchain versions come from .python-version and .node-version, lockfiles are used frozen, permissions are contents: read, and every third-party action is pinned to a full commit SHA with its version tag in a comment.",
+        "actionlint reports no errors for the workflow.",
+        "Every make target that a job calls passes locally in this iteration, with the outcome recorded in progress.txt.",
+        "README.md gains a short Build and test section listing only commands that ran successfully in this iteration, one line each. It says that CI on GitHub and the Vercel preview have not run yet. The existing README content is kept and the README stays short."
+      ],
+      "checks": [
+        "actionlint .github/workflows/ci.yml",
+        "make check",
+        "make test",
+        "make schema-check",
+        "make mock-bundle-check"
+      ],
+      "priority": 6,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    }
+  ]
+}
