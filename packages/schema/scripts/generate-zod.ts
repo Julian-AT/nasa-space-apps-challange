@@ -125,8 +125,10 @@ function at(pointer: string): string {
 /**
  * Inline every `{"$ref": "#/$defs/<Name>"}` and drop the root `$defs`.
  *
- * pydantic emits only local references with no sibling keywords, so anything else is refused,
- * as is a recursive reference, which inlining cannot express.
+ * References are read only where a subschema is expected: under `properties`, `items` and
+ * `anyOf`, the keywords assertSupported accepts. Elsewhere, such as in a `properties` map or an
+ * `enum`, `$ref` is plain data. pydantic emits only local references with no sibling keywords,
+ * so anything else is refused, as is a recursive reference, which inlining cannot express.
  */
 export function dereference(root: JsonObject): JsonObject {
   const { $defs: defsValue, ...rest } = root;
@@ -138,10 +140,26 @@ export function dereference(root: JsonObject): JsonObject {
     defs = defsValue;
   }
 
-  const inline = (node: Json, pointer: string, stack: readonly string[]): Json => {
-    if (Array.isArray(node)) {
-      return node.map((item, index) => inline(item, `${pointer}/${String(index)}`, stack));
+  const inlineKeyword = (key: string, value: Json, pointer: string, stack: readonly string[]): Json => {
+    if (key === 'items') {
+      return inline(value, pointer, stack);
     }
+    if (key === 'anyOf' && Array.isArray(value)) {
+      return value.map((branch, index) => inline(branch, `${pointer}/${String(index)}`, stack));
+    }
+    if (key === 'properties' && isObject(value)) {
+      return Object.fromEntries(
+        Object.entries(value).map(([name, schema]) => [
+          name,
+          inline(schema, `${pointer}/${pointerToken(name)}`, stack),
+        ]),
+      );
+    }
+    // Any other keyword holds data, or is refused by assertSupported.
+    return value;
+  };
+
+  const inline = (node: Json, pointer: string, stack: readonly string[]): Json => {
     if (!isObject(node)) {
       return node;
     }
@@ -150,7 +168,7 @@ export function dereference(root: JsonObject): JsonObject {
       return Object.fromEntries(
         Object.entries(node).map(([key, value]) => [
           key,
-          inline(value, `${pointer}/${pointerToken(key)}`, stack),
+          inlineKeyword(key, value, `${pointer}/${pointerToken(key)}`, stack),
         ]),
       );
     }
