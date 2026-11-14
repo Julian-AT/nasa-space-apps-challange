@@ -1,0 +1,137 @@
+{
+  "task_id": "T0-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "c0a8f67c9195cd336e41247b453a767d60157ea9",
+    "head": "b29ff561c86fdac037f3ea903c45ea7e8e09b4b6",
+    "files": [
+      {
+        "path": "Makefile",
+        "sha256": "dd6d169d0748bf93e3a151bc2bb2eb826b32d7f593000ba78a9e28162782d927"
+      },
+      {
+        "path": "ml/pyproject.toml",
+        "sha256": "4aaefb76c5cd597639746ce58a5ffb4943cbd6053f49304ccfe70c3ea7f646fb"
+      },
+      {
+        "path": "ml/src/terraluna_ml/__init__.py",
+        "sha256": "eb952edb8fc2af25c9ea8cb1f3be7d0efc9f58cdaea19a038233282f8d2fbdda"
+      },
+      {
+        "path": "ml/src/terraluna_ml/py.typed",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "8ff32666bfa20dfefa005594bba76c42a1452e615d1e5356605cb33d699a0fe9"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/__init__.py",
+        "sha256": "3effec04e619be9c66b19daa1d45e473eb34e01c8bf961d1cc84ed93470ebf97"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/py.typed",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "34de47d5e0219b6304a064ce90e1d2a6b2b409dea91ba4fd6416a9f9641ae747"
+      },
+      {
+        "path": "pipeline/tests/test_schema.py",
+        "sha256": "c5ed7a644c5036c5c88946e3f886d0802a7d4451f7f4723e93c2c1a4c6e8a5c3"
+      },
+      {
+        "path": "pyproject.toml",
+        "sha256": "a0c5009b8698018f534b80b89433e3227e23cff59a6dbb4d9783e0d7206760b8"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "545b55e5d762b28ff768364d5458171f1513ba8c3d91dd461bcd64e17dbee66c"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:24:46Z",
+  "finished_utc": "2026-11-14T17:25:09Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T0-01 meets every acceptance criterion on evidence I saw. make setup, make check and make test all exit 0 (142 tests pass). The change touches only files in the story's list, plus the ml/pipeline pyproject files and package sources. I found no defects. The test-first criterion rests on git history, since I did not re-run the tests against a tree without schema.py.",
+  "checks": [
+    {
+      "criterion": "make setup",
+      "command": "make setup",
+      "outcome": "PASS",
+      "evidence": "uv sync --locked ok; Python 3.12.13; GDAL 3.12.2 (rasterio 1.5.2)"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed; format --check: 4 files already formatted; mypy: Success, 4 source files"
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "142 passed in 0.19s"
+    },
+    {
+      "criterion": "Workspace layout: members pipeline and ml, src layout, py.typed, requires-python ==3.12.*, uv.lock committed",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pyproject.toml:4-5; pipeline/pyproject.toml:6; ml/pyproject.toml:6; py.typed in both packages; uv.lock in diff"
+    },
+    {
+      "criterion": "Dependencies minimal; schema.py the only 8.3 module; no placeholders",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline deps pydantic and rasterio; ml deps empty; dev group hypothesis, mypy, pytest, ruff; only schema.py plus __init__ in src"
+    },
+    {
+      "criterion": "ruff and mypy --strict cover pipeline/src, ml/src and pipeline/tests via root pyproject",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pyproject.toml:15-38 (src/include/files, strict = true)"
+    },
+    {
+      "criterion": "schema.py models match PRD 8.4/8.12; extra forbidden; required, no defaults; nullable typed X | None",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "schema.py:67-115 compared with PRD.md:575-588 and 691; extra=forbid, strict, no defaults"
+    },
+    {
+      "criterion": "Constraints: sha256, bytes, mock, shipping_mode, gate_id, statuses, ModelSummary.status EXPERIMENTAL only",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "schema.py:24-38,80; the rust-regex engine rejects a trailing newline"
+    },
+    {
+      "criterion": "test_schema.py covers the required cases and was written failing first",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Tests at test_schema.py:166,178,211,301,397,414. Commit db74329 (tests) precedes eac367a (schema.py). No-schema failing run not re-executed."
+    },
+    {
+      "criterion": "Makefile targets as specified",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Makefile:11-28; setup-py fails if Python is not 3.12 or the rasterio import fails; setup, check and test depend on the -py targets"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/schema.py:21",
+      "claim": "SCHEMA_VERSION is a bare literal with no test tying it to the manifest example beyond a semver-format check.",
+      "evidence": "test_schema_version_is_semver only checks the format. This is optional to fix.",
+      "id": "claude-r1-1",
+      "resolution": null
+    }
+  ]
+}

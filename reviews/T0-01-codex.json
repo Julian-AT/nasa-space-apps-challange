@@ -1,0 +1,128 @@
+{
+  "task_id": "T0-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "c0a8f67c9195cd336e41247b453a767d60157ea9",
+    "head": "b29ff561c86fdac037f3ea903c45ea7e8e09b4b6",
+    "files": [
+      {
+        "path": "Makefile",
+        "sha256": "dd6d169d0748bf93e3a151bc2bb2eb826b32d7f593000ba78a9e28162782d927"
+      },
+      {
+        "path": "ml/pyproject.toml",
+        "sha256": "4aaefb76c5cd597639746ce58a5ffb4943cbd6053f49304ccfe70c3ea7f646fb"
+      },
+      {
+        "path": "ml/src/terraluna_ml/__init__.py",
+        "sha256": "eb952edb8fc2af25c9ea8cb1f3be7d0efc9f58cdaea19a038233282f8d2fbdda"
+      },
+      {
+        "path": "ml/src/terraluna_ml/py.typed",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "8ff32666bfa20dfefa005594bba76c42a1452e615d1e5356605cb33d699a0fe9"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/__init__.py",
+        "sha256": "3effec04e619be9c66b19daa1d45e473eb34e01c8bf961d1cc84ed93470ebf97"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/py.typed",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "34de47d5e0219b6304a064ce90e1d2a6b2b409dea91ba4fd6416a9f9641ae747"
+      },
+      {
+        "path": "pipeline/tests/test_schema.py",
+        "sha256": "c5ed7a644c5036c5c88946e3f886d0802a7d4451f7f4723e93c2c1a4c6e8a5c3"
+      },
+      {
+        "path": "pyproject.toml",
+        "sha256": "a0c5009b8698018f534b80b89433e3227e23cff59a6dbb4d9783e0d7206760b8"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "545b55e5d762b28ff768364d5458171f1513ba8c3d91dd461bcd64e17dbee66c"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:25:09Z",
+  "finished_utc": "2026-11-14T17:28:25Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No confirmed defects found in the scoped diff. Static review supports the workspace, schema, configuration, and test coverage. Execution checks and the required initial failing test run remain unverified under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "1. uv workspace, package names, src layouts, py.typed markers, Python requirement, and committed lockfile.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pyproject.toml:4-5 declares pipeline and ml. pipeline/pyproject.toml:2-6 and ml/pyproject.toml:2-6 declare the required distribution names and ==3.12.*. Both src packages and py.typed markers are tracked. git ls-tree confirms uv.lock is committed at b29ff561c86fdac037f3ea903c45ea7e8e09b4b6; uv.lock:3 specifies ==3.12.*."
+    },
+    {
+      "criterion": "2. Only the specified direct dependencies and development tools; schema.py is the only PRD 8.3 module created.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/pyproject.toml:7-10 lists only pydantic v2 and rasterio; ml/pyproject.toml:7 has no dependencies. pyproject.toml:7-13 lists only hypothesis, mypy, pytest, and ruff in dev. The scoped diff and tracked package trees contain schema.py plus required package initializers and typing markers, without placeholder PRD modules."
+    },
+    {
+      "criterion": "3. Root configuration covers pipeline/src, ml/src, and pipeline/tests with Ruff lint/format and strict mypy.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pyproject.toml:15-29 configures Ruff discovery and lint rules for all three paths. pyproject.toml:31-38 enables strict mypy and includes all three paths. Makefile:22-25 invokes Ruff lint, Ruff format --check, and mypy."
+    },
+    {
+      "criterion": "4. Required schema constant and models, complete PRD fields, forbidden extras, and required nullable fields without defaults.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:21 defines SCHEMA_VERSION; :67-115 defines the shared extra-forbid configuration and all four models. BundleManifest matches PRD.md:576-586, including ModelSummary | None. GateRecord matches PRD.md:691. Field declarations have no defaults, including nullable fields."
+    },
+    {
+      "criterion": "5. Digest, byte count, boolean, shipping mode, gate ID, gate status, and model status constraints.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:24-38 defines the exact literal sets and lowercase 64-character digest pattern. :72 enables strict validation and rust-regex; :80 requires integer bytes >= 0; :96 declares mock as bool; :100 allows shipping modes A/B/C or null."
+    },
+    {
+      "criterion": "6. Meaningful required schema tests, written and run failing before schema.py exists.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static coverage is substantive: pipeline/tests/test_schema.py:44-64 replaces PRD placeholders; :166-181 tests parsing and missing mock; :203-217 rejects unknown fields; :280-302 rejects uppercase and 63-character digests; :397-400 rejects missing gate status; :414-420 verifies null survives JSON serialization and revalidation. Git trees show tests existed before schema.py, but the required initial failing execution was not independently observed. Execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "7. GNU Make 3.81/POSIX recipes implement setup-py, check-py, test-py, and aggregate dependencies.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Makefile:3 selects /bin/sh; :9-13 declares phony targets and aggregate dependencies; :16-20 performs locked sync, Python version validation, and rasterio/GDAL reporting with failure handling; :22-28 invokes the required checks and pytest. Static recipes conform, but installation, imports, version reporting, and target execution cannot be verified because execution would write to the environment or caches."
+    },
+    {
+      "criterion": "Required check: make setup.",
+      "command": "make setup",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: uv sync creates or modifies the virtual environment, which the read-only sandbox prohibits."
+    },
+    {
+      "criterion": "Required check: make check.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: uv run may synchronize the environment, and Ruff/mypy may write caches."
+    },
+    {
+      "criterion": "Required check: make test.",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: uv run may synchronize the environment, and pytest/Hypothesis may write caches or test state."
+    }
+  ],
+  "findings": []
+}

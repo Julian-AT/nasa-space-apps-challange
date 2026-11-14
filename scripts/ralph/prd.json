@@ -40,12 +40,18 @@
       "priority": 1,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "c0a8f67c9195cd336e41247b453a767d60157ea9",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "b29ff561c86fdac037f3ea903c45ea7e8e09b4b6",
+        "files": [
+          "reviews/T0-01-claude.json",
+          "reviews/T0-01-codex.json"
+        ],
+        "digests": {
+          "reviews/T0-01-claude.json": "56852cc31a9945ec2282b1fd124052687ff5a0146beca1a9dc61567d8269a907",
+          "reviews/T0-01-codex.json": "97f6cc889e968918c79ffb79a3c75027928726c5cd8785693e825bd71677dd01"
+        }
       },
       "notes": ""
     },
