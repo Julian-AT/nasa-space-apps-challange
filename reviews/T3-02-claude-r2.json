@@ -92,7 +92,11 @@
       "claim": "The latitude is evaluated as phi0 + atan2(sin dphi, cos dphi), not the literal asin(S) the criterion names. The rebuttal is accepted.",
       "evidence": "The docstring (:162-185) documents the deviation. test_inverse_matches_the_prd_expressions (:393-400) compares against the asin form at rtol 1e-10, atol 1e-12. @terraluna/core (T10) must use the same evaluation for parity (PRD 8.8); the author flagged this as a human decision.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted, and the reviewer accepts the rebuttal. This is claude-r1-1 again. PRD 7 fixes the value phi = asin(S), and the inverse returns that value: test_inverse_matches_the_prd_expressions compares the latitude with np.arcsin of the PRD argument at rtol 1e-10, atol 1e-12 rad for all three bodies, the five story latitudes and five centre longitudes. Evaluated literally, asin(S) fails PRD 7's own tolerances near the poles: 1.6e-7 to 3.9e-7 m against 40-digit mpmath at +-89.9 deg, and a mutant with the literal asin fails 105 of 498 tests. Both Codex reviewers re-derived the increment form and found it algebraically equivalent (codex-r2 and codex2-r2, \"Previous-round fixes and rebuttal\"). The T10 parity point (PRD 8.8) is recorded for a human in story notes decision (2) and in the PRD 7 wording proposal under \"Proposed instruction changes\" in the progress log, so that @terraluna/core evaluates the latitude the same way. No change is needed here."
+      }
     },
     {
       "severity": "low",
@@ -100,7 +104,11 @@
       "claim": "The 40-digit mpmath reference makes the independent-forward check stronger than the story required. It adds a dev dependency (pyproject.toml and uv.lock changed), and that dependency is in the story's files list.",
       "evidence": "git diff --stat shows pipeline/pyproject.toml with +1 line and uv.lock changed. Both are in the story's files list.",
       "id": "claude-r2-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted: not a defect, as the finding itself says. mpmath>=1.4,<2 is only in the [dependency-groups].dev of pipeline/pyproject.toml, which is in the story's files list along with uv.lock. It is a test-only exact reference: no module under pipeline/src imports it (grep finds it only in a geometry.py docstring), and test_geometry_imports_only_the_standard_library_and_numpy enforces that geometry.py imports only the standard library and numpy. mpmath 1.4.1 is BSD-3-Clause, and its use and version are recorded in the progress log. The stronger reference was needed: a float64 reference forward has rounding of its own at the size of the metre allowance (codex-r1-1). No change."
+      }
     }
   ]
 }
