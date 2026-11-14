@@ -679,7 +679,7 @@ def test_source_url_verdicts_agree(suffix: str, token: str, tail: str) -> None:
         ), url
 
 
-@given(units=st.text(alphabet="unkowUNKOW \u212a", min_size=1, max_size=9))
+@given(units=st.text(alphabet="unkowUNKOW \n\u212a", min_size=1, max_size=9))
 def test_verified_units_verdicts_agree(units: str) -> None:
     value = product_record(units=units)
     assert pydantic_accepts("ProductRecord", value) is json_schema_accepts("ProductRecord", value)
