@@ -67,16 +67,28 @@ INSTRUMENT_CATALOG = CATALOG + "mrf_inst.cat"
 
 CPR = "lsz_xxxxx_3cp_piu_90s000_v1"
 S1 = "lsz_xxxxx_3s1_piu_90s000_v1"
+S4 = "lsz_xxxxx_3s4_piu_90s000_v1"
+S4_NORTH = "lsz_xxxxx_3s4_piu_90n000_v1"
 CPR_NORTH = "lsz_xxxxx_3cp_piu_90n000_v1"
 CPR_EAST = "lsz_04790_3cp_pju_90s000_e_v1"
+S1_EAST = "lsz_04790_3s1_pju_90s000_e_v1"
+S4_EAST = "lsz_04790_3s4_pju_90s000_e_v1"
 CPR_IMG_URL = MOSAICS + CPR + ".img"
 CPR_LBL_URL = MOSAICS + CPR + ".lbl"
+S1_IMG_URL = MOSAICS + S1 + ".img"
+S4_IMG_URL = MOSAICS + S4 + ".img"
+S1_EAST_IMG_URL = MOSAICS + S1_EAST + ".img"
+S4_EAST_IMG_URL = MOSAICS + S4_EAST + ".img"
 
 LINES = 10346
 SCALE_KM = 0.11845058759433
 OFFSET = 5173.5000000002
 RECORD_BYTES = LINES * 4
 FILE_BYTES = LINES * RECORD_BYTES
+EAST_LINES = 20691
+EAST_SCALE_KM = 0.059225293797168
+EAST_OFFSET = 10346.0
+EAST_RECORD_BYTES = EAST_LINES * 4
 
 ISIS_NULL = struct.unpack("<f", struct.pack("<I", 0xFF7FFFFB))[0]
 ISIS_LRS = struct.unpack("<f", struct.pack("<I", 0xFF7FFFFC))[0]
@@ -93,19 +105,21 @@ PGDA_WKT = (
 SITE_RECORD = "outputs/pilot/pgda78_site01.json"
 
 
-def _window_by_formula() -> tuple[int, int, int, int]:
+def _window_by_formula(
+    scale_km: float = SCALE_KM, offset: float = OFFSET
+) -> tuple[int, int, int, int]:
     """The covering pixel window by DSMAP.CAT: x = (Sample - S0) * Scale, y = (L0 - Line) * Scale.
 
     Sample and Line are 1-based and integral at pixel centres, so the 0-based edge coordinate
     of Sample is Sample - 0.5.
     """
-    scale = SCALE_KM * 1000.0
+    scale = scale_km * 1000.0
 
     def u(x: float) -> float:
-        return x / scale + OFFSET - 0.5
+        return x / scale + offset - 0.5
 
     def v(y: float) -> float:
-        return -y / scale + OFFSET - 0.5
+        return -y / scale + offset - 0.5
 
     col_off = math.floor(u(SITE_EXTENT["left"]))
     col_end = math.ceil(u(SITE_EXTENT["right"]))
@@ -130,28 +144,69 @@ SPECIAL_PIXELS: dict[tuple[int, int], float] = {
 }
 
 
-def mosaic_rows(first_row: int, row_count: int) -> npt.NDArray[np.float32]:
-    """Rows of the virtual CPR mosaic, as float32."""
-    rows, cols = np.mgrid[first_row : first_row + row_count, 0:LINES]
-    values: npt.NDArray[np.float32] = (0.05 + ((rows * 7 + cols * 13) % 97) / 100.0).astype(
-        np.float32
-    )
-    for (row, col), value in SPECIAL_PIXELS.items():
-        if first_row <= row < first_row + row_count:
+# Synthetic S1 and S4 layers. S4 takes positive, negative and zero values; each layer has its
+# own special pixels, and one null is shared, so a pixel counts only where both are valid.
+S1_SPECIAL_PIXELS: dict[tuple[int, int], float] = {
+    (5220, 5020): ISIS_NULL,
+    (5221, 5021): ISIS_HRS,
+    (5210, 100): ISIS_NULL,
+}
+S4_SPECIAL_PIXELS: dict[tuple[int, int], float] = {
+    (5220, 5020): ISIS_NULL,
+    (5230, 5030): ISIS_NULL,
+    (5240, 5040): ISIS_LRS,
+}
+
+
+def mosaic_rows(
+    first_row: int, row_count: int, quantity: str = "CPR", lines: int = LINES
+) -> npt.NDArray[np.float32]:
+    """Rows of a virtual CPR, S1 or S4 layer of ``lines`` x ``lines`` pixels, as float32."""
+    rows, cols = np.mgrid[first_row : first_row + row_count, 0:lines]
+    if quantity == "CPR":
+        stored = 0.05 + ((rows * 7 + cols * 13) % 97) / 100.0
+        special = SPECIAL_PIXELS
+    elif quantity == "S1":
+        stored = 0.5 + ((rows * 3 + cols * 5) % 89) / 50.0
+        special = S1_SPECIAL_PIXELS
+    else:
+        stored = ((rows * 11 + cols * 3) % 41 - 20) / 40.0
+        special = S4_SPECIAL_PIXELS
+    values: npt.NDArray[np.float32] = stored.astype(np.float32)
+    for (row, col), value in special.items():
+        if first_row <= row < first_row + row_count and col < lines:
             values[row - first_row, col] = np.float32(value)
     return values
 
 
 class VirtualMosaic:
-    """The bytes of the virtual mosaic file, generated per requested range."""
+    """The bytes of a virtual mosaic image file, generated per requested range."""
 
-    size = FILE_BYTES
+    def __init__(self, quantity: str = "CPR", lines: int = LINES) -> None:
+        self.quantity = quantity
+        self.lines = lines
+        self.size = lines * lines * 4
 
     def read(self, first: int, last: int) -> bytes:
-        first_row, last_row = first // RECORD_BYTES, last // RECORD_BYTES
-        block = mosaic_rows(first_row, last_row - first_row + 1).astype("<f4").tobytes()
-        start = first - first_row * RECORD_BYTES
+        record_bytes = self.lines * 4
+        first_row, last_row = first // record_bytes, last // record_bytes
+        block = (
+            mosaic_rows(first_row, last_row - first_row + 1, self.quantity, self.lines)
+            .astype("<f4")
+            .tobytes()
+        )
+        start = first - first_row * record_bytes
         return block[start : start + last - first + 1]
+
+
+IMAGES: dict[str, VirtualMosaic] = {
+    CPR_IMG_URL: VirtualMosaic("CPR"),
+    S1_IMG_URL: VirtualMosaic("S1"),
+    S4_IMG_URL: VirtualMosaic("S4"),
+    S1_EAST_IMG_URL: VirtualMosaic("S1", EAST_LINES),
+    S4_EAST_IMG_URL: VirtualMosaic("S4", EAST_LINES),
+}
+"""The images the range fetcher serves, by URL."""
 
 
 def pds_label(
@@ -244,6 +299,24 @@ S1_DESCRIPTION = """The First Stokes parameter product, defined
 as S1 = |ERH| + |ERV|. This is a combined East and West-looking mosaic."""
 
 
+S4_DESCRIPTION = """The Fourth Stokes parameter product. This is a combined East and
+West-looking mosaic."""
+
+
+def east_label(product: str, note: str, description: str) -> bytes:
+    """A label on the East-looking 512 pixel per degree grid."""
+    return pds_label(
+        product,
+        note=note,
+        description=description,
+        lines=EAST_LINES,
+        resolution="512.0",
+        scale_km="0.059225293797168",
+        offset="10346.0",
+        look="EAST",
+    )
+
+
 def labels(*, with_s4: bool = False) -> dict[str, bytes]:
     result = {
         CPR: pds_label(
@@ -272,12 +345,8 @@ def labels(*, with_s4: bool = False) -> dict[str, bytes]:
         ),
     }
     if with_s4:
-        name = "lsz_xxxxx_3s4_piu_90s000_v1"
-        result[name] = pds_label(
-            name,
-            note="Fourth stokes parameter South polar mosaic.",
-            description="The Fourth Stokes parameter product. This is a combined East and "
-            "West-looking mosaic.",
+        result[S4] = pds_label(
+            S4, note="Fourth stokes parameter South polar mosaic.", description=S4_DESCRIPTION
         )
     return result
 
@@ -412,10 +481,21 @@ class MockDownloader:
 
 
 class MockRangeFetcher:
-    """Stands in for io.fetch_range: serves the virtual mosaic with HTTP 206 semantics."""
+    """Stands in for io.fetch_range: serves the virtual images with HTTP 206 semantics.
 
-    def __init__(self, *, fail: Exception | None = None, size: int = FILE_BYTES) -> None:
+    ``fail`` fails every request; ``fail_for`` fails the requests for the URLs it names.
+    ``size`` overrides the file size the server states.
+    """
+
+    def __init__(
+        self,
+        *,
+        fail: Exception | None = None,
+        fail_for: dict[str, Exception] | None = None,
+        size: int | None = None,
+    ) -> None:
         self.fail = fail
+        self.fail_for = fail_for or {}
         self.size = size
         self.calls: list[tuple[str, int, int]] = []
 
@@ -423,20 +503,24 @@ class MockRangeFetcher:
         self.calls.append((url, first, last))
         if self.fail is not None:
             raise self.fail
-        if url != CPR_IMG_URL:
+        if url in self.fail_for:
+            raise self.fail_for[url]
+        if url not in IMAGES:
             raise RangeReadError(f"{url}: HTTP 404 Not Found for bytes={first}-{last}")
-        end = min(last, self.size - 1)
-        body = VirtualMosaic().read(first, end)
+        image = IMAGES[url]
+        size = image.size if self.size is None else self.size
+        end = min(last, size - 1)
+        body = image.read(first, end)
         return RangeResponse(
             url=url,
             final_url=url,
             requested_first=first,
             requested_last=last,
             status=206,
-            content_range=f"bytes {first}-{end}/{self.size}",
+            content_range=f"bytes {first}-{end}/{size}",
             first_byte=first,
             last_byte=end,
-            total_size=self.size,
+            total_size=size,
             bytes_received=len(body),
             data=body,
             content_type="application/octet-stream",
@@ -566,6 +650,7 @@ def test_fetch_stops_and_records_when_the_server_ignores_range(
     metadata = json.loads((raw / "fetch.json").read_bytes())
     assert metadata["window"]["status"] == "range_not_supported"
     assert "ignored the Range header" in metadata["window"]["reason"]
+    assert metadata["stokes"]["status"] == "not_requested"
 
     assert run(tmp_path, "record", "minirf") == 0
     record = mosaic_json(tmp_path)
@@ -888,11 +973,265 @@ def test_without_an_s4_layer_the_stokes_observation_is_not_performed(fetched: Pa
     assert "s4_positive" not in text
 
 
-def test_an_s4_layer_in_the_labels_is_not_silently_ignored(tmp_path: Path) -> None:
+def stokes_window(
+    quantity: str, window: tuple[int, int, int, int], lines: int = LINES
+) -> npt.NDArray[np.float32]:
+    col_off, row_off, width, height = window
+    return mosaic_rows(row_off, height, quantity, lines)[:, col_off : col_off + width]
+
+
+def isis_special(values: npt.NDArray[np.float32]) -> npt.NDArray[np.bool_]:
+    """The ISIS Null and the four saturation codes, by bit pattern (the oracle for the mask)."""
+    bits = values.view("<u4")
+    special: npt.NDArray[np.bool_] = (bits >= 0xFF7FFFFB) & (bits <= 0xFF7FFFFF)
+    return special
+
+
+def row_bytes(window: tuple[int, int, int, int], record_bytes: int) -> tuple[int, int]:
+    _, row_off, _, height = window
+    return row_off * record_bytes, (row_off + height) * record_bytes - 1
+
+
+@pytest.fixture
+def stokes_fetched(tmp_path: Path) -> Path:
+    """A repository root after a fetch and record of a volume with S1 and S4 over Site01."""
     write_site_record(tmp_path)
     assert run(tmp_path, "fetch", "minirf", served=volume(with_s4=True)) == 0
-    with pytest.raises(pilot.PilotError, match="S4"):
-        pilot.record("minirf", root=tmp_path, sources={"minirf": SOURCE})
+    assert run(tmp_path, "record", "minirf") == 0
+    return tmp_path
+
+
+def test_fetch_range_reads_the_s1_and_s4_windows_when_both_cover_site01(tmp_path: Path) -> None:
+    write_site_record(tmp_path)
+    download, read_range = MockDownloader(volume(with_s4=True)), MockRangeFetcher()
+    assert run(tmp_path, "fetch", "minirf", download=download, read_range=read_range) == 0
+
+    assert not any(url.endswith(".img") for url in download.calls)
+    first, last = row_bytes((COL_OFF, ROW_OFF, WIN_W, WIN_H), RECORD_BYTES)
+    assert read_range.calls == [
+        (CPR_IMG_URL, first, last),
+        (S1_IMG_URL, first, last),
+        (S4_IMG_URL, first, last),
+    ]
+    raw = tmp_path / RAW
+    metadata = json.loads((raw / "fetch.json").read_bytes())
+    assert metadata["stokes"] == {"status": "read", "reason": None}
+    entries = {e["quantity"]: e for e in metadata["files"] if e["role"] == "stokes_window_rows"}
+    assert set(entries) == {"S1", "S4"}
+    for quantity, name in (("S1", S1), ("S4", S4)):
+        entry = entries[quantity]
+        rows = (raw / f"{name}.img.rows").read_bytes()
+        assert rows == IMAGES[MOSAICS + f"{name}.img"].read(first, last)
+        assert entry["file_name"] == f"{name}.img.rows"
+        assert entry["label_file_name"] == f"{name}.lbl"
+        assert entry["provider_file_name"] == f"{name}.img"
+        assert entry["http_status"] == 206
+        assert entry["content_range"] == f"bytes {first}-{last}/{FILE_BYTES}"
+        assert entry["bytes_received"] == len(rows) == WIN_H * RECORD_BYTES
+        assert entry["sha256"] == hashlib.sha256(rows).hexdigest()
+        assert entry["rows"] == {"first": ROW_OFF, "last": ROW_OFF + WIN_H - 1}
+
+
+def test_the_stokes_observation_records_raw_s1_and_s4_statistics(stokes_fetched: Path) -> None:
+    record = mosaic_json(stokes_fetched)
+    stokes = record["stokes_observation"]
+    assert stokes["status"] == "observed"
+    assert stokes["reason"] is None
+    assert "polarimetry.lunar_s4_sign_check (T2-05)" in stokes["note"]
+    (pair,) = stokes["pairs"]
+    window = (COL_OFF, ROW_OFF, WIN_W, WIN_H)
+    assert pair["pixel_window"] == {
+        "col_off": COL_OFF,
+        "row_off": ROW_OFF,
+        "width": WIN_W,
+        "height": WIN_H,
+    }
+    s1, s4 = stokes_window("S1", window), stokes_window("S4", window)
+    valid = ~isis_special(s1) & ~isis_special(s4)
+    s1_valid, s4_valid = s1[valid].astype(np.float64), s4[valid].astype(np.float64)
+    assert pair["total_pixels"] == WIN_W * WIN_H
+    assert pair["valid_pixels"] == int(valid.sum()) == WIN_W * WIN_H - 4
+    assert pair["s4_positive_pixels"] == int(np.count_nonzero(s4_valid > 0))
+    assert pair["s4_negative_pixels"] == int(np.count_nonzero(s4_valid < 0))
+    assert pair["s4_zero_pixels"] == int(np.count_nonzero(s4_valid == 0))
+    assert min(pair["s4_positive_pixels"], pair["s4_negative_pixels"], pair["s4_zero_pixels"]) > 0
+    # The values are recorded as stored: the negative S4 minimum shows no sign was flipped.
+    assert pair["s1"]["min"] == float(s1_valid.min()) and pair["s1"]["max"] == float(s1_valid.max())
+    assert pair["s4"]["min"] == float(s4_valid.min()) == -0.5
+    assert pair["s4"]["max"] == float(s4_valid.max())
+    first, last = row_bytes(window, RECORD_BYTES)
+    for quantity, name in (("s1", S1), ("s4", S4)):
+        layer = pair[quantity]
+        assert layer["label_file_name"] == f"{name}.lbl"
+        assert layer["image_file_name"] == f"{name}.img"
+        assert layer["url"] == MOSAICS + f"{name}.img"
+        assert layer["http_status"] == 206
+        assert layer["byte_ranges"] == [[first, last]]
+        assert layer["bytes_received"] == last - first + 1
+        assert layer["local_path"] == f"{RAW}/{name}.img.rows"
+        rows = (stokes_fetched / RAW / f"{name}.img.rows").read_bytes()
+        assert layer["local_sha256"] == hashlib.sha256(rows).hexdigest()
+        assert layer["units"]["value"] == "unknown"
+        assert "UNIT" in layer["units"]["source"]
+    assert pair["s1"]["invalid_by_reason"] == {
+        "nodata": 1,
+        "non_finite": 0,
+        "outside_support": 0,
+        "isis_saturation": 1,
+    }
+    assert pair["s4"]["invalid_by_reason"] == {
+        "nodata": 2,
+        "non_finite": 0,
+        "outside_support": 0,
+        "isis_saturation": 1,
+    }
+    # Raw observations only: no verdict and no S1 >= |S4| validity count anywhere.
+    keys: set[str] = set()
+
+    def collect(value: Any) -> None:
+        if isinstance(value, dict):
+            keys.update(key.lower() for key in value)
+            for item in value.values():
+                collect(item)
+        elif isinstance(value, list):
+            for item in value:
+                collect(item)
+
+    collect(stokes)
+    assert not any("verdict" in key or "sign" in key or "abs" in key for key in keys)
+    assert not any("open_g0" in key for key in keys)
+    assert all("MAP-V1.0" not in item["item"] for item in record["open_g0_items"])
+    assert pilot.check("minirf", root=stokes_fetched, sources={"minirf": SOURCE}) == []
+
+
+def test_the_stokes_window_rows_get_product_records(stokes_fetched: Path) -> None:
+    records = {r.product_id: r for r in sources(stokes_fetched)}
+    for name in (S1, S4):
+        image = records[f"MINIRF/LROMRF_0005/{name}.img"]
+        rows = (stokes_fetched / RAW / f"{name}.img.rows").read_bytes()
+        assert image.local_path == f"{RAW}/{name}.img.rows"
+        assert image.checksum == hashlib.sha256(rows).hexdigest()
+        assert image.source_url == MOSAICS + f"{name}.img"
+        assert image.units == "unknown"
+        assert image.verification_status == "PARTIAL"
+        assert f"MINIRF/LROMRF_0005/{name}.lbl" in records
+    ids = list(records)
+    assert ids == sorted(ids)
+
+
+def test_each_s1_and_s4_pair_is_read_on_its_own_grid(tmp_path: Path) -> None:
+    write_site_record(tmp_path)
+    found = labels(with_s4=True)
+    found[S1_EAST] = east_label(
+        S1_EAST, "First stokes parameter South polar mosaic.", "The First Stokes parameter."
+    )
+    found[S4_EAST] = east_label(
+        S4_EAST, "Fourth stokes parameter South polar mosaic.", "The Fourth Stokes parameter."
+    )
+    read_range = MockRangeFetcher()
+    served = volume(mosaic_labels=found)
+    assert run(tmp_path, "fetch", "minirf", served=served, read_range=read_range) == 0
+    assert run(tmp_path, "record", "minirf") == 0
+
+    east = _window_by_formula(EAST_SCALE_KM, EAST_OFFSET)
+    assert east != (COL_OFF, ROW_OFF, WIN_W, WIN_H)
+    east_first, east_last = row_bytes(east, EAST_RECORD_BYTES)
+    assert (S1_EAST_IMG_URL, east_first, east_last) in read_range.calls
+    assert (S4_EAST_IMG_URL, east_first, east_last) in read_range.calls
+    assert len(read_range.calls) == 5
+    pairs = mosaic_json(tmp_path)["stokes_observation"]["pairs"]
+    assert [(p["s1"]["label_file_name"], p["s4"]["label_file_name"]) for p in pairs] == [
+        (f"{S1_EAST}.lbl", f"{S4_EAST}.lbl"),
+        (f"{S1}.lbl", f"{S4}.lbl"),
+    ]
+    col_off, row_off, width, height = east
+    assert pairs[0]["pixel_window"] == {
+        "col_off": col_off,
+        "row_off": row_off,
+        "width": width,
+        "height": height,
+    }
+    s4 = stokes_window("S4", east, EAST_LINES)
+    assert pairs[0]["s4"]["min"] == float(s4.astype(np.float64).min())
+    assert pairs[0]["valid_pixels"] == width * height
+
+
+def test_an_s4_layer_that_does_not_cover_site01_is_not_read(tmp_path: Path) -> None:
+    write_site_record(tmp_path)
+    found = labels()
+    found[S4_NORTH] = pds_label(
+        S4_NORTH,
+        note="Fourth stokes parameter North polar mosaic.",
+        description=S4_DESCRIPTION,
+        center_latitude="90.0",
+    )
+    read_range = MockRangeFetcher()
+    served = volume(mosaic_labels=found)
+    assert run(tmp_path, "fetch", "minirf", served=served, read_range=read_range) == 0
+    assert [call[0] for call in read_range.calls] == [CPR_IMG_URL]
+    assert run(tmp_path, "record", "minirf") == 0
+    record = mosaic_json(tmp_path)
+    stokes = record["stokes_observation"]
+    assert set(stokes) == {"status", "reason"}
+    assert stokes["status"] == "not_performed"
+    assert f"{S4_NORTH}.lbl" in stokes["reason"] and "Site01" in stokes["reason"]
+    (item,) = record["open_g0_items"]
+    assert "LRO-L-MRFLRO-5-CDR-MAP-V1.0" in item["item"]
+
+
+def test_an_s4_layer_without_an_s1_layer_on_its_grid_stops_the_fetch(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    write_site_record(tmp_path)
+    found = labels(with_s4=True)
+    del found[S1]
+    read_range = MockRangeFetcher()
+    served = volume(mosaic_labels=found)
+    assert run(tmp_path, "fetch", "minirf", served=served, read_range=read_range) != 0
+    error = capsys.readouterr().err
+    assert f"{S4}.lbl" in error and "S1" in error
+    assert read_range.calls == []
+    assert not (tmp_path / RAW / "fetch.json").exists()
+
+
+def test_a_stokes_range_read_the_server_ignores_stops_the_fetch(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    write_site_record(tmp_path)
+    ignored = RangeNotSupportedError(
+        f"{S4_IMG_URL}: the server ignored the Range header and answered HTTP 200 with the "
+        "whole file; the body was not read"
+    )
+    read_range = MockRangeFetcher(fail_for={S4_IMG_URL: ignored})
+    served = volume(with_s4=True)
+    assert run(tmp_path, "fetch", "minirf", served=served, read_range=read_range) != 0
+    assert "Range" in capsys.readouterr().err
+    raw = tmp_path / RAW
+    metadata = json.loads((raw / "fetch.json").read_bytes())
+    assert metadata["window"]["status"] == "read"
+    assert metadata["stokes"]["status"] == "range_not_supported"
+    assert "ignored the Range header" in metadata["stokes"]["reason"]
+    assert (raw / f"{CPR}.img.rows").exists()
+    assert not (raw / f"{S1}.img.rows").exists() and not (raw / f"{S4}.img.rows").exists()
+    assert not any(e["role"] == "stokes_window_rows" for e in metadata["files"])
+
+    assert run(tmp_path, "record", "minirf") == 0
+    record = mosaic_json(tmp_path)
+    stokes = record["stokes_observation"]
+    assert stokes["status"] == "not_performed"
+    assert "ignored the Range header" in stokes["reason"]
+    assert record["cpr_statistics"]["status"] == "computed"
+    assert any("S1 and S4" in item["item"] for item in record["open_g0_items"])
+    assert run(tmp_path, "check", "minirf") == 0
+
+
+def test_record_refuses_a_fetch_that_lacks_the_stokes_rows(stokes_fetched: Path) -> None:
+    path = stokes_fetched / RAW / "fetch.json"
+    metadata = json.loads(path.read_bytes())
+    metadata["files"] = [e for e in metadata["files"] if e.get("quantity") != "S4"]
+    path.write_text(json.dumps(metadata))
+    with pytest.raises(pilot.PilotError, match="fetch minirf"):
+        pilot.check("minirf", root=stokes_fetched, sources={"minirf": SOURCE})
 
 
 def test_the_registered_source_reads_the_pds_geosciences_node() -> None:
