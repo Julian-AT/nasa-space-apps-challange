@@ -1268,6 +1268,88 @@ def test_an_integer_source_with_a_sentinel_matches_the_float_source_with_nan() -
     assert_same_bits(from_int.valid, np.array([False, False, True, False, False]))
 
 
+# Masked sources. A numpy masked array, as rasterio's read(masked=True) returns, marks missing
+# pixels in its mask; the data under the mask are not observations (codex2-r1-1).
+
+
+def test_a_fully_masked_source_is_nodata_never_the_data_under_the_mask() -> None:
+    source = np.ma.array(np.zeros((2, 2)), mask=True)
+    result = bilinear_resample(source, np.array([0.5]), np.array([0.5]), nodata=None)
+    assert_same_bits(result.inside, np.array([True]))
+    assert_same_bits(result.valid, np.array([False]))
+    assert np.isnan(result.values[0])
+
+
+@settings(max_examples=300, deadline=None)
+@given(case=resample_cases(), hidden=st.sampled_from([0.0, -9999.0, 1e6]))
+def test_a_masked_pixel_behaves_like_nan_whatever_value_it_hides(
+    case: tuple[Array, BoolArray, Array, Array], hidden: float
+) -> None:
+    source, source_valid, u, v = case
+    with_nan = bilinear_resample(np.where(source_valid, source, np.nan), u, v, nodata=None)
+    masked = np.ma.array(np.where(source_valid, source, hidden), mask=~source_valid)
+    # The values lie in [-100, 100], so the sentinel below never matches one.
+    for nodata in (None, -32768.0):
+        result = bilinear_resample(masked, u, v, nodata=nodata)
+        assert_same_bits(result.values, with_nan.values)
+        assert_same_bits(result.valid, with_nan.valid)
+        assert_same_bits(result.inside, with_nan.inside)
+
+
+def test_a_mask_combines_with_nan_and_the_declared_sentinel() -> None:
+    data = np.arange(20, dtype=np.float64).reshape(4, 5)
+    data[0, 4] = np.nan
+    data[3, 0] = -9999.0
+    mask = np.zeros(data.shape, dtype=bool)
+    mask[1, 2] = True
+    plain = data.copy()
+    plain[1, 2] = np.nan
+    row_index, column_index = np.mgrid[0:13, 0:17].astype(np.float64)
+    u, v = column_index / 4.0, row_index / 4.0
+    from_masked = bilinear_resample(np.ma.array(data, mask=mask), u, v, nodata=-9999.0)
+    from_plain = bilinear_resample(plain, u, v, nodata=-9999.0)
+    assert_same_bits(from_masked.values, from_plain.values)
+    assert_same_bits(from_masked.valid, from_plain.valid)
+    assert np.any(from_plain.valid)
+    for cell in ((0, 4), (3, 0), (1, 2)):
+        near = np.array(
+            [
+                cell in footprint(data.shape, ui, vi)
+                for ui, vi in zip(u.ravel(), v.ravel(), strict=True)
+            ]
+        ).reshape(u.shape)
+        assert not np.any(from_masked.valid[near])
+
+
+def test_a_masked_array_with_nothing_masked_resamples_like_its_data() -> None:
+    rng = np.random.default_rng(20261115)
+    data = rng.uniform(-50.0, 50.0, size=(4, 5))
+    u = rng.uniform(-0.5, 4.5, size=40)
+    v = rng.uniform(-0.5, 3.5, size=40)
+    plain = bilinear_resample(data, u, v, nodata=None)
+    for source in (
+        np.ma.array(data),
+        np.ma.array(data, mask=False),
+        np.ma.array(data, mask=np.zeros(data.shape, dtype=bool)),
+    ):
+        result = bilinear_resample(source, u, v, nodata=None)
+        assert_same_bits(result.values, plain.values)
+        assert_same_bits(result.valid, plain.valid)
+
+
+def test_a_masked_integer_source_matches_the_float_source_with_nan() -> None:
+    data = np.array([[100, 200, 300], [400, 500, 600], [700, 800, 900]], dtype=np.int16)
+    mask = np.array([[False, True, False], [False, False, False], [False, False, True]])
+    u = np.array([0.5, 1.5, 0.25, 1.75, 2.0])
+    v = np.array([0.5, 0.5, 1.5, 1.5, 0.0])
+    from_masked = bilinear_resample(np.ma.array(data, mask=mask), u, v, nodata=None)
+    from_float = bilinear_resample(
+        np.where(mask, np.nan, data.astype(np.float64)), u, v, nodata=None
+    )
+    assert_same_bits(from_masked.values, from_float.values)
+    assert_same_bits(from_masked.valid, np.array([False, False, True, False, False]))
+
+
 def test_output_is_float64_with_a_boolean_mask_and_nan_where_missing() -> None:
     source = np.array([[1.0, 2.0, np.nan], [4.0, 0.0, 6.0]], dtype=np.float32)
     u = np.array([[0.5, 1.5], [9.0, 0.0]])
@@ -1564,6 +1646,29 @@ def test_one_nodata_source_pixel_masks_exactly_its_footprint_in_a_window() -> No
     )
     assert not np.any(empty.valid)
     assert np.all(np.isnan(empty.values))
+
+
+def test_a_masked_window_source_resamples_like_the_source_with_nan() -> None:
+    body = "mars"
+    lat0, lon0 = math.radians(18.45), math.radians(77.62)
+    lookup, (rows, cols) = equirectangular_source_for(lat0, lon0, BODY_RADII_M[body])
+    source, _ = pixel_plane((rows, cols))
+    mask = np.zeros((rows, cols), dtype=bool)
+    mask[rows // 2 - 20 : rows // 2 + 20, cols // 2 - 20 : cols // 2 + 20] = True
+    common: dict[str, Any] = {
+        "grid": ANALYSIS_GRID,
+        "body": body,
+        "lat0_rad": lat0,
+        "lon0_rad": lon0,
+        "nodata": None,
+    }
+    # The hidden data are zeros, which a dropped mask would pass off as observations.
+    masked = resample_window(np.ma.array(np.where(mask, 0.0, source), mask=mask), lookup, **common)
+    with_nan = resample_window(np.where(mask, np.nan, source), lookup, **common)
+    assert_same_bits(masked.values, with_nan.values)
+    assert_same_bits(masked.valid, with_nan.valid)
+    assert np.any(~with_nan.valid & with_nan.inside)
+    assert np.any(with_nan.valid)
 
 
 # ---------------------------------------------------------------------------------------------
