@@ -527,7 +527,7 @@ class GeographicLookup:
     ``to_pixel``. Evaluation: lon_deg = lon * (180 / pi) and lat_deg = lat * (180 / pi) are
     rounded once (``numpy.degrees``); east = lon_deg - origin_lon_deg is carried exactly as two
     float64 values (Knuth's two-sum) and reduced to [0, 360) by a whole number of 360 degree
-    turns, deciding the turn on both parts; then column = east / pixel_width_deg - 0.5 and row
+    turns, settled by the sign of the exact remainder; then column = east / pixel_width_deg - 0.5 and row
     = (lat_deg - origin_lat_deg) / pixel_height_deg - 0.5, the difference again carried
     exactly. The only roundings after the degrees are those of the final sums, the divisions
     and the half-pixel shifts, so a column near 0 keeps its precision next to a large origin.
@@ -572,9 +572,14 @@ class GeographicLookup:
         """Pixel coordinates (column, row) of (longitude, latitude) in degrees."""
         lon, lat = _projected(lon_deg, lat_deg)
         east_hi, east_lo = _two_sum(lon, np.full_like(lon, -self.origin_lon_deg))
+        # The quotient can be off by one turn (rounding, or underflow to -0.0 for a subnormal
+        # difference), so the turn is settled by the sign of the exact remainder.
         turns = np.floor(east_hi / 360.0)
-        # A high part on a multiple of 360 with a negative low part lies just below it.
-        turns = np.where((east_hi == 360.0 * turns) & (east_lo < 0.0), turns - 1.0, turns)
+        shifted_hi, shifted_lo = _two_sum(east_hi, -360.0 * turns)
+        shifted_lo = shifted_lo + east_lo
+        below = (shifted_hi < 0.0) | ((shifted_hi == 0.0) & (shifted_lo < 0.0))
+        above = (shifted_hi > 360.0) | ((shifted_hi == 360.0) & (shifted_lo >= 0.0))
+        turns = turns - below + above
         shifted_hi, shifted_lo = _two_sum(east_hi, -360.0 * turns)
         east = shifted_hi + (shifted_lo + east_lo)
         north_hi, north_lo = _two_sum(lat, np.full_like(lat, -self.origin_lat_deg))
