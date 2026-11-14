@@ -1,0 +1,165 @@
+{
+  "task_id": "T15-07",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "3cf8875408538600f00f7218027e535b169a737f",
+    "head": "b641329b82e67a442977d0094bc0843b28995571",
+    "files": [
+      {
+        "path": "apps/web/app/api/[[...route]]/route.ts",
+        "sha256": "fdce8771c80714a24a40ddbc007e20e1cc9161c3ecc0d5d42160df4642020ee5"
+      },
+      {
+        "path": "apps/web/next.config.ts",
+        "sha256": "8d2747bb43cfb9bda502861c6188f440e24c5553fb8028f9fd9270c6f9ac7312"
+      },
+      {
+        "path": "apps/web/server/api/app.test.ts",
+        "sha256": "1ce0274b944187a5a05066d2775469c9e6d310a8db75bbaab37d0890454204fa"
+      },
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "25a37ac7a58c3b0dee9d2714bf8d5302fc99e739df60ad518d6a50ff81b9518b"
+      },
+      {
+        "path": "apps/web/server/api/gates.ts",
+        "sha256": "7f23f3dfbb1e4083a7b230318be7b4d0f90e5f1be0c94cdb3f19619affb88c26"
+      },
+      {
+        "path": "apps/web/server/api/health.ts",
+        "sha256": "9f2bf8629cd4e93de580479bf5a9025feb67998f6ef6ab425458ddb762fc095e"
+      },
+      {
+        "path": "apps/web/server/api/index.ts",
+        "sha256": "cefa1c8ed316c3180253c4e787518e487cbb639d98794cae5d727d6947e764e0"
+      },
+      {
+        "path": "apps/web/server/api/manifest.ts",
+        "sha256": "1866d0145c90128adb44376daa278e8ad1df31d2e2a728fb3b429385c46f1737"
+      },
+      {
+        "path": "apps/web/server/api/mount.test.ts",
+        "sha256": "580341a8ccfbf78487df75fc30d1c5d7f8d57d4133a10f90d7b3955356e1e43b"
+      },
+      {
+        "path": "apps/web/server/api/openapi.test.ts",
+        "sha256": "6466164d7d0d0cbda8fe153a0522191c8607916e7ed193c5c65430c6f5d63257"
+      },
+      {
+        "path": "apps/web/server/api/problem.ts",
+        "sha256": "87903790f577f62e9cc22971868c2089b2f2d9596b6208d2baa2cc2d387148bf"
+      },
+      {
+        "path": "apps/web/server/api/targets.test.ts",
+        "sha256": "4e52a24d1543144075e6adec40279cc3260b264398a4d14843a35c1517493502"
+      },
+      {
+        "path": "apps/web/server/api/targets.ts",
+        "sha256": "5034c24f6f86404e84cd04d6e4959a1ea197331c7e290978d39c1c2ff0061db0"
+      },
+      {
+        "path": "apps/web/server/api/test-support.ts",
+        "sha256": "94a9428bf678ee72d003b3a5c59d3e62cfcf2a254b2f50b249a821f4ce7e01d9"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.test.ts",
+        "sha256": "87433062da921c4e46951e2b503a734af6603931a4d1e46428346c53274502ee"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.ts",
+        "sha256": "8ced457cab4f089edb38f3d4f94e72e5ff33aed4cb32a9d55d0ecc067edd0aac"
+      },
+      {
+        "path": "apps/web/tests/next-config.test.ts",
+        "sha256": "d7b796dfc5ca2dc5c66a376b7242b774b9d3a939101109ef24760edd55d4fdcd"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:53:00Z",
+  "finished_utc": "2026-11-14T21:56:29Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No actionable defects found in the scoped change. Static review supports the mount, production guard, and proxy deferral. Required build, runtime, and test verification remains NOT_RUN because execution was prohibited in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "AC1: Typed GET/HEAD wrappers, read-only methods, docs redirect, and explicit Node.js runtime.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/app/api/[[...route]]/route.ts:8 cites issue 4877; lines 15–34 import the shared app, set nodejs, and export typed app.fetch wrappers. apps/web/server/api/app.ts:72 rejects non-read methods with 405; line 195 registers the docs redirect."
+    },
+    {
+      "criterion": "AC2: Typecheck and mock web build pass, API appears in build output, and existing landing page remains unchanged.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The scoped diff leaves the existing page and components unchanged. Typecheck, build success, and generated route output require execution, which the user prohibited in this read-only sandbox."
+    },
+    {
+      "criterion": "AC3: Bundle path works under the built server, tracing is configured, and exact commands and limitations are documented.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/next.config.ts:18 includes data/**/*.json for the escaped API route, consistent with [Next.js 16 tracing documentation](https://nextjs.org/docs/app/api-reference/config/next-config-js/output). apps/web/lib/bundle.ts:427 resolves data beneath process.cwd(). Story notes at scripts/ralph/batches/t15-api/prd.json:386 record build/start/fetch commands and the Vercel limitation; Makefile is unchanged. Independent build/start/health verification was prohibited."
+    },
+    {
+      "criterion": "AC4: Shared-instance route tests assert production mock refusal through the imported loader guard.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/server/api/mount.test.ts:14 imports the mount and line 17 imports its shared app. Lines 138–168 assert 503 problem+json for mock health/manifest requests and empty HEAD bodies. apps/web/server/api/app.ts:25 imports assertDeployable and line 139 invokes it; lines 174–175 map MockBundleError to 503. Tests were inspected, not executed."
+    },
+    {
+      "criterion": "AC5: Mount serves /api/v1/* and the /api/docs redirect.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/server/api/app.ts:52 defines /api/v1; lines 167–195 register the API and docs alias. apps/web/server/api/docs.ts:131 implements the 308 redirect. apps/web/server/api/mount.test.ts:100–115 exercises both paths."
+    },
+    {
+      "criterion": "AC6: DEM proxy remains absent and deferred behind the bounded G0 human checkpoint.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/server/api/app.ts:180–195 registers no DEM proxy; openapi.test.ts:23–35 and 92–98 assert the exact documented route set without it. config/run.yaml:64 keeps cop30_mode null. Story notes at scripts/ralph/batches/t15-api/prd.json:386 state the human checkpoint, tile restrictions, 4 MB Range limit, and allowed upstream host."
+    },
+    {
+      "criterion": "Required web test suite",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; tests create temporary files and may write caches unavailable in the read-only sandbox."
+    },
+    {
+      "criterion": "Required focused API tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; API tests create temporary bundle files."
+    },
+    {
+      "criterion": "Required web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; this script runs next typegen, which writes generated files."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; the command can write tool caches and generated type files."
+    },
+    {
+      "criterion": "Required repository tests",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; test fixtures and caches require filesystem writes."
+    },
+    {
+      "criterion": "Required mock web build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; bundle:pull writes apps/web/data and next build writes .next."
+    }
+  ],
+  "findings": []
+}
