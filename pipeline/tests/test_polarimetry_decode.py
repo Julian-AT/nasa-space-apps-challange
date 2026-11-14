@@ -10,6 +10,7 @@ import inspect
 import math
 import re
 from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -168,6 +169,19 @@ def test_stated_array_copies_its_inputs() -> None:
     assert record.state.tolist() == [VALID, INVALID]
     assert np.isnan(record.value[1])
     assert value.flags.writeable
+
+
+@pytest.mark.parametrize("field", ["value", "state", "reason"])
+def test_stated_array_refuses_masked_fields(field: str) -> None:
+    # np.array drops a mask silently, so a masked VALID element would survive as a number.
+    fields: dict[str, npt.NDArray[Any]] = {
+        "value": np.array([1.0]),
+        "state": np.array([VALID], dtype=STATE_DTYPE),
+        "reason": np.array([InvalidReason.NONE], dtype=REASON_DTYPE),
+    }
+    fields[field] = np.ma.array(fields[field], mask=[True])
+    with pytest.raises(TypeError, match="masked"):
+        StatedArray(**fields)
 
 
 def test_results_are_read_only() -> None:
@@ -466,6 +480,110 @@ def test_angle_array_marks_nonfinite_values() -> None:
     ]
     np.testing.assert_allclose(result.value[[0, 2]], [0.0, 180.0], rtol=RTOL, atol=ATOL)
     assert np.isnan(result.value[1])
+
+
+# --- Masked inputs ---------------------------------------------------------------------------
+# A numpy masked array carries validity in its mask, and np.asarray drops that mask without a
+# word, so a masked pixel would come out VALID. Product flags therefore enter only through the
+# explicit arguments (nodata, noise flags), and a masked array is refused wherever it appears
+# (PRD 7: keep the product's validity and noise flags; three states stay distinct).
+
+ARRAY_ARGUMENTS = [
+    "decode_db:dn",
+    "decode_linear:dn",
+    "x_power:dn_hh",
+    "x_power:dn_hv",
+    "x_power:hh_noise_dominated",
+    "x_power:hv_noise_dominated",
+    "angle_to_degrees:angle",
+]
+
+
+def call_with(argument: str, dn: npt.ArrayLike, flag: npt.ArrayLike) -> StatedArray:
+    """Call one entry point with ``dn`` (DN or angle) or ``flag`` in the named argument."""
+    plain_dn = np.array([1000, 1000])
+    plain_flag = np.array([False, False])
+    match argument:
+        case "decode_db:dn":
+            return decode_db(dn, nodata=None)
+        case "decode_linear:dn":
+            return decode_linear(dn, nodata=None)
+        case "x_power:dn_hh":
+            return x_power(
+                dn,
+                plain_dn,
+                nodata=None,
+                hh_noise_dominated=plain_flag,
+                hv_noise_dominated=plain_flag,
+            )
+        case "x_power:dn_hv":
+            return x_power(
+                plain_dn,
+                dn,
+                nodata=None,
+                hh_noise_dominated=plain_flag,
+                hv_noise_dominated=plain_flag,
+            )
+        case "x_power:hh_noise_dominated":
+            return x_power(
+                plain_dn,
+                plain_dn,
+                nodata=None,
+                hh_noise_dominated=flag,
+                hv_noise_dominated=plain_flag,
+            )
+        case "x_power:hv_noise_dominated":
+            return x_power(
+                plain_dn,
+                plain_dn,
+                nodata=None,
+                hh_noise_dominated=plain_flag,
+                hv_noise_dominated=flag,
+            )
+        case "angle_to_degrees:angle":
+            return angle_to_degrees(dn, unit="degrees")
+    raise AssertionError(f"unknown argument {argument}")
+
+
+@pytest.mark.parametrize("argument", ARRAY_ARGUMENTS)
+def test_every_array_argument_accepts_the_plain_inputs(argument: str) -> None:
+    # Guards the refusal tests below: they fail only because of the mask.
+    result = call_with(argument, np.array([100, 300]), np.array([False, False]))
+    assert np.all(result.state == VALID)
+
+
+@pytest.mark.parametrize("argument", ARRAY_ARGUMENTS)
+def test_masked_input_is_refused(argument: str) -> None:
+    # Review codex-r1-1 / codex2-r1-1: the masked 300 must never be published as VALID.
+    dn = np.ma.array([100.0, 300.0], mask=[False, True])
+    flag = np.ma.array([False, False], mask=[False, True])
+    with pytest.raises(TypeError, match="masked"):
+        call_with(argument, dn, flag)
+
+
+@pytest.mark.parametrize("argument", ARRAY_ARGUMENTS)
+def test_masked_input_is_refused_even_with_nothing_masked(argument: str) -> None:
+    # The refusal does not depend on the mask content, so a mask is never half-honoured.
+    dn = np.ma.array([100.0, 300.0], mask=[False, False])
+    flag = np.ma.array([False, False], mask=[False, False])
+    with pytest.raises(TypeError, match="masked"):
+        call_with(argument, dn, flag)
+
+
+@pytest.mark.parametrize("argument", ARRAY_ARGUMENTS)
+def test_masked_array_inside_a_sequence_is_refused(argument: str) -> None:
+    # np.asarray([masked_array]) builds a plain array and keeps the masked value as a number.
+    dn = [np.ma.array([100.0, 300.0], mask=[False, True])]
+    flag = [np.ma.array([False, False], mask=[False, True])]
+    with pytest.raises(TypeError, match="masked"):
+        call_with(argument, dn, flag)
+
+
+@pytest.mark.parametrize("argument", ARRAY_ARGUMENTS)
+def test_masked_constant_is_refused(argument: str) -> None:
+    # np.asarray(np.ma.masked) is 0.0, which would read as a valid 0 degree angle.
+    with pytest.raises(TypeError, match="masked"):
+        call_with(argument, np.ma.masked, np.ma.masked)
 
 
 # --- Properties ------------------------------------------------------------------------------
