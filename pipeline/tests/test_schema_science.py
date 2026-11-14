@@ -1262,11 +1262,56 @@ def test_distances_by_family_with_five_keys_fails(fifth: str) -> None:
     assert_rejected(ComparisonRecord, comparison(distances_by_family=five))
 
 
-def test_distances_by_family_reads_like_a_mapping_of_families() -> None:
+def test_distances_by_family_reads_as_the_contract_mapping_of_families() -> None:
+    # CONTRACTS a.4 names distances_by_family a dict[Family, DistanceEntry].
     parsed = DistancesByFamily.model_validate(distances())
-    assert [name for name, _ in parsed] == FAMILIES
+    entries = [getattr(parsed, family) for family in FAMILIES]
+    assert list(parsed) == FAMILIES
+    assert len(parsed) == 4
+    assert list(parsed.keys()) == FAMILIES
+    assert list(parsed.values()) == entries
+    assert list(parsed.items()) == list(zip(FAMILIES, entries, strict=True))
+    assert dict(parsed) == dict(zip(FAMILIES, entries, strict=True))
     assert parsed["radar_cpr"] is parsed.radar_cpr
+    assert parsed.get("radar_cpr") is parsed.radar_cpr
     assert parsed["terrain_texture"].value == 0.0
+
+
+@pytest.mark.parametrize("family", FAMILIES)
+def test_every_family_is_in_distances_by_family(family: str) -> None:
+    assert family in DistancesByFamily.model_validate(distances())
+
+
+@pytest.mark.parametrize(
+    "key", ["score", "radar_sc", "model_fields", "", ("radar_cpr", None), ["radar_cpr"]]
+)
+def test_a_key_that_is_not_a_family_is_not_in_distances_by_family(key: Any) -> None:
+    parsed = DistancesByFamily.model_validate(distances())
+    assert key not in parsed
+    assert parsed.get(key) is None
+    with pytest.raises(KeyError):
+        parsed[key]
+
+
+def test_a_comparison_takes_the_four_families_as_distance_entries() -> None:
+    # A producer may hold the dict[Family, DistanceEntry] that CONTRACTS a.4 names.
+    entries = {family: DistanceEntry.model_validate(entry) for family, entry in distances().items()}
+    record = ComparisonRecord.model_validate({**comparison(), "distances_by_family": entries})
+    assert type(record.distances_by_family.model_embedding) is ModelEmbeddingDistanceEntry
+    assert json.loads(record.model_dump_json()) == comparison()
+
+
+@pytest.mark.parametrize("label", ["Observed", "Derived", "Assumed", "Unavailable"])
+def test_a_model_embedding_distance_entry_object_must_still_be_predicted(label: str) -> None:
+    embedding = DistanceEntry.model_validate(
+        distance(unit="cosine distance", value=0.25, evidence_label=label)
+    )
+    with pytest.raises(ValidationError):
+        DistancesByFamily.model_validate({**distances(), "model_embedding": embedding})
+    predicted = embedding.model_copy(update={"evidence_label": "Predicted"})
+    parsed = DistancesByFamily.model_validate({**distances(), "model_embedding": predicted})
+    assert type(parsed.model_embedding) is ModelEmbeddingDistanceEntry
+    assert parsed.model_embedding.evidence_label == "Predicted"
 
 
 # --- (9) UncertaintyComponents ------------------------------------------------------------------
