@@ -18,11 +18,15 @@ import {
   loadBundle,
   type PulledBundle,
 } from '../../lib/bundle.ts';
+import { compareHandler, compareRoute } from './compare.ts';
 import { gatesHandler, gatesRoute } from './gates.ts';
 import { healthHandler, healthRoute } from './health.ts';
 import { manifestHandler, manifestRoute } from './manifest.ts';
+import { matchesHandler, matchesRoute } from './matches.ts';
+import { modelHandler, modelRoute } from './model.ts';
 import { ProblemError, problemResponse, VALIDATION_STATUS } from './problem.ts';
 import { targetHandler, targetListHandler, targetListRoute, targetRoute } from './targets.ts';
+import { windowHandler, windowRoute } from './windows.ts';
 
 export const API_BASE_PATH = '/api/v1';
 
@@ -140,5 +144,10 @@ export function createApi({
   api.openapi(gatesRoute, gatesHandler(read));
   api.openapi(targetListRoute, targetListHandler(read));
   api.openapi(targetRoute, targetHandler(read));
+  // Data the bundle cannot hold or the API cannot serve yet: problems only (./unavailable.ts).
+  api.openapi(matchesRoute, matchesHandler(read));
+  api.openapi(windowRoute, windowHandler(read));
+  api.openapi(compareRoute, compareHandler(read));
+  api.openapi(modelRoute, modelHandler(read));
   return api;
 }

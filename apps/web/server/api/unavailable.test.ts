@@ -89,7 +89,10 @@ async function expectNoResult(api: ReturnType<typeof quietApi>['api'], path: str
   const text = await response.text();
   const body = JSON.parse(text) as Record<string, unknown>;
   expect(numbers(body), path).toEqual([['status', response.status]]);
-  expect(keys(body).filter((key) => RESULT_KEY.test(key)), path).toEqual([]);
+  expect(
+    keys(body).filter((key) => RESULT_KEY.test(key)),
+    path,
+  ).toEqual([]);
   expect(String(body.detail), path).not.toMatch(DECIMAL);
   expect(text, path).not.toContain('Derived');
   expect(text, path).not.toContain(TEST_BYTES_MARKER);
@@ -147,11 +150,7 @@ describe('the one rule for unavailable data', () => {
 
   /** For each route: a bundle without the data, and one holding the file the data would come from. */
   const CASES: readonly [string, BundleReader, () => BundleReader][] = [
-    [
-      `/api/v1/targets/${TARGET}`,
-      mockReader,
-      () => releaseBundleReader({ targets: [TARGET] }),
-    ],
+    [`/api/v1/targets/${TARGET}`, mockReader, () => releaseBundleReader({ targets: [TARGET] })],
     [
       `${MATCHES}?body=earth&family=terrain`,
       mockReader,
@@ -258,7 +257,8 @@ describe('the unavailable-data routes in the OpenAPI document', () => {
       expect(Object.keys(item ?? {})).toEqual(['get']);
       const responses = item?.get?.responses ?? {};
       expect(Object.keys(responses).sort()).toEqual(statuses);
-      for (const status of statuses) expect(responses[status], status).toMatchObject(PROBLEM_CONTENT);
+      for (const status of statuses)
+        expect(responses[status], status).toMatchObject(PROBLEM_CONTENT);
       expect(item?.get?.description ?? '').toContain('@terraluna/schema');
     });
   }

@@ -80,8 +80,12 @@ describe('GET /api/v1/compare', () => {
 
   it('refuses a manifest that fails its schema with a 500 problem', async () => {
     const bundle = mockReader();
-    const corrupt = { ...bundle, manifest: { ...bundle.manifest, bundle_version: '' } };
-    const { api, log } = quietApi(() => corrupt as unknown as PulledBundle);
+    // An empty bundle_version still type-checks as a string, but fails the manifest schema.
+    const corrupt: PulledBundle = {
+      ...bundle,
+      manifest: { ...bundle.manifest, bundle_version: '' },
+    };
+    const { api, log } = quietApi(() => corrupt);
     const problem = await expectProblem(
       await api.request(comparePath()),
       500,

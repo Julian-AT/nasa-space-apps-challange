@@ -42,7 +42,9 @@ describe('GET /api/v1/model', () => {
     expect(manifest.model).toBeNull();
     const { api, log } = quietApi();
     const problem = await expectProblem(await api.request(MODEL), 404, 'Not Found');
-    expect(problem.detail).toBe('The model report is not in bundle mock-0: manifest.json names no model.');
+    expect(problem.detail).toBe(
+      'The model report is not in bundle mock-0: manifest.json names no model.',
+    );
     expect(problem.instance).toBe(MODEL);
     expect(log).not.toHaveBeenCalled();
   });
@@ -146,21 +148,21 @@ describe('modelFamilyAccess', () => {
     expect(access.allowed).toBe(false);
   });
 
-  it('refuses when validation.json records G5 more than once with different statuses', () => {
-    const access = modelFamilyAccess(
-      manifestWith(testModel('PASS') as BundleManifest['model']),
-      validationWith('PASS', 'FAIL'),
-      'b-1',
-    );
-    expect(access.allowed).toBe(false);
-  });
-
-  it('allows G5 recorded twice when both records are PASS', () => {
-    const access = modelFamilyAccess(
-      manifestWith(testModel('PASS') as BundleManifest['model']),
-      validationWith('PASS', 'PASS'),
-      'b-1',
-    );
-    expect(access.allowed).toBe(true);
-  });
+  for (const statuses of [
+    ['PASS', 'FAIL'],
+    ['PASS', 'PASS'],
+  ]) {
+    it(`refuses when validation.json records G5 twice (${statuses.join(', ')})`, () => {
+      const access = modelFamilyAccess(
+        manifestWith(testModel('PASS') as BundleManifest['model']),
+        validationWith(...statuses),
+        'b-1',
+      );
+      expect(access).toMatchObject({ allowed: false });
+      expect(access).toHaveProperty(
+        'detail',
+        expect.stringContaining(`validation.json records G5 2 times (${statuses.join(', ')})`),
+      );
+    });
+  }
 });

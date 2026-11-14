@@ -213,15 +213,30 @@ describe('family=model matches', () => {
     expect(problem.detail).toContain('validation.json has no G5 record');
   });
 
-  it('are refused when validation.json records G5 as both PASS and FAIL', async () => {
-    const reader = withComparisons({ model: testModel('PASS'), gates: gatesWithG5('PASS', 'FAIL') });
-    const { api } = quietApi(reader);
+  it('are a 500 problem when validation.json lists G5 twice, which the loader refuses', async () => {
+    const reader = withComparisons({
+      model: testModel('PASS'),
+      gates: gatesWithG5('PASS', 'PASS'),
+    });
+    const { api, log } = quietApi(reader);
+    const response = await api.request(matchesPath(TARGET, MODEL_QUERY));
+    const text = await response.clone().text();
+    const problem = await expectProblem(response, 500, 'Internal Server Error');
+    expect(problem.detail).toContain('validation.json');
+    expect(text).not.toContain('Predicted');
+    expect(log).toHaveBeenCalledOnce();
+  });
+
+  it('are refused when a reader passes validation.json with G5 twice', async () => {
+    const bundle = withComparisons({ model: testModel('PASS'), gates: gatesWithG5('PASS') })();
+    const doubled = { ...bundle, validation: gatesWithG5('PASS', 'PASS') };
+    const { api } = quietApi(() => doubled as unknown as PulledBundle);
     const problem = await expectProblem(
       await api.request(matchesPath(TARGET, MODEL_QUERY)),
       404,
       'Not Found',
     );
-    expect(problem.detail).toContain('validation.json gives G5 as PASS and FAIL');
+    expect(problem.detail).toContain('validation.json records G5 2 times (PASS, PASS)');
   });
 
   it('are refused before the target is looked up', async () => {
