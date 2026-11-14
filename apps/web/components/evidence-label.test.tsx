@@ -274,7 +274,8 @@ describe('EvidenceLabel styling', () => {
 
   it('never uses the red reserved for the mock banner', () => {
     for (const label of EVIDENCE_LABELS) {
-      expect(classesOf(badge(label)).join(' '), label).not.toMatch(/mock|destructive|red|rose/);
+      // The mock token, a palette red or rose, or an arbitrary colour that could be red.
+      expect(classesOf(badge(label)).join(' '), label).not.toMatch(/mock|destructive|-(red|rose)-\d|\[#/);
     }
   });
 
