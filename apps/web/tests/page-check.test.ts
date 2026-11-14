@@ -30,7 +30,7 @@ describe('pageProblems', () => {
     expect(pageProblems(MOCK_PAGE, MOCK)).toStrictEqual([]);
     expect(
       pageProblems(
-        page('<p>Shipping mode: B</p><main></main><footer>Bundle version: v1</footer>'),
+        page('<p>Shipping mode: B</p><main><h1>Terraluna</h1></main><footer>Bundle version: v1</footer>'),
         REAL,
       ),
     ).toStrictEqual([]);
@@ -43,7 +43,7 @@ describe('pageProblems', () => {
 
   it('reports a mock banner on a bundle that is not mock', () => {
     const html = page(
-      '<div>Mock bundle — placeholder data, not results</div><p>Shipping mode: B</p><footer>Bundle version: v1</footer>',
+      '<div>Mock bundle — placeholder data, not results</div><p>Shipping mode: B</p><main><h1>Terraluna</h1></main><footer>Bundle version: v1</footer>',
     );
     expect(pageProblems(html, REAL).join('\n')).toMatch(/banner/);
   });
@@ -56,5 +56,14 @@ describe('pageProblems', () => {
   it('reports a bundle version that is not in the footer', () => {
     const html = MOCK_PAGE.replace('<footer>Bundle version: <!-- -->mock-0</footer>', '<p>Bundle version: mock-0</p>');
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/footer/);
+  });
+
+  it.each([
+    { name: 'a number', extra: '<p>CPR 3.2</p>' },
+    { name: 'a target', extra: '<p>moon-cr-site01-w000</p>' },
+    { name: 'a claim', extra: '<p>Best Earth analog found</p>' },
+  ])('reports $name beyond the banner, shipping mode, title and footer', ({ extra }) => {
+    const html = MOCK_PAGE.replace('<h1>Terraluna</h1>', `<h1>Terraluna</h1>${extra}`);
+    expect(pageProblems(html, MOCK).join('\n')).toMatch(/only/);
   });
 });
