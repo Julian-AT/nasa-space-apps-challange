@@ -27,10 +27,16 @@ import numpy.typing as npt
 Scatterer = tuple[complex, complex, complex]
 """A reciprocal scattering vector ``(HH, HV, VV)``."""
 
-TRANSMIT_LL: npt.NDArray[np.complex128] = np.array([1.0, -1.0j]) / math.sqrt(2.0)
+_HALF_ROOT = 1.0 / math.sqrt(2.0)
+
+TRANSMIT_LL: npt.NDArray[np.complex128] = np.array(
+    [_HALF_ROOT, -1.0j * _HALF_ROOT], dtype=np.complex128
+)
 """Transmit Jones vector ``(1, -i)/sqrt2`` in the (H, V) basis: SC_LL (PRD 6.2)."""
 
-TRANSMIT_OPPOSITE: npt.NDArray[np.complex128] = np.array([1.0, 1.0j]) / math.sqrt(2.0)
+TRANSMIT_OPPOSITE: npt.NDArray[np.complex128] = np.array(
+    [_HALF_ROOT, 1.0j * _HALF_ROOT], dtype=np.complex128
+)
 """Transmit Jones vector ``(1, +i)/sqrt2``: the opposite handedness, SC_opp (PRD 6.2)."""
 
 
@@ -78,13 +84,18 @@ def scatterer_sum_powers(
 def covariance_of(scatterers: Sequence[Scatterer]) -> npt.NDArray[np.complex128]:
     """The covariance ``sum k k^H`` in the (HH, HV, VV) ordering, ``C_ij = <k_i k_j*>``.
 
-    Each outer product is exactly Hermitian in float64 (``a * conj(b)`` and ``b * conj(a)`` are
-    exact conjugates), so the sum is as well; the function checks that before returning.
+    The upper triangle is ``sum k_i conj(k_j)``, the lower triangle its exact conjugate and the
+    diagonal ``sum |k_i|**2``, so the fixture is exactly Hermitian. ``np.outer(k, k.conj())``
+    is not: with fused multiply-add, ``k_i * conj(k_i)`` can keep an imaginary part of about
+    1e-17. The function checks the result before returning it.
     """
     covariance = np.zeros((3, 3), dtype=np.complex128)
-    for scatterer in scatterers:
-        k = np.array(scatterer, dtype=np.complex128)
-        covariance += np.outer(k, k.conj())
+    for i in range(3):
+        covariance[i, i] = math.fsum(abs(complex(s[i])) ** 2 for s in scatterers)
+        for j in range(i + 1, 3):
+            upper = sum((complex(s[i]) * complex(s[j]).conjugate() for s in scatterers), 0j)
+            covariance[i, j] = upper
+            covariance[j, i] = upper.conjugate()
     if not np.array_equal(covariance, covariance.conj().T):
-        raise AssertionError("a sum of outer products k k^H must be exactly Hermitian")
+        raise AssertionError("the fixture covariance must be exactly Hermitian")
     return covariance

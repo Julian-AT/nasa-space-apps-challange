@@ -144,7 +144,9 @@ F6_SCATTERER: jones_oracle.Scatterer = (1.0, 0.2j, 0.0)
 
 def f6_covariance() -> npt.NDArray[np.complex128]:
     covariance = jones_oracle.covariance_of([F6_SCATTERER])
-    np.testing.assert_array_equal(covariance, matrix(1.0, 0.0, 0.04, 0.0, -0.2j, 0.0))
+    # |0.2i|**2 is 0.04000000000000001 in float64, so compare to the PRD 7 tolerance.
+    expected = matrix(1.0, 0.0, 0.04, 0.0, -0.2j, 0.0)
+    np.testing.assert_allclose(covariance, expected, rtol=RTOL, atol=ATOL)
     return covariance
 
 
@@ -720,7 +722,9 @@ def test_real_and_integer_covariances_are_accepted_as_complex128() -> None:
     integer = np.array([[2, 0, 1], [0, 1, 0], [1, 0, 2]])
     expected = expanded_oracle.expanded_from_matrix(integer.astype(np.complex128))
     assert_value(convert(integer).sc, expected.sc_ll)
-    assert_value(convert(f6_covariance().astype(np.complex64)).oc, 0.25)
+    # complex64 input is widened to complex128; this matrix is exact in both.
+    single = np.array([[2, 0, 1], [0, 1, 0], [1, 0, 2]], dtype=np.complex64)
+    assert_value(convert(single).oc, 1.5)
 
 
 def test_nested_lists_of_complex_scalars_are_accepted() -> None:
