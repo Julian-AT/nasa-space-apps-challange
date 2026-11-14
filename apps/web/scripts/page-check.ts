@@ -101,6 +101,8 @@ interface Extent {
 }
 
 interface Block extends Extent {
+  /** The element name, in lower case. */
+  readonly name: string;
   /** The text directly in the block, inline elements included and nested blocks left out. */
   own: string;
   readonly parent: Block | undefined;
@@ -158,7 +160,7 @@ function blockTree(markup: string): Block[] {
     if (isBlock) {
       const parent = innermostBlock();
       const regions: Extent[] = [...around];
-      block = { own: '', full: '', parent, children: [], regions };
+      block = { name, own: '', full: '', parent, children: [], regions };
       if (live) regions.push(block);
       parent?.children.push(block);
       blocks.push(block);
@@ -246,11 +248,15 @@ export function pageProblems(html: string, bundle: Bundle): string[] {
   if (modeLines > 1) {
     problems.push(`"${SHIPPING_MODE}" appears ${String(modeLines)} times; the page must state its mode once`);
   }
+  // One footer, so a second one, even nested in the first, cannot state other versions.
   const footer = `${expected.footer} · Schema ${bundle.manifest.schema_version}`;
-  const footers = [...markup.matchAll(/<footer\b[^>]*>([\s\S]*?)<\/footer\s*>/gi)];
-  if (footers.length === 0) {
+  const footers = blocks.filter((block) => block.name === 'footer');
+  const [onlyFooter] = footers;
+  if (onlyFooter === undefined) {
     problems.push('the page has no <footer>');
-  } else if (!footers.some((match) => visibleText(match[1] ?? '') === footer)) {
+  } else if (footers.length !== 1) {
+    problems.push(`the page must have exactly one <footer>, but has ${String(footers.length)}`);
+  } else if (onlyFooter.full !== footer) {
     problems.push(`the footer must read "${footer}"`);
   }
   const opened = markup.match(/<main(?=[\s/>])/gi)?.length ?? 0;
