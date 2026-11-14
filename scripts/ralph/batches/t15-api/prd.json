@@ -45,14 +45,14 @@
       "priority": 1,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "f7869bbf55dc18b6ece472d18e9603ca90b037b8",
         "head": null,
         "files": [],
         "digests": {}
       },
-      "notes": "Ownership decision by the orchestrator: T15 owns apps/web/lib/bundle* and apps/web/scripts/* after T0-05. T7 and T15 may both edit apps/web/package.json and pnpm-lock.yaml for dependencies; the orchestrator resolves that at merge. T7 owns apps/web/app/* (except app/api) and apps/web/components/*."
+      "notes": "Ownership decision by the orchestrator: T15 owns apps/web/lib/bundle* and apps/web/scripts/* after T0-05. T7 and T15 may both edit apps/web/package.json and pnpm-lock.yaml for dependencies; the orchestrator resolves that at merge. T7 owns apps/web/app/* (except app/api) and apps/web/components/*. Author (T15-01): (1) Test filter: the T0-05 bundle tests stay where T0-05 put them, apps/web/tests/bundle.test.ts and tests/bundle-pull-cli.test.ts (select with `vitest run tests/bundle`); the T15-01 tests are apps/web/lib/bundle-files.test.ts (`vitest run lib/bundle`). vitest.config.ts includes tests/ and lib/; `vitest run bundle` selects all three. (2) Schema gaps for a human decision: sources.json (ProductRecords), targets.json (target windows), comparisons/<target_id>.json (ComparisonRecords) and windows/<body>.json (top-N WindowRecords) have no @terraluna/schema schema. bundle:pull copies them after the byte-count and SHA-256 check only; the loader keeps them as bytes (PulledBundle.checksumOnly) and never parses them. (3) Reading: \"listed but missing fails the pull\" applies to the files bundle:pull copies. Large artifacts the manifest lists are never read, so they may live in object storage only; whole-bundle validation stays with export.py validate. (4) Files an earlier pull wrote that the current manifest does not list stay in apps/web/data/ (nothing is deleted) and are never read."
     },
     {
       "id": "T15-02",
