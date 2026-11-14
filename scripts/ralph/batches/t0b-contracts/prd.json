@@ -42,14 +42,14 @@
       "priority": 1,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "6fbfd479ecf7833aff8339b65902af41a8271a60",
         "head": null,
         "files": [],
         "digests": {}
       },
-      "notes": "",
+      "notes": "Baseline on the merged base 6fbfd47, before any change (2026-11-14): (1) pnpm --filter @terraluna/schema test exits 1 with 9 failed | 148 passed (157), all in tests/generate-zod.test.ts: contracts > cover every committed JSON Schema; committed modules > match the generator output; command line > check passes on the committed modules, check ignores hidden files such as .DS_Store, write regenerates edited modules in place and deletes nothing, write creates a missing output directory, write refuses a symlinked target and writes nothing, write refuses a JSON Schema the generator cannot translate and writes nothing; writeModules > returns the written paths in contract order (each with product-record.schema.json: no zod contract in scripts/generate-zod.ts). (2) make schema-check exits 2: JSON Schemas match, then product-record.schema.json and sources.schema.json: no zod contract, 2 problem(s). (3) generateModule on the two schemas with a contract added throws SchemaError product-record.schema.json: /: unsupported keyword \"if\" for type \"object\" (sources: /items: the same). (4) uv run pytest pipeline/tests/test_json_schema.py: 193 passed, 2 xfailed (strict xfail of test_every_schema_has_accepted_and_rejected_cases for ProductRecord and Sources). Note: json-schema-to-zod 2.8.1 also cannot translate the not: {pattern} keyword that source_url and the then-branch use (parseNot wraps z.any() and drops type and pattern), so the generator translates both if/then and not itself through the parserOverride option. Route chosen: the preferred one (generate-zod.ts translation); schema.py is untouched. Trailing newline: units \"unknown\\n\" on a VERIFIED record is accepted by pydantic (re.fullmatch), by the JSON Schema oracle (ECMA-262 $ as \\Z) and by zod (RegExp without m), so it is the valid shared case product-verified-units-unknown-trailing-newline; no disagreement. Tests first: with the new tests and before the implementation, pnpm --filter @terraluna/schema test gave 94 failed | 187 passed (281); the Python test file passed with the shared cases, because pydantic and the JSON Schema agree with every authored verdict. At the end all 297 Vitest tests pass, including the nine formerly failing ones.",
       "codexPasses": 2
     },
     {
