@@ -13,6 +13,7 @@ You are one iteration of an autonomous loop, adapted from snarktank/ralph. Your 
    - `pending`: implement it (section 2).
    - `reviewed`: resolve the review findings (section 3).
    - Anything else: change nothing, say which state you found, and end.
+   - If the story cannot go on because something outside its `files` is missing, such as another batch's work, a merge, a credential or a human decision, set `review.state` to `blocked` and write the exact reason and what would unblock it in the story's `notes`. Make no commit, and end. The loop stops and the orchestrator resolves it. Never retry a blocked story in later iterations, and never commit "still blocked" notes.
 5. Read the PRD sections in `prdRefs`, and no others unless a section points to one. `PRD.md` is about 1,700 lines, so find headings with `grep -n '^#' PRD.md` and read ranges with `sed -n`. Also read `.claude/agents/<owner>.md` for your role.
 
 ## 2. Implement (state `pending`)
