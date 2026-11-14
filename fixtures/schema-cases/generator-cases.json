@@ -1,0 +1,475 @@
+[
+  {
+    "name": "conditional",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "Conditional",
+      "description": "Synthetic: when status is DONE, label must be a string and code must not be all x.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "DONE",
+            "OPEN"
+          ]
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z]+$",
+          "not": {
+            "pattern": "bad"
+          }
+        }
+      },
+      "required": [
+        "status",
+        "label",
+        "code",
+        "slug"
+      ],
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "status": {
+            "const": "DONE"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "code": {
+            "not": {
+              "pattern": "^[Xx]+$"
+            }
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "name": "done-complete",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "open-complete",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-label-null",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": null,
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "open-label-null",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "label": null,
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-label-number",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": 5,
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-code-x",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-code-mixed-case-x",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "xXx",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "open-code-x",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "label": "a",
+          "code": "xx",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-code-x-after-a-letter",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "axx",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-code-x-trailing-newline",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "xx\n",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-label-null-and-code-x",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": null,
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "open-label-null-and-code-x",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "label": null,
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "status-absent",
+        "valid": false,
+        "value": {
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "status-absent-label-null-and-code-x",
+        "valid": false,
+        "value": {
+          "label": null,
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "status-null",
+        "valid": false,
+        "value": {
+          "status": null,
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "status-lowercase",
+        "valid": false,
+        "value": {
+          "status": "done",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "code-empty",
+        "valid": false,
+        "value": {
+          "status": "OPEN",
+          "label": "a",
+          "code": "",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "slug-contains-bad",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "isbad"
+        }
+      },
+      {
+        "name": "slug-bad",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "bad"
+        }
+      },
+      {
+        "name": "slug-uppercase",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "OK"
+        }
+      },
+      {
+        "name": "slug-trailing-newline",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok\n"
+        }
+      },
+      {
+        "name": "extra-field",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok",
+          "note": "x"
+        }
+      },
+      {
+        "name": "array",
+        "valid": false,
+        "value": [
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "c1",
+            "slug": "ok"
+          }
+        ]
+      },
+      {
+        "name": "string",
+        "valid": false,
+        "value": "DONE"
+      },
+      {
+        "name": "null",
+        "valid": false,
+        "value": null
+      }
+    ]
+  },
+  {
+    "name": "conditional-list",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$defs": {
+        "Conditional": {
+          "title": "Conditional",
+          "description": "Synthetic: when status is DONE, label must be a string and code must not be all x.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "DONE",
+                "OPEN"
+              ]
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "code": {
+              "type": "string",
+              "minLength": 1
+            },
+            "slug": {
+              "type": "string",
+              "pattern": "^[a-z]+$",
+              "not": {
+                "pattern": "bad"
+              }
+            }
+          },
+          "required": [
+            "status",
+            "label",
+            "code",
+            "slug"
+          ],
+          "additionalProperties": false,
+          "if": {
+            "properties": {
+              "status": {
+                "const": "DONE"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "code": {
+                "not": {
+                  "pattern": "^[Xx]+$"
+                }
+              }
+            }
+          }
+        }
+      },
+      "title": "ConditionalList",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Conditional"
+      }
+    },
+    "cases": [
+      {
+        "name": "empty",
+        "valid": true,
+        "value": []
+      },
+      {
+        "name": "one-done",
+        "valid": true,
+        "value": [
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "c1",
+            "slug": "ok"
+          }
+        ]
+      },
+      {
+        "name": "done-and-open-label-null",
+        "valid": true,
+        "value": [
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "c1",
+            "slug": "ok"
+          },
+          {
+            "status": "OPEN",
+            "label": null,
+            "code": "c1",
+            "slug": "ok"
+          }
+        ]
+      },
+      {
+        "name": "second-done-label-null",
+        "valid": false,
+        "value": [
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "c1",
+            "slug": "ok"
+          },
+          {
+            "status": "DONE",
+            "label": null,
+            "code": "c1",
+            "slug": "ok"
+          }
+        ]
+      },
+      {
+        "name": "second-done-code-x",
+        "valid": false,
+        "value": [
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "c1",
+            "slug": "ok"
+          },
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "X",
+            "slug": "ok"
+          }
+        ]
+      },
+      {
+        "name": "object",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      }
+    ]
+  }
+]

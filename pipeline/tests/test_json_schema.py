@@ -57,10 +57,10 @@ SCHEMA_FILES = {
     "ProductRecord": "product-record.schema.json",
     "Sources": "sources.schema.json",
 }
-WITHOUT_SHARED_CASES = {"ProductRecord", "Sources"}
-"""Schemas added by T1-01, which owns no fixtures/ path, so fixtures/schema-cases/cases.json has
-no cases for them yet. Their pydantic/JSON Schema parity is tested below with local cases; the
-strict xfail turns into a failure once shared cases are added, so this set must then shrink."""
+GENERATOR_CASES = ROOT / "fixtures" / "schema-cases" / "generator-cases.json"
+"""Synthetic schemas with ``if``/``then`` and ``not``, and documents with authored verdicts. The
+zod generator's tests (packages/schema) translate the same schemas; here the verdicts must also
+be what Draft 2020-12 gives, so the two languages check one set of verdicts."""
 
 
 # --- Strict JSON --------------------------------------------------------------------------------
@@ -387,20 +387,7 @@ def test_cases_are_well_formed() -> None:
         assert isinstance(case["valid"], bool)
 
 
-@pytest.mark.parametrize(
-    "name",
-    [
-        pytest.param(
-            name,
-            marks=pytest.mark.xfail(
-                strict=True, reason="fixtures/schema-cases is outside T1-01's files"
-            ),
-        )
-        if name in WITHOUT_SHARED_CASES
-        else name
-        for name in SCHEMA_FILES
-    ],
-)
+@pytest.mark.parametrize("name", SCHEMA_FILES)
 def test_every_schema_has_accepted_and_rejected_cases(name: str) -> None:
     verdicts = {case["valid"] for case in load_cases() if case["schema"] == name}
     assert verdicts == {True, False}
@@ -472,6 +459,62 @@ def test_required_cases_test_what_they_name() -> None:
     validation = cases["validation-mock"]
     assert (validation["schema"], validation["valid"]) == ("Validation", True)
     assert validation["value"] == load_json(MOCK_BUNDLE / "validation.json")
+
+
+def test_product_record_cases_test_what_they_name() -> None:
+    """Each ProductRecord or Sources case differs from product-verified only as its name says."""
+    cases = cases_by_name()
+    verified = cases["product-verified"]
+    assert (verified["schema"], verified["valid"]) == ("ProductRecord", True)
+    base = verified["value"]
+    assert base["verification_status"] == "VERIFIED"
+    assert (base["checksum"], base["units"]) == (HEX64, "m")
+    assert base["local_path"] is not None
+
+    def changes(name: str) -> dict[str, Any]:
+        value = cases[name]["value"]
+        assert cases[name]["schema"] == "ProductRecord"
+        assert set(value) == set(base), name
+        return {key: item for key, item in value.items() if item != base[key]}
+
+    nothing_read = {"local_path": None, "checksum": None}
+    expected = {
+        "product-not-checked-nothing-read": {**nothing_read, "verification_status": "NOT_CHECKED"},
+        "product-partial-units-unknown": {"units": "unknown", "verification_status": "PARTIAL"},
+        "product-failed-units-unknown-uppercase": {
+            "units": "UNKNOWN",
+            "verification_status": "FAILED",
+        },
+        "product-verified-local-path-null": {"local_path": None},
+        "product-verified-checksum-null": {"checksum": None},
+        "product-verified-units-unknown": {"units": "unknown"},
+        "product-verified-units-unknown-capitalised": {"units": "Unknown"},
+        "product-verified-units-unknown-uppercase": {"units": "UNKNOWN"},
+        "product-verified-units-unknown-trailing-newline": {"units": "unknown\n"},
+        "product-checksum-63-chars": {"checksum": HEX64[:63]},
+        "product-checksum-uppercase": {"checksum": HEX64.upper()},
+        "product-provider-empty-string": {"provider": ""},
+        "product-units-zero": {"units": 0},
+    }
+    for name, change in expected.items():
+        assert changes(name) == change, name
+
+    assert cases["product-missing-units"]["value"] == {
+        key: item for key, item in base.items() if key != "units"
+    }
+    unknown = cases["product-unknown-field"]["value"]
+    assert len(set(unknown) - set(base)) == 1
+    assert {key: item for key, item in unknown.items() if key in base} == base
+
+    assert cases["sources-empty"]["value"] == []
+    assert cases["sources-one-record"]["value"] == [base]
+    assert cases["sources-one-invalid-entry"]["value"] == [
+        base,
+        cases["product-verified-checksum-null"]["value"],
+    ]
+    assert cases["sources-object"]["value"] == base
+    for name in ("sources-empty", "sources-one-record", "sources-two-records"):
+        assert (cases[name]["schema"], cases[name]["valid"]) == ("Sources", True)
 
 
 @pytest.mark.parametrize("case", case_params())
@@ -550,10 +593,56 @@ def test_oracle_translates_every_pattern_in_the_schemas() -> None:
         assert ecma_to_python(pattern).endswith(r"\Z")
 
 
+# --- Generator cases ----------------------------------------------------------------------------
+
+
+def load_generator_cases() -> list[dict[str, Any]]:
+    groups = load_json(GENERATOR_CASES)
+    assert isinstance(groups, list)
+    return groups
+
+
+def generator_case_params() -> list[Any]:
+    return [
+        pytest.param(
+            group["schema"], case["value"], case["valid"], id=f"{group['name']}/{case['name']}"
+        )
+        for group in load_generator_cases()
+        for case in group["cases"]
+    ]
+
+
+def test_generator_cases_are_well_formed() -> None:
+    groups = load_generator_cases()
+    group_names = [group["name"] for group in groups]
+    assert len(group_names) == len(set(group_names))
+    assert not set(group_names) & {name.lower() for name in SCHEMA_FILES}
+    for group in groups:
+        assert list(group) == ["name", "schema", "cases"]
+        Draft202012Validator.check_schema(group["schema"])
+        names = [case["name"] for case in group["cases"]]
+        assert len(names) == len(set(names)), group["name"]
+        assert {case["valid"] for case in group["cases"]} == {True, False}, group["name"]
+        for case in group["cases"]:
+            assert list(case) == ["name", "valid", "value"]
+            assert re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", case["name"]), case["name"]
+    conditional = next(group["schema"] for group in groups if group["name"] == "conditional")
+    assert {"if", "then"} <= set(conditional)
+    assert "else" not in conditional
+
+
+@pytest.mark.parametrize(("schema", "value", "valid"), generator_case_params())
+def test_generator_cases_get_their_verdict_from_json_schema(
+    schema: dict[str, Any], value: Any, valid: bool
+) -> None:
+    assert EcmaValidator(schema).is_valid(value) is valid
+
+
 # --- ProductRecord parity (PRD 8.12) ------------------------------------------------------------
-# fixtures/schema-cases has no ProductRecord cases yet (see WITHOUT_SHARED_CASES), so these local
-# cases check that pydantic and the generated JSON Schema agree. Verdicts come from PRD 8.12 and
-# the T1-01 contract, not from either validator.
+# The shared cases in fixtures/schema-cases/cases.json cover ProductRecord and Sources in every
+# language, zod included. These local cases add to them: each must get its verdict from pydantic
+# and from the generated JSON Schema, alone and inside a Sources array. Verdicts come from PRD
+# 8.12 and the T1-01 contract, not from either validator.
 
 
 def product_record(**overrides: Any) -> dict[str, Any]:
