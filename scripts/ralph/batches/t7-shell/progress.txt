@@ -198,3 +198,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: none.
 - Learnings: none new. The two ways to unblock are under "Proposed instruction changes" in the first 20:25Z T7-03 entry. Commit these uncommitted Ralph files (`chore(ralph): record t7-03 blocker`) before anyone cleans the tree.
 ---
+
+## 2026-11-14T21:24Z · T7-03 · implement
+- Done: nothing implemented. Set review.state to blocked because of a second contradiction inside the story. The orchestrator's page-check decision (21:20Z) resolved the first. The criterion "aria-current on the active route" needs the current pathname in the root layout's navigation. The description says "The layout adds no NuqsAdapter and no client component." The Next.js docs say layouts "cannot access pathname", and usePathname and useSelectedLayoutSegment are client-only. Next 16.4.6 Link (dist/client/app-dir/link.react-server.js) sets no aria-current, and next/root-params covers only dynamic segments. The two ways to unblock, and the planned reading of the footer wording, are in the story's notes.
+- Commits: none. The loop commits prd.json when it sees the blocked state.
+- Checks: not run. Nothing changed in the story's files.
+- Docs used: Context7 /vercel/next.js (docs/01-app/03-api-reference/03-file-conventions/layout.mdx and use-selected-layout-segment.mdx, fetched 2026-11-14) for next 16.4.6; next 16.4.6 dist in apps/web/node_modules.
+- Learnings: a root layout in the App Router cannot mark the active link without a client component. Any later criterion that asks for aria-current (or an active style) in shared navigation implies a "use client" module with usePathname. ralph.sh's blocked branch commits only prd.json, reviews/ and logs/agents (state_paths), so this progress entry stays uncommitted until a human commits it.
+---
