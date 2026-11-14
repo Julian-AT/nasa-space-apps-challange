@@ -208,9 +208,9 @@
         "make test"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "resolved",
+        "state": "passed",
         "round": 1,
         "base": "707ebfef94b5825809780745aeccd5cad11f20ed",
         "head": "22fa07b9e8357e479c4aa2685010ab1ee6a22baa",
