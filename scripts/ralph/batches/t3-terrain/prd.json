@@ -92,9 +92,9 @@
       ],
       "codexPasses": 2,
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "resolved",
+        "state": "passed",
         "round": 4,
         "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
         "head": "4609837fa23b4370d7029e03545c8130bd84c7ce",
