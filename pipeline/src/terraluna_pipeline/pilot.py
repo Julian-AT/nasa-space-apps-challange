@@ -189,10 +189,23 @@ def _load_fetch(raw_dir: Path, name: str) -> dict[str, Any]:
     """Read ``fetch.json`` and confirm every file it lists is present and unchanged."""
     path = raw_dir / FETCH_METADATA
     try:
-        metadata: dict[str, Any] = json.loads(path.read_bytes())
+        metadata = json.loads(path.read_bytes())
     except (OSError, ValueError) as error:
         raise PilotError(f"{path} cannot be read ({error}); run: {COMMAND} fetch {name}") from error
-    for entry in [*metadata.get("documents", []), *metadata.get("files", [])]:
+    lists = (
+        [metadata.get(key) for key in ("documents", "files")] if isinstance(metadata, dict) else []
+    )
+    entries = [entry for part in lists if isinstance(part, list) for entry in part]
+    if (
+        len(lists) != 2
+        or not all(isinstance(part, list) for part in lists)
+        or not all(
+            isinstance(entry, dict) and {"file_name", "bytes_received", "sha256"} <= entry.keys()
+            for entry in entries
+        )
+    ):
+        raise PilotError(f"{path} is not a fetch record; run: {COMMAND} fetch {name}")
+    for entry in entries:
         file_name = _safe_file_name(str(entry["file_name"]), str(path))
         local = raw_dir / file_name
         if not local.is_file():
@@ -205,7 +218,8 @@ def _load_fetch(raw_dir: Path, name: str) -> dict[str, Any]:
                 f"{local} does not match the size and sha256 in fetch.json; "
                 f"run: {COMMAND} fetch {name}"
             )
-    return metadata
+    result: dict[str, Any] = metadata
+    return result
 
 
 def tool_versions() -> dict[str, str]:
