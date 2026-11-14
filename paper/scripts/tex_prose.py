@@ -100,6 +100,40 @@ KEY_COMMANDS: dict[str, int] = {
 }
 # The \cite family: \cite, \citet, \citep, \citealp, \Citet, \citeauthor, \citeyearpar and so on.
 CITE_COMMAND = re.compile(r"[Cc]ite[A-Za-z]*")
+# The key commands with a starred form, which read a * with \@ifstar, as the pinned bundle (v33)
+# defines them: \newcommand, \renewcommand and \providecommand (latex.ltx, \@star@or@long),
+# \vspace and \hspace (latex.ltx), \ref, \pageref, \autoref and \nameref (hyperref.sty),
+# \includegraphics (graphics.sty), \cref and \Cref (cleveref.sty) and the natbib citations below.
+# Any other command reads a * after it as its argument, as TeX reads any one token: seam\label
+# *less sets the label * and prints seamless, and natbib's \citeyear *{b} cites the key * and
+# prints b.
+STARRED_KEY_COMMANDS = frozenset(
+    {
+        "newcommand",
+        "renewcommand",
+        "providecommand",
+        "vspace",
+        "hspace",
+        "ref",
+        "pageref",
+        "autoref",
+        "nameref",
+        "includegraphics",
+        "cref",
+        "Cref",
+        "cite",
+        "citet",
+        "citep",
+        "citealt",
+        "citealp",
+        "citeauthor",
+        "Citet",
+        "Citep",
+        "Citealt",
+        "Citealp",
+        "Citeauthor",
+    }
+)
 # Key commands that print nothing where they stand, with their keys: the text on either side prints
 # as one word, so seam\label{x}less and seam\textcolor{red}{less} read seamless. The others print
 # a citation, a number, a URL, a file, a figure or a space, which breaks a word.
@@ -673,7 +707,8 @@ class _CodeScanner:
         if name == "input":
             return self.input_argument_end(start, i)
         count = 1 if CITE_COMMAND.fullmatch(name) else KEY_COMMANDS[name]
-        i = self.star_end(i, same_line=name in SAME_LINE_ARGUMENT)
+        if name in STARRED_KEY_COMMANDS:
+            i = self.star_end(i)
         for index in range(count):
             if index == 0 and name in SAME_LINE_ARGUMENT:
                 i = self.same_line_argument_start(start, i, name)
@@ -684,15 +719,16 @@ class _CodeScanner:
             )
         return i
 
-    def star_end(self, i: int, *, same_line: bool = False) -> int:
+    def star_end(self, i: int) -> int:
         r"""Index past the * of a starred command whose name ends at text[i], or i without one.
 
+        Call it only for \\ and STARRED_KEY_COMMANDS; any other command reads a * as its argument.
         TeX skips the spaces after a control word, and LaTeX's \@ifstar looks for the * with
         \@ifnextchar, which skips space tokens. So the * may follow a space, a comment or one line
         break, as in \citep *{key} and \\ with *[2pt] on the next line (space_end). A blank line
-        is \par and ends the search. Before the argument of SAME_LINE_ARGUMENT only spaces count.
+        is \par and ends the search.
         """
-        j = _blanks_end(self.text, i) if same_line else self.space_end(i)
+        j = self.space_end(i)
         return j + 1 if self.text.startswith("*", j) else i
 
     def drop_text_argument_gaps(self, start: int, i: int, name: str) -> None:
