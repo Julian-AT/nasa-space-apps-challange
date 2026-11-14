@@ -8,6 +8,12 @@
 //       but @terraluna/schema has no schema for its records, so the API serves nothing from it.
 //       The detail says the file is in bundle <bundle_version> and which schema is missing.
 //
+// An id manifest.targets does not list is therefore a 404 only where manifest.json rules it out.
+// When it lists windows/<body>.json, which could hold any window, a window or comparison id is a
+// 501, since telling an unknown id from a known one would mean parsing that file (orchestrator
+// decision on T15-05 AC0). t15b-api replaces these 501s with real 404 or 200 answers once
+// @terraluna/schema has WindowRecord and ComparisonRecord.
+//
 // So the status follows from manifest.json alone, which is checked again with its generated schema
 // first: a manifest that fails it is a 500 problem, never a 404 or 501. No file without a schema is
 // parsed, nothing is passed through unvalidated, and nothing is computed in place of a missing
