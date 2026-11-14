@@ -7,6 +7,7 @@ refuses every socket, so no test can reach the network.
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import io as stdio
 import json
@@ -184,7 +185,13 @@ ROI_SQUARES = [
 ]
 
 
-def roi_archive(*, prj_radius: str = "1737400.0", with_prj: bool = True) -> bytes:
+def roi_archive(
+    *,
+    prj_radius: str = "1737400.0",
+    with_prj: bool = True,
+    replace: dict[str, bytes] | None = None,
+) -> bytes:
+    """A tgz holding the ROI shapefile; ``replace`` swaps members (by name) for other bytes."""
     shp, shx, dbf = stdio.BytesIO(), stdio.BytesIO(), stdio.BytesIO()
     with shapefile.Writer(shp=shp, shx=shx, dbf=dbf, shapeType=shapefile.POLYGON) as writer:
         writer.field("X", "N", 24, 15)
@@ -200,6 +207,7 @@ def roi_archive(*, prj_radius: str = "1737400.0", with_prj: bool = True) -> byte
     }
     if with_prj:
         members["Site01_ROIs.prj"] = ESRI_PRJ.format(radius=prj_radius).encode()
+    members.update(replace or {})
     buffer = stdio.BytesIO()
     with tarfile.open(fileobj=buffer, mode="w:gz") as archive:
         for name, data in sorted(members.items()):
@@ -586,6 +594,9 @@ def test_roi_shapefiles_are_listed_and_drawn(recorded: Path) -> None:
     assert names["Site01_ROIs.gmt"]["link_target"] == "Site01_regions.gmt"
     (layer,) = roi["shapefiles"]
     assert layer["name"] == "Site01_ROIs"
+    assert layer["readable"] is True
+    assert layer["read_error"] is None
+    assert layer["read_warnings"] == []
     assert layer["shape_type"] == "POLYGON"
     assert layer["shape_count"] == len(ROI_SQUARES)
     assert layer["crs_matches_height"] is True
@@ -618,6 +629,123 @@ def test_roi_without_a_prj_is_not_drawn(tmp_path: Path) -> None:
     roi = pilot_json(root)["roi"]
     assert roi["outlines_drawn"] is False
     assert ".prj" in roi["outlines_not_drawn_reason"]
+
+
+def record_with_rois(tmp_path: Path, archive: bytes) -> Path:
+    root = tmp_path / "repo"
+    root.mkdir()
+    do_fetch(root, MockDownloader(site(tmp_path, **{ROIS: archive})))
+    pilot.record("pgda78", root=root, sources=sources_for())
+    return root
+
+
+def one_record_dbf() -> bytes:
+    shp, shx, dbf = stdio.BytesIO(), stdio.BytesIO(), stdio.BytesIO()
+    with shapefile.Writer(shp=shp, shx=shx, dbf=dbf, shapeType=shapefile.POLYGON) as writer:
+        writer.field("X", "N", 24, 15)
+        writer.poly([[[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [0.0, 0.0]]])
+        writer.record(1.0)
+    return dbf.getvalue()
+
+
+def assert_no_outlines_but_a_complete_record(root: Path) -> None:
+    preview = Image.open(root / "outputs/pilot/pgda78_site01_preview.png")
+    assert not np.any(np.asarray(preview) == pilot.ROI_INDEX)
+    by_id = {record.product_id: record for record in sources(root)}
+    assert by_id[f"PGDA78/Site01/{SURF}"].verification_status == "VERIFIED"
+    assert pilot_json(root)["effective_support"]["observed_pixels"] > 0
+    assert pilot.check("pgda78", root=root, sources=sources_for()) == []
+
+
+@pytest.mark.parametrize(
+    ("members", "warning"),
+    [
+        ({"Site01_ROIs.shp": b"garbage" * 30}, None),
+        ("truncated", "Declared file size"),
+        ({"Site01_ROIs.dbf": one_record_dbf()}, None),
+    ],
+    ids=["corrupt-shp", "truncated-shp", "dbf-with-fewer-records"],
+)
+def test_an_unreadable_shapefile_is_recorded_as_missing_with_the_reason(
+    tmp_path: Path, members: dict[str, bytes] | str, warning: str | None
+) -> None:
+    if members == "truncated":
+        with tarfile.open(fileobj=stdio.BytesIO(roi_archive()), mode="r:gz") as archive:
+            stream = archive.extractfile("Site01_ROIs.shp")
+            assert stream is not None
+            members = {"Site01_ROIs.shp": stream.read()[:120]}
+    assert isinstance(members, dict)
+    root = record_with_rois(tmp_path, roi_archive(replace=members))
+    roi = pilot_json(root)["roi"]
+    assert roi["status"] == "read"
+    (layer,) = roi["shapefiles"]
+    assert layer["name"] == "Site01_ROIs"
+    assert layer["readable"] is False
+    assert "Site01_ROIs.shp cannot be read" in layer["read_error"]
+    assert layer["shapes"] == []
+    assert layer["shape_count"] is None
+    if warning is not None:
+        assert any(warning in text for text in layer["read_warnings"])
+    assert roi["outlines_drawn"] is False
+    assert "Site01_ROIs" in roi["outlines_not_drawn_reason"]
+    assert "cannot be read" in roi["outlines_not_drawn_reason"]
+    by_id = {record.product_id: record for record in sources(root)}
+    assert by_id[f"PGDA78/Site01/{ROIS}"].verification_status == "PARTIAL"
+    basis = pilot_json(root)["verification"][f"PGDA78/Site01/{ROIS}"]["basis"]
+    assert "not every shapefile could be read" in basis
+    assert_no_outlines_but_a_complete_record(root)
+
+
+def test_a_prj_that_is_not_utf8_is_not_drawn_and_says_why(tmp_path: Path) -> None:
+    archive = roi_archive(replace={"Site01_ROIs.prj": b"\xff\xfePROJCS"})
+    root = record_with_rois(tmp_path, archive)
+    roi = pilot_json(root)["roi"]
+    (layer,) = roi["shapefiles"]
+    assert layer["readable"] is True
+    assert layer["prj_wkt"] is None
+    assert layer["crs_matches_height"] is None
+    assert "UTF-8" in layer["crs_comparison"]
+    assert roi["outlines_drawn"] is False
+    assert ".prj" in roi["outlines_not_drawn_reason"]
+    assert "UTF-8" in roi["outlines_not_drawn_reason"]
+    assert_no_outlines_but_a_complete_record(root)
+
+
+@pytest.mark.parametrize(
+    ("archive", "reason"),
+    [
+        (gzip.compress(b"not a tar archive"), "is not a readable gzip tar archive"),
+        (b"\x1f\x8b\x08\x00truncated", "is not a readable gzip tar archive"),
+        ("oversized", "unpacks to more than 100 bytes"),
+    ],
+    ids=["gzip-but-not-tar", "truncated-gzip", "over-the-unpack-limit"],
+)
+def test_an_unreadable_roi_archive_is_recorded_as_missing_with_the_reason(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, archive: bytes | str, reason: str
+) -> None:
+    if archive == "oversized":
+        monkeypatch.setattr(pilot, "_ROI_ARCHIVE_MAX_BYTES", 100)
+        archive = roi_archive()
+    assert isinstance(archive, bytes)
+    root = record_with_rois(tmp_path, archive)
+    roi = pilot_json(root)["roi"]
+    assert roi["status"] == "unreadable"
+    assert reason in roi["reason"]
+    assert ROIS in roi["reason"]
+    assert roi["members"] == []
+    assert roi["shapefiles"] == []
+    assert roi["outlines_drawn"] is False
+    assert roi["outlines_not_drawn_reason"] == roi["reason"]
+    assert roi["archive"]["sha256"] == hashlib.sha256(archive).hexdigest()
+    by_id = {record.product_id: record for record in sources(root)}
+    roi_record = by_id[f"PGDA78/Site01/{ROIS}"]
+    assert roi_record.verification_status == "FAILED"
+    assert roi_record.units == "unknown"
+    assert roi_record.crs_and_frame == "unknown"
+    assert roi_record.checksum == hashlib.sha256(archive).hexdigest()
+    basis = pilot_json(root)["verification"][f"PGDA78/Site01/{ROIS}"]["basis"]
+    assert reason in basis
+    assert_no_outlines_but_a_complete_record(root)
 
 
 def test_roi_not_listed_by_the_provider_is_recorded_as_missing(tmp_path: Path) -> None:
