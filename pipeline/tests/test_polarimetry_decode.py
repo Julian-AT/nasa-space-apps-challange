@@ -497,6 +497,122 @@ def test_angle_array_marks_nonfinite_values() -> None:
     assert np.isnan(result.value[1])
 
 
+# --- float64 range ---------------------------------------------------------------------------
+# Review codex2-r3-2: a finite input whose result float64 cannot hold failed the whole array
+# (DN 1e155: DN**2 overflowed before calibration) or came out as a VALID 0.0 (DN 1e-160). Inputs
+# must be finite and supported (PRD 7), and the work is float64 (PRD 8), so a result that
+# overflows, or a positive power that falls below the smallest normal float64, is INVALID with
+# FLOAT64_OUT_OF_RANGE for that element alone. No other range limit is set.
+
+FLOAT64_MAX = float(np.finfo(np.float64).max)
+SMALLEST_NORMAL = float(np.finfo(np.float64).smallest_normal)
+OUT_OF_RANGE = "FLOAT64_OUT_OF_RANGE"
+
+
+def test_dn_whose_square_overflows_still_decodes_when_its_power_is_representable() -> None:
+    # 1e155**2 overflows float64, but the calibrated power 1e310 * 10**-8.3 does not.
+    linear = decode_linear(1e155, nodata=None)
+    assert linear.state == VALID
+    np.testing.assert_allclose(linear.value, 5.011872336272722e301, rtol=RTOL, atol=0.0)
+    db = decode_db(1e155, nodata=None)
+    assert db.state == VALID
+    np.testing.assert_allclose(db.value, 20.0 * 155.0 - 83.0, rtol=RTOL, atol=ATOL)
+
+
+def test_dn_whose_power_is_just_a_normal_float64_is_valid() -> None:
+    # 3e-150**2 * 10**-8.3 is about 4.5e-308, just above the smallest normal float64.
+    linear = decode_linear(3e-150, nodata=None)
+    assert linear.state == VALID
+    assert linear.value >= SMALLEST_NORMAL
+    np.testing.assert_allclose(linear.value, 9e-300 * 10.0**-8.3, rtol=RTOL, atol=0.0)
+
+
+@pytest.mark.parametrize("decode", [decode_db, decode_linear])
+@pytest.mark.parametrize(
+    "dn",
+    [
+        pytest.param(1e200, id="power-overflows"),
+        pytest.param(FLOAT64_MAX, id="largest-float64"),
+        pytest.param(1.5e-151, id="power-subnormal"),
+        pytest.param(1e-160, id="power-underflows-to-zero"),
+        pytest.param(5e-324, id="smallest-subnormal-dn"),
+    ],
+)
+def test_dn_whose_power_is_out_of_float64_range_is_invalid(decode: Decode, dn: float) -> None:
+    # Both forms, so the dB and linear forms agree on which pixels are valid.
+    result = decode(dn, nodata=None)
+    assert_unavailable(result, INVALID, InvalidReason(OUT_OF_RANGE))
+    assert not np.any(result.value == 0.0)
+
+
+@pytest.mark.parametrize("decode", [decode_db, decode_linear])
+def test_out_of_range_dn_fails_only_its_own_element(decode: Decode) -> None:
+    result = decode(np.array([100.0, 1e200, 1e-160, 300.0]), nodata=None)
+    assert result.state.tolist() == [VALID, INVALID, INVALID, VALID]
+    assert result.reason.tolist() == ["NONE", OUT_OF_RANGE, OUT_OF_RANGE, "NONE"]
+    np.testing.assert_allclose(
+        result.value[[0, 3]],
+        decode(np.array([100.0, 300.0]), nodata=None).value,
+        rtol=RTOL,
+        atol=ATOL,
+    )
+
+
+@pytest.mark.parametrize("decode", [decode_db, decode_linear])
+@pytest.mark.parametrize("offset", [7000.0, -7000.0])
+def test_offset_whose_scale_factor_float64_cannot_hold_raises(
+    decode: Decode, offset: float
+) -> None:
+    # 10**(-offset/20) underflows to 0 or overflows, so no DN could decode with it.
+    with pytest.raises(ValueError, match="calibration_offset_db"):
+        decode(100, nodata=None, calibration_offset_db=offset)
+
+
+@pytest.mark.parametrize(
+    ("dn_hh", "dn_hv"),
+    [
+        pytest.param(1e-200, 1e200, id="ratio-overflows"),
+        pytest.param(1.0, FLOAT64_MAX, id="square-overflows"),
+        pytest.param(1e200, 1e-200, id="ratio-underflows-to-zero"),
+        pytest.param(1.0, 1e-155, id="square-subnormal"),
+    ],
+)
+def test_x_power_out_of_float64_range_is_invalid(dn_hh: float, dn_hv: float) -> None:
+    result = x_power(
+        np.array([1000.0, dn_hh]),
+        np.array([100.0, dn_hv]),
+        nodata=None,
+        hh_noise_dominated=False,
+        hv_noise_dominated=False,
+    )
+    assert result.state.tolist() == [VALID, INVALID]
+    assert result.reason.tolist() == ["NONE", OUT_OF_RANGE]
+    np.testing.assert_allclose(result.value[0], 0.01, rtol=RTOL, atol=0.0)
+    assert np.isnan(result.value[1])
+
+
+def test_x_power_at_the_edge_of_float64_range_is_valid() -> None:
+    result = x_power(1e-100, 1e50, nodata=None, hh_noise_dominated=False, hv_noise_dominated=False)
+    assert result.state == VALID
+    np.testing.assert_allclose(result.value, 1e300, rtol=RTOL, atol=0.0)
+
+
+def test_angle_whose_degrees_overflow_is_invalid() -> None:
+    result = angle_to_degrees(np.array([math.pi / 3, FLOAT64_MAX]), unit="radians")
+    assert result.state.tolist() == [VALID, INVALID]
+    assert result.reason.tolist() == ["NONE", OUT_OF_RANGE]
+    np.testing.assert_allclose(result.value[0], 60.0, rtol=RTOL, atol=ATOL)
+
+
+def test_angles_at_the_edges_of_float64_range_are_valid() -> None:
+    # Degrees are kept as given, so the largest float64 is still a degree value.
+    assert angle_to_degrees(FLOAT64_MAX, unit="degrees").state == VALID
+    # A zero or subnormal angle is a valid angle, not an underflow: angles may be zero.
+    result = angle_to_degrees(np.array([0.0, 5e-324]), unit="radians")
+    assert result.state.tolist() == [VALID, VALID]
+    assert result.value[0] == 0.0
+
+
 # --- Masked inputs ---------------------------------------------------------------------------
 # A numpy masked array carries validity in its mask, and np.asarray drops that mask without a
 # word, so a masked pixel would come out VALID. Product flags therefore enter only through the
@@ -955,3 +1071,74 @@ def test_db_and_linear_agree(dns: list[int]) -> None:
     assert np.all(linear.state == VALID)
     np.testing.assert_allclose(10.0 * np.log10(linear.value), db.value, rtol=RTOL, atol=ATOL)
     np.testing.assert_allclose(10.0 ** (db.value / 10.0), linear.value, rtol=RTOL, atol=ATOL)
+
+
+# Review codex2-r3-2: the properties above draw integer DN only; these draw any positive finite
+# float, fractional, subnormal and near the float64 limits included. The oracle is the base-10
+# logarithm of the exact result, so it does not share the implementation's arithmetic.
+
+DN_POSITIVE_FLOAT = st.floats(
+    min_value=0.0, exclude_min=True, allow_nan=False, allow_infinity=False
+)
+LOG10_SMALLEST_NORMAL = math.log10(SMALLEST_NORMAL)
+LOG10_FLOAT64_MAX = math.log10(FLOAT64_MAX)
+LOG10_MARGIN = 1e-9  # keeps the oracle clear of rounding at the range edges
+
+
+def assert_range_matches(log10_exact: npt.NDArray[np.float64], result: StatedArray) -> None:
+    """VALID exactly where the exact result is a normal float64, away from the edges."""
+    assert set(result.reason.tolist()) <= {"NONE", OUT_OF_RANGE}
+    valid = result.state == VALID
+    inside = (log10_exact > LOG10_SMALLEST_NORMAL + LOG10_MARGIN) & (
+        log10_exact < LOG10_FLOAT64_MAX - LOG10_MARGIN
+    )
+    outside = (log10_exact < LOG10_SMALLEST_NORMAL - LOG10_MARGIN) | (
+        log10_exact > LOG10_FLOAT64_MAX + LOG10_MARGIN
+    )
+    assert np.all(valid[inside])
+    assert not np.any(valid[outside])
+    assert np.all(result.value[valid] >= SMALLEST_NORMAL)
+    assert np.all(np.isfinite(result.value[valid]))
+
+
+@given(st.lists(DN_POSITIVE_FLOAT, min_size=1, max_size=50))
+def test_db_and_linear_agree_for_any_positive_float_dn(dns: list[float]) -> None:
+    dn = np.array(dns, dtype=np.float64)
+    db = decode_db(dn, nodata=None)
+    linear = decode_linear(dn, nodata=None)
+    assert np.array_equal(db.state, linear.state)
+    assert np.array_equal(db.reason, linear.reason)
+    assert_range_matches(2.0 * np.log10(dn) - 8.3, linear)
+    valid = linear.state == VALID
+    np.testing.assert_allclose(
+        10.0 * np.log10(linear.value[valid]), db.value[valid], rtol=RTOL, atol=ATOL
+    )
+
+
+@given(st.lists(DN_POSITIVE_FLOAT, min_size=2, max_size=50))
+def test_decode_linear_is_monotone_for_any_positive_float_dn(dns: list[float]) -> None:
+    dn = np.sort(np.array(dns, dtype=np.float64))
+    result = decode_linear(dn, nodata=None)
+    valid = result.state == VALID
+    assert np.all(np.diff(result.value[valid]) >= 0)
+
+
+@given(DN_POSITIVE_FLOAT, DN_POSITIVE_FLOAT)
+def test_x_power_holds_for_any_positive_float_dn(dn_hh: float, dn_hv: float) -> None:
+    result = x_power(dn_hh, dn_hv, nodata=None, hh_noise_dominated=False, hv_noise_dominated=False)
+    log10_exact = np.array(2.0 * (math.log10(dn_hv) - math.log10(dn_hh)))
+    assert_range_matches(log10_exact, result)
+    if result.state == VALID:
+        np.testing.assert_allclose(np.log10(result.value), log10_exact, rtol=0.0, atol=1e-12)
+
+
+@given(st.floats(allow_nan=False, allow_infinity=False))
+def test_angle_conversion_holds_for_any_finite_angle(angle: float) -> None:
+    result = angle_to_degrees(angle, unit="radians")
+    assert set(result.reason.tolist()) <= {"NONE", OUT_OF_RANGE}
+    # 180/pi is about 57.3, so below FLOAT64_MAX/60 never overflows and above /57 always does.
+    if abs(angle) < FLOAT64_MAX / 60.0:
+        assert result.state == VALID
+        np.testing.assert_allclose(result.value, angle * 180.0 / math.pi, rtol=RTOL, atol=ATOL)
+    if abs(angle) > FLOAT64_MAX / 57.0:
+        assert result.state == INVALID
