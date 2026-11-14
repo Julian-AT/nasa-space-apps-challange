@@ -527,9 +527,9 @@ class GeographicLookup:
     ``to_pixel``. Evaluation: lon_deg = lon * (180 / pi) and lat_deg = lat * (180 / pi) are
     rounded once (``numpy.degrees``); east = lon_deg - origin_lon_deg is carried exactly as two
     float64 values (Knuth's two-sum) and reduced to [0, 360) by a whole number of 360 degree
-    turns, settled by the sign of the exact remainder; then column = east / pixel_width_deg - 0.5 and row
-    = (lat_deg - origin_lat_deg) / pixel_height_deg - 0.5, the difference again carried
-    exactly. The only roundings after the degrees are those of the final sums, the divisions
+    turns, settled by the sign of the exact remainder; then column = east / pixel_width_deg -
+    0.5 and row = (lat_deg - origin_lat_deg) / pixel_height_deg - 0.5, the difference again
+    carried exactly. The only roundings after the degrees are those of the final sums, the divisions
     and the half-pixel shifts, so a column near 0 keeps its precision next to a large origin.
     """
 
