@@ -58,7 +58,7 @@ describe('Button', () => {
   it('has no destructive variant, because red is reserved for the mock banner', () => {
     // @ts-expect-error -- 'destructive' is not a Button variant.
     const classes = buttonVariants({ variant: 'destructive' });
-    expect(classes).not.toMatch(/destructive|red/);
+    expect(classes).not.toMatch(/destructive|-(red|rose)-\d/);
   });
 });
 
@@ -73,7 +73,7 @@ describe('Badge', () => {
   it('has no destructive variant', () => {
     // @ts-expect-error -- 'destructive' is not a Badge variant.
     const classes = badgeVariants({ variant: 'destructive' });
-    expect(classes).not.toMatch(/destructive|red/);
+    expect(classes).not.toMatch(/destructive|-(red|rose)-\d/);
   });
 });
 
