@@ -1,0 +1,344 @@
+{
+  "project": "Terraluna",
+  "branchName": "ralph/t3-terrain",
+  "description": "PRD section 12, T3 (supported terrain measurements and the D29 window resampler) on synthetic inputs only. Real windows and the TypeScript mirror (T10) come later. Stories run in priority order. The author iteration never sets passes; ralph.sh runs independent reviews and a deterministic gate first. This file is Ralph's task list, not the product PRD.",
+  "userStories": [
+    {
+      "id": "T3-01",
+      "title": "Terrain config loader and body radii",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "7 (Window resampler D29: radii)",
+        "8.3",
+        "8.13"
+      ],
+      "description": "Add a small typed loader for the terrain block of config/run.yaml and the fixed body radii, so later stories never hard-code a config value.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/terrain.py",
+        "pipeline/src/terraluna_pipeline/geometry.py",
+        "pipeline/src/terraluna_pipeline/config.py",
+        "pipeline/tests/test_terrain*.py",
+        "pipeline/tests/test_geometry*.py",
+        "pipeline/tests/test_config*.py",
+        "fixtures/terrain/*",
+        "fixtures/parity/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "Tests are written and run failing before the implementation exists; the failing run is recorded in notes. pipeline/tests/test_config.py and pipeline/tests/test_geometry.py fail first.",
+        "pyproject.toml of terraluna-pipeline gains numpy, scipy and pyyaml (and types-PyYAML in the dev group if mypy --strict needs it); nothing else; uv.lock is updated.",
+        "config.py loads terrain.analysis_grid_m, lags_m, min_lags_for_H, min_lag_span_factor, detrend, min_valid_fraction and resampler from config/run.yaml, plus window_m (targets.window_m) and stride_m. A test asserts they equal 90, [270,360,540,720,1080], 4, 4, [none, plane], 0.8 and aeqd_sphere as currently committed in the file; the tests read the YAML, they do not restate a second copy of the thresholds as the source of truth.",
+        "Loader rejects an unknown resampler value, a missing key and a non-positive grid with a named error. Null kickoff entries (for example radar.snr_rule, targets.moon.primary_window_id) are never defaulted or filled in; a test shows they stay None if requested.",
+        "geometry.py defines BODY_RADII_M as exactly Moon 1737400.0, Mars 3396190.0 and Earth 6371008.8 (PRD 7, D29), float64, and an unknown body raises. A test asserts the three values and that no other body resolves.",
+        "mypy --strict and ruff pass on the new files."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_config.py",
+        "uv run pytest pipeline/tests/test_geometry.py",
+        "make check"
+      ],
+      "priority": 1,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T3-02",
+      "title": "Spherical AEQD window grid and forward/inverse round trips",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "7 (Window resampler D29: grid, inverse AEQD, tests)",
+        "6.1",
+        "8.8"
+      ],
+      "description": "Implement the window pixel-centre grid and the closed-form spherical AEQD inverse and forward, in float64.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/terrain.py",
+        "pipeline/src/terraluna_pipeline/geometry.py",
+        "pipeline/src/terraluna_pipeline/config.py",
+        "pipeline/tests/test_terrain*.py",
+        "pipeline/tests/test_geometry*.py",
+        "pipeline/tests/test_config*.py",
+        "fixtures/terrain/*",
+        "fixtures/parity/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "Tests are written and run failing before the implementation exists; the failing run is recorded in notes. pipeline/tests/test_geometry_aeqd.py fails first.",
+        "Grid test: for width W and spacing D, x_i=(i+0.5)*D-W/2 and y_j=W/2-(j+0.5)*D with row 0 at the top; checked for W=5000, D=90 against hand-computed corner and centre values (use the PRD formula independently written in the test with explicit loops, not a call to the implementation).",
+        "Inverse AEQD follows the PRD formulas (rho, c=rho/R, asin, atan2) and returns (phi0, lambda0) exactly at rho=0 with no NaN, including a window centred at a pole. A forward AEQD (written independently) round-trips: inverse then forward recovers (x, y) to rtol 1e-10, atol 1e-12 (PRD 7 Tolerances) for each of Moon, Mars and Earth, at latitudes -89.9, -45, 0, 45 and 89.9 degrees.",
+        "Distance test: great-circle distance from the window centre to each grid point, computed on the same sphere by haversine or the spherical law of cosines in the test, equals rho to 1e-9 relative (PRD 7 Tests) for all three radii.",
+        "Hypothesis property test: random centres and offsets within a 5 km window satisfy the round trip; longitude is normalised to a stated range and the test documents which.",
+        "Terrain distances computed here are in metres on the body sphere and live in geometry.py; nothing in these modules imports or reuses radar or model distance code."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+        "make check"
+      ],
+      "codexPasses": 2,
+      "priority": 2,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T3-03",
+      "title": "Source lookup forms and bilinear resampling with nodata",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "7 (Window resampler D29: source lookup, interpolation, tests)",
+        "6.3",
+        "8.8"
+      ],
+      "description": "Map (phi, lambda) into source raster pixel space by the three closed forms and resample bilinearly, nodata-propagating.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/terrain.py",
+        "pipeline/src/terraluna_pipeline/geometry.py",
+        "pipeline/src/terraluna_pipeline/config.py",
+        "pipeline/tests/test_terrain*.py",
+        "pipeline/tests/test_geometry*.py",
+        "pipeline/tests/test_config*.py",
+        "fixtures/terrain/*",
+        "fixtures/parity/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "Tests are written and run failing before the implementation exists; the failing run is recorded in notes. pipeline/tests/test_geometry_resample.py fails first.",
+        "Three lookup forms exist: geographic lat-lon, polar stereographic on the sphere and equirectangular on the sphere. Each has a forward and inverse test against an independently written formula. Raster georeferencing parameters (origin, pixel size, standard parallel and any scale factor) are explicit arguments, never guessed from the product; a test shows a missing parameter raises.",
+        "Interpolation is bilinear on the four neighbouring source pixels only; the output pixel is nodata if any neighbour is nodata or if the point falls outside the source (outside is nodata, never zero-filled). No cubic, no averaging.",
+        "Plane test: a synthetic plane z=a+b*x+c*y sampled on a source grid resamples to a plane, so the best-fit residual of the output in the window x-y frame is below rtol 1e-10, atol 1e-12 where the source is itself a plane in the same frame (choose the equirectangular form at small extent and state the curvature residual allowed; do not loosen it to pass).",
+        "Nodata tests: one nodata source pixel masks exactly the output pixels whose four-neighbour footprint includes it; an all-nodata source gives all-nodata output; a source with NaN and with a declared sentinel nodata value behave identically.",
+        "Output carries an explicit boolean valid mask beside the float64 array; missing is never represented as 0."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_geometry_resample.py",
+        "make check"
+      ],
+      "codexPasses": 2,
+      "priority": 3,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T3-04",
+      "title": "Structure function nu(L) with explicit direction sampling",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "6.3",
+        "7 (Validity rules, Tolerances)",
+        "8.11 (terrain_fingerprint)"
+      ],
+      "description": "Compute nu(L)=sqrt(mean((z(x+L)-z(x))^2)) on a masked metric grid along both axes and both diagonals, with per-direction values and an isotropic summary.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/terrain.py",
+        "pipeline/src/terraluna_pipeline/geometry.py",
+        "pipeline/src/terraluna_pipeline/config.py",
+        "pipeline/tests/test_terrain*.py",
+        "pipeline/tests/test_geometry*.py",
+        "pipeline/tests/test_config*.py",
+        "fixtures/terrain/*",
+        "fixtures/parity/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "Tests are written and run failing before the implementation exists; the failing run is recorded in notes. pipeline/tests/test_terrain_structure.py fails first.",
+        "Plane test: for z=a+b*x+c*y, nu(L) per direction equals the analytic |L|*|gradient dot unit direction| to rtol 1e-10, atol 1e-12 for lags 270, 360, 540, 720 and 1080 m on the 90 m grid.",
+        "Sinusoid test: for z=A*sin(2*pi*x/lambda) the axis-x nu(L) equals the analytic sqrt(2)*A*|sin(pi*L/lambda)| in the large-sample limit, with the tolerance derived and stated in the test from the finite window, not tuned; the y direction gives 0.",
+        "Nodata test: a pair (x, x+L) contributes only if both cells are valid; masked cells never enter as zero; a window with a nodata hole gives the same nu as the same data with the hole pixels' pairs removed by hand; a direction with no valid pairs is reported unsupported, not 0.",
+        "Diagonal lags: the PRD fixes lags in metres but not how a diagonal lag maps to cells. The implementation chooses a documented rule (offset in cells whose Euclidean length in metres equals the lag within a stated tolerance, otherwise that lag is unsupported for that direction, with reason diagonal_lag_not_on_grid). The rule is recorded in the docstring and surfaced to the human in notes as a decision; the test asserts the chosen behaviour for 270 m and 360 m on the 90 m grid.",
+        "The isotropic summary rule is documented (see PRD 6.3: summarized isotropically, per-direction kept). Whichever rule is chosen is an explicit parameter recorded in the output, and the per-direction values are returned unchanged.",
+        "Pure numpy float64; no randomness; mypy --strict passes."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_terrain_structure.py",
+        "make check"
+      ],
+      "codexPasses": 2,
+      "priority": 4,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T3-05",
+      "title": "terrain_fingerprint: supported lags, valid fraction, detrend and H or reason",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "6.3",
+        "7 (Validity rules)",
+        "8.11",
+        "12 (T3)",
+        "3"
+      ],
+      "description": "Wrap nu(L) in terrain_fingerprint, with raw (relief) and plane-removed (texture) variants, supported-lag selection and H, with machine-readable reasons.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/terrain.py",
+        "pipeline/src/terraluna_pipeline/geometry.py",
+        "pipeline/src/terraluna_pipeline/config.py",
+        "pipeline/tests/test_terrain*.py",
+        "pipeline/tests/test_geometry*.py",
+        "pipeline/tests/test_config*.py",
+        "fixtures/terrain/*",
+        "fixtures/parity/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "Tests are written and run failing before the implementation exists; the failing run is recorded in notes. pipeline/tests/test_terrain_fingerprint.py fails first.",
+        "Lag support: a lag is kept only if it is in config lags_m, is at least 3 analysis cells, at most a quarter of the window width (1250 m for 5000 m) and has valid pairs; locally unsupported lags are dropped and listed with a reason. Test that lags_m=[270..1080] on W=5000 at 90 m are all kept for a full-valid window.",
+        "H gate: H is fitted only with at least min_lags_for_H (4) supported lags and max/min lag >= min_lag_span_factor (4), both read from config. Otherwise H is Unavailable with a machine-readable reason, for example insufficient_lags or insufficient_lag_span; tests cover 3 lags, 4 lags spanning less than 4x (for example 270..900), and exactly 4x (270..1080 must be accepted).",
+        "nu equal to zero at any used lag gives H Unavailable with reason nu_zero (a constant window); a plane after plane removal gives texture H Unavailable for nu_zero and relief H available, so both variants are shown separately. No epsilon is added; log(0) is never evaluated.",
+        "Valid fraction: a window with valid fraction below min_valid_fraction (0.8) is excluded with reason below_min_valid_fraction and records the exact fraction; a window at exactly 0.8 passes (state the comparison operator in the test). Also covers an all-nodata window and a window with too few cells for any lag.",
+        "The H estimator (fit on log nu versus log L, H as the slope or half the slope of the squared form) is not specified by the PRD: pick one, document it in the docstring and in notes as a human decision, and test it on exact power laws nu=c*L^H for H in 0.3, 0.5 and 0.8 recovering H to rtol 1e-10 (arithmetic tolerance, PRD 7).",
+        "Detrend policy values none and plane come from config; an unknown value raises. Plane removal ignores nodata cells and records the fitted tilt. The output carries nu per lag and direction, supported lags, H or reason, valid fraction, analysis grid and detrend, with unsupported values as None, never 0.",
+        "If the effective support of the source is coarser than the analysis grid, the PRD says coarsen and record: this story only records a supplied coarsening factor in the output and does not infer effective support."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_terrain_fingerprint.py",
+        "uv run mypy pipeline/src/terraluna_pipeline/terrain.py",
+        "make check"
+      ],
+      "codexPasses": 2,
+      "priority": 5,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T3-06",
+      "title": "Synthetic fractal test and an end-to-end synthetic window",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "6.3",
+        "7 (Window resampler D29)",
+        "12 (T3)",
+        "9"
+      ],
+      "description": "Close the PRD T3 test list with a synthetic fractal and a chain test: AEQD-resampled synthetic source, then fingerprint.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/terrain.py",
+        "pipeline/src/terraluna_pipeline/geometry.py",
+        "pipeline/src/terraluna_pipeline/config.py",
+        "pipeline/tests/test_terrain*.py",
+        "pipeline/tests/test_geometry*.py",
+        "pipeline/tests/test_config*.py",
+        "fixtures/terrain/*",
+        "fixtures/parity/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "Tests are written and run failing before the implementation exists; the failing run is recorded in notes. pipeline/tests/test_terrain_fractal.py fails first.",
+        "A seeded fractional-Brownian-surface generator (spectral synthesis in the test module or fixtures/terrain/, seed fixed) with known H in 0.3, 0.5 and 0.8 is fingerprinted on a 5000 m window at 90 m. The acceptance tolerance on recovered H is not set by the PRD: declare it in the test file before the first run, with the reason (finite window and lag range), and do not change it after seeing results. Record the observed H and its deviation in notes; if the declared tolerance fails, report it, do not retune.",
+        "Order test: recovered H is monotone in the generating H over the three values across at least 5 seeds.",
+        "Chain test: a synthetic equirectangular source (a plane plus a sinusoid, known analytic nu) is resampled with the D29 resampler onto the 90 m grid at a Moon-radius window and fingerprinted; relief nu matches the analytic value within a derived, stated tolerance, and an injected nodata block lowers valid fraction and drives a documented exclusion.",
+        "Terrain distances stay in metres on the body sphere; the test asserts the fingerprint object has no radar or model fields.",
+        "No real DEM data is read; fixtures are generated or small synthetic files checked into fixtures/terrain/ with a README line stating they are synthetic."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_terrain_fractal.py",
+        "make test"
+      ],
+      "codexPasses": 2,
+      "priority": 6,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T3-07",
+      "title": "Python reference outputs for synthetic parity fixtures",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "8.8",
+        "12 (T3, T10)",
+        "7 (Tolerances)"
+      ],
+      "description": "Write fixtures/parity/*.json with Python outputs for synthetic inputs so T10 can check the TypeScript mirror. Real windows come later.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/terrain.py",
+        "pipeline/src/terraluna_pipeline/geometry.py",
+        "pipeline/src/terraluna_pipeline/config.py",
+        "pipeline/tests/test_terrain*.py",
+        "pipeline/tests/test_geometry*.py",
+        "pipeline/tests/test_config*.py",
+        "fixtures/terrain/*",
+        "fixtures/parity/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "Tests are written and run failing before the implementation exists; the failing run is recorded in notes. pipeline/tests/test_terrain_parity.py fails first.",
+        "A generator function in terrain.py (callable from a test and via python -m terraluna_pipeline.terrain, no Makefile edit; the make parity target belongs to another owner and is flagged in notes) writes fixtures/parity/terrain_synthetic.json and fixtures/parity/geometry_synthetic.json containing: plane, sinusoid, seeded fractal and three nodata patterns (hole, edge strip, checkerboard), each with the exact input array (or its generating parameters plus seed and a sha256 of the array), the config values used, resampled grids, nu per lag and direction, log nu, H or reason, supported lags and valid fraction, plus AEQD round trip cases for each body.",
+        "Every fixture file carries schema_version, a field data_kind equal to synthetic, the producing git commit, the config sha256 of config/run.yaml and the sha256 of each input; float64 values are serialised losslessly (repr round trip) and checked.",
+        "Test regenerates to a temporary directory and requires byte-identical output to the committed fixtures; test also reloads the JSON and asserts validity reasons are the machine-readable strings from T3-05 and unavailable values are null, never 0.",
+        "Tolerances follow PRD 8.8: grids 1e-9 relative, log nu, H and distances 1e-9 absolute; the tolerances are stored in the file for the TypeScript tests to read.",
+        "Sizes are small (each file under 1 MB)."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_terrain_parity.py",
+        "make check",
+        "make test"
+      ],
+      "codexPasses": 2,
+      "priority": 7,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    }
+  ]
+}
