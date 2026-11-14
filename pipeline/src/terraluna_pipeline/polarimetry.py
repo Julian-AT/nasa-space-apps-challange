@@ -38,9 +38,10 @@ Conventions that hold for every function here:
   context in Mode B and enter no distance before G2 (PRD 6.2); their records carry
   ``role = "context"``. No cross-band comparison is offered here.
 - Gate G1 (PRD 9) is recorded from pytest's own junit report by :func:`record_g1`, run as
-  ``python -m terraluna_pipeline.polarimetry record-g1 --junit <path> --out <path>``. The
-  required tests are listed in ``fixtures/polarimetry/g1_required_tests.json``; no record is
-  written by hand.
+  ``python -m terraluna_pipeline.polarimetry record-g1 --junit <path> --out <path>
+  [--pytest-command <command>] [--run-id <id>]``. The required tests are listed in
+  ``fixtures/polarimetry/g1_required_tests.json``; no record is written by hand, and its notes
+  name the commands and the commit.
 """
 
 from __future__ import annotations
@@ -50,7 +51,9 @@ import hashlib
 import json
 import math
 import os
+import re
 import shlex
+import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from collections.abc import Mapping, Sequence
@@ -3192,12 +3195,77 @@ def _g1_evidence_path(junit: Path) -> str:
     return os.path.abspath(junit)
 
 
+_GIT_SHA: Final = re.compile(r"[0-9a-f]{40}|[0-9a-f]{64}")
+_JUNIT_OPTIONS: Final = ("--junitxml", "--junit-xml")
+
+
+def _git_state(root: Path) -> tuple[str | None, list[str] | None]:
+    """The commit checked out at ``root`` and the paths that differ from it.
+
+    Both are None when ``root`` is not the top of a git work tree, has no commit, or git cannot
+    be run: the record then names no commit rather than guess one. The paths, relative to
+    ``root`` and sorted, are every file whose index or work tree differs from the commit and
+    every untracked file git does not ignore. git only reads (``--no-optional-locks``) and runs
+    without the caller's ``GIT_*`` variables, so it reads the repository at ``root``.
+    """
+    env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+
+    def git(*args: str) -> bytes | None:
+        try:
+            completed = subprocess.run(
+                ["git", "--no-optional-locks", "-C", os.fspath(root), *args],
+                capture_output=True,
+                env=env,
+                check=False,
+                timeout=60,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return completed.stdout if completed.returncode == 0 else None
+
+    top = git("rev-parse", "--show-toplevel")
+    if top is None or Path(os.fsdecode(top.rstrip(b"\n"))).resolve() != root.resolve():
+        return None, None
+    head = git("rev-parse", "--verify", "--quiet", "HEAD^{commit}")
+    status = git("status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames")
+    if head is None or status is None:
+        return None, None
+    commit = head.decode("ascii", "replace").strip()
+    if not _GIT_SHA.fullmatch(commit):
+        return None, None
+    # Porcelain v1 with -z and no renames: one "XY <path>" entry per path, each ended by NUL.
+    return commit, sorted({os.fsdecode(entry[3:]) for entry in status.split(b"\0") if entry})
+
+
+def _writes_report(pytest_command: str, junit: Path) -> bool:
+    """Whether a pytest command line writes its junit report to ``junit``.
+
+    The report must be named by ``--junitxml`` or ``--junit-xml``, as ``--junitxml=<path>`` or
+    ``--junitxml <path>``, with a relative path read from the current directory.
+    """
+    try:
+        words = shlex.split(pytest_command)
+    except ValueError:
+        return False
+    target = junit.resolve()
+    for index, word in enumerate(words):
+        option, equals, value = word.partition("=")
+        if option not in _JUNIT_OPTIONS:
+            continue
+        if not equals:
+            value = words[index + 1] if index + 1 < len(words) else ""
+        if value and Path(value).expanduser().resolve() == target:
+            return True
+    return False
+
+
 def record_g1(
     junit: str | os.PathLike[str],
     out: str | os.PathLike[str],
     *,
     command: str,
     run_id: str | None = None,
+    pytest_command: str | None = None,
 ) -> GateRecord:
     """Write the G1 :class:`GateRecord` for a pytest junit report to ``out`` and return it.
 
@@ -3205,13 +3273,21 @@ def record_g1(
     repository or under ``fixtures/polarimetry/``. The required tests come from
     :data:`G1_REQUIRED_TESTS_PATH`; the status follows the rules above this function, so a
     required test that is absent, failed, skipped, xfailed or missing a listed case never gives
-    PASS. ``command`` is the command line to record and ``run_id`` stays null unless given.
+    PASS. ``command`` is this command's line to record, ``pytest_command`` the pytest command
+    line that wrote the report (it must name the report with ``--junitxml``; null when not
+    given), and ``run_id`` stays null unless given.
 
     The record holds ``gate_id`` G1, the status, ``evidence_path`` (the junit report), the
     scope (stating whether the real-scene check was included), ``consequence`` (PRD 9's failure
-    action unless PASS, else null) and ``result``. GateRecord's ``result`` is a string, so it
-    holds a JSON object: the command, the SHA-256 of the report and of the required list, the
-    report timestamps, the counts per fixture, per story (conventions, invalid data and other)
+    action unless PASS, else null) and ``result``. GateRecord has no notes field and its
+    ``result`` is a string, so ``result`` holds a JSON object. Its ``notes`` are the
+    provenance: ``command``, ``pytest_command``, ``commit`` (the commit checked out in the
+    repository when the record is written) and ``uncommitted_changes`` (the paths that differ
+    from that commit; the tested code is the commit exactly when only the record itself is
+    listed); ``commit`` and ``uncommitted_changes`` are null outside a git checkout. Run
+    record-g1 right after pytest, on the same tree. The rest of ``result`` holds the SHA-256 of
+    the report and of the required list, the report timestamps, the counts per fixture, per
+    story (conventions, invalid data and other)
     and for the real-scene check (tests, passed, failed, skipped, incomplete, absent and junit
     cases), the ids that failed, were skipped, were incomplete or were absent, the listed cases
     absent from tests that were reported (``absent_cases``, as node ids with parameters), and
@@ -3226,6 +3302,13 @@ def record_g1(
         raise G1InputError("the command to record must be a non-empty string")
     junit_path = Path(junit)
     out_path = Path(out)
+    if pytest_command is not None and (
+        type(pytest_command) is not str or not _writes_report(pytest_command, junit_path)
+    ):
+        raise G1InputError(
+            f"the pytest command {pytest_command!r} does not write the junit report"
+            f" {junit_path} (name it with --junitxml=<path>)"
+        )
     evidence_path = _g1_evidence_path(junit_path)
     if out_path.resolve() in {junit_path.resolve(), G1_REQUIRED_TESTS_PATH.resolve()}:
         raise G1InputError(f"the output path {out_path} would overwrite an input")
@@ -3241,8 +3324,14 @@ def record_g1(
     def ids_with(outcome: _G1Outcome) -> list[str]:
         return [nodeid for nodeid, (found, _) in outcomes.items() if found == outcome]
 
+    commit, uncommitted_changes = _git_state(_REPO_ROOT)
     result = {
-        "command": command,
+        "notes": {
+            "command": command,
+            "pytest_command": pytest_command,
+            "commit": commit,
+            "uncommitted_changes": uncommitted_changes,
+        },
         "junit_sha256": hashlib.sha256(junit_bytes).hexdigest(),
         "junit_timestamps": timestamps,
         "required_tests": _G1_REQUIRED_TESTS,
@@ -3303,10 +3392,24 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     record.add_argument("--out", required=True, help="path of the GateRecord JSON to write")
     record.add_argument("--run-id", default=None, help="run id to record (null when omitted)")
+    record.add_argument(
+        "--pytest-command",
+        default=None,
+        help=(
+            "the pytest command line that wrote the report, naming it with --junitxml=<path>"
+            " (null when omitted)"
+        ),
+    )
     args = parser.parse_args(arguments)
     command = shlex.join(["python", "-m", "terraluna_pipeline.polarimetry", *arguments])
     try:
-        gate = record_g1(args.junit, args.out, command=command, run_id=args.run_id)
+        gate = record_g1(
+            args.junit,
+            args.out,
+            command=command,
+            run_id=args.run_id,
+            pytest_command=args.pytest_command,
+        )
     except (G1InputError, OSError) as error:
         print(f"record-g1: {error}", file=sys.stderr)
         return 2
