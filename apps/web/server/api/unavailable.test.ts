@@ -27,6 +27,7 @@ import { NOT_IN_BUNDLE_STATUS, NOT_SERVED_STATUS } from './unavailable.ts';
 const TARGET = 'test-target-alpha';
 const WINDOW_A = 'test-window-alpha';
 const WINDOW_B = 'test-window-beta';
+const OTHER = 'test-target-gamma';
 const TEST_MODEL = { id: 'test-model-alpha', status: 'EXPERIMENTAL', g5: 'PASS' };
 const G5_PASS = [...ALL_GATES_NOT_RUN.filter((r) => r.gate_id !== 'G5'), gate('G5', 'PASS')];
 
@@ -179,7 +180,11 @@ describe('the one rule for unavailable data', () => {
     [
       `/api/v1/compare?a=${WINDOW_A}&b=${WINDOW_B}`,
       mockReader,
-      () => releaseBundleReader({ files: { 'targets.json': testBytes('a target window file') } }),
+      () =>
+        releaseBundleReader({
+          targets: [WINDOW_A],
+          files: { [comparisonPath(WINDOW_A)]: testBytes('a comparison file') },
+        }),
     ],
     ['/api/v1/model', mockReader, () => releaseBundleReader({ model: TEST_MODEL })],
   ];
@@ -203,6 +208,57 @@ describe('the one rule for unavailable data', () => {
       expect(unserved.detail).not.toContain('not in bundle');
       expect(unserved.detail).toContain('not served yet');
       expect(unserved.detail).toMatch(/@terraluna\/schema has no [A-Za-z]+Record schema/);
+    });
+  }
+
+  /** For each route with an id: a bundle listing files of the kind, none that could hold the id. */
+  const UNKNOWN_IDS: readonly [string, () => BundleReader][] = [
+    [
+      `/api/v1/targets/${TARGET}`,
+      () =>
+        releaseBundleReader({
+          targets: [OTHER],
+          files: { 'targets.json': testBytes('a target window file') },
+        }),
+    ],
+    [
+      `${MATCHES}?body=earth&family=terrain`,
+      () =>
+        releaseBundleReader({
+          targets: [OTHER],
+          files: { [comparisonPath(OTHER)]: testBytes('a comparison file') },
+        }),
+    ],
+    [
+      `/api/v1/windows/${WINDOW_A}`,
+      () =>
+        releaseBundleReader({
+          targets: [OTHER],
+          files: { 'targets.json': testBytes('a target window file') },
+        }),
+    ],
+    [
+      `/api/v1/compare?a=${WINDOW_A}&b=${WINDOW_B}`,
+      () =>
+        releaseBundleReader({
+          targets: [OTHER],
+          files: {
+            [comparisonPath(OTHER)]: testBytes('a comparison file'),
+            'targets.json': testBytes('a target window file'),
+          },
+        }),
+    ],
+  ];
+
+  for (const [path, reader] of UNKNOWN_IDS) {
+    it(`gives ${path} a 404 for ids that no file the bundle lists could hold`, async () => {
+      const problem = await expectProblem(
+        await quietApi(reader()).api.request(path),
+        NOT_IN_BUNDLE_STATUS,
+        'Not Found',
+      );
+      expect(problem.detail).toContain(`not in bundle ${RELEASE_VERSION}`);
+      expect(problem.detail).not.toContain('not served yet');
     });
   }
 });
