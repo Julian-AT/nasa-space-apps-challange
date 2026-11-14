@@ -1,0 +1,106 @@
+{
+  "task_id": "T1-04",
+  "round": 3,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "921be8ca687e7082dc5e9fc57c45c1fe3b26704c",
+    "head": "7fcb76b1625bc273b693ea28fb12c7b976b37826",
+    "files": [
+      {
+        "path": "outputs/pilot/minirf_mosaic.json",
+        "sha256": "7ca9debe596749ff41004f89d5e0023a5ca51d0f28d25d029cefcf3ebd2833f7"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "e7a26ba97fa3f346a9368d5ca728afef6898ece921b48164c4448b78b0e96c9e"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "e2ca68a93bf7f58d296d569d6709de0ca1e27c15072575edce7cd60fca2e187f"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "40c2ee163358d1c2c2115efcf5856a23bfbba5865b56d319c4c8b7a34e8371c8"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "ba7fbc06c9d0930ed43ae80efdffa5c2e55c7a837a51f835b650b8328351e60f"
+      },
+      {
+        "path": "pipeline/tests/test_io_pds3.py",
+        "sha256": "fcd451fc021a88cfbf83806ad3fad5119381eaffba52aedf497a00aff8eb62f8"
+      },
+      {
+        "path": "pipeline/tests/test_io_tls.py",
+        "sha256": "74516e3024fd1b0a3656a0a98f074372e855d2a790d4249d609f32ba0d20f3f6"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_minirf.py",
+        "sha256": "00134aa1803e33e7efbb525e6c766b002ae843c47e396765fd24414ef154d0a9"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "b8c7467ef1cd95e54ebcf43324f4fd22117e6d2d2e56fd772265879259a06853"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:30:56Z",
+  "finished_utc": "2026-11-14T21:31:24Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T1-04 round 3 passes. All three story checks pass. The round-2 blocker (codex-r2-1) is fixed and its tests pass. Every acceptance criterion holds on the evidence I saw. The committed record says stokes_observation is not_performed because the archive has no S4 layer, and it carries no verdict. The two earlier rebuttals (claude-r2-1 and the round-1 notes) are sound.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "1235 passed, 2 xfailed. The xfails are the ProductRecord and Sources schema-case fixtures, which are outside T1-01's files."
+    },
+    {
+      "criterion": "uv run python -m terraluna_pipeline.pilot check minirf",
+      "command": "uv run python -m terraluna_pipeline.pilot check minirf",
+      "outcome": "PASS",
+      "evidence": "minirf: committed outputs match data/raw/minirf/"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check reported 19 files already formatted, mypy found no issues in 19 source files."
+    },
+    {
+      "criterion": "AC1-AC3, AC6: label parser and range-read helper in io.py, range requests only, pyproj window, upserted ProductRecords, changes limited to the story's files",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The diff stat lists only the story's files: io.py, pilot.py, the test files, outputs/sources.json, outputs/pilot/minirf_mosaic.json, pyproject.toml and uv.lock. test_io_pds3.py, test_io_tls.py and test_pilot_minirf.py pass. The 'check minirf' command re-verifies the committed outputs against data/raw/minirf/. I did not read the code paths line by line."
+    },
+    {
+      "criterion": "AC4: record contents",
+      "command": "jq keys of outputs/pilot/minirf_mosaic.json",
+      "outcome": "PASS",
+      "evidence": "The record has label, data, range_read, window, cpr_statistics, transmit_handedness, look_direction, incidence, null_value, units, layout_leads, special_values, verification and open_g0_items. label_url, data_url and label_sha256 are not flat keys. The values sit under label.url, data.url and label.sha256, so the round-2 rebuttal stands."
+    },
+    {
+      "criterion": "AC5: Stokes observation",
+      "command": "jq .stokes_observation outputs/pilot/minirf_mosaic.json",
+      "outcome": "PASS",
+      "evidence": "status is not_performed, with a reason. The reason says the 24 labels describe CPR and S1 layers only and no S4 layer exists. It also says the verdict belongs to polarimetry.lunar_s4_sign_check (T2-05) and that CPR is never used to infer S4. Tests cover the Stokes-present path: pair reads, the bit-pattern oracle for raw statistics, and a refusal that keeps the windows already read. The fix for codex-r2-1 is verified by passing tests."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "outputs/pilot/minirf_mosaic.json stokes_observation",
+      "claim": "The real archive has no S4 layer, so the Stokes-present code path is exercised only by synthetic tests. This is expected, and the record correctly reports not_performed.",
+      "evidence": "stokes_observation.status is not_performed. The record lists the MAP-V1.0 single-swath read as an open G0 item.",
+      "id": "claude-r3-1",
+      "resolution": null
+    }
+  ]
+}

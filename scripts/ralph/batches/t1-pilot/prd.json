@@ -187,17 +187,17 @@
       "priority": 4,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 2,
+        "state": "reviewed",
+        "round": 3,
         "base": "921be8ca687e7082dc5e9fc57c45c1fe3b26704c",
-        "head": "c15e266e112788f430026822d99b73813b61c6a5",
+        "head": "7fcb76b1625bc273b693ea28fb12c7b976b37826",
         "files": [
-          "reviews/T1-04-claude-r2.json",
-          "reviews/T1-04-codex-r2.json"
+          "reviews/T1-04-claude-r3.json",
+          "reviews/T1-04-codex-r3.json"
         ],
         "digests": {
-          "reviews/T1-04-claude-r2.json": "1172cc21bad18c0e490234610dab0f5884393463c325429a244c131e8e329f63",
-          "reviews/T1-04-codex-r2.json": "35fceb191512561ce41bd421c2d6a6caa4529f3a78462c1ce9ff2e623f7b17ab"
+          "reviews/T1-04-claude-r3.json": "4acbcabddc7a11f12be8052e0d887c69bb6a4c7061f2fc653588185d75b55d0b",
+          "reviews/T1-04-codex-r3.json": "9b63a21bd5e4133ad1ce41cfb9e77b6b258e1dd196e3a92c8484d8a50cfe4020"
         }
       },
       "notes": "Reviewer findings applied. T2 owns the S4-sign verdict and Stokes validity (orchestrator decision 2); T1 records raw counts only. The reviewer flagged the story as large; engineering choice: kept as one story with the single-swath read removed. If it does not fit one session, the author stops after the CPR window record and notes the Stokes observation as unfinished instead of faking it."

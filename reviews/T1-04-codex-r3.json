@@ -1,0 +1,145 @@
+{
+  "task_id": "T1-04",
+  "round": 3,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "921be8ca687e7082dc5e9fc57c45c1fe3b26704c",
+    "head": "7fcb76b1625bc273b693ea28fb12c7b976b37826",
+    "files": [
+      {
+        "path": "outputs/pilot/minirf_mosaic.json",
+        "sha256": "7ca9debe596749ff41004f89d5e0023a5ca51d0f28d25d029cefcf3ebd2833f7"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "e7a26ba97fa3f346a9368d5ca728afef6898ece921b48164c4448b78b0e96c9e"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "e2ca68a93bf7f58d296d569d6709de0ca1e27c15072575edce7cd60fca2e187f"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "40c2ee163358d1c2c2115efcf5856a23bfbba5865b56d319c4c8b7a34e8371c8"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "ba7fbc06c9d0930ed43ae80efdffa5c2e55c7a837a51f835b650b8328351e60f"
+      },
+      {
+        "path": "pipeline/tests/test_io_pds3.py",
+        "sha256": "fcd451fc021a88cfbf83806ad3fad5119381eaffba52aedf497a00aff8eb62f8"
+      },
+      {
+        "path": "pipeline/tests/test_io_tls.py",
+        "sha256": "74516e3024fd1b0a3656a0a98f074372e855d2a790d4249d609f32ba0d20f3f6"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_minirf.py",
+        "sha256": "00134aa1803e33e7efbb525e6c766b002ae843c47e396765fd24414ef154d0a9"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "b8c7467ef1cd95e54ebcf43324f4fd22117e6d2d2e56fd772265879259a06853"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:30:56Z",
+  "finished_utc": "2026-11-14T21:35:46Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects identified by static review. Previous fixes and rebuttals are supported by the code, tests and saved artifacts. Runtime acceptance remains unverified because checks were explicitly prohibited in this read-only review.",
+  "checks": [
+    {
+      "criterion": "AC1: PDS discovery, label-confirmed layout, zero-CPR handling, and synthetic parser tests",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:2071 follows the PDS landing page into LROMRF_0005. data/raw/minirf/lsz_xxxxx_3cp_piu_90s000_v1.lbl:49 confirms dimensions, :55 sample representation, :58 null, and :84 resolution. outputs/pilot/minirf_mosaic.json:236 records the layout comparisons. pilot.py:3306 uses quality.validity_mask without excluding zero. Parser and range helpers reside in io.py:1242 and :1804; test_io_pds3.py:367 and test_pilot_minirf.py:943 contain substantive assertions."
+    },
+    {
+      "criterion": "AC2: Window-only range reads, HTTP metadata persistence, and stopping when Range is ignored",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Execution prohibited by the read-only review instruction. Static evidence: io.py:533 rejects HTTP 200 before body reading; pilot.py:2113 fetches only window rows and :2195 persists files and metadata. outputs/pilot/minirf_mosaic.json:821 records HTTP 206 and 5,628,224 bytes for range 215445104–221073327. Refusal tests at test_pilot_minirf.py:633 and test_io_pds3.py:1189 were read but not executed."
+    },
+    {
+      "criterion": "AC3: Label-derived projection, Site01 bounds and offsets, installed pyproj, and missing-extent fallback",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Projection and fallback execution prohibited. pilot.py:1894 transforms bounds with pyproj; :2278 reads the T1-03 extent. io.py:1733 constructs the projection from label fields. pyproj is declared in pipeline/pyproject.toml and locked in uv.lock; .venv/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/METADATA states version 3.8.0. Recorded bounds and offsets appear at outputs/pilot/minirf_mosaic.json:1014. Missing-extent coverage exists at test_pilot_minirf.py:691."
+    },
+    {
+      "criterion": "AC4: Required mosaic provenance, layout, validity, CPR statistics, handedness, look mixing, and incidence statement",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Numerical recomputation prohibited. The required fields are present in outputs/pilot/minirf_mosaic.json:2, :198, :202, :219, :327, :748, :821, :896 and :907. pilot.py:3298 computes CPR statistics using quality.py; test_pilot_minirf.py:943 checks expected counts and statistics. Their runtime correctness was not independently executed."
+    },
+    {
+      "criterion": "AC5: Raw Stokes observations when paired layers cover Site01, with no sign verdict or added validity threshold",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The required Stokes-present execution could not be run. pilot.py:2257 pairs covering S1/S4 layers, :2159 reads them sequentially, and :3098 computes raw joint-mask statistics without a sign flip, physical-validity count, or minimum count. Tests at test_pilot_minirf.py:1037, :1068 and :1155 exercise these paths. The real inventory contains only CPR/S1; outputs/pilot/minirf_mosaic.json:880 records not_performed and :754 lists the MAP-V1.0 single-swath open item."
+    },
+    {
+      "criterion": "AC6: Per-product ProductRecords, exact fetched-byte provenance, sorted upsert, and nonzero unreachable-source exit",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Checksum recomputation and error-path execution prohibited. pilot.py:2418 creates records for every fetched label and :2446 creates records for retained image rows; :331 sorts upserts by product_id. outputs/sources.json contains 24 Mini-RF label records and one CPR rows record. pilot.py:520 returns nonzero with the error; test_pilot_minirf.py:663 checks the unreachable URL. Digests and runtime behavior were not independently recomputed."
+    },
+    {
+      "criterion": "Required pipeline tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user: the sandbox is read-only and test/dependency caches can write."
+    },
+    {
+      "criterion": "Required Mini-RF reproducibility check",
+      "command": "uv run python -m terraluna_pipeline.pilot check minirf",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user's no-check execution instruction for this read-only review."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user: uv, ruff and mypy may write caches in the read-only sandbox."
+    },
+    {
+      "criterion": "Previous fix codex-r2-1: preserve successful Stokes reads before a later refusal",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static fix verified: pilot.py:2161 appends each successful read immediately; :2196 persists retained files. :2993 preserves completed-pair statistics and :3025 records incomplete-pair window provenance. test_pilot_minirf.py:1252 asserts retained S1 bytes, HTTP metadata and ProductRecord; :1342 covers earlier completed pairs; :1380 covers refusal of the first Stokes read."
+    },
+    {
+      "criterion": "Previous fix codex-r1-1: implement the Stokes-present path",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static fix verified at pilot.py:2257, :2979 and :3098. test_pilot_minirf.py:1068 checks raw positive, negative and zero S4 counts against an independent bit-pattern mask; :1155 covers a second grid; :1192 excludes a noncovering layer; :1215 rejects an unmatched S4 layer."
+    },
+    {
+      "criterion": "Previous fix codex-r1-2: retain ProductRecords for every downloaded mosaic label",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:2418 constructs a label record for every inventoried layer using its own metadata and local-file checksum. outputs/sources.json contains all 24 label records. test_pilot_minirf.py:760 verifies per-label paths, checksums, metadata and PARTIAL status."
+    },
+    {
+      "criterion": "Previous rebuttals claude-r2-1 and claude-r1-1 through claude-r1-3",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Nested provenance exists at outputs/pilot/minirf_mosaic.json:202 and :25; AC4 does not require flat keys. Frequency statements and their discrepancy are preserved at :192. Verification remains PARTIAL at :911, with the unplotted image basis at :988. certifi is declared and locked; io.py:491 creates a verified TLS context, and test_io_tls.py:26 checks certificate and hostname verification."
+    },
+    {
+      "criterion": "Changed-file scope and scientific guardrails",
+      "command": "git diff --name-only 921be8ca687e7082dc5e9fc57c45c1fe3b26704c 7fcb76b1625bc273b693ea28fb12c7b976b37826 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "All nine changed paths fall within the story's file list. config/run.yaml is unchanged and retains unresolved kickoff choices. Production registration at pilot.py:3520 uses MinirfSource with the PDS URL; synthetic downloaders and imagery remain in tests. No gate pass or S4-sign verdict is emitted."
+    }
+  ],
+  "findings": []
+}

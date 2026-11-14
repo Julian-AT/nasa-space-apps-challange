@@ -87,3 +87,11 @@
 {"ts":"2026-11-14T21:18:33Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T21:18:33Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T21:18:33Z","agent":"verifier","story":"T1-04","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":1}
+{"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests"}
+{"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"uv run python -m terraluna_pipeline.pilot check minirf"}
+{"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"git diff --stat 921be8ca687e7082dc5e9fc57c45c1fe3b26704c 7fcb76b1625bc273b693ea28fb12c7b976b37826 -- . ':!scripts/ralph' ':!reviews' ':!logs'"}
+{"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"jq -c '{s:.stokes_observation, keys:keys}' outputs/pilot/minirf_mosaic.json"}
+{"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"git rev-parse HEAD"}
+{"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"review","round":3,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":1}
