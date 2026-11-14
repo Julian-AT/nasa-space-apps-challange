@@ -40,9 +40,9 @@
         "make web-build"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "resolved",
+        "state": "passed",
         "round": 2,
         "base": "6fbfd479ecf7833aff8339b65902af41a8271a60",
         "head": "bda54e7171008c3fa44e4467b4e85b83a08de43e",
