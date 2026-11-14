@@ -444,12 +444,14 @@ class _CodeScanner:
 
 
 def _prose(code: str) -> str:
+    # Reads the arguments of \begin{tabular} and the like; the code has no comments left.
+    arguments = _CodeScanner(code, keep_tikz=True)
     out: list[str] = []
     i = 0
     while i < len(code):
         char = code[i]
         if char == "\\":
-            i = _prose_command(code, i, out)
+            i = _prose_command(arguments, i, out)
         elif char in "{}":
             i += 1
         elif char == "~":
@@ -466,7 +468,8 @@ def _removed(span: str) -> str:
     return "\n" * span.count("\n") or " "
 
 
-def _prose_command(code: str, start: int, out: list[str]) -> int:
+def _prose_command(arguments: _CodeScanner, start: int, out: list[str]) -> int:
+    code = arguments.text
     accent = ACCENT.match(code, start)
     if accent is not None:
         out.append(next(group for group in accent.groups() if group))
@@ -485,7 +488,7 @@ def _prose_command(code: str, start: int, out: list[str]) -> int:
         if code.startswith("*", end):
             end += 1
         if name in ("begin", "end"):
-            end = _environment_arguments_end(code, end, name)
+            end = _environment_arguments_end(arguments, end, name)
             out.append(_removed(code[start:end]))
         elif name not in TEXT_COMMANDS:
             out.append(" ")
@@ -511,18 +514,17 @@ def _prose_command(code: str, start: int, out: list[str]) -> int:
     return start + 2
 
 
-def _environment_arguments_end(code: str, i: int, name: str) -> int:
+def _environment_arguments_end(arguments: _CodeScanner, i: int, name: str) -> int:
     """Index past {environment} after \\begin or \\end and, after \\begin, its own arguments."""
-    environment = ENVIRONMENT_NAME.match(code, i)
+    environment = ENVIRONMENT_NAME.match(arguments.text, i)
     if environment is None:
         return i
     i = environment.end()
     if name == "end":
         return i
-    scanner = _CodeScanner(code, keep_tikz=True)
     if environment[1] in FLOAT_ENVIRONMENTS:
-        return scanner.optional_arguments_end(i)
+        return arguments.optional_arguments_end(i)
     for _ in range(ENVIRONMENT_ARGUMENTS.get(environment[1], 0)):
-        i = scanner.optional_arguments_end(i)
-        i = scanner.mandatory_argument_end(i, i, f"begin{{{environment[1]}}}", verbatim=False)
+        i = arguments.optional_arguments_end(i)
+        i = arguments.mandatory_argument_end(i, i, f"begin{{{environment[1]}}}", verbatim=False)
     return i

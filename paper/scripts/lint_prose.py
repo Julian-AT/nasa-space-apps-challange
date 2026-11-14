@@ -21,8 +21,9 @@ Rules, read from the text that tex_prose.py extracts:
                      anywhere but the appendix files appendix-*.tex.
   bold               \textbf, \bfseries or {\bf ...} outside tabular environments.
 
-banned-word and important-to-note also read the text of tikzpicture environments; the other rules
-skip TikZ code, where -- and -> are path syntax.
+banned-word and important-to-note also read the text of tikzpicture environments: node labels,
+options and style names, with comments, math and command names removed as everywhere else. The
+other rules skip TikZ code, where -- and -> are path syntax.
 
 Run it from paper/ as python -P -m scripts.lint_prose with PYTHONPATH=., as the Makefile does.
 """
