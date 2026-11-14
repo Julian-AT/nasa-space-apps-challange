@@ -1,0 +1,111 @@
+{
+  "task_id": "T3-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "3a04298e93fdd98a548a3cb41141d6b3d1114f05",
+    "head": "1e67ca1c4f5cbc9241dfb8e92012f8222b55d19e",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/terrain.py",
+        "sha256": "8dd5b509241fbd0b296181159079246effa134ce488be424f21951a84721ac34"
+      },
+      {
+        "path": "pipeline/tests/test_terrain_fingerprint.py",
+        "sha256": "d96fb151eb6fe1da68a31da2fd9428c16696087e5d3fb691375a6de358522022"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T23:53:26Z",
+  "finished_utc": "2026-11-14T23:57:00Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No concrete defects found in the scoped diff and full changed files. Execution-dependent criteria remain unverified: checks were explicitly prohibited in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests precede implementation and a failing run is recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "At 72b3fe4, the test imports HurstFit while terrain.py has no such definition. Notes exist at scripts/ralph/batches/t3-terrain/prd.json:275, but historical execution was not independently observed; rerunning was prohibited."
+    },
+    {
+      "criterion": "AC2: Configured lags satisfy cell, quarter-window and local-pair support rules.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Rules and support selection appear at pipeline/src/terraluna_pipeline/terrain.py:744, :758 and :896. Tests cover full-valid defaults, boundaries, nominal width and missing pairs at pipeline/tests/test_terrain_fingerprint.py:168, :181, :191, :203 and :241. Runtime confirmation was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC3: H uses configured lag-count and span gates, including exactly 4×.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Configuration is read at pipeline/src/terraluna_pipeline/terrain.py:732; gates are implemented at :684. Tests cover three lags, insufficient spans, exactly 4× and changed config thresholds at pipeline/tests/test_terrain_fingerprint.py:353 and :376. Runtime confirmation was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC4: Zero nu prevents H fitting without epsilon or log(0); relief and texture remain separate.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The zero guard precedes logarithms at pipeline/src/terraluna_pipeline/terrain.py:688; variants are constructed separately at :771. Constant, plane and logarithm-spy tests appear at pipeline/tests/test_terrain_fingerprint.py:449, :528 and :537. Runtime confirmation was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC5: Valid-fraction exclusion preserves the fraction, accepts exactly 0.8 and handles nodata and small windows.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Counts and the >= comparison appear at pipeline/src/terraluna_pipeline/terrain.py:752; excluded variants skip measurement at :773. Boundary, exclusion, all-nodata and small-window assertions appear at pipeline/tests/test_terrain_fingerprint.py:710, :722, :765 and :223. Runtime confirmation was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC6: Document the H estimator as a human decision and recover exact power laws within tolerance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "OLS slope computation appears at pipeline/src/terraluna_pipeline/terrain.py:690; documentation is at :96 and scripts/ralph/batches/t3-terrain/prd.json:275. Tests assert recovery for H=0.3, 0.5 and 0.8 with rtol=1e-10 at pipeline/tests/test_terrain_fingerprint.py:391. Numerical recovery was not executed because checks were prohibited."
+    },
+    {
+      "criterion": "AC7: Config-driven detrending rejects unknown policies, ignores nodata, records tilt and preserves nullable output metadata.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Policy validation is at pipeline/src/terraluna_pipeline/terrain.py:824; plane fitting selects valid cells at :1000; nullable values and output metadata are assembled at :924, :949 and :799. Relevant assertions appear at pipeline/tests/test_terrain_fingerprint.py:562, :611, :801 and :838. Runtime confirmation was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC8: Record a supplied coarsening factor without inferring effective source support.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The factor is a required argument at pipeline/src/terraluna_pipeline/terrain.py:711, validated at :736 and :863, checked against supplied grid spacing at :739 and recorded at :803. No source-support inference is implemented."
+    },
+    {
+      "criterion": "Focused fingerprint test command",
+      "command": "uv run pytest pipeline/tests/test_terrain_fingerprint.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review request; the read-only sandbox prevents test/cache writes."
+    },
+    {
+      "criterion": "Terrain type-check command",
+      "command": "uv run mypy pipeline/src/terraluna_pipeline/terrain.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review request; the read-only sandbox prevents dependency/cache writes."
+    },
+    {
+      "criterion": "Repository check command",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review request; the read-only sandbox prevents dependency/cache writes."
+    },
+    {
+      "criterion": "Story commits stay within the declared file scope.",
+      "command": "git show --format= --name-only 2461e06 873247d 2afd4a8 72b3fe4",
+      "outcome": "PASS",
+      "evidence": "Only pipeline/src/terraluna_pipeline/terrain.py and pipeline/tests/test_terrain_fingerprint.py are listed."
+    },
+    {
+      "criterion": "Static safeguards: meaningful assertions, nullable measurements, no production mocks or invented kickoff values.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Synthetic generation is confined to pipeline/tests/test_terrain_fingerprint.py:130. Unsupported measurements use None at pipeline/src/terraluna_pipeline/terrain.py:924 and :949. Boundary tests assert concrete outputs; config/run.yaml:1, :8, :31 and :61 retain unresolved choices as null."
+    }
+  ],
+  "findings": []
+}

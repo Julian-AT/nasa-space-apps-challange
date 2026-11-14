@@ -265,12 +265,20 @@
       "priority": 5,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "3a04298e93fdd98a548a3cb41141d6b3d1114f05",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "1e67ca1c4f5cbc9241dfb8e92012f8222b55d19e",
+        "files": [
+          "reviews/T3-05-claude.json",
+          "reviews/T3-05-codex-2.json",
+          "reviews/T3-05-codex.json"
+        ],
+        "digests": {
+          "reviews/T3-05-claude.json": "4a00dc72e89c82f664ceca699a02f5f5168c99695d19babc04595c2d3876550b",
+          "reviews/T3-05-codex-2.json": "7cfeefbb5b1a81e20176e07fc4f40fc0856b554a8bee61c0a29dd01beed9dca2",
+          "reviews/T3-05-codex.json": "e953aa43a1ce99f9dfe7f8919933391c2e3f2db5405410a0fe52f9c7cfcc6752"
+        }
       },
       "notes": "Failing run (2026-11-15, commit 72b3fe4, before the implementation): `uv run pytest pipeline/tests/test_terrain_fingerprint.py` stopped at collection with ImportError: cannot import name 'HurstFit' from 'terraluna_pipeline.terrain'. After 2afd4a8, 873247d and 2461e06: 121 passed; `uv run mypy pipeline/src/terraluna_pipeline/terrain.py` clean; make check exit 0; full suite 1448 passed. Scratch evidence (not committed): 23 of 23 mutants fail the tests (> for the valid fraction, > 3 cells, < quarter window, > span, <= count, nu_zero check removed, endpoint slope, half slope, plane fit over all cells, north sign flipped, intercept at the cell-grid centre, float residuals, no_valid_pairs/lag_not_on_grid swapped, rule order swapped, spacing check removed, factor < 1 allowed, detrend sorted, unknown detrend dropped, H on x only, excluded window measured, zero-filled residuals, quarter of the 4950 m grid extent, relief replaced). A 55 x 55 fingerprint costs about 3.9 ms. Decisions for a human: (1) H estimator: the ordinary least-squares slope of ln nu on ln L over the supported lags, each lag weighted equally, fitted on the isotropic summary; log_intercept is ln nu at L = 1 m. Exact power laws with H = 0.3, 0.5, 0.8 are recovered to rtol 1e-10 and the fingerprint H matches numpy.polyfit. Alternatives: half the slope of ln nu^2 (the same in exact arithmetic), pair-count weights, or per-direction fits. (2) Isotropic rule: still a required argument (T3-04 decision 2), recorded in the fingerprint; H uses that summary. Recommended direction_mean; config has no key for it. (3) Comparison operators: lag / spacing >= 3, lag / window <= 0.25, max / min >= min_lag_span_factor and valid_cells / total_cells >= min_valid_fraction, each quotient rounded once to float64 and compared without an added tolerance. So 270..1080 m (exactly 4x) passes, and a window at exactly 0.8 (2420 of 3025 cells) passes. The three-cell and quarter-window rules are PRD 6.3 constants in terrain.py (MIN_LAG_CELLS, MAX_LAG_WINDOW_FRACTION), not config keys; PRD 8.13 could add them if they should be configurable. The quarter window is of grid.width_m (the nominal 5000 m), not of the 4950 m the 55 cells cover. (4) Precedence: lag reasons below_min_lag_cells, exceeds_quarter_window, window_excluded, lag_not_on_grid, no_valid_pairs; H reasons window_excluded or plane_fit_degenerate, then insufficient_lags, insufficient_lag_span, nu_zero. (5) Plane removal: exact least squares over the valid cells (integer normal equations, Cramer's rule), each residual rounded once to float64, so an exactly representable plane gives texture nu = 0 exactly and texture H nu_zero, while relief H of that plane is 1. A plane given as rounded floats (for example 0.1 x) is not exactly coplanar, so its texture nu is rounding-level but positive and H is fitted on it; no resolution floor was added, because the criteria forbid an epsilon. A human may want a documented floor. Collinear valid cells give texture plane_fit_degenerate. PlaneFit records slope_east, slope_north (m/m), the plane value at the window centre and the cell count. For T10 parity, zero residuals need exact (BigInt) arithmetic in TypeScript. (6) Exclusion: a window below min_valid_fraction is not measured (no plane, nu or H); lags that pass the PRD 6.3 rules get window_excluded. An all-nodata window gives below_min_valid_fraction with fraction 0.0. (7) Coarsening: coarsening_factor is required (1 for none), must be finite and >= 1 (below 1 would be upsampling), and grid.spacing_m must equal analysis_grid_m * factor within PRD 7 tolerance; effective support is not inferred. (8) Diagonals: T3-04 decision (1) still holds, so on the 90 m grid the per-direction diagonal values are None at every configured lag."
     },

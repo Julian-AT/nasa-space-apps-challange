@@ -1,0 +1,111 @@
+{
+  "task_id": "T3-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "3a04298e93fdd98a548a3cb41141d6b3d1114f05",
+    "head": "1e67ca1c4f5cbc9241dfb8e92012f8222b55d19e",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/terrain.py",
+        "sha256": "8dd5b509241fbd0b296181159079246effa134ce488be424f21951a84721ac34"
+      },
+      {
+        "path": "pipeline/tests/test_terrain_fingerprint.py",
+        "sha256": "d96fb151eb6fe1da68a31da2fd9428c16696087e5d3fb691375a6de358522022"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T23:53:26Z",
+  "finished_utc": "2026-11-14T23:56:50Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No actionable defects found in the independent static numerical review. Required execution evidence remains unverified: the read-only sandbox and review instructions prohibit running checks. No files were changed.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests precede implementation and a failing run is recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The 72b3fe4 tree imports HurstFit in test_terrain_fingerprint.py while terrain.py lacks that symbol, establishing test-first ordering. Notes exist at scripts/ralph/batches/t3-terrain/prd.json:275, but the historical failing execution was not independently observed; execution is prohibited."
+    },
+    {
+      "criterion": "AC2: Configured lags satisfy three-cell, quarter-window and valid-pair support rules.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static inspection agrees with the contract: terrain.py:744 reads configured lags; terrain.py:896 applies >=3 cells and <=W/4; terrain.py:904 checks directional support and pairs. Tests at test_terrain_fingerprint.py:168 cover all five default lags and subsequent tests cover boundaries and local exclusions. Runtime confirmation is prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC3: H uses configured lag-count and span gates, including exactly 4x.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "terrain.py:732 reads both thresholds; terrain.py:684 rejects insufficient count and span with separate reasons. test_terrain_fingerprint.py:353 covers three lags, spans below 4x and exactly 4x; :376 varies configuration thresholds. These tests were not executed because execution is prohibited."
+    },
+    {
+      "criterion": "AC4: Zero nu prevents H without epsilon or log(0); relief and texture remain separate.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "terrain.py:688 checks zero before logarithms; :771 creates separate variants. Tests at test_terrain_fingerprint.py:449 spy on logarithms, :528 check constants, :537 check plane relief H=1 and texture nu_zero, and :665 check a zero at only some lags. Runtime verification is prohibited."
+    },
+    {
+      "criterion": "AC5: Valid-fraction exclusion, equality boundary, all-nodata and undersized windows.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "terrain.py:752 retains counts and fraction and accepts fraction>=min_fraction. Tests at test_terrain_fingerprint.py:710 and :722 assert 2420/3025 passes and 2419/3025 fails; :765 covers all-nodata and :223 covers no supported lag in a small window. Execution is prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC6: Documented H estimator and exact-power-law recovery at the prescribed tolerance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "terrain.py:690 implements the centered OLS slope of ln(nu) on ln(L), which algebraically equals H for nu=c*L^H. Its docstring at :96 and story notes at scripts/ralph/batches/t3-terrain/prd.json:275 document the estimator decision. Tests at test_terrain_fingerprint.py:391 cover H=0.3,0.5,0.8 using rtol=1e-10 and atol=1e-12; :409 independently compares with polyfit. Numerical execution is prohibited."
+    },
+    {
+      "criterion": "AC7: Configured detrending, nodata-safe plane fit, tilt metadata and nullable output.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "terrain.py:824 validates policies; :1000 selects only valid cells for exact normal equations; :1042 converts fitted slopes and intercept to the D29 metre frame. Output alignment at :949 preserves None. Tests at test_terrain_fingerprint.py:562, :611, :801 and :838 exercise nodata, independent plane residuals, policies and metadata. Runtime confirmation is prohibited."
+    },
+    {
+      "criterion": "AC8: Record the supplied coarsening factor without inferring source support.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "terrain.py:736 validates the supplied factor, :739 checks its relationship to grid spacing, and :803 records it. The implementation contains no source-resolution inference or resampling path. Tests at test_terrain_fingerprint.py:260 and :280 cover supplied factors."
+    },
+    {
+      "criterion": "Independent numerical derivation and static validity review.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Compared PRD.md:351 and :450 with terrain.py:438, :690 and :986. Pair offsets correctly map north to decreasing rows. The plane normal equations, determinant signs, residual subtraction and conversion from doubled cell coordinates to east/north metre slopes are consistent. H is the log-log slope, without an erroneous factor of two. Missing measurements remain None."
+    },
+    {
+      "criterion": "Story scope and configuration guardrails.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Per-commit path inspection of 72b3fe4, 2afd4a8, 873247d and 2461e06 shows only the two specified review files changed. config/run.yaml:1 preserves unresolved kickoff values as null; :23 retains the prescribed terrain settings. Synthetic surfaces occur in the test file, with no production mock-data path introduced."
+    },
+    {
+      "criterion": "Focused fingerprint tests.",
+      "command": "uv run pytest pipeline/tests/test_terrain_fingerprint.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review instructions because the read-only sandbox prevents dependency and test-cache writes."
+    },
+    {
+      "criterion": "Terrain module type checking.",
+      "command": "uv run mypy pipeline/src/terraluna_pipeline/terrain.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review instructions because the read-only sandbox prevents dependency and type-checker cache writes."
+    },
+    {
+      "criterion": "Repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited in the read-only sandbox. Reading Makefile:22 confirms this target invokes ruff check, ruff format --check and mypy."
+    }
+  ],
+  "findings": []
+}
