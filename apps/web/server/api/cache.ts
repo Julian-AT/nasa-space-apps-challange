@@ -1,13 +1,15 @@
-// HTTP caching for responses read from the release bundle (PRD 8.5, Cache column).
+// HTTP caching for the API's responses (PRD 8.5, Cache column). There are two kinds of ETag: a
+// weak bundle ETag for responses read from the release bundle (bundleETag), and a strong content
+// ETag for responses that only the deploy fixes (contentETag, last paragraph).
 //
 // A published bundle is immutable and any change gets a new bundle_version (PRD 8.4), so for one
-// bundle_version these responses never change: that is their immutable semantics. The ETag holds
-// the bundle_version, and a request whose If-None-Match names it is answered 304 by Hono's ETag
-// middleware (conditionalGet below) after the handler has read and validated the bundle, so
-// nothing invalid is ever confirmed by a 304.
+// bundle_version these responses never change: that is their immutable semantics. The bundle
+// ETag holds the bundle_version, and a request whose If-None-Match names it is answered 304 by
+// Hono's ETag middleware (conditionalGet below) after the handler has read and validated the
+// bundle, so nothing invalid is ever confirmed by a 304.
 //
-// The ETag is weak (RFC 9110 section 8.8.1): bundle_version identifies the content, not the bytes
-// of one serialization, which another deploy of the same bundle may produce differently.
+// The bundle ETag is weak (RFC 9110 section 8.8.1): bundle_version identifies the content, not
+// the bytes of one serialization, which another deploy of the same bundle may produce differently.
 // If-None-Match always uses the weak comparison, so 304 works as with a strong tag.
 //
 // The URLs carry no bundle_version, and a deploy may pin a new bundle (PRD 8.9), so a client must
