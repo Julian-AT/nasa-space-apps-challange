@@ -59,6 +59,7 @@ from terraluna_pipeline.geometry import (
     PolarStereographicLookup,
     Pole,
     ResampledGrid,
+    ResampleError,
     SourceLookupError,
     UnknownBodyError,
     WindowGrid,
@@ -1348,6 +1349,196 @@ def test_a_masked_integer_source_matches_the_float_source_with_nan() -> None:
     )
     assert_same_bits(from_masked.values, from_float.values)
     assert_same_bits(from_masked.valid, np.array([False, False, True, False, False]))
+
+
+# The declared sentinel is matched in the source's own type (codex2-r1-2). GDAL reports nodata
+# as a float64 and its nodata mask converts it to the band's type before comparing: a float32
+# band holds -9999.1 as -9999.099609375. An integer source holds only an integral sentinel in
+# its range, compared exactly, beyond 2**53 too.
+
+FLOAT_TYPES: tuple[type[np.floating[Any]], ...] = (np.float16, np.float32, np.float64)
+ROUNDED_SENTINELS = (-9999.1, 1234.567, -32767.9, 0.1)
+
+
+def resample_uniform(dtype: Any, value: Any, nodata: Any) -> ResampledGrid:
+    """A 2 x 2 source holding one value in one type, sampled at its centre."""
+    source = np.full((2, 2), value, dtype=dtype)
+    return bilinear_resample(source, np.array([0.5]), np.array([0.5]), nodata=nodata)
+
+
+@pytest.mark.parametrize("dtype", FLOAT_TYPES)
+@pytest.mark.parametrize("nodata", ROUNDED_SENTINELS)
+def test_a_float_source_filled_with_the_declared_sentinel_is_all_nodata(
+    dtype: Any, nodata: float
+) -> None:
+    # numpy stores the sentinel rounded to the source type, as a GDAL band does.
+    source = np.full((2, 3), nodata, dtype=dtype)
+    u = np.array([0.0, 1.5, 2.0, 0.25])
+    v = np.array([0.0, 0.5, 1.0, 0.75])
+    result = bilinear_resample(source, u, v, nodata=nodata)
+    assert np.all(result.inside)
+    assert not np.any(result.valid)
+    assert np.all(np.isnan(result.values))
+
+
+@settings(max_examples=300, deadline=None)
+@given(
+    case=resample_cases(),
+    dtype=st.sampled_from(FLOAT_TYPES),
+    sentinel=st.sampled_from(ROUNDED_SENTINELS),
+)
+def test_nan_and_a_rounded_sentinel_behave_identically_in_each_float_type(
+    case: tuple[Array, BoolArray, Array, Array], dtype: Any, sentinel: float
+) -> None:
+    source, source_valid, u, v = case
+    stored = source.astype(dtype)
+    stored_sentinel = np.asarray(sentinel, dtype=np.float64).astype(dtype)
+    # A data value that happens to equal the stored sentinel is nodata too.
+    missing = ~source_valid | (stored == stored_sentinel)
+    with_nan = bilinear_resample(np.where(missing, np.nan, stored), u, v, nodata=None)
+    with_sentinel = bilinear_resample(
+        np.where(source_valid, stored, stored_sentinel), u, v, nodata=sentinel
+    )
+    assert_same_bits(with_sentinel.values, with_nan.values)
+    assert_same_bits(with_sentinel.valid, with_nan.valid)
+    assert_same_bits(with_sentinel.inside, with_nan.inside)
+
+
+INTEGER_TYPES: tuple[type[np.integer[Any]], ...] = (
+    np.int8,
+    np.uint8,
+    np.int16,
+    np.uint16,
+    np.int32,
+    np.uint32,
+    np.int64,
+    np.uint64,
+)
+
+
+@st.composite
+def integer_sentinel_cases(
+    draw: st.DrawFn,
+) -> tuple[npt.NDArray[np.integer[Any]], BoolArray, int | float, Array, Array]:
+    """An integer source of any width, a nodata mask, a sentinel in range and points.
+
+    Some pixels sit next to the sentinel, where a float64 comparison beyond 2**53 would merge
+    them with it.
+    """
+    _, source_valid, u, v = draw(resample_cases())
+    dtype = draw(st.sampled_from(INTEGER_TYPES))
+    info = np.iinfo(dtype)
+    low, high = int(info.min), int(info.max)
+    near_zero = st.integers(max(low, -3), min(high, 3))
+    whole = draw(st.one_of(near_zero, st.integers(low, high), st.sampled_from([low, high])))
+    near_sentinel = st.integers(max(low, whole - 2), min(high, whole + 2))
+    values = st.one_of(near_zero, st.integers(low, high), near_sentinel)
+    rows, cols = source_valid.shape
+    source = np.array([[draw(values) for _ in range(cols)] for _ in range(rows)], dtype=dtype)
+    # Declared as a float only where float64 holds the integer exactly.
+    sentinel: int | float = whole
+    if float(whole) == whole and draw(st.booleans()):
+        sentinel = float(whole)
+    return source, source_valid, sentinel, u, v
+
+
+@settings(max_examples=300, deadline=None)
+@given(case=integer_sentinel_cases())
+def test_nan_and_a_sentinel_behave_identically_in_each_integer_type(
+    case: tuple[npt.NDArray[np.integer[Any]], BoolArray, int | float, Array, Array],
+) -> None:
+    source, source_valid, sentinel, u, v = case
+    stored_sentinel = source.dtype.type(int(sentinel))
+    missing = ~source_valid | (source == stored_sentinel)
+    # Exact integers, so the float reference is built from Python ints, not a float64 cast.
+    as_float = np.array(
+        [[float(int(value)) for value in row] for row in source.tolist()], dtype=np.float64
+    )
+    with_nan = bilinear_resample(np.where(missing, np.nan, as_float), u, v, nodata=None)
+    with_sentinel = bilinear_resample(
+        np.where(source_valid, source, stored_sentinel), u, v, nodata=sentinel
+    )
+    assert_same_bits(with_sentinel.valid, with_nan.valid)
+    assert_same_bits(with_sentinel.inside, with_nan.inside)
+    assert_same_bits(with_sentinel.values, with_nan.values)
+
+
+@pytest.mark.parametrize(
+    ("dtype", "value", "nodata", "valid"),
+    [
+        # A float source: the sentinel rounded to the type matches, its neighbour does not.
+        (np.float32, np.float32(-9999.1), -9999.1, False),
+        (np.float32, np.nextafter(np.float32(-9999.1), np.float32(0.0)), -9999.1, True),
+        (np.float32, np.float32(-9999.1), float(np.float32(-9999.1)), False),
+        (np.float32, np.float32(-9999.1), np.float32(-9999.1), False),
+        (np.float16, np.float16(0.1), 0.1, False),
+        (np.float16, np.nextafter(np.float16(0.1), np.float16(1.0)), 0.1, True),
+        # A float64 source holds -9999.1 itself, so the float32 value is data there.
+        (np.float64, float(np.float32(-9999.1)), -9999.1, True),
+        (np.float64, -9999.1, -9999.1, False),
+        # An integer source compares exactly, beyond the 2**53 that float64 holds exactly.
+        (np.int64, 2**62 + 1, 2**62, True),
+        (np.int64, 2**62 + 1, 2.0**62, True),
+        (np.int64, 2**62, 2**62, False),
+        (np.int64, 2**62, 2.0**62, False),
+        (np.int64, 2**62, np.int64(2**62), False),
+        (np.uint64, 2**64 - 2, 2**64 - 1, True),
+        (np.uint64, 2**64 - 1, 2**64 - 1, False),
+        (np.uint64, 2**64 - 1, np.uint64(2**64 - 1), False),
+        (np.int32, 2**24 + 1, 2**24, True),
+        (np.uint8, 255, 255.0, False),
+        (np.int16, -32768, -32768, False),
+    ],
+)
+def test_the_sentinel_is_matched_exactly_in_the_source_type(
+    dtype: Any, value: Any, nodata: Any, valid: bool
+) -> None:
+    result = resample_uniform(dtype, value, nodata)
+    assert_same_bits(result.valid, np.array([valid]))
+    assert np.isnan(result.values[0]) != valid
+
+
+@pytest.mark.parametrize("dtype", FLOAT_TYPES)
+@pytest.mark.parametrize("nodata", [math.nan, math.inf, -math.inf])
+def test_a_nan_or_infinite_sentinel_of_a_float_source_adds_no_missing_pixels(
+    dtype: Any, nodata: float
+) -> None:
+    source = np.array([[1.0, 2.0, np.nan], [4.0, 5.0, 6.0], [np.inf, 8.0, 9.0]], dtype=dtype)
+    row_index, column_index = np.mgrid[0:9, 0:9].astype(np.float64)
+    u, v = column_index / 4.0, row_index / 4.0
+    declared = bilinear_resample(source, u, v, nodata=nodata)
+    undeclared = bilinear_resample(source, u, v, nodata=None)
+    assert_same_bits(declared.values, undeclared.values)
+    assert_same_bits(declared.valid, undeclared.valid)
+    assert np.any(declared.valid)
+
+
+@pytest.mark.parametrize(
+    ("dtype", "nodata"),
+    [
+        # Integer sources hold only integers in their range.
+        (np.uint8, 0.5),
+        (np.uint8, 254.5),
+        (np.uint8, -1),
+        (np.uint8, 256),
+        (np.uint8, 256.0),
+        (np.int16, 40000.0),
+        (np.int16, math.nan),
+        (np.int16, math.inf),
+        (np.int64, 2**63),
+        (np.int64, 2.0**63),
+        (np.uint64, -1),
+        (np.uint64, 2.0**64),
+        # Float sources hold finite sentinels within their finite range.
+        (np.float16, 70000.0),
+        (np.float32, 1e39),
+        (np.float32, -1e300),
+        pytest.param(np.float64, 10**400, id="float64-10**400"),
+    ],
+)
+def test_a_sentinel_the_source_type_cannot_hold_raises(dtype: Any, nodata: Any) -> None:
+    with pytest.raises(ResampleError, match="nodata"):
+        resample_uniform(dtype, 1, nodata)
 
 
 def test_output_is_float64_with_a_boolean_mask_and_nan_where_missing() -> None:
