@@ -142,7 +142,11 @@
       "claim": "For an id outside manifest.targets while a windows/<body>.json top-N file is listed, /windows/{id} and /compare return 501, so an unknown id looks the same as a known one.",
       "evidence": "windowSources returns every listed top-N window file for any id, so sources.length > 0 and the handler throws notServedYet. This is documented in the module comment and prd.json notes item (2), and it follows from the missing WindowRecord schema. Revisit once WindowRecord and ComparisonRecord schemas exist.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "escalated",
+        "commit": null,
+        "reason": "Escalated together with codex-r2-1, which reports the same behaviour as a blocker and asks for an approved contract decision. The observation is accurate and not rebutted: for an id outside manifest.targets while a windows/<body>.json top-N file is listed, /windows/{id} and /compare answer 501, so an unknown id and a known one look the same. Telling them apart would need either parsing a file that has no @terraluna/schema schema (ruled out by PRD 8.5 and T15-01 AC3) or WindowRecord and ComparisonRecord schemas, which are outside the files of T15-05. The options and a recommendation are in the resolution of codex-r2-1."
+      }
     }
   ]
 }
