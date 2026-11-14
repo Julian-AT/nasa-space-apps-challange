@@ -7,8 +7,9 @@ root. Network and computation are separate:
   (git-ignored): the provider's files and pages, plus ``fetch.json`` with the retrieval time,
   URLs, HTTP status and byte counts. A file at or over the 200 MB whole-file limit is never
   downloaded: a GeoTIFF is read by window through HTTP range requests, and only the byte
-  ranges read are stored (``<file>.ranges``), so ``record`` can decode the window offline. Files are staged in a hidden directory there and moved into
-  place only when every download succeeded, so a failed fetch leaves an earlier one intact.
+  ranges read are stored (``<file>.ranges``), so ``record`` can decode the window offline.
+  Files are staged in a hidden directory there and moved into place only when every download
+  succeeded, so a failed fetch leaves an earlier one intact.
   ``fetch.json`` is written last; without it the raw data counts as missing.
 - ``record`` reads only ``data/raw/<source>/`` and writes the committed outputs: its
   ``outputs/pilot/`` files and its ProductRecords in ``outputs/sources.json``. It reads no
