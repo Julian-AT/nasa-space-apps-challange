@@ -120,7 +120,11 @@
       "claim": "Rule 3 refuses a pixel whose parts span more than 2**1016, even when the SC value alone is representable (for example the codex2-r1-2 matrix with SC = 2**-1000). The result is INVALID with FLOAT64_OUT_OF_RANGE, which is the fail-closed choice.",
       "evidence": "The docstring and _CARRIED_RANGE state that this is representability and not a physical threshold. It affects only matrices spanning about 300 decimal orders, so I accept it as a documented design choice.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The finding states no defect, and the reviewer accepts the behaviour as a documented design choice. Rule 3 is the fail-closed outcome PRD 7 asks for: a covariance float64 cannot carry at one scale is flagged with its cause and nothing is published for it, never repaired, and missing evidence is never zero (PRD 8.12 rules, CLAUDE.md). A representable SC is not a supported SC. For RAW [[L,0,L],[0,v,0],[L,0,L]] with L = 2**1000 and v = 2**-1000, a one-ulp change in A moves the unscaled float64 SC_LL by 5.9e284 (probed with uv run python; eps * s = 2.4e285), while SC = v = 9.3e-302. Float64 inputs at that scale therefore cannot determine SC anywhere near its value, and a VALID SC there would claim a precision the data do not have. The rule binds only parts more than 2**1016 apart. It is stated in the circular_from_covariance docstring (rule 3) and in _CARRIED_RANGE, and story note (5) records it. No code change."
+      }
     }
   ]
 }
