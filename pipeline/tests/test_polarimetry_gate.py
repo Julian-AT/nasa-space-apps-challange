@@ -29,6 +29,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
@@ -763,10 +764,11 @@ def test_result_records_the_command_and_the_hashes_of_its_inputs(tmp_path: Path)
     record = written(code, record)
     junit = tmp_path / "junit.xml"
     result = result_of(record)
-    assert result["command"] == (
+    assert result["notes"]["command"] == (
         "python -m terraluna_pipeline.polarimetry record-g1"
         f" --junit {junit} --out {tmp_path / 'g1-record.json'}"
     )
+    assert result["notes"]["pytest_command"] is None
     assert result["junit_sha256"] == hashlib.sha256(junit.read_bytes()).hexdigest()
     assert result["junit_timestamps"] == ["2026-11-14T00:00:00.000000+00:00"]
     assert result["required_tests"] == "fixtures/polarimetry/g1_required_tests.json"
@@ -793,7 +795,8 @@ def test_record_g1_returns_the_record_it_wrote(tmp_path: Path) -> None:
     junit.write_bytes(junit_xml(all_passed().items()))
     record = record_g1(junit, out, command="record-g1 (in-process test)", run_id=None)
     assert GateRecord.model_validate_json(out.read_text(encoding="utf-8")) == record
-    assert result_of(record)["command"] == "record-g1 (in-process test)"
+    assert result_of(record)["notes"]["command"] == "record-g1 (in-process test)"
+    assert result_of(record)["notes"]["pytest_command"] is None
 
 
 def test_evidence_inside_the_repository_is_recorded_relative_to_it(
@@ -828,6 +831,167 @@ def test_evidence_in_the_real_repository_outside_fixtures_is_refused(tmp_path: P
     assert not junit.exists()
     assert main(["record-g1", "--junit", str(junit), "--out", str(out)]) == 2
     assert not out.exists()
+
+
+# --- Notes: the commands and the commit ----------------------------------------------------------
+
+SHA = re.compile(r"[0-9a-f]{40}|[0-9a-f]{64}")
+SCRATCH_IDENTITY = {
+    "GIT_AUTHOR_NAME": "Terraluna test",
+    "GIT_AUTHOR_EMAIL": "test@example.invalid",
+    "GIT_COMMITTER_NAME": "Terraluna test",
+    "GIT_COMMITTER_EMAIL": "test@example.invalid",
+}
+
+
+def git(directory: Path, *args: str) -> str:
+    """Run git in ``directory`` (a scratch repository) and return its output."""
+    completed = subprocess.run(
+        ["git", "-C", str(directory), *args],
+        capture_output=True,
+        text=True,
+        check=True,
+        env={**os.environ, **SCRATCH_IDENTITY},
+        timeout=60,
+    )
+    return completed.stdout.strip()
+
+
+def git_or_none(directory: Path, *args: str) -> str | None:
+    """git's output, or None where git cannot be run or fails (no checkout)."""
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(directory), *args],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60,
+        )
+    except OSError:
+        return None
+    return completed.stdout.strip() if completed.returncode == 0 else None
+
+
+@pytest.fixture
+def scratch_repo(tmp_path: Path) -> tuple[Path, str]:
+    """A scratch git repository with one commit, written with plumbing (no hook runs)."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q")
+    files = {".gitignore": "ignored.txt\n", "kept.txt": "kept\n"}
+    files |= {"changed.txt": "before\n", "deleted.txt": "deleted\n"}
+    for name, text in files.items():
+        (repo / name).write_text(text, encoding="utf-8")
+    git(repo, "add", *files)
+    commit = git(repo, "commit-tree", git(repo, "write-tree"), "-m", "scratch")
+    git(repo, "update-ref", "HEAD", commit)
+    return repo, commit
+
+
+def notes_from(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, root: Path, *extra: str
+) -> dict[str, Any]:
+    """Record a synthetic all-passed report as if ``root`` were the repository root."""
+    monkeypatch.setattr(polarimetry, "_REPO_ROOT", root)
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    notes = result_of(written(*record_from(reports, all_passed(), *extra)))["notes"]
+    assert isinstance(notes, dict)
+    return notes
+
+
+def test_notes_state_the_commit_of_a_clean_checkout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, scratch_repo: tuple[Path, str]
+) -> None:
+    repo, commit = scratch_repo
+    notes = notes_from(tmp_path, monkeypatch, repo)
+    assert notes["commit"] == commit
+    assert notes["uncommitted_changes"] == []
+
+
+def test_notes_list_every_change_the_commit_does_not_hold(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, scratch_repo: tuple[Path, str]
+) -> None:
+    repo, commit = scratch_repo
+    (repo / "changed.txt").write_text("after\n", encoding="utf-8")
+    (repo / "deleted.txt").unlink()
+    (repo / "new file.txt").write_text("untracked\n", encoding="utf-8")
+    (repo / "staged.txt").write_text("staged\n", encoding="utf-8")
+    git(repo, "add", "staged.txt")
+    (repo / "ignored.txt").write_text("ignored\n", encoding="utf-8")
+    notes = notes_from(tmp_path, monkeypatch, repo)
+    assert notes["commit"] == commit
+    assert notes["uncommitted_changes"] == [
+        "changed.txt",
+        "deleted.txt",
+        "new file.txt",
+        "staged.txt",
+    ]
+
+
+def test_notes_state_no_commit_outside_a_git_checkout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    notes = notes_from(tmp_path, monkeypatch, plain)
+    assert notes["commit"] is None
+    assert notes["uncommitted_changes"] is None
+
+
+def test_a_directory_inside_a_checkout_is_not_taken_for_its_top(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, scratch_repo: tuple[Path, str]
+) -> None:
+    repo, _ = scratch_repo
+    (repo / "sub").mkdir()
+    notes = notes_from(tmp_path, monkeypatch, repo / "sub")
+    assert notes["commit"] is None
+    assert notes["uncommitted_changes"] is None
+
+
+def test_notes_state_the_commit_of_this_repository(tmp_path: Path) -> None:
+    notes = result_of(written(*record_from(tmp_path, all_passed())))["notes"]
+    top = git_or_none(REPO_ROOT, "rev-parse", "--show-toplevel")
+    if top is not None and Path(top).resolve() == REPO_ROOT.resolve():
+        assert notes["commit"] == git_or_none(REPO_ROOT, "rev-parse", "HEAD")
+        assert isinstance(notes["uncommitted_changes"], list)
+    else:
+        assert notes["commit"] is None
+
+
+@pytest.mark.parametrize("form", ["equals", "separate", "junit-xml"])
+def test_the_pytest_command_that_wrote_the_report_is_recorded(tmp_path: Path, form: str) -> None:
+    junit = tmp_path / "junit.xml"
+    option = {
+        "equals": f"--junitxml={junit}",
+        "separate": f"--junitxml {junit}",
+        "junit-xml": f"--junit-xml={junit}",
+    }[form]
+    command = f"uv run pytest {option} -q -p no:cacheprovider"
+    code, record = record_from(tmp_path, all_passed(), "--pytest-command", command)
+    notes = result_of(written(code, record))["notes"]
+    assert notes["pytest_command"] == command
+    assert notes["command"].endswith(f"--pytest-command '{command}'")
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "",
+        "uv run pytest -q",
+        "uv run pytest --junitxml=OTHER",
+        "uv run pytest --junitxml",
+        "uv run pytest --junitxml='unbalanced",
+    ],
+)
+def test_a_pytest_command_that_does_not_write_the_report_is_refused(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], command: str
+) -> None:
+    command = command.replace("OTHER", str(tmp_path / "other.xml"))
+    code, record = record_from(tmp_path, all_passed(), "--pytest-command", command)
+    assert code == 2
+    assert record is None
+    assert "pytest command" in capsys.readouterr().err
 
 
 # --- Inputs that write nothing ----------------------------------------------------------------
@@ -1158,8 +1322,20 @@ def test_committed_record_follows_the_rules_from_its_own_result() -> None:
     record = GateRecord.model_validate_json(COMMITTED_RECORD.read_text(encoding="utf-8"))
     assert record.gate_id == "G1"
     result = result_of(record)
-    assert result["command"].startswith("python -m terraluna_pipeline.polarimetry record-g1 ")
-    assert "--out fixtures/polarimetry/g1-record.json" in result["command"]
+    notes = result["notes"]
+    assert notes["command"].startswith("python -m terraluna_pipeline.polarimetry record-g1 ")
+    assert "--out fixtures/polarimetry/g1-record.json" in notes["command"]
+    assert "--junitxml" in notes["pytest_command"]
+    assert str(record.evidence_path) in notes["pytest_command"]
+    assert f"--pytest-command {shlex.quote(notes['pytest_command'])}" in notes["command"]
+    assert SHA.fullmatch(notes["commit"])
+    assert set(notes["uncommitted_changes"]) <= {"fixtures/polarimetry/g1-record.json"}
+    if git_or_none(REPO_ROOT, "rev-parse", "HEAD") is not None:
+        if git_or_none(REPO_ROOT, "cat-file", "-e", notes["commit"] + "^{commit}") is not None:
+            ancestry = ["merge-base", "--is-ancestor", notes["commit"], "HEAD"]
+            assert git_or_none(REPO_ROOT, *ancestry) is not None
+        else:
+            assert git_or_none(REPO_ROOT, "rev-parse", "--is-shallow-repository") == "true"
     assert result["required_tests_sha256"] == hashlib.sha256(REQUIRED_PATH.read_bytes()).hexdigest()
     groups = [
         *(result["fixtures"][fixture] for fixture in FIXTURES),
