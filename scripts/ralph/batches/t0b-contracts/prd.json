@@ -111,14 +111,14 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "548c2ec2184a698afb2d9eeadbda7b32cd4c0331",
         "head": null,
         "files": [],
         "digests": {}
       },
-      "notes": ""
+      "notes": "Failing runs before the implementation: test_schema_science.py and test_provenance.py failed at collection (ImportError: ComparisonRecord not in schema.py; no terraluna_pipeline.provenance), commit f4274cd. Generator tests: 167 failed | 301 passed in generate-zod.test.ts (a6ffb8c). Contract and shared-case tests: pytest test_json_schema.py 165 failed | 463 passed, Vitest 74 failed | 566 passed (25d4995; its message says 166, counted before a test-expectation fix). Choice recorded as the AC asks: the background_percentile pair follows the same exactly-one-null rule as the reference_spread pair. distances_by_family is the record DistancesByFamily (four required keys, no extras; __getitem__ by family name) and its model_embedding key is ModelEmbeddingDistanceEntry, a DistanceEntry subclass that adds the Predicted rule. Definitional bounds added beyond the AC: fractions 0..1, background_percentile 0..100, distances and nu >= 0, sizes and lags > 0, counts >= 0 within JS safe integers, ReferenceSpread.n and RankFrequency.n >= 1, epsg >= 1, rings of >= 4 positions (RFC 7946), acquisition_dates YYYY-MM-DD, ExcludedObservable.reasons non-empty (PRD 6.5), floats finite. Pydantic-only rules (JSON Schema cannot compare values in one document): Distribution values sorted and n == len(values), WindowPolygon rings closed, WindowEntry terrain/radar slots hold that kind. Considered and not added (not in CONTRACTS): body matching the window_id prefix, relief detrend none and texture plane, tilt texture-only, IncidenceRange min <= max, RankFrequency count <= n, Component reason iff unavailable, Earth flags null on Moon and Mars."
     },
     {
       "id": "T0B-02",
