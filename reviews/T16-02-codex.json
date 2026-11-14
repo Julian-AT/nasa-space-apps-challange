@@ -1,0 +1,150 @@
+{
+  "task_id": "T16-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "6e93964cfa41c229facffabc7ef0054c957171b8",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "7f6dc132b584844ab234f6bd028916f8b07c2dff0703cc92e4b74ac6633477b5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "1602b41792066a92142fd26b4aa62342ed175a4f30820a65a9c310dc06eadb9e"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "7460d1db7bf862b0946bab263ca74f5eadae0c4d4d8346b4c9a71e16828084b5"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "00fb50b49a62020966cf25d79b3a6158b3041c964a55e149451d292c96f270de"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "8295b95af3338b6ce2ce36998ec7a10d525aa28c10624f0b23ee560bb45b48ae"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "1cd9b2aac9a43307def43aaabf338f3a1e8aef6b34598f72a6663657a711769c"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:15:54Z",
+  "finished_utc": "2026-11-14T20:19:24Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Two blocking extraction defects can hide required lint and overlap findings. All five check commands were left unrun as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX-to-prose extraction with source line numbers",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Both consumers import the shared module, but paper/scripts/tex_prose.py:430 treats an unescaped % before a command argument as that argument. Comment text and the actual argument then leak into prose."
+    },
+    {
+      "criterion": "AC2: Recursive lint scope, finding format, failure status and no rule-disabling option",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: paper/scripts/tex_prose.py:204 selects all .tex files except figures/styles.tex; paper/scripts/lint_prose.py:110 formats diagnostics, :240 exposes only --root, and :255 prints findings and returns 1."
+    },
+    {
+      "criterion": "AC3: Six prose rules, including raw TikZ word and phrase checks",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "paper/scripts/lint_prose.py:210 applies word and phrase checks to extracted prose. Even with keep_tikz=True, paper/scripts/tex_prose.py:71 and :350 remove entire tikzset arguments, hiding text that the required raw TikZ checks must inspect."
+    },
+    {
+      "criterion": "AC4: Normalized 12-token overlap detection, maximal reporting and reference-record handling",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The fixed threshold, normalization, per-abstract comparison and record validation are present in paper/scripts/overlap_check.py:36, :72, :80 and :138. However, :118 consumes the defective extraction: leaked citation comments and keys can interrupt an otherwise shared 12-token run."
+    },
+    {
+      "criterion": "AC5: Create an empty reference-verification record",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1 contains exactly {\"references\": {}}."
+    },
+    {
+      "criterion": "AC6: Required behavioral tests written and run failing before implementation",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The test files contain behavioral assertions for the specified examples, and the fbf3c38 tree contains the tests without the three implementation modules. Historical failing execution cannot be established from source; tests were not run because the user prohibits execution in this read-only sandbox."
+    },
+    {
+      "criterion": "AC7: Build targets and order, current manuscript passing, and README commands",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5 and :25 serialize numbers, lint, overlap, test and pdf; :43 and :47 invoke the scripts. paper/README.md:22 documents both commands. Current manuscript and build success require execution, prohibited by the user in this read-only sandbox."
+    },
+    {
+      "criterion": "Required check: make -C paper check",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks because the read-only sandbox prevents required writes and caches."
+    },
+    {
+      "criterion": "Required check: make -C paper lint",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: make -C paper overlap",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: make -C paper test",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; pytest fixtures and caches require writes."
+    },
+    {
+      "criterion": "Required check: make -C paper",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; the build writes generated files, logs and the PDF."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:430",
+      "claim": "Comments between commands and their arguments leak into prose and can defeat overlap detection.",
+      "evidence": "Static trace: for \"\\cite% note\\n{key}\", space_end() does not consume the comment, and mandatory_argument_end() returns immediately after %. The scanner blanks only \"\\cite%\", leaving \"note\" and \"key\" as prose instead of removing the comment and citation argument. Placing this citation between the sixth and seventh words of a shared 12-word passage inserts unrelated tokens into overlap_check.py:118 and hides the run. Skip and record comments while locating arguments, and add regression cases for both consumers.",
+      "id": "codex-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/lint_prose.py:210",
+      "claim": "The TikZ word checks discard command arguments that the contract requires checking as raw text.",
+      "evidence": "The full pass still uses KEY_COMMANDS and blanks their arguments at paper/scripts/tex_prose.py:350. Because tikzset is included at :71, a tikzpicture containing \"\\tikzset{every node/.style={label={seamless}}}\" loses the banned label before banned_word_hits() runs. A label containing \"it is important to note\" is similarly lost. The existing TikZ tests cover direct node text but not these discarded arguments. Preserve this text for rules b and c while continuing to exclude TikZ from the other rules.",
+      "id": "codex-r1-2",
+      "resolution": null
+    }
+  ]
+}

@@ -110,12 +110,18 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "8669311087c958051d5711f70db9885b879e458e",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "6e93964cfa41c229facffabc7ef0054c957171b8",
+        "files": [
+          "reviews/T16-02-claude.json",
+          "reviews/T16-02-codex.json"
+        ],
+        "digests": {
+          "reviews/T16-02-claude.json": "7b36286d24f4d1380eddbd227e164451b964104d3d97d7b0a17e0a9294028a89",
+          "reviews/T16-02-codex.json": "10aa1cfcc90cdbf6630074e838dd84f01d0b6c63ca2a76e78d2f8c5616668076"
+        }
       },
       "notes": ""
     },

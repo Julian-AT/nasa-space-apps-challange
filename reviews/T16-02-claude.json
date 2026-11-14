@@ -1,0 +1,144 @@
+{
+  "task_id": "T16-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "6e93964cfa41c229facffabc7ef0054c957171b8",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "7f6dc132b584844ab234f6bd028916f8b07c2dff0703cc92e4b74ac6633477b5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "1602b41792066a92142fd26b4aa62342ed175a4f30820a65a9c310dc06eadb9e"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "7460d1db7bf862b0946bab263ca74f5eadae0c4d4d8346b4c9a71e16828084b5"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "00fb50b49a62020966cf25d79b3a6158b3041c964a55e149451d292c96f270de"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "8295b95af3338b6ce2ce36998ec7a10d525aa28c10624f0b23ee560bb45b48ae"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "1cd9b2aac9a43307def43aaabf338f3a1e8aef6b34598f72a6663657a711769c"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:15:54Z",
+  "finished_utc": "2026-11-14T20:16:23Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T16-02 passes. All five story checks exit 0: 528 tests pass, lint and overlap are clean on the current manuscript, and `make -C paper` runs the full chain including a clean tectonic PDF build. The extraction module, the six lint rules, the overlap check, the empty record, the Makefile ordering and the README lines all match the contract. I read all of that from source and did not run the unit cases individually. The only deviation is bookkeeping files outside the story's list.",
+  "checks": [
+    {
+      "criterion": "make -C paper check (ruff, format, mypy --strict)",
+      "command": "make -C paper check",
+      "outcome": "PASS",
+      "evidence": "All checks passed; 12 files already formatted; mypy: no issues found in 12 source files"
+    },
+    {
+      "criterion": "make -C paper lint",
+      "command": "make -C paper lint",
+      "outcome": "PASS",
+      "evidence": "lint_prose.py: no findings in 15 .tex files"
+    },
+    {
+      "criterion": "make -C paper overlap",
+      "command": "make -C paper overlap",
+      "outcome": "PASS",
+      "evidence": "15 .tex files, 0 abstracts, 0 references without an abstract skipped; no run of 12 or more shared words"
+    },
+    {
+      "criterion": "make -C paper test",
+      "command": "make -C paper test",
+      "outcome": "PASS",
+      "evidence": "528 passed, including test_lint_prose, test_overlap_check and test_tex_prose"
+    },
+    {
+      "criterion": "make -C paper runs numbers, lint, overlap, test, pdf in order, and the manuscript passes",
+      "command": "make -C paper",
+      "outcome": "PASS",
+      "evidence": "Output order is numbers, lint, overlap, pytest, then tectonic. Ends with 'check_log.py: main.log clean'. Makefile:25 is `all: numbers lint overlap test pdf`."
+    },
+    {
+      "criterion": "Shared tex_prose module: comment, math, verbatim, \\verb, key-command and TikZ removal; formatting commands kept; ~ reads as a space; both scripts import it",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "tex_prose.py:44-122 and the _CodeScanner class. lint_prose.py:42 and overlap_check.py:30 both import it. Line breaks are kept (tex_prose.py:236)."
+    },
+    {
+      "criterion": "lint_prose rules a-f, output format 'file:line: rule: text', exit 1 on any finding, no option disables a rule, styles.tex excluded",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "lint_prose.py:128-264. Rules b and c run on `extract(keep_tikz=True)`; the others use the TikZ-stripped extraction. `checked_files` excludes figures/styles.tex (tex_prose.py:204). The only CLI option is --root. List rule is skipped only for appendix-*.tex files at the top of paper/ (lint_prose.py:171)."
+    },
+    {
+      "criterion": "overlap_check: tokenisation, MIN_RUN=12 constant with no option, maximal runs reported once, missing or unparsable record fails, null abstracts skipped and counted",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "overlap_check.py:36 (MIN_RUN), :72-77 (tokens), :80-111 (shared_runs), :138-169 (load_abstracts raises on missing or invalid JSON). Summary line counts skipped nulls (:204-207)."
+    },
+    {
+      "criterion": "reference-verification.json created as {\"references\": {}}",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "git diff shows the new file with exactly an empty references object"
+    },
+    {
+      "criterion": "Tests exist for the listed lint and overlap cases and use tmp_path or strings, with no fixture .tex committed under paper/",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "528 tests pass, with 45+72+53 lint, 42+7 overlap and 46+ extraction cases. Grep shows cases for the allow comment, the missing record and the appendix list exemption. The diff touches no committed .tex fixtures. I did not run the tests before the scripts existed, so the test-first order is unconfirmed."
+    },
+    {
+      "criterion": "README gains one line per new command that ran",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "README diff adds lint and overlap entries and updates the `make -C paper` line."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t16-paper/prd.json; scripts/ralph/batches/t16-paper/progress.txt",
+      "claim": "The story's commits change files outside the story's files list.",
+      "evidence": "git diff --stat shows prd.json and progress.txt changed. These are Ralph bookkeeping files, so this is likely expected.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "paper/scripts/lint_prose.py:97",
+      "claim": "The bold rule matches \\bf as a command anywhere, not just in a `{\\bf ...}` group. This stays within the stated rule, but it is looser than a group-only match.",
+      "evidence": "BOLD = \\\\(?:textbf|bfseries|bf)(?![A-Za-z]). This causes no failure on the current manuscript.",
+      "id": "claude-r1-2",
+      "resolution": null
+    }
+  ]
+}
