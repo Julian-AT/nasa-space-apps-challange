@@ -79,9 +79,7 @@ def macro(name: str = "TestValue", pointer: str = "/value", spec: str = ".3f") -
     return Macro(name=name, file=REPORT, pointer=pointer, format_spec=spec)
 
 
-def run(
-    out: Path, bundle: Path | None = None, macros: tuple[Macro, ...] = ()
-) -> tuple[int, Path]:
+def run(out: Path, bundle: Path | None = None, macros: tuple[Macro, ...] = ()) -> tuple[int, Path]:
     argv = ["--out", str(out)]
     if bundle is not None:
         argv += ["--bundle", str(bundle)]
