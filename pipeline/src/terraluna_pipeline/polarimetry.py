@@ -15,11 +15,12 @@ Conventions that hold for every function here:
 - Product validity and noise flags enter only through explicit arguments, such as ``nodata``
   and the noise flags of :func:`x_power` (PRD 7: keep the product's flags). Array arguments
   are plain numpy arrays (memory-mapped ones included), scalars, or lists and tuples of them
-  nested to any depth. A numpy masked array is refused with TypeError wherever it appears,
-  because converting it to an array drops its mask and a masked element would be read as an
-  observation. Any other container is refused as well, whether it converts through
-  ``__array__``, is a custom sequence or is a third-party ndarray subclass, since its conversion
-  can drop a mask in the same way; the caller converts it and passes its mask as a flag.
+  nested to any depth, all matched by exact type. A numpy masked array is refused with
+  TypeError wherever it appears, because converting it to an array drops its mask and a masked
+  element would be read as an observation. Any other type is refused as well, whether it
+  converts through ``__array__``, is a custom sequence, a subclass of list, tuple or a scalar
+  type, or a third-party ndarray subclass, since its conversion can drop a mask in the same
+  way; the caller converts it and passes its mask as a flag.
 """
 
 from __future__ import annotations
@@ -189,21 +190,34 @@ _PLAIN_ARRAY_TYPES: Final = (np.ndarray, np.memmap)
 """numpy's own array types that carry no mask. Subclasses are matched exactly, not by isinstance,
 so a third-party subclass that keeps a mask or a unit is refused."""
 
-_SCALAR_TYPES: Final = (bool, int, float, complex, str, bytes, np.generic)
-"""Scalars numpy converts as single elements. Non-real ones are refused later by dtype checks."""
+_SCALAR_TYPES: Final = (bool, int, float, complex, str, bytes, ObsState, InvalidReason)
+"""Python scalars numpy converts as single elements, matched exactly like containers, plus this
+module's own codes (int and str enums). Non-real ones are refused later by dtype checks."""
+
+
+def _is_numpy_scalar(item: object) -> bool:
+    """True for an instance of one of numpy's own scalar types, not of a subclass of one."""
+    if not isinstance(item, np.generic):
+        return False
+    try:
+        return np.dtype(type(item)).type is type(item)
+    except (TypeError, ValueError):  # a subclass numpy has no dtype for is not one of its own
+        return False
 
 
 def _require_plain(name: str, values: object) -> None:
     """Raise unless ``values`` converts to an array without losing a mask.
 
-    Accepted: a plain numpy array (:data:`_PLAIN_ARRAY_TYPES`), a scalar, or lists and tuples of
-    them, walked to every depth. ``np.asarray`` drops masks without a warning, and
-    ``np.ma.asarray`` reads them only from the immediate members of a sequence, so the walk
-    looks at every member itself. A numpy masked array or the masked constant anywhere in
-    ``values`` raises TypeError, whatever is masked. So does any other type: numpy converts a
-    custom sequence, an ``__array__`` object or an ndarray subclass by its own protocol, which
-    can drop a mask the same way. Nesting deeper than numpy's dimension limit raises ValueError,
-    so a self-referential list cannot recurse forever.
+    Accepted: a plain numpy array (:data:`_PLAIN_ARRAY_TYPES`), a scalar
+    (:data:`_SCALAR_TYPES` or one of numpy's own scalar types), or lists and tuples of them,
+    walked to every depth. Every type is matched exactly, never by isinstance. ``np.asarray``
+    drops masks without a warning, and ``np.ma.asarray`` reads them only from the immediate
+    members of a sequence, so the walk looks at every member itself. A numpy masked array or the
+    masked constant anywhere in ``values`` raises TypeError, whatever is masked. So does any
+    other type: numpy converts a custom sequence, an ``__array__`` object, an ndarray subclass or
+    a list, tuple or scalar subclass by its own protocol, which can drop a mask the same way.
+    Nesting deeper than numpy's dimension limit raises ValueError, so a self-referential list
+    cannot recurse forever.
     """
     pending: list[tuple[object, int]] = [(values, 0)]
     while pending:
@@ -214,9 +228,13 @@ def _require_plain(name: str, values: object) -> None:
                 "dropped. Pass product flags explicitly (nodata or a noise flag)."
             )
         # A plain array of object dtype passes here; every caller refuses that dtype afterwards.
-        if type(item) in _PLAIN_ARRAY_TYPES or isinstance(item, _SCALAR_TYPES):
+        if type(item) in _PLAIN_ARRAY_TYPES or type(item) in _SCALAR_TYPES:
             continue
-        if isinstance(item, list | tuple):
+        if _is_numpy_scalar(item):
+            continue
+        # Exact lists and tuples only: a subclass can convert by its own ``__array__`` instead
+        # of by its members, so the walk would not see what numpy converts.
+        if type(item) is list or type(item) is tuple:
             if depth >= _MAX_NESTING:
                 raise ValueError(
                     f"{name} nests lists or tuples deeper than numpy's {_MAX_NESTING} dimensions"
