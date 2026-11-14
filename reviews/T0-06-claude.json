@@ -65,7 +65,11 @@
       "claim": "setup-uv pins uv 0.9.26 by hand, so the uv version is not read from a repo file. This is the one toolchain version not taken from .python-version or .node-version.",
       "evidence": "version: 0.9.26 appears in both the py and schema jobs. It is a deliberate choice and is noted in a comment, but it will need a manual bump.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The acceptance criterion requires Python and Node versions to come from .python-version and .node-version, and they do: uv reads .python-version, and setup-node gets node-version-file: .node-version. uv is the installer, and the criterion names no file for its version. setup-uv takes a uv version from the repo only as required-version in uv.toml or pyproject.toml (setup-uv v10.3.3 README, \"Install a required-version or latest (default)\", and action.yml version/version-file inputs at the pinned SHA). This repo has no uv.toml, and pyproject.toml has only [tool.uv.workspace], so removing the version input would install the latest uv, unpinned. The explicit pin is what makes uv reproducible. Since 7739f02 (claude-r1-3) it also fixes the managed Python build that uv downloads. One source read by both local uv and setup-uv would be a [tool.uv] required-version in pyproject.toml, but pyproject.toml is outside this story's files. It is recorded in progress.txt as a follow-up for a human."
+      }
     },
     {
       "severity": "low",
@@ -73,7 +77,11 @@
       "claim": "The commitlint job is skipped on push to main, so it never runs there.",
       "evidence": "if: github.event_name == 'pull_request'. This follows the acceptance wording and progress.txt discloses it.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The criterion defines the commitlint job as linting \"the pull request commits, from the base SHA to the head SHA\". A push to main has no pull request and no base SHA, so the job is skipped there and reported as skipped, not passed. Commits that reach main through a pull request were linted in that pull request, and each local commit also passes the husky commit-msg hook. Linting github.event.before..after on push could not block anything, because the commits are already on main. That range is also undefined when before is all zeros (a new ref), and after a force push before may be missing from the fetched history. Direct pushes to main are a branch-protection setting, which is a human step after the first GitHub run (T0-06 implement entry in progress.txt)."
+      }
     },
     {
       "severity": "low",
@@ -81,7 +89,11 @@
       "claim": "The runner may use a system Python 3.12 patch release that differs from the local 3.12.13. setup-py rejects anything other than 3.12.",
       "evidence": ".python-version is 3.12 and setup-uv gets no python-version input. progress.txt:157 notes the risk.",
       "id": "claude-r1-3",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "7739f02b2608ab1e80ef0db891b0f0a61902a440",
+        "reason": "Fixed in 7739f02. ci.yml now sets UV_MANAGED_PYTHON: \"1\" for the workflow, so uv never uses the runner image's system Python. Checked with uv 0.9.26: (a) with an empty UV_PYTHON_INSTALL_DIR, `uv python find 3.14 --no-project` returns the system /opt/anaconda3/bin/python3 by default, and with UV_MANAGED_PYTHON=1 it refuses it (exit 2, \"No interpreter found ... in virtual environments or managed installations\"). (b) uv 0.9.26 resolves 3.12 to cpython-3.12.12-linux-x86_64-gnu, python-build-standalone release 20260114 (`uv python list --only-downloads --all-platforms --all-arches --output-format json`). (c) In a fresh clone with an empty install directory, the py job (make setup-py check-py test-py) downloaded cpython 3.12.12 and exited 0 with 404 tests passed. The schema job (make setup-py setup-ts, then make schema-check mock-bundle-check) also exited 0. On a hosted runner, setup-uv sets UV_PYTHON_INSTALL_DIR to $RUNNER_TEMP/uv-python-dir (src/utils/inputs.ts at the pinned SHA). Remaining difference: CI gets 3.12.12, one patch release below the build Mac's 3.12.13, which a newer Homebrew uv (0.11.16) installed. setup-py prints the patch release in each job log. Making the two identical would need a patch release in .python-version, which is outside this story's files."
+      }
     }
   ]
 }
