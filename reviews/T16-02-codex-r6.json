@@ -148,7 +148,11 @@
       "claim": "A citation star separated from its command by whitespace is consumed as the citation argument, leaking the actual key and allowing overlap detection to be bypassed.",
       "evidence": "Static trace, not executed: key_arguments_end() tests for '*' before skipping whitespace. In '\\citep *{other}', optional_arguments_end() leaves its original position and mandatory_argument_end() consumes only '*'; the remaining '{other}' becomes prose. Thus 'We measure the roughness of lunar \\citep *{other} and martian terrain at baselines from' inserts 'other' between the two six-word halves of the existing test abstract's first 12 words, so shared_runs() reports nothing. Existing tests cover only the adjacent '\\citep*{...}' spelling (test_tex_prose.py:119). Natbib uses @ifstar ([package source](https://sources.debian.org/src/texlive-base/2026.20261111-1/texmf-dist/tex/latex/natbib/natbib.sty)), whose whitespace-skipping implementation is in the [LaTeX kernel](https://raw.githubusercontent.com/latex3/latex2e/develop/base/ltdefns.dtx). Consume the skipped gap before recognizing the star and add extraction and consumer regressions.",
       "id": "codex-r6-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "4a947c05eecc21d0336f028bb5ede4b1f51f19ab",
+        "reason": "Reproduced: \"\\citep *{other}\" left \"other\" in the prose, so the reviewer's 13-word example hid the shared 12-word run. TeX skips the spaces after a control word, and LaTeX's \\@ifstar (latex.ltx:1621 in the pinned Tectonic bundle v33) finds the star with \\@ifnextchar, which skips space tokens (latex.ltx:1602-1619). The new _CodeScanner.star_end looks past what space_end skips (spaces, comments, one line break; a blank line is \\par) before the star. key_arguments_end and line_break_end use it, so \\citep *{key}, \\ref *{x}, \\vspace *{2pt} and \\\\ *[2pt] no longer leak keys or lengths; \\url keeps its same-line rule (spaces only). Failing cases first in aa8f02b (16 extraction, overlap and lint cases; 15 failed), fix in 4a947c0. All five checks pass, 821 tests. A fuzz over 128,986 parsed inputs kept code length, line counts, prose_lines and located tokens == tokens(prose)."
+      }
     }
   ]
 }
