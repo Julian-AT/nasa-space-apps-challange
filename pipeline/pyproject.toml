@@ -9,6 +9,7 @@ dependencies = [
     "numpy>=2.5,<3",
     "pillow>=13.0,<14",
     "pydantic>=2.14,<3",
+    "pyproj>=3.8,<4",
     "pyshp>=3.1,<4",
     "rasterio>=1.5,<2",
 ]
