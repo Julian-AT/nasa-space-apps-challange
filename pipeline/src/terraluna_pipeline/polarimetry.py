@@ -13,14 +13,17 @@ Conventions that hold for every function here:
 - Analytical quantities are in linear power; dB is for display and summaries only (PRD 6.2).
 - Nothing is repaired, clipped or regularized: no epsilon is added to a denominator (PRD 7).
 - Product validity and noise flags enter only through explicit arguments, such as ``nodata``
-  and the noise flags of :func:`x_power` (PRD 7: keep the product's flags). A numpy masked
-  array is refused with TypeError wherever it appears, because converting it to an array drops
-  its mask and a masked element would be read as an observation.
+  and the noise flags of :func:`x_power` (PRD 7: keep the product's flags). Array arguments
+  are plain numpy arrays (memory-mapped ones included), scalars, or lists and tuples of them
+  nested to any depth. A numpy masked array is refused with TypeError wherever it appears,
+  because converting it to an array drops its mask and a masked element would be read as an
+  observation. Any other container is refused as well, whether it converts through
+  ``__array__``, is a custom sequence or is a third-party ndarray subclass, since its conversion
+  can drop a mask in the same way; the caller converts it and passes its mask as a flag.
 """
 
 from __future__ import annotations
 
-import warnings
 from dataclasses import dataclass
 from enum import IntEnum, StrEnum
 from typing import Any, Final, Literal
@@ -112,7 +115,8 @@ class StatedArray:
     stated by the function that returns it.
 
     The arrays are copied on construction, so later changes to the arrays passed in do not
-    reach the record. Masked arrays are refused, since copying would drop their masks.
+    reach the record. Masked arrays are refused at any nesting depth, since copying would drop
+    their masks (:func:`_require_plain`).
     """
 
     value: npt.NDArray[np.float64]
@@ -122,7 +126,7 @@ class StatedArray:
     def __post_init__(self) -> None:
         # Private copies first, so no alias can later turn a blanked element into a number.
         for name in ("value", "state", "reason"):
-            _refuse_masked(name, getattr(self, name))
+            _require_plain(name, getattr(self, name))
             object.__setattr__(self, name, np.array(getattr(self, name), copy=True))
         if self.value.dtype != np.float64:
             raise TypeError(f"value must be float64, got {self.value.dtype}")
@@ -178,27 +182,51 @@ class _Classifier:
         return StatedArray(value=value, state=self.state, reason=self.reason)
 
 
-def _refuse_masked(name: str, values: object) -> None:
-    """Raise TypeError if ``values`` is a numpy masked array or a sequence holding one.
+_MAX_NESTING: Final = 64
+"""numpy's limit on array dimensions; lists or tuples nested deeper cannot form an array."""
 
-    ``np.asarray`` drops a mask without a warning, so a masked element would be classified as an
-    observation and could come out ``VALID``. The refusal does not depend on what is masked.
+_PLAIN_ARRAY_TYPES: Final = (np.ndarray, np.memmap)
+"""numpy's own array types that carry no mask. Subclasses are matched exactly, not by isinstance,
+so a third-party subclass that keeps a mask or a unit is refused."""
+
+_SCALAR_TYPES: Final = (bool, int, float, complex, str, bytes, np.generic)
+"""Scalars numpy converts as single elements. Non-real ones are refused later by dtype checks."""
+
+
+def _require_plain(name: str, values: object) -> None:
+    """Raise unless ``values`` converts to an array without losing a mask.
+
+    Accepted: a plain numpy array (:data:`_PLAIN_ARRAY_TYPES`), a scalar, or lists and tuples of
+    them, walked to every depth. ``np.asarray`` drops masks without a warning, and
+    ``np.ma.asarray`` reads them only from the immediate members of a sequence, so the walk
+    looks at every member itself. A numpy masked array or the masked constant anywhere in
+    ``values`` raises TypeError, whatever is masked. So does any other type: numpy converts a
+    custom sequence, an ``__array__`` object or an ndarray subclass by its own protocol, which
+    can drop a mask the same way. Nesting deeper than numpy's dimension limit raises ValueError,
+    so a self-referential list cannot recurse forever.
     """
-    if isinstance(values, np.ma.MaskedArray):
-        masked = True
-    elif isinstance(values, np.ndarray):
-        # A plain array has no mask; object arrays are refused later by the dtype checks.
-        masked = False
-    else:
-        # Probe sequences for masked arrays or the masked constant. numpy warns when it turns a
-        # masked element into NaN here; the probe raises instead, so that warning is muted.
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", UserWarning)
-            masked = np.ma.getmask(np.ma.asarray(values)) is not np.ma.nomask
-    if masked:
+    pending: list[tuple[object, int]] = [(values, 0)]
+    while pending:
+        item, depth = pending.pop()
+        if isinstance(item, np.ma.MaskedArray):  # the masked constant is one as well
+            raise TypeError(
+                f"{name} must not be a numpy masked array or hold one: its mask would be "
+                "dropped. Pass product flags explicitly (nodata or a noise flag)."
+            )
+        # A plain array of object dtype passes here; every caller refuses that dtype afterwards.
+        if type(item) in _PLAIN_ARRAY_TYPES or isinstance(item, _SCALAR_TYPES):
+            continue
+        if isinstance(item, list | tuple):
+            if depth >= _MAX_NESTING:
+                raise ValueError(
+                    f"{name} nests lists or tuples deeper than numpy's {_MAX_NESTING} dimensions"
+                )
+            pending.extend((member, depth + 1) for member in item)
+            continue
         raise TypeError(
-            f"{name} must not be a numpy masked array or hold one: its mask would be dropped. "
-            "Pass product flags explicitly (nodata or a noise flag)."
+            f"{name} must be a plain numpy array, a scalar, or lists and tuples of them, got "
+            f"{type(item).__name__}: converting it could drop a mask. Convert it to a plain "
+            "numpy array first and pass product flags explicitly (nodata or a noise flag)."
         )
 
 
@@ -206,9 +234,9 @@ def _real_array(name: str, values: npt.ArrayLike) -> npt.NDArray[Any]:
     """Return ``values`` as an array of integer or floating dtype, or raise TypeError.
 
     Booleans, complex numbers, strings and objects are refused rather than coerced, and so are
-    masked arrays (:func:`_refuse_masked`).
+    masked arrays and inputs whose conversion could drop a mask (:func:`_require_plain`).
     """
-    _refuse_masked(name, values)
+    _require_plain(name, values)
     array = np.asarray(values)
     if not (np.issubdtype(array.dtype, np.integer) or np.issubdtype(array.dtype, np.floating)):
         raise TypeError(f"{name} must be a real integer or floating array, got {array.dtype}")
@@ -216,8 +244,11 @@ def _real_array(name: str, values: npt.ArrayLike) -> npt.NDArray[Any]:
 
 
 def _bool_mask(name: str, mask: npt.ArrayLike, shape: tuple[int, ...]) -> npt.NDArray[np.bool_]:
-    """Return a boolean flag array broadcast to ``shape``, or raise TypeError or ValueError."""
-    _refuse_masked(name, mask)
+    """Return a boolean flag array broadcast to ``shape``, or raise TypeError or ValueError.
+
+    The flags pass :func:`_require_plain` first, so a masked flag array is refused.
+    """
+    _require_plain(name, mask)
     array = np.asarray(mask)
     if array.dtype != np.bool_:
         raise TypeError(f"{name} must be a boolean flag array, got {array.dtype}")
