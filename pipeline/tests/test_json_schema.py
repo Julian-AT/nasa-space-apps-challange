@@ -146,7 +146,7 @@ def committed_schema(name: str) -> dict[str, Any]:
     return schema
 
 
-def json_schema_accepts(name: str, value: object) -> bool:
+def json_schema_accepts(name: str, value: Any) -> bool:
     return bool(EcmaValidator(committed_schema(name)).is_valid(value))
 
 
