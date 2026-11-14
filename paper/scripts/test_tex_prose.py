@@ -155,6 +155,35 @@ def test_unbraced_input_file_name_is_removed(command: str) -> None:
     assert words(f"before {command} after") == ["before", "after"]
 
 
+# A comment inside the name goes with its line break, and TeX reads on from the next line past its
+# indent; a blank line there is \par, which ends the name.
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("a \\input generated/% the numbers\nnumbers.tex b", ["a", "b"]),
+        ("a \\input generated/%\n   numbers.tex b", ["a", "b"]),
+        ("a \\input generated/%\n%\nnumbers.tex b", ["a", "b"]),
+        ('a \\input "generated/%\nnumber file.tex" b', ["a", "b"]),
+        ("a \\input numbers.tex%\nb c", ["a", "c"]),
+        ("a \\input numbers.tex%\n\nb", ["a", "b"]),
+        ("a \\input numbers.tex%\n  \nb", ["a", "b"]),
+        ("a \\input numbers.tex%", ["a"]),
+    ],
+)
+def test_comment_inside_an_unbraced_input_file_name_continues_it(
+    text: str, expected: list[str]
+) -> None:
+    source = extract(text)
+    assert source.prose.split() == expected
+    assert source.prose.count("\n") == text.count("\n")
+
+
+def test_comment_inside_an_unbraced_input_file_name_is_recorded() -> None:
+    assert extract("a \\input generated/% the numbers\nnumbers.tex b").comments == {
+        1: " the numbers"
+    }
+
+
 @pytest.mark.parametrize("text", ['\\input "generated/numbers.tex', '\\input "a\nb"', "\\input}"])
 def test_malformed_input_file_name_raises(text: str) -> None:
     with pytest.raises(TexSyntaxError) as raised:
@@ -457,6 +486,35 @@ def test_key_commands_that_print_nothing_join_words(text: str, expected: list[st
     assert words(text) == expected
 
 
+# TeX skips spaces, comments and one line break before each undelimited argument, and the optional
+# arguments before a text argument are settings. So the gap between the keys of \href or
+# \textcolor and their text prints nothing, and seam\href{...} {less} reads seamless.
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("seam\\href{https://x.org/} {less}", ["seamless"]),
+        ("seam\\href{https://x.org/}\n  {less}", ["seamless"]),
+        ("seam\\href{https://x.org/}% note\n{less}", ["seamless"]),
+        ("seam\\href{https://x.org/}%\n%\n {less}", ["seamless"]),
+        ("seam\\textcolor{red} {less}", ["seamless"]),
+        ("seam\\textcolor{red}\n{less}", ["seamless"]),
+        ("seam\\textcolor[rgb]{1,0,0} {less}", ["seamless"]),
+        ("seam\\multicolumn{1}{c} {less}", ["seamless"]),
+        ("seam\\multirow{2}{*}[1ex] {less}", ["seamless"]),
+        ("\\newcommand{\\x}[1]{body}", ["body"]),
+        ("\\newcommand{\\x}[1][a] {body}", ["body"]),
+        ("seam\\href{https://x.org/}\n\n{less}", ["seam", "less"]),
+        ("seam\\textcolor{red}less", ["seamless"]),
+    ],
+)
+def test_space_before_a_text_argument_after_keys_prints_nothing(
+    text: str, expected: list[str]
+) -> None:
+    source = extract(text)
+    assert source.prose.split() == expected
+    assert source.prose.count("\n") == text.count("\n")
+
+
 def test_kept_tikz_comment_takes_its_line_break_with_it() -> None:
     text = "\\begin{tikzpicture}\n\\node {sea%\nmless};\n\\end{tikzpicture}"
     assert words(text, keep_tikz=True) == ["seamless;"]
@@ -519,6 +577,44 @@ def test_code_and_prose_keep_every_line_break(keep_tikz: bool) -> None:
     assert source.prose.count("\n") == MIXED.count("\n")
     lines = source.prose.split("\n")
     assert lines.index("marker") == MIXED.split("\n").index("marker")
+
+
+def test_prose_line_of_mixed_source() -> None:
+    source = extract(MIXED)
+    assert source.prose_line(source.prose.index("marker")) == MIXED.split("\n").index("marker") + 1
+
+
+# A word that TeX joins across a skipped line break is written whole on its first line, so text
+# after the break can sit on the line before in the prose. prose_line() gives the source line of
+# each prose character, where the text starts.
+@pytest.mark.parametrize(
+    ("text", "word", "line"),
+    [
+        ("Text.%\nrobust", "robust", 2),
+        ("Text-% note\nrobust", "robust", 2),
+        ("Text.\\emph\n{robust} x", "robust", 2),
+        ("Text.\\emph% note\n{robust} x", "robust", 2),
+        ("(%\nrobust)", "robust", 2),
+        ("Text.%\nrobust", "Text", 1),
+        ("sea%\nmless", "seamless", 1),
+        ("a\nb sea%\nmless.", "seamless", 2),
+        ("a\nb sea%\nmless. c", "c", 3),
+        ("seam\\emph\n{less} more", "more", 2),
+    ],
+)
+def test_prose_line_is_the_source_line_where_the_text_starts(
+    text: str, word: str, line: int
+) -> None:
+    source = extract(text)
+    assert source.prose_line(source.prose.index(word)) == line
+
+
+def test_prose_line_covers_every_prose_character() -> None:
+    source = extract(MIXED, keep_tikz=True)
+    lines = [source.prose_line(offset) for offset in range(len(source.prose))]
+    assert lines == sorted(lines)
+    assert lines[0] == 1
+    assert lines[-1] == MIXED.count("\n")
 
 
 def test_code_keeps_source_offsets() -> None:

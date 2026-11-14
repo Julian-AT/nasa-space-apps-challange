@@ -217,6 +217,39 @@ def test_only_robust_can_be_allowed(text: str) -> None:
     assert rules(text) == ["banned-word"]
 
 
+# TeX prints Text.robust for each of these, but robust starts on line 2, which has no allow comment.
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Text.% lint-allow robust: unrelated\nrobust estimator.\n",
+        "Text-% lint-allow robust: unrelated\nrobust estimator.\n",
+        "Text.\\emph% lint-allow robust: unrelated\n{robust} estimator.\n",
+        "(% lint-allow robust: unrelated\nrobust) estimator.\n",
+    ],
+)
+def test_allow_comment_does_not_reach_a_word_that_starts_on_the_next_line(text: str) -> None:
+    findings = lint_text(SECTION, text)
+    assert [(finding.line, finding.rule) for finding in findings] == [(2, "banned-word")]
+    assert "robust estimator" in findings[0].text
+
+
+def test_allow_comment_covers_a_word_that_starts_on_its_line() -> None:
+    assert rules("Text.%\nrobust estimator. % lint-allow robust: the median\n") == []
+
+
+@pytest.mark.parametrize(
+    ("text", "line"),
+    [
+        ("Text.%\nWe leverage it.\n", 2),
+        ("Text.\\emph\n{seamless} fit.\n", 2),
+        ("First.\nText.%\nWhy?\n", 3),
+        ("Text.%\nIt is important to note this.\n", 2),
+    ],
+)
+def test_finding_is_on_the_line_where_its_text_starts(text: str, line: int) -> None:
+    assert [finding.line for finding in lint_text(SECTION, text)] == [line]
+
+
 def test_allow_comment_covers_only_robust_on_its_line() -> None:
     text = "A robust and seamless fit. % lint-allow robust: the median\n"
     findings = lint_text(SECTION, text)
@@ -440,6 +473,29 @@ def test_tikz_comments_and_style_code_pass(text: str) -> None:
     ],
 )
 def test_comment_before_an_argument_is_read_as_tex_reads_it(text: str, expected: list[str]) -> None:
+    assert rules(text) == expected
+
+
+# --- Commands are read where TeX reads them ----------------------------------------------------
+# An escaped backslash \\ is a line break, and the letters after it are text, not a command.
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Text\\\\begin{tabular}{l} \\textbf{x} \\\\end{tabular}", ["bold"]),
+        ("Text\\\\begin{tabular}{l} {\\bf x} \\\\end{tabular}", ["bold"]),
+        ("\\begin{tabular}{l}a\\\\end{tabular}\\textbf{x}\\end{tabular}", []),
+        ("Text\\\\begin{itemize} one \\\\end{itemize}", []),
+        ("Text\\\\textbf{x}", []),
+        ("Text\\\\bf x", []),
+        ("Text\\\\textemdash{} x", []),
+        ("Text\\\\\\textbf{x}", ["bold"]),
+        ("Text\\\\\\textemdash{} x", ["dash"]),
+        ("Text\\\\\\begin{itemize}\\item One.\\end{itemize}", ["bullet-list"]),
+    ],
+)
+def test_commands_are_matched_only_at_control_sequences(text: str, expected: list[str]) -> None:
     assert rules(text) == expected
 
 

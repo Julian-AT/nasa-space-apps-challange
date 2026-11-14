@@ -97,6 +97,12 @@ def test_run_reports_file_line_key_and_words() -> None:
     assert " ".join(overlap.words) in str(overlap)
 
 
+def test_run_is_reported_on_the_line_where_its_first_word_starts() -> None:
+    # TeX prints Intro.We, and We starts on line 2.
+    [overlap] = found("Intro.%\n" + " ".join(WORDS[:MIN_RUN]) + "\n")
+    assert overlap.line == 2
+
+
 def test_runs_with_two_abstracts_are_reported_per_reference() -> None:
     twelve = " ".join(WORDS[:MIN_RUN])
     keys = [overlap.key for overlap in found(twelve, {"a": ABSTRACT, "b": ABSTRACT})]
@@ -154,6 +160,28 @@ def twelve_with(change: str) -> str:
         return " ".join(w[:6]) + " \\input generated/numbers.tex " + " ".join(w[6:])
     if change == "unbraced input at a line end":
         return " ".join(w[:6]) + " \\input generated/numbers.tex\n" + " ".join(w[6:])
+    if change == "comment inside an input file name":
+        return " ".join(w[:6]) + " \\input generated/% note\nnumbers.tex " + " ".join(w[6:])
+    if change == "space before link text":
+        return (
+            " ".join(w[:5])
+            + " "
+            + w[5][:2]
+            + "\\href{https://x.org/} {"
+            + w[5][2:]
+            + "} "
+            + " ".join(w[6:])
+        )
+    if change == "line break before colour text":
+        return (
+            " ".join(w[:5])
+            + " "
+            + w[5][:2]
+            + "\\textcolor{red}\n{"
+            + w[5][2:]
+            + "} "
+            + " ".join(w[6:])
+        )
     raise AssertionError(change)
 
 
@@ -180,6 +208,9 @@ def twelve_with(change: str) -> str:
         "colour inside a word",
         "unbraced input",
         "unbraced input at a line end",
+        "comment inside an input file name",
+        "space before link text",
+        "line break before colour text",
     ],
 )
 def test_changes_do_not_hide_a_run(change: str) -> None:
