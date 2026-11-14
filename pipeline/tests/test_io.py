@@ -430,6 +430,32 @@ def test_a_signed_source_url_is_refused(tmp_path: Path) -> None:
         read_product("synthetic-dem", [dem(tmp_path)], signed, root=tmp_path)
 
 
+def test_read_product_takes_the_prd_call_and_defaults_root_to_the_working_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """PRD 8.11 names read_product(product_id, local_files, metadata); the pipeline's commands
+    run from the repository root, so root defaults to the working directory."""
+    path = dem(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    arrays, record = read_product("synthetic-dem", [path], metadata())
+    assert record.local_path == "data/raw/synthetic/dem.tif"
+    assert record == read_product("synthetic-dem", [path], metadata(), root=tmp_path)[1]
+    np.testing.assert_array_equal(arrays[0].array, grid())
+    _, relative = read_product("synthetic-dem", [Path("data/raw/synthetic/dem.tif")], metadata())
+    assert relative == record
+
+
+@pytest.mark.parametrize("cwd", ["data", "data/raw", "elsewhere", ".."])
+def test_read_product_from_another_directory_refuses_rather_than_record_a_wrong_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, cwd: str
+) -> None:
+    path = dem(tmp_path)
+    (tmp_path / cwd).mkdir(parents=True, exist_ok=True)
+    monkeypatch.chdir(tmp_path / cwd)
+    with pytest.raises(ValueError, match="repository root"):
+        read_product("synthetic-dem", [path], metadata())
+
+
 def test_a_file_outside_root_is_refused(tmp_path: Path) -> None:
     path = dem(tmp_path)
     with pytest.raises(ValueError, match="root"):
