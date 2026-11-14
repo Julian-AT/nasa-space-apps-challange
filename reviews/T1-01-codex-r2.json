@@ -1,0 +1,133 @@
+{
+  "task_id": "T1-01",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "323dfbaaf26b88b1aa75a143d0b1b6ad4c7895c2",
+    "head": "79864cff9c7e9f1e5bc8b4a69aa0dced1996fa52",
+    "files": [
+      {
+        "path": "packages/schema/json/product-record.schema.json",
+        "sha256": "7e7c4c0d3a96cbecf7964f845ee82e00ccfe5a2ea0618ff71dbfc6b97aad3ccc"
+      },
+      {
+        "path": "packages/schema/json/sources.schema.json",
+        "sha256": "3bf496723842f3ac9db3e3f535f50314726a0c6bb282301ef40654cbfd84286f"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "fc1c1ed7e06024c1bc9d5699faf9acb6b59a6977398ce7941703b91de12d934f"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "e3591fcf83018afd5c78bd6b10ea04d0100005246963c2ad2e0a28bf57493d53"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "bea94655659ffb48bcd31dd2c9870ced960500eb2a4b4164c924a88d4b3c5dfb"
+      },
+      {
+        "path": "pipeline/tests/test_io.py",
+        "sha256": "cf493f190beb9ad8a89fe6216bb3d00c44144b69ed2713f75b6449523033eb68"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "abe66fb1e068b1d139d66734f01ae122dcbc36285d9cf36b73ac69805ce82cd8"
+      },
+      {
+        "path": "pipeline/tests/test_schema_productrecord.py",
+        "sha256": "4a7b241e4d2319fab86944b4e2a6bbb4a1cea84f8b4e41dae1d262dc371730d4"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "bbce3c617c0976356d076c009d3c5930f37d0dfbc1b832dc6ad669876762eaa7"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:40:19Z",
+  "finished_utc": "2026-11-14T18:44:27Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Both prior blocker fixes and the Makefile rebuttal are supported by the inspected code. Required execution checks and failing-first evidence remain unverified.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests written and run failing first; tiny synthetic inputs; no external network.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Synthetic files and size limits are present at pipeline/tests/test_io.py:77,115,150; HTTP payload is 10,240 bytes at :474. Failing-first execution was not observed. The user prohibited running checks in this read-only sandbox."
+    },
+    {
+      "criterion": "AC2: Exact ProductRecord fields, required values, strict validation, statuses, checksum and credential guard.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:107,169,278,324 defines the required contract and validation. Existing model definitions are unchanged in the diff. Prior finding codex-r1-1 is addressed by the encoded-character guard at :223,240 and regression tests at pipeline/tests/test_schema_productrecord.py:369,457,468; both generated schemas contain the guard."
+    },
+    {
+      "criterion": "AC3: Schema generation includes ProductRecord and schema-check reports no drift.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Makefile:36,40 delegates to the schema module; pipeline/src/terraluna_pipeline/schema.py:380 registers ProductRecord and Sources. Both JSON files exist; packages/schema contains no Zod sources. Regeneration and drift verification require prohibited execution and temporary-file writes."
+    },
+    {
+      "criterion": "AC4: Streaming checksum, validated HTTP ranges, windowed GeoTIFF reads and contracted read_product interface.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static implementation inspected at pipeline/src/terraluna_pipeline/io.py:42,89,246,273,396. It streams checksums, preserves raster metadata, validates HTTP status/range/body length and wraps connection failures. Missing units become unknown and records remain PARTIAL. Prior finding codex-r1-2 is addressed by optional root at :278 and three-argument regression calls at pipeline/tests/test_io.py:440,444."
+    },
+    {
+      "criterion": "AC5: Tests exercise all specified checksum, schema, raster and HTTP behaviors.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Assertions inspected at pipeline/tests/test_io.py:77,172,563,617 and pipeline/tests/test_schema_productrecord.py:192,397. They compare known checksums, reject missing fields and signed URLs, verify raster values and metadata, and exercise real loopback HTTP responses including ignored Range headers. This judges coverage by reading; execution is unverified."
+    },
+    {
+      "criterion": "AC6: Offline tests and only necessary existing dependencies; lockfile consistency.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_io.py:55 restricts resolution to loopback and disables proxies; server binds 127.0.0.1 at :552. pipeline/pyproject.toml:8 adds only affine and numpy, already rasterio dependencies at uv.lock:400. Matching dependency metadata appears at uv.lock:510,518; existing package versions are unchanged in the diff."
+    },
+    {
+      "criterion": "Required schema drift check.",
+      "command": "make schema-check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; this target regenerates schemas in a temporary directory and requires writes unavailable in the read-only sandbox."
+    },
+    {
+      "criterion": "Required ProductRecord tests.",
+      "command": "uv run pytest pipeline/tests/test_schema_productrecord.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox; uv/pytest may write environment or cache files."
+    },
+    {
+      "criterion": "Required I/O tests.",
+      "command": "uv run pytest pipeline/tests/test_io.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox; these tests create synthetic files and start a loopback server."
+    },
+    {
+      "criterion": "Required lint and type checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox; tool execution may require cache writes."
+    },
+    {
+      "criterion": "Previous finding claude-r1-1: Check the Makefile rebuttal.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Makefile:16,26 defines check as ruff and mypy; :17,31 defines test as pytest. PRD.md:1091 identifies make test as the unit-test command. The story separately specifies focused pytest checks, so the rebuttal is supported."
+    },
+    {
+      "criterion": "Change scope and scientific guardrails.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The inspected diff changes only the nine paths permitted by the story. config/run.yaml is unchanged. Synthetic records remain in tests; read_product sets PARTIAL at pipeline/src/terraluna_pipeline/io.py:319 and introduces no fabricated gate passes."
+    }
+  ],
+  "findings": []
+}
