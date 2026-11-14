@@ -24,6 +24,7 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Tectonic 0.17.0 caches in ~/Library/Caches/TectonicProject.Tectonic and reruns TeX by itself when aux/out files change. It exits 0 on undefined citations and on BibTeX errors. TeX log lines wrap at 79 characters, so match the opening words of a message. A \bibliography with no \cite gives "I found no \citation commands---while reading file main.aux" and "(There was 1 error message)" in main.blg.
 - zsh traps: `for c in "make -C paper x"; do $c; done` does not word-split (exit 127); use `sh -c "$c"`. `echo ===` fails (`==` expansion); use `echo ---`.
 - To test against another branch's unmerged work without merging or switching: `git archive HEAD | tar -x -C $tmp`, then `git archive <branch> <paths> | tar -x -C $tmp`, then `uv sync --locked` and the checks inside $tmp. The uv cache makes the sync fast and offline; Tectonic's cache is shared.
+- ralph/t0-bootstrap was merged into ralph/t16-paper at c2eac70, so terraluna_pipeline.export and fixtures/mock-bundle are present. Run `uv sync --locked` after any merge that touches pyproject.toml or uv.lock, before the paper checks.
 ---
 
 ## 2026-11-14T17:56Z · T16-01 · implement
@@ -899,4 +900,15 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. The current tip be79891 is equally safe for paper/. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:40Z · T16-01 · implement
+- Done: The T0 merge (c2eac70, then 7db32cc for ralph/tooling) landed on this branch, so T16-01 is no longer blocked. The merge did not touch paper/. `uv sync --locked` succeeded. All four checks pass with no paper/ code change. `make -C paper numbers` and `make -C paper pdf` also ran directly, and so did `make -C paper pdf TECTONIC=tectonic-absent-xyz`, which prints the required 'tectonic not found' message and exits 2. paper/README.md now lists `make -C paper`, `check` and `test` as well, because they pass now. The tree is clean after the build: main.pdf and main.log are ignored by the root .gitignore (lines 46 and 48). review.state is now `requested`. prd.json hashes the same with review.state removed before and after (b8d3ecda…, jq -S). The stale blocked text in the T16-01 notes was left alone, because section 2 says to change only review.state.
+- Commits: 0f3e4ad docs(t16-01): list the check, test and default paper targets now that they pass; chore(ralph): request review for t16-01
+- Checks: `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 6 files). `make -C paper numbers-check` PASS. `make -C paper test` PASS (179 passed). `make -C paper` PASS (179 passed; Tectonic 0.17.0; check_log.py: main.log clean).
+- Docs used: none new. Tectonic 0.17.0 and the pinned bundle are as in earlier entries.
+- Learnings: Once a dependency merge lands, rerun every check and recheck every README command, because README lines were limited to the commands that passed before the merge.
+
+### Proposed instruction changes
+- Root README, build section (human to apply; outside this story's files): "Paper: `make -C paper` builds `paper/main.pdf`; it needs Tectonic 0.17.0 (`brew install tectonic`) and network access on the first build. See paper/README.md."
 ---
