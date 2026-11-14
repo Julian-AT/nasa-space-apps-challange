@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import functools
 import hashlib
 import importlib.metadata
 import io as stdio
@@ -46,6 +47,7 @@ import zlib
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from decimal import Decimal, InvalidOperation
 from html import unescape
 from pathlib import Path
 from typing import Any, Final, Protocol
@@ -69,12 +71,14 @@ from terraluna_pipeline.io import (
     DownloadError,
     FetchedFile,
     FileTooLargeError,
+    GeoTiffHeader,
     Pds3ImageLayout,
     Pds3Item,
     Pds3Object,
     Pds3PolarStereographic,
     Pds3Quantity,
     ProductMetadata,
+    RangeExchange,
     RangeFetcher,
     RangeNotSupportedError,
     RangeReadError,
@@ -85,14 +89,18 @@ from terraluna_pipeline.io import (
     fetch_file,
     fetch_pds3_rows,
     fetch_range,
+    fetch_stac_search,
     parse_pds3_label,
+    parse_stac_item_collection,
     pds3_image_layout,
     pds3_polar_stereographic,
     pds3_row_byte_range,
+    read_geotiff_header,
     read_geotiff_tags,
     read_product,
     read_remote_geotiff_window,
     sha256_file,
+    stac_search_url,
 )
 from terraluna_pipeline.quality import (
     ISIS_NULL_REAL4,
@@ -3517,7 +3525,1080 @@ class MinirfSource:
         }
 
 
-SOURCES: Mapping[str, Source] = {"pgda78": Pgda78Source(), "minirf": MinirfSource()}
+# --- ctx: USGS ASP CTX DTMs through the Astrogeology STAC API (PRD 5 Mars inputs, 9 G0) ----------
+
+_CTX_PREFIX: Final = "CTX/"
+_QA_STD_LINE: Final = re.compile(
+    r"^StdDev of difference:[ \t]*(?P<value>[^ \t\r\n]+)[ \t]+(?P<unit>[^ \t\r\n]+)[ \t]*\r?$",
+    re.MULTILINE,
+)
+_QA_DEFINITION: Final = re.compile(r"The qa_metrics\.txt file for each DTM provides[^.]*\.")
+_AREOID_SENTENCE: Final = re.compile(
+    r"Each CTX DTM gives elevation values above or below the Mars geoid[^.]*\."
+)
+_JEZERO_LOCATION: Final = re.compile(
+    r"Jezero is located at Longitude Latitude [0-9.]+ E, [0-9.]+ N in mc[0-9]+"
+)
+_HTML_TAG: Final = re.compile(r"<[^>]*>")
+_GAZETTEER_NETWORK: Final = re.compile(r'<option label="([^"]+)" value="([0-9]+)"\s*selected')
+_GAZETTEER_SYSTEM_ID: Final = re.compile(
+    r'id="selected_coordinate_system" type="hidden" value="([0-9]+)"'
+)
+_GAZETTEER_SYSTEM_NAME: Final = re.compile(r'id="coordinate_system_name" value="([^"]+)"')
+_GAZETTEER_FIELDS: Final = (
+    ("northmost_latitude", "Northmost Latitude"),
+    ("southmost_latitude", "Southmost Latitude"),
+    ("eastmost_longitude", "Eastmost Longitude"),
+    ("westmost_longitude", "Westmost Longitude"),
+)
+_EAST_0_360: Final = "Planetocentric, +East, 0 - 360"
+_PROBE_ROLE: Final = (
+    "pilot probe of CTX DTM coverage for G0; not a target window (the Jezero and Arcadia "
+    "Planitia target windows are frozen at G0 by the team, PRD 5 and 15)"
+)
+_ITEM_RULE: Final = (
+    "the lexicographically first item ID (Python string order, by code point) among the items "
+    "the Jezero probe search returned over all its pages"
+)
+
+
+def _stac_page_name(probe: str, number: int) -> str:
+    """The local file of page ``number`` (from 1) of a probe's item search."""
+    return f"stac_search_{probe}_page{number:03d}.json"
+
+
+def _page_text(html: str) -> str:
+    """The visible text of an HTML page: tags removed, entities decoded, whitespace collapsed."""
+    return _collapse(unescape(_HTML_TAG.sub(" ", html)))
+
+
+def _strict_json(path: Path) -> Any:
+    try:
+        return json.loads(path.read_bytes().decode("utf-8"), parse_constant=_refuse_json_constant)
+    except (UnicodeDecodeError, ValueError, RecursionError) as error:
+        raise PilotError(f"{path} is not strict JSON ({error})") from error
+
+
+def _refuse_json_constant(name: str) -> Any:
+    raise ValueError(f"{name} is not JSON")
+
+
+def _exchange_entry(exchange: RangeExchange) -> dict[str, Any]:
+    return {
+        "requested_range": f"bytes={exchange.requested_first}-{exchange.requested_last}",
+        "http_status": exchange.status,
+        "content_range": exchange.content_range,
+        "bytes_received": exchange.bytes_received,
+        "retrieved_at": (
+            None if exchange.retrieved_at is None else utc_timestamp(exchange.retrieved_at)
+        ),
+    }
+
+
+def _header_entry(header: GeoTiffHeader) -> dict[str, Any]:
+    """The COG header as the file states it, for the record."""
+    t = header.transform
+    unit: str | None = None
+    if header.crs is not None:
+        axes = pyproj.CRS.from_wkt(header.crs).axis_info
+        units = {axis.unit_name for axis in axes}
+        unit = units.pop() if len(units) == 1 else None
+    return {
+        "width": header.width,
+        "height": header.height,
+        "count": header.count,
+        "dtypes": list(header.dtypes),
+        "block_shapes": [list(shape) for shape in header.block_shapes],
+        "overviews": list(header.overviews),
+        "image_structure": dict(sorted(header.image_structure.items())),
+        "tags": dict(sorted(header.tags.items())),
+        "crs_wkt": header.crs,
+        "transform": None if t is None else [t.a, t.b, t.c, t.d, t.e, t.f],
+        "pixel_size": None if t is None else {"x": abs(t.a), "y": abs(t.e), "unit": unit},
+        "nodata": [_json_number(value) for value in header.nodata],
+        "units": list(header.units),
+        "scales": list(header.scales),
+        "offsets": list(header.offsets),
+        "descriptions": list(header.descriptions),
+    }
+
+
+@dataclass(frozen=True)
+class _CtxProbe:
+    key: str
+    name: str
+    bbox: tuple[float, float, float, float]
+    basis_role: str
+    basis: str
+
+
+@dataclass(frozen=True)
+class CtxSource:
+    """USGS ASP CTX DTMs (PRD 5 Mars inputs, 9 G0: one Mars CTX DTM read).
+
+    fetch downloads the STAC collection, the USGS CTX DTM documentation and the two pages the
+    probe boxes come from, then runs one item search per probe box and saves every page. The
+    item chosen by ``_ITEM_RULE`` has its ``qa_metrics.txt`` downloaded (when the item lists it)
+    and the centred ``window_pixels`` square of its ``dtm`` COG read through HTTP range requests,
+    header included; only the byte ranges read are stored. record reads only those files.
+
+    The probe boxes are pilot probes, not target windows. The Jezero box is the one the USGS
+    ``mosaic_json`` tutorial searches; the Arcadia Planitia box is that feature's extent in the
+    IAU Gazetteer of Planetary Nomenclature. record confirms each against the fetched page.
+    """
+
+    api_url: str = "https://stac.astrogeology.usgs.gov/api"
+    collection: str = "mro_ctx_controlled_usgs_dtms"
+    documentation_url: str = "https://stac.astrogeology.usgs.gov/docs/data/mars/ctxdtms/"
+    jezero_basis_url: str = "https://stac.astrogeology.usgs.gov/docs/tutorials/mosaic_json/"
+    arcadia_basis_url: str = "https://planetarynames.wr.usgs.gov/Feature/348"
+    jezero_bbox: tuple[float, float, float, float] = (76.69, 17.41, 78.69, 19.41)
+    arcadia_bbox: tuple[float, float, float, float] = (165.86, 33.87, -149.57, 64.17)
+    page_limit: int = 100
+    window_pixels: int = 256
+    range_block_bytes: int = RANGE_BLOCK_BYTES
+    whole_file_limit_bytes: int = WHOLE_FILE_LIMIT_BYTES
+
+    @property
+    def name(self) -> str:
+        return "ctx"
+
+    @property
+    def collection_url(self) -> str:
+        return f"{self.api_url.rstrip('/')}/collections/{self.collection}"
+
+    def _documents(self) -> tuple[tuple[str, str, str], ...]:
+        return (
+            ("collection", self.collection_url, "stac_collection.json"),
+            ("documentation", self.documentation_url, "ctxdtms_documentation.html"),
+            ("jezero_box_basis", self.jezero_basis_url, "usgs_tutorial_mosaic_json.html"),
+            ("arcadia_box_basis", self.arcadia_basis_url, "iau_gazetteer_arcadia_planitia.html"),
+        )
+
+    def _probes(self) -> tuple[_CtxProbe, ...]:
+        return (
+            _CtxProbe(
+                key="jezero",
+                name="Jezero crater",
+                bbox=self.jezero_bbox,
+                basis_role="jezero_box_basis",
+                basis=(
+                    "the 2-degree box that the USGS STAC tutorial 'mosaic_json' searches for "
+                    "Jezero crater with stac-client --bbox, around the location it states"
+                ),
+            ),
+            _CtxProbe(
+                key="arcadia_planitia",
+                name="Arcadia Planitia",
+                bbox=self.arcadia_bbox,
+                basis_role="arcadia_box_basis",
+                basis=(
+                    "the extent of Arcadia Planitia in the IAU Gazetteer of Planetary "
+                    "Nomenclature (Feature 348) for the control network and coordinate system "
+                    "the page selects, with the east longitude taken from 0-360 to -180-180; "
+                    "west greater than east crosses the antimeridian (RFC 7946 5.2)"
+                ),
+            ),
+        )
+
+    def _search_url(self, probe: _CtxProbe) -> str:
+        return stac_search_url(
+            self.api_url, collection=self.collection, bbox=probe.bbox, limit=self.page_limit
+        )
+
+    def _centre_window(self, width: int, height: int) -> Window:
+        """The centred ``window_pixels`` square (smaller only where the raster is smaller)."""
+        side_x, side_y = min(self.window_pixels, width), min(self.window_pixels, height)
+        return Window((width - side_x) // 2, (height - side_y) // 2, side_x, side_y)
+
+    # -- fetch --
+
+    def fetch(
+        self, raw_dir: Path, download: Downloader, read_range: RangeFetcher, now: Clock
+    ) -> None:
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=raw_dir, prefix=".fetch-") as staging_name:
+            staging = Path(staging_name)
+            documents: list[dict[str, Any]] = []
+            for role, url, file_name in self._documents():
+                fetched = download(url, staging / file_name, max_bytes=self.whole_file_limit_bytes)
+                documents.append(_fetch_entry(fetched, now(), role=role))
+            probes: list[dict[str, Any]] = []
+            jezero: list[tuple[int, dict[str, Any]]] = []
+            for probe in self._probes():
+                pages = fetch_stac_search(
+                    self._search_url(probe),
+                    staging,
+                    functools.partial(_stac_page_name, probe.key),
+                    download=download,
+                )
+                for page in pages:
+                    documents.append(
+                        _fetch_entry(
+                            page.fetched,
+                            now(),
+                            role="stac_search",
+                            probe=probe.key,
+                            page=page.number,
+                            next_url=page.content.next_url,
+                        )
+                    )
+                    if probe.key == "jezero":
+                        jezero.extend((page.number, item) for item in page.content.features)
+                probes.append(
+                    {
+                        "key": probe.key,
+                        "bbox": list(probe.bbox),
+                        "first_url": pages[0].url,
+                        "pages": [page.fetched.path.name for page in pages],
+                    }
+                )
+            chosen_id = min((str(item["id"]) for _, item in jezero), default=None)
+            files: list[dict[str, Any]] = []
+            qa_status = "not_read"
+            if chosen_id is not None:
+                item = next(item for _, item in jezero if item["id"] == chosen_id)
+                assets = item.get("assets")
+                if not isinstance(assets, dict):
+                    raise PilotError(f"the STAC item {chosen_id} has no assets object")
+                qa_asset = assets.get("qa_metrics")
+                if qa_asset is None:
+                    qa_status = "absent"
+                else:
+                    qa_url = self._asset_href(chosen_id, "qa_metrics", qa_asset)
+                    fetched = download(
+                        qa_url, staging / "qa_metrics.txt", max_bytes=self.whole_file_limit_bytes
+                    )
+                    files.append(
+                        _fetch_entry(
+                            fetched,
+                            now(),
+                            role="qa_metrics",
+                            item_id=chosen_id,
+                            asset_key="qa_metrics",
+                        )
+                    )
+                    qa_status = "downloaded"
+                dtm_url = self._asset_href(chosen_id, "dtm", assets.get("dtm"))
+                provider_name = _safe_file_name(
+                    urllib.parse.unquote(urllib.parse.urlsplit(dtm_url).path.rsplit("/", 1)[-1]),
+                    dtm_url,
+                )
+                remote = read_remote_geotiff_window(
+                    dtm_url,
+                    self._centre_window,
+                    fetch=read_range,
+                    block_bytes=self.range_block_bytes,
+                    max_bytes=self.whole_file_limit_bytes,
+                    with_header=True,
+                    now=now,
+                )
+                local_name = f"{provider_name}{_RANGES_SUFFIX}"
+                (staging / local_name).write_bytes(remote.ranges.data)
+                files.append(
+                    _window_entry(
+                        remote,
+                        local_name,
+                        now(),
+                        role="dtm_window",
+                        item_id=chosen_id,
+                        asset_key="dtm",
+                        provider_file_name=provider_name,
+                        exchanges=[_exchange_entry(exchange) for exchange in remote.exchanges],
+                    )
+                )
+            metadata = {
+                "source": self.name,
+                "command": f"{COMMAND} fetch {self.name}",
+                "api_url": self.api_url,
+                "collection": self.collection,
+                "page_limit": self.page_limit,
+                "whole_file_limit_bytes": self.whole_file_limit_bytes,
+                "documents": documents,
+                "files": files,
+                "probes": probes,
+                "choice": {"probe": "jezero", "rule": _ITEM_RULE, "item_id": chosen_id},
+                "qa_metrics": {"status": qa_status},
+            }
+            (raw_dir / FETCH_METADATA).unlink(missing_ok=True)
+            for entry in [*documents, *files]:
+                os.replace(staging / entry["file_name"], raw_dir / entry["file_name"])
+            _write_atomically(raw_dir / FETCH_METADATA, canonical_json(metadata))
+
+    def _asset_href(self, item_id: str, key: str, asset: Any) -> str:
+        href = asset.get("href") if isinstance(asset, dict) else None
+        if not isinstance(href, str) or not href:
+            raise PilotError(f"the STAC item {item_id} lists no {key} asset href")
+        return href
+
+    # -- build --
+
+    def build(self, raw_dir: Path, root: Path) -> Build:
+        fetched = _load_fetch(raw_dir, self.name)
+        try:
+            return self._build(raw_dir, root, fetched)
+        except (KeyError, TypeError) as error:
+            raise PilotError(
+                f"data/raw/{self.name}/{FETCH_METADATA} lacks an expected entry ({error!r}); "
+                f"run: {COMMAND} fetch {self.name}"
+            ) from error
+
+    def _local(self, file_name: str) -> str:
+        return f"{RAW_DIR.as_posix()}/{self.name}/{file_name}"
+
+    def _build(self, raw_dir: Path, root: Path, fetched: Mapping[str, Any]) -> Build:
+        documents = {
+            entry["role"]: entry for entry in fetched["documents"] if entry["role"] != "stac_search"
+        }
+        files = {entry["role"]: entry for entry in fetched["files"]}
+        collection_entry = documents["collection"]
+        collection = _strict_json(raw_dir / collection_entry["file_name"])
+        if not isinstance(collection, dict):
+            raise PilotError(f"{collection_entry['url']} is not a STAC collection object")
+        collection_url = str(collection_entry["url"])
+        licence = self._stated(collection, "license", collection_url)
+        doi = self._stated(collection, "sci:doi", collection_url)
+        citation = self._stated(collection, "sci:citation", collection_url)
+        attribution = self._attribution(licence["value"], doi["value"], citation["value"])
+        provider = self._provider(collection)
+        documentation_entry = documents["documentation"]
+        documentation = _page_text(_decode(raw_dir / documentation_entry["file_name"]))
+        qa_sentence = _QA_DEFINITION.search(documentation)
+        areoid_sentence = _AREOID_SENTENCE.search(documentation)
+
+        probes: list[dict[str, Any]] = []
+        jezero: list[tuple[int, dict[str, Any]]] = []
+        for probe in self._probes():
+            probe_record, items = self._probe_record(raw_dir, fetched, probe, documents)
+            probes.append(probe_record)
+            if probe.key == "jezero":
+                jezero = items
+        chosen_id = min((str(item["id"]) for _, item in jezero), default=None)
+        if fetched["choice"]["item_id"] != chosen_id:
+            raise PilotError(
+                f"fetch.json chose item {fetched['choice']['item_id']!r}, but the rule gives "
+                f"{chosen_id!r} on the saved pages; run: {COMMAND} fetch {self.name}"
+            )
+
+        records: list[ProductRecord] = []
+        verification: dict[str, dict[str, str]] = {}
+        dtm: dict[str, Any] | None = None
+        threshold = {
+            "applied": False,
+            "value": None,
+            "reason": (
+                "the CTX QA threshold is an open kickoff item (PRD 15: start at 10 m CTX-MOLA "
+                "standard deviation); this record quotes qa_metrics.txt and neither sets nor "
+                "applies a threshold"
+            ),
+        }
+        definition = {
+            "quote": None if qa_sentence is None else qa_sentence.group(0),
+            "source": documentation_entry["url"],
+        }
+        qa: dict[str, Any] = {
+            "status": "not_read",
+            "reason": "the Jezero probe search returned no item, so no qa_metrics.txt was read",
+            "ctx_mola_std_dev": None,
+            "ctx_mola_std_dev_absent_reason": None,
+            "definition": definition,
+            "ctx_qa_threshold": threshold,
+        }
+        if chosen_id is None:
+            chosen: dict[str, Any] = {
+                "rule": _ITEM_RULE,
+                "probe": "jezero",
+                "item_id": None,
+                "reason": "the Jezero probe search returned no item, so no DTM was read",
+            }
+        else:
+            page_number, item = next((n, i) for n, i in jezero if i["id"] == chosen_id)
+            assets = item["assets"]
+            chosen = self._chosen_record(chosen_id, page_number, item)
+            qa, qa_record, std_line = self._qa(
+                raw_dir, fetched, files, chosen_id, assets, provider, attribution, qa
+            )
+            if qa_record is not None:
+                records.append(qa_record)
+                verification[qa_record.product_id] = {
+                    "status": qa_record.verification_status,
+                    "basis": (
+                        "downloaded and read as text; the CTX-MOLA standard deviation line is "
+                        "quoted in qa_metrics.ctx_mola_std_dev where present. A text file is not "
+                        "decoded, masked or plotted, so the PRD 5 entry rule does not apply in full"
+                    ),
+                }
+            dtm, dtm_record, basis = self._dtm(
+                raw_dir,
+                root,
+                files,
+                chosen_id,
+                assets,
+                provider,
+                attribution,
+                std_line,
+                qa["status"],
+                areoid_sentence,
+                documentation_entry["url"],
+            )
+            records.append(dtm_record)
+            verification[dtm_record.product_id] = {
+                "status": dtm_record.verification_status,
+                "basis": basis,
+            }
+
+        retrieved = sorted(
+            entry["retrieved_at"] for entry in [*fetched["documents"], *fetched["files"]]
+        )
+        result = {
+            "record": "ctx_dtm",
+            "description": (
+                "One USGS ASP CTX DTM found through the Astrogeology STAC API and read by window, "
+                "with its qa_metrics.txt, as fetched by the T1 pilot (PRD 5 Mars inputs; 9 G0, "
+                "one Mars CTX DTM read). Raw observations only: no CTX QA threshold is applied "
+                "(PRD 15), no target window is chosen, and the shipping mode and the G0 status "
+                "are a human checkpoint (PRD 23.6) and are not recorded here."
+            ),
+            "source": self.name,
+            "collection": {
+                "id": self.collection,
+                "url": collection_url,
+                "local_path": self._local(collection_entry["file_name"]),
+                "sha256": collection_entry["sha256"],
+                "stated_id": collection.get("id"),
+                "title": collection.get("title"),
+                "license": licence,
+                "doi": doi,
+                "citation": citation,
+                "cite_as": self._cite_as(collection),
+                "providers": collection.get("providers"),
+            },
+            "probes": probes,
+            "target_windows": {
+                "chosen": False,
+                "reason": (
+                    "no target window is chosen here: the Jezero window near the landing site "
+                    "and the Arcadia Planitia window inside the shallow-ice region are frozen at "
+                    "G0 by the team (PRD 5 Mars target windows; PRD 15 open items). The probe "
+                    "boxes only count CTX DTM coverage."
+                ),
+            },
+            "chosen_item": chosen,
+            "dtm": dtm,
+            "qa_metrics": qa,
+            "documents": [
+                {
+                    key: entry[key]
+                    for key in (
+                        "role",
+                        "file_name",
+                        "url",
+                        "final_url",
+                        "http_status",
+                        "content_type",
+                        "bytes_received",
+                        "sha256",
+                        "last_modified",
+                        "retrieved_at",
+                    )
+                }
+                | {"local_path": self._local(entry["file_name"])}
+                for entry in fetched["documents"]
+                if entry["role"] != "stac_search"
+            ],
+            "retrieval": {
+                "first_retrieved_at": retrieved[0],
+                "last_retrieved_at": retrieved[-1],
+                "fetch_metadata": self._local(FETCH_METADATA),
+                "command": fetched["command"],
+            },
+            "verification": verification,
+            "open_g0_items": [
+                "G0 needs the Mars target windows (Jezero near the landing site, Arcadia "
+                "Planitia inside the shallow-ice region); none is chosen here (PRD 5, 15)",
+                "The CTX QA threshold is not set (PRD 15); qa_metrics.txt is quoted, not judged",
+                "The G0 status and the shipping mode are a human checkpoint (PRD 23.6)",
+            ],
+            "field_notes": self._field_notes(),
+            "tool_versions": tool_versions(),
+        }
+        return Build(
+            files={"outputs/pilot/ctx_dtm.json": canonical_json(result)},
+            records=tuple(sorted(records, key=lambda r: r.product_id)),
+            record_prefix=_CTX_PREFIX,
+        )
+
+    # -- build: the collection --
+
+    @staticmethod
+    def _stated(collection: Mapping[str, Any], key: str, url: str) -> dict[str, Any]:
+        """A collection field as stated, with where; "unknown" when the collection omits it."""
+        value = collection.get(key)
+        if isinstance(value, str) and value.strip():
+            return {"value": value, "stated_by": f"{url} ({key})"}
+        return {"value": UNKNOWN, "stated_by": None}
+
+    @staticmethod
+    def _attribution(licence: str, doi: str, citation: str) -> str:
+        parts = []
+        if licence != UNKNOWN:
+            parts.append(f"licence {licence} (STAC collection license)")
+        if doi != UNKNOWN:
+            parts.append(f"cite doi:{doi} (STAC collection sci:doi)")
+        if citation != UNKNOWN:
+            parts.append(f"citation as stated (sci:citation): '{citation}'")
+        return "; ".join(parts) if parts else UNKNOWN
+
+    @staticmethod
+    def _provider(collection: Mapping[str, Any]) -> str:
+        providers = collection.get("providers")
+        named = []
+        if isinstance(providers, list):
+            for entry in providers:
+                if isinstance(entry, dict) and isinstance(entry.get("name"), str):
+                    roles = entry.get("roles")
+                    role_text = (
+                        f" ({', '.join(str(role) for role in roles)})"
+                        if isinstance(roles, list) and roles
+                        else ""
+                    )
+                    named.append(f"{entry['name']}{role_text}")
+        if not named:
+            return UNKNOWN
+        return f"{'; '.join(named)}, as the STAC collection's providers state"
+
+    @staticmethod
+    def _cite_as(collection: Mapping[str, Any]) -> str | None:
+        links = collection.get("links")
+        if not isinstance(links, list):
+            return None
+        hrefs = [
+            str(link["href"])
+            for link in links
+            if isinstance(link, dict) and link.get("rel") == "cite-as" and "href" in link
+        ]
+        return hrefs[0] if hrefs else None
+
+    # -- build: the probes --
+
+    def _probe_record(
+        self,
+        raw_dir: Path,
+        fetched: Mapping[str, Any],
+        probe: _CtxProbe,
+        documents: Mapping[str, Mapping[str, Any]],
+    ) -> tuple[dict[str, Any], list[tuple[int, dict[str, Any]]]]:
+        listed = {entry["key"]: entry for entry in fetched["probes"]}[probe.key]
+        pages = sorted(
+            (
+                entry
+                for entry in fetched["documents"]
+                if entry["role"] == "stac_search" and entry["probe"] == probe.key
+            ),
+            key=lambda entry: int(entry["page"]),
+        )
+        expected = self._search_url(probe)
+        if (
+            not pages
+            or [entry["page"] for entry in pages] != list(range(1, len(pages) + 1))
+            or pages[0]["url"] != expected
+            or listed["first_url"] != expected
+            or listed["bbox"] != list(probe.bbox)
+        ):
+            raise PilotError(
+                f"the saved {probe.key} search pages are not the search this source runs "
+                f"({expected}); run: {COMMAND} fetch {self.name}"
+            )
+        items: list[tuple[int, dict[str, Any]]] = []
+        page_records = []
+        matched: set[int] = set()
+        for index, entry in enumerate(pages):
+            content = parse_stac_item_collection(
+                (raw_dir / entry["file_name"]).read_bytes(), str(entry["final_url"])
+            )
+            following = pages[index + 1]["url"] if index + 1 < len(pages) else None
+            if content.next_url != entry["next_url"] or content.next_url != following:
+                raise PilotError(
+                    f"page {entry['page']} of the {probe.key} search: its next link "
+                    f"{content.next_url!r} does not lead to the next page saved ({following!r}); "
+                    f"run: {COMMAND} fetch {self.name}"
+                )
+            items.extend((int(entry["page"]), feature) for feature in content.features)
+            if content.number_matched is not None:
+                matched.add(content.number_matched)
+            page_records.append(
+                {
+                    "number": entry["page"],
+                    "url": entry["url"],
+                    "final_url": entry["final_url"],
+                    "local_path": self._local(entry["file_name"]),
+                    "http_status": entry["http_status"],
+                    "content_type": entry["content_type"],
+                    "bytes_received": entry["bytes_received"],
+                    "sha256": entry["sha256"],
+                    "retrieved_at": entry["retrieved_at"],
+                    "number_returned": len(content.features),
+                    "number_matched_stated": content.number_matched,
+                    "next_url": content.next_url,
+                }
+            )
+        ids = [str(feature["id"]) for _, feature in items]
+        duplicates = sorted({item_id for item_id in ids if ids.count(item_id) > 1})
+        west, _, east, _ = probe.bbox
+        record = {
+            "key": probe.key,
+            "name": probe.name,
+            "role": _PROBE_ROLE,
+            "bbox": list(probe.bbox),
+            "bbox_order": "west, south, east, north in degrees (STAC API bbox)",
+            "bbox_crosses_antimeridian": west > east,
+            "basis": self._basis(raw_dir, probe, documents[probe.basis_role]),
+            "search": {
+                "first_url": expected,
+                "collection": self.collection,
+                "limit": self.page_limit,
+                "pages": page_records,
+                "items_found": len(set(ids)),
+                "items_found_note": (
+                    "distinct item IDs over every page, counted from the saved pages; "
+                    "number_matched_stated lists the numberMatched values the pages state"
+                ),
+                "number_matched_stated": sorted(matched),
+                "duplicate_item_ids": duplicates,
+                "item_ids": sorted(set(ids)),
+            },
+        }
+        return record, items
+
+    def _basis(self, raw_dir: Path, probe: _CtxProbe, entry: Mapping[str, Any]) -> dict[str, Any]:
+        html = _decode(raw_dir / entry["file_name"])
+        basis: dict[str, Any] = {
+            "text": probe.basis,
+            "document": entry["url"],
+            "local_path": self._local(entry["file_name"]),
+        }
+        if probe.key == "jezero":
+            text = _page_text(html)
+            command = re.search(
+                rf"stac-client search \S+ --bbox (\S+) (\S+) (\S+) (\S+) "
+                rf"-c {re.escape(self.collection)}(?: --matched)?",
+                text,
+            )
+            location = _JEZERO_LOCATION.search(text)
+            quotes = [] if command is None else [command.group(0)]
+            if command is not None and location is not None:
+                quotes.append(location.group(0))
+            confirmed = command is not None and _same_numbers(command.groups(), probe.bbox)
+            return basis | {"confirmed": confirmed, "quotes": quotes}
+        stated = _gazetteer_extent(html)
+        return basis | {
+            "confirmed": stated is not None and _gazetteer_confirms(stated, probe.bbox),
+            "stated": stated,
+        }
+
+    def _chosen_record(
+        self, item_id: str, page_number: int, item: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        properties = item.get("properties")
+        props = properties if isinstance(properties, dict) else {}
+        assets = item["assets"]
+        return {
+            "rule": _ITEM_RULE,
+            "probe": "jezero",
+            "item_id": item_id,
+            "found_on_page": page_number,
+            "collection": item.get("collection"),
+            "bbox": item.get("bbox"),
+            "properties": {
+                key: props[key]
+                for key in (
+                    "title",
+                    "start_datetime",
+                    "end_datetime",
+                    "datetime",
+                    "gsd",
+                    "license",
+                    "proj:shape",
+                )
+                if key in props
+            },
+            "assets": {
+                key: {
+                    field_name: asset.get(field_name)
+                    for field_name in ("href", "type", "title", "roles")
+                }
+                for key, asset in sorted(assets.items())
+                if isinstance(asset, dict)
+            },
+        }
+
+    # -- build: qa_metrics.txt --
+
+    def _qa(
+        self,
+        raw_dir: Path,
+        fetched: Mapping[str, Any],
+        files: Mapping[str, Mapping[str, Any]],
+        item_id: str,
+        assets: Mapping[str, Any],
+        provider: str,
+        attribution: str,
+        base: dict[str, Any],
+    ) -> tuple[dict[str, Any], ProductRecord | None, str | None]:
+        status = fetched["qa_metrics"]["status"]
+        if status == "absent":
+            if "qa_metrics" in assets or "qa_metrics" in files:
+                raise PilotError(
+                    f"fetch.json records qa_metrics.txt as absent for {item_id}, but the item "
+                    f"lists it; run: {COMMAND} fetch {self.name}"
+                )
+            return (
+                base
+                | {
+                    "status": "absent",
+                    "item_id": item_id,
+                    "reason": (
+                        f"the STAC item {item_id} lists no qa_metrics asset, so qa_metrics.txt "
+                        "is absent for this item"
+                    ),
+                },
+                None,
+                None,
+            )
+        entry = files["qa_metrics"]
+        href = self._asset_href(item_id, "qa_metrics", assets.get("qa_metrics"))
+        if status != "downloaded" or entry["url"] != href or entry["item_id"] != item_id:
+            raise PilotError(
+                f"fetch.json's qa_metrics.txt is not the one item {item_id} lists ({href}); "
+                f"run: {COMMAND} fetch {self.name}"
+            )
+        text = _decode(raw_dir / entry["file_name"])
+        lines = list(_QA_STD_LINE.finditer(text))
+        std: dict[str, Any] | None = None
+        absent_reason: str | None = None
+        if len(lines) == 1:
+            (match,) = lines
+            std = {
+                "line": match.group(0).rstrip("\r"),
+                "line_number": text.count("\n", 0, match.start()) + 1,
+                "value": match.group("value"),
+                "unit": match.group("unit"),
+                "source": self._local(entry["file_name"]),
+            }
+        elif not lines:
+            absent_reason = (
+                "qa_metrics.txt has no 'StdDev of difference' line, so the CTX-MOLA standard "
+                "deviation is absent for this item"
+            )
+        else:
+            absent_reason = (
+                f"qa_metrics.txt has {len(lines)} 'StdDev of difference' lines; none is chosen"
+            )
+        local_path = self._local(entry["file_name"])
+        quote = base["definition"]["quote"]
+        record = ProductRecord.model_validate(
+            {
+                "product_id": f"{_CTX_PREFIX}{self.collection}/{item_id}/qa_metrics.txt",
+                "provider": provider,
+                "version": UNKNOWN,
+                "source_url": href,
+                "local_path": local_path,
+                "checksum": entry["sha256"],
+                "body": "mars",
+                "acquisition_time": UNKNOWN,
+                "frequency_or_wavelength": None,
+                "transmit_receive_convention": None,
+                "units": (
+                    UNKNOWN
+                    if std is None
+                    else f"{std['unit']}, as qa_metrics.txt states for the standard deviation"
+                ),
+                "calibration_type": None,
+                "native_grid": None,
+                "effective_resolution": None,
+                "crs_and_frame": UNKNOWN,
+                "incidence_source": None,
+                "qa_definition": (
+                    UNKNOWN
+                    if quote is None
+                    else f"CTX-MOLA difference statistics, as the USGS documentation defines "
+                    f"the file: '{quote}'; no CTX QA threshold is applied (PRD 15)"
+                ),
+                "license_or_attribution": attribution,
+                "verification_status": "PARTIAL",
+            }
+        )
+        qa = base | {
+            "status": "read",
+            "item_id": item_id,
+            "reason": None,
+            "url": entry["url"],
+            "final_url": entry["final_url"],
+            "local_path": local_path,
+            "http_status": entry["http_status"],
+            "content_type": entry["content_type"],
+            "bytes_received": entry["bytes_received"],
+            "sha256": entry["sha256"],
+            "retrieved_at": entry["retrieved_at"],
+            "text": text,
+            "ctx_mola_std_dev": std,
+            "ctx_mola_std_dev_absent_reason": absent_reason,
+        }
+        return qa, record, None if std is None else str(std["line"])
+
+    # -- build: the DTM window --
+
+    def _dtm(
+        self,
+        raw_dir: Path,
+        root: Path,
+        files: Mapping[str, Mapping[str, Any]],
+        item_id: str,
+        assets: Mapping[str, Any],
+        provider: str,
+        attribution: str,
+        std_line: str | None,
+        qa_status: str,
+        areoid: re.Match[str] | None,
+        documentation_url: str,
+    ) -> tuple[dict[str, Any], ProductRecord, str]:
+        entry = files["dtm_window"]
+        dtm_asset = assets.get("dtm")
+        href = self._asset_href(item_id, "dtm", dtm_asset)
+        if entry["url"] != href or entry["item_id"] != item_id or not _is_window_read(entry):
+            raise PilotError(
+                f"fetch.json's DTM window is not a window read of the dtm asset of {item_id} "
+                f"({href}); run: {COMMAND} fetch {self.name}"
+            )
+        provider_name = _provider_name(entry)
+        path = raw_dir / entry["file_name"]
+        ranges = self._ranges(path, entry)
+        header = read_geotiff_header(path, ranges=ranges)
+        w = entry["window"]
+        window = Window(w["col_off"], w["row_off"], w["width"], w["height"])
+        nodata = header.nodata[0] if header.nodata else None
+        if nodata is None:
+            mask_text = "the file declares no nodata value; non-finite values are masked"
+        else:
+            mask_text = f"nodata {_json_number(nodata)} as the file declares it"
+        if qa_status == "read" and std_line is not None:
+            qa_text = f"qa_metrics.txt states the CTX-MOLA difference statistics ('{std_line}')"
+        elif qa_status == "read":
+            qa_text = "qa_metrics.txt has no standard deviation line"
+        else:
+            qa_text = "the item lists no qa_metrics.txt"
+        metadata: ProductMetadata = {
+            "body": "mars",
+            "provider": provider,
+            "version": UNKNOWN,
+            "source_url": href,
+            "acquisition_time": UNKNOWN,
+            "frequency_or_wavelength": None,
+            "transmit_receive_convention": None,
+            "calibration_type": None,
+            "effective_resolution": UNKNOWN,
+            "incidence_source": None,
+            "qa_definition": (
+                f"{mask_text}, masked with quality.validity_mask; {qa_text}; no CTX QA "
+                "threshold is applied (an open item, PRD 15)"
+            ),
+            "license_or_attribution": attribution,
+        }
+        product_id = f"{_CTX_PREFIX}{self.collection}/{item_id}/{provider_name}"
+        bands, record = read_product(
+            product_id, [path], metadata, root=root, window=window, ranges=ranges
+        )
+        band = bands[0]
+        mask = validity_mask(band.array, nodata=band.nodata)
+        fraction = valid_fraction(mask)
+        values = band.array[mask.valid]
+        stac_band = None
+        raster_bands = dtm_asset.get("raster:bands") if isinstance(dtm_asset, dict) else None
+        if isinstance(raster_bands, list) and raster_bands and isinstance(raster_bands[0], dict):
+            stated = raster_bands[0]
+            stated_nodata = stated.get("nodata")
+            stac_band = {
+                "data_type": stated.get("data_type"),
+                "nodata": stated_nodata,
+                "matches_file": stated.get("data_type") == header.dtypes[0]
+                and isinstance(stated_nodata, int | float)
+                and not isinstance(stated_nodata, bool)
+                and nodata is not None
+                and float(stated_nodata) == nodata,
+            }
+        units_known = record.units != UNKNOWN
+        basis = (
+            f"the centred {w['width']} x {w['height']} window read through "
+            f"{entry['range_requests']} HTTP range requests ({entry['bytes_received']} of the "
+            f"{entry['remote_bytes']} bytes; the COG is not downloaded whole), header and window "
+            "decoded and masked with quality.validity_mask; not plotted"
+            + ("" if units_known else ", and the file states no units")
+            + ", so the PRD 5 entry rule is not complete"
+        )
+        dtm = {
+            "asset_key": "dtm",
+            "item_id": item_id,
+            "product_id": product_id,
+            "url": entry["url"],
+            "final_url": entry["final_url"],
+            "provider_file_name": provider_name,
+            "header": _header_entry(header),
+            "band": band.band,
+            "units_stated_by_file": band.units,
+            "nodata_stated_by_file": _json_number(band.nodata),
+            "vertical_reference": {
+                "geoid_tag": header.tags.get("GEOID"),
+                "documentation_quote": None if areoid is None else areoid.group(0),
+                "documentation": documentation_url,
+            },
+            "stac_raster_band": stac_band,
+            "window": w,
+            "range_read": {
+                "url": entry["url"],
+                "final_url": entry["final_url"],
+                "http_status": entry["http_status"],
+                "content_type": entry["content_type"],
+                "last_modified": entry["last_modified"],
+                "etag": entry["etag"],
+                "remote_bytes": entry["remote_bytes"],
+                "bytes_received": entry["bytes_received"],
+                "range_requests": entry["range_requests"],
+                "ranges": entry["ranges"],
+                "exchanges": entry["exchanges"],
+                "local_path": record.local_path,
+                "local_sha256": record.checksum,
+                "retrieved_at": entry["retrieved_at"],
+                "whole_file_downloaded": False,
+                "sha256_note": (
+                    "the whole file was not downloaded, so its SHA-256 is unknown; local_sha256 "
+                    "is that of the byte ranges held in local_path (COG header and window tiles)"
+                ),
+            },
+            "valid": {
+                "method": (
+                    "quality.validity_mask(window, nodata=the file's nodata) and "
+                    "quality.valid_fraction"
+                ),
+                "valid_pixels": fraction.valid_pixels,
+                "invalid_pixels": fraction.invalid_pixels,
+                "total_pixels": fraction.total_pixels,
+                "valid_fraction": fraction.fraction,
+                "invalid_by_reason": {
+                    reason.label: count
+                    for reason, count in mask.reason_counts().items()
+                    if reason != InvalidReason.VALID
+                },
+                "min_stored_valid": float(np.min(values)) if values.size else None,
+                "max_stored_valid": float(np.max(values)) if values.size else None,
+            },
+        }
+        return dtm, record, basis
+
+    def _ranges(self, path: Path, entry: Mapping[str, Any]) -> ByteRanges:
+        try:
+            return ByteRanges(
+                name=_provider_name(entry),
+                size=int(entry["remote_bytes"]),
+                ranges=tuple((int(first), int(last)) for first, last in entry["ranges"]),
+                data=path.read_bytes(),
+            )
+        except ValueError as error:
+            raise PilotError(
+                f"data/raw/{self.name}/{FETCH_METADATA} describes the byte ranges in {path.name} "
+                f"wrongly ({error}); run: {COMMAND} fetch {self.name}"
+            ) from error
+
+    @staticmethod
+    def _field_notes() -> dict[str, str]:
+        return {
+            "units": (
+                "the DTM COG states no band units, so its ProductRecord units are unknown; "
+                "qa_metrics.txt states its differences in the unit it writes after each value"
+            ),
+            "acquisition_time": (
+                "unknown: the STAC item gives start_datetime and end_datetime (chosen_item."
+                "properties) without defining them as the CTX image acquisition times"
+            ),
+            "version": "unknown: neither the STAC collection nor the item states a version",
+            "effective_resolution": (
+                "unknown: neither the STAC item nor the file states one for this DTM"
+            ),
+            "crs_and_frame": (
+                "the WKT the COG states; the STAC item's proj:wkt2 is not used for the record"
+            ),
+            "probe_boxes": (
+                "the probe boxes count CTX DTM coverage for G0; they are not target windows and "
+                "set nothing in config/run.yaml"
+            ),
+        }
+
+
+def _same_numbers(texts: Sequence[str], values: Sequence[float]) -> bool:
+    try:
+        return len(texts) == len(values) and all(
+            Decimal(text) == Decimal(repr(float(value)))
+            for text, value in zip(texts, values, strict=True)
+        )
+    except InvalidOperation:
+        return False
+
+
+def _gazetteer_extent(html: str) -> dict[str, str] | None:
+    """The extent an IAU Gazetteer feature page shows for its selected network and system.
+
+    The page lists one table row per control network (``geom-<id>``) and coordinate system
+    (``cs-<id>``); the selected network is the ``selected`` option and the system the hidden
+    ``selected_coordinate_system`` input. None when any of it is missing.
+    """
+    network = _GAZETTEER_NETWORK.search(html)
+    system_id = _GAZETTEER_SYSTEM_ID.search(html)
+    system_name = _GAZETTEER_SYSTEM_NAME.search(html)
+    if network is None or system_id is None or system_name is None:
+        return None
+    stated = {
+        "control_network": unescape(network.group(1)),
+        "control_network_id": network.group(2),
+        "coordinate_system": unescape(system_name.group(1)),
+        "coordinate_system_id": system_id.group(1),
+    }
+    for key, label in _GAZETTEER_FIELDS:
+        row = re.search(
+            rf'<tr class="geometry geom-{network.group(2)} cs-{system_id.group(1)}">\s*'
+            rf"<th>{label}</th>\s*<td>\s*([-+0-9.]+)\s*&deg;",
+            html,
+        )
+        if row is None:
+            return None
+        stated[key] = row.group(1)
+    return stated
+
+
+def _gazetteer_confirms(stated: Mapping[str, str], bbox: Sequence[float]) -> bool:
+    """Whether the Gazetteer's 0-360 east extent is ``bbox`` (west, south, east, north)."""
+    if stated["coordinate_system"] != _EAST_0_360:
+        return False
+
+    def longitude(text: str) -> Decimal:
+        value = Decimal(text)
+        return value - 360 if value > 180 else value
+
+    try:
+        west, south, east, north = (Decimal(repr(float(value))) for value in bbox)
+        return (
+            longitude(stated["westmost_longitude"]) == west
+            and Decimal(stated["southmost_latitude"]) == south
+            and longitude(stated["eastmost_longitude"]) == east
+            and Decimal(stated["northmost_latitude"]) == north
+        )
+    except (InvalidOperation, ValueError):
+        return False
+
+
+SOURCES: Mapping[str, Source] = {
+    "pgda78": Pgda78Source(),
+    "minirf": MinirfSource(),
+    "ctx": CtxSource(),
+}
 """The registered pilot sources, by the name used on the command line."""
 
 
