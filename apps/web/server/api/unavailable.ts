@@ -2,9 +2,9 @@
 // compare and model (T15-05) and is the rule GET /targets/{id} (T15-04) already follows:
 //
 //   404 Not Found (NOT_IN_BUNDLE_STATUS): the bundle does not hold the requested record or file.
-//       manifest.json decides: it does not list the id, does not list the file the record would
-//       be in, or names no model. The detail says what is not in bundle <bundle_version>.
-//   501 Not Implemented (NOT_SERVED_STATUS): the bundle holds the file the record would come from,
+//       manifest.json decides: it does not list the id, lists no file that could hold the record
+//       of that id, or names no model. The detail says what is not in bundle <bundle_version>.
+//   501 Not Implemented (NOT_SERVED_STATUS): the bundle holds a file the record could come from,
 //       but @terraluna/schema has no schema for its records, so the API serves nothing from it.
 //       The detail says the file is in bundle <bundle_version> and which schema is missing.
 //
