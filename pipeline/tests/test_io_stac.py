@@ -164,9 +164,9 @@ def test_an_empty_collection_is_refused() -> None:
 
 
 def test_a_page_is_parsed_with_its_counts_and_next_link() -> None:
+    next_href = "https://stac.example.test/api/search?next=x"
     parsed = parse_stac_item_collection(
-        encode(page(["b", "a"], next_href="https://stac.example.test/api/search?next=x", matched=5)),
-        PAGE_URL,
+        encode(page(["b", "a"], next_href=next_href, matched=5)), PAGE_URL
     )
     assert parsed.ids == ("b", "a")
     assert [item["id"] for item in parsed.features] == ["b", "a"]

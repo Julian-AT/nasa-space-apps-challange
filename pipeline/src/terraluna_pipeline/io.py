@@ -15,7 +15,11 @@ these functions, so they never guess a value:
   ``read_remote_geotiff_window`` reads one window of a remote GeoTIFF through GDAL and uses the
   network only through its ``fetch`` argument (``fetch_range`` by default), so only the byte
   ranges GDAL needs are transferred. ``ByteRanges`` keeps those bytes so the window can be
-  decoded again offline.
+  decoded again offline. It counts the bytes received and logs every range request
+  (``RangeExchange``: status, Content-Range, bytes received, retrieval time), and with
+  ``with_header`` also reads the COG header (``read_geotiff_header``) through the same ranges.
+- ``stac_search_url``, ``parse_stac_item_collection`` and ``fetch_stac_search`` run a STAC API
+  item search and follow its ``next`` links; the pages are downloaded with ``fetch_file``.
 - ``parse_pds3_label``, ``pds3_image_layout`` and ``pds3_polar_stereographic`` read a PDS3
   detached label (the image layout and the polar stereographic map projection it states), and
   ``fetch_pds3_rows`` reads whole image rows of a remote PDS3 image with one range request.
@@ -24,10 +28,12 @@ these functions, so they never guess a value:
 from __future__ import annotations
 
 import bisect
+import dataclasses
 import functools
 import hashlib
 import http.client
 import io
+import json
 import math
 import os
 import re
@@ -39,6 +45,7 @@ import urllib.request
 import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import IO, Any, Final, Protocol, Required, TypedDict
 
@@ -229,6 +236,126 @@ def read_geotiff_tags(path: Path, *, ranges: ByteRanges | None = None) -> dict[s
     errors: list[Exception] = []
     container = _SingleFileContainer(ranges.name, ranges.size, ranges.read, errors)
     return _surface_errors(errors, lambda: read(ranges.name, container))
+
+
+@dataclass(frozen=True, eq=False)
+class GeoTiffHeader:
+    """What a GeoTIFF's header states, read without decoding any pixel.
+
+    ``block_shapes`` are ``(rows, columns)`` per band and ``overviews`` the decimation factors of
+    band 1, both as GDAL reports them. ``image_structure`` is the IMAGE_STRUCTURE metadata domain
+    (such as ``LAYOUT=COG``, ``COMPRESSION``, ``PREDICTOR``) and ``tags`` the default domain. Per
+    band, ``nodata``, ``units`` and ``descriptions`` are None when the file states none. ``crs`` is
+    WKT and ``transform`` the raster's affine; both are None when the file has none. Two headers
+    are equal when every field is, a NaN nodata value matching a NaN.
+    """
+
+    width: int
+    height: int
+    count: int
+    dtypes: tuple[str, ...]
+    block_shapes: tuple[tuple[int, int], ...]
+    overviews: tuple[int, ...]
+    image_structure: dict[str, str]
+    tags: dict[str, str]
+    crs: str | None
+    transform: Affine | None
+    nodata: tuple[float | None, ...]
+    units: tuple[str | None, ...]
+    scales: tuple[float, ...]
+    offsets: tuple[float, ...]
+    descriptions: tuple[str | None, ...]
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, GeoTiffHeader):
+            return NotImplemented
+
+        def same(x: float | None, y: float | None) -> bool:
+            if x is None or y is None:
+                return x is y
+            return x == y or (math.isnan(x) and math.isnan(y))
+
+        fields = (
+            "width",
+            "height",
+            "count",
+            "dtypes",
+            "block_shapes",
+            "overviews",
+            "image_structure",
+            "tags",
+            "crs",
+            "transform",
+            "units",
+            "scales",
+            "offsets",
+            "descriptions",
+        )
+        return (
+            all(getattr(self, name) == getattr(other, name) for name in fields)
+            and len(self.nodata) == len(other.nodata)
+            and all(same(x, y) for x, y in zip(self.nodata, other.nodata, strict=True))
+        )
+
+
+def _header_of(src: Any) -> GeoTiffHeader:
+    """The header of an open rasterio dataset; reads metadata only, never pixel blocks."""
+    gcps, _ = src.gcps
+    raster_transform: Affine = src.transform
+    # As in _read_window: GDAL's identity transform beside control points is not a stated one.
+    georeferenced = not (raster_transform.is_identity and (bool(gcps) or bool(src.rpcs)))
+    return GeoTiffHeader(
+        width=int(src.width),
+        height=int(src.height),
+        count=int(src.count),
+        dtypes=tuple(str(dtype) for dtype in src.dtypes),
+        block_shapes=tuple((int(rows), int(cols)) for rows, cols in src.block_shapes),
+        overviews=tuple(int(factor) for factor in src.overviews(1)),
+        image_structure={
+            str(key): str(value) for key, value in src.tags(ns="IMAGE_STRUCTURE").items()
+        },
+        tags={str(key): str(value) for key, value in src.tags().items()},
+        crs=src.crs.to_wkt() if src.crs is not None else None,
+        transform=raster_transform if georeferenced else None,
+        nodata=tuple(None if value is None else float(value) for value in src.nodatavals),
+        units=tuple(unit or None for unit in src.units),
+        scales=tuple(float(value) for value in src.scales),
+        offsets=tuple(float(value) for value in src.offsets),
+        descriptions=tuple(text or None for text in src.descriptions),
+    )
+
+
+def _read_header(target: Path | str, opener: FileContainer | None) -> GeoTiffHeader:
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        with rasterio.open(target, opener=opener) as src:
+            header = _header_of(src)
+    not_georeferenced = False
+    for warning in caught:
+        if issubclass(warning.category, NotGeoreferencedWarning):
+            not_georeferenced = True
+        else:
+            warnings.warn_explicit(
+                warning.message, warning.category, warning.filename, warning.lineno
+            )
+    if not_georeferenced and header.transform is not None:
+        return dataclasses.replace(header, transform=None)
+    return header
+
+
+def read_geotiff_header(path: Path, *, ranges: ByteRanges | None = None) -> GeoTiffHeader:
+    """The header of a GeoTIFF (size, bands, tiling, overviews, metadata, CRS, nodata, units).
+
+    No pixel block is decoded. When ``ranges`` is given, the header is read from those stored byte
+    ranges (opened as ``ranges.name``) and ``path`` is not opened; a byte they do not hold raises
+    RangeCacheError, so a header is never read from guessed bytes. A file without a geotransform
+    reports ``transform`` None rather than GDAL's identity transform.
+    """
+    if ranges is None:
+        return _read_header(path, None)
+    errors: list[Exception] = []
+    container = _SingleFileContainer(ranges.name, ranges.size, ranges.read, errors)
+    return _surface_errors(errors, lambda: _read_header(ranges.name, container))
 
 
 # --- read_product (PRD 8.11) --------------------------------------------------------------------
@@ -954,19 +1081,47 @@ class _SingleFileContainer(FileContainer):  # type: ignore[misc]
         return self._size
 
 
+@dataclass(frozen=True)
+class RangeExchange:
+    """One range request of a windowed read and what the server answered (PRD 9, Performance).
+
+    ``requested_first`` and ``requested_last`` are the inclusive byte range asked for, and
+    ``status``, ``content_range`` and ``bytes_received`` the reply's HTTP status, Content-Range
+    header and body length. ``retrieved_at`` is the clock's time when the reply had arrived, or
+    None when the read was given no clock.
+    """
+
+    url: str
+    requested_first: int
+    requested_last: int
+    status: int
+    content_range: str
+    bytes_received: int
+    retrieved_at: datetime | None
+
+
 class _BlockCache:
     """Aligned blocks of one remote file, each contiguous run of missing blocks fetched once."""
 
-    def __init__(self, url: str, fetch: RangeFetcher, block_bytes: int, max_bytes: int) -> None:
+    def __init__(
+        self,
+        url: str,
+        fetch: RangeFetcher,
+        block_bytes: int,
+        max_bytes: int,
+        now: Callable[[], datetime] | None = None,
+    ) -> None:
         self.url = url
         self._fetch = fetch
         self._block = block_bytes
         self._max_bytes = max_bytes
+        self._now = now
         self.blocks: dict[int, bytes] = {}
         self.first: RangeResponse | None = None
         self.size: int | None = None
         self.requests = 0
         self.bytes_received = 0
+        self.exchanges: list[RangeExchange] = []
 
     def _request(self, first_block: int, last_block: int) -> None:
         first = first_block * self._block
@@ -981,6 +1136,17 @@ class _BlockCache:
         response = self._fetch(self.url, first, last)
         self.requests += 1
         self.bytes_received += response.bytes_received
+        self.exchanges.append(
+            RangeExchange(
+                url=self.url,
+                requested_first=first,
+                requested_last=last,
+                status=response.status,
+                content_range=response.content_range,
+                bytes_received=response.bytes_received,
+                retrieved_at=None if self._now is None else self._now(),
+            )
+        )
         if response.total_size is None:
             raise RangeReadError(f"{self.url}: the server does not state the file size")
         if self.first is None:
@@ -1050,7 +1216,9 @@ class RemoteWindow:
     ``status``, ``final_url``, ``content_type``, ``last_modified`` and ``etag`` come from the
     first range response. ``requests`` is the number of range requests sent and
     ``bytes_received`` the bytes they returned, which equals ``len(ranges.data)``. ``window`` is
-    ``(col_off, row_off, width, height)``. ``band`` is the window as decoded.
+    ``(col_off, row_off, width, height)``. ``band`` is the window as decoded. ``exchanges`` lists
+    every range request in the order sent, and ``header`` is the file's header when the read was
+    asked for it (``with_header``), else None.
     """
 
     url: str
@@ -1066,6 +1234,8 @@ class RemoteWindow:
     raster_width: int
     raster_height: int
     band: RasterWindow = field(repr=False, compare=False)
+    exchanges: tuple[RangeExchange, ...] = ()
+    header: GeoTiffHeader | None = field(default=None, compare=False)
 
 
 def _same_decode(a: RasterWindow, b: RasterWindow) -> bool:
@@ -1093,6 +1263,8 @@ def read_remote_geotiff_window(
     fetch: RangeFetcher = fetch_range,
     block_bytes: int = RANGE_BLOCK_BYTES,
     max_bytes: int = WHOLE_FILE_LIMIT_BYTES,
+    with_header: bool = False,
+    now: Callable[[], datetime] | None = None,
 ) -> RemoteWindow:
     """Read ``band`` of one window of a remote GeoTIFF; GDAL's reads are served by range requests.
 
@@ -1108,6 +1280,10 @@ def read_remote_geotiff_window(
     in values, dtype, nodata, CRS or transform raises RangeReadError. Raises ValueError, before
     any request, for a non-http(s) URL, one with credentials or a signature, ``block_bytes`` or
     ``max_bytes`` <= 0, or a URL whose last path segment is not a plain file name.
+
+    With ``with_header``, the file's header (``read_geotiff_header``: tiling, overviews, metadata
+    domains) is read through the same cache before the window, so the stored byte ranges hold it
+    too; it is read again from them and must be equal. ``now`` stamps each logged exchange.
     """
     _check_public_http_url(url, "read_remote_geotiff_window")
     if block_bytes <= 0:
@@ -1118,13 +1294,17 @@ def read_remote_geotiff_window(
     if not name or "/" in name or "\\" in name or name in (".", ".."):
         raise ValueError(f"{url} does not end in a plain file name that GDAL can open")
 
-    cache = _BlockCache(url, fetch, block_bytes, max_bytes)
+    cache = _BlockCache(url, fetch, block_bytes, max_bytes, now)
     errors: list[Exception] = []
     cache.read(0, 1)  # block 0 first: it states the file size, which GDAL asks for at once
     assert cache.size is not None and cache.first is not None
     container = _SingleFileContainer(name, cache.size, cache.read, errors)
+    header: GeoTiffHeader | None = None
 
     def read() -> RasterWindow:
+        nonlocal header
+        if with_header:
+            header = _read_header(name, container)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", NotGeoreferencedWarning)
             with rasterio.open(name, opener=container) as src:
@@ -1137,6 +1317,11 @@ def read_remote_geotiff_window(
     if not _same_decode(decoded, again):
         raise RangeReadError(
             f"{url}: decoding the window again from the stored byte ranges gave a different "
+            "result; the byte ranges are not a faithful copy of what GDAL read"
+        )
+    if header is not None and read_geotiff_header(Path(url), ranges=ranges) != header:
+        raise RangeReadError(
+            f"{url}: reading the header again from the stored byte ranges gave a different "
             "result; the byte ranges are not a faithful copy of what GDAL read"
         )
     first = cache.first
@@ -1154,12 +1339,215 @@ def read_remote_geotiff_window(
         raster_width=decoded.raster_width,
         raster_height=decoded.raster_height,
         band=decoded,
+        exchanges=tuple(cache.exchanges),
+        header=header,
     )
 
 
 def _window_of(window: RasterWindow) -> tuple[int, int, int, int]:
     height, width = window.array.shape
     return window.col_off, window.row_off, int(width), int(height)
+
+
+# --- STAC item search (PRD 5 Mars inputs, 8.3) --------------------------------------------------
+#
+# STAC API Item Search (api.stacspec.org v1.0.0, item-search): GET <api>/search with
+# ``collections``, ``bbox`` and ``limit``. A response is a GeoJSON FeatureCollection; the next page
+# is the link with ``rel`` ``next``, whose ``method`` defaults to GET, and its absence marks the
+# last page. A bbox whose west longitude is greater than its east longitude crosses the
+# antimeridian (RFC 7946 5.2).
+
+STAC_PAGE_LIMIT_BYTES: Final = 20_000_000
+"""The largest search page downloaded; a page of 100 USGS CTX DTM items is about 1 MB."""
+
+STAC_MAX_PAGES: Final = 100
+"""The most pages one search may take before it is refused rather than followed further."""
+
+
+class StacError(ValueError):
+    """A STAC response is not the item collection it should be."""
+
+
+class FileFetcher(Protocol):
+    """A whole-file download with ``io.fetch_file``'s signature."""
+
+    def __call__(
+        self, url: str, dest: Path, *, max_bytes: int, magic: Sequence[bytes] = ...
+    ) -> FetchedFile: ...
+
+
+@dataclass(frozen=True)
+class StacItemCollection:
+    """One page of an item search as stated: its features, counts and next link.
+
+    ``number_matched`` and ``number_returned`` are the page's ``numberMatched`` and
+    ``numberReturned``, None when absent. ``next_url`` is the ``next`` link resolved against the
+    page URL, None on the last page.
+    """
+
+    features: tuple[dict[str, Any], ...] = field(repr=False)
+    number_matched: int | None
+    number_returned: int | None
+    next_url: str | None
+
+    @property
+    def ids(self) -> tuple[str, ...]:
+        return tuple(str(feature["id"]) for feature in self.features)
+
+
+@dataclass(frozen=True)
+class StacPage:
+    """One downloaded search page: its 1-based number, the URL requested and its content."""
+
+    number: int
+    url: str
+    fetched: FetchedFile
+    content: StacItemCollection
+
+
+def _bbox_text(bbox: Sequence[float]) -> str:
+    values = [float(value) for value in bbox]
+    if len(values) != 4 or not all(math.isfinite(value) for value in values):
+        raise ValueError(f"bbox must be four finite numbers (west, south, east, north), got {bbox}")
+    west, south, east, north = values
+    if not (-180.0 <= west <= 180.0 and -180.0 <= east <= 180.0):
+        raise ValueError(f"bbox longitudes must lie in -180 to 180, got {bbox}")
+    if not (-90.0 <= south <= north <= 90.0):
+        raise ValueError(f"bbox latitudes must satisfy -90 <= south <= north <= 90, got {bbox}")
+    return ",".join(repr(value) for value in values)
+
+
+def stac_search_url(api_url: str, *, collection: str, bbox: Sequence[float], limit: int) -> str:
+    """The GET item-search URL for ``collection`` over ``bbox`` with ``limit`` items per page.
+
+    ``bbox`` is (west, south, east, north) in degrees; west greater than east crosses the
+    antimeridian, as RFC 7946 5.2 defines. The numbers are written in Python's shortest
+    round-trip form, so 76.69 stays ``76.69``.
+    """
+    if not collection:
+        raise ValueError("a STAC search needs a collection")
+    if limit <= 0:
+        raise ValueError(f"limit must be positive, got {limit}")
+    query = urllib.parse.urlencode(
+        {"collections": collection, "bbox": _bbox_text(bbox), "limit": str(limit)}
+    )
+    return f"{api_url.rstrip('/')}/search?{query}"
+
+
+def _refuse_constant(name: str) -> Any:
+    raise ValueError(f"{name} is not JSON")
+
+
+def _count(body: dict[str, Any], key: str, where: str) -> int | None:
+    value = body.get(key)
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise StacError(f"{where}: {key} {value!r} is not a non-negative integer")
+    return value
+
+
+def parse_stac_item_collection(data: bytes, page_url: str) -> StacItemCollection:
+    """Parse one item-search page, refusing anything that is not a FeatureCollection of items.
+
+    Strict JSON only (no NaN or Infinity). Every feature must be a ``Feature`` with a non-empty
+    string ``id``. A stated ``numberReturned`` must equal the number of features. At most one
+    ``next`` link is allowed; it must be a GET (the default) to an http(s) URL with no ``body``,
+    since a POST continuation would need the request body merged in. Every refusal is a
+    StacError naming ``page_url``.
+    """
+    try:
+        body = json.loads(data.decode("utf-8"), parse_constant=_refuse_constant)
+    except (UnicodeDecodeError, ValueError, RecursionError) as error:
+        raise StacError(f"{page_url}: the response is not strict JSON: {error}") from None
+    if not isinstance(body, dict) or body.get("type") != "FeatureCollection":
+        raise StacError(f"{page_url}: the response is not a FeatureCollection")
+    features = body.get("features")
+    if not isinstance(features, list):
+        raise StacError(f"{page_url}: the FeatureCollection has no features list")
+    for index, item in enumerate(features):
+        if not isinstance(item, dict) or item.get("type") != "Feature":
+            raise StacError(f"{page_url}: features[{index}] is not a Feature")
+        item_id = item.get("id")
+        if not isinstance(item_id, str) or not item_id:
+            raise StacError(f"{page_url}: features[{index}] has no non-empty string id")
+    number_matched = _count(body, "numberMatched", page_url)
+    number_returned = _count(body, "numberReturned", page_url)
+    if number_returned is not None and number_returned != len(features):
+        raise StacError(
+            f"{page_url}: numberReturned is {number_returned}, but the page holds "
+            f"{len(features)} features"
+        )
+    links = body.get("links", [])
+    if not isinstance(links, list) or not all(isinstance(link, dict) for link in links):
+        raise StacError(f"{page_url}: links is not a list of link objects")
+    nexts = [link for link in links if link.get("rel") == "next"]
+    if len(nexts) > 1:
+        raise StacError(f"{page_url}: the page has {len(nexts)} next links")
+    next_url: str | None = None
+    if nexts:
+        link = nexts[0]
+        method = link.get("method") or "GET"
+        if not isinstance(method, str) or method.upper() != "GET":
+            raise StacError(
+                f"{page_url}: the next link uses {method!r}; only GET continuations are "
+                "followed (a POST continuation needs its body merged into the request)"
+            )
+        if "body" in link:
+            raise StacError(f"{page_url}: the next link carries a body, which GET cannot send")
+        href = link.get("href")
+        if not isinstance(href, str) or not href:
+            raise StacError(f"{page_url}: the next link has no href")
+        next_url = urllib.parse.urljoin(page_url, href)
+        if urllib.parse.urlsplit(next_url).scheme.lower() not in _HTTP_SCHEMES:
+            raise StacError(f"{page_url}: the next link {next_url!r} is not an http(s) URL")
+    return StacItemCollection(
+        features=tuple(features),
+        number_matched=number_matched,
+        number_returned=number_returned,
+        next_url=next_url,
+    )
+
+
+def fetch_stac_search(
+    first_url: str,
+    dest_dir: Path,
+    file_name: Callable[[int], str],
+    *,
+    download: FileFetcher = fetch_file,
+    max_pages: int = STAC_MAX_PAGES,
+    max_bytes: int = STAC_PAGE_LIMIT_BYTES,
+) -> tuple[StacPage, ...]:
+    """Download every page of an item search, following ``next`` links until there is none.
+
+    Page ``n`` (from 1) is saved as ``dest_dir / file_name(n)`` with ``download``
+    (``fetch_file``: a whole GET below ``max_bytes``, no credentials or signed URLs), then parsed
+    with ``parse_stac_item_collection`` against the URL the server finally answered from. A next
+    link that repeats a page already requested, or a search that still has a next link after
+    ``max_pages`` pages, raises DownloadError naming the URL; download failures propagate as
+    DownloadError naming the URL, and a malformed page as StacError naming it.
+    """
+    if max_pages <= 0:
+        raise ValueError(f"max_pages must be positive, got {max_pages}")
+    pages: list[StacPage] = []
+    requested: set[str] = set()
+    url = first_url
+    while True:
+        if len(pages) == max_pages:
+            raise DownloadError(
+                f"{first_url}: the search has more than {max_pages} pages; the next page "
+                f"{url} was not requested"
+            )
+        if url in requested:
+            raise DownloadError(f"{url}: the next link repeats a page already requested")
+        requested.add(url)
+        number = len(pages) + 1
+        fetched = download(url, Path(dest_dir) / file_name(number), max_bytes=max_bytes)
+        content = parse_stac_item_collection(fetched.path.read_bytes(), fetched.final_url)
+        pages.append(StacPage(number=number, url=url, fetched=fetched, content=content))
+        if content.next_url is None:
+            return tuple(pages)
+        url = content.next_url
 
 
 # --- PDS3 labels --------------------------------------------------------------------------------

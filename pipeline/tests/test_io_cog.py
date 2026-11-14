@@ -11,6 +11,7 @@ import math
 import re
 import socket
 import threading
+import warnings
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -21,6 +22,7 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 import rasterio  # type: ignore[import-untyped]
+from rasterio.errors import NotGeoreferencedWarning  # type: ignore[import-untyped]
 from rasterio.transform import from_origin  # type: ignore[import-untyped]
 from rasterio.windows import Window  # type: ignore[import-untyped]
 
@@ -150,7 +152,8 @@ def test_the_header_states_what_the_file_states(tmp_path: Path) -> None:
     assert (header.width, header.height, header.count) == (WIDTH, HEIGHT, 1)
     assert header.dtypes == ("float32",)
     assert header.block_shapes == ((256, 256),)
-    assert header.overviews == (2,)
+    # GDAL's COG driver adds overviews until one fits a 256 block: 300 x 350, then 150 x 175.
+    assert header.overviews == (2, 4)
     assert header.image_structure["LAYOUT"] == "COG"
     assert header.image_structure["COMPRESSION"] == "DEFLATE"
     assert header.image_structure["PREDICTOR"] == "3"
@@ -172,8 +175,12 @@ def test_a_file_without_nodata_states_none(tmp_path: Path) -> None:
 
 def test_a_file_without_a_geotransform_has_no_transform(tmp_path: Path) -> None:
     path = tmp_path / "plain.tif"
-    with rasterio.open(path, "w", driver="GTiff", width=4, height=3, count=2, dtype="uint8") as d:
-        d.write(np.zeros((2, 3, 4), dtype=np.uint8))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", NotGeoreferencedWarning)
+        with rasterio.open(
+            path, "w", driver="GTiff", width=4, height=3, count=2, dtype="uint8"
+        ) as dst:
+            dst.write(np.zeros((2, 3, 4), dtype=np.uint8))
     header = read_geotiff_header(path)
     assert header.transform is None
     assert header.crs is None
@@ -245,8 +252,9 @@ def test_every_range_request_is_logged_with_its_http_metadata(served: Served) ->
     assert exchanges[0].requested_first == 0
     assert exchanges[0].requested_last == BLOCK - 1
     assert sum(exchange.bytes_received for exchange in exchanges) == result.bytes_received
-    times = [exchange.retrieved_at for exchange in exchanges]
-    assert all(t is not None and t.tzinfo is not None for t in times)
+    times = [exchange.retrieved_at for exchange in exchanges if exchange.retrieved_at is not None]
+    assert len(times) == len(exchanges)
+    assert all(t.tzinfo is not None for t in times)
     assert times == sorted(times)
     assert len(set(times)) == len(times)
 
@@ -281,7 +289,7 @@ def test_nan_nodata_headers_compare_equal(tmp_path: Path) -> None:
         count=1,
         dtype="float32",
         crs=MARS_EQC,
-        transform=from_origin(0.0, 0.0, 1.0, 1.0),
+        transform=from_origin(100.0, 100.0, 1.0, 1.0),
         nodata=float("nan"),
     ) as dst:
         dst.write(np.zeros((1, 8, 8), dtype=np.float32))
