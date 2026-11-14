@@ -58,12 +58,12 @@ def test_test_abstract_has_more_than_twenty_words() -> None:
     [
         ("Self-supervised, 9--11 km.", ["self", "supervised", "9", "11", "km"]),
         ("ROUGHNESS Roughness roughness", ["roughness"] * 3),
-        ("café café caf\\'e caf{\\'e}", ["cafe"] * 4),
-        ("ﬁeld", ["field"]),
-        ("Straße", ["strasse"]),
-        ("Øresund Łódź", ["oresund", "lodz"]),
+        ("caf\u00e9 cafe\u0301 caf\\'e caf{\\'e}", ["cafe"] * 4),
+        ("\ufb01eld", ["field"]),
+        ("Stra\u00dfe", ["strasse"]),
+        ("\u00d8resund \u0141\u00f3d\u017a", ["oresund", "lodz"]),
         ("a~b\nc", ["a", "b", "c"]),
-        ("x²", ["x2"]),
+        ("x\u00b2", ["x2"]),
     ],
 )
 def test_tokens(text: str, expected: list[str]) -> None:
@@ -138,7 +138,7 @@ def test_hyphenated_word_matches_two_words() -> None:
 
 
 def test_latex_accent_matches_an_accented_letter() -> None:
-    abstract = "The café study maps roughness of lunar terrain at metre baselines for rovers."
+    abstract = "The caf\u00e9 study maps roughness of lunar terrain at metre baselines for rovers."
     text = "The caf\\'e study maps roughness of lunar terrain at metre baselines for rovers."
     assert len(found(text, {"key": abstract})) == 1
     text = "The caf\\'{e} study maps roughness of lunar terrain at metre baselines for rovers."
