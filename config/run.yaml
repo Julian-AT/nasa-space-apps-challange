@@ -1,7 +1,7 @@
 run:
   working_start: null
-  assigned_event_timezone: null
-  global_submission_cutoff: null
+  assigned_event_timezone: Europe/Vienna  # team answer, 2026-11-14
+  global_submission_cutoff: "2026-11-15T23:59:00+01:00"  # PRD 13: official page, Sunday 15 Nov 23:59 local
   local_judging_cutoff: null
   effective_cutoff: null
   shipping_mode: null
