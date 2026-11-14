@@ -11,6 +11,7 @@ belongs to T1.
 from __future__ import annotations
 
 import dataclasses
+import decimal
 import inspect
 import math
 from typing import TYPE_CHECKING, Any
@@ -31,6 +32,7 @@ from terraluna_pipeline.polarimetry import (
     NEISH_SC_LL_CONVENTION,
     OPPOSITE_SC_CONVENTION,
     TRANSMIT_ELLIPTICITIES,
+    CovarianceOrdering,
     HybridStokes,
     InvalidReason,
     LunarSignCheck,
@@ -78,7 +80,15 @@ STOKES_FIELDS = ("s1", "s2", "s3", "s4")
 HYBRID_FIELDS = J_FIELDS + STOKES_FIELDS
 MCHI_FIELDS = ("m", "sin_2chi", "chi")
 
-SQRT2_NORMALIZATION = np.array([1.0, math.sqrt(2.0), 1.0])
+SQRT2_FACTORS = np.array(
+    [
+        [1.0, math.sqrt(2.0), 1.0],
+        [math.sqrt(2.0), 2.0, math.sqrt(2.0)],
+        [1.0, math.sqrt(2.0), 1.0],
+    ]
+)
+"""``n_i n_j`` with ``n = (1, sqrt2, 1)``, with the HV power factor exactly 2 (``sqrt2 * sqrt2``
+is 2.0000000000000004 in float64)."""
 
 
 def synthesize(
@@ -114,9 +124,7 @@ def mchi(
 
 def to_sqrt2_ordering(covariance: npt.NDArray[np.complex128]) -> npt.NDArray[np.complex128]:
     """Express an (HH, HV, VV) covariance in the (HH, sqrt2 HV, VV) ordering, k' = N k."""
-    result: npt.NDArray[np.complex128] = covariance * np.outer(
-        SQRT2_NORMALIZATION, SQRT2_NORMALIZATION
-    )
+    result: npt.NDArray[np.complex128] = covariance * SQRT2_FACTORS
     return result
 
 
@@ -148,7 +156,7 @@ def assert_hermitian_psd(covariance: npt.NDArray[np.complex128]) -> npt.NDArray[
     return eigenvalues
 
 
-def assert_value(result: StatedArray, expected: npt.ArrayLike) -> None:
+def assert_value(result: StatedArray, expected: float | npt.NDArray[np.float64]) -> None:
     assert np.all(result.state == VALID)
     assert np.all(result.reason == InvalidReason.NONE)
     np.testing.assert_allclose(result.value, expected, rtol=RTOL, atol=ATOL)
@@ -230,7 +238,7 @@ def unpolarized_fields() -> list[hybrid_oracle.Field]:
 
 
 @pytest.mark.parametrize("ordering", [RAW, SQRT2])
-def test_F6_hybrid_stokes_reproduce_story_3_sc_ll_and_oc(ordering: str) -> None:
+def test_F6_hybrid_stokes_reproduce_story_3_sc_ll_and_oc(ordering: CovarianceOrdering) -> None:
     covariance = in_ordering(f6_covariance(), ordering)
     hybrid = synthesize(covariance, chi_tx=CHI_LL, ordering=ordering)
     story3 = circular_from_covariance(
@@ -251,7 +259,7 @@ def test_F6_hybrid_stokes_reproduce_story_3_sc_ll_and_oc(ordering: str) -> None:
 
 
 @pytest.mark.parametrize("ordering", [RAW, SQRT2])
-def test_F6_opposite_ellipticity_gives_sc_opp(ordering: str) -> None:
+def test_F6_opposite_ellipticity_gives_sc_opp(ordering: CovarianceOrdering) -> None:
     covariance = in_ordering(f6_covariance(), ordering)
     hybrid = synthesize(covariance, chi_tx=CHI_OPP, ordering=ordering)
     story3 = circular_from_covariance(
@@ -270,7 +278,7 @@ def test_F6_opposite_ellipticity_gives_sc_opp(ordering: str) -> None:
 
 @pytest.mark.parametrize("chi_tx", [CHI_LL, CHI_OPP])
 @pytest.mark.parametrize("ordering", [RAW, SQRT2])
-def test_F6_matches_the_jones_oracle(chi_tx: float, ordering: str) -> None:
+def test_F6_matches_the_jones_oracle(chi_tx: float, ordering: CovarianceOrdering) -> None:
     hybrid = synthesize(in_ordering(f6_covariance(), ordering), chi_tx=chi_tx, ordering=ordering)
     expected = hybrid_oracle.hybrid_of_scatterers([F6_SCATTERER], chi_tx)
     assert_matches_oracle(hybrid, expected)
@@ -359,7 +367,7 @@ def test_record_states_the_handedness_used(chi_tx: float) -> None:
     assert hybrid.chi_tx == chi_tx
     assert hybrid.handedness == HANDEDNESS[chi_tx]
     expected_jones = hybrid_oracle.transmit_jones(chi_tx)
-    assert hybrid.transmit_jones == (complex(expected_jones[0]), complex(expected_jones[1]))
+    np.testing.assert_allclose(hybrid.transmit_jones, expected_jones, rtol=1e-15)
     assert hybrid.stokes_convention == SIS
     assert hybrid.ordering == RAW
     assert hybrid.tolerance == ARITHMETIC_TOLERANCE
@@ -488,7 +496,7 @@ def negative_diagonal() -> npt.NDArray[np.complex128]:
 )
 @pytest.mark.parametrize("ordering", [RAW, SQRT2])
 def test_nonphysical_covariance_publishes_nothing_with_story_3_cause(
-    covariance: npt.NDArray[np.complex128], reason: InvalidReason, ordering: str
+    covariance: npt.NDArray[np.complex128], reason: InvalidReason, ordering: CovarianceOrdering
 ) -> None:
     given_covariance = in_ordering(covariance, ordering)
     hybrid = synthesize(given_covariance, ordering=ordering)
@@ -537,7 +545,7 @@ def test_validity_states_follow_story_3_for_any_hermitian_matrix(
     for name in HYBRID_FIELDS:
         result = getattr(hybrid, name)
         assert result.state in (MISSING, INVALID, VALID)
-        if story3.oc.reason in shared:
+        if str(story3.oc.reason) in shared:
             assert result.reason == story3.oc.reason
         else:
             assert result.reason in (InvalidReason.NONE, InvalidReason.FLOAT64_OUT_OF_RANGE)
@@ -577,7 +585,9 @@ def test_tolerance_must_be_a_tolerance() -> None:
 
 @pytest.mark.parametrize("exponent", [-1000, -500, 500, 1000])
 @pytest.mark.parametrize("ordering", [RAW, SQRT2])
-def test_scaled_covariances_scale_their_stokes_exactly(exponent: int, ordering: str) -> None:
+def test_scaled_covariances_scale_their_stokes_exactly(
+    exponent: int, ordering: CovarianceOrdering
+) -> None:
     base = in_ordering(f6_covariance(), ordering)
     unscaled = synthesize(base, ordering=ordering)
     scaled = synthesize(base * 2.0**exponent, ordering=ordering)
@@ -616,15 +626,11 @@ def test_stokes_parameter_is_not_lost_beside_large_powers() -> None:
 
 @pytest.mark.parametrize("ordering", [RAW, SQRT2])
 def test_identity_covariance_is_partially_polarized_under_circular_transmit(
-    ordering: str,
+    ordering: CovarianceOrdering,
 ) -> None:
     """A 3x3 identity is not an unpolarized hybrid return: HV is received in both channels."""
     identity = np.eye(3, dtype=np.complex128)
-    raw = (
-        identity
-        if ordering == RAW
-        else identity / np.outer(SQRT2_NORMALIZATION, SQRT2_NORMALIZATION)
-    )
+    raw = identity if ordering == RAW else identity / SQRT2_FACTORS
     scatterers = hybrid_oracle.scatterers_of(raw)
     for chi_tx in (CHI_LL, CHI_OPP):
         hybrid = synthesize(identity, chi_tx=chi_tx, ordering=ordering)
@@ -649,7 +655,7 @@ RANK_ONE = [
 @pytest.mark.parametrize("chi_tx", [CHI_LL, CHI_OPP])
 @pytest.mark.parametrize("ordering", [RAW, SQRT2])
 def test_fully_polarized_single_scatterer_has_unit_m(
-    scatterer: jones_oracle.Scatterer, chi_tx: float, ordering: str
+    scatterer: jones_oracle.Scatterer, chi_tx: float, ordering: CovarianceOrdering
 ) -> None:
     covariance = in_ordering(jones_oracle.covariance_of([scatterer]), ordering)
     result = m_chi_from_hybrid(synthesize(covariance, chi_tx=chi_tx, ordering=ordering))
@@ -691,7 +697,9 @@ def test_unpolarized_hybrid_covariance_has_zero_m_and_no_chi() -> None:
 
 @pytest.mark.parametrize("chi_tx", [CHI_LL, CHI_OPP])
 @pytest.mark.parametrize("ordering", [RAW, SQRT2])
-def test_random_volume_gives_an_unpolarized_hybrid_return(chi_tx: float, ordering: str) -> None:
+def test_random_volume_gives_an_unpolarized_hybrid_return(
+    chi_tx: float, ordering: CovarianceOrdering
+) -> None:
     hybrid = synthesize(in_ordering(random_volume(), ordering), chi_tx=chi_tx, ordering=ordering)
     np.testing.assert_array_equal(hybrid.covariance_matrix(), 0.75 * np.eye(2))
     result = m_chi_from_hybrid(hybrid)
@@ -861,7 +869,9 @@ def test_m_chi_record_refuses_inconsistent_values() -> None:
 
 def with_valid(result: StatedArray, index: int, value: float) -> StatedArray:
     """A copy of ``result`` whose element ``index`` is VALID with ``value``."""
-    values, state, reason = (np.array(a) for a in (result.value, result.state, result.reason))
+    values = np.array(result.value)
+    state = np.array(result.state)
+    reason = np.array(result.reason)
     values[index], state[index], reason[index] = value, VALID, InvalidReason.NONE
     return StatedArray(value=values, state=state, reason=reason)
 
@@ -925,6 +935,14 @@ def test_m_below_the_smallest_normal_float64_is_out_of_range() -> None:
 ANY_FINITE = st.floats(allow_nan=False, allow_infinity=False)
 
 
+def decimal_m(s1: float, s2: float, s3: float, s4: float) -> float:
+    """m in 50-digit decimal arithmetic, which has no float64 range or subnormal limits."""
+    with decimal.localcontext() as context:
+        context.prec = 50
+        d1, d2, d3, d4 = (decimal.Decimal(x) for x in (s1, s2, s3, s4))
+        return float((d2 * d2 + d3 * d3 + d4 * d4).sqrt() / d1)
+
+
 @settings(deadline=None, max_examples=300)
 @given(st.tuples(ANY_FINITE, ANY_FINITE, ANY_FINITE, ANY_FINITE))
 def test_any_finite_stokes_give_a_state_and_a_bounded_chi(
@@ -941,10 +959,9 @@ def test_any_finite_stokes_give_a_state_and_a_bounded_chi(
         assert -45.0 <= result.chi.value <= 45.0
     if result.m.state == VALID:
         assert result.m.value >= 0.0
-        s1, s2, s3, s4 = stokes
-        polarized = math.hypot(s2, s3, s4)
-        if math.isfinite(polarized) and polarized / s1 >= SMALLEST_NORMAL:
-            np.testing.assert_allclose(result.m.value, polarized / s1, rtol=1e-14)
+        expected = decimal_m(*stokes)
+        if expected >= SMALLEST_NORMAL:
+            np.testing.assert_allclose(result.m.value, expected, rtol=1e-14)
 
 
 MANTISSA = st.floats(min_value=-1.0, max_value=1.0)
@@ -961,10 +978,12 @@ def test_m_and_sin_2chi_match_the_oracle_at_any_scale(
 ) -> None:
     s2, s3, s4 = (0.5 * x for x in polarized)  # m <= sqrt(3)/2, so always physical
     scaled = [math.ldexp(x, exponent) for x in (s1, s2, s3, s4)]
-    # The oracle sees the same (possibly subnormal) inputs as the code under test.
-    expected = hybrid_oracle.m_chi(*scaled)
+    # The oracle sees the same (possibly subnormal) inputs as the code under test, scaled back
+    # exactly into the normal range, where its own arithmetic keeps full precision; m and
+    # sin(2 chi) do not depend on the scale.
+    expected = hybrid_oracle.m_chi(*(math.ldexp(x, -exponent) for x in scaled))
     result = mchi(*scaled)
-    if expected.m == 0.0 and math.hypot(*scaled[1:]) == 0.0:
+    if math.hypot(*scaled[1:]) == 0.0:
         assert result.m.value == 0.0
         assert result.sin_2chi.reason == InvalidReason.M_ZERO
         return
@@ -1096,7 +1115,7 @@ def test_no_valid_pixels_gives_no_fraction_and_never_passes() -> None:
 
 def test_sign_check_takes_a_boolean_validity_mask() -> None:
     s1, s4 = sign_check_arrays(3, 0)
-    with pytest.raises(TypeError, match="validity_mask"):
+    with pytest.raises(TypeError, match="valid_mask"):
         lunar_s4_sign_check(s1, s4, np.ones(s1.shape, dtype=np.int8))
     with pytest.raises(TypeError, match="masked"):
         lunar_s4_sign_check(s1, s4, np.ma.array(all_valid(s1.shape), mask=False))
