@@ -92,7 +92,11 @@
       "claim": "The latitude uses an increment form instead of the literal asin. The forward uses double-double arithmetic and a true-2pi longitude turn. @terraluna/core (T10) must reproduce these for Python/TypeScript parity (PRD 8.8).",
       "evidence": "Previously rebutted and accepted in rounds 1 to 3. It is recorded as a human decision in the story notes. This is a note for T10, not a T3-02 defect.",
       "id": "claude-r4-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect in T3-02, as the finding itself says (\"a note for T10, not a T3-02 defect\"). Each part is tested here against PRD 7 tolerances. The increment latitude equals the PRD asin to rtol 1e-10, atol 1e-12 rad (test_inverse_matches_the_prd_expressions), while the literal asin fails PRD 7 near the poles (1.6e-7 to 3.9e-7 m at +-89.9 deg; a mutant failed 105 of 498 tests, round 1). The double-double forward is what meets the metre tolerance in pole windows (test_forward_near_an_axis_in_a_pole_window, round 2). The true-2pi turn removed a 1.56e-9 m antimeridian error on Earth (codex2-r3-1, round 3). The parity requirement is already recorded for a human: decisions (2) and (5) and the round-3 true-period note in the story notes, the aeqd_inverse and aeqd_forward docstrings, and PRD 7 / 8.8 wording proposals in the progress log. The orchestrator note of 2026-11-14T19:41:28Z narrows it: the TypeScript mirror needs only the inverse (increment latitude and the true-circle longitude in _wrap_longitude) and the resampler, because the forward is a Python test oracle. T10 owns @terraluna/core (PRD 8.8), so nothing in this story can discharge the note. The same note was rebutted as claude-r1-1, claude-r2-1, claude-r3-1 and claude-r3-2."
+      }
     }
   ]
 }

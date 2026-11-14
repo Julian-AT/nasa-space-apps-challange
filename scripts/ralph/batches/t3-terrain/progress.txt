@@ -126,3 +126,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: hypothesis 6.170.15 (already locked; given, settings and the private `_given_kwargs` for the scratch stress). No new libraries.
 - Learnings: a full D29 grid through the module inverse and forward costs about 1 ms (3,025 or 4,096 points, vectorised), so a property test can check every pixel at each random centre. Only the 40-digit reference, at about 0.1 ms per point, needs a subsample.
 ---
+
+## 2026-11-14T19:55Z · T3-02 · resolve
+- Done: round 4 had one finding. claude-r4-1 (low) is rebutted. It is a T10 parity note on the increment latitude, the double-double forward and the true-2pi turn, and it calls itself "not a T3-02 defect". Each part is tested against PRD 7 here, and the parity need is recorded for a human (decisions (2) and (5), docstrings, PRD 7 / 8.8 proposals). The orchestrator note of 2026-11-14T19:41:28Z limits the TypeScript mirror to the inverse and the resampler. codex and codex2 reported no findings (verdict NOT_RUN: read-only sandbox). No code changed. Appended a round-4 line to the story notes and set review.state to resolved.
+- Commits: the resolve commit (review file, story list, progress log only).
+- Checks: `uv run pytest pipeline/tests/test_geometry_aeqd.py` exit 0 (713 passed); `make check` exit 0 (ruff check, ruff format --check, mypy strict on 9 files).
+- Docs used: none (no library or code change).
+- Learnings: a reviewer that repeats a parity note each round needs the same rebuttal each round. Cite the earlier finding ids and the orchestrator note that narrows T10's scope, so the round closes without a code change.
+---
