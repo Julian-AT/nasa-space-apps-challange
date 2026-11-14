@@ -22,6 +22,7 @@ from terraluna_pipeline.config import (
     DuplicateConfigKeyError,
     InvalidConfigValueError,
     MissingConfigKeyError,
+    MissingRunConfigError,
     NonPositiveValueError,
     RunConfig,
     TerrainConfig,
@@ -384,6 +385,20 @@ def test_duplicate_key_raises(tmp_path: Path) -> None:
     assert caught.value.key == "min_valid_fraction"
 
 
+@pytest.mark.parametrize("load", [load_run_config, load_terrain_config])
+def test_missing_run_config_file_raises_a_named_error(
+    tmp_path: Path, load: Callable[[Path], object]
+) -> None:
+    # The default path is found from the editable workspace install (PRD 8.3). Anywhere else
+    # it points at no file, and the loader must say so with its own error, not a bare OSError.
+    missing = tmp_path / "absent" / "run.yaml"
+    with pytest.raises(MissingRunConfigError) as caught:
+        load(missing)
+    assert caught.value.key == "(document)"
+    assert str(missing) in str(caught.value)
+    assert "pass" in str(caught.value)
+
+
 @pytest.mark.parametrize("text", ["", "- a\n- b\n", "just text\n"])
 def test_document_that_is_not_a_mapping_raises(tmp_path: Path, text: str) -> None:
     path = tmp_path / "run.yaml"
@@ -395,6 +410,7 @@ def test_document_that_is_not_a_mapping_raises(tmp_path: Path, text: str) -> Non
 def test_every_named_error_is_a_config_error() -> None:
     for error in (
         MissingConfigKeyError,
+        MissingRunConfigError,
         UnknownConfigKeyError,
         DuplicateConfigKeyError,
         InvalidConfigValueError,
