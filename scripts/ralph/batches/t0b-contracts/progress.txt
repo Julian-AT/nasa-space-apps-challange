@@ -74,3 +74,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: Turborepo package configurations (turborepo.dev/docs/reference/package-configurations; Context7 vercel/turborepo: $TURBO_EXTENDS$ since 2.7, works for inputs, must be first) against the pinned turbo 2.11.11; zod 4.6.7 installed behaviour (safeParse error.issues, superRefine ctx.addIssue keeps a given message); jsonschema 4.26.0 (existing ECMA oracle).
 - Learnings: see the three new Codebase Patterns (package turbo.json inputs, conditionCases and the mutation check, collection-time reads in failing Vitest files). A command that appended to schema.py to show the hash change was denied, so the evidence is the inputs list and the hash change from adding turbo.json.
 ---
+
+## 2026-11-14T22:41Z · T0B-00 · resolve
+- Done: round 2 has no findings. reviews/T0B-00-claude-r2.json (verdict PASS), reviews/T0B-00-codex-r2.json and reviews/T0B-00-codex-2-r2.json (verdict NOT_RUN: the read-only sandbox forbade execution; static review found no defects and confirmed the round 1 fixes and rebuttal) each have an empty findings list, so no resolution was written and the review files are unchanged. Reran every check and set review.state to resolved.
+- Commits: none for code; the bookkeeping commit chore(ralph): resolve review findings for t0b-00.
+- Checks (TURBO_FORCE=true, 0 cached): uv run pytest pipeline/tests/test_json_schema.py: 327 passed. pnpm --filter @terraluna/schema test: 329 passed (3 files). make schema-check: both match, exit 0. make check: exit 0 (ruff, format, mypy; turbo 4/4). make test: exit 0 (pytest 997 passed, web 80, schema 329). make web-build: exit 0 (static / and /_not-found).
+- Docs used: none new (no library or CLI interface changed).
+- Learnings: the codex reviewers ran without execution in round 2, so the execution evidence for this story comes from the Claude verifier and the loop's gate.
+---
