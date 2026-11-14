@@ -27,6 +27,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 from jsonschema import Draft202012Validator, ValidationError, validators
 from jsonschema.protocols import Validator
 from pydantic import TypeAdapter
@@ -52,7 +54,13 @@ SCHEMA_FILES = {
     "BundleManifest": "bundle-manifest.schema.json",
     "GateRecord": "gate-record.schema.json",
     "Validation": "validation.schema.json",
+    "ProductRecord": "product-record.schema.json",
+    "Sources": "sources.schema.json",
 }
+WITHOUT_SHARED_CASES = {"ProductRecord", "Sources"}
+"""Schemas added by T1-01, which owns no fixtures/ path, so fixtures/schema-cases/cases.json has
+no cases for them yet. Their pydantic/JSON Schema parity is tested below with local cases; the
+strict xfail turns into a failure once shared cases are added, so this set must then shrink."""
 
 
 # --- Strict JSON --------------------------------------------------------------------------------
@@ -202,7 +210,7 @@ def prd_manifest_example() -> dict[str, Any]:
 # --- Generation and drift -----------------------------------------------------------------------
 
 
-def test_contracts_are_the_three_bundle_schemas() -> None:
+def test_contracts_are_the_bundle_schemas() -> None:
     assert {contract.name: contract.file_name for contract in CONTRACTS} == SCHEMA_FILES
 
 
@@ -242,6 +250,16 @@ def test_validation_schema_is_an_array_of_gate_records() -> None:
     assert validation["items"] == {"$ref": "#/$defs/GateRecord"}
     assert validation["$defs"] == {
         "GateRecord": {k: v for k, v in gate_record.items() if k != "$schema"}
+    }
+
+
+def test_sources_schema_is_an_array_of_product_records() -> None:
+    sources = committed_schema("Sources")
+    product_record = committed_schema("ProductRecord")
+    assert sources["type"] == "array"
+    assert sources["items"] == {"$ref": "#/$defs/ProductRecord"}
+    assert sources["$defs"] == {
+        "ProductRecord": {k: v for k, v in product_record.items() if k != "$schema"}
     }
 
 
@@ -369,7 +387,20 @@ def test_cases_are_well_formed() -> None:
         assert isinstance(case["valid"], bool)
 
 
-@pytest.mark.parametrize("name", SCHEMA_FILES)
+@pytest.mark.parametrize(
+    "name",
+    [
+        pytest.param(
+            name,
+            marks=pytest.mark.xfail(
+                strict=True, reason="fixtures/schema-cases is outside T1-01's files"
+            ),
+        )
+        if name in WITHOUT_SHARED_CASES
+        else name
+        for name in SCHEMA_FILES
+    ],
+)
 def test_every_schema_has_accepted_and_rejected_cases(name: str) -> None:
     verdicts = {case["valid"] for case in load_cases() if case["schema"] == name}
     assert verdicts == {True, False}
@@ -495,7 +526,201 @@ def test_oracle_translates_every_pattern_in_the_schemas() -> None:
             for item in value:
                 yield from patterns(item)
 
+    def anchored_patterns(value: object) -> Iterator[str]:
+        """Patterns a value must match in full; those under ``not`` are searched for instead."""
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if key == "pattern":
+                    assert isinstance(item, str)
+                    yield item
+                elif key != "not":
+                    yield from anchored_patterns(item)
+        elif isinstance(value, list):
+            for item in value:
+                yield from anchored_patterns(item)
+
     found = [p for name in SCHEMA_FILES for p in patterns(committed_schema(name))]
     assert len(found) >= 5
     for pattern in found:
+        ecma_to_python(pattern)
+    anchored = [p for name in SCHEMA_FILES for p in anchored_patterns(committed_schema(name))]
+    assert len(anchored) >= 5
+    for pattern in anchored:
+        assert pattern.startswith("^")
         assert ecma_to_python(pattern).endswith(r"\Z")
+
+
+# --- ProductRecord parity (PRD 8.12) ------------------------------------------------------------
+# fixtures/schema-cases has no ProductRecord cases yet (see WITHOUT_SHARED_CASES), so these local
+# cases check that pydantic and the generated JSON Schema agree. Verdicts come from PRD 8.12 and
+# the T1-01 contract, not from either validator.
+
+
+def product_record(**overrides: Any) -> dict[str, Any]:
+    record: dict[str, Any] = {
+        "product_id": "example-product",
+        "provider": "Example provider",
+        "version": "v1",
+        "source_url": "https://data.example.org/products/example/dem.tif",
+        "local_path": "data/raw/example/dem.tif",
+        "checksum": HEX64,
+        "body": "moon",
+        "acquisition_time": "unknown",
+        "frequency_or_wavelength": None,
+        "transmit_receive_convention": None,
+        "units": "m",
+        "calibration_type": None,
+        "native_grid": "width=4 height=3",
+        "effective_resolution": "unknown",
+        "crs_and_frame": "unknown",
+        "incidence_source": None,
+        "qa_definition": "unknown",
+        "license_or_attribution": "unknown",
+        "verification_status": "VERIFIED",
+    }
+    record.update(overrides)
+    return record
+
+
+def _without(field_name: str) -> dict[str, Any]:
+    return {k: v for k, v in product_record().items() if k != field_name}
+
+
+PRODUCT_RECORD_CASES: list[tuple[str, dict[str, Any], bool]] = [
+    ("verified", product_record(), True),
+    (
+        "blocked-nothing-read",
+        product_record(
+            source_url=None,
+            local_path=None,
+            checksum=None,
+            units="unknown",
+            verification_status="BLOCKED",
+        ),
+        True,
+    ),
+    ("partial-unknown-units", product_record(units="unknown", verification_status="PARTIAL"), True),
+    (
+        "query-string-without-credentials",
+        product_record(source_url="https://ode.example.org/page.aspx?product_id=A&page=2"),
+        True,
+    ),
+    ("s3-url", product_record(source_url="s3://copernicus-dem-30m/tileList.txt"), True),
+    ("missing-units", _without("units"), False),
+    ("missing-verification-status", _without("verification_status"), False),
+    ("extra-field", {**product_record(), "notes": "x"}, False),
+    ("empty-provider", product_record(provider=""), False),
+    ("zero-units", product_record(units=0), False),
+    ("null-provider", product_record(provider=None), False),
+    ("bad-status", product_record(verification_status="PASS"), False),
+    ("bad-body", product_record(body="Moon"), False),
+    ("uppercase-checksum", product_record(checksum=HEX64.upper()), False),
+    ("checksum-newline", product_record(checksum=HEX64 + "\n"), False),
+    ("absolute-local-path", product_record(local_path="/Users/someone/dem.tif"), False),
+    ("local-path-outside-data", product_record(local_path="outputs/dem.tif"), False),
+    ("local-path-unknown", product_record(local_path="unknown"), False),
+    ("url-unknown", product_record(source_url="unknown"), False),
+    ("url-with-space", product_record(source_url="https://example.org/a b"), False),
+    ("url-newline", product_record(source_url="https://example.org/a\n"), False),
+    (
+        "url-amz-signature",
+        product_record(source_url="https://b.s3.amazonaws.com/a?X-Amz-Signature=abc"),
+        False,
+    ),
+    ("url-signature", product_record(source_url="https://cdn.example.org/a?Signature=x"), False),
+    ("url-token", product_record(source_url="https://example.org/a?token=x"), False),
+    ("url-access-key", product_record(source_url="https://example.org/a?access_key=x"), False),
+    ("url-expires", product_record(source_url="https://example.org/a?Expires=1"), False),
+    ("url-fragment-token", product_record(source_url="https://example.org/a#id_token=x"), False),
+    ("url-userinfo", product_record(source_url="https://user:pw@example.org/a"), False),
+    ("url-encoded-token-name", product_record(source_url="https://example.org/a?%74oken=x"), False),
+    (
+        "url-encoded-token-equals",
+        product_record(source_url="https://example.org/a?token%3Dx"),
+        False,
+    ),
+    (
+        "url-encoded-fragment-token",
+        product_record(source_url="https://example.org/a#id_t%6Fken=x"),
+        False,
+    ),
+    (
+        "url-encoded-reserved-in-query",
+        product_record(source_url="https://example.org/a?q=a%2Fb%20c%3D"),
+        True,
+    ),
+    (
+        "url-encoded-unreserved-in-path",
+        product_record(source_url="https://example.org/%7Euser/a%2Db.tif"),
+        True,
+    ),
+    ("verified-unknown-units", product_record(units="unknown"), False),
+    ("verified-unknown-units-capitalised", product_record(units="Unknown"), False),
+    ("verified-no-checksum", product_record(checksum=None), False),
+    ("verified-no-local-path", product_record(local_path=None), False),
+]
+
+
+def test_product_record_cases_are_well_formed() -> None:
+    names = [name for name, _, _ in PRODUCT_RECORD_CASES]
+    assert len(names) == len(set(names))
+    assert {valid for _, _, valid in PRODUCT_RECORD_CASES} == {True, False}
+
+
+@pytest.mark.parametrize(
+    ("value", "valid"),
+    [pytest.param(value, valid, id=name) for name, value, valid in PRODUCT_RECORD_CASES],
+)
+def test_product_record_pydantic_and_json_schema_agree(value: dict[str, Any], valid: bool) -> None:
+    assert pydantic_accepts("ProductRecord", value) is valid
+    assert json_schema_accepts("ProductRecord", value) is valid
+    assert pydantic_accepts("Sources", [value]) is valid
+    assert json_schema_accepts("Sources", [value]) is valid
+
+
+_URL_CHARACTERS = (
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=%"
+)
+
+
+@given(
+    suffix=st.text(alphabet=_URL_CHARACTERS + " \n\u00e9", max_size=24),
+    token=st.sampled_from(
+        ["", "Signature=", "TOKEN=", "access_key", "Expires=", "sig=", "@", "%74oken=", "token%3D"]
+    ),
+    tail=st.text(alphabet=_URL_CHARACTERS, max_size=8),
+)
+def test_source_url_verdicts_agree(suffix: str, token: str, tail: str) -> None:
+    for url in (
+        f"https://example.org/{suffix}{token}{tail}",
+        f"https://{suffix}{token}{tail}",
+        f"https://example.org/a?{suffix}{token}{tail}",
+    ):
+        value = product_record(source_url=url)
+        assert pydantic_accepts("ProductRecord", value) is json_schema_accepts(
+            "ProductRecord", value
+        ), url
+
+
+def test_percent_encoded_byte_verdicts_agree() -> None:
+    """pydantic and the JSON Schema agree on every percent-encoded byte in each part of a URL."""
+    disagree = []
+    for byte in range(256):
+        for code in {f"{byte:02X}", f"{byte:02x}"}:
+            for url in (
+                f"https://example.org/a.tif?q=a%{code}b",
+                f"https://example.org/a.tif#a%{code}b",
+                f"https://example.org/a%{code}b.tif",
+            ):
+                value = product_record(source_url=url)
+                if pydantic_accepts("ProductRecord", value) is not json_schema_accepts(
+                    "ProductRecord", value
+                ):
+                    disagree.append(url)
+    assert disagree == []
+
+
+@given(units=st.text(alphabet="unkowUNKOW \n\u212a", min_size=1, max_size=9))
+def test_verified_units_verdicts_agree(units: str) -> None:
+    value = product_record(units=units)
+    assert pydantic_accepts("ProductRecord", value) is json_schema_accepts("ProductRecord", value)

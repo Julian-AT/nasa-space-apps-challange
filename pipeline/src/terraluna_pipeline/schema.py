@@ -9,6 +9,8 @@ Rules that hold for every record (PRD 8.12):
 - Every field is required and has no default. A value that may be absent is typed ``X | None``
   and must still be present, as ``null``.
 - Missing values are ``null``, never ``0`` or an empty string. Strings are therefore non-empty.
+  A ProductRecord also writes ``"unknown"`` for a field that applies to the product but was not
+  established from it, and keeps ``null`` for a field that does not apply.
 - Validation is strict: ``"true"`` is not a bool and ``1.0`` is not a byte count.
 
 The JSON Schemas (2020-12) in packages/schema/json/ are generated from these models and
@@ -25,14 +27,23 @@ from __future__ import annotations
 import argparse
 import difflib
 import json
+import re
 import sys
 import tempfile
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, Strict, TypeAdapter
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    Strict,
+    TypeAdapter,
+    model_validator,
+)
 from pydantic.json_schema import GenerateJsonSchema, JsonSchemaMode, JsonSchemaValue
 from pydantic_core import CoreSchema
 
@@ -147,6 +158,208 @@ ValidationFile = Annotated[
 """validation.json: an array of GateRecords."""
 
 
+# --- ProductRecord (PRD 5, 8.11, 8.12) ----------------------------------------------------------
+
+UNKNOWN = "unknown"
+"""The value of a field that applies to a product but was not established from it."""
+
+Body = Literal["moon", "mars", "earth"]
+"""The bodies the pipeline reads products for, as named in config/run.yaml."""
+
+VerificationStatus = Literal["NOT_CHECKED", "VERIFIED", "PARTIAL", "BLOCKED", "FAILED"]
+"""How far a product has been checked (PRD 5). Every input starts as NOT_CHECKED.
+
+VERIFIED means the PRD 5 entry rule is met: a real sample and its metadata were downloaded,
+decoded, masked and plotted. PARTIAL means some of that was done or some metadata is unknown.
+BLOCKED means access needs an account, a registration or a human step. FAILED means a read was
+attempted and did not succeed.
+"""
+
+LocalPath = Annotated[
+    str, Field(pattern=rf"^data/(raw|interim|processed)/{_SEGMENT}(/{_SEGMENT})*$")
+]
+"""A file under the git-ignored data/raw, data/interim or data/processed (PRD 8.3).
+
+It is relative to the repository root, so a record never names a home directory, and like a
+bundle path it has no ``.`` or ``..`` segments, empty segments, backslashes or hidden segments.
+"""
+
+_URL_CHARACTER = r"!#$%&'()*+,./0-9:;=?@A-Z\[\]_a-z~-"
+"""The characters RFC 3986 allows in a URL: unreserved, reserved and ``%``. Anything else, such
+as a space, a newline or a non-ASCII letter, must be percent-encoded."""
+
+_AUTHORITY_CHARACTER = r"!$%&'()*+,.0-9:;=@A-Z\[\]_a-z~-"
+"""The URL characters other than ``/``, ``?`` and ``#``, which end the authority."""
+
+_SCHEME = r"[A-Za-z][A-Za-z0-9+.-]*"
+
+URL_PATTERN = rf"^{_SCHEME}://[{_URL_CHARACTER}]+$"
+"""A URL with a scheme, written in RFC 3986 characters only."""
+
+SIGNED_URL_TOKENS: tuple[str, ...] = (
+    "signature=",
+    "sig=",
+    "token=",
+    "credential=",
+    "access_key",
+    "accesskey",
+    "api_key",
+    "apikey",
+    "expires=",
+    "key-pair-id=",
+    "password",
+    "passwd",
+    "secret",
+)
+"""Text that, in any case, marks a query string or fragment as signed or carrying a credential.
+
+Matching is by substring, so ``signature=`` also covers ``X-Amz-Signature=`` and
+``X-Goog-Signature=``, ``token=`` covers ``X-Amz-Security-Token=`` and ``access_token=``,
+``credential=`` covers ``X-Amz-Credential=``, ``accesskey`` covers ``AWSAccessKeyId`` and
+``expires=`` covers ``X-Amz-Expires=``. ``sig=`` is the Azure SAS signature. The ``=`` also
+matches its percent-encoded form ``%3D``.
+"""
+
+_ENCODED_UNRESERVED = "%(2[DEde]|3[0-9]|[46][1-9A-Fa-f]|[57][0-9Aa]|5[Ff]|7[Ee])"
+"""A percent-encoded RFC 3986 unreserved character (2.3): ``-``, ``.``, a digit, a letter, ``_``
+or ``~``, in either hex case. Encoding one never changes what a URL means, and normalizers decode
+it, so ``?%74oken=x`` is ``?token=x`` to a server. In a query or fragment it could only hide a
+parameter name from the token check, which matches the literal text."""
+
+
+def _any_case(text: str) -> str:
+    """An ECMA-262 and Python regex matching ``text`` in any letter case, without flags."""
+    return "".join(f"[{c.upper()}{c.lower()}]" if c.isalpha() else c for c in text)
+
+
+def _token_pattern(token: str) -> str:
+    """``token`` in any letter case, with ``=`` also matching ``%3D`` or ``%3d``."""
+    return _any_case(token).replace("=", "(=|%3[Dd])")
+
+
+CREDENTIAL_URL_PATTERN = (
+    rf"^{_SCHEME}://[{_AUTHORITY_CHARACTER}]*@"
+    rf"|[?#][{_URL_CHARACTER}]*({'|'.join(_token_pattern(token) for token in SIGNED_URL_TOKENS)})"
+    rf"|[?#][{_URL_CHARACTER}]*{_ENCODED_UNRESERVED}"
+)
+"""Found in a URL that names userinfo credentials, carries a signed or token parameter, or
+percent-encodes an unreserved character in its query or fragment.
+
+A URL whose query and fragment encode no unreserved character spells every parameter name with
+literal letters, digits and ``-._~``, so the substring check sees the name a server decodes. Other
+percent-encodings, such as ``%2F`` or ``%20``, stay allowed, as does any encoding in the path.
+
+The pattern is searched for, not matched in full, and is written in the subset where ECMA-262,
+Python ``re`` and Rust ``regex`` agree: explicit ASCII classes, no ``.``, no flags, no lookaround.
+The JSON Schema states it as ``not: {pattern}``; pydantic checks it with the same text.
+"""
+
+_CREDENTIAL_URL = re.compile(CREDENTIAL_URL_PATTERN)
+
+
+def has_url_credentials(url: str) -> bool:
+    """Whether ``url`` has userinfo credentials or a signed or token query parameter (PRD 8.12).
+
+    A query or fragment that percent-encodes an unreserved character counts as one, because the
+    encoding could hide such a parameter (see ``CREDENTIAL_URL_PATTERN``).
+    """
+    return _CREDENTIAL_URL.search(url) is not None
+
+
+def _refuse_url_credentials(url: str) -> str:
+    if has_url_credentials(url):
+        raise ValueError(
+            "source_url has credentials or a signature, or percent-encodes a letter, digit or "
+            "-._~ in its query or fragment; record the public URL of the product"
+        )
+    return url
+
+
+SourceUrl = Annotated[
+    str,
+    Field(pattern=URL_PATTERN),
+    AfterValidator(_refuse_url_credentials),
+    Field(json_schema_extra={"not": {"pattern": CREDENTIAL_URL_PATTERN}}),
+]
+"""A public URL: never userinfo credentials, a signed query or a token (PRD 8.12)."""
+
+_UNKNOWN_ANY_CASE = _any_case(UNKNOWN)
+"""``unknown`` in any letter case. The JSON Schema anchors it with ``^`` and ``$``; Python uses
+``re.fullmatch``, because Python's ``$`` also matches before a trailing newline."""
+
+_VERIFIED_NEEDS = (
+    "a VERIFIED ProductRecord needs a local_path, a checksum and known units: the PRD 5 entry "
+    "rule requires a downloaded, decoded file, and units are never guessed"
+)
+
+
+class ProductRecord(Record):
+    """A product read, or attempted, by the pipeline (PRD 8.12); sources.json lists them.
+
+    Every field must be present. A field that applies to the product but was not established
+    from it is the string ``"unknown"``. ``null`` marks a field that does not apply, such as the
+    radar frequency of a DEM, and is how the formatted fields (``source_url``, ``local_path`` and
+    ``checksum``) say that there is no URL or no downloaded file. A value is never ``""`` or 0.
+
+    Free-text fields hold what the product or its documentation states, keeping its wording and
+    units. ``checksum`` is the SHA-256 of the file at ``local_path``.
+    """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "if": {
+                "properties": {"verification_status": {"const": "VERIFIED"}},
+                "required": ["verification_status"],
+            },
+            "then": {
+                "properties": {
+                    "local_path": {"type": "string"},
+                    "checksum": {"type": "string"},
+                    "units": {"not": {"pattern": f"^{_UNKNOWN_ANY_CASE}$"}},
+                },
+            },
+        }
+    )
+
+    product_id: NonEmptyStr
+    provider: NonEmptyStr
+    version: NonEmptyStr
+    source_url: SourceUrl | None
+    local_path: LocalPath | None
+    checksum: Sha256 | None
+    body: Body
+    acquisition_time: NonEmptyStr | None
+    frequency_or_wavelength: NonEmptyStr | None
+    transmit_receive_convention: NonEmptyStr | None
+    units: NonEmptyStr
+    calibration_type: NonEmptyStr | None
+    native_grid: NonEmptyStr | None
+    effective_resolution: NonEmptyStr | None
+    crs_and_frame: NonEmptyStr
+    incidence_source: NonEmptyStr | None
+    qa_definition: NonEmptyStr | None
+    license_or_attribution: NonEmptyStr
+    verification_status: VerificationStatus
+
+    @model_validator(mode="after")
+    def _verified_has_a_decoded_file_with_units(self) -> Self:
+        if self.verification_status == "VERIFIED" and (
+            self.local_path is None
+            or self.checksum is None
+            or re.fullmatch(_UNKNOWN_ANY_CASE, self.units) is not None
+        ):
+            raise ValueError(_VERIFIED_NEEDS)
+        return self
+
+
+SourcesFile = Annotated[
+    list[ProductRecord],
+    Strict(),
+    Field(title="Sources", description="sources.json: the ProductRecords (PRD 8.4, 8.12)."),
+]
+"""sources.json: an array of ProductRecords."""
+
+
 # --- JSON Schema generation (PRD 8.3, 8.9) ------------------------------------------------------
 
 JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
@@ -168,6 +381,8 @@ CONTRACTS: tuple[Contract, ...] = (
     Contract("BundleManifest", "bundle-manifest.schema.json", TypeAdapter(BundleManifest)),
     Contract("GateRecord", "gate-record.schema.json", TypeAdapter(GateRecord)),
     Contract("Validation", "validation.schema.json", TypeAdapter(ValidationFile)),
+    Contract("ProductRecord", "product-record.schema.json", TypeAdapter(ProductRecord)),
+    Contract("Sources", "sources.schema.json", TypeAdapter(SourcesFile)),
 )
 
 
