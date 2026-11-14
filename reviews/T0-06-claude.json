@@ -1,0 +1,87 @@
+{
+  "task_id": "T0-06",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "be7989195cbd16ceb02bb70b0b669b46ab5b7fd7",
+    "head": "efe76a8c04024e6d788ea1f4b5b25765aff25cfc",
+    "files": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "sha256": "166f13bf0d593548a4747478e7fc00480b296c9b019ba288fdf2a745e26b02ae"
+      },
+      {
+        "path": "README.md",
+        "sha256": "52e46bb261968ec8fa461e518b69111e7d42e5c1f2b53f3e3585231f7435c881"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:22:22Z",
+  "finished_utc": "2026-11-14T19:22:49Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T0-06 review round 1. The diff touches only .github/workflows/ci.yml and README.md, both inside the story's files list. All five listed checks exit 0 locally, and the workflow meets the structural criteria on reading. I did not independently verify that the pinned action SHAs resolve to the stated tags, or that CI runs on GitHub. Neither was possible offline, and both are reported honestly in the README. Reviewer: Claude Sonnet 5.5 (claude-sonnet-5-5) via Claude Code, 2026-11-14. Reviewed range: be7989195cbd16ceb02bb70b0b669b46ab5b7fd7..efe76a8c04024e6d788ea1f4b5b25765aff25cfc.",
+  "checks": [
+    {
+      "criterion": "ci.yml triggers on pull_request and push to main. Job py runs make setup-py check-py test-py. Job ts runs make setup-ts check-ts test-ts. Job schema runs make schema-check mock-bundle-check. Job commitlint runs pnpm exec commitlint from base SHA to head SHA with fetch-depth 0. Versions come from .python-version and .node-version. Lockfiles are frozen. permissions is contents: read. Actions are pinned to SHAs with tag comments.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "ci.yml:8-11 triggers; :32, :45 and :63-64 job commands; :82-85 commitlint with --from/--to and BASE_SHA/HEAD_SHA via env; :75 fetch-depth: 0; :13-14 contents: read; :44, :62 and :80 node-version-file: .node-version. The repo's .python-version (3.12) is picked up by uv, since setup-uv is given no python-version input. Frozen installs come through Makefile lines 31 (uv sync --locked) and 55 (pnpm install --frozen-lockfile). All actions use 40-hex SHAs with # vX.Y.Z comments. The commitlint job runs only on pull_request (ci.yml:69), which fits the base/head SHA wording. SHA-to-tag correctness was not verified, see the NOT_RUN entry."
+    },
+    {
+      "criterion": "actionlint reports no errors for the workflow",
+      "command": "actionlint .github/workflows/ci.yml",
+      "outcome": "PASS",
+      "evidence": "No output, exit 0."
+    },
+    {
+      "criterion": "Every make target a job calls passes locally, with the outcome recorded in progress.txt",
+      "command": "make check; make test; make schema-check; make mock-bundle-check",
+      "outcome": "PASS",
+      "evidence": "make check: ruff and mypy clean, turbo 4/4 tasks successful. make test: pytest 404 passed, Vitest 157 + 80 passed (turbo replayed cached results). make schema-check: both 'match' lines. make mock-bundle-check: 'mock bundle matches the generator and is valid'. Each exited 0. progress.txt:159-160 records the outcomes, including a fresh-clone run of every job's commands. I did not re-run setup-py or setup-ts, so the fresh-clone claim rests on progress.txt."
+    },
+    {
+      "criterion": "README has a short Build and test section listing only commands that ran, one line each. It says GitHub CI and the Vercel preview have not run. Existing content is kept and the README stays short.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "README.md:17-35. Eleven one-line commands. Line 35 states 'CI has not run on GitHub yet, and the Vercel preview has not been deployed yet.' The diff adds 20 lines and removes none. I ran make check, test, schema-check, mock-bundle-check and actionlint myself. The other listed commands (setup, schema, mock-bundle, web-build, web-smoke, web-dev) are supported only by progress.txt:160."
+    },
+    {
+      "criterion": "Pinned action SHAs resolve to the tags named in the comments",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Needs network access to GitHub, and the review rules permit only local read-only commands. progress.txt:161 says each SHA was fetched and confirmed to be a commit, but I did not check it."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": ".github/workflows/ci.yml:29-31",
+      "claim": "setup-uv pins uv 0.9.26 by hand, so the uv version is not read from a repo file. This is the one toolchain version not taken from .python-version or .node-version.",
+      "evidence": "version: 0.9.26 appears in both the py and schema jobs. It is a deliberate choice and is noted in a comment, but it will need a manual bump.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": ".github/workflows/ci.yml:69",
+      "claim": "The commitlint job is skipped on push to main, so it never runs there.",
+      "evidence": "if: github.event_name == 'pull_request'. This follows the acceptance wording and progress.txt discloses it.",
+      "id": "claude-r1-2",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": ".github/workflows/ci.yml:22",
+      "claim": "The runner may use a system Python 3.12 patch release that differs from the local 3.12.13. setup-py rejects anything other than 3.12.",
+      "evidence": ".python-version is 3.12 and setup-uv gets no python-version input. progress.txt:157 notes the risk.",
+      "id": "claude-r1-3",
+      "resolution": null
+    }
+  ]
+}
