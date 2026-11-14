@@ -88,7 +88,11 @@
       "claim": "DEFAULT_RUN_CONFIG finds config/run.yaml by walking up parents[3] from the module file, so it only works from the editable workspace install.",
       "evidence": "The docstring at config.py:45-49 says to pass a path explicitly anywhere else. The test test_default_path_is_the_repository_run_yaml passes. This is acceptable and optional to change.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "93e6fdbb5b76c0ccd2a2a18cf29d18251d2c44e1",
+        "reason": "Kept the default from the editable workspace install, which is how the offline pipeline runs (PRD 8.3: config/run.yaml at the repository root, pipeline/ a uv workspace member), and documented it. A path that names no file, such as the default outside the workspace, now raises MissingRunConfigError (a ConfigError carrying key \"(document)\") naming the path and saying to pass it explicitly, instead of a bare FileNotFoundError. Test-first: 0dd8ac8 added test_missing_run_config_file_raises_a_named_error for load_run_config and load_terrain_config, which failed at import before the fix."
+      }
     }
   ]
 }

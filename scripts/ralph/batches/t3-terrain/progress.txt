@@ -23,6 +23,8 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - A workspace member may have its own `[dependency-groups].dev`; the virtual root's `uv sync --locked` installs it. types-pyyaml lives in pipeline/pyproject.toml's dev group for that reason.
 - mypy (strict, warn_unreachable) narrows `x in TUPLE_OF_LITERALS` to the Literal type, so a later `cast` is flagged redundant. Comparing a `tuple[float, ...]` with an int-tuple literal makes mypy mark the next line unreachable; write float literals.
 - zsh treats a bare `=====` argument as `=` expansion and fails; quote separators in shell commands.
+- A permission rule blocks `sed` on PRD.md. Find headings with `grep -n '^#' PRD.md`, then read the range with the Read tool (offset/limit).
+- Review files (reviews/*.json) are `jq .` formatted: edit a resolution with jq and prove nothing else changed by diffing `jq 'del(.findings[].resolution)'` against `git show HEAD:<file>`.
 ---
 
 ## 2026-11-14T17:34Z · T3-01 · implement
@@ -31,4 +33,12 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Checks: `uv run pytest pipeline/tests/test_config.py` exit 0 (93 passed); `uv run pytest pipeline/tests/test_geometry.py` exit 0 (20 passed); `make check` exit 0 (ruff check, ruff format --check and mypy strict on 8 files). Also ran the full `uv run --locked pytest`: 255 passed. Failing run before implementation (e818113): both files stopped at collection with ModuleNotFoundError for terraluna_pipeline.config and terraluna_pipeline.geometry.
 - Docs used: uv 0.9.26 (Context7 /astral-sh/uv did not cover member dependency groups, so I tested by uninstalling types-pyyaml and running a root `uv sync --locked`); PyYAML 6.0.3 (Context7 /yaml/pyyaml for safe_load; scalar resolution and duplicate keys tested directly); types-pyyaml 6.0.12.20261113 (read the installed stubs for SafeConstructor.construct_mapping); numpy 2.5.4 and scipy 1.18.1 locked (numpy only checks dtype here; scipy is not imported yet); pytest 9.2.0, ruff 0.17.5 and mypy from uv.lock.
 - Learnings: the PRD's W=5000 m and Δ=90 m do not divide evenly (5000/90 ≈ 55.6), so T3-02 has to settle the pixel count and say what happens at the window edge. The loader rejects 4.0 for min_lags_for_H (strict int, like the pydantic records). The sanity bounds (min_lags_for_H >= 2, span factor >= 1, fraction in (0, 1], lags strictly increasing) are input checks, not PRD thresholds.
+---
+
+## 2026-11-14T17:52Z · T3-01 · resolve
+- Done: round 1 had one finding. claude-r1-1 (low): DEFAULT_RUN_CONFIG only holds in the editable workspace install. Fixed: kept the default (PRD 8.3 puts config/run.yaml at the repository root and pipeline/ in the uv workspace) and made a path that names no file raise MissingRunConfigError (a ConfigError, key "(document)") with the path and a hint to pass it explicitly, instead of a bare FileNotFoundError. Codex reported no findings (verdict NOT_RUN: its read-only sandbox could not run the checks). Set review.state to resolved.
+- Commits: 0dd8ac8 test(t3-01): require a named error for a missing run-config file (claude-r1-1); 93e6fdb fix(t3-01): raise a named error when the run-config file is missing (claude-r1-1)
+- Checks: `uv run pytest pipeline/tests/test_config.py` exit 0 (95 passed); `uv run pytest pipeline/tests/test_geometry.py` exit 0 (20 passed); `make check` exit 0 (ruff check, ruff format --check, mypy strict on 8 files). Full `uv run --locked pytest`: 257 passed. Before the fix the new test stopped at collection with ImportError for MissingRunConfigError.
+- Docs used: none new (Python pathlib read_text raises FileNotFoundError; pytest 9.2.0, ruff 0.17.5 and mypy from uv.lock).
+- Learnings: `jq .` also reproduces the review files' formatting byte for byte, so a jq edit of a resolution leaves every other field untouched; compare `jq 'del(.findings[].resolution)'` against HEAD to prove it. `sed` on PRD.md is blocked by a permission rule in this worktree; read PRD ranges with the Read tool after `grep -n '^#' PRD.md`.
 ---
