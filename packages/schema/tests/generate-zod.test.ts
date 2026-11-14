@@ -336,6 +336,39 @@ describe('if/then and not translation', () => {
     );
   });
 
+  // A failing `then` property keeps the reason its schema gives, at the path below the property.
+  const THEN_FAILED = 'Invalid input: must match the "then" schema when the "if" schema holds';
+
+  it('reports why each then property fails', () => {
+    const group = groups.find((g) => g.name === 'conditional');
+    const value = group?.cases.find((c) => c.name === 'done-label-null-and-code-x')?.value;
+    if (group === undefined || value === undefined) {
+      throw new Error('no conditional case done-label-null-and-code-x');
+    }
+    const result = compile(zodExpression(group.schema)).safeParse(value);
+    expect(result.error?.issues.map((issue) => [issue.path, issue.code, issue.message])).toEqual([
+      [['label'], 'custom', `${THEN_FAILED}: Invalid input: expected string, received null`],
+      [['code'], 'custom', `${THEN_FAILED}: Invalid input: must not match the "not" pattern`],
+    ]);
+  });
+
+  it('reports a then failure inside a property at its full path', () => {
+    const schema = object(
+      {
+        status: { type: 'string', enum: ['DONE', 'OPEN'] },
+        tags: { type: 'array', items: { anyOf: [STRING, { type: 'null' }] } },
+      },
+      { if: IF_DONE, then: { properties: { tags: { type: 'array', items: STRING } } } },
+    );
+    const result = compile(zodExpression(schema)).safeParse({ status: 'DONE', tags: ['a', null] });
+    expect(result.error?.issues.map((issue) => [issue.path, issue.message])).toEqual([
+      [['tags', 1], `${THEN_FAILED}: Invalid input: expected string, received null`],
+    ]);
+    expect(compile(zodExpression(schema)).safeParse({ status: 'OPEN', tags: ['a', null] }).success).toBe(
+      true,
+    );
+  });
+
   // Why the generator translates these keywords itself: the pinned converter would weaken both.
   it('documents that the pinned converter drops if/then without else', () => {
     const source = jsonSchemaToZod(
