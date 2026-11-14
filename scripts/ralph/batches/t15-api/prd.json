@@ -264,12 +264,18 @@
       "priority": 5,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "aba5ce10102a42f41e1efb7aaba802817ce8320c",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "71f9f7faa92fb16ab3f0ee8b02142991bd195b5f",
+        "files": [
+          "reviews/T15-05-claude.json",
+          "reviews/T15-05-codex.json"
+        ],
+        "digests": {
+          "reviews/T15-05-claude.json": "f2e7975cafd2c33d0f48c01d7ea711c0b0b7545824315c126f68c362c0307feb",
+          "reviews/T15-05-codex.json": "0ac5247addd9a780048ab7d5beea6b7ba3b71d231fcf1f5cc6083926b13c97d6"
+        }
       },
       "notes": "Comparisons and windows top-N files, once listed in a manifest and pulled by T15-01, may be served only when a schema exists; until then these routes stay problem+json. Author (T15-05): (1) One rule, documented in server/api/unavailable.ts and pinned in unavailable.test.ts: 404 (NOT_IN_BUNDLE_STATUS) when manifest.json does not hold the requested record or file (an unlisted target id, an unlisted comparisons/<id>.json, no window file, no model), with a detail saying what is not in bundle <bundle_version>; 501 (NOT_SERVED_STATUS) when the manifest lists the file the record would come from but @terraluna/schema has no schema for its records, with a detail naming the missing schema. The status follows from manifest.json alone, re-checked with its generated schema first, so a corrupt manifest (or validation.json, for family=model) is a 500. No schema-less file is parsed and nothing is computed in place of a missing record. Both answers are ProblemErrors: not logged, no-store. (2) /windows/{id} and /compare return 501 for any valid id once a window or comparison file is listed: telling an unknown window id from a known one would need parsing targets.json or windows/<body>.json, which have no schema. With no such file (the mock) they are 404. (3) /compare is not computed in this batch: no @terraluna/core import or dependency (tested) and no Derived (on request) value. On-request computation waits for T10 (@terraluna/core) and real fingerprints. (4) Model-family guard (server/api/model.ts modelFamilyAccess): allowed only when manifest.json names a model and G5 is PASS both in manifest.model.g5 and in exactly one validation.json G5 record (none is an untested gate, never a pass; two leave the verdict unclear, and the loader already refuses duplicate gate ids). When allowed it carries the Predicted label, which any future model-family response must take from here; family=model is checked before the target. With the mock (model null) it is a 404 explaining that model-family matches exist only when a model is in the bundle. (5) Matches parameters: body is earth only (a ComparisonRecord pairs a target window with an earth_window_id; PRD 6.4 Earth search universe), family is required (terrain|radar|model, no default, distances stay separate), limit 1 to 500 in plain decimal digits with default 50, cursor optional at most 256 base64url characters; unknown, repeated or malformed parameters are a 400 (VALIDATION_STATUS from T15-02) before the bundle is read. limit and cursor are validated although no page is served yet. Window ids (and compare a, b) use the target id pattern and length limit from T15-04. (6) Human decisions (schema gaps): @terraluna/schema has no ComparisonRecord, WindowRecord or ModelRecord schema, so matches, windows, compare and model serve no record until those exist; model/model_card.json and report/*.json are also never pulled. (7) No loader accessor was added; no app/api file was touched."
     },

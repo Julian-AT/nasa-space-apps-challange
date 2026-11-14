@@ -1,0 +1,142 @@
+{
+  "task_id": "T15-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "aba5ce10102a42f41e1efb7aaba802817ce8320c",
+    "head": "71f9f7faa92fb16ab3f0ee8b02142991bd195b5f",
+    "files": [
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "b067a900bc85c393293209263358bd19811cf930ed17eb364e9c14a1cb87ac72"
+      },
+      {
+        "path": "apps/web/server/api/compare.test.ts",
+        "sha256": "466714721c4c85b5dd15cce1094f4d533c768550a491efc28b0719e92b53e4bb"
+      },
+      {
+        "path": "apps/web/server/api/compare.ts",
+        "sha256": "330c936be837e4756922bf4f864a8ba9018beebf9b0a815fbd435f5266b78252"
+      },
+      {
+        "path": "apps/web/server/api/matches.test.ts",
+        "sha256": "ce625b7d892eec48b78b10eaaaf64f49be2e15ca9e6bcbbe2f0b90c4c7d9b9ab"
+      },
+      {
+        "path": "apps/web/server/api/matches.ts",
+        "sha256": "2e06b8c0d22e35eb56981a7a56acf4dc85ea391fa509a89015e10ec6472bd610"
+      },
+      {
+        "path": "apps/web/server/api/model.test.ts",
+        "sha256": "714ee84ac24402e4f79969cee141f8c729de7481622d14d2d6cee3ff85f014db"
+      },
+      {
+        "path": "apps/web/server/api/model.ts",
+        "sha256": "b2b1c8bef08d843b182fabe61a989c75cc9bacfe7aa2ddd9cbea4fdf9c5362a1"
+      },
+      {
+        "path": "apps/web/server/api/test-support.ts",
+        "sha256": "beee7209d5188c976a0bd88cf7b95c13269f7c5b5be5326c8d1a68a886776310"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.test.ts",
+        "sha256": "d77efbfa24a93eac0b553fc43d82b1b3a924ab389422f90228cc615cc83c2a83"
+      },
+      {
+        "path": "apps/web/server/api/unavailable.ts",
+        "sha256": "4fd9bedbda6363a985dcd286b2a18835deb91ac08df9c366fa415a1acf86488e"
+      },
+      {
+        "path": "apps/web/server/api/windows.test.ts",
+        "sha256": "08398c18a2226395a4b54d8a743e450e1945642bba85ba02e280aa3dbb767103"
+      },
+      {
+        "path": "apps/web/server/api/windows.ts",
+        "sha256": "847a786064188b9da41c28c31f9bf82f6b6b56afe49fc480f0928379bb05db2b"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:43:56Z",
+  "finished_utc": "2026-11-14T20:48:17Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "One blocker: windows and compare return 501 for unknown IDs whenever any relevant file is listed, violating criterion 1. No checks were run, as instructed.",
+  "checks": [
+    {
+      "criterion": "1. Validated unavailable-data routes, bundle-specific problem details, and 404 for unknown IDs.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "apps/web/server/api/windows.ts:71 and compare.ts:63 select status solely from file presence. Their unconditional 501 branches at windows.ts:78 and compare.ts:70 never check whether the requested IDs exist."
+    },
+    {
+      "criterion": "2. Model-family refusal unless a model exists and G5 passes; Predicted labeling.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static safeguards exist at model.ts:43-60 and matches.ts:124-127; matches.test.ts:167-261 exercises absent models and G5 states. Runtime refusal remains unverified because checks are prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "3. Compare performs no computation, calls no @terraluna/core, and records the deferral.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "compare.ts:13-23 imports no core module; its handler at :58-76 only validates the manifest, filters paths, and throws problems. apps/web/package.json has no core dependency. scripts/ralph/batches/t15-api/prd.json:274 records deferral until T10 and real fingerprints."
+    },
+    {
+      "criterion": "4. A test scans mock-route response bodies for numeric distance, rank, and fingerprint fields.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "unavailable.test.ts:86-107 requests the routes, parses each response, permits only the numeric status field, and rejects result-related keys. apps/web/vitest.config.ts:8 includes this test. This verifies meaningful test coverage by reading; the test was not executed."
+    },
+    {
+      "criterion": "5. OpenAPI lists these routes with matching problem+json responses.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "app.ts:148-151 registers all four OpenAPI routes; unavailable.ts:55-75 declares problem+json responses. unavailable.test.ts:236-343 checks the generated document, but document generation was not executed because checks are prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Required web test suite",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the sandbox is read-only and test caches or temporary fixtures require writes."
+    },
+    {
+      "criterion": "Required focused API tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the sandbox is read-only and route fixtures create temporary files."
+    },
+    {
+      "criterion": "Required web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the sandbox is read-only; this script invokes next typegen."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the read-only sandbox prohibits required cache and generated-file writes."
+    },
+    {
+      "criterion": "Required repository tests",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the read-only sandbox prohibits test cache and temporary-file writes."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "apps/web/server/api/windows.ts:71",
+      "claim": "Preserve the required 404 response for unknown window and comparison IDs. Both handlers currently return 501 whenever any source file exists, regardless of the requested IDs.",
+      "evidence": "windows.ts:71-80 never looks up id; compare.ts:63-73 similarly ignores a and b when selecting 501. By inspection, a bundle listing only comparisons/known.json makes /compare?a=missing&b=other return 501, and listing targets.json makes /windows/missing return 501. windows.test.ts:56-68 and compare.test.ts:55-67 pin this blanket behavior instead of testing the criterion's unknown-ID 404 rule.",
+      "id": "codex-r1-1",
+      "resolution": null
+    }
+  ]
+}
