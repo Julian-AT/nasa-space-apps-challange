@@ -1,0 +1,65 @@
+[
+  {
+    "consequence": null,
+    "evidence_path": null,
+    "gate_id": "G0",
+    "result": null,
+    "run_id": null,
+    "scope": null,
+    "status": "NOT_RUN"
+  },
+  {
+    "consequence": null,
+    "evidence_path": null,
+    "gate_id": "G1",
+    "result": null,
+    "run_id": null,
+    "scope": null,
+    "status": "NOT_RUN"
+  },
+  {
+    "consequence": null,
+    "evidence_path": null,
+    "gate_id": "G2",
+    "result": null,
+    "run_id": null,
+    "scope": null,
+    "status": "NOT_RUN"
+  },
+  {
+    "consequence": null,
+    "evidence_path": null,
+    "gate_id": "G3",
+    "result": null,
+    "run_id": null,
+    "scope": null,
+    "status": "NOT_RUN"
+  },
+  {
+    "consequence": null,
+    "evidence_path": null,
+    "gate_id": "G4",
+    "result": null,
+    "run_id": null,
+    "scope": null,
+    "status": "NOT_RUN"
+  },
+  {
+    "consequence": null,
+    "evidence_path": null,
+    "gate_id": "G5",
+    "result": null,
+    "run_id": null,
+    "scope": null,
+    "status": "NOT_RUN"
+  },
+  {
+    "consequence": null,
+    "evidence_path": null,
+    "gate_id": "G6",
+    "result": null,
+    "run_id": null,
+    "scope": null,
+    "status": "NOT_RUN"
+  }
+]
