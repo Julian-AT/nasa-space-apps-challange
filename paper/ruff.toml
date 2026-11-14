@@ -1,0 +1,10 @@
+# Ruff settings for the paper build scripts (PRD 22.6), used by make -C paper check.
+# The root pyproject.toml covers only the pipeline and ml packages; these values match it.
+target-version = "py312"
+line-length = 100
+
+[lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[lint.isort]
+known-first-party = ["scripts", "terraluna_pipeline"]
