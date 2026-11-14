@@ -79,10 +79,14 @@ describe('the route module', () => {
 
   it('wraps app.fetch itself instead of handle(app) from hono/vercel, citing hono issue 4877', () => {
     const source = readFileSync(ROUTE_FILE, 'utf8');
-    expect(source).not.toMatch(/hono\/vercel/);
-    expect(source).not.toMatch(/\bhandle\(/);
+    const code = source
+      .split('\n')
+      .filter((line) => !line.trimStart().startsWith('//'))
+      .join('\n');
+    expect(code).not.toMatch(/hono\/vercel/);
+    expect(code).not.toMatch(/\bhandle\(/);
+    expect(code).toMatch(/\(req\) => app\.fetch\(req\)/);
     expect(source).toContain('https://github.com/honojs/hono/issues/4877');
-    expect(source).toContain('app.fetch(req)');
   });
 
   for (const method of OTHER_METHODS) {
