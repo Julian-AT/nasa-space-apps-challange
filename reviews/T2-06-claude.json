@@ -98,7 +98,11 @@
       "claim": "The record does not state the commit it ran on, although AC4 requires the exact command and the commit.",
       "evidence": "The T0 GateRecord has no notes field. The result JSON holds the command and the junit and required-list SHA-256 hashes, with no git commit or SHA. grep for 'commit' in the gate test finds only the committed-record path, so no test covers this.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "42e9f24bac97e91e0b3780925b09a20957ec2bde",
+        "reason": "GateRecord (T0 schema, not owned here) has no notes field, so result now holds a notes object: the record-g1 command, the pytest command that wrote the report (--pytest-command, refused with exit 2 unless it names the given report with --junitxml or --junit-xml), the commit checked out at the repository root (git rev-parse, read-only) and uncommitted_changes (paths that differ from it in the index or work tree, plus untracked files git does not ignore). Outside a git checkout both are null, never guessed. Tests in 37e0bf2 use scratch git repositories built with plumbing. The committed record, regenerated in a4bb2b7, names commit 42e9f24 with only fixtures/polarimetry/g1-record.json uncommitted. A gate test requires the committed record's commit to be in the history and nothing but the record itself uncommitted."
+      }
     },
     {
       "severity": "low",
@@ -106,7 +110,11 @@
       "claim": "The committed record's evidence_path is /tmp/terraluna-g1/junit.xml. That file is not in the repository, so the evidence cannot be re-checked from a clean checkout.",
       "evidence": "The junit_sha256 is recorded, but the junit file is not committed under fixtures/polarimetry/. The story permits a path outside the repository.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Story AC2 allows the junit path outside the repository. The report is pytest's own and carries hostname=platform.node(), the machine name (Codebase Patterns, story note 6), so committing it is a privacy choice the story notes leave to a human. It is not a defect. The record keeps the report's SHA-256, so any kept copy can be verified. Since 42e9f24 it also names the commit (42e9f24) and the exact pytest and record-g1 commands. From a clean checkout of that commit, the evidence can be re-created and its per-test outcomes compared with the record's counts. A new report has new timestamps and durations, so its hash differs and the outcomes are what to compare."
+      }
     },
     {
       "severity": "low",
@@ -114,7 +122,11 @@
       "claim": "The CLI exits 1 for any non-PASS status, which matches the story's 'nonzero exit code is not hidden'. The G1 record stays PARTIAL until T2-07's real-scene test exists, which is intended.",
       "evidence": "main() returns 0 only for PASS. g1-record.json status is PARTIAL with the oracle test listed as absent.",
       "id": "claude-r1-3",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "This reports no defect. The finding itself says exit 1 for any status but PASS matches the story (AC5: a nonzero exit code is not hidden) and that PARTIAL until the T2-07 real-scene test exists is intended. Story note 1 fixes exit 0 only for PASS, 1 for any other recorded status and 2 when nothing is written, and test_deliberately_failing_run_records_fail_and_its_exit_code_is_not_hidden checks it on a real run. No change is needed."
+      }
     }
   ]
 }
