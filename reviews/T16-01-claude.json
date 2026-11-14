@@ -210,7 +210,11 @@
       "claim": "Running numbers.py without `python -P` exits with a message. The Makefile always passes -P.",
       "evidence": "The guard on sys.flags.safe_path stops direct use such as `python scripts/numbers.py`. The cause is the file shadowing the stdlib `numbers` module. This follows from the spec's file name and is documented, so I noted it and did not count it as a defect.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The guard is deliberate and the reviewer did not count it as a defect. The criteria fix the name paper/scripts/numbers.py. Run as python scripts/numbers.py, Python puts scripts/ first on sys.path, so any import of the standard library module numbers (decimal, fractions, pydantic in bundle_lines) would load this file instead and fail in an obscure way. The guard at numbers.py:204-205 turns that into a one-line message naming the fix, the module docstring (numbers.py:9-10) documents it, and every Makefile target runs python -P (Makefile PYTHON). make -C paper numbers and numbers-check pass, and test_cli_without_a_bundle_writes_the_header_only_file runs the script the same way."
+      }
     }
   ]
 }

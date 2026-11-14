@@ -210,7 +210,11 @@
       "claim": "The header-only artifact assertion prevents the default build from accepting any valid BUNDLE_VERSION.",
       "evidence": "paper/Makefile:18-25 regenerates generated/numbers.tex from the selected bundle before test. numbers.py:138-140 writes the required release-version and manifest-hash source line, but test_numbers.py:130-131 requires that same working-tree file to equal NO_BUNDLE. This contradiction stops the build before pdf even when MACROS is empty. Test no-bundle output in a temporary file and cover the bundle-enabled build sequence.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "6f0ddeb4c9d1aec3739b397a2b25b0e4d05fe5be",
+        "reason": "Fixed in 6f0ddeb4c9d1aec3739b397a2b25b0e4d05fe5be. Reproduced first on a scratch copy of HEAD with a temporary test bundle at release/test-0: make -C paper BUNDLE_VERSION=test-0 failed at test_committed_numbers_tex_is_the_header_only_file. That test is replaced by numbers_tex_problems, which accepts either numbers.py output for the current MACROS: the exact no-bundle file, or a release source line (bundle_version segment, lowercase 64-hex manifest digest) followed by exactly one \\newcommand number line per macro in spec order. It is tested on 4 passing and 18 failing strings. test_build_with_a_bundle_passes_the_generated_file_test runs the CLI with -P and --bundle on a temporary bundle, as the Makefile does, and checks the output; another test does the same with a two-macro spec. Without a bundle the no-bundle bytes are still checked in tmp_path files. After the fix, on the scratch copy, make -C paper BUNDLE_VERSION=test-0 and numbers-check BUNDLE_VERSION=test-0 exit 0 (217 passed, main.log clean). numbers-check without BUNDLE_VERSION still fails on a bundle-written file, so the gate still pins the committed file to the two comment lines."
+      }
     },
     {
       "severity": "blocker",
@@ -218,7 +222,11 @@
       "claim": "Starred includegraphics commands bypass the required generated-PDF path guard.",
       "evidence": "INCLUDEGRAPHICS requires whitespace, options or an opening brace immediately after the command name, so it cannot capture \\includegraphics*{../external.pdf}. disallowed_graphics at :463-465 checks only captured paths and therefore reports no violation. The raster scan cannot enforce the required PDF location either. Recognize the starred form and add allowed/disallowed examples for it.",
       "id": "codex-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "82cf58a76334d16e65716a1a3148a5dc6d77a04e",
+        "reason": "Fixed in 82cf58a76334d16e65716a1a3148a5dc6d77a04e, with the failing tests first in 8c8dcef8d8d557cc5c2e4a9cd7896ee53580e2f4 (6 cases failed before the fix). disallowed_graphics now finds every \\includegraphics command name (not followed by a letter) and reads it with an optional star and at most two optional [..] arguments before the braced path. A command whose path it cannot read, for example a macro path, nested braces or three optional arguments, is reported as written, so an unrecognised form fails closed. New cases cover \\includegraphics*{../external.pdf}, starred options, the two-bounding-box form, a macro path and several commands in one text."
+      }
     }
   ]
 }
