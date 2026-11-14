@@ -155,12 +155,18 @@
       "priority": 3,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "6aab6258fa35a843038f26e77e84c94b5d37ff5f",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "a2de10e0e9cae4df97dfd9f86774bb1129888534",
+        "files": [
+          "reviews/T15-03-claude.json",
+          "reviews/T15-03-codex.json"
+        ],
+        "digests": {
+          "reviews/T15-03-claude.json": "188c46653cba41d770704a36a1b81478cb72196b75c9b061d743e378685642e2",
+          "reviews/T15-03-codex.json": "0a440a7520fe60a9673bbcd871295d94f27e4887e8af653536be3bb8be0a0b07"
+        }
       },
       "notes": "Author (T15-03): (1) Cache policies in server/api/cache.ts: per deploy (/manifest) is `public, max-age=60, immutable`, per bundle (/gates) is `public, max-age=300, immutable`; both carry ETag W/\"<bundle_version>\" and Hono's etag middleware (hono/etag, route-level) answers a matching If-None-Match or * with 304 after the handler has read and validated the bundle, so a corrupt bundle is a 500, never a 304. The ETag is weak (RFC 9110 8.8.1) because bundle_version identifies the content, not one serialization. The URLs carry no bundle_version, so max-age bounds how long a client keeps a response after a deploy pins a new bundle. CDN directives (s-maxage, CDN-Cache-Control) are not set; they belong with the Vercel mount (T15-07). (2) The mock bundle keeps bundle_version mock-0 while its fixture changes between commits, so a client may revalidate an older mock with 304 across preview deploys; mocks are placeholders and refused on production. (3) Both handlers re-check the reader output with the generated schemas (records.ts parseBundleFile); a mismatch is BundleFileError(path, invalid), which the shared handler turns into a 500 problem naming the bundle file. /gates also parses manifest.json, since its ETag comes from bundle_version. (4) OpenAPI components BundleManifest and Validation are the generated schemas under a name (clone().openapi(name), same zod definition, tested by identity). zod 4 copies prototype methods onto a schema when it is constructed, so a generated schema built before @hono/zod-openapi loads has no .openapi method; clone() avoids that import-order dependency. (5) No loader accessor was added; no app/api file was touched."
     },

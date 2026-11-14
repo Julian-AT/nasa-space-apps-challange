@@ -1,0 +1,121 @@
+{
+  "task_id": "T15-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "6aab6258fa35a843038f26e77e84c94b5d37ff5f",
+    "head": "a2de10e0e9cae4df97dfd9f86774bb1129888534",
+    "files": [
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "970cfc940bd584ac8e81fdb6469ea7c9cd94ce8cfc4dbc0962a13b08af83f6e9"
+      },
+      {
+        "path": "apps/web/server/api/cache.test.ts",
+        "sha256": "92b4b00799672f722234c23d32d23405c87462eb3ee514b4c68f07233bbc685d"
+      },
+      {
+        "path": "apps/web/server/api/cache.ts",
+        "sha256": "45920d61f0a775c891d4b2ac4213b25e7f31164e7d4858da977f48d1134f0b9f"
+      },
+      {
+        "path": "apps/web/server/api/gates.test.ts",
+        "sha256": "14ad55115bafcfec0bc4cd0cf1f09bd8453827e2041c5d1e9230fe181af26597"
+      },
+      {
+        "path": "apps/web/server/api/gates.ts",
+        "sha256": "f0a973b592a8b191928ceac57c9c9e5300cc82d2d5865aab0a475b9bff0b7d04"
+      },
+      {
+        "path": "apps/web/server/api/manifest.test.ts",
+        "sha256": "24e0160a39b1f38034f0b7545d0b30b235d745c779e3fbf8313a7e3e6c56c462"
+      },
+      {
+        "path": "apps/web/server/api/manifest.ts",
+        "sha256": "ca3d3aec7c745d99dd4804844114e2d213b53cae3f8a2515dfe2f49762105ae7"
+      },
+      {
+        "path": "apps/web/server/api/records.ts",
+        "sha256": "1a184448e4cbb993414ee3f0e5b0bcff2d96cdf833e8d029486fba2a05806c95"
+      },
+      {
+        "path": "apps/web/server/api/test-support.ts",
+        "sha256": "e5bb2b2eeb8e0c1246f6b938deeec848834f387d73262f549744c8363cc0e112"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:06:12Z",
+  "finished_utc": "2026-11-14T20:08:22Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No actionable defects found in static review. Behavioral criteria and required checks remain unverified because execution was prohibited in the read-only sandbox. All nine changed files are within story scope.",
+  "checks": [
+    {
+      "criterion": "Manifest returns the unchanged, schema-valid fixture with mock=true.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "manifest.ts:42-43 validates and returns the manifest; manifest.test.ts:42-55 asserts fixture equality, mock=true and schema validity. Runtime verification was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Gates returns validation.json unchanged, preserving every allowed status.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "gates.ts:45-48 validates and returns the records; gates.test.ts:62-91 asserts fixture equality, allowed statuses and mixed-status preservation. Runtime verification was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Response schemas are tested and corrupted schema_version produces 500 problem+json.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "manifest.test.ts:52-55,78-86 and gates.test.ts:80-101 cover schema validity and corrupted readers. test-support.ts:47-55 checks status and problem+json. Runtime verification was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Cache policies document public max-age and immutable semantics, derive ETags from bundle_version, and support matching 304 responses.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "cache.ts:29-85 defines 60/300-second policies, version-derived ETags and conditional middleware. manifest.test.ts:91-147 and gates.test.ts:121-155 assert headers and conditional behavior. Runtime verification was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Routes add no response fields and OpenAPI components use generated schemas.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/server/api/records.ts:10-18 imports and names the generated schemas without redefining fields. manifest.ts:29 and gates.ts:32 use those schemas; handlers return parsed records directly at manifest.ts:42-43 and gates.ts:46-48."
+    },
+    {
+      "criterion": "Required web tests",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: user prohibited checks because the read-only sandbox blocks test caches and other writes."
+    },
+    {
+      "criterion": "Required focused API tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: user prohibited checks because the read-only sandbox blocks test caches and other writes."
+    },
+    {
+      "criterion": "Required web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: user prohibited checks; this command also invokes Next.js type generation, which writes files."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: user prohibited checks because the read-only sandbox blocks tool caches and generated files."
+    },
+    {
+      "criterion": "Required repository tests",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: user prohibited checks because the read-only sandbox blocks test caches and other writes."
+    }
+  ],
+  "findings": []
+}
