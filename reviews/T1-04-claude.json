@@ -1,0 +1,140 @@
+{
+  "task_id": "T1-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "921be8ca687e7082dc5e9fc57c45c1fe3b26704c",
+    "head": "e6efbe4ddf8292d29b6ec610902707657c37f264",
+    "files": [
+      {
+        "path": "outputs/pilot/minirf_mosaic.json",
+        "sha256": "25f62e71c89cd02505e75da7b620f3d7a76c1a81098ed48578a9e2430a12cff0"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "3a31df95c2e2aa4a438eebf2e883de65f89668ac38e621f0a61f71150f7d731a"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "e2ca68a93bf7f58d296d569d6709de0ca1e27c15072575edce7cd60fca2e187f"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "40c2ee163358d1c2c2115efcf5856a23bfbba5865b56d319c4c8b7a34e8371c8"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "382240f04d1213eca89dd8e51c7997af26cc08c796cc1168b69891b41577459e"
+      },
+      {
+        "path": "pipeline/tests/test_io_pds3.py",
+        "sha256": "fcd451fc021a88cfbf83806ad3fad5119381eaffba52aedf497a00aff8eb62f8"
+      },
+      {
+        "path": "pipeline/tests/test_io_tls.py",
+        "sha256": "74516e3024fd1b0a3656a0a98f074372e855d2a790d4249d609f32ba0d20f3f6"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_minirf.py",
+        "sha256": "f3c4cfb73607498b01718e65fef3a35b6f5a869e7ef0c17a5551138981d37dc2"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "b8c7467ef1cd95e54ebcf43324f4fd22117e6d2d2e56fd772265879259a06853"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:51:32Z",
+  "finished_utc": "2026-11-14T20:52:17Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T1-04 passes. All three story checks exit 0: pytest gave 1224 passed and 2 xfailed, the pilot minirf check reported \"committed outputs match data/raw/minirf/\", and make check (ruff, format, mypy) was clean. The committed record meets each acceptance criterion. The mosaic has no S4 layer, so stokes_observation is correctly not_performed with the MAP-V1.0 swath read listed as an open G0 item. I did not re-fetch from PDS or re-derive the numbers independently, and the review is by inspection of artifacts plus the story checks.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "1224 passed, 2 xfailed. The 2 xfails are the ProductRecord and Sources schema-case tests, marked as outside T1-01's files."
+    },
+    {
+      "criterion": "pilot check minirf",
+      "command": "uv run python -m terraluna_pipeline.pilot check minirf",
+      "outcome": "PASS",
+      "evidence": "minirf: committed outputs match data/raw/minirf/"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, 19 files already formatted, mypy found no issues in 19 source files."
+    },
+    {
+      "criterion": "AC1: product located via PDS landing pages; PRD 5 layout leads each confirmed or contradicted against the label; non-positive-as-missing checked; parser and range helper in io.py with synthetic-label tests",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "minirf_mosaic.json has located_through landing_page and volume_url, plus layout_leads with per-item status. File, size, PC_REAL, 256 pix/deg, projection centre and ISIS null are 'confirmed'. The non-positive lead is 'not_stated_in_label', and zero_pixels and negative_pixels are counted as valid. The diff touches io.py, and test_io_pds3.py (1238 lines) has synthetic-label tests, including a row byte range test and range support/ignore loopback tests."
+    },
+    {
+      "criterion": "AC2: only label and window rows fetched by range request (206, bytes recorded); Range ignored stops the fetch; raw files saved under data/raw/minirf/",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "range_read has http_status 206, content_range bytes 215445104-221073327/428158864, bytes_received 5628224 and whole_file_downloaded false. The data/raw/minirf listing shows a .img.rows file of 5628224 bytes. The tests test_fetch_stops_and_records_when_the_server_ignores_range and test_fetch_reads_only_the_labels_and_the_window_rows_by_one_range_request exist, and the loopback test for a server that ignores Range exists."
+    },
+    {
+      "criterion": "AC3: window computed from the Site01 extent with pyproj, using projection parameters from the label; pyproj added to pyproject and uv.lock; offsets and converted bounds recorded",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "window.status is 'read'. It records site_extent from outputs/pilot/pgda78_site01.json, converted_bounds_m, window_extent_m, a pixel_window (col_off 5012, row_off 5206, 136x136) and the pyproj Transformer rule. pyproject.toml adds pyproj>=3.8,<4, and the uv.lock diff is +24 lines. The make check run uses --locked and passed."
+    },
+    {
+      "criterion": "AC4: minirf_mosaic.json required fields",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The label has url, sha256 and bytes. The data object has url and remote_bytes. range_read has byte_ranges and bytes_received. layout has dtype and scaling, and units is stated. null_value is recorded. cpr_statistics has valid_fraction 0.797, min 0.0217, max 1.439 and median 0.4203, with quality.validity_mask as the mask. transmit_handedness.stated_by_product is 'not stated'. look_direction.mixed is true, and incidence.statement says per-pixel incidence is not recoverable."
+    },
+    {
+      "criterion": "AC5: Stokes observation, or not_performed with MAP-V1.0 as an open G0 item",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "stokes_observation is {status: not_performed, reason}. The reason says the 24 mosaic labels describe CPR and S1 only, with no S4 layer, that CPR is never used to infer S4, and that the verdict is T2-05's. open_g0_items lists the MAP-V1.0 single-swath read. There is no verdict label."
+    },
+    {
+      "criterion": "AC6: ProductRecords upserted into sources.json by product_id, sorted, checksums matching fetched bytes; unreachable source exits non-zero naming the URL",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "sources.json has the two MINIRF records, sorted before PGDA78. Checksum d5d7e292… is for the label and 7dbb2b0e… is for the .rows file. The 7dbb2b0e… value equals range_read.local_sha256, and both local_path values name existing data/raw/minirf files. The tests test_an_unreachable_source_fails_naming_the_url and test_a_range_failure_fails_the_fetch_naming_the_url exist."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "outputs/pilot/minirf_mosaic.json frequency",
+      "claim": "The label's CENTER_FREQUENCY (2379.99968158 <GHz>) disagrees with the instrument catalog (2.38 GHz) by a factor of 1000.",
+      "evidence": "The record quotes both values and corrects neither, which is appropriate. Downstream consumers must not use the label value as GHz. This is noted only for awareness.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "outputs/pilot/minirf_mosaic.json verification",
+      "claim": "Both products stay PARTIAL because the PRD 5 entry rule (plot) is not complete, so G0 is not claimed.",
+      "evidence": "The verification entries say 'not plotted, so the PRD 5 entry rule is not complete'. This is honest, and no gate pass is invented.",
+      "id": "claude-r1-2",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/pyproject.toml",
+      "claim": "The certifi dependency was added alongside pyproj, and the fix commit 34e070c uses certifi's CA bundle for TLS verification.",
+      "evidence": "The diff adds 'certifi>=2026.10.23'. It is not in the story text but supports the TLS fix in io.py (covered by test_io_tls.py), and pyproject.toml is within the story's files list.",
+      "id": "claude-r1-3",
+      "resolution": null
+    }
+  ]
+}

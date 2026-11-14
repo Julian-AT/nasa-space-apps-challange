@@ -58,3 +58,18 @@
 {"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":1}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"git diff --stat 921be8ca687e7082dc5e9fc57c45c1fe3b26704c e6efbe4ddf8292d29b6ec610902707657c37f264 -- . ':!scripts/ralph' ':!reviews' ':!logs'"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"uv run python -m terraluna_pipeline.pilot check minirf"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"jq -c 'del(.stokes_observation.layers) | with_entries(select((.value|tostring|length) < 600))' outputs/pilot/minirf_mosaic.json"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"jq -c '{window, bytes_received, label_sha256, urls, layout_leads, stokes_observation, valid, stats, keys: keys}' outputs/pilot/minirf_mosaic.json"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"jq -c '.products // .' outputs/sources.json"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"jq -c '{label, data, cpr_statistics, range_read, look_direction, units, documents}' outputs/pilot/minirf_mosaic.json"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"jq -c '.[] | select(.source==\"minirf\" or (.product_id|test(\"LSZ\")))' outputs/sources.json"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"ls -la data/raw/minirf"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"jq -c '[.[] | {product_id, local_path, checksum, source_id: .source_id}]' outputs/sources.json"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"git diff 921be8ca687e7082dc5e9fc57c45c1fe3b26704c e6efbe4ddf8292d29b6ec610902707657c37f264 -- outputs/sources.json pipeline/pyproject.toml"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"grep -n -i -E \"def test_.*(range|ignore|unreach|exit|non_positive|zero|s4|stokes)\" pipeline/tests/test_pilot_minirf.py pipeline/tests/test_io_pds3.py"}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T20:52:17Z","agent":"verifier","story":"T1-04","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":3}

@@ -1,0 +1,132 @@
+{
+  "task_id": "T1-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "921be8ca687e7082dc5e9fc57c45c1fe3b26704c",
+    "head": "e6efbe4ddf8292d29b6ec610902707657c37f264",
+    "files": [
+      {
+        "path": "outputs/pilot/minirf_mosaic.json",
+        "sha256": "25f62e71c89cd02505e75da7b620f3d7a76c1a81098ed48578a9e2430a12cff0"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "3a31df95c2e2aa4a438eebf2e883de65f89668ac38e621f0a61f71150f7d731a"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "e2ca68a93bf7f58d296d569d6709de0ca1e27c15072575edce7cd60fca2e187f"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "40c2ee163358d1c2c2115efcf5856a23bfbba5865b56d319c4c8b7a34e8371c8"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "382240f04d1213eca89dd8e51c7997af26cc08c796cc1168b69891b41577459e"
+      },
+      {
+        "path": "pipeline/tests/test_io_pds3.py",
+        "sha256": "fcd451fc021a88cfbf83806ad3fad5119381eaffba52aedf497a00aff8eb62f8"
+      },
+      {
+        "path": "pipeline/tests/test_io_tls.py",
+        "sha256": "74516e3024fd1b0a3656a0a98f074372e855d2a790d4249d609f32ba0d20f3f6"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_minirf.py",
+        "sha256": "f3c4cfb73607498b01718e65fef3a35b6f5a869e7ef0c17a5551138981d37dc2"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "b8c7467ef1cd95e54ebcf43324f4fd22117e6d2d2e56fd772265879259a06853"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:51:32Z",
+  "finished_utc": "2026-11-14T20:57:32Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Two contract gaps: the Stokes-present path aborts instead of recording raw statistics, and 23 downloaded product labels lack ProductRecords. Required checks were not run under the read-only review restriction.",
+  "checks": [
+    {
+      "criterion": "AC1: Provider discovery, label-confirmed layout, zero-CPR handling, and tested io.py helpers",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:2004-2036 follows the provider landing page to the volume and detached label. data/raw/minirf/lsz_xxxxx_3cp_piu_90s000_v1.lbl:48-91 states dimensions, sample type, special values, and projection. outputs/pilot/minirf_mosaic.json:235-319 records the lead comparisons. Synthetic parser/layout tests exist in test_io_pds3.py:154-676; test_pilot_minirf.py:825-848 asserts that zero CPR remains valid. Tests were inspected, not executed."
+    },
+    {
+      "criterion": "AC2: Bounded range fetching, refusal of ignored Range requests, and saved HTTP metadata",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Execution was prohibited for this read-only review. Static evidence: io.py:533-537 rejects HTTP 200 before reading its body; pilot.py:2045-2094 saves successful rows or records the blocking limitation. data/raw/minirf/fetch.json:482-504 records HTTP 206, Content-Range, 5,628,224 received bytes, and retrieval time. Failure behavior was not exercised."
+    },
+    {
+      "criterion": "AC3: Label-derived pyproj window conversion, dependency installation, and missing-extent fallback",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Projection execution was prohibited for this read-only review. pilot.py:1893-1906 and 2115-2151 implement conversion and the missing-extent reason; outputs/pilot/minirf_mosaic.json:921-959 records bounds and offsets. pyproj is declared at pipeline/pyproject.toml:13, locked in uv.lock, and installed metadata states version 3.8.0 at .venv/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/METADATA:3."
+    },
+    {
+      "criterion": "AC4: Required mosaic record fields and quality.py-based CPR statistics",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "outputs/pilot/minirf_mosaic.json contains statistics at :2-24, label provenance at :201-216, layout and units at :218-234 and :906-908, null at :747-751, range metadata at :820-843, mixed look direction at :326-335, incidence limitation at :197-199, and handedness at :895-904. pilot.py:2780-2806 applies quality.validity_mask and preserves unavailable extrema as null. Numerical recomputation was not run."
+    },
+    {
+      "criterion": "AC5: Discover Stokes coverage and record raw S1/S4 statistics when both layers exist",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The current no-S4 fallback is recorded at outputs/pilot/minirf_mosaic.json:879-881. However, pilot.py:2655-2661 unconditionally raises when any S4 layer exists. test_pilot_minirf.py:891-895 explicitly expects that error for a synthetic south-polar S4 layer alongside S1, instead of exercising the required raw statistics."
+    },
+    {
+      "criterion": "AC6: ProductRecords for every product read, exact fetched-byte provenance, sorted upserts, and unreachable-source failure",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pilot.py:2025-2032 downloads every mosaic label and :2218 parses each one, but :2320-2353 creates records only for the selected CPR label and image rows. outputs/sources.json:2-43 contains only those two Mini-RF records, while outputs/pilot/minirf_mosaic.json:337-745 inventories 24 downloaded labels. Sorting and URL-naming failure paths are present, but were not executed."
+    },
+    {
+      "criterion": "Required pipeline tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox; test temporary files and caches require writes."
+    },
+    {
+      "criterion": "Required Mini-RF reproducibility check",
+      "command": "uv run python -m terraluna_pipeline.pilot check minirf",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running the checks in this read-only review."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox; toolchain checks can require cache writes."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/pilot.py:2655",
+      "claim": "The required Stokes-present behavior is unimplemented. When S1 and S4 labels cover Site01, recording aborts instead of range-reading both layers and emitting the required raw statistics.",
+      "evidence": "fetch only reads CPR rows at pilot.py:2045-2047. _stokes_observation raises for every S4 label at :2655-2661 without considering coverage. test_pilot_minirf.py:891-895 supplies a south-polar S4 layer alongside S1 and requires PilotError, locking in behavior contrary to AC5.",
+      "id": "codex-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/pilot.py:2320",
+      "claim": "The source manifest omits ProductRecords for 23 other mosaic product labels that are downloaded and parsed, violating AC6's per-product provenance requirement.",
+      "evidence": "All label entries are parsed at pilot.py:2218, but record construction at :2320-2353 includes only the selected CPR label and rows. The committed mosaic inventory contains 24 labels at outputs/pilot/minirf_mosaic.json:337-745; outputs/sources.json:2-43 contains only two Mini-RF records. test_pilot_minirf.py:643-647 explicitly restricts the expected manifest to those two.",
+      "id": "codex-r1-2",
+      "resolution": null
+    }
+  ]
+}
