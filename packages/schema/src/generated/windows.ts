@@ -1153,7 +1153,7 @@ export const WindowsSchema = z
                         .object({ min: z.number(), max: z.number() })
                         .strict()
                         .describe(
-                          'The incidence angles of the radar product over the window, in degrees.',
+                          'The incidence angles of the radar product over the window, in degrees. ``min`` does\nnot exceed ``max``; one angle has min equal to max.',
                         ),
                       z.null(),
                     ]),
@@ -2502,7 +2502,7 @@ export const WindowsSchema = z
                         .object({ min: z.number(), max: z.number() })
                         .strict()
                         .describe(
-                          'The incidence angles of the radar product over the window, in degrees.',
+                          'The incidence angles of the radar product over the window, in degrees. ``min`` does\nnot exceed ``max``; one angle has min equal to max.',
                         ),
                       z.null(),
                     ]),

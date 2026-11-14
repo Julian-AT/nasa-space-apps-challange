@@ -996,7 +996,9 @@ export const FingerprintRecordSchema = z
             z
               .object({ min: z.number(), max: z.number() })
               .strict()
-              .describe('The incidence angles of the radar product over the window, in degrees.'),
+              .describe(
+                'The incidence angles of the radar product over the window, in degrees. ``min`` does\nnot exceed ``max``; one angle has min equal to max.',
+              ),
             z.null(),
           ]),
           handedness_ratio: z.union([

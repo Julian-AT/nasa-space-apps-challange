@@ -365,11 +365,12 @@ SourcesFile = Annotated[
 # --- Science records I: common types (CONTRACTS a.2; PRD 3, 8.4) --------------------------------
 #
 # Cross-field rules are written twice: as a pydantic validator and as JSON Schema conditionals in
-# ``allOf`` (``_when``), which the zod generator translates. Three rules compare values inside a
+# ``allOf`` (``_when``), which the zod generator translates. Four rules compare values inside a
 # document, which JSON Schema cannot express, so only pydantic checks them: a Distribution's
-# values are sorted and counted by ``n``, a WindowPolygon's rings are closed, and a WindowEntry's
-# ``terrain`` and ``radar`` slots hold fingerprints of that kind. Every bundle file is written
-# through these models, so the web never receives a record that breaks them.
+# values are sorted and counted by ``n``, a WindowPolygon's rings are closed, a WindowEntry's
+# ``terrain`` and ``radar`` slots hold fingerprints of that kind, and an IncidenceRange's min
+# does not exceed its max. Every bundle file is written through these models, so the web never
+# receives a record that breaks them.
 
 EvidenceLabel = Literal["Observed", "Derived", "Predicted", "Assumed", "Unavailable"]
 """The evidence label every displayed or exported quantity carries (PRD 3)."""
@@ -625,10 +626,17 @@ class TerrainFingerprint(Record):
 
 
 class IncidenceRange(Record):
-    """The incidence angles of the radar product over the window, in degrees."""
+    """The incidence angles of the radar product over the window, in degrees. ``min`` does
+    not exceed ``max``; one angle has min equal to max."""
 
     min: Float
     max: Float
+
+    @model_validator(mode="after")
+    def _min_does_not_exceed_max(self) -> Self:
+        if self.min > self.max:
+            raise ValueError(f"min {self.min} exceeds max {self.max}")
+        return self
 
 
 def _refuse_non_bool(value: object) -> object:
