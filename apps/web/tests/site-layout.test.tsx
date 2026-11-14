@@ -15,7 +15,7 @@ import { NAV_ITEMS, SiteHeader, SiteNav } from '../components/site-header.tsx';
 import { SKIP_LINK_TEXT, SkipLink } from '../components/skip-link.tsx';
 import type { Bundle } from '../lib/bundle.ts';
 import { MOCK_BANNER, shellText, SITE_TITLE } from '../lib/shell.ts';
-import { HOME_LINE, pageProblems } from '../scripts/page-check.ts';
+import { HOME_LINE, LAYOUT_LABELS, pageProblems } from '../scripts/page-check.ts';
 import { ALL_GATES_NOT_RUN, gate, manifestFor, toBytes, WEB_DIR } from './helpers.ts';
 import { classesOf, elements, isClientModule, type MarkupElement, only, textOf } from './markup.ts';
 import { compile } from './tailwind.ts';
@@ -287,6 +287,10 @@ describe('root layout', () => {
 
   it('marks the active route in the shared navigation', () => {
     expect(current(layout(MOCK, '/methods'))).toEqual(['/methods']);
+  });
+
+  it('shows outside main only the labels the web-smoke page check allows there', () => {
+    expect(LAYOUT_LABELS).toStrictEqual([SKIP_LINK_TEXT, ...NAV_ITEMS.map(({ label }) => label)]);
   });
 
   it('sets the document language', () => {

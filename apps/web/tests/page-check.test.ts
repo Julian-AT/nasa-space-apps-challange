@@ -4,7 +4,7 @@ import { BundleManifestSchema, ValidationSchema } from '@terraluna/schema';
 import { describe, expect, it } from 'vitest';
 
 import type { Bundle } from '../lib/bundle.ts';
-import { HOME_LINE, pageProblems, PRD4_TITLES } from '../scripts/page-check.ts';
+import { HOME_LINE, LAYOUT_LABELS, pageProblems, PRD4_TITLES } from '../scripts/page-check.ts';
 import { ALL_GATES_NOT_RUN, manifestFor, toBytes } from './helpers.ts';
 import { prd4Titles } from './prd.ts';
 
@@ -272,15 +272,86 @@ describe('pageProblems', () => {
   });
 
   // A block that holds several blocks with text, as the header holds both banners and the
-  // navigation, groups them and is part of neither banner. Its own text is layout chrome.
-  it('accepts a container that groups the banners with other chrome', () => {
-    const html = MOCK_PAGE.replace('<nav aria-label="Primary">', '<a href="/">Terraluna home</a><nav aria-label="Primary">');
+  // navigation, groups them and is part of neither banner. Its own text may only be a layout label.
+  it('accepts a container that groups the banners with a layout label', () => {
+    const html = MOCK_PAGE.replace('<nav aria-label="Primary">', '<a href="/">Home</a><nav aria-label="Primary">');
     expect(pageProblems(html, MOCK)).toStrictEqual([]);
+  });
+
+  it('accepts every layout label outside <main>: the skip link and the seven navigation links', () => {
+    expect(LAYOUT_LABELS).toStrictEqual(['Skip to content', 'Home', 'Moon', 'Mars', 'Earth', 'Model', 'Methods', 'Data']);
+    const items = LAYOUT_LABELS.slice(1).map((label) => `<li><a href="/">${label}</a></li>`).join('');
+    const html = MOCK_PAGE.replace(/<ul>[\s\S]*<\/ul>/, `<ul>${items}</ul>`);
+    expect(pageProblems(html, MOCK)).toStrictEqual([]);
+  });
+
+  // Outside <main>, the T0-05 check of the whole page allowed no text but the banners and the
+  // footer. The layout adds only its fixed labels, so any other text there is reported, wherever
+  // it sits and whatever wraps it (codex-r5-1).
+  it.each([
+    {
+      name: 'a second paragraph in a wrapper around the status paragraph',
+      html: MOCK_PAGE.replace(MOCK_P, `<div class="bg-mock">${MOCK_P}<p>Radar match passed</p></div>`),
+      shown: MOCK,
+    },
+    {
+      name: 'a second paragraph in a wrapper around the mode banner',
+      html: REAL_PAGE.replace(`<p>${MODE_B}</p>`, `<div class="bg-muted"><p>${MODE_B}</p><p>Radar match passed</p></div>`),
+      shown: REAL,
+    },
+    { name: 'a paragraph in the header', html: MOCK_PAGE.replace('</header>', '<p>Best Earth analog found</p></header>'), shown: MOCK },
+    { name: 'a heading in the header', html: REAL_PAGE.replace('<header>', '<header><h2>Radar analog found</h2>'), shown: REAL },
+    { name: 'words directly in the body', html: MOCK_PAGE.replace(MAIN, `Radar match passed${MAIN}`), shown: MOCK },
+    { name: 'words in a span in the header', html: MOCK_PAGE.replace('<nav', '<span>CPR 3.2</span><nav'), shown: MOCK },
+    { name: 'words after the skip link', html: MOCK_PAGE.replace('Skip to content</a>', 'Skip to content</a> (radar match)'), shown: MOCK },
+    {
+      name: 'words added to a navigation label',
+      html: MOCK_PAGE.replace('>Moon</a>', '>Moon: radar match passed</a>'),
+      shown: MOCK,
+    },
+    { name: 'a paragraph between <main> and the footer', html: REAL_PAGE.replace('</main>', '</main><p>moon-cr-site01-w000</p>'), shown: REAL },
+    { name: 'words in a hidden element', html: MOCK_PAGE.replace('<header>', '<div hidden>Radar match passed</div><header>'), shown: MOCK },
+    { name: 'words after the body', html: REAL_PAGE.replace('</body>', '</body>Radar match passed'), shown: REAL },
+  ])('reports text outside <main> that is no banner, footer or layout label ($name)', ({ html, shown }) => {
+    expect(pageProblems(html, shown).join('\n')).toMatch(/layout label/);
+  });
+
+  it('names the stray text outside <main> it reports', () => {
+    const html = MOCK_PAGE.replace(MOCK_P, `<div class="bg-mock">${MOCK_P}<p>Radar match passed</p></div>`);
+    expect(pageProblems(html, MOCK)).toStrictEqual([
+      'text outside <main> must be a banner, the footer or a layout label, but "Radar match passed" is none of these',
+    ]);
+  });
+
+  it('does not count the document title in <head> as page text', () => {
+    expect(REAL_PAGE).toContain('<head><title>Terraluna</title></head>');
+    expect(pageProblems(REAL_PAGE, REAL)).toStrictEqual([]);
   });
 
   it('reports a footer with words added in a child element', () => {
     const html = MOCK_PAGE.replace('1.0.0</footer>', '1.0.0<span> (latest)</span></footer>');
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/footer/);
+  });
+
+  // One correct footer must not hide a second one that states other versions (codex-r5-2).
+  it.each([
+    { name: 'a second footer with another bundle version', footer: '<footer>Bundle version: v10 · Schema 1.0.0</footer>' },
+    { name: 'a second footer with another schema version', footer: '<footer>Bundle version: v1 · Schema 2.0.0</footer>' },
+    { name: 'the same footer twice', footer: '<footer>Bundle version: v1 · Schema 1.0.0</footer>' },
+    { name: 'an empty second footer', footer: '<footer></footer>' },
+  ])('reports more than one <footer> ($name)', ({ footer }) => {
+    const html = REAL_PAGE.replace('</footer>', `</footer>${footer}`);
+    expect(pageProblems(html, REAL).join('\n')).toMatch(/exactly one <footer>, but has 2/);
+  });
+
+  it('reports a footer nested in the footer', () => {
+    const html = REAL_PAGE.replace('Schema 1.0.0</footer>', 'Schema 1.0.0<footer>Bundle version: v10</footer></footer>');
+    expect(pageProblems(html, REAL).join('\n')).toMatch(/exactly one <footer>, but has 2/);
+  });
+
+  it('reports the versions in another element beside the footer', () => {
+    const html = REAL_PAGE.replace('<header>', '<header><p>Bundle version: v10 · Schema 1.0.0</p>');
+    expect(pageProblems(html, REAL).join('\n')).toMatch(/Bundle version: v10 · Schema 1\.0\.0" is none of these/);
   });
 
   it('accepts a banner split by inline markup when it reads exactly the same', () => {
