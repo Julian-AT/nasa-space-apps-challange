@@ -252,12 +252,18 @@
       "priority": 5,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "aaec3d22c58e46d94cb63de5201eef04cc4f1e38",
-        "head": null,
-        "files": [],
-        "digests": {},
+        "head": "420ac3f44662a732179728854d8ae18c2b79d907",
+        "files": [
+          "reviews/T0-05-claude.json",
+          "reviews/T0-05-codex.json"
+        ],
+        "digests": {
+          "reviews/T0-05-claude.json": "4162083d0c9a1c3eded27bfa4fa326e3690734073af9e678dd547218ba795278",
+          "reviews/T0-05-codex.json": "4210f4be7bdfdc6c573a300cd49386deb35256ed28d08e710d50f83bf6756f6e"
+        },
         "bounces": 1
       },
       "notes": "ralph 2026-11-14T19:04:04Z: uncommitted changes were left; commit them or restore them"

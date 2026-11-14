@@ -1,0 +1,184 @@
+{
+  "task_id": "T0-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "aaec3d22c58e46d94cb63de5201eef04cc4f1e38",
+    "head": "420ac3f44662a732179728854d8ae18c2b79d907",
+    "files": [
+      {
+        "path": ".gitignore",
+        "sha256": "110373d512903dd6d9d4afc84dec7e7d851f694b78083e7db545b4bf9d3fa809"
+      },
+      {
+        "path": "Makefile",
+        "sha256": "50b071208cec13c13a8f4c984ccfc35511a330dcd7367f0f35fc91da041a7587"
+      },
+      {
+        "path": "apps/web/README.md",
+        "sha256": "96c059d4b30ddd0f66dd59dfb1d28f462f9366c46c7f1a5cd4131a666a669119"
+      },
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "8ffd4a94f3a144a7f7e7456ce63d1dddec475738a49d179092dbafced38ba569"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "218db9703752817d3c98566cf768802b8032ae805adea56aaf8b1c4da63dd3e5"
+      },
+      {
+        "path": "apps/web/eslint.config.mjs",
+        "sha256": "7834f6283676eb083197b94e080933c8c413fd3f31e8f0b96af7547d91760378"
+      },
+      {
+        "path": "apps/web/lib/bundle.ts",
+        "sha256": "dd133c47226d7a9e763141f32f0987c804bc2d38ea76ebe14530ebba9a8ea31d"
+      },
+      {
+        "path": "apps/web/lib/errors.ts",
+        "sha256": "b4e3e3e9dc398b613c72bedb12ad9dacf1b17672104e163b705a310e56afc621"
+      },
+      {
+        "path": "apps/web/lib/json.ts",
+        "sha256": "47273c0e37f886c2738d4ccfee39f8cc5a48a0b885151813d5c41d187cfd3e4d"
+      },
+      {
+        "path": "apps/web/lib/shell.ts",
+        "sha256": "01914970a4d3d9334fe38d84c396cd7d38544834f68be9fe7af472e544b38680"
+      },
+      {
+        "path": "apps/web/next.config.ts",
+        "sha256": "e87be26c3b2b5eb6905a6f82dec468020ff25dadce502ebbcf8e87bc1a35deb0"
+      },
+      {
+        "path": "apps/web/package.json",
+        "sha256": "c1f0ca5d6829dc2bc7a4e0e0c4831ec37ff131e060479bc53f7f512779b26b4e"
+      },
+      {
+        "path": "apps/web/scripts/bundle-pull.ts",
+        "sha256": "f2e2d44da5b821721607b24c07759ff89fb54924c0c0b55ec7c60f9d0a88e64e"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "3d473e9772956eda060f21530940ee948781b755ecb6e68130cf96fcc6618baf"
+      },
+      {
+        "path": "apps/web/scripts/smoke.ts",
+        "sha256": "24064be981ee15ab04bee6a8d24b98c4dc96e3d5494e1bde7ce9c1a73dc8d2c6"
+      },
+      {
+        "path": "apps/web/tests/bundle-pull-cli.test.ts",
+        "sha256": "88601987ce6e838671e7bb85d2e47aac09f6d523654d8a6c2ef5d6e50e3c62a0"
+      },
+      {
+        "path": "apps/web/tests/bundle.test.ts",
+        "sha256": "434f2538a0cd5fb0f91e92b2a61e5a72c01d36f77992db5723e654f7bfc6ac30"
+      },
+      {
+        "path": "apps/web/tests/helpers.ts",
+        "sha256": "eecd32c4cd97541195dba2d94f16617c2df37046a95bb8f3530053eb25255a95"
+      },
+      {
+        "path": "apps/web/tests/json.test.ts",
+        "sha256": "64dbd99da986dc8b3494946856c8486854d4e3f849ced5a598cda08999708d73"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "156045a74a11d082d7d9a63672d757681d59f400e2c80dff7a3d6df808c15f64"
+      },
+      {
+        "path": "apps/web/tests/shell.test.ts",
+        "sha256": "2f42e8f4efea673426aa6999dd08df4c286a1394107ce26e21f5df31fbe2c9f8"
+      },
+      {
+        "path": "apps/web/tsconfig.json",
+        "sha256": "0d3e76d5ac3060ddbe1883beec122aa5f49cd9b918f172015c1c8b9058341594"
+      },
+      {
+        "path": "apps/web/vitest.config.ts",
+        "sha256": "ca50a0eb43780d733ea8c31c4f6a9b966fb8e8dce52bf768eea80d69a7a5c89b"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "091ab0b0c569da72231ae8ebcbcf0aece45ff3c9fc3d61c773ad2a56880e8df7"
+      },
+      {
+        "path": "turbo.json",
+        "sha256": "ef52323a8684ed122ce3dbb1ad6e2376dd8d7e463f64ad5b0d219a773af5855e"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:07:22Z",
+  "finished_utc": "2026-11-14T19:11:22Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No actionable defects found in the specified diff through static review. Changes remain within the story's allowed paths. Required checks were not run because the user prohibited execution in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "1. @terraluna/web uses Next.js 16 App Router, React 19.2 and strict TypeScript, without Tailwind or a UI kit.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/package.json:2,19-21 declares the package and framework versions; apps/web/app/layout.tsx:23 and app/page.tsx:11 implement App Router components. apps/web/tsconfig.json:2 inherits strict=true from tsconfig.base.json:10. The dependency list contains no Tailwind or UI kit."
+    },
+    {
+      "criterion": "2. bundle:pull selects, validates and copies both files, failing requested bundles without mock fallback.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/lib/bundle.ts:61-75 selects the required source; :113-154 validates both files with @terraluna/schema; :208-220 validates before copying. .gitignore:35 ignores the destination. Actual copying and failure behavior were not executed because the sandbox is read-only and the user prohibited checks."
+    },
+    {
+      "criterion": "3. bundle:pull and next build clearly reject mock=true with VERCEL_ENV=production.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/lib/bundle.ts:79-84 defines the explicit rejection; :217 and :240 call it from pullBundle and loadBundle. apps/web/app/layout.tsx:24 invokes loadBundle during rendering. Production command failures were not executed because checks are prohibited in this read-only sandbox."
+    },
+    {
+      "criterion": "4. Vitest tests precede implementation and exercise production rejection, preview/unset acceptance, missing releases and invalid manifests.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Git file history shows tests added in 2858335ed254984030715f93d9abaf0e08158e73 before implementation in 4a873c95495f6467b66126a59b56fbed11a0a5d5. apps/web/tests/bundle.test.ts:70-90,129-152 contains concrete assertions for every requested case; :247-251 covers the build loader's production guard. Test outcomes remain unverified because execution is prohibited."
+    },
+    {
+      "criterion": "5. / is static and displays only the required mock banner, shipping-mode line, bundle footer and title.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/app/page.tsx:7 declares dynamic='error' and :11-16 renders only the title. apps/web/app/layout.tsx:13-18,24-33 implements the red banner and footer; apps/web/lib/shell.ts:15-27 derives the exact text and G0 status. Actual prerendered output was not built or fetched because checks are prohibited."
+    },
+    {
+      "criterion": "6. web-build, web-smoke and web-dev perform the required build, serving, assertions and cleanup.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Makefile:92-102 wires pull/build, smoke-after-build and pull/dev. apps/web/scripts/smoke.ts:28-36 selects a free port, :102-110 starts Next, :128-133 checks the response, and :144-147 performs cleanup in finally. scripts/page-check.ts:37-64 checks the required text and footer. Command behavior and server cleanup were not executed because checks are prohibited."
+    },
+    {
+      "criterion": "Required check: make check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the read-only sandbox prevents required cache and generated-type writes."
+    },
+    {
+      "criterion": "Required check: make test",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: tests require temporary files and may write caches in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: make web-build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: bundle:pull writes apps/web/data/ and Next writes build artifacts."
+    },
+    {
+      "criterion": "Required check: make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: this target first invokes web-build, which requires writes prohibited by the sandbox."
+    }
+  ],
+  "findings": []
+}
