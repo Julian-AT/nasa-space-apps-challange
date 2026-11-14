@@ -15,3 +15,17 @@
 {"ts":"2026-11-14T21:17:31Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Bash","input":"git diff 6fbfd479ecf7833aff8339b65902af41a8271a60 47b67c33e18317b579d9b72134bcc83f727a01f2 -- scripts/ralph/batches/t0b-contracts/progress.txt"}
 {"ts":"2026-11-14T21:17:31Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T21:17:31Z","agent":"verifier","story":"T0B-00","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":3}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_json_schema.py"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Bash","input":"pnpm --filter @terraluna/schema test"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Bash","input":"make schema-check"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Bash","input":"git diff --stat 6fbfd479ecf7833aff8339b65902af41a8271a60 bda54e7171008c3fa44e4467b4e85b83a08de43e"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Bash","input":"make test"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Bash","input":"make web-build"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Bash","input":"git diff --stat 6fbfd479ecf7833aff8339b65902af41a8271a60 bda54e7171008c3fa44e4467b4e85b83a08de43e -- pipeline/src packages/schema/json"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Grep","input":"WITHOUT_SHARED_CASES|xfail"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Grep","input":"unsupported keyword|else|oneOf"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"Bash","input":"jq -r '.. | objects | select(has(\"name\")) | .name' fixtures/schema-cases/cases.json"}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T21:34:11Z","agent":"verifier","story":"T0B-00","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":0}
