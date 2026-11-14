@@ -130,7 +130,11 @@
       "claim": "`immutable` is paired with a short max-age. The ETag is a weak W/\"bundle_version\" and the mock bundle's version stays mock-0 while its content changes, so a client may briefly hold a stale mock.",
       "evidence": "The cache.ts header comment (lines 19-21) already documents this, and mock bundles are not served on production. Optional: no change needed.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "No change is needed, as the finding itself says. AC4 asks for public caching with a documented max-age and immutable semantics tied to bundle_version, plus an ETag derived from bundle_version. PRD 8.4 (PRD.md:558) says a published bundle is immutable and any change gets a new bundle_version, so for one bundle_version the response never changes. The short max-age (60 s per deploy, 300 s per bundle, cache.ts:29,35) exists because the URLs carry no bundle_version and a deploy may pin a new bundle (PRD 8.9): it bounds how long a client keeps a response. The weak ETag is correct under RFC 9110 8.8.1, since bundle_version names the content and not one serialization, and If-None-Match always compares weakly. The only exception is the mock bundle, whose bundle_version stays mock-0 (MOCK_BUNDLE_VERSION, pipeline/src/terraluna_pipeline/export.py:459, outside this story) while its fixture changes. That is documented in cache.ts:19-21 and in story notes item (2). Mocks are placeholders and assertDeployable (apps/web/lib/bundle.ts:166) refuses them on production, so a stale mock can only reach a preview client."
+      }
     },
     {
       "severity": "low",
@@ -138,7 +142,11 @@
       "claim": "/gates also reads and validates manifest.json to get the ETag, so a manifest fault gives 500 for gates too.",
       "evidence": "This is deliberate and tested at gates.test.ts:94-102. It is consistent with the story, which asks for an ETag derived from bundle_version.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "No change is needed: the behaviour is intended, as the finding itself says. AC4 asks for an ETag derived from bundle_version for /gates too, and the bundle_version lives only in manifest.json (validation.json has no such field), so /gates must read the manifest. The handler validates it with the generated schema before using it (gates.ts:46), because an ETag built from an unchecked value could confirm, through a 304, a bundle that fails its schema. A manifest fault therefore gives a 500 problem naming manifest.json rather than a /gates response with an unverified ETag, and gates.test.ts:94-102 pins this. If the manifest is invalid, the loader would refuse the whole bundle anyway (loadBundle validates both files, T15-01), so this adds no new failure mode for a real reader."
+      }
     }
   ]
 }
