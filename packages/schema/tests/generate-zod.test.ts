@@ -409,6 +409,16 @@ describe('command line', () => {
     expect(readFileSync(join(out, 'validation.ts'), 'utf8')).toBe('edited\n');
   });
 
+  it('write refuses a JSON Schema that has no contract and writes nothing', () => {
+    const { json, out } = copyPackage();
+    writeFileSync(join(json, 'new-record.schema.json'), '{"type": "string"}\n');
+    writeFileSync(join(out, 'validation.ts'), 'edited\n');
+    const result = run('write', json, out);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('new-record.schema.json: no zod contract');
+    expect(readFileSync(join(out, 'validation.ts'), 'utf8')).toBe('edited\n');
+  });
+
   it.each([[[]], [['check']], [['write', 'json']], [['lint', 'json', 'src/generated']]])(
     'rejects the arguments %j with exit code 2',
     (args) => {
