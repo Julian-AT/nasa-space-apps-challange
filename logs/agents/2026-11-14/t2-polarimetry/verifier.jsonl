@@ -124,3 +124,13 @@
 {"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Grep","input":"^def test_.*(fail|missing|tamper|exit|run_id|null|scope)"}
 {"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"FAIL","findings":3}
+{"ts":"2026-11-14T22:01:12Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_polarimetry_gate.py"}
+{"ts":"2026-11-14T22:01:12Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"git diff --stat ceaaa37ab485acf6ecabeaf5e4c9335fac6af7b8 67c5b22d76dccad74f9cf9e431e625f790c1c87b -- . ':!scripts/ralph' ':!reviews' ':!logs'"}
+{"ts":"2026-11-14T22:01:12Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"make test"}
+{"ts":"2026-11-14T22:01:12Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T22:01:12Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"cat fixtures/polarimetry/g1-record.json"}
+{"ts":"2026-11-14T22:01:12Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"jq -c 'keys, (.parametrized_cases|length), (.scope // .scope_text // null)' fixtures/polarimetry/g1_required_tests.json"}
+{"ts":"2026-11-14T22:01:12Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Grep","input":"def test_.*(missing|tamper|incomplete|absent_case|deliberately|commit)"}
+{"ts":"2026-11-14T22:01:12Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Grep","input":"consequence"}
+{"ts":"2026-11-14T22:01:12Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T22:01:12Z","agent":"verifier","story":"T2-06","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":2}

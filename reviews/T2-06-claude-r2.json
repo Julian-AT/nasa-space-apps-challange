@@ -1,0 +1,106 @@
+{
+  "task_id": "T2-06",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "ceaaa37ab485acf6ecabeaf5e4c9335fac6af7b8",
+    "head": "67c5b22d76dccad74f9cf9e431e625f790c1c87b",
+    "files": [
+      {
+        "path": "fixtures/polarimetry/g1-record.json",
+        "sha256": "e4ee63d4d35031e50c37838e1eccef58cbd4a964ed911d37c34c20148eded58f"
+      },
+      {
+        "path": "fixtures/polarimetry/g1_required_tests.json",
+        "sha256": "dd7ca958a38ae84ac439ba5af37de5dc1e67489e0178f05bac758197b92bbfc0"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "afd978010c3d2025c6d7c694e73c5b51d5b39ea030cd72cbb0ca4cc7d74ddba6"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_gate.py",
+        "sha256": "a1a6e2182d26ca643db35aea0bd11c1a0957878d693a02d53a967f8710ca53c9"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:00:19Z",
+  "finished_utc": "2026-11-14T22:01:12Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 2 review of T2-06. All three story checks pass: the gate test file (119 tests), make test (1175 tests) and make check. The round-1 fixes work as the author described. The manifest now lists every test of T2-01 to T2-03 plus 62 parametrized case lists. The record carries notes with the command, the pytest command and the commit. The committed G1 record is PARTIAL, because the T2-07 real-scene test is absent and the scope says so. The two rebuttals are acceptable. The one new observation is low severity.",
+  "checks": [
+    {
+      "criterion": "AC1: gate test file written; F1-F10 and invalid-data test ids listed in g1_required_tests.json",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "jq keys of the manifest: conventions, fixtures, invalid_data, other, parametrized_cases, real_scene_check. The record shows F1-F10 groups and invalid_data for T2-01 to T2-03 (54, 56 and 39 tests). Ids carry per-story groups. I did not re-check that every test function is listed; the author's ast test (5a6a3c7) covers it and passes."
+    },
+    {
+      "criterion": "AC2: record-g1 CLI reads junit, requires present and passed, never PASS when missing, failed, skipped or xfailed; parametrized cases complete",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The gate tests test_a_parametrized_test_missing_one_listed_case_is_incomplete_not_pass, test_a_duplicated_case_cannot_stand_in_for_a_missing_one and test_a_missing_required_test_gives_partial exist and pass. The committed record shows PARTIAL with the oracle test absent."
+    },
+    {
+      "criterion": "AC3: status rules; scope states whether the real-scene check was included",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "g1-record.json scope reads 'real-scene polsartools oracle check (T2-07, PRD 12): not included (1 of 1 absent from the junit report)'. Failure beats missing (test_a_failure_wins_over_missing_and_skipped_tests)."
+    },
+    {
+      "criterion": "AC4: output written to the given path; notes record the command and the commit; only fixtures/polarimetry/g1-record.json is written",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "result.notes holds command, pytest_command, commit 42e9f24bac97e91e0b3780925b09a20957ec2bde and uncommitted_changes of [g1-record.json]. The notes tests (lines 903-952) pass. The diff touches only the 4 files in the story's list."
+    },
+    {
+      "criterion": "AC5: a deliberately failing run gives FAIL with a nonzero exit; a tampered report with a required test missing is not PASS; the record validates as GateRecord",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The tests test_deliberately_failing_run_records_fail_and_its_exit_code_is_not_hidden, test_tampered_real_report_missing_a_required_test_is_not_pass and test_committed_record_follows_the_rules_from_its_own_result exist and pass. The record is built with GateRecord(...).model_dump_json. The consequence field is null on PASS."
+    },
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_polarimetry_gate.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_gate.py",
+      "outcome": "PASS",
+      "evidence": "119 passed in 13.11s"
+    },
+    {
+      "criterion": "Check: make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "1175 passed in 17.92s"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check reported 15 files already formatted, mypy found no issues in 15 source files"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "fixtures/polarimetry/g1-record.json:4",
+      "claim": "evidence_path points to /tmp/terraluna-g1-r1/junit.xml, which is outside the repository, so a clean checkout cannot re-check the evidence file.",
+      "evidence": "The story allows a path outside the repo. The record keeps junit_sha256, the exact pytest command and the commit, so the author's rebuttal of claude-r1-2 holds. No action is needed.",
+      "id": "claude-r2-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "fixtures/polarimetry/g1-record.json (notes.commit)",
+      "claim": "The record names commit 42e9f24, not the commit that holds it (later commits change only test and record files). It also lists itself as uncommitted. This is inherent to a self-describing record and is checked by a gate test.",
+      "evidence": "notes.uncommitted_changes is [fixtures/polarimetry/g1-record.json]. The committed-record gate test passes.",
+      "id": "claude-r2-2",
+      "resolution": null
+    }
+  ]
+}
