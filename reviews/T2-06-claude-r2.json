@@ -92,7 +92,11 @@
       "claim": "evidence_path points to /tmp/terraluna-g1-r1/junit.xml, which is outside the repository, so a clean checkout cannot re-check the evidence file.",
       "evidence": "The story allows a path outside the repo. The record keeps junit_sha256, the exact pytest command and the commit, so the author's rebuttal of claude-r1-2 holds. No action is needed.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "No defect, and the reviewer says no action is needed. AC2 lets the junit path sit outside the repository ('the junit path is outside the repo or under fixtures/polarimetry/'). The report stays out because pytest writes the machine hostname into it (the claude-r1-2 rebuttal, which this round accepted). The record keeps the report's SHA-256 (41e94873...4890; shasum of /tmp/terraluna-g1-r1/junit.xml still matches, and codex-r2 checked it too), the exact pytest command, the record-g1 command and commit 42e9f24. A clean checkout can therefore rebuild the evidence and compare it, and test_committed_record_follows_the_rules_from_its_own_result re-derives the status from the record's own result. Committing the report under fixtures/polarimetry/ instead is left to a human (story note 6)."
+      }
     },
     {
       "severity": "low",
@@ -100,7 +104,11 @@
       "claim": "The record names commit 42e9f24, not the commit that holds it (later commits change only test and record files). It also lists itself as uncommitted. This is inherent to a self-describing record and is checked by a gate test.",
       "evidence": "notes.uncommitted_changes is [fixtures/polarimetry/g1-record.json]. The committed-record gate test passes.",
       "id": "claude-r2-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "No defect, and the reviewer calls it inherent. AC4 asks for 'the commit it ran on'. That is 42e9f24, the code commit the pytest run and record-g1 ran on. The commit that holds the record cannot exist before the record is written, so the record lists itself as its only uncommitted change. test_committed_record_follows_the_rules_from_its_own_result (pipeline/tests/test_polarimetry_gate.py:1320) allows only fixtures/polarimetry/g1-record.json as uncommitted, requires notes.commit to be an ancestor of HEAD and compares the list's SHA-256. 'git diff --stat 42e9f24 HEAD -- pipeline fixtures' shows only g1-record.json changed since then, so the record still describes the current code and tests. All three checks pass again (119, 1175, make check)."
+      }
     }
   ]
 }

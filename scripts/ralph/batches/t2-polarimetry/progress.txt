@@ -204,3 +204,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: git 2.50.1 (`git help status`, the installed CLI's manual: porcelain v1, -z, --no-renames, --no-optional-locks); pytest 9.2.0 (`--collect-only -q` output probed on real runs; junit names as in the patterns above).
 - Learnings: a gate recorder that matches function ids must also know each function's cases, or a report with some cases removed still passes. Requiring a whole story file, checked with ast, is more robust than a hand-picked group, because a reviewer cannot find an omitted test. The pytest command cannot be read from the junit report (pytest writes no argv into it), so record-g1 takes it as an argument and checks that it names the report.
 ---
+
+## 2026-11-14T22:12Z · T2-06 · resolve
+- Done: resolved review round 2 (2 low findings from Claude, both rebutted, no code change; Codex had no findings). claude-r2-1: evidence_path outside the repository is what AC2 allows. The record keeps the junit SHA-256 (still matches /tmp/terraluna-g1-r1/junit.xml), both commands and the commit, and the reviewer said no action was needed. claude-r2-2: notes.commit is the code commit the run used (42e9f24), as AC4 asks, and the record cannot name the commit that holds it. The committed-record gate test (test_polarimetry_gate.py:1320) bounds the uncommitted changes and checks ancestry and the list hash. `git diff --stat 42e9f24 HEAD -- pipeline fixtures` touches only g1-record.json, so the record was not regenerated.
+- Commits: chore(ralph): resolve review findings for t2-06 (review file, story list, this entry).
+- Checks: uv run pytest pipeline/tests/test_polarimetry_gate.py -> 119 passed, exit 0; make test -> 1175 passed, exit 0; make check -> ruff check, ruff format --check (15 files) and mypy (15 source files) pass, exit 0.
+- Docs used: none new (jq 1.8.2 for the resolution fields).
+- Learnings: before rebutting a "record is stale" style finding, run `git diff --stat <notes.commit> HEAD -- pipeline fixtures`. If only the record changed, it still describes the code, and no regeneration is needed. In zsh, `${PIPESTATUS[0]}` is empty; send output to a file and read `$?` instead.
+---
