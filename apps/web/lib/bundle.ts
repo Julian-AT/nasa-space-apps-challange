@@ -345,13 +345,14 @@ function readBundle(source: Source, selection: BundleSelection): ReadBundle {
   const label = `${source.where}/${MANIFEST}`;
   const manifestBytes = readBundleFile(source, MANIFEST, '');
   const manifest = parseManifest(manifestBytes, label);
+  // A manifest that is not the selected bundle is refused before any file it lists is read.
+  checkSelection(manifest, selection, label);
   const entries = pulledEntries(manifest, source.where);
   const validationBytes = readListedFile(source, entries.validation);
   const checksumOnly = new Map(
     entries.others.map((entry) => [entry.path, readListedFile(source, entry)] as const),
   );
   const validation = parseValidation(validationBytes, `${source.where}/${VALIDATION}`);
-  checkSelection(manifest, selection, label);
   const files = new Map([[VALIDATION, validationBytes] as const, ...checksumOnly]);
   return { bundle: { manifest, validation, checksumOnly }, manifestBytes, files };
 }
