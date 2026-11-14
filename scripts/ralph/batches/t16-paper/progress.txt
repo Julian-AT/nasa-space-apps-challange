@@ -581,3 +581,14 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at its tip aaec3d2; every T0 story (T0-01 to T0-04) has passed. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
 ---
+
+## 2026-11-14T18:48Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. New since iteration 50: ralph/t0-bootstrap moved from aaec3d2 to 04b9ec4 (build(t0-05): add the @terraluna/web next.js package) and now lists T0-05 and T0-06 as pending. That commit changes only apps/web/, .gitignore and pnpm-lock.yaml, so the Python code this story needs is unchanged and the dcbce75 simulation still holds; I did not rerun it. Rewrote the T16-01 notes to say this; prd.json with the notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: T0 is no longer "fully passed" as a batch, because T0-05 and T0-06 were added. T16 needs only the Python side, which T0-01 to T0-04 delivered at aaec3d2.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 04b9ec4 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
