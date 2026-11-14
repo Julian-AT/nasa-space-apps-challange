@@ -50,3 +50,15 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap (through 54fc7a5, T0-02 passed) into ralph/t16-paper. This is the only thing blocking T16-01.
 ---
+
+## 2026-11-14T18:10Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper since iteration 2, so terraluna_pipeline.export and fixtures/mock-bundle are still missing. ralph/t0-bootstrap moved from 54fc7a5 to 6cd7120 (T0-03: jsonschema and types-jsonschema dev dependencies in pyproject.toml and uv.lock). export.py and fixtures/ are unchanged since 54fc7a5, and the branch does not touch paper/. Re-ran the scratch-copy simulation at the new tip and updated the T16-01 notes. The scratch copy is deleted.
+- Commits: chore(ralph): record that t16-01 still passes against the t0-bootstrap tip
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Checks on the simulated merge (HEAD plus pipeline/, fixtures/, Makefile, pyproject.toml and uv.lock from ralph/t0-bootstrap at 6cd7120; not this branch): `uv sync --locked` exit 0; check PASS (mypy --strict, 6 files); numbers-check PASS; test PASS (179 passed); make -C paper PASS (check_log.py: main.log clean).
+- Docs used: none new.
+- Learnings: merging the t0-bootstrap tip, with the T0-03 dev dependencies, is as safe for paper/ as merging 54fc7a5.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap (54fc7a5 or later; 6cd7120 checked) into ralph/t16-paper. This is still the only thing blocking T16-01.
+---
