@@ -46,6 +46,7 @@ from scripts.tex_prose import (
     checked_files,
     environment_boundary,
     extract,
+    find_commands,
     line_at,
 )
 
@@ -153,7 +154,7 @@ def dash_hits(plain: Source) -> Iterator[_Hit]:
             yield prose_hit(plain, run.start(), "dash", run[0])
     for hyphen in LONE_HYPHEN.finditer(prose):
         yield prose_hit(plain, hyphen.start(), "dash", "spaced hyphen")
-    for command in DASH_COMMAND.finditer(plain.code):
+    for command in find_commands(DASH_COMMAND, plain.code):
         yield code_hit(plain.code, command.start(), "dash", command[0])
 
 
@@ -184,7 +185,7 @@ def lists_allowed(name: str) -> bool:
 
 
 def list_hits(plain: Source) -> Iterator[_Hit]:
-    for match in LIST_ENVIRONMENT.finditer(plain.code):
+    for match in find_commands(LIST_ENVIRONMENT, plain.code):
         if match[1] == "begin":
             yield code_hit(plain.code, match.start(), "bullet-list", f"\\begin{{{match[2]}}}")
 
@@ -193,7 +194,7 @@ def tabular_spans(code: str) -> list[tuple[int, int]]:
     spans = []
     depth = 0
     start = 0
-    for match in TABULAR.finditer(code):
+    for match in find_commands(TABULAR, code):
         if match[1] == "begin":
             if depth == 0:
                 start = match.end()
@@ -209,7 +210,7 @@ def tabular_spans(code: str) -> list[tuple[int, int]]:
 
 def bold_hits(plain: Source) -> Iterator[_Hit]:
     spans = tabular_spans(plain.code)
-    for match in BOLD.finditer(plain.code):
+    for match in find_commands(BOLD, plain.code):
         if not any(start <= match.start() < end for start, end in spans):
             yield code_hit(plain.code, match.start(), "bold", match[0])
 

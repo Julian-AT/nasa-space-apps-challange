@@ -38,7 +38,7 @@ from __future__ import annotations
 
 import bisect
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -365,9 +365,23 @@ def environment_boundary(names: str) -> re.Pattern[str]:
 
     Group 1 is begin or end and group 2 the name. Pass 1 has checked that only spaces, comments
     and single line breaks come between the command and its brace (kept TikZ text it leaves as it
-    is), and has blanked the comments, so any white space may stand there in the code.
+    is), and has blanked the comments, so any white space may stand there in the code. Find the
+    matches with find_commands(), not finditer().
     """
     return re.compile(r"\\(begin|end)\s*\{[ \t]*(" + names + r")[ \t]*\}")
+
+
+def find_commands(pattern: re.Pattern[str], code: str) -> Iterator[re.Match[str]]:
+    r"""The matches of pattern, which starts with a backslash, at the control sequences of code.
+
+    TeX reads an escape pair such as \\ whole, so in \\begin{x} the \\ is a line break and
+    begin{x} is text; a regex search would match \begin{x} there. The code is read as pass 1 read
+    the source, from its start one control sequence at a time.
+    """
+    for sequence in CONTROL_SEQUENCE.finditer(code):
+        match = pattern.match(code, sequence.start())
+        if match is not None:
+            yield match
 
 
 CODE_ENVIRONMENT = environment_boundary(ENVIRONMENT_PATTERN)
