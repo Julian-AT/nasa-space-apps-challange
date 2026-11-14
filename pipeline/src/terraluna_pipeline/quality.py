@@ -11,10 +11,15 @@ invalid measurement and valid value, so each code names its state.
 
 - ``nodata`` (1), missing observation: the value equals a nodata value the product declares, or
   it is the ISIS 4-byte Null special pixel (real floating arrays only, see below). A declared
-  value is compared in the array's dtype, because a band stores the declared double rounded to
-  its own type (a float32 band holds float32(nodata)); a declared NaN matches NaN pixels. A
-  declared value the dtype cannot hold (a fraction or an out-of-range number for an integer
-  array, or a finite value that overflows a float32 array) is refused, not approximated.
+  value is compared in the array's dtype, and its exact value is kept until then, never passed
+  through a Python float. An integer array compares the exact integer. A floating or complex
+  array compares the declared double rounded once to its own type, because a band stores it
+  that way (a float32 band holds float32(nodata)). A declared value that is not exactly a
+  binary64 double (an integer above 2**53 that no double holds, a fraction such as 1/3) is
+  refused, because rounding it to a double first could match a different pixel. A declared NaN
+  matches NaN pixels. A declared value the dtype cannot hold (a fraction or an out-of-range
+  number for an integer array, or a finite value that overflows a float32 array) is refused,
+  not approximated.
 - ``isis_saturation`` (4), invalid measurement: one of the ISIS 4-byte saturation special pixels
   (Lrs, Lis, His, Hrs), saturated on the instrument or in a computation. ISIS excludes special
   pixels from computations, so these are never measured values.
@@ -54,6 +59,7 @@ import numbers
 from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import IntEnum
+from fractions import Fraction
 from typing import Any, Final
 
 import numpy as np
@@ -205,7 +211,36 @@ NodataValue = float | np.number[Any]
 """A declared nodata value: a real number (int, float or numpy real scalar), never a bool."""
 
 
-def _nodata_values(nodata: NodataValue | Iterable[NodataValue] | None) -> tuple[Any, ...]:
+@dataclass(frozen=True)
+class _Declared:
+    """One declared nodata value: as given (for messages) and its exact value.
+
+    ``exact`` is a Fraction for a finite value and a float NaN or +-inf otherwise, so no
+    precision is lost before the value meets the array's dtype.
+    """
+
+    given: Any
+    exact: Fraction | float
+
+
+def _exact_value(item: Any) -> Fraction | float:
+    if isinstance(item, numbers.Integral):
+        return Fraction(int(item))
+    if item != item:
+        return math.nan
+    if item == math.inf or item == -math.inf:
+        return float(item)
+    as_integer_ratio = getattr(item, "as_integer_ratio", None)
+    if not callable(as_integer_ratio):
+        raise TypeError(
+            f"nodata {item!r} of type {type(item).__name__} has no exact value "
+            "(as_integer_ratio); pass an int, a float or a numpy real scalar"
+        )
+    numerator, denominator = as_integer_ratio()
+    return Fraction(numerator, denominator)
+
+
+def _nodata_values(nodata: NodataValue | Iterable[NodataValue] | None) -> tuple[_Declared, ...]:
     if nodata is None:
         return ()
     if isinstance(nodata, np.ndarray):
@@ -220,38 +255,43 @@ def _nodata_values(nodata: NodataValue | Iterable[NodataValue] | None) -> tuple[
                 f"nodata values must be real numbers (int or float), got {item!r} "
                 f"of type {type(item).__name__}"
             )
-    return tuple(items)
+    return tuple(_Declared(given=item, exact=_exact_value(item)) for item in items)
 
 
-def _matches_declared(values: npt.NDArray[Any], declared: Any) -> npt.NDArray[np.bool_]:
+def _matches_declared(values: npt.NDArray[Any], declared: _Declared) -> npt.NDArray[np.bool_]:
     """Pixels equal to one declared nodata value, compared in the array's dtype."""
     dtype = values.dtype
+    given, exact = declared.given, declared.exact
     if dtype.kind in "iu":
-        if isinstance(declared, numbers.Integral):
-            whole = int(declared)
-        else:
-            as_float = float(declared)
-            if not (math.isfinite(as_float) and as_float.is_integer()):
-                raise ValueError(f"nodata {declared!r} is not an integer; {dtype} cannot hold it")
-            whole = int(as_float)
+        if not (isinstance(exact, Fraction) and exact.denominator == 1):
+            raise ValueError(f"nodata {given!r} is not an integer; {dtype} cannot hold it")
+        whole = exact.numerator
         info = np.iinfo(dtype)
         if not info.min <= whole <= info.max:
-            raise ValueError(f"nodata {declared!r} is outside the range of {dtype}")
+            raise ValueError(f"nodata {given!r} is outside the range of {dtype}")
         result: npt.NDArray[np.bool_] = values == dtype.type(whole)
         return result
-    try:
-        as_float = float(declared)
-    except OverflowError:
-        raise ValueError(f"nodata {declared!r} overflows {dtype}") from None
-    if math.isnan(as_float):
+    if isinstance(exact, float):
+        if not math.isnan(exact):
+            infinite: npt.NDArray[np.bool_] = values == dtype.type(exact)
+            return infinite
         if dtype.kind == "c":
             raise ValueError(f"a NaN nodata is ambiguous for complex {dtype}; declare it per part")
         nan_hits: npt.NDArray[np.bool_] = np.isnan(values)
         return nan_hits
+    try:
+        double = float(exact)
+    except OverflowError:
+        raise ValueError(f"nodata {given!r} overflows {dtype}") from None
+    if Fraction(double) != exact:
+        raise ValueError(
+            f"nodata {given!r} is not exactly a binary64 double, so {dtype} could only be "
+            "compared with a rounded guess; declare the double the product states"
+        )
     with np.errstate(over="ignore"):
-        stored = dtype.type(as_float)
-    if math.isfinite(as_float) and not np.isfinite(stored):
-        raise ValueError(f"nodata {declared!r} overflows {dtype}")
+        stored = dtype.type(double)
+    if not np.isfinite(stored):
+        raise ValueError(f"nodata {given!r} overflows {dtype}")
     equal: npt.NDArray[np.bool_] = values == stored
     return equal
 
@@ -283,7 +323,10 @@ def validity_mask(
     """Classify every pixel of ``values`` (see the module docstring for the codes).
 
     ``values`` is a real or complex numeric ndarray of any shape, as decoded; masked arrays are
-    refused because their mask would be ignored. ``nodata`` is the product's declared nodata
+    refused because their mask would be ignored. Long double and complex long double arrays are
+    refused too: their precision depends on the platform (numpy uses the C ``long double``, 80
+    bits on most x86 builds and 64 bits on others), and no GDAL band type is wider than Float64
+    and no ISIS pixel type wider than Double. ``nodata`` is the product's declared nodata
     value or values, from its label or file; None declares none. ``support`` is a bool array of
     the same shape, True inside the support; None means every pixel is inside. ``values`` is
     never modified.
@@ -296,6 +339,12 @@ def validity_mask(
     kind = values.dtype.kind
     if kind not in "iufc":
         raise TypeError(f"values must have a real or complex numeric dtype, got {values.dtype}")
+    if values.dtype.type in (np.longdouble, np.clongdouble):
+        raise TypeError(
+            f"values must not be long double ({values.dtype.type.__name__}): its precision "
+            "depends on the platform and no GDAL or ISIS pixel type stores it; pass the array "
+            "in the dtype the product stores"
+        )
     if support is not None:
         if not _plain_ndarray(support) or support.dtype != np.bool_:
             raise TypeError(f"support must be a bool ndarray, got {type(support).__name__}")
