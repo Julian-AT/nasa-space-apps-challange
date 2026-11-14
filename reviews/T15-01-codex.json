@@ -1,0 +1,133 @@
+{
+  "task_id": "T15-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "f7869bbf55dc18b6ece472d18e9603ca90b037b8",
+    "head": "d04283f7b14406380c7e8e7aa8908d9d8eed76dc",
+    "files": [
+      {
+        "path": "apps/web/lib/bundle-files.test.ts",
+        "sha256": "b36e0f5cfa19ef7232aaceefdd0675ed5280b662590760a7272b33db09324e2a"
+      },
+      {
+        "path": "apps/web/lib/bundle.ts",
+        "sha256": "33562f965890b9ac1f0fff11e08b611a42abe177eb4199da2be550d5f1a51c11"
+      },
+      {
+        "path": "apps/web/lib/errors.ts",
+        "sha256": "8a7902cc1bec814ff14c3878dedceeeb61ff7b15ecc9390728a716543631e744"
+      },
+      {
+        "path": "apps/web/scripts/bundle-pull.ts",
+        "sha256": "2236490783031ab697a80b9066567867cf66869ac67a15fa2ef05bc2bd70ff1e"
+      },
+      {
+        "path": "apps/web/tests/helpers.ts",
+        "sha256": "8171a14be72b53ad6be8792e55c942c09d4e8eb36ad31cc095096154789bc35a"
+      },
+      {
+        "path": "apps/web/vitest.config.ts",
+        "sha256": "27a5aa93d42f329ec7abb84abde42bcf4ea52c29c87c71c170cc17397e448a6a"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:30:06Z",
+  "finished_utc": "2026-11-14T19:32:45Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No static defects found in the six changed files. Execution checks and evidence that tests were first observed failing remain unverified under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "AC1: Copy all listed small server JSON files and exclude large artifacts.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static review: apps/web/lib/bundle.ts:60 selects validation, sources, targets, comparisons and windows JSON; :292 filters manifest entries; :407 copies selected files and :410 copies the manifest. Tests assert exact output contents at apps/web/lib/bundle-files.test.ts:142."
+    },
+    {
+      "criterion": "AC2: Verify checksums and byte counts, name failures, reject missing listed files and exclude unlisted files.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static review: apps/web/lib/bundle.ts:207 throws a named missing-file error; :228 checks byte count; :235 checks SHA-256; :292 selects only listed paths. Corresponding assertions appear at apps/web/lib/bundle-files.test.ts:163 and :186."
+    },
+    {
+      "criterion": "AC3: Use existing schemas and record checksum-only files as schema gaps.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/lib/bundle.ts:255 and :267 use BundleManifestSchema and ValidationSchema; :352 retains other selected files as checksum-checked bytes. scripts/ralph/batches/t15-api/prd.json:55 explicitly lists all four schema gaps for human decision. No substitute schemas are added."
+    },
+    {
+      "criterion": "AC4: Export typed accessors, typed file errors and the production mock guard; preserve optional absence.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/lib/bundle.ts:77 types manifest and validation; :96 defines explicit present/not_present results; :105 exports optional-file accessors; :166 exports assertDeployable. apps/web/lib/errors.ts:20 defines BundleFileError. Missing optional files receive no empty default."
+    },
+    {
+      "criterion": "AC5: All T0-05 guarantees keep passing unchanged.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Existing bundle tests are unchanged. Selection and refusal paths remain in apps/web/lib/bundle.ts:144, :166 and :315; apps/web/app/layout.tsx:24 invokes the loader during rendering. Passing tests and next-build rejection cannot be confirmed because execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC6: Required tests are written first and observed failing; fixtures use temporary directories.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Required test bodies are present at apps/web/lib/bundle-files.test.ts:163, :186, :269 and :300. Temporary fixtures use apps/web/tests/helpers.ts:31 and :98. No failing run was personally observed, and test execution was prohibited; final source alone cannot establish the required test-first execution."
+    },
+    {
+      "criterion": "AC7: Mock web build and smoke pass; test placement and filters satisfy the contract.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/lib/bundle-files.test.ts matches the requested filename/location, apps/web/vitest.config.ts:7 includes both test locations, and scripts/ralph/batches/t15-api/prd.json:55 records filters. Build and smoke success require execution, which was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Required web test suite",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: tests create temporary files and may write caches; the sandbox is read-only."
+    },
+    {
+      "criterion": "Required focused bundle tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run lib/bundle",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: tests create temporary files and may write caches; the sandbox is read-only."
+    },
+    {
+      "criterion": "Required web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the script runs next typegen, which writes generated files."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: toolchain checks may write caches or generated files in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository tests",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: test suites create files and caches in the read-only sandbox."
+    },
+    {
+      "criterion": "Required mock web build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: bundle:pull writes apps/web/data and Next.js writes build output."
+    },
+    {
+      "criterion": "Required mock web smoke test",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: this target depends on web-build and writes build artifacts."
+    }
+  ],
+  "findings": []
+}

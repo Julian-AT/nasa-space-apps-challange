@@ -1,0 +1,126 @@
+{
+  "task_id": "T15-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "f7869bbf55dc18b6ece472d18e9603ca90b037b8",
+    "head": "d04283f7b14406380c7e8e7aa8908d9d8eed76dc",
+    "files": [
+      {
+        "path": "apps/web/lib/bundle-files.test.ts",
+        "sha256": "b36e0f5cfa19ef7232aaceefdd0675ed5280b662590760a7272b33db09324e2a"
+      },
+      {
+        "path": "apps/web/lib/bundle.ts",
+        "sha256": "33562f965890b9ac1f0fff11e08b611a42abe177eb4199da2be550d5f1a51c11"
+      },
+      {
+        "path": "apps/web/lib/errors.ts",
+        "sha256": "8a7902cc1bec814ff14c3878dedceeeb61ff7b15ecc9390728a716543631e744"
+      },
+      {
+        "path": "apps/web/scripts/bundle-pull.ts",
+        "sha256": "2236490783031ab697a80b9066567867cf66869ac67a15fa2ef05bc2bd70ff1e"
+      },
+      {
+        "path": "apps/web/tests/helpers.ts",
+        "sha256": "8171a14be72b53ad6be8792e55c942c09d4e8eb36ad31cc095096154789bc35a"
+      },
+      {
+        "path": "apps/web/vitest.config.ts",
+        "sha256": "27a5aa93d42f329ec7abb84abde42bcf4ea52c29c87c71c170cc17397e448a6a"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:30:06Z",
+  "finished_utc": "2026-11-14T19:30:48Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T15-01 at d04283f meets all seven acceptance criteria. All seven listed checks passed when I ran them. The diff touches only files in the story's list. I found no weakened tests and no mock data reachable from production. I could not independently confirm that the tests were seen failing first.",
+  "checks": [
+    {
+      "criterion": "bundle:pull copies the small server-side JSONs listed in the manifest and never copies large artifacts",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The isPulledPath allow-list is at lib/bundle.ts:60-67. lib/bundle-files.test.ts:142-161 checks that only the server-side files are copied and that tiles, model, report and parquet files are neither read nor copied."
+    },
+    {
+      "criterion": "SHA-256 and byte count are verified per file, naming the file. A file listed but missing fails the pull, and an unlisted file is not copied",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "readListedFile at lib/bundle.ts:224-243 checks bytes and SHA-256. Tests at bundle-files.test.ts:187-209 cover every server-side path for sha256, byte count and listed-but-missing. The unlisted-file test is at lines 163-171. The error message contains release/<version>/<path>."
+    },
+    {
+      "criterion": "Schema validation applies to manifest and validation only. Files without a schema are copied after the checksum check and reported as schema gaps, with no invented schema",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "parseManifest and parseValidation use the @terraluna/schema schemas (lib/bundle.ts:255-285). checksumOnly holds raw bytes and is never parsed. scripts/bundle-pull.ts:44-49 prints 'have no schema ... yet', and the CLI test asserts it (test line 461)."
+    },
+    {
+      "criterion": "The loader exports typed accessors, a typed error, and the production mock guard as a function. Absent optional files read as 'not present'",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "sourcesFile, targetsFile, comparisonFile and windowsTopNFile return a not_present or present result. BundleFileError and MockBundleError are exported. assertDeployable is exported (lib/bundle.ts:166). Tests at lines 300-335 and 337-400 cover these."
+    },
+    {
+      "criterion": "T0-05 guarantees still pass unchanged",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "tests/bundle.test.ts (48 tests) and tests/bundle-pull-cli.test.ts (4 tests) are not in the diff and pass. All 161 tests pass across 6 files. The guard tests are at bundle-files.test.ts:402-440."
+    },
+    {
+      "criterion": "Vitest tests are written first and seen failing, use temp directories, and do not depend on release/",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "I did not re-run the tests against the pre-change code, so I could not see them failing first. The git log shows the test commits (6d96257, c041c3a) before the fix (9b94e56). The tests use tempDir() and repoWithMock() and never read release/."
+    },
+    {
+      "criterion": "make web-build and make web-smoke still pass with the mock bundle, and tests are placed under lib/bundle*.test.ts",
+      "command": "make web-build; make web-smoke",
+      "outcome": "PASS",
+      "evidence": "The build succeeded and the smoke test printed its success line. lib/bundle-files.test.ts exists, vitest.config.ts includes lib/**/*.test.ts, and `vitest run lib/bundle` ran 81 tests, all passing."
+    },
+    {
+      "criterion": "pnpm --filter @terraluna/web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "PASS",
+      "evidence": "tsc --noEmit finished with no errors."
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy and turbo lint/typecheck all passed."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "404 pytest tests, 161 web tests and 157 schema tests passed."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/lib/bundle.ts:96",
+      "claim": "The accessors for the schema-gap files return raw bytes, not typed records. That matches the no-substitute-schema rule, but the API will have to parse these files itself once schemas exist.",
+      "evidence": "The SchemaGapFile type exposes only a Uint8Array. A follow-up that adds schemas should replace these accessors.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/lib/bundle.ts:392",
+      "claim": "A pull does not delete files left in data/ by an earlier pull. They are never read, because loadBundle only reads files the manifest lists, but they stay on disk.",
+      "evidence": "The pullBundle doc comment says an earlier pull's file that the manifest no longer lists is left in place.",
+      "id": "claude-r1-2",
+      "resolution": null
+    }
+  ]
+}
