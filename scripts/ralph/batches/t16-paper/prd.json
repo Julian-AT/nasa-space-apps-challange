@@ -123,7 +123,7 @@
           "reviews/T16-02-codex-r4.json": "60c2ab696b1e2f078a7acc65ac27e862efb366441477931b3b53b3eae254cda9"
         }
       },
-      "notes": ""
+      "notes": "\nralph orchestrator 2026-11-14T21:42:04Z: T16-02 reached the 4-round limit with 4 fixed blocker findings in round 4, all adversarial LaTeX edge cases. Decision: this loop runs with up to 6 review rounds (RALPH_MAX_REVIEW_ROUNDS=6). Scope clarification for the author and the reviewers: lint_prose.py and overlap_check.py enforce PRD 22.6 and D36 on prose that authors actually write; they are not a security boundary against deliberately crafted LaTeX. Fix every finding that a realistic manuscript could trigger. A finding that needs contrived input no author would write (for example escaped environment spellings built to fake an exemption) may be rebutted with this reason, citing PRD 22.6. No rule, banned word, threshold or test is weakened."
     },
     {
       "id": "T16-03",
