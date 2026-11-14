@@ -104,14 +104,17 @@ async function renderPage(): Promise<string> {
 }
 
 /**
- * The reference handler. The page is rendered once, on the first request; a render that fails is a
- * 500 problem and is tried again on the next request.
+ * The reference handler over a page renderer (the Scalar integration by default). The page is
+ * rendered once, on the first request; a render that fails is a 500 problem and is tried again on
+ * the next request.
  */
-export function docsHandler(): RouteHandler<typeof docsRoute> {
+export function docsHandler(
+  render: () => Promise<string> = renderPage,
+): RouteHandler<typeof docsRoute> {
   let served: { body: string; headers: Record<string, string> } | undefined;
   return async (c) => {
     if (served === undefined) {
-      const body = await renderPage();
+      const body = await render();
       served = {
         body,
         headers: { 'Content-Type': 'text/html; charset=UTF-8', ...deployCacheHeaders(body) },
