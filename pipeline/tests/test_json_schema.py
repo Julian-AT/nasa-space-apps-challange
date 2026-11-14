@@ -16,6 +16,8 @@ silently.
 
 from __future__ import annotations
 
+import copy
+import itertools
 import json
 import os
 import re
@@ -56,6 +58,11 @@ SCHEMA_FILES = {
     "Validation": "validation.schema.json",
     "ProductRecord": "product-record.schema.json",
     "Sources": "sources.schema.json",
+    "WindowRecord": "window-record.schema.json",
+    "FingerprintRecord": "fingerprint-record.schema.json",
+    "Windows": "windows.schema.json",
+    "ComparisonRecord": "comparison-record.schema.json",
+    "Comparisons": "comparisons.schema.json",
 }
 GENERATOR_CASES = ROOT / "fixtures" / "schema-cases" / "generator-cases.json"
 """Synthetic schemas with ``if``/``then`` and ``not``, and documents with authored verdicts. The
@@ -261,6 +268,26 @@ def test_sources_schema_is_an_array_of_product_records() -> None:
     assert sources["$defs"] == {
         "ProductRecord": {k: v for k, v in product_record.items() if k != "$schema"}
     }
+
+
+@pytest.mark.parametrize(
+    ("array", "record"), [("Windows", "WindowEntry"), ("Comparisons", "ComparisonRecord")]
+)
+def test_bundle_arrays_are_arrays_of_their_records(array: str, record: str) -> None:
+    schema = committed_schema(array)
+    assert schema["type"] == "array"
+    assert schema["items"] == {"$ref": f"#/$defs/{record}"}
+    assert record in schema["$defs"]
+
+
+@pytest.mark.parametrize("name", ["WindowRecord", "FingerprintRecord", "ComparisonRecord"])
+def test_record_schemas_are_the_definitions_used_in_the_bundle_arrays(name: str) -> None:
+    array = "Comparisons" if name == "ComparisonRecord" else "Windows"
+    record = committed_schema(name)
+    definitions = committed_schema(array)["$defs"]
+    assert definitions[name] == {k: v for k, v in record.items() if k not in ("$schema", "$defs")}
+    for key, definition in record.get("$defs", {}).items():
+        assert definitions[key] == definition
 
 
 def test_byte_counts_stay_within_javascript_safe_integers() -> None:
@@ -515,6 +542,230 @@ def test_product_record_cases_test_what_they_name() -> None:
     assert cases["sources-object"]["value"] == base
     for name in ("sources-empty", "sources-one-record", "sources-two-records"):
         assert (cases[name]["schema"], cases[name]["valid"]) == ("Sources", True)
+
+
+def leaf_changes(before: Any, after: Any, path: tuple[Any, ...] = ()) -> Iterator[tuple[Any, ...]]:
+    """The paths at which ``after`` differs from ``before``: a changed, added or removed leaf."""
+    if isinstance(before, dict) and isinstance(after, dict):
+        for key in sorted(set(before) | set(after), key=str):
+            if key not in before or key not in after:
+                yield (*path, key)
+            else:
+                yield from leaf_changes(before[key], after[key], (*path, key))
+    elif isinstance(before, list) and isinstance(after, list) and len(before) == len(after):
+        for index, (old, new) in enumerate(zip(before, after, strict=True)):
+            yield from leaf_changes(old, new, (*path, index))
+    elif before != after or type(before) is not type(after):
+        yield path
+
+
+DISTANCES = ("distances_by_family",)
+UNCERTAINTY = ("uncertainty_components",)
+
+# Each science case and the base case it differs from, with the paths at which it differs.
+SCIENCE_CASE_CHANGES: dict[str, tuple[str, set[tuple[Any, ...]]]] = {
+    "window-record-missing-environment-flags": ("window-record-moon", {("environment_flags",)}),
+    "window-record-unknown-field": ("window-record-moon", {("score",)}),
+    "window-record-area-zero": ("window-record-moon", {("area_m2",)}),
+    "window-record-valid-fraction-above-one": (
+        "window-record-moon",
+        {("valid_fraction_by_observable", "terrain")},
+    ),
+    "window-record-empty-observable-key": (
+        "window-record-moon",
+        {("valid_fraction_by_observable", "")},
+    ),
+    "window-record-evidence-label-unknown": (
+        "window-record-moon",
+        {("evidence_status_by_field", "radar_cpr")},
+    ),
+    "window-record-ring-three-positions": ("window-record-moon", {("polygon", "ring_m")}),
+    "window-record-position-three-numbers": (
+        "window-record-moon",
+        {("polygon", "ring_lonlat", 1)},
+    ),
+    "window-record-frame-unknown": ("window-record-moon", {("polygon", "frame")}),
+    "window-record-acquisition-date-not-iso": (
+        "window-record-earth-utm",
+        {("environment_flags", "acquisition_dates", 0)},
+    ),
+    "window-record-shadow-fraction-above-one": (
+        "window-record-moon",
+        {("environment_flags", "permanent_shadow_fraction")},
+    ),
+    "window-record-window-id-uppercase": ("window-record-moon", {("window_id",)}),
+    "fingerprint-terrain-with-radar-set": ("fingerprint-terrain", {("radar",)}),
+    "fingerprint-radar-with-terrain-set": ("fingerprint-radar", {("terrain",)}),
+    "fingerprint-terrain-without-terrain": ("fingerprint-terrain", {("terrain",)}),
+    "fingerprint-radar-holding-terrain": ("fingerprint-radar", {("terrain",), ("radar",)}),
+    "fingerprint-blocks-independent-true": (
+        "fingerprint-radar",
+        {("radar", "blocks_independent")},
+    ),
+    "fingerprint-blocks-independent-zero": (
+        "fingerprint-radar",
+        {("radar", "blocks_independent")},
+    ),
+    "fingerprint-hurst-unavailable-with-reason": (
+        "fingerprint-terrain",
+        {("terrain", "relief", "hurst"), ("terrain", "relief", "hurst_reason")},
+    ),
+    "fingerprint-hurst-and-reason-null": ("fingerprint-terrain", {("terrain", "relief", "hurst")}),
+    "fingerprint-hurst-and-reason-set": (
+        "fingerprint-terrain",
+        {("terrain", "texture", "hurst_reason")},
+    ),
+    "fingerprint-nu-zero": ("fingerprint-terrain", {("terrain", "relief", "nu_m", "270")}),
+    "fingerprint-nu-negative": ("fingerprint-terrain", {("terrain", "relief", "nu_m", "270")}),
+    "fingerprint-distribution-empty": ("fingerprint-radar", {("radar", "sc")}),
+    "fingerprint-distribution-empty-with-statistic": ("fingerprint-radar", {("radar", "sc")}),
+    "fingerprint-distribution-with-null-statistic": (
+        "fingerprint-radar",
+        {("radar", "cpr_ratio_of_mean_powers", "p95")},
+    ),
+    "fingerprint-distribution-n-zero-with-values": ("fingerprint-radar", {("radar", "sc")}),
+    "fingerprint-run-id-without-prefix": ("fingerprint-terrain", {("run_id",)}),
+    "fingerprint-aggregation-pixelwise": ("fingerprint-radar", {("radar", "aggregation")}),
+    "comparison-mode-b": ("comparison-terrain-only", {("shipping_mode",)}),
+    "comparison-real-zero-distance": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "terrain_relief", "value")},
+    ),
+    "comparison-missing-model-embedding": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "model_embedding")},
+    ),
+    "comparison-five-families": ("comparison-terrain-only", {(*DISTANCES, "radar_sc")}),
+    "comparison-score-field": ("comparison-terrain-only", {("score",)}),
+    "comparison-distance-score-field": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "terrain_relief", "score")},
+    ),
+    "comparison-distance-null-without-reason": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "radar_cpr", "reason")},
+    ),
+    "comparison-distance-value-with-reason": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "terrain_relief", "reason")},
+    ),
+    "comparison-distance-value-not-available": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "terrain_relief", "status"), (*DISTANCES, "terrain_relief", "reason")},
+    ),
+    "comparison-distance-available-without-value": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "radar_cpr", "status"), (*DISTANCES, "radar_cpr", "reason")},
+    ),
+    "comparison-distance-negative": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "terrain_relief", "value")},
+    ),
+    "comparison-spread-and-reason-null": (
+        "comparison-terrain-only",
+        {
+            (*DISTANCES, "terrain_relief", "reference_spread"),
+            (*DISTANCES, "terrain_relief", "tied"),
+        },
+    ),
+    "comparison-spread-and-reason-set": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "terrain_relief", "reference_spread_reason")},
+    ),
+    "comparison-percentile-and-reason-null": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "terrain_relief", "background_percentile")},
+    ),
+    "comparison-percentile-and-reason-set": (
+        "comparison-terrain-only",
+        {(*DISTANCES, "radar_cpr", "background_percentile")},
+    ),
+    "comparison-tied-without-spread": (
+        "comparison-terrain-only",
+        {
+            (*DISTANCES, "terrain_relief", "reference_spread"),
+            (*DISTANCES, "terrain_relief", "reference_spread_reason"),
+        },
+    ),
+    "comparison-uncertainty-missing-component": (
+        "comparison-terrain-only",
+        {(*UNCERTAINTY, "scenario_sensitivity")},
+    ),
+    "comparison-uncertainty-fifth-component": (
+        "comparison-terrain-only",
+        {(*UNCERTAINTY, "combined")},
+    ),
+    "comparison-uncertainty-unknown-family": (
+        "comparison-terrain-only",
+        {(*UNCERTAINTY, "measurement_error", "by_family", "terrain")},
+    ),
+    "comparison-scenario-probability": (
+        "comparison-terrain-only",
+        {(*UNCERTAINTY, "scenario_sensitivity", "scenarios", 0, "probability")},
+    ),
+    "comparison-rank-frequency-above-one": (
+        "comparison-terrain-only",
+        {(*UNCERTAINTY, "measurement_error", "rank_frequency", "terrain_relief", "frequency")},
+    ),
+    "comparison-excluded-without-reasons": (
+        "comparison-terrain-only",
+        {("excluded_observables_and_reasons", 0, "reasons")},
+    ),
+    "comparison-run-id-uppercase": ("comparison-terrain-only", {("run_id",)}),
+}
+
+
+def test_science_cases_test_what_they_name() -> None:
+    """Each WindowRecord, FingerprintRecord or ComparisonRecord case differs from its base only
+    at the paths its entry names; the array cases are built from those records."""
+    cases = cases_by_name()
+    for name, (base_name, paths) in SCIENCE_CASE_CHANGES.items():
+        case, base = cases[name], cases[base_name]
+        assert case["schema"] == base["schema"], name
+        assert base["valid"] is True, base_name
+        assert set(leaf_changes(base["value"], case["value"])) == paths, name
+    # The model_embedding entry of these two is the available terrain_relief entry with another
+    # unit and value, labelled Predicted in one and left Derived in the other.
+    for name, differs in (
+        ("comparison-model-embedding-predicted-value", {"unit", "value", "evidence_label"}),
+        ("comparison-model-embedding-derived-value", {"unit", "value"}),
+    ):
+        embedding = cases[name]["value"]["distances_by_family"]["model_embedding"]
+        relief = cases["comparison-terrain-only"]["value"]["distances_by_family"]["terrain_relief"]
+        assert {key for key in embedding if embedding[key] != relief[key]} == differs, name
+        assert embedding["evidence_label"] == (
+            "Predicted" if name.endswith("predicted-value") else "Derived"
+        )
+        changes = set(leaf_changes(cases["comparison-terrain-only"]["value"], cases[name]["value"]))
+        assert changes, name
+        assert all(path[:2] == (*DISTANCES, "model_embedding") for path in changes), changes
+    assert cases["comparison-model-embedding-predicted-value"]["valid"] is True
+    assert cases["comparison-model-embedding-derived-value"]["valid"] is False
+
+    entry = cases["windows-one-entry"]["value"][0]
+    assert entry["window"] == cases["window-record-moon"]["value"]
+    assert entry["terrain"] == cases["fingerprint-terrain"]["value"]
+    assert entry["radar"] == [cases["fingerprint-radar"]["value"]]
+    assert cases["windows-empty"]["value"] == []
+    assert cases["windows-object"]["value"] == entry
+    assert cases["comparisons-empty"]["value"] == []
+    assert cases["comparisons-one-record"]["value"] == [cases["comparison-terrain-only"]["value"]]
+    assert cases["comparisons-one-invalid-entry"]["value"] == [
+        cases["comparison-terrain-only"]["value"],
+        cases["comparison-distance-null-without-reason"]["value"],
+    ]
+    assert cases["comparisons-object"]["value"] == cases["comparison-terrain-only"]["value"]
+    # Every single-record case is a base, has an entry above, or is one of the two embedding cases.
+    singles = {
+        name
+        for name, case in cases.items()
+        if case["schema"] in ("WindowRecord", "FingerprintRecord", "ComparisonRecord")
+    }
+    bases = {base for base, _ in SCIENCE_CASE_CHANGES.values()}
+    assert singles - set(SCIENCE_CASE_CHANGES) - bases == {
+        "comparison-model-embedding-predicted-value",
+        "comparison-model-embedding-derived-value",
+    }
 
 
 @pytest.mark.parametrize("case", case_params())
@@ -865,3 +1116,196 @@ def test_percent_encoded_byte_verdicts_agree() -> None:
 def test_verified_units_verdicts_agree(units: str) -> None:
     value = product_record(units=units)
     assert pydantic_accepts("ProductRecord", value) is json_schema_accepts("ProductRecord", value)
+
+
+# --- Science record parity (CONTRACTS a.4) ------------------------------------------------------
+# Every cross-field rule that JSON Schema can express is written as an allOf conditional next to
+# its pydantic validator. These tests try every combination of the fields each rule reads and
+# require the same verdict from pydantic and from the committed JSON Schema. The rules that
+# compare values inside a document (sorted values, n == len(values), closed rings, slot kinds)
+# are pydantic-only and stay out of these combinations.
+
+
+def definition_accepts(file_name: str, definition: str, value: Any) -> bool:
+    schema = committed_schema(file_name)
+    wrapped = {
+        "$schema": JSON_SCHEMA_DIALECT,
+        "$defs": schema.get("$defs", {}),
+        "$ref": f"#/$defs/{definition}",
+    }
+    return bool(EcmaValidator(wrapped).is_valid(value))
+
+
+def science_case(name: str) -> Any:
+    return copy.deepcopy(cases_by_name()[name]["value"])
+
+
+def verdicts_agree(
+    pydantic_name: str, schema_accepts: Callable[[Any], bool], values: list[Any]
+) -> tuple[int, int]:
+    accepted = 0
+    for value in values:
+        verdict = pydantic_accepts(pydantic_name, value)
+        assert verdict is schema_accepts(value), value
+        accepted += verdict
+    return accepted, len(values) - accepted
+
+
+def comparison_with(family: str, entry: dict[str, Any]) -> dict[str, Any]:
+    value = science_case("comparison-terrain-only")
+    value["distances_by_family"][family] = entry
+    return value
+
+
+@pytest.mark.parametrize("family", ["terrain_relief", "model_embedding"])
+def test_distance_entry_rules_agree_on_every_combination(family: str) -> None:
+    spread = {"min": 0.125, "median": 0.25, "max": 0.5, "n": 12}
+    labels = ["Derived", "Predicted"] if family == "model_embedding" else ["Derived"]
+    options: dict[str, list[Any]] = {
+        "value": [None, 0, 0.375],
+        "status": ["available", "unavailable", "not_comparable"],
+        "reason": [None, "band_mismatch"],
+        "reference_spread": [None, spread],
+        "reference_spread_reason": [None, "spread_unavailable"],
+        "background_percentile": [None, 12.5],
+        "background_percentile_reason": [None, "background_sample_size_unset"],
+        "tied": [None, True],
+        "evidence_label": labels,
+    }
+    entries = [
+        {
+            "unit": "cosine distance",
+            "tie_group": None,
+            "tie_reason": None,
+            **dict(zip(options, combination, strict=True)),
+        }
+        for combination in itertools.product(*options.values())
+    ]
+    values = [comparison_with(family, entry) for entry in entries]
+    accepted, rejected = verdicts_agree(
+        "ComparisonRecord", lambda value: json_schema_accepts("ComparisonRecord", value), values
+    )
+    assert accepted > 0
+    assert rejected > 0
+
+
+def test_fingerprint_rules_agree_on_every_combination() -> None:
+    terrain = science_case("fingerprint-terrain")["terrain"]
+    radar = science_case("fingerprint-radar")["radar"]
+    values = []
+    for kind, terrain_part, radar_part, hurst, reason, independent in itertools.product(
+        ["terrain", "radar"],
+        [None, terrain],
+        [None, radar],
+        [None, 0.625],
+        [None, "insufficient_lags"],
+        [False, True, 0],
+    ):
+        value = science_case("fingerprint-terrain")
+        value["kind"] = kind
+        value["terrain"] = copy.deepcopy(terrain_part)
+        value["radar"] = copy.deepcopy(radar_part)
+        if terrain_part is not None:
+            value["terrain"]["relief"]["hurst"] = hurst
+            value["terrain"]["relief"]["hurst_reason"] = reason
+        if radar_part is not None:
+            value["radar"]["blocks_independent"] = independent
+        values.append(value)
+    accepted, rejected = verdicts_agree(
+        "FingerprintRecord", lambda value: json_schema_accepts("FingerprintRecord", value), values
+    )
+    assert accepted > 0
+    assert rejected > 0
+
+
+def test_distribution_rules_agree_on_every_combination() -> None:
+    samples = {0: [], 1: [0.5], 3: [0.25, 0.5, 0.75]}
+    statistics = ["min", "median", "p05", "p95", "max"]
+    values = []
+    for n, nulls in itertools.product(samples, [(), tuple(statistics), ("min",), ("max",)]):
+        distribution = {"n": n, "values": samples[n]}
+        distribution.update({key: None if key in nulls else 0.5 for key in statistics})
+        value = science_case("fingerprint-radar")
+        value["radar"]["sc"] = distribution
+        values.append(value)
+    accepted, rejected = verdicts_agree(
+        "FingerprintRecord", lambda value: json_schema_accepts("FingerprintRecord", value), values
+    )
+    assert accepted == 3
+    assert rejected == 9
+
+
+def test_window_entry_reason_rule_agrees_on_every_combination() -> None:
+    values = []
+    for status, reasons in itertools.product(
+        ["eligible", "rejected", "unknown"], [[], ["worldcover_missing"], ["a", "b"]]
+    ):
+        entry = science_case("windows-one-entry")[0]
+        entry["status"] = status
+        entry["reasons"] = reasons
+        values.append([entry])
+    accepted, rejected = verdicts_agree(
+        "Windows", lambda value: json_schema_accepts("Windows", value), values
+    )
+    assert accepted == 5
+    assert rejected == 4
+
+
+def test_distance_entry_definition_alone_follows_the_same_rules() -> None:
+    entry = science_case("comparison-terrain-only")["distances_by_family"]["radar_cpr"]
+    assert definition_accepts("comparison-record.schema.json", "DistanceEntry", entry)
+    entry["reason"] = None
+    assert not definition_accepts("comparison-record.schema.json", "DistanceEntry", entry)
+
+
+@pytest.mark.parametrize(
+    ("name", "path", "value"),
+    [
+        (
+            "fingerprint-radar",
+            ("radar", "sc"),
+            {
+                "n": 2,
+                "values": [0.5, 0.25],
+                "min": 0.25,
+                "median": 0.375,
+                "p05": 0.25,
+                "p95": 0.5,
+                "max": 0.5,
+            },
+        ),
+        (
+            "fingerprint-radar",
+            ("radar", "sc"),
+            {
+                "n": 1,
+                "values": [0.25, 0.5],
+                "min": 0.25,
+                "median": 0.375,
+                "p05": 0.25,
+                "p95": 0.5,
+                "max": 0.5,
+            },
+        ),
+        ("window-record-moon", ("polygon", "ring_m", 4), [2500, 2500]),
+    ],
+    ids=["values-unsorted", "n-not-the-count", "ring-not-closed"],
+)
+def test_rules_inside_a_document_are_checked_by_pydantic_only(
+    name: str, path: tuple[Any, ...], value: Any
+) -> None:
+    case = cases_by_name()[name]
+    document = copy.deepcopy(case["value"])
+    target = document
+    for key in path[:-1]:
+        target = target[key]
+    target[path[-1]] = value
+    assert not pydantic_accepts(case["schema"], document)
+    assert json_schema_accepts(case["schema"], document)
+
+
+def test_slot_kinds_are_checked_by_pydantic_only() -> None:
+    entry = science_case("windows-one-entry")[0]
+    entry["terrain"] = science_case("fingerprint-radar")
+    assert not pydantic_accepts("Windows", [entry])
+    assert json_schema_accepts("Windows", [entry])

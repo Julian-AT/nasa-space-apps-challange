@@ -185,7 +185,7 @@ describe('contracts', () => {
   });
 
   it('mirror the CONTRACTS of schema.py in names, file names and order', () => {
-    expect(pythonContracts().length).toBeGreaterThanOrEqual(5);
+    expect(pythonContracts().length).toBeGreaterThanOrEqual(10);
     expect(CONTRACTS.map((c) => [c.typeName, c.json])).toEqual(pythonContracts());
   });
 
@@ -205,6 +205,11 @@ describe('contracts', () => {
       'Validation',
       'ProductRecord',
       'Sources',
+      'WindowRecord',
+      'FingerprintRecord',
+      'Windows',
+      'ComparisonRecord',
+      'Comparisons',
     ]);
   });
 });
