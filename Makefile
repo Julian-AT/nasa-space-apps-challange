@@ -11,13 +11,16 @@ SCHEMA_JSON := packages/schema/json
 
 NODE ?= node
 PNPM ?= pnpm
-# Turborepo runs the package scripts with its local cache; telemetry stays off (PRD 8.9).
-TURBO := TURBO_TELEMETRY_DISABLED=1 $(PNPM) exec turbo --no-update-notifier
+# Turborepo runs the package scripts with its local cache; telemetry stays off (PRD 8.9), also for
+# the Next.js CLI that the web typecheck runs.
+TURBO := TURBO_TELEMETRY_DISABLED=1 NEXT_TELEMETRY_DISABLED=1 $(PNPM) exec turbo --no-update-notifier
 ZOD := $(NODE) packages/schema/scripts/generate-zod.ts
 ZOD_OUT := packages/schema/src/generated
+# @terraluna/web scripts; Next.js telemetry stays off like Turborepo's.
+WEB := NEXT_TELEMETRY_DISABLED=1 $(PNPM) --filter @terraluna/web
 
 .PHONY: setup check test setup-py check-py test-py setup-ts check-ts test-ts schema schema-check \
-	mock-bundle mock-bundle-check
+	mock-bundle mock-bundle-check web-build web-smoke web-dev
 
 setup: setup-py setup-ts
 check: check-py check-ts
@@ -81,3 +84,19 @@ mock-bundle:
 # then validates the committed copy.
 mock-bundle-check:
 	$(EXPORT) mock-bundle-check fixtures/mock-bundle
+
+# The web app on the bundle that BUNDLE_VERSION selects: fixtures/mock-bundle when it is unset or
+# empty, otherwise release/$(BUNDLE_VERSION)/ (PRD 8.5, 8.9). bundle:pull validates manifest.json
+# and validation.json and copies them into apps/web/data/; it and next build both refuse a mock
+# bundle when VERCEL_ENV=production.
+web-build:
+	$(WEB) bundle:pull
+	$(WEB) build
+
+# Builds, starts next start on a free port, checks / and always stops the server.
+web-smoke: web-build
+	$(WEB) smoke
+
+web-dev:
+	$(WEB) bundle:pull
+	$(WEB) dev
