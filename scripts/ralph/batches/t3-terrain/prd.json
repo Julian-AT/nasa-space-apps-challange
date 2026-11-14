@@ -205,12 +205,20 @@
       "priority": 4,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "c60143a45f0efb7ede716b8e91c2c3d948ab7c25",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "38d1a3601c745f0ce436e7c8fbb5194b017451bb",
+        "files": [
+          "reviews/T3-04-claude.json",
+          "reviews/T3-04-codex.json",
+          "reviews/T3-04-codex-2.json"
+        ],
+        "digests": {
+          "reviews/T3-04-claude.json": "6a42a630d02f6c4da97f1c831d947ffac707b0c0bf41da35b26ed1f45981b0f7",
+          "reviews/T3-04-codex.json": "835e020ea5a07599d11f460d28694db68033ec01063f51bb3116a6caead6c3d4",
+          "reviews/T3-04-codex-2.json": "cfd6f7d8b9862bd8e1d325a71807933ab9ce3d96109a5e30879860ac2f20b99e"
+        }
       },
       "notes": "Failing run (2026-11-14, commit c59d0a5, before terrain.py existed): `uv run pytest pipeline/tests/test_terrain_structure.py` stopped at collection with ImportError: cannot import name 'terrain' from 'terraluna_pipeline'. After f9bf03d: 82 passed, make check exit 0, full suite 1327 passed. Scratch evidence (not committed): 17 of 17 mutants fail the tests (row sign flipped, NE/NW swapped, zero-filled or either-cell-valid pairs, masked-array mask dropped, nearest diagonal offset without the tolerance, a 100x looser lag tolerance, plain squaring without scaling, swapped or pooled-only isotropic rules, mean of |d| instead of d^2, count - 1, beyond-grid reported as no_valid_pairs, overflow not raised, and others); a 5,000-example run of the property test passes. Observed sinusoid deviation from the large-sample limit on the 5 km, 90 m window: 0.34% to 1.9%, against the derived bound 1/(M |sin(2 pi D / lambda)|) of 2.7% to 4.3%; the closed-form finite-window sum matches to 1.5e-15 relative. Decisions for a human: (1) Diagonal lag rule. A lag L maps to k = round(L / s) steps (s = 90 m on an axis, hypot(90, 90) m on a diagonal) and is used only if k >= 1 and the offset length (k * D, or hypot(k D, k D)) equals L within PRD 7 rtol 1e-10, atol 1e-12; otherwise that direction is unsupported with axis_lag_not_on_grid or diagonal_lag_not_on_grid. Lags are never rounded to a nearby offset and cells are never interpolated. Consequence: on the 90 m grid no diagonal is supported at any configured lag (270 m would need k = 2.12; 360 m, k = 2.83), so the isotropic summary rests on the two axes. Alternatives if diagonals must count: add diagonal lags k * 127.28 m to terrain.lags_m, accept the nearest diagonal offset and record its true length (mixes lags), or sample diagonals by interpolation (conflicts with PRD 7: no other resampling). The same rule makes axis lags that are not whole cells unsupported, for example 270 m on the 78.125 m encoder grid. (2) Isotropic summary. PRD 6.3 says only \"summarized isotropically\", so the rule is a required argument recorded in the output (StructureFunction.isotropic_rule and each IsotropicNu.rule): direction_mean = sqrt(mean of nu_d^2 over supported directions), each direction weighted equally; pooled_pairs = sqrt(sum N_d nu_d^2 / sum N_d), nu over all pairs pooled. Both are computed from the per-direction values and pair counts only and never change them. Recommended for T3-05: direction_mean. config/run.yaml has no key for it and is outside this story; a human may add terrain.isotropic_rule. (3) Reasons and precedence: off the grid (axis_ / diagonal_lag_not_on_grid), then lag_exceeds_grid (the offset leaves no pair in the grid), then no_valid_pairs (every pair touches an invalid cell); the isotropic summary is None with no_supported_direction. Unsupported values are None with pair_count 0; a constant profile gives a supported 0.0. (4) Arithmetic: differences from the stored float64 values, then a power-of-two scaling (exact) and math.fsum, so tiny or huge relief neither underflows to 0 nor overflows; a difference beyond float64 raises TerrainError. The T10 mirror can use plain sums within the PRD 8.8 tolerances."
     },

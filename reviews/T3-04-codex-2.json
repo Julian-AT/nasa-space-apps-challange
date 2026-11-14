@@ -1,0 +1,93 @@
+{
+  "task_id": "T3-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "c60143a45f0efb7ede716b8e91c2c3d948ab7c25",
+    "head": "38d1a3601c745f0ce436e7c8fbb5194b017451bb",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/terrain.py",
+        "sha256": "017dce63925103111463510cb19723e5680d3a3d2011e24f942b8933d738ea75"
+      },
+      {
+        "path": "pipeline/tests/test_terrain_structure.py",
+        "sha256": "7ffbaeb599cffd62ffa6e36cdbc141991d7590133b5a7da4c64a3b73fc1eb797"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:12:25Z",
+  "finished_utc": "2026-11-14T22:15:20Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No numerical, direction-sign, masking, or test-strength defects found by inspection. Required checks and the historical failing run remain independently unverified because execution was prohibited.",
+  "checks": [
+    {
+      "criterion": "Tests precede implementation, fail first, and the failing run is recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Git history places c59d0a5 before f9bf03d; the c59d0a5 tree contains test_terrain_structure.py and no terrain.py. This establishes committed test-first ordering, but not execution. The historical failing run could not be independently verified; checks were prohibited."
+    },
+    {
+      "criterion": "Plane nu agrees with the analytic directional gradient at the required lags and tolerances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_terrain_structure.py:163 pins the required grid and lags; :188 tests axis values against L*abs(gradient dot direction); :208 tests supported diagonal lags; :233 distinguishes NE from NW. terrain.py:343 correctly converts north to decreasing rows. Execution was prohibited."
+    },
+    {
+      "criterion": "Sinusoid x values approach the analytic limit within a derived finite-window tolerance; y gives zero.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Independently derived nu² = 2*A²*sin²(pi*L/lambda)*(1+C), with abs(C) <= 1/(M*abs(sin(2*pi*spacing/lambda))). The executable references and assertions at pipeline/tests/test_terrain_structure.py:265-341 implement this bound, an exact finite-window sum, supported y zeros, and increasing window sizes. Execution was prohibited."
+    },
+    {
+      "criterion": "Only pairs with both cells valid contribute; nodata is excluded and unavailable directions are unsupported.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "terrain.py:278 combines explicit validity and elevation masks; :350 intersects endpoint validity before subtraction; :329 returns None with a reason for absent pairs. Tests at test_terrain_structure.py:438, :451, :472, :485, :507 and :525 cover hand-loop exclusion, fillers, masked arrays and unsupported cases. Execution was prohibited."
+    },
+    {
+      "criterion": "Diagonal lag mapping is documented, surfaced as a decision, and tested at 270 m and 360 m.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "terrain.py:18 documents whole-cell offsets and the stated length tolerance; :319-326 implements the rule and diagonal_lag_not_on_grid. test_terrain_structure.py:347 explicitly asserts unsupported diagonals at both required lags. scripts/ralph/batches/t3-terrain/prd.json:215 records the decision and its consequences; its reported execution results were not used as evidence."
+    },
+    {
+      "criterion": "Isotropic aggregation is documented, explicitly parameterized, recorded, and preserves directional values.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "terrain.py:39 defines equal-direction RMS and pair-weighted RMS. The required argument at :217 is recorded at :251 and :367. Directional records are computed separately at :240 and only read by aggregation at :358-370. Tests at test_terrain_structure.py:609-691 contain independent aggregation and unchanged-direction assertions."
+    },
+    {
+      "criterion": "Pure float64 numerical implementation, no randomness, and strict mypy passes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "terrain.py:61-70 imports only standard-library modules and NumPy; :277 converts elevations to float64; :375-393 computes scaled RMS without randomness. pyproject.toml:33 enables strict mypy over source and tests. Type-check execution was prohibited, so a passing result is unverified."
+    },
+    {
+      "criterion": "Required focused test command.",
+      "command": "uv run pytest pipeline/tests/test_terrain_structure.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instructions because dependency resolution and test caches can write files."
+    },
+    {
+      "criterion": "Required repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instructions. The Makefile invokes Ruff checking, format checking and mypy."
+    },
+    {
+      "criterion": "Story scope and scientific guardrails.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The two scoped commits add only terrain.py and test_terrain_structure.py, both allowed paths. The production module contains no mock inputs, gate results or configuration writes. config/run.yaml:1-20 retains unset kickoff choices."
+    }
+  ],
+  "findings": []
+}

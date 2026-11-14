@@ -1,0 +1,87 @@
+{
+  "task_id": "T3-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "c60143a45f0efb7ede716b8e91c2c3d948ab7c25",
+    "head": "38d1a3601c745f0ce436e7c8fbb5194b017451bb",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/terrain.py",
+        "sha256": "017dce63925103111463510cb19723e5680d3a3d2011e24f942b8933d738ea75"
+      },
+      {
+        "path": "pipeline/tests/test_terrain_structure.py",
+        "sha256": "7ffbaeb599cffd62ffa6e36cdbc141991d7590133b5a7da4c64a3b73fc1eb797"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:12:25Z",
+  "finished_utc": "2026-11-14T22:14:48Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No actionable defects found in the scoped static review. Numerical results, the historical failing run, and strict checks remain independently unverified because execution was prohibited.",
+  "checks": [
+    {
+      "criterion": "Tests precede implementation, fail first, and the failing run is recorded in notes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Git trees confirm c59d0a5 contains test_terrain_structure.py without terrain.py; f9bf03d adds the implementation. scripts/ralph/batches/t3-terrain/prd.json:215 records the failing run. Actual failure output was not independently observed, and checks were prohibited."
+    },
+    {
+      "criterion": "Plane nu matches the analytic directional gradient at the required tolerances and lags.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_terrain_structure.py:163 asserts the required grid and lags; :188 tests axis values against the analytic formula using tolerances at :63. Diagonal analytic cases appear at :208. Numerical execution was prohibited."
+    },
+    {
+      "criterion": "Sinusoid axis-x nu matches the analytic limit using a derived finite-window tolerance; axis-y gives zero.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_terrain_structure.py:269 computes the finite-window bound; :280 asserts agreement with the limit, :296 checks an independent finite-window formula, and :312 asserts supported y-direction zeros. Numerical execution was prohibited."
+    },
+    {
+      "criterion": "Nodata pairs require both endpoints; masked values are excluded and unsupported directions are not zero.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/src/terraluna_pipeline/terrain.py:350 intersects endpoint masks before subtraction. Tests at pipeline/tests/test_terrain_structure.py:438 compare against the explicit pair loop at :117; :451 varies masked fillers and :485 checks no-valid-pair results. Numerical execution was prohibited."
+    },
+    {
+      "criterion": "Diagonal lag mapping is documented, tolerance-bound, recorded as a human decision, and asserted for 270 m and 360 m.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/terrain.py:18 documents the rule; :319 implements nearest candidate selection followed by the stated tolerance check and diagonal_lag_not_on_grid rejection. pipeline/tests/test_terrain_structure.py:347 explicitly asserts both requested lags. scripts/ralph/batches/t3-terrain/prd.json:215 surfaces the decision and its consequences."
+    },
+    {
+      "criterion": "Isotropic rules are documented, explicitly selected, recorded in output, and preserve directional values.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/terrain.py:39 documents both rules; :217 requires isotropic_rule; :244 computes summaries separately and :248 returns the original directional mapping alongside the selected rule. :358 computes summaries from supported directional values and counts. Tests at pipeline/tests/test_terrain_structure.py:609 assert rule recording and unchanged directional entries."
+    },
+    {
+      "criterion": "Pure NumPy float64, no randomness, and mypy strict passes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static inspection found NumPy/standard-library computation without randomness; terrain.py:277 converts elevations to float64 and :375 implements scaled RMS. pyproject.toml:33 enables strict mypy over source and tests. Strict-check execution was prohibited."
+    },
+    {
+      "criterion": "Required focused test command.",
+      "command": "uv run pytest pipeline/tests/test_terrain_structure.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review instructions because the read-only sandbox prevents dependency/cache writes."
+    },
+    {
+      "criterion": "Required repository check command.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review instructions. Makefile defines Ruff lint, formatting verification, and mypy; their results were not independently observed."
+    }
+  ],
+  "findings": []
+}
