@@ -39,7 +39,14 @@ from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from scripts.tex_prose import Source, TexSyntaxError, checked_files, extract, line_at
+from scripts.tex_prose import (
+    Source,
+    TexSyntaxError,
+    checked_files,
+    environment_boundary,
+    extract,
+    line_at,
+)
 
 PAPER = Path(__file__).resolve().parents[1]
 
@@ -88,16 +95,13 @@ DIGITS = frozenset("0123456789")
 
 QUESTION_MARKS = frozenset("?\u00bf\u203d\u2047\u2048\u2049\ufe16\ufe56\uff1f")
 
-LIST_BEGIN = re.compile(
-    r"\\begin[ \t]*\{[ \t]*"
-    r"(?:itemize|enumerate|description|(?:compact|aspara|inpara)(?:item|enum|desc))\*?[ \t]*\}"
+LIST_ENVIRONMENT = environment_boundary(
+    r"(?:itemize|enumerate|description|(?:compact|aspara|inpara)(?:item|enum|desc))\*?"
 )
 LISTS_ALLOWED = "appendix-*.tex"
 
 BOLD = re.compile(r"\\(?:textbf|bfseries|bf)(?![A-Za-z])")
-TABULAR = re.compile(
-    r"\\(begin|end)[ \t]*\{[ \t]*(?:tabular\*?|tabularx|tabulary|longtable\*?)[ \t]*\}"
-)
+TABULAR = environment_boundary(r"tabular\*?|tabularx|tabulary|longtable\*?")
 
 
 @dataclass(frozen=True)
@@ -174,8 +178,9 @@ def lists_allowed(name: str) -> bool:
 
 
 def list_hits(plain: Source) -> Iterator[_Hit]:
-    for match in LIST_BEGIN.finditer(plain.code):
-        yield hit(plain.code, match.start(), "bullet-list", " ".join(match[0].split()))
+    for match in LIST_ENVIRONMENT.finditer(plain.code):
+        if match[1] == "begin":
+            yield hit(plain.code, match.start(), "bullet-list", f"\\begin{{{match[2]}}}")
 
 
 def tabular_spans(code: str) -> list[tuple[int, int]]:

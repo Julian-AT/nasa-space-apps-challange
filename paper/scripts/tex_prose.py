@@ -6,9 +6,12 @@ text. extract() works in two passes.
 1. Code. Comments (an unescaped % to the end of the line), \verb and verbatim environments, math
    ($...$, $$...$$, \(...\), \[...\] and the equation, align, gather and multline environments,
    starred or not), the arguments of key commands (the \cite family, \ref, \eqref, \label, \input,
-   \include, \url, the URL of \href and a few more in KEY_COMMANDS) and the code of tikzpicture
-   environments are replaced by spaces. Every other character stays where it was, so an offset in
-   the code is an offset in the source.
+   \include, \url, the URL of \href and a few more in KEY_COMMANDS), the layout arguments of
+   environments such as tabular and figure, the length of a \\ line break and the code of
+   tikzpicture environments are replaced by spaces. Every other character stays where it was, so
+   an offset in the code is an offset in the source. Between a command and its arguments the
+   scanner skips what TeX skips: spaces, comments and single line breaks. A blank line, which TeX
+   reads as \par, ends the search.
 2. Prose. Commands, environment names and braces are removed from the code. Formatting commands
    such as \emph, \textit and \textbf keep their text, a tie ~ reads as a space, and accent
    commands give their base letter.
@@ -85,6 +88,9 @@ KEY_COMMANDS: dict[str, int] = {
 CITE_COMMAND = re.compile(r"[Cc]ite[A-Za-z]*")
 # Commands whose first argument is read verbatim, as the url package does, so % and ~ are text.
 VERBATIM_ARGUMENT = frozenset({"url", "href"})
+# hyperref's \url makes % and the end of a line active before it reads its argument
+# (\hyper@normalise), so either one there would become the URL. \href reads its { first.
+SAME_LINE_ARGUMENT = frozenset({"url"})
 
 # Environments whose own arguments, after \begin{name}, are layout rather than prose.
 ENVIRONMENT_ARGUMENTS: dict[str, int] = {
@@ -146,10 +152,10 @@ SPECIAL_LETTERS = {
 }
 
 LETTERS = re.compile(r"[A-Za-z]+")
-ENVIRONMENT_NAME = re.compile(r"[ \t]*\{[ \t]*([A-Za-z@]+\*?)[ \t]*\}")
+ENVIRONMENT_PATTERN = r"[A-Za-z@]+\*?"
+ENVIRONMENT_BRACE = re.compile(r"\{[ \t]*(" + ENVIRONMENT_PATTERN + r")[ \t]*\}")
+BEGIN_OR_END = re.compile(r"\\(begin|end)(?![A-Za-z])")
 BLANK_LINE = re.compile(r"\n[ \t]*\n")
-ARGUMENT_SPACE = re.compile(r"[ \t]*(?:\n[ \t]*)?")
-LINE_BREAK_LENGTH = re.compile(r"[ \t]*\[[^\]]*\]")
 
 
 class TexSyntaxError(ValueError):
@@ -199,6 +205,19 @@ def fold_latex(text: str) -> str:
     text = ACCENT.sub(lambda match: next(group for group in match.groups() if group), text)
     text = SPECIAL_LETTER.sub(lambda match: SPECIAL_LETTERS[match[1]], text)
     return text.replace("{", "").replace("}", "")
+
+
+def environment_boundary(names: str) -> re.Pattern[str]:
+    r"""\begin{name} or \end{name} in the code that extract() returns, for a regex of names.
+
+    Group 1 is begin or end and group 2 the name. Pass 1 has checked that only spaces, comments
+    and single line breaks come between the command and its brace, and has blanked the comments,
+    so any white space may stand there in the code.
+    """
+    return re.compile(r"\\(begin|end)\s*\{[ \t]*(" + names + r")[ \t]*\}")
+
+
+CODE_ENVIRONMENT = environment_boundary(ENVIRONMENT_PATTERN)
 
 
 def checked_files(root: Path) -> list[Path]:
@@ -300,26 +319,31 @@ class _CodeScanner:
     def environment_end(self, start: int, name: str, *, verbatim: bool, nested: bool) -> int:
         """Index past the \\end{name} that closes the environment opened at text[start]."""
         text = self.text
-        boundary = re.compile(r"\\(begin|end)[ \t]*\{[ \t]*" + re.escape(name) + r"[ \t]*\}")
         if verbatim:
             match = re.compile(r"\\end[ \t]*\{" + re.escape(name) + r"\}").search(text, start + 1)
             if match is None:
                 raise self.error(start, f"unclosed {{{name}}} environment")
             return match.end()
+        brace = re.compile(r"\{[ \t]*" + re.escape(name) + r"[ \t]*\}")
         depth = 0
         i = start
         while i < len(text):
-            match = boundary.match(text, i)
-            if match is not None:
-                if match[1] == "begin" and (nested or depth == 0):
-                    depth += 1
-                elif match[1] == "end":
-                    depth -= 1
-                    if depth == 0:
-                        return match.end()
-                i = match.end()
-            else:
+            boundary = BEGIN_OR_END.match(text, i)
+            if boundary is None:
                 i = self.skip(i)
+                continue
+            found = brace.match(text, self.space_end(boundary.end()))
+            if found is None:
+                i = boundary.end()
+                continue
+            if boundary[1] == "begin":
+                if nested or depth == 0:
+                    depth += 1
+            else:
+                depth -= 1
+                if depth == 0:
+                    return found.end()
+            i = found.end()
         raise self.error(start, f"unclosed {{{name}}} environment")
 
     def command(self, start: int) -> int:
@@ -332,27 +356,62 @@ class _CodeScanner:
             end = self.bracket_math_end(start, "\\)" if following == "(" else "\\]")
             self.blank(start, end)
             return end
+        if following == "\\":
+            end = self.line_break_end(start)
+            self.blank(start + 2, end)
+            return end
         name_match = LETTERS.match(text, start + 1)
         if name_match is None:
             return start + 2
         name = name_match[0]
         i = name_match.end()
+        if name in ("begin", "end"):
+            return self.environment(start, i, name)
         if name == "verb":
             end = self.verb_end(start, i)
-        elif name == "begin":
-            environment = ENVIRONMENT_NAME.match(text, i)
-            if environment is None:
-                raise self.error(start, "\\begin without an environment name")
-            environment_end = self.begin_end(start, environment[1])
-            if environment_end is None:
-                return environment.end()
-            end = environment_end
         elif name in KEY_COMMANDS or CITE_COMMAND.fullmatch(name):
             end = self.key_arguments_end(start, i, name)
         else:
             return i
         self.blank(start, end)
         return end
+
+    def line_break_end(self, start: int) -> int:
+        """Index past the \\\\ at text[start] with its optional * and [length]."""
+        i = start + 2
+        if self.text.startswith("*", i):
+            i += 1
+        j = self.space_end(i)
+        return self.bracket_end(j) if self.text.startswith("[", j) else i
+
+    def environment(self, start: int, i: int, command: str) -> int:
+        """Handle the \\begin or \\end at text[start], whose command name ends at text[i].
+
+        The environment name stays in the code, where lint_prose.py looks for lists and tables.
+        """
+        brace = ENVIRONMENT_BRACE.match(self.text, self.space_end(i))
+        if brace is None:
+            raise self.error(start, f"\\{command} without an environment name")
+        self.blank(i, brace.start())
+        if command == "end":
+            return brace.end()
+        name = brace[1]
+        end = self.begin_end(start, name)
+        if end is not None:
+            self.blank(start, end)
+            return end
+        end = self.environment_arguments_end(start, brace.end(), name)
+        self.blank(brace.end(), end)
+        return end
+
+    def environment_arguments_end(self, start: int, i: int, name: str) -> int:
+        """Index past the layout arguments after \\begin{name}, such as table columns."""
+        if name in FLOAT_ENVIRONMENTS:
+            return self.optional_arguments_end(i)
+        for _ in range(ENVIRONMENT_ARGUMENTS.get(name, 0)):
+            i = self.optional_arguments_end(i)
+            i = self.mandatory_argument_end(start, i, f"begin{{{name}}}", verbatim=False)
+        return i
 
     def verb_end(self, start: int, i: int) -> int:
         text = self.text
@@ -380,16 +439,40 @@ class _CodeScanner:
         if self.text.startswith("*", i):
             i += 1
         for index in range(count):
-            i = self.optional_arguments_end(i)
+            if index == 0 and name in SAME_LINE_ARGUMENT:
+                i = self.same_line_argument_start(start, i, name)
+            else:
+                i = self.optional_arguments_end(i)
             i = self.mandatory_argument_end(
                 start, i, name, verbatim=index == 0 and name in VERBATIM_ARGUMENT
             )
         return i
 
+    def same_line_argument_start(self, start: int, i: int, name: str) -> int:
+        i = _blanks_end(self.text, i)
+        if self.text.startswith(("%", "\n"), i):
+            raise self.error(
+                start, f"the argument of \\{name} must start on its line, with no comment before it"
+            )
+        return i
+
     def space_end(self, i: int) -> int:
-        """Index past spaces and tabs with at most one line break, as between TeX arguments."""
-        match = ARGUMENT_SPACE.match(self.text, i)
-        return i if match is None else match.end()
+        """Index past what TeX skips before an argument: spaces, comments and single line breaks.
+
+        The comments are recorded. A blank line, which TeX reads as \\par, ends the space.
+        """
+        text = self.text
+        i = _blanks_end(text, i)
+        at_line_start = False
+        while i < len(text):
+            if text[i] == "%":
+                i = self.comment(i)
+            elif text[i] != "\n" or at_line_start:
+                return i
+            if i < len(text):
+                i = _blanks_end(text, i + 1)
+            at_line_start = True
+        return i
 
     def optional_arguments_end(self, i: int) -> int:
         text = self.text
@@ -443,15 +526,19 @@ class _CodeScanner:
 # --- Pass 2: prose ------------------------------------------------------------------------------
 
 
+def _blanks_end(text: str, i: int) -> int:
+    while i < len(text) and text[i] in " \t":
+        i += 1
+    return i
+
+
 def _prose(code: str) -> str:
-    # Reads the arguments of \begin{tabular} and the like; the code has no comments left.
-    arguments = _CodeScanner(code, keep_tikz=True)
     out: list[str] = []
     i = 0
     while i < len(code):
         char = code[i]
         if char == "\\":
-            i = _prose_command(arguments, i, out)
+            i = _prose_command(code, i, out)
         elif char in "{}":
             i += 1
         elif char == "~":
@@ -468,8 +555,7 @@ def _removed(span: str) -> str:
     return "\n" * span.count("\n") or " "
 
 
-def _prose_command(arguments: _CodeScanner, start: int, out: list[str]) -> int:
-    code = arguments.text
+def _prose_command(code: str, start: int, out: list[str]) -> int:
     accent = ACCENT.match(code, start)
     if accent is not None:
         out.append(next(group for group in accent.groups() if group))
@@ -485,24 +571,22 @@ def _prose_command(arguments: _CodeScanner, start: int, out: list[str]) -> int:
     if name_match is not None:
         name = name_match[0]
         end = name_match.end()
+        if name in ("begin", "end"):
+            # Pass 1 has blanked the arguments after \begin{name}.
+            environment = CODE_ENVIRONMENT.match(code, start)
+            if environment is not None:
+                end = environment.end()
+            out.append(_removed(code[start:end]))
+            return end
         if code.startswith("*", end):
             end += 1
-        if name in ("begin", "end"):
-            end = _environment_arguments_end(arguments, end, name)
-            out.append(_removed(code[start:end]))
-        elif name not in TEXT_COMMANDS:
+        if name not in TEXT_COMMANDS:
             out.append(" ")
         return end
     if following == "\\":
-        # A line break, with an optional * and an optional [length].
-        end = start + 2
-        if code.startswith("*", end):
-            end += 1
-        bracket = LINE_BREAK_LENGTH.match(code, end)
-        if bracket is not None:
-            end = bracket.end()
-        out.append(_removed(code[start:end]))
-        return end
+        # A line break; pass 1 has blanked its * and [length].
+        out.append(" ")
+        return start + 2
     if following in "-/@":
         return start + 2
     if following in "%&#$_{}":
@@ -512,19 +596,3 @@ def _prose_command(arguments: _CodeScanner, start: int, out: list[str]) -> int:
     else:
         out.append(" ")
     return start + 2
-
-
-def _environment_arguments_end(arguments: _CodeScanner, i: int, name: str) -> int:
-    """Index past {environment} after \\begin or \\end and, after \\begin, its own arguments."""
-    environment = ENVIRONMENT_NAME.match(arguments.text, i)
-    if environment is None:
-        return i
-    i = environment.end()
-    if name == "end":
-        return i
-    if environment[1] in FLOAT_ENVIRONMENTS:
-        return arguments.optional_arguments_end(i)
-    for _ in range(ENVIRONMENT_ARGUMENTS.get(environment[1], 0)):
-        i = arguments.optional_arguments_end(i)
-        i = arguments.mandatory_argument_end(i, i, f"begin{{{environment[1]}}}", verbatim=False)
-    return i
