@@ -8,12 +8,13 @@ import type { PulledBundle } from '../../lib/bundle.ts';
 import { gate, manifestFor, tempDir, toBytes, writeBundle } from '../../tests/helpers.ts';
 import { ValidationRecord } from './records.ts';
 import {
-  dirReader,
   expectProblem,
   jsonSchema,
   mockFile,
   mockReader,
   quietApi,
+  RELEASE_VERSION,
+  releaseReader,
 } from './test-support.ts';
 
 const PATH = '/api/v1/gates';
@@ -48,7 +49,7 @@ function mixedStatusReader() {
   const validation = toBytes(gates);
   const dir = tempDir();
   writeBundle(dir, { manifest: toBytes(manifestFor(validation)), validation });
-  return { reader: dirReader(dir), gates };
+  return { reader: releaseReader(dir), gates };
 }
 
 /** The mock bundle with one part replaced, as no loader would return it. */
@@ -128,7 +129,7 @@ describe('GET /api/v1/gates caching (per bundle)', () => {
     const { api } = quietApi(mixedStatusReader().reader);
     const response = await api.request(PATH, { headers: { 'If-None-Match': MOCK_ETAG } });
     expect(response.status).toBe(200);
-    expect(response.headers.get('etag')).toBe('W/"2026-11-15T0900Z-3f9c2a1"');
+    expect(response.headers.get('etag')).toBe(`W/"${RELEASE_VERSION}"`);
   });
 
   it('answers a matching If-None-Match with 304, no body and the cache headers', async () => {
@@ -157,7 +158,10 @@ describe('GET /api/v1/gates caching (per bundle)', () => {
 
 describe('GET /api/v1/gates in the OpenAPI document', () => {
   const doc = () =>
-    quietApi().api.getOpenAPI31Document({ openapi: '3.1.0', info: { title: 'test', version: '0' } });
+    quietApi().api.getOpenAPI31Document({
+      openapi: '3.1.0',
+      info: { title: 'test', version: '0' },
+    });
 
   it('references the Validation component for 200 and documents 304 and 500', () => {
     const operation = doc().paths?.[PATH]?.get;

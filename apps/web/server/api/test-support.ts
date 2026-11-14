@@ -13,9 +13,15 @@ import { PROBLEM_MEDIA_TYPE, ProblemSchema } from './problem.ts';
 /** The committed mock bundle, read with the T15-01 loader exactly as the API reads apps/web/data/. */
 export const mockReader: BundleReader = () => loadBundle({ dataDir: MOCK_DIR, env: {} });
 
-/** A bundle directory read with the T15-01 loader, as the API reads apps/web/data/. */
-export function dirReader(dataDir: string): BundleReader {
-  return () => loadBundle({ dataDir, env: {} });
+/** The bundle_version of the release fixtures that tests/helpers.ts writes (manifestFor). */
+export const RELEASE_VERSION = '2026-11-15T0900Z-3f9c2a1';
+
+/**
+ * A pulled release bundle in dataDir, read with the T15-01 loader as the API reads apps/web/data/.
+ * The loader only reads a release bundle that BUNDLE_VERSION selects.
+ */
+export function releaseReader(dataDir: string, version = RELEASE_VERSION): BundleReader {
+  return () => loadBundle({ dataDir, env: { BUNDLE_VERSION: version } });
 }
 
 /** An app that never logs to the test output; `log` records what the API would log. */

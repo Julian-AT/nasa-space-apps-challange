@@ -7,12 +7,13 @@ import type { PulledBundle } from '../../lib/bundle.ts';
 import { releaseFiles, tempDir, writeBundle } from '../../tests/helpers.ts';
 import { BundleManifestRecord } from './records.ts';
 import {
-  dirReader,
   expectProblem,
   jsonSchema,
   mockFile,
   mockReader,
   quietApi,
+  RELEASE_VERSION,
+  releaseReader,
 } from './test-support.ts';
 
 const PATH = '/api/v1/manifest';
@@ -20,11 +21,14 @@ const MOCK_ETAG = 'W/"mock-0"';
 const PER_DEPLOY = 'public, max-age=60, immutable';
 
 /** A temporary release bundle (not the mock), read through the loader. */
-function releaseReader() {
+function releaseBundle() {
   const dir = tempDir();
   const files = releaseFiles();
   writeBundle(dir, files);
-  return { reader: dirReader(dir), manifest: JSON.parse(files.manifest.toString('utf8')) as object };
+  return {
+    reader: releaseReader(dir),
+    manifest: JSON.parse(new TextDecoder().decode(files.manifest)) as object,
+  };
 }
 
 /** The mock bundle with schema_version replaced by a number, as no loader would return it. */
@@ -52,7 +56,7 @@ describe('GET /api/v1/manifest', () => {
   });
 
   it('returns a release manifest unchanged too, nulls kept as null', async () => {
-    const { reader, manifest } = releaseReader();
+    const { reader, manifest } = releaseBundle();
     const { api } = quietApi(reader);
     const response = await api.request(PATH);
     expect(response.status).toBe(200);
@@ -92,9 +96,9 @@ describe('GET /api/v1/manifest caching (per deploy)', () => {
   });
 
   it('gives a release bundle its own ETag', async () => {
-    const { api } = quietApi(releaseReader().reader);
+    const { api } = quietApi(releaseBundle().reader);
     const response = await api.request(PATH);
-    expect(response.headers.get('etag')).toBe('W/"2026-11-15T0900Z-3f9c2a1"');
+    expect(response.headers.get('etag')).toBe(`W/"${RELEASE_VERSION}"`);
   });
 
   for (const ifNoneMatch of [MOCK_ETAG, '"mock-0"', '"other", W/"mock-0"', '*']) {
@@ -108,7 +112,7 @@ describe('GET /api/v1/manifest caching (per deploy)', () => {
     });
   }
 
-  for (const ifNoneMatch of ['W/"mock-1"', '"mock-0-x"', 'W/"2026-11-15T0900Z-3f9c2a1"']) {
+  for (const ifNoneMatch of ['W/"mock-1"', '"mock-0-x"', `W/"${RELEASE_VERSION}"`]) {
     it(`answers If-None-Match: ${ifNoneMatch} with the full 200`, async () => {
       const { api } = quietApi();
       const response = await api.request(PATH, { headers: { 'If-None-Match': ifNoneMatch } });
@@ -118,7 +122,7 @@ describe('GET /api/v1/manifest caching (per deploy)', () => {
   }
 
   it('answers a release bundle with 200 to a client holding the mock ETag', async () => {
-    const { api } = quietApi(releaseReader().reader);
+    const { api } = quietApi(releaseBundle().reader);
     const response = await api.request(PATH, { headers: { 'If-None-Match': MOCK_ETAG } });
     expect(response.status).toBe(200);
   });
@@ -146,7 +150,10 @@ describe('GET /api/v1/manifest caching (per deploy)', () => {
 
 describe('GET /api/v1/manifest in the OpenAPI document', () => {
   const doc = () =>
-    quietApi().api.getOpenAPI31Document({ openapi: '3.1.0', info: { title: 'test', version: '0' } });
+    quietApi().api.getOpenAPI31Document({
+      openapi: '3.1.0',
+      info: { title: 'test', version: '0' },
+    });
 
   it('references the BundleManifest component for 200 and documents 304 and 500', () => {
     const operation = doc().paths?.[PATH]?.get;
