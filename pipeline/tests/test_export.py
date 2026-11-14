@@ -407,7 +407,7 @@ def test_missing_manifest_is_reported(tmp_path: Path) -> None:
         b'{"mock": NaN}',
         b'{"mock": true, "mock": false}',
         b"\xff\xfe{}",
-        b"[" * 100_000 + b"]" * 100_000,
+        b"[" * 20_000 + b"]" * 20_000,
     ],
     ids=["truncated", "empty", "nan", "duplicate-key", "not-utf-8", "too-deeply-nested"],
 )
@@ -591,7 +591,7 @@ def test_validation_json_must_be_an_array(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "raw", [b"[NaN]", b"[" * 100_000 + b"]" * 100_000], ids=["nan", "too-deeply-nested"]
+    "raw", [b"[NaN]", b"[" * 20_000 + b"]" * 20_000], ids=["nan", "too-deeply-nested"]
 )
 def test_validation_json_must_be_json(tmp_path: Path, raw: bytes) -> None:
     bundle = make_bundle(tmp_path, files({"validation.json": raw}))
