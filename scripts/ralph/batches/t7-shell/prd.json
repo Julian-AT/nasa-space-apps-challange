@@ -96,9 +96,9 @@
         "pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "resolved",
+        "state": "passed",
         "round": 1,
         "base": "e095c98aa2ecc163c802024636022447c10e7a01",
         "head": "74bb51ceee89cd92006fc7d0a313bd7451fea63d",
