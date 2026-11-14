@@ -83,3 +83,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - apps/web/tsconfig.json (outside T15's files) could add "server" to its include. Then apps/web/server/api/tsconfig.json and the extra `tsc --noEmit -p server/api` in the typecheck script could go, and `tsc --noEmit` alone would cover the API.
 ---
+
+## 2026-11-14T19:52Z · T15-02 · resolve
+- Done: Round 1 had two low findings from Claude and none from Codex. I rebutted both. claude-r1-1 (the typecheck script was extended, not just added): AC2 limits only what is added when a script is missing, and the extension is recorded in the story notes, item (1). It is needed: apps/web/tsconfig.json leaves out server/, and `pnpm exec tsc --noEmit --listFilesOnly` in apps/web lists 0 files under server/, while `tsc --noEmit -p server/api --listFilesOnly` lists all five API files. Without it the typecheck check would skip the API. claude-r1-2 (@scalar/hono-api-reference is not imported yet): AC1 requires it, PRD 8.2 and D24 name it, and T15-06 uses it. No code changed.
+- Commits: none for findings (both rebutted); this resolve commit.
+- Checks: pnpm --filter @terraluna/web test exit 0 (8 files, 207 passed); pnpm --filter @terraluna/web exec vitest run server/api exit 0 (2 files, 45 passed); pnpm --filter @terraluna/web typecheck exit 0; make check exit 0 (turbo cached); make test exit 0 (pytest 404 passed, schema 157, web 207, turbo cached).
+- Docs used: no new library or CLI interface. tsc 6.0.3 --listFilesOnly, from the installed compiler.
+- Learnings: `tsc --noEmit --listFilesOnly` is a quick way to show which files a tsconfig project covers. Use it when a reviewer asks whether a typecheck covers a directory.
+---

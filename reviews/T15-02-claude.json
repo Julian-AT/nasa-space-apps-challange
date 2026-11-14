@@ -130,7 +130,11 @@
       "claim": "The existing typecheck script was modified, but the criterion only permits adding missing test/typecheck entries.",
       "evidence": "The diff changes 'next typegen && tsc --noEmit' to append '&& tsc --noEmit -p server/api'. I did not check whether the story notes record this.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The criterion only limits what may be added when a script is missing; it does not forbid extending an existing one, and the change is recorded in the story notes, item (1), as Codex confirmed (prd.json, T15-02 notes). The extension is required for the listed check to cover the API: apps/web/tsconfig.json (outside this story's files) includes app, lib, scripts and tests but not server. 'pnpm exec tsc --noEmit --listFilesOnly' in apps/web lists 0 files under server/, while 'tsc --noEmit -p server/api --listFilesOnly' lists app.ts, health.ts, problem.ts and both test files. Without the extension, 'pnpm --filter @terraluna/web typecheck' would pass without checking any API code. A proposal under Proposed instruction changes (progress log, T15-02 implement) lets a human add server to the app tsconfig, after which the extra tsc call can go."
+      }
     },
     {
       "severity": "low",
@@ -138,7 +142,11 @@
       "claim": "@scalar/hono-api-reference is added but not imported anywhere in the change.",
       "evidence": "The criterion lists it explicitly, so this is compliant. It is unused code surface until docs routes exist.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "AC1 requires @scalar/hono-api-reference among the dependencies this story adds, and the finding itself calls it compliant. PRD 8.2 (API row) and D24 name it; T15-06 serves /api/v1/docs with it. Removing it would break AC1, so no change is made."
+      }
     }
   ]
 }
