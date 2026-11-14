@@ -48,8 +48,12 @@ story="$(jq --arg id "$id" '.userStories[] | select(.id==$id) | {id, title, desc
 [ -n "$story" ] || { echo "review.sh: no story $id in $PRD" >&2; exit 1; }
 codex_passes="$(jq -r --arg id "$id" '.userStories[] | select(.id==$id) | .codexPasses // 1' "$PRD")"
 
-# Inputs: every changed path with its SHA-256 at head (null if deleted).
-inputs="$(git diff --name-only "$base" "$head" -- . "${WORK_SPEC[@]}" | while IFS= read -r p; do
+# The story's own changes: paths touched by first-parent, non-merge commits in base..head, so merges of
+# other branches into a batch branch are not reviewed as part of the story.
+story_paths="$(git log --first-parent --no-merges --name-only --format= "$base..$head" -- . "${WORK_SPEC[@]}" | sed '/^$/d' | sort -u)"
+story_commits="$(git log --first-parent --no-merges --format='%h %s' "$base..$head" -- . "${WORK_SPEC[@]}")"
+# Inputs: every story path with its SHA-256 at head (null if deleted).
+inputs="$(printf '%s\n' "$story_paths" | sed '/^$/d' | while IFS= read -r p; do
   if git cat-file -e "$head:$p" 2>/dev/null; then h="$(git show "$head:$p" | shasum -a 256 | cut -d' ' -f1)"; else h=""; fi
   jq -n --arg p "$p" --arg h "$h" '{path: $p, sha256: (if $h == "" then null else $h end)}'
 done | jq -s --arg b "$base" --arg h "$head" '{base: $b, head: $h, files: .}')"
@@ -72,7 +76,11 @@ You did not write this change. Do not create, edit or delete files, install anyt
 Story contract, from $PRD_REL:
 $story
 
-Change under review: git diff $base $head -- . ':!scripts/ralph' ':!reviews' ':!logs'
+Change under review: the story's own commits (first-parent, non-merge) in $base..$head:
+$story_commits
+Paths they touch, which is the scope to review:
+$story_paths
+See the change with: git diff $base $head -- <those paths>. Merges of other branches are not part of this story.
 Binding rules: the root CLAUDE.md and the PRD.md sections in prdRefs. PRD.md is about 1,700 lines;
 find headings with grep -n '^#' PRD.md and read ranges with sed -n.
 

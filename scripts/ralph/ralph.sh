@@ -146,6 +146,10 @@ author() { # <id> <n>
     "$d/raw/ralph-$owner-$stamp.jsonl" >> "$d/ralph-$owner.jsonl" || true
 }
 
+# Paths changed by the story's own commits since <base>: first-parent, non-merge commits only, so an
+# orchestrator merge of another branch (for example T0 into a batch) never counts against the story.
+story_paths() { git log --first-parent --no-merges --name-only --format= "$1..HEAD" -- . "${WORK_SPEC[@]}" | sed '/^$/d' | sort -u; }
+
 outside_paths() { # <id> <base>: changed paths outside the story's files patterns
   local id="$1" base="$2" p g ok
   while IFS= read -r p; do
@@ -155,14 +159,14 @@ outside_paths() { # <id> <base>: changed paths outside the story's files pattern
       if [[ "$p" == $g ]]; then ok=1; break; fi
     done < <(field "$id" '.files[]')
     [ "$ok" = 1 ] || printf ' %s' "$p"
-  done < <(git diff --name-only "$base" HEAD -- . "${WORK_SPEC[@]}")
+  done < <(story_paths "$base")
 }
 
 review() { # <id>
   local id="$1" base round head outside attempt=1 list f files digests
   base="$(field "$id" .review.base)"; round="$(( $(field "$id" .review.round) + 1 ))"; head="$(git rev-parse HEAD)"
   if [ -n "$(dirty)" ]; then bounce "$id" pending "uncommitted changes were left; commit them or restore them"; return; fi
-  if git diff --quiet "$base" HEAD -- . "${WORK_SPEC[@]}"; then bounce "$id" pending "review was requested but nothing is committed since $base"; return; fi
+  if [ -z "$(story_paths "$base")" ]; then bounce "$id" pending "review was requested but nothing is committed since $base"; return; fi
   outside="$(outside_paths "$id" "$base")"
   if [ -n "$outside" ]; then
     bounce "$id" pending "paths outside the story's files list changed:$outside. Restore them to their content at $base in a new commit (git restore --source $base -- <path>, or git rm for new files)"
@@ -253,6 +257,11 @@ gate() { # <id>
     echo "gate> $c"
     if ! bash -c "$c" > "$out" 2>&1; then tail -n 40 "$out"; gate_failure "$id" "$c" "$out"; return; fi
   done < <(field "$id" '.checks[]')
+  # Checks must be repeatable: a check that rewrites tracked files or leaves new ones breaks the next gate.
+  if [ -n "$(dirty)" ]; then
+    { echo "The story's checks left these changes in the working tree:"; dirty; } > "$out"
+    cat "$out"; gate_failure "$id" "story checks must leave the working tree unchanged" "$out"; return
+  fi
   edit --arg id "$id" '(.userStories[] | select(.id==$id)) |= (.passes = true | .review.state = "passed")'
   echo "ralph: $id passed review and the gate"
   # shellcheck disable=SC2046
@@ -275,20 +284,39 @@ while :; do
   state="$(field "$id" .review.state)"
   case "$state" in
     pending|reviewed)
+      # waitsFor ["<batch>:<STORY>", ...]: every listed story must have passed and be merged into this branch.
+      missing=""
+      while IFS= read -r w; do
+        [ -n "$w" ] || continue
+        git log -1 --format=%H --grep="^chore(ralph): mark $(lc "${w#*:}") as passed$" HEAD | grep -q . || missing="$missing $w"
+      done < <(field "$id" '(.waitsFor // [])[]')
+      if [ -n "$missing" ]; then
+        note "$id" "waiting for these stories to pass and be merged into $BRANCH:$missing"
+        setreview "$id" '.state="blocked"'
+        # shellcheck disable=SC2046
+        commit_state "chore(ralph): record that $(lc "$id") waits for merges" $(state_paths)
+        human "$id waits for merges:$missing"
+      fi
       if [ "$n" -ge "$MAX" ]; then echo "ralph: reached $MAX author iterations; state is in $PRD" >&2; exit 1; fi
       n=$((n + 1))
       if [ "$state" = pending ] && [ "$(field "$id" .review.base)" = null ]; then
         setreview "$id" '.base=$b' --arg b "$(git rev-parse HEAD)"
       fi
-      before="$(git rev-parse HEAD) $state"
+      before="$(git rev-parse HEAD)"
       author "$id" "$n"
-      if [ "$before" = "$(git rev-parse HEAD) $(field "$id" .review.state)" ]; then
+      # Progress means a new review state, or an author commit that changed work (not only loop state).
+      if [ "$state" = "$(field "$id" .review.state)" ] \
+         && [ -z "$(git log --no-merges --format=%H "$before..HEAD" -- . "${WORK_SPEC[@]}")" ]; then
         idle=$((idle + 1))
-        [ "$idle" -le "$MAX_IDLE" ] || human "$MAX_IDLE author iterations in a row made no commit and no state change"
+        [ "$idle" -le "$MAX_IDLE" ] || human "$MAX_IDLE author iterations in a row changed no work and no state"
         echo "ralph: no progress in this iteration ($idle in a row); waiting $((idle * 60)) s"; sleep $((idle * 60))
       else
         idle=0; sleep 2
       fi ;;
+    blocked)
+      # shellcheck disable=SC2046
+      commit_state "chore(ralph): record that $(lc "$id") is blocked" $(state_paths)
+      human "$id is blocked: $(field "$id" '.notes' | tail -n 3)" ;;
     requested) review "$id" ;;
     resolved)  gate "$id" ;;
     *) human "$id has review.state '$state'" ;;
