@@ -1,0 +1,105 @@
+{
+  "task_id": "T2-02",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "178e0a292a416903466fa30da513acfd9ce96233",
+    "head": "06e021c61946bb394340d91623823f54ee488c8d",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "20a84fdfb2758a7c6f08f8f2c00bfaacce78be0d4d96e2ef63caa2787e984193"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_stokes.py",
+        "sha256": "709385df29c349dd3ea7c8387c759bcd1bbac4ced234ad3a54c300ed5ec69813"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:47:30Z",
+  "finished_utc": "2026-11-14T18:51:44Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Both prior squared-tolerance findings are addressed, and the SC_NEGATIVE rebuttal is supported by the code. Execution-dependent criteria remain unverified because checks were explicitly prohibited in this read-only review.",
+  "checks": [
+    {
+      "criterion": "AC1: F1–F5 fixtures, arithmetic tolerances, and failing test execution before implementation",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_polarimetry_stokes.py:120–157 asserts the required powers, CPR values, states and reasons using helpers at lines 66–76. Tree 1450477 contains the tests before the implementation symbols exist. A historical failing execution was not independently observed; checks were prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC2: SIS formulas, required named convention, and refusal of undefined conventions",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static coverage is present: polarimetry.py:632 defines the convention; lines 640–645 reject unknown values; line 732 makes convention required; lines 836–860 calculate SC, OC and CPR. Tests at test_polarimetry_stokes.py:265–319 exercise omission and undefined sign conventions. Runtime verification was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC3: Named tolerance, full-Stokes physicality, nonfinite handling and product masks without a hard-coded SNR rule",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "polarimetry.py:698–723 applies the tolerance to the scaled squared inequality; lines 814–829 classify product masks, nonfinite inputs and both physicality bounds. Tests at test_polarimetry_stokes.py:325–566 cover these rules and tolerance boundaries. Runtime verification was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC4: Mixed 2x3 arrays preserve shapes and distinguish valid zero, invalid and missing CPR",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_stokes.py:590–638 supplies the mixed arrays and asserts powers, shapes, states, reasons and NaN for unavailable CPR. polarimetry.py:253–257 blanks unavailable values. Array execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC5: Hypothesis property test for nonnegative powers, power conservation and echo share",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_stokes.py:769–792 generates positive S1 and bounded S4 and asserts all required identities. The property test was not executed because checks were prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC6: Docstring explains factor 2 and product-label power definitions",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:744–747 explicitly states that factor 2 cancels in CPR but not absolute powers and that the selected product label defines its Stokes powers."
+    },
+    {
+      "criterion": "Previous findings codex-r1-1 and codex2-r1-1: verify squared-tolerance fix",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static review confirms polarimetry.py:719–722 compares polarized squared power minus S1 squared against scaled atol plus rtol times S1 squared. test_polarimetry_stokes.py:452–458 includes both reported excesses, 7.5e-11 and 8e-11, and requires STOKES_NONPHYSICAL. Additional boundary and scale tests appear at lines 461–507. Execution remains NOT_RUN."
+    },
+    {
+      "criterion": "Previous finding claude-r1-1: verify SC_NEGATIVE rebuttal",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:851 marks negative SC as unavailable CPR before division, and lines 857–860 divide only valid pixels. test_polarimetry_stokes.py:325–340 asserts negative power remains unclipped while CPR is NaN with SC_NEGATIVE. The contract does not restrict the reason vocabulary to the listed reasons."
+    },
+    {
+      "criterion": "Scope and scientific configuration guardrails",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The requested diff changes only polarimetry.py and test_polarimetry_stokes.py, both within the story scope. config/run.yaml:2–7, 11–20 and 33–35 preserves unresolved kickoff settings as null. No production mock path or invented result was introduced. AGENTS.md and CLAUDE.md compare identically."
+    },
+    {
+      "criterion": "Required focused pytest check",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_stokes.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user: the read-only sandbox prevents dependency/cache writes."
+    },
+    {
+      "criterion": "Required mypy check",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user: the read-only sandbox prevents dependency/cache writes."
+    },
+    {
+      "criterion": "Required repository check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user: the read-only sandbox prevents dependency/cache writes. Makefile:22–25 invokes Ruff lint, Ruff formatting verification and mypy."
+    }
+  ],
+  "findings": []
+}

@@ -92,19 +92,19 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 1,
+        "state": "reviewed",
+        "round": 2,
         "base": "178e0a292a416903466fa30da513acfd9ce96233",
-        "head": "1f02b9f3d06297de407840d8fec0fbf18d1fe3ae",
+        "head": "06e021c61946bb394340d91623823f54ee488c8d",
         "files": [
-          "reviews/T2-02-claude.json",
-          "reviews/T2-02-codex.json",
-          "reviews/T2-02-codex-2.json"
+          "reviews/T2-02-claude-r2.json",
+          "reviews/T2-02-codex-2-r2.json",
+          "reviews/T2-02-codex-r2.json"
         ],
         "digests": {
-          "reviews/T2-02-claude.json": "fe03dd91f101a11e44d09647dcb8a86684c637ea0f28ec8ce01807cabb6a6833",
-          "reviews/T2-02-codex.json": "a1519b15c7254bf5a6385914038efde6f3b29295bfe65fa63e70b74a6c700550",
-          "reviews/T2-02-codex-2.json": "c83af11db15957da953f6ddca90ee9e450402c6b12e2d8f89f4a14e45bc6bb37"
+          "reviews/T2-02-claude-r2.json": "1da370b97d056c778f70773bd2bab3f2409d13808396e9e1be3fb0da5e77367d",
+          "reviews/T2-02-codex-2-r2.json": "fa362a65ac02975c3b39e2567c6d4c8d1da5a73f73d04a26981d41929c5cee05",
+          "reviews/T2-02-codex-r2.json": "68cc83602ee4d7ba6793d9b26dd398a4261c9d960520b05ee3fc39cb1e1db291"
         }
       },
       "notes": "Open decision (PRD 7: real-data tolerances come from the product): no real-data Stokes validity tolerance is set. circular_from_stokes takes a named Tolerance argument that defaults to ARITHMETIC_TOLERANCE, the PRD 7 arithmetic tolerance (rtol 1e-10, atol 1e-12), and the tests use it. Revisit with that decision: a negative SC accepted within the tolerance is reported as computed and makes CPR unavailable (SC_NEGATIVE) instead of being clipped. The same Tolerance applies to the squared full-Stokes bound (S2^2 + S3^2 + S4^2 - S1^2 <= atol + rtol * S1^2), so there atol is in squared power units; a real-data tolerance decision has to set it for both rules.",
