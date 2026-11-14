@@ -11,8 +11,9 @@ import { describe, expect, it } from 'vitest';
 import type { Bundle } from '../lib/bundle.ts';
 import { shellText } from '../lib/shell.ts';
 import { contrastRatio } from '../tests/contrast.ts';
-import { ALL_GATES_NOT_RUN, gate, manifestFor, REPO_ROOT, toBytes, WEB_DIR } from '../tests/helpers.ts';
+import { ALL_GATES_NOT_RUN, gate, manifestFor, toBytes, WEB_DIR } from '../tests/helpers.ts';
 import { classesOf, elements, isClientModule, only, textOf } from '../tests/markup.ts';
+import { prd4Titles } from '../tests/prd.ts';
 import { rootTokens, token } from '../tests/tokens.ts';
 import { describeCase, resolveCase, textCases } from '../tests/variant-colours.ts';
 import { MockBanner } from './mock-banner.tsx';
@@ -26,28 +27,6 @@ function bundle(fields: Record<string, unknown>, records: unknown[] = ALL_GATES_
     manifest: BundleManifestSchema.parse(manifestFor(toBytes(records), fields)),
     validation: ValidationSchema.parse(records),
   };
-}
-
-/** PRD.md section 4: the "Title wording" cell of the A, B and C rows of the mode table. */
-function prd4Titles(): Record<string, string> {
-  const prd = readFileSync(join(REPO_ROOT, 'PRD.md'), 'utf8');
-  const start = prd.indexOf('\n## 4. Shipping modes and fallbacks\n');
-  const end = prd.indexOf('\n## ', start + 1);
-  if (start < 0 || end < 0) throw new Error('PRD.md has no section 4');
-  const rows = prd
-    .slice(start, end)
-    .split('\n')
-    .filter((line) => line.startsWith('| '))
-    .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim()));
-  const header = rows.find((cells) => cells[0] === 'Mode');
-  const column = header?.indexOf('Title wording') ?? -1;
-  if (column < 0) throw new Error('PRD 4 mode table has no "Title wording" column');
-  const titles: Record<string, string> = {};
-  for (const cells of rows) {
-    const mode = /^\*\*([A-Z]):/.exec(cells[0] ?? '')?.[1];
-    if (mode !== undefined) titles[mode] = cells[column] ?? '';
-  }
-  return titles;
 }
 
 function render(element: Parameters<typeof renderToStaticMarkup>[0]): string {
