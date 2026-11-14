@@ -1116,8 +1116,9 @@ def bilinear_resample(
     finite value is held as that value, as storing it does: a float32 band holds -3.4028235e38
     as -3.4028234663852886e38. A sentinel the source type cannot hold, such as 0.5 or 256 for
     uint8, or a finite float that rounds to infinity in the source type, raises ResampleError
-    rather than masking nothing. A NaN or infinite sentinel of a float source adds no missing
-    pixels.
+    rather than masking nothing. So does a nonzero float that rounds to zero, such as 1e-50 for
+    float32, which would mask every zero pixel; a declared zero masks both signed zeros. A NaN
+    or infinite sentinel of a float source adds no missing pixels.
 
     A point is inside when 0 <= column <= ncols - 1 and 0 <= row <= nrows - 1. Its four
     neighbours are columns i and i + 1 and rows j and j + 1, with i = min(floor(column),
@@ -1243,6 +1244,12 @@ def _sentinel_pixels(grid: npt.NDArray[Any], nodata: object) -> BoolArray | None
             raise ResampleError(
                 f"nodata {sentinel!r} rounds to infinity in the {dtype} source, "
                 "beyond the range it holds"
+            )
+        if stored == 0 and declared != 0:
+            # Every zero pixel, which is data, would match it and turn missing.
+            raise ResampleError(
+                f"nodata {sentinel!r} rounds to zero in the {dtype} source, so zero data would "
+                "turn missing"
             )
         return np.asarray(grid == stored, dtype=np.bool_)
     if isinstance(sentinel, float):
