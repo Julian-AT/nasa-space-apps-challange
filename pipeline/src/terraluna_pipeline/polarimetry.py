@@ -12,6 +12,11 @@ Conventions that hold for every function here:
   ``state`` and ``reason``. NaN never stands for zero, and 0.0 never stands for missing.
 - Analytical quantities are in linear power; dB is for display and summaries only (PRD 6.2).
 - Nothing is repaired, clipped or regularized: no epsilon is added to a denominator (PRD 7).
+- Work is in float64 (PRD 8.8), and inputs must be finite and supported (PRD 7). An element
+  whose result float64 cannot hold is ``INVALID`` with reason ``FLOAT64_OUT_OF_RANGE``, and the
+  other elements are unaffected: a result that overflows, or a positive power below the
+  smallest normal float64 (underflowed to zero, or a subnormal without full precision). No
+  other numerical range is imposed.
 - Product validity and noise flags enter only through explicit arguments, such as ``nodata``
   and the noise flags of :func:`x_power` (PRD 7: keep the product's flags). Array arguments
   are plain numpy arrays (memory-mapped ones included), scalars, or lists and tuples of them
@@ -25,6 +30,7 @@ Conventions that hold for every function here:
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from enum import IntEnum, StrEnum
 from typing import Any, Final, Literal
@@ -91,6 +97,10 @@ class InvalidReason(StrEnum):
     NUMERATOR_INVALID = "NUMERATOR_INVALID"
     """The numerator of a ratio is zero, nodata, noise-dominated or otherwise not valid."""
 
+    FLOAT64_OUT_OF_RANGE = "FLOAT64_OUT_OF_RANGE"
+    """The input is valid, but float64 cannot hold the result (state ``INVALID``): it overflows,
+    or a positive power falls below the smallest normal float64. Not a physical threshold."""
+
 
 STATE_DTYPE: Final = np.dtype(np.uint8)
 """dtype of every per-element state array; its values are :class:`ObsState` codes."""
@@ -100,6 +110,9 @@ REASON_DTYPE: Final = np.dtype("<U32")
 
 if max(len(r.value) for r in InvalidReason) > REASON_DTYPE.itemsize // np.dtype("<U1").itemsize:
     raise RuntimeError("REASON_DTYPE is too narrow for the InvalidReason codes")
+
+_SMALLEST_NORMAL: Final = float(np.finfo(np.float64).smallest_normal)
+"""Smallest normal float64. A positive power below it has underflowed or lost precision."""
 
 _STATE_CODES: Final = frozenset(int(s) for s in ObsState)
 _REASON_CODES: Final = frozenset(r.value for r in InvalidReason)
@@ -175,6 +188,20 @@ class _Classifier:
         target = where & self.valid
         self.state[target] = state
         self.reason[target] = reason
+
+    def mark_out_of_range(self, result: npt.NDArray[np.float64], *, positive: bool) -> None:
+        """Mark elements whose float64 ``result`` is out of range as ``FLOAT64_OUT_OF_RANGE``.
+
+        A result that is not finite has overflowed. Where ``positive`` is set, the exact result
+        is a positive quantity, so one below the smallest normal float64 has underflowed to
+        zero or lost precision as a subnormal, and is out of range as well. Only elements that
+        are still ``VALID`` are marked, so earlier reasons such as ``NONFINITE`` stand.
+        """
+        with np.errstate(invalid="ignore"):
+            out_of_range = ~np.isfinite(result)
+            if positive:
+                out_of_range |= result < _SMALLEST_NORMAL
+        self.mark(out_of_range, ObsState.INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE)
 
     def finish(self, value: npt.NDArray[np.float64]) -> StatedArray:
         """Blank every element that is not VALID and freeze the result."""
@@ -280,7 +307,13 @@ def _check_nodata(nodata: int | None) -> None:
         raise TypeError(f"nodata must be an integer DN or None, got {nodata!r}")
 
 
-def _check_offset(calibration_offset_db: float) -> None:
+def _amplitude_scale(calibration_offset_db: float) -> float:
+    """Return ``10**(-calibration_offset_db / 20)``, the calibration factor on amplitude DN.
+
+    Raises TypeError for a non-real offset and ValueError for a non-finite one, or for one whose
+    factor is not a normal float64: the factor would be zero, infinite or a subnormal without
+    full precision, so no DN could decode reliably with it (about +-6150 dB).
+    """
     if isinstance(calibration_offset_db, bool) or not isinstance(
         calibration_offset_db, int | float | np.integer | np.floating
     ):
@@ -289,6 +322,16 @@ def _check_offset(calibration_offset_db: float) -> None:
         )
     if not np.isfinite(calibration_offset_db):
         raise ValueError(f"calibration_offset_db must be finite, got {calibration_offset_db!r}")
+    try:
+        scale = math.pow(10.0, -float(calibration_offset_db) / 20.0)
+    except OverflowError:
+        scale = math.inf
+    if not (math.isfinite(scale) and scale >= _SMALLEST_NORMAL):
+        raise ValueError(
+            f"calibration_offset_db {calibration_offset_db!r} gives an amplitude factor "
+            "10**(-offset/20) that is not a normal float64"
+        )
+    return scale
 
 
 # --- PALSAR-2 yearly mosaic decoding (PRD 7, Decoding rules) ---------------------------------
@@ -325,6 +368,27 @@ def _classify_dn(
     return values, classifier
 
 
+def _decode_power(
+    dn: npt.ArrayLike, nodata: int | None, calibration_offset_db: float
+) -> tuple[npt.NDArray[np.float64], _Classifier, npt.NDArray[np.float64]]:
+    """Classify DN and compute gamma-zero in linear power, shared by both decode forms.
+
+    ``gamma0_linear = DN**2 * 10**(-offset/10)`` is computed as ``(DN * 10**(-offset/20))**2``,
+    the same quantity, so a DN whose square alone overflows float64 still decodes when its
+    calibrated power is representable. A valid DN whose power float64 cannot hold is then
+    ``INVALID`` with ``FLOAT64_OUT_OF_RANGE``, so the dB and linear forms agree on every pixel.
+    Returns the DN as float64, the classifier and the power (NaN where not valid).
+    """
+    scale = _amplitude_scale(calibration_offset_db)
+    values, classifier = _classify_dn(dn, nodata)
+    power = np.full(values.shape, np.nan)
+    valid = classifier.valid
+    with np.errstate(over="ignore", under="ignore"):
+        power[valid] = np.square(values[valid] * scale)
+    classifier.mark_out_of_range(power, positive=True)
+    return values, classifier, power
+
+
 def decode_db(
     dn: npt.ArrayLike,
     *,
@@ -342,10 +406,13 @@ def decode_db(
     must be given explicitly. A pixel equal to it is ``MISSING`` with reason ``NODATA``. A DN of
     zero that is not the declared nodata is ``INVALID`` with reason ``DN_ZERO``, never -inf dB.
     Negative DN is ``INVALID`` (``DN_NEGATIVE``) and NaN or infinite DN is ``INVALID``
-    (``NONFINITE``). Units: input DN (dimensionless amplitude), output dB.
+    (``NONFINITE``). A DN whose linear power float64 cannot hold (see :func:`decode_linear`) is
+    ``INVALID`` with ``FLOAT64_OUT_OF_RANGE`` here as well, although its dB value is finite: a
+    dB value is shown only where its linear power can be analysed. An offset whose amplitude
+    factor ``10**(-offset/20)`` is not a normal float64 raises ValueError. Units: input DN
+    (dimensionless amplitude), output dB.
     """
-    _check_offset(calibration_offset_db)
-    values, classifier = _classify_dn(dn, nodata)
+    values, classifier, _ = _decode_power(dn, nodata, calibration_offset_db)
     out = np.full(values.shape, np.nan)
     valid = classifier.valid
     out[valid] = 20.0 * np.log10(values[valid]) - calibration_offset_db
@@ -365,17 +432,18 @@ def decode_linear(
     Input is amplitude DN per pixel; squaring turns amplitude into power, so averages belong
     after this step, over linear power, never over DN (PRD 7). This function does no averaging.
 
+    It is computed as ``(DN * 10**(-offset/20))**2``, the same quantity, so ``DN**2`` cannot
+    overflow ahead of the calibration.
+
     States and reasons are those of :func:`decode_db`: declared nodata is ``MISSING``
     (``NODATA``); zero, negative and non-finite DN are ``INVALID``. A DN of zero is invalid here
-    as well, so the linear and dB forms always agree on which pixels are valid. Units: input DN
-    (dimensionless amplitude), output linear power ratio (gamma-zero, dimensionless).
+    as well, so the linear and dB forms always agree on which pixels are valid. A valid DN
+    whose power overflows float64, or falls below the smallest normal float64, is ``INVALID``
+    with ``FLOAT64_OUT_OF_RANGE`` in both forms, never infinite and never a valid 0.0. Units:
+    input DN (dimensionless amplitude), output linear power ratio (gamma-zero, dimensionless).
     """
-    _check_offset(calibration_offset_db)
-    values, classifier = _classify_dn(dn, nodata)
-    out = np.full(values.shape, np.nan)
-    valid = classifier.valid
-    out[valid] = np.square(values[valid]) * 10.0 ** (-calibration_offset_db / 10.0)
-    return classifier.finish(out)
+    _, classifier, power = _decode_power(dn, nodata, calibration_offset_db)
+    return classifier.finish(power)
 
 
 def x_power(
@@ -407,7 +475,9 @@ def x_power(
        the declared nodata and ``INVALID`` otherwise.
     2. HV is not a valid numerator, by the same tests: reason ``NUMERATOR_INVALID``, with
        ``MISSING`` for nodata HV and ``INVALID`` otherwise.
-    3. Otherwise ``VALID``. Units: output linear power ratio (dimensionless).
+    3. The ratio overflows float64, or falls below the smallest normal float64 although both
+       channels are positive: ``INVALID``, ``FLOAT64_OUT_OF_RANGE``.
+    4. Otherwise ``VALID``. Units: output linear power ratio (dimensionless).
     """
     hh_values, hh = _classify_dn(dn_hh, nodata)
     hv_values, hv = _classify_dn(dn_hv, nodata)
@@ -431,7 +501,10 @@ def x_power(
 
     out = np.full(shape, np.nan)
     valid = classifier.valid
-    out[valid] = np.square(hv_values[valid] / hh_values[valid])
+    with np.errstate(over="ignore", under="ignore"):
+        # A ratio that overflows or underflows has an exact square out of range as well.
+        out[valid] = np.square(hv_values[valid] / hh_values[valid])
+    classifier.mark_out_of_range(out, positive=True)
     return classifier.finish(out)
 
 
@@ -455,12 +528,16 @@ def angle_to_degrees(angle: npt.ArrayLike, *, unit: AngleUnit) -> StatedArray:
     magnitude, so ``1.0`` declared in radians and ``1.0`` declared in degrees give different
     results. Radians are converted with ``degrees = radians * 180 / pi``; degrees are kept.
 
-    NaN or infinite angles are ``INVALID`` with reason ``NONFINITE``. Units: output degrees.
+    NaN or infinite angles are ``INVALID`` with reason ``NONFINITE``. A finite angle in radians
+    whose degree value overflows float64 is ``INVALID`` with ``FLOAT64_OUT_OF_RANGE``. Zero and
+    subnormal angles are valid angles, not underflows. Units: output degrees.
     """
     if unit not in _ANGLE_UNITS:
         raise ValueError(f"angle unit must be declared as one of {_ANGLE_UNITS}, got {unit!r}")
     values = _real_array("angle", angle).astype(np.float64)
     classifier = _Classifier(values.shape)
     classifier.mark(~np.isfinite(values), ObsState.INVALID, InvalidReason.NONFINITE)
-    out = np.degrees(values) if unit == "radians" else values.copy()
+    with np.errstate(over="ignore"):
+        out = np.degrees(values) if unit == "radians" else values.copy()
+    classifier.mark_out_of_range(out, positive=False)
     return classifier.finish(out)
