@@ -1498,6 +1498,68 @@ def test_the_sentinel_is_matched_exactly_in_the_source_type(
     assert np.isnan(result.values[0]) != valid
 
 
+# Rounding to the source type reaches past its largest finite value (codex-r2-1). Conversion
+# rounds to nearest, ties to even, so a float64 less than half an ulp beyond the largest finite
+# value rounds to that value, as storing it in the band does: a float32 band holds
+# -3.4028235e38 as -3.4028234663852886e38. From half an ulp beyond, it overflows to infinity.
+FLOAT16_MAX = float(np.finfo(np.float16).max)  # 65504.0, ulp 32
+FLOAT32_MAX = float(np.finfo(np.float32).max)  # 2**128 - 2**104, ulp 2**104
+FLOAT64_MAX = float(np.finfo(np.float64).max)
+FLOAT16_OVERFLOW = FLOAT16_MAX + 16.0  # The largest finite value plus half an ulp: a tie
+FLOAT32_OVERFLOW = 2.0**128 - 2.0**103  # that rounds to even, past the largest, to infinity.
+
+
+def sentinel_cases(cases: list[tuple[Any, Any]]) -> list[Any]:
+    return [
+        pytest.param(dtype, nodata, id=f"{dtype.__name__}-{nodata!r}") for dtype, nodata in cases
+    ]
+
+
+HELD_NEAR_THE_LARGEST = sentinel_cases(
+    [
+        # At or just under the largest finite value.
+        (np.float16, FLOAT16_MAX),
+        (np.float16, -FLOAT16_MAX),
+        (np.float16, math.nextafter(FLOAT16_MAX, 0.0)),
+        (np.float16, 65472.0),
+        (np.float32, FLOAT32_MAX),
+        (np.float32, -FLOAT32_MAX),
+        (np.float32, math.nextafter(FLOAT32_MAX, 0.0)),
+        (np.float32, float(np.nextafter(np.float32(FLOAT32_MAX), np.float32(0.0)))),
+        (np.float64, FLOAT64_MAX),
+        (np.float64, -FLOAT64_MAX),
+        (np.float64, math.nextafter(FLOAT64_MAX, 0.0)),
+        # Beyond it by less than half an ulp, so stored as it.
+        (np.float16, 65505.0),
+        (np.float16, 65505),
+        (np.float16, -65519.0),
+        (np.float16, math.nextafter(FLOAT16_OVERFLOW, 0.0)),
+        (np.float32, 3.4028235e38),
+        (np.float32, -3.4028235e38),
+        (np.float32, math.nextafter(FLOAT32_OVERFLOW, 0.0)),
+        (np.float32, -math.nextafter(FLOAT32_OVERFLOW, 0.0)),
+    ]
+)
+
+
+@pytest.mark.parametrize(("dtype", "nodata"), HELD_NEAR_THE_LARGEST)
+def test_a_sentinel_near_the_largest_float_is_held_as_the_source_type_rounds_it(
+    dtype: Any, nodata: Any
+) -> None:
+    stored = dtype(float(nodata))
+    assert np.isfinite(stored)
+    below = np.nextafter(stored, dtype(0.0))
+    source = np.array([[stored, stored, below, below], [stored, stored, below, 1.0]], dtype=dtype)
+    u = np.array([0.5, 2.5, 1.5, 0.0])
+    v = np.array([0.5, 0.5, 0.5, 1.0])
+    result = bilinear_resample(source, u, v, nodata=nodata)
+    as_nan = np.where(source == stored, np.nan, source.astype(np.float64))
+    reference = bilinear_resample(as_nan, u, v, nodata=None)
+    assert_same_bits(result.valid, np.array([False, True, False, False]))
+    assert_same_bits(result.values, reference.values)
+    assert_same_bits(result.valid, reference.valid)
+
+
 @pytest.mark.parametrize("dtype", FLOAT_TYPES)
 @pytest.mark.parametrize("nodata", [math.nan, math.inf, -math.inf])
 def test_a_nan_or_infinite_sentinel_of_a_float_source_adds_no_missing_pixels(
@@ -1529,10 +1591,16 @@ def test_a_nan_or_infinite_sentinel_of_a_float_source_adds_no_missing_pixels(
         (np.int64, 2.0**63),
         (np.uint64, -1),
         (np.uint64, 2.0**64),
-        # Float sources hold finite sentinels within their finite range.
+        # A finite sentinel that the float type rounds to infinity: from half an ulp beyond its
+        # largest finite value on. The overflow raises ResampleError, never a cast warning.
         (np.float16, 70000.0),
+        (np.float16, FLOAT16_OVERFLOW),
+        (np.float16, -FLOAT16_OVERFLOW),
         (np.float32, 1e39),
         (np.float32, -1e300),
+        (np.float32, FLOAT32_OVERFLOW),
+        (np.float32, -FLOAT32_OVERFLOW),
+        (np.float32, 2**128),
         pytest.param(np.float64, 10**400, id="float64-10**400"),
     ],
 )
