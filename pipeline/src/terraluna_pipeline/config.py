@@ -45,7 +45,8 @@ DEFAULT_RUN_CONFIG: Final[Path] = Path(__file__).resolve().parents[3] / "config"
 """``config/run.yaml`` at the repository root.
 
 The path is found from this file, which holds for the uv workspace's editable install that
-the offline pipeline runs from. Pass a path explicitly anywhere else.
+the offline pipeline runs from (PRD 8.3). Pass a path explicitly anywhere else; a path that names
+no file raises :class:`MissingRunConfigError`.
 """
 
 _TERRAIN_KEYS: Final = frozenset(
@@ -76,6 +77,10 @@ class ConfigError(ValueError):
 
 class MissingConfigKeyError(ConfigError):
     """A required entry is absent, or a terrain setting is null."""
+
+
+class MissingRunConfigError(ConfigError):
+    """The run-config file does not exist, for example the default path outside the workspace."""
 
 
 class UnknownConfigKeyError(ConfigError):
@@ -188,7 +193,15 @@ class _RunConfigLoader(yaml.SafeLoader):
 
 
 def _read_document(path: Path) -> dict[str, object]:
-    document = yaml.load(path.read_text(encoding="utf-8"), Loader=_RunConfigLoader)
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError as error:
+        raise MissingRunConfigError(
+            _DOCUMENT_KEY,
+            f"{path} does not exist; pass the path of config/run.yaml explicitly when the "
+            "pipeline does not run from the uv workspace",
+        ) from error
+    document = yaml.load(text, Loader=_RunConfigLoader)
     if not isinstance(document, dict):
         raise InvalidConfigValueError(
             _DOCUMENT_KEY, f"{path} must hold a YAML mapping, got {type(document).__name__}"
