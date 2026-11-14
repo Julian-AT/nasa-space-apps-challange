@@ -176,7 +176,11 @@
       "claim": "Preserve complete banner-container validation when a non-live red wrapper contains multiple paragraphs. AC7 remains incomplete.",
       "evidence": "By inspection, replace MOCK_P in tests/page-check.test.ts with '<div class=\"bg-mock\"><p role=\"status\">Mock bundle — placeholder data, not results</p><p>Radar match passed</p></div>'. The wrapper has two text-bearing children, so soleTextChild stops the container walk at the first p. That p records only its own status region, and its text is exact; the unchanged mode, main and footer checks also accept the fixture. The red banner visibly contains an additional claim. Existing tests cover this bg-mock wrapper with a sibling span, but second-paragraph cases give the outer wrapper live-region semantics. Preserve the banner container's identity and add this regression.",
       "id": "codex-r5-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "66a3d171e07de36362bad6520e4caa7d3d165c38",
+        "reason": "The reviewer's fixture passed because the non-live wrapper holds two text blocks, so the container walk stopped at the status paragraph, which reads exactly the banner. Rather than guess which wrappers belong to a banner, apps/web/scripts/page-check.ts now accounts for all text outside <main> (strayTexts). Every block's own text must sit in the document head, <main>, the one footer or a banner part (container or live region), or else equal one of LAYOUT_LABELS: 'Skip to content' and the seven navigation labels. tests/site-layout.test.tsx compares that list with SKIP_LINK_TEXT and NAV_ITEMS. So the second paragraph is reported, wherever it sits and whatever wraps it ('text outside <main> must be a banner, the footer or a layout label, but \"Radar match passed\" is none of these'). This brings back T0-05's whole-body protection outside <main>, while the chrome the orchestrator decision allows still passes. Tests first in 5fc7d96: the reviewer's fixture, the same wrapper around the mode banner, a paragraph or heading in the header, words directly in the body, after the skip link, inside a navigation label, between <main> and the footer, in a hidden element, and after </body>. Follow-up 20c6726 (tests in 560bb0f) exempts only the document head, because a browser shows the text of a head tag inside or after the body. Against page-check.ts at c01467a, 22 of 118 tests in tests/page-check.test.ts and tests/site-layout.test.tsx fail; with 20c6726 all 118 pass. The existing grouping test now adds a layout label ('Home') instead of free words, which is stricter. All five story checks exit 0, and TURBO_FORCE=true make check and make test also exit 0 (web 305 tests, schema 157, pytest 404)."
+      }
     },
     {
       "severity": "blocker",
@@ -184,7 +188,11 @@
       "claim": "Reject conflicting footer versions instead of accepting any one correct footer. AC7's protected-value validation is still weakened.",
       "evidence": "By inspection, REAL_PAGE.replace('</footer>', '</footer><footer>Bundle version: v10 · Schema 1.0.0</footer>') is accepted for bundle v1: footers.some succeeds on the original footer, while main equality and banner checks ignore the contradictory footer. T0-05's whole-body equality rejected this additional protected text. Validate an unambiguous footer/version and add a negative case containing both correct and incorrect footer versions.",
       "id": "codex-r5-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "b3a2339bb9ff208c22a2c89887c603f93bf8145e",
+        "reason": "footers.some accepted any one correct footer. page-check.ts now takes the footer blocks from the block tree, nested ones included, reports 'the page must have exactly one <footer>, but has N' when there is more than one, and compares the only footer's whole text with 'Bundle version: <v> · Schema <schema_version>'. Tests first in 5fc7d96: a second footer with bundle version v10 (the reviewer's fixture) or another schema version, the same footer twice, an empty second footer and a footer nested in the footer are all reported. The versions written in another element beside the footer are reported by the codex-r5-1 fix. All five story checks exit 0, and make web-smoke passes on the built / page, which has one footer."
+      }
     }
   ]
 }

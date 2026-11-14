@@ -146,7 +146,11 @@
       "claim": "AC2 reads 'Bundle <bundle_version>', but the footer reads 'Bundle version: <v> · Schema <v>'.",
       "evidence": "web-smoke asserts 'bundle version mock-0' from T0-05's shellText, and the author cites a recorded orchestrator decision. This is a literal-reading difference only, previously rebutted as claude-r2-1, claude-r3-1 and claude-r4-1.",
       "id": "claude-r5-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The footer wording is set by the orchestrator decision recorded in the T7-03 notes (ralph orchestrator 2026-11-14T21:24:28Z): \"The footer keeps T0-05's 'Bundle version: <bundle_version>' and appends ' · Schema <schema_version>'.\" site-footer.tsx renders exactly that, and page-check.ts asserts it as the whole text of the one <footer>, which make web-smoke passes. The finding itself calls it a literal-reading difference already rebutted (claude-r2-1, claude-r3-1, claude-r4-1)."
+      }
     },
     {
       "severity": "low",
@@ -154,7 +158,11 @@
       "claim": "The gzip -9 initial-JS figure of 177,190 B was not independently measured.",
       "evidence": "The measurement needs a shell loop, which the review permissions forbid. The build shows / as static and site-header.tsx is the only 'use client' file in the layout code I read.",
       "id": "claude-r5-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Measured again after make web-build at 20c6726 (the round 5 fixes changed only apps/web/scripts/page-check.ts and tests, which are not bundled into the page). The <script src> files of apps/web/.next/server/app/index.html at gzip -9 are 48,186 + 71,595 + 3,936 + 6,629 + 39,390 + 7,454 = 177,190 B over 6 scripts. That is 3,216 B over the T0 baseline of 173,974 B and within the PRD 8.10 budget of 250 kB, matching the story notes. __RSC_MANIFEST[\"/page\"].clientModules lists 9 modules, and the only one outside next is [project]/apps/web/components/site-header.tsx. make web-build shows / and /_not-found as static (○)."
+      }
     }
   ]
 }
