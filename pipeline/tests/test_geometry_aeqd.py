@@ -361,6 +361,28 @@ def test_pole_centred_window_has_no_nan(body: str, lat0: float, lon0: float) -> 
     assert (centre_lat.item(), centre_lon.item()) == (lat0, lon0)
 
 
+@pytest.mark.parametrize("body", BODIES)
+def test_long_offsets_that_reach_a_pole_keep_the_latitude_in_range(body: str) -> None:
+    """Offsets straight north or south to a pole, from centres at all latitudes.
+
+    The latitude increment is then of order one, and the centre latitude plus it can round past
+    +-math.pi / 2. The inverse must still return latitudes in [-pi/2, pi/2].
+    """
+    radius = BODY_RADII_M[body]
+    jitter = np.array([0.0, 1e-9, -1e-9, 1e-6, -1e-6, 1e-3, -1e-3, 1.0, -1.0])
+    for lat0 in np.linspace(-HALF_PI, HALF_PI, 81)[1:-1]:
+        to_north = (HALF_PI - lat0) * radius + jitter
+        to_south = -(HALF_PI + lat0) * radius - jitter
+        y = np.concatenate([to_north, to_south])
+        x = np.concatenate([jitter, jitter]) * 1e-3
+        inside = np.hypot(x, y) <= PI * radius
+        lat, lon = aeqd_inverse(
+            x[inside], y[inside], lat0_rad=float(lat0), lon0_rad=0.5, radius_m=radius
+        )
+        assert np.all(np.abs(lat) <= HALF_PI)
+        assert np.all(np.isfinite(lon))
+
+
 # ---------------------------------------------------------------------------------------------
 # The inverse follows the PRD expressions
 
