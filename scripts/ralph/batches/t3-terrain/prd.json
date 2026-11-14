@@ -203,9 +203,9 @@
       ],
       "codexPasses": 2,
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "resolved",
+        "state": "passed",
         "round": 1,
         "base": "c60143a45f0efb7ede716b8e91c2c3d948ab7c25",
         "head": "38d1a3601c745f0ce436e7c8fbb5194b017451bb",
