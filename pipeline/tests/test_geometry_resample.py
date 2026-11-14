@@ -826,6 +826,14 @@ def test_polar_projection_of_the_opposite_pole_raises() -> None:
         (math.nextafter(math.radians(18.4), 1.0), 1.0),
     ],
 )
+@example(
+    # A centre on 180 deg puts its antimeridian exactly on lon = 0. Just west of it,
+    # lon - lon0 = pi - 1.8e-34 stays in [-pi, pi) with a positive easting; from 0 on, it turns.
+    lookup=EquirectangularLookup(
+        **{**EQUIRECTANGULAR, "center_longitude_deg": 180.0, "standard_parallel_deg": 0.0}
+    ),
+    points=[(0.0, -1.7839434862475774e-34), (0.1, -5e-324), (0.2, -0.0), (0.3, 0.0), (0.4, 1e-300)],
+)
 def test_equirectangular_project_matches_exact_metres(
     lookup: EquirectangularLookup, points: list[tuple[float, float]]
 ) -> None:
