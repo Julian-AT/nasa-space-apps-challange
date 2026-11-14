@@ -107,7 +107,11 @@
       "claim": "A dedicated mock-on-production test was not found by name in my grep.",
       "evidence": "Only the shipping_mode test matched my pattern. test_committed_mock_bundle_fails_on_production at :662 exercises mock=true under production, but a separate test on a temporary bundle is the one the criterion asks for. I did not read the full test file to confirm it is missing.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The test exists. pipeline/tests/test_export.py:621 test_mock_bundle_is_refused_on_production (added in 3073be6, the first failing-tests commit, before export.py in ada4d43) builds a temporary bundle with make_bundle(tmp_path, mock=True). The fields() helper sets shipping_mode \"B\", so only the mock check applies. The test asserts validate_bundle(..., production=False) == [] and that production=True gives exactly [(\"mock_on_production\", \"manifest.json\")]. The reviewer grep missed it because the name says \"mock_bundle_is_refused_on_production\", not \"mock_on_production\". Codex lists :621 among the required assertions. Command output: `uv run pytest pipeline/tests/test_export.py -k refused_on_production -v` passes both production tests. With `if manifest.mock:` in export.py _production_errors temporarily changed to `if False and manifest.mock:`, the test fails at test_export.py:624 (AssertionError). Restoring the line makes it pass again, and git diff shows export.py unchanged."
+      }
     }
   ]
 }
