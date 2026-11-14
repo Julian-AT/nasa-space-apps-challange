@@ -102,7 +102,11 @@
       "claim": "The 3-cell and quarter-window rules are hard-coded constants, not config keys.",
       "evidence": "MIN_LAG_CELLS = 3.0 and MAX_LAG_WINDOW_FRACTION = 0.25. The story only requires these values and the notes flag the choice for a human, so this is acceptable.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The three-cell and quarter-window rules are fixed PRD 6.3 rules (\"Lags: at least three analysis cells and at most a quarter of the window width\"), not tunable values. The PRD 8.13 config skeleton, which lists every terrain key, has only analysis_grid_m, lags_m, min_lags_for_H, min_lag_span_factor, detrend, min_valid_fraction and resampler. The tunable parts are read from config: lags_m and the window width. Adding a min_lag_cells or max_lag_window_fraction key would mean inventing config keys outside PRD 8.13, and it would require editing config/run.yaml, which is not in this story files list. The constants are named, documented with their PRD source (terrain.py:201-204), and boundary-tested at exactly 3 cells and exactly W/4. Decision (3) in the story notes flags a possible PRD 8.13 amendment for a human. The reviewer also rated this acceptable."
+      }
     },
     {
       "severity": "low",
@@ -110,7 +114,11 @@
       "claim": "There is no resolution floor for texture nu. An exactly representable plane yields texture nu exactly 0 and nu_zero, while a plane given as rounded floats gives a tiny positive nu and an H fitted on rounding noise.",
       "evidence": "Notes decision (5) records this for a human. The criteria forbid an epsilon, so it is not a defect.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Adding a floor would break the acceptance criterion \"No epsilon is added; log(0) is never evaluated\" and the PRD 7 validity rule against epsilons. It would also be a new threshold that appears in neither PRD 6.3 nor the 8.13 config, while PRD 6.3 says terrain defaults change only on development data with a recorded reason. The behaviour is exact and deterministic: an exactly coplanar window gives texture nu = 0 and H Unavailable (nu_zero), and a non-coplanar window gives its true positive residual nu. PRD 7 (Tolerances) says real-data tolerances come from the product, so any vertical-precision floor belongs to product qualification of real DEMs on development data, not to this function. Decision (5) in the story notes records the option for a human. The reviewer also judged it not a defect."
+      }
     }
   ]
 }

@@ -226,3 +226,10 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes (T3-05; PRD.md is read-only for the loop)
 - PRD 6.3: name the H estimator ("least-squares slope of ln nu on ln L over the supported lags, unweighted, on the isotropic summary") and the comparison operators (">= 3 cells", "<= W/4" of the nominal window width, "max/min >= factor", "valid fraction >= min_valid_fraction"). If the three-cell and quarter-window rules should be tunable, add `terrain.min_lag_cells: 3` and `terrain.max_lag_window_fraction: 0.25` to PRD 8.13 and config/run.yaml. State whether texture needs a resolution floor below which nu counts as zero (T3-05 decision 5).
 ---
+## 2026-11-14T23:58Z · T3-05 · resolve
+- Done: Resolved review round 1. Rebutted claude-r1-1 (the 3-cell and quarter-window rules are fixed PRD 6.3 rules; the PRD 8.13 skeleton has no keys for them; config/run.yaml is outside the story files) and claude-r1-2 (a resolution floor would be an epsilon the criteria and PRD 7 forbid, and a new threshold outside PRD 6.3/8.13). The Claude reviewer itself rated both acceptable and not defects. Neither Codex review had findings. No code changes.
+- Commits: see chore(ralph): resolve review findings for t3-05
+- Checks: uv run pytest pipeline/tests/test_terrain_fingerprint.py -> 121 passed (exit 0); uv run mypy pipeline/src/terraluna_pipeline/terrain.py -> no issues (exit 0); make check -> exit 0
+- Docs used: none (no library interfaces touched)
+- Learnings: In zsh, ${PIPESTATUS[0]} is empty (zsh uses lowercase $pipestatus); to capture a check's exit code, redirect its output to a file instead of piping it to tail.
+---
