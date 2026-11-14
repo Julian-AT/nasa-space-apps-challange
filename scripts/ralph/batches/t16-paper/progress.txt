@@ -801,3 +801,14 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 420ac3f also works, but it brings in the unfinished T0-05 web package and its root Makefile targets. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
 ---
+
+## 2026-11-14T19:08Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. ralph/t16-paper still has merge base 3073be6 with ralph/t0-bootstrap, main is still 8e3e5a9, and the T0 tip is still 420ac3f. pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty, so the dcbce75 simulation still holds. In the T16-01 notes I changed only the iteration number. prd.json hashes the same before and after with that notes field removed (f9a1ce9e…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: the UTC times in the last few entries ran ahead of the clock. `date -u` gives 19:08Z for this one, while the commit times are 20:0x +0100. Seventy-one author iterations have confirmed the block, and the loop now runs about once a minute without making progress.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge: author iterations cannot unblock it, and each one adds only a bookkeeping commit.
+---
