@@ -502,9 +502,15 @@ def striped_site(tmp_path: Path) -> dict[str, bytes]:
         **{
             SURF: geotiff_bytes(heights(), tmp=tmp_path, blockysize=1),
             LDEC: geotiff_bytes(counts(), tmp=tmp_path, blockysize=1),
-            SLP: geotiff_bytes(np.full((HEIGHT, WIDTH), 12.5, np.float32), tmp=tmp_path),
-            TOTERR: geotiff_bytes(np.full((HEIGHT, WIDTH), 0.4, np.float32), tmp=tmp_path),
-            SLPERR: geotiff_bytes(np.full((HEIGHT, WIDTH), 1.5, np.float32), tmp=tmp_path),
+            SLP: geotiff_bytes(
+                np.full((HEIGHT, WIDTH), 12.5, np.float32), tmp=tmp_path, blockysize=1
+            ),
+            TOTERR: geotiff_bytes(
+                np.full((HEIGHT, WIDTH), 0.4, np.float32), tmp=tmp_path, blockysize=1
+            ),
+            SLPERR: geotiff_bytes(
+                np.full((HEIGHT, WIDTH), 1.5, np.float32), tmp=tmp_path, blockysize=1
+            ),
         },
     )
 
@@ -527,7 +533,8 @@ def test_a_geotiff_over_the_limit_is_read_by_window_and_never_downloaded(
     do_fetch(root, downloader, ranges, windowed_sources())
     raw = root / "data/raw/pgda78"
     assert {url for url, _, _ in ranges.calls} == {SITE_URL + name for name in windowed}
-    assert ranges.bytes_served[SITE_URL + SURF] < len(served[SITE_URL + SURF])
+    for name in windowed:
+        assert ranges.bytes_served[SITE_URL + name] < len(served[SITE_URL + name])
     metadata = json.loads((raw / "fetch.json").read_bytes())
     by_role = {item["role"]: item for item in metadata["files"]}
     entry = by_role["height"]
