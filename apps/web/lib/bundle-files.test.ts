@@ -379,6 +379,26 @@ describe('loader accessors', () => {
     },
   );
 
+  it('never reads a file that an earlier pull left and the current manifest does not list', () => {
+    const root = repoWithMock();
+    addFullRelease(root);
+    const dataDir = join(tempDir(), 'data');
+    pullBundle({ repoRoot: root, outDir: dataDir, env: ENV });
+    pullBundle({ repoRoot: root, outDir: dataDir, env: {} });
+    // Nothing is deleted: the release's files stay on disk next to the mock's manifest.
+    expect(filesUnder(dataDir)).toStrictEqual(['manifest.json', ...SERVER_PATHS].sort());
+    const bundle = loadBundle({ dataDir, env: {} });
+    expect(bundle.manifest.mock).toBe(true);
+    expect(pulledPaths(bundle)).toStrictEqual(['manifest.json', 'validation.json']);
+    expect(readFileSync(join(dataDir, 'validation.json'))).toStrictEqual(
+      readFileSync(join(MOCK_DIR, 'validation.json')),
+    );
+    expect(sourcesFile(bundle).status).toBe('not_present');
+    expect(targetsFile(bundle).status).toBe('not_present');
+    expect(comparisonFile(bundle, TARGET).status).toBe('not_present');
+    expect(windowsTopNFile(bundle, BODY).status).toBe('not_present');
+  });
+
   it.each(OPTIONAL_PATHS)('throws a typed error when pulled %s was changed', (path) => {
     const { dataDir } = pulledRelease();
     writeFileSync(join(dataDir, path), withOneByteChanged(readFileSync(join(dataDir, path))));
