@@ -15,7 +15,9 @@ text. extract() works in two passes.
    search.
 2. Prose. Commands, environment names and braces are removed from the code. Formatting commands
    such as \emph, \textit and \textbf keep their text, a tie ~ reads as a space, and accent
-   commands give their base letter.
+   commands give their base letter. Adjacent groups join as TeX prints them, so {seam}{less}
+   reads seamless; only two arguments of one command, as in \textcolor{red}{x} in kept TikZ
+   text, are separate words (argument_breaks).
 
 Both passes keep every line break, so line n of the code and of the prose is line n of the
 source. An unclosed construct raises TexSyntaxError with the line where it opens, so a check
@@ -128,9 +130,72 @@ TEXT_COMMANDS = frozenset(
     }
 )
 
+# Font and size declarations and other commands that take no argument. A group after one is
+# ordinary text, so \bf{seam}{less} prints seamless, as {seam}{less} does.
+NO_ARGUMENT_COMMANDS = frozenset(
+    {
+        "bf",
+        "it",
+        "em",
+        "sc",
+        "rm",
+        "sf",
+        "tt",
+        "sl",
+        "bfseries",
+        "mdseries",
+        "itshape",
+        "slshape",
+        "scshape",
+        "upshape",
+        "normalfont",
+        "rmfamily",
+        "sffamily",
+        "ttfamily",
+        "tiny",
+        "scriptsize",
+        "footnotesize",
+        "small",
+        "normalsize",
+        "large",
+        "Large",
+        "LARGE",
+        "huge",
+        "Huge",
+        "item",
+        "noindent",
+        "indent",
+        "centering",
+        "raggedright",
+        "raggedleft",
+        "par",
+        "relax",
+        "newline",
+        "quad",
+        "qquad",
+        "maketitle",
+        "appendix",
+        "clearpage",
+        "newpage",
+    }
+)
+# Key commands whose key arguments are followed by text arguments, with the number of those.
+TEXT_ARGUMENTS_AFTER_KEYS: dict[str, int] = {
+    "textcolor": 1,
+    "href": 1,
+    "newcommand": 1,
+    "renewcommand": 1,
+    "providecommand": 1,
+    "multicolumn": 1,
+    "multirow": 1,
+}
+
+# The one-letter accent commands, \v{c} and the like.
+ACCENT_LETTERS = "vuHckrdbtG"
+ACCENT_COMMANDS = frozenset(ACCENT_LETTERS)
 # A LaTeX accent command and the letter it accents: \'e, \'{e}, \"{\i}, \v{c} or \v c.
 ACCENT = re.compile(
-    r"\\(?:['`^\"~=.]|[vuHckrdbtG](?![A-Za-z]))[ \t]*"
+    r"\\(?:['`^\"~=.]|[" + ACCENT_LETTERS + r"](?![A-Za-z]))[ \t]*"
     r"(?:\{[ \t]*(?:\\([ij])(?![A-Za-z])[ \t]*|([A-Za-z]))[ \t]*\}|\\([ij])(?![A-Za-z])|([A-Za-z]))"
 )
 # Special letters. TeX drops the spaces after a control word, so \ss e prints as one word.
@@ -153,6 +218,9 @@ SPECIAL_LETTERS = {
 }
 
 LETTERS = re.compile(r"[A-Za-z]+")
+# A control sequence; group 1 is the name of a control word. An escape pair such as \\ is read
+# whole, so the letters after it are text.
+CONTROL_SEQUENCE = re.compile(r"\\(?:([A-Za-z]+)|.)", re.DOTALL)
 ENVIRONMENT_PATTERN = r"[A-Za-z@]+\*?"
 ENVIRONMENT_BRACE = re.compile(r"\{[ \t]*(" + ENVIRONMENT_PATTERN + r")[ \t]*\}")
 BEGIN_OR_END = re.compile(r"\\(begin|end)(?![A-Za-z])")
@@ -192,7 +260,7 @@ def extract(text: str, *, keep_tikz: bool = False) -> Source:
     """
     scanner = _CodeScanner(text, keep_tikz)
     code = scanner.run()
-    return Source(code, _prose(code), scanner.comments)
+    return Source(code, _prose(code, scanner.argument_breaks(code)), scanner.comments)
 
 
 def prose(text: str, *, keep_tikz: bool = False) -> str:
@@ -208,6 +276,19 @@ def fold_latex(text: str) -> str:
     text = ACCENT.sub(lambda match: next(group for group in match.groups() if group), text)
     text = SPECIAL_LETTER.sub(lambda match: SPECIAL_LETTERS[match[1]], text)
     return text.replace("{", "").replace("}", "")
+
+
+def argument_count(name: str) -> int | None:
+    """The number of mandatory arguments of a command, or None if its definition is not known."""
+    if name in TEXT_COMMANDS or name in ("begin", "end") or name in ACCENT_COMMANDS:
+        return 1
+    if name in NO_ARGUMENT_COMMANDS or name in SPECIAL_LETTERS:
+        return 0
+    if CITE_COMMAND.fullmatch(name):
+        return 1
+    if name in KEY_COMMANDS:
+        return KEY_COMMANDS[name] + TEXT_ARGUMENTS_AFTER_KEYS.get(name, 0)
+    return None
 
 
 def environment_boundary(names: str) -> re.Pattern[str]:
@@ -492,6 +573,38 @@ class _CodeScanner:
             at_line_start = True
         return i
 
+    def argument_breaks(self, code: str) -> frozenset[int]:
+        r"""Offsets in code of each } that ends an argument of a command whose next argument
+        follows it directly. Pass 2 reads each one as a word break.
+
+        TeX prints adjacent groups as adjacent text, so {seam}{less} and \emph{sea}{mless} print
+        seamless. Two arguments of one command are separate text, as in \textcolor{red}{x} in
+        kept TikZ text or \newterm{a}{b}. A command takes as many arguments as argument_count()
+        gives; one whose definition is not known here takes every group that follows it. Before
+        each argument the scan skips what TeX skips there (space_end, read in the source, where
+        a comment line is not a blank line) and optional [..] arguments.
+        """
+        breaks: set[int] = set()
+        for match in CONTROL_SEQUENCE.finditer(code):
+            if match[1] is None:
+                continue
+            limit = argument_count(match[1])
+            i = match.end()
+            if code.startswith("*", i):
+                i += 1
+            count = 0
+            while limit is None or count < limit:
+                i = self.space_end(i)
+                while code.startswith("[", i):
+                    i = self.space_end(_code_bracket_end(code, i))
+                if not code.startswith("{", i):
+                    break
+                i = _code_group_end(code, i)
+                count += 1
+                if code.startswith("{", i) and (limit is None or count < limit):
+                    breaks.add(i - 1)
+        return frozenset(breaks)
+
     def optional_arguments_end(self, i: int) -> int:
         text = self.text
         while True:
@@ -550,15 +663,48 @@ def _blanks_end(text: str, i: int) -> int:
     return i
 
 
-def _prose(code: str) -> str:
+def _code_group_end(code: str, start: int) -> int:
+    """Index past the group that opens at code[start] == '{', or the end of an unclosed one."""
+    depth = 0
+    i = start
+    while i < len(code):
+        char = code[i]
+        if char == "\\":
+            i += 2
+            continue
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return i + 1
+        i += 1
+    return len(code)
+
+
+def _code_bracket_end(code: str, start: int) -> int:
+    """Index past the [..] argument that opens at code[start], or the end of an unclosed one."""
+    i = start + 1
+    while i < len(code):
+        char = code[i]
+        if char == "]":
+            return i + 1
+        if char == "{":
+            i = _code_group_end(code, i)
+        else:
+            i += 2 if char == "\\" else 1
+    return len(code)
+
+
+def _prose(code: str, breaks: frozenset[int]) -> str:
     out: list[str] = []
     i = 0
     while i < len(code):
         char = code[i]
         if char == "\\":
             i = _prose_command(code, i, out)
-        elif char == "}" and code.startswith("{", i + 1):
-            # Two groups in a row are two arguments, as in \textcolor{red}{x} in kept TikZ text.
+        elif i in breaks:
+            # The end of one argument when the next one follows, as in \textcolor{red}{x}.
             out.append(" ")
             i += 1
         elif char in "{}":
