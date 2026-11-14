@@ -18,6 +18,7 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Parity traps for T0-03 (both checked with jsonschema 4.26.0): (1) the Python `jsonschema` package matches `pattern` with `re.search`, where `$` also matches before a trailing newline, so "<64 hex>\n" passes `^[0-9a-f]{64}$` there but fails pydantic (rust-regex) and ECMA/zod. (2) pydantic strict rejects JSON `1.0` for an int, while JSON Schema `integer` accepts it and JS cannot tell 1.0 from 1.
 - mypy --strict reports a tuple of lambdas that are called later as no-untyped-call. Call the functions directly.
 - `mktemp` + `mv` leaves a file with mode 600. Run `chmod 644` after a jq rewrite of prd.json. `jq .` reproduces prd.json's formatting byte for byte.
+- The Codex reviewer runs in a read-only sandbox, so it marks every check command NOT_RUN. Only the Claude reviewer and the gate run commands. To show that a resolution edit changed only resolution fields, compare the hash of `jq 'del(.findings[].resolution)'` before and after.
 ---
 
 ## 2026-11-14T17:25Z · T0-01 · implement
@@ -26,4 +27,12 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Checks: make setup → exit 0 (Python 3.12.13, GDAL 3.12.2 from rasterio 1.5.2); make check → exit 0 (ruff check clean, 4 files formatted, mypy strict: no issues in 4 files); make test → exit 0 (142 passed)
 - Docs used: pydantic 2.14.3 / pydantic-core 2.50.4 (Context7 /pydantic/pydantic; regex_engine default read from the installed pydantic.config source because Context7 did not cover it); uv 0.9.26 (Context7 /astral-sh/uv, docs.astral.sh/uv/concepts/projects/workspaces, `uv sync --help`); rasterio 1.5.2 (Context7 /rasterio/rasterio covers wheels bundling libgdal but not `__gdal_version__`, so I checked it on the installed module); ruff 0.17.5, mypy 2.4.1, pytest 9.2.0, hypothesis 6.170.15 as locked in uv.lock.
 - Learnings: Constraints beyond the criteria, all expressible in JSON Schema: non-empty strings (so "" cannot stand in for null), path-safe relative bundle paths and bundle_version, a semver schema_version and a YYYY-MM-DDTHH:MM:SSZ created_utc pattern. The pattern does not check calendar validity, so 2026-02-30 passes. GateRecord.result is typed str | None because the PRD does not give its type. Duplicate file paths or targets are not rejected at schema level; T0-02's validate_bundle should catch duplicate paths.
+---
+
+## 2026-11-14T17:30Z · T0-01 · resolve
+- Done: Resolved round 1. claude-r1-1 (low): fixed. Added test_schema_version_is_the_prd_example_version, which reads the PRD 8.4 example and requires SCHEMA_VERSION to equal its schema_version. The SCHEMA_VERSION docstring now says a new version needs a PRD amendment. A temporary SCHEMA_VERSION = "1.0.1" made the new test fail; reverting it made the test pass. Codex reported no findings (verdict NOT_RUN: its sandbox was read-only, so it ran no commands).
+- Commits: a4a1190 fix(t0-01): tie schema_version to the prd 8.4 example (claude-r1-1)
+- Checks: make setup → exit 0 (Python 3.12.13, GDAL 3.12.2 from rasterio 1.5.2); make check → exit 0 (ruff clean, 4 files formatted, mypy: no issues in 4 files); make test → exit 0 (143 passed)
+- Docs used: none new; same locked versions as the implement entry (ruff 0.17.5, mypy 2.4.1, pytest 9.2.0).
+- Learnings: ruff's SIM300 flags a constant on the left of ==, so write `assert <expr> == CONSTANT`. `jq 'del(.findings[].resolution)'` gives the same hash before and after a resolution edit, which shows that only resolution fields changed. Codex reviews in a read-only sandbox return NOT_RUN for every command check, so the Claude review and the gate are the only reviews that execute anything.
 ---
