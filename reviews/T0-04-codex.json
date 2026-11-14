@@ -1,0 +1,193 @@
+{
+  "task_id": "T0-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "fcf539bcea63d62066724194c2116607088ad21a",
+    "head": "b6ee40a78a7a3bb317f8088b57411c1a8ad1e54f",
+    "files": [
+      {
+        "path": "Makefile",
+        "sha256": "0c26e84fb2f09998a7f16d949a60aa1c129d79065f8f7a9382e2c38fb106bbc9"
+      },
+      {
+        "path": "eslint.config.mjs",
+        "sha256": "dcf6ad35442f6439f88f4b03a55576432d28fefc2d85749c0ad535d6c4b4e43c"
+      },
+      {
+        "path": "package.json",
+        "sha256": "1fdfd470a509fcc1708e1aa00d9f198182afb834c3442fa937b3f26e18a19952"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "bd4ebda191decfa68a24fbcabd4e28611d0a7e97091836da45029c046f053da9"
+      },
+      {
+        "path": "packages/schema/package.json",
+        "sha256": "e7499ce7267c48a4ef1fa3190f573de9dd786a9d76de157901837f5644942d48"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "3aafd1d22621ca884f555b137fab8ad83168688a98e6082ad83a8d690bc04d12"
+      },
+      {
+        "path": "packages/schema/src/generated/bundle-manifest.ts",
+        "sha256": "35b1d113c3f3f1fa9584d52c2e96dcf4d19bff9ef17425cd7ef4e066f244d4bd"
+      },
+      {
+        "path": "packages/schema/src/generated/gate-record.ts",
+        "sha256": "c11ed0984e377aff91ca924777963eee38f13b2166a4842094d1e6322885b7ac"
+      },
+      {
+        "path": "packages/schema/src/generated/validation.ts",
+        "sha256": "4aaaf6a86cff23d0f3f0ab1c6a809e73e0fc326aa55ad8137ebbb8ed74a6b851"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "242e0b14ecb3c0bf795f58eb9ff151b57dfa1cc496dd6657f09ccf7c9631396f"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "b9e7ee8b2714c2fbdf8da8fb7e758dc37547a3be5bf178e6a03ce62432e1f70f"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "18b5e249923aa83852b870797996d7af8515daf4dbac503bbd1c43c008d06f76"
+      },
+      {
+        "path": "packages/schema/tests/mock-bundle.test.ts",
+        "sha256": "4829874fd2097eefe2e057144163ebe7fc17f5c1ddb255cb71e9597c22efe56b"
+      },
+      {
+        "path": "packages/schema/tests/paths.ts",
+        "sha256": "cba321d8bcec62d38fb19f4587a534d817253ed17fa627ccd840105d703a6fc1"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "26f975b769cd52dc80ddc79635f0776954658aeca0800f3e76e4cee621492e8b"
+      },
+      {
+        "path": "packages/schema/tsconfig.json",
+        "sha256": "9181a0c15e562fbfb3d61584e57d8636a2dee2d53439f056d2d0f1d49d0ae988"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "4f24fe3c8b8ad651493dc9f87767f7a379f10ce89040281961a5da2ed5fa4f53"
+      },
+      {
+        "path": "pnpm-workspace.yaml",
+        "sha256": "ebaa1910ec8a8da2efdf2282db0a6e0dcf1c9cd58c8333a2e58989f486fd85c7"
+      },
+      {
+        "path": "tsconfig.base.json",
+        "sha256": "197cf133c4e0c90cd9909cadbe8e3a7317800831c2035707e340c22ff0fae26e"
+      },
+      {
+        "path": "turbo.json",
+        "sha256": "70144a9ab01026832c1ce4060ea87a7fd0e58bba67b72c7ec7d7ca920f093784"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:29:42Z",
+  "finished_utc": "2026-11-14T18:35:46Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static review found two medium issues. Execution-dependent criteria remain unverified because checks were prohibited in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "Root package settings, workspace membership, committed lockfile, and Turborepo tasks.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "package.json:3 declares private, :4 pins pnpm@12.16.1, and :6 specifies 22.x. pnpm-workspace.yaml:2 includes packages/* and apps/*. The reviewed diff contains pnpm-lock.yaml; turbo.json:4 defines all four tasks. Matching the installed pnpm version requires execution, which was prohibited."
+    },
+    {
+      "criterion": "Strict TypeScript settings, ESLint 9 flat configuration with typescript-eslint, and Vitest with locked versions.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "tsconfig.base.json:10 enables strict, noUncheckedIndexedAccess, and exactOptionalPropertyTypes. eslint.config.mjs:5 imports ESLint's flat-config helper and typescript-eslint. packages/schema/package.json:14 runs Vitest. pnpm-lock.yaml:175 and :194 pin the relevant dependencies."
+    },
+    {
+      "criterion": "@terraluna/schema exports generated zod 4 schemas and inferred types for all three contracts.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "packages/schema/src/index.ts:3 exports all three schemas and types. Each generated module contains the required header. scripts/generate-zod.ts:438 requests zodVersion 4; package.json pins json-schema-to-zod 2.8.1. Regeneration, parsing, and the author's documentation-reading sequence were not independently verified."
+    },
+    {
+      "criterion": "make schema regenerates both formats, and make schema-check detects drift in either output.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Makefile:60 invokes both generators; :66 aggregates both drift-check exit statuses. packages/schema/scripts/generate-zod.ts:547 compares generated bytes and checks missing and extra modules. tests/generate-zod.test.ts:291 exercises output drift and :305 exercises changed JSON input. Execution was prohibited."
+    },
+    {
+      "criterion": "Vitest tests precede implementation, exercise every shared case, and parse both mock files.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Git file history shows tests added in f01ce0c0 before the generator in ea5cce12 and generated sources in 78cca543. packages/schema/tests/cases.test.ts:111 checks each case's verdict and preserves accepted values; mock-bundle.test.ts:15 parses both files. Runtime verdicts were not verified because execution was prohibited."
+    },
+    {
+      "criterion": "Makefile wires setup-ts, check-ts, and test-ts into setup, check, and test.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Makefile:22 includes the TypeScript targets. setup-ts at :43 checks Node major 22 and invokes pnpm install --frozen-lockfile. check-ts at :51 runs lint/typecheck through Turborepo; test-ts at :54 dispatches the package's Vitest script. This is a static wiring assessment."
+    },
+    {
+      "criterion": "Pinned commitlint and husky configuration is preserved, and frozen installation installs the commit-msg hook.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "package.json:9 preserves prepare=husky and :13 preserves commitlint 21.2.4 and husky 9.1.7. .husky/commit-msg:1 invokes commitlint. These settings are preserved in the diff, but hook installation requires the prohibited install command."
+    },
+    {
+      "criterion": "Changed paths and scientific guardrails.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The scoped diff's 20 paths fall within the story's files list. config/run.yaml is unchanged. Generated validators use required nullable fields without coercion or defaults; cases.test.ts:120 checks that accepted values remain unchanged. Mock-file loading occurs in tests."
+    },
+    {
+      "criterion": "Required setup check.",
+      "command": "make setup",
+      "outcome": "NOT_RUN",
+      "evidence": "Prohibited by the review instructions; dependency installation and hook setup write files."
+    },
+    {
+      "criterion": "Required schema drift check.",
+      "command": "make schema-check",
+      "outcome": "NOT_RUN",
+      "evidence": "Prohibited by the review instructions; the Python check creates temporary files and uv may write environment/cache state."
+    },
+    {
+      "criterion": "Required lint and typecheck.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Prohibited by the review instructions; toolchain and Turborepo cache writes are unavailable."
+    },
+    {
+      "criterion": "Required test suites.",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Prohibited by the review instructions; tests create scratch directories and toolchain caches."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "Makefile:16",
+      "claim": "Require the Node minor version needed for bare TypeScript execution, or use a compatible runner. setup-ts accepts Node 22.17, but the schema commands and generator subprocess tests invoke a .ts file without enabling type stripping, so those commands fail on an accepted runtime.",
+      "evidence": "Makefile:44 accepts every 22.* version, while :16 invokes node packages/schema/scripts/generate-zod.ts. packages/schema/tests/generate-zod.test.ts:70 similarly spawns Node without flags. [Node 22 documentation](https://nodejs.org/docs/latest-v22.x/api/typescript.html) records that type stripping became enabled by default in 22.18.0. This conclusion is from static inspection; no command was executed.",
+      "id": "codex-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "medium",
+      "location": "packages/schema/scripts/generate-zod.ts:268",
+      "claim": "Reject or faithfully translate combinations of enum/const with other string constraints. The supported-subset guard currently accepts combinations that the pinned converter silently weakens.",
+      "evidence": "The string branch permits enum together with minLength or pattern and returns without checking their interaction. In the installed pinned converter, dist/esm/parsers/parseSchema.js:97 selects parseEnum before parseString, and parseEnum.js:9 emits only the enum. Consequently, {\"type\":\"string\",\"enum\":[\"\",\"ok\"],\"minLength\":1} is accepted by the guard but generates a validator accepting the forbidden empty string. Current committed schemas do not use this combination.",
+      "id": "codex-r1-2",
+      "resolution": null
+    }
+  ]
+}

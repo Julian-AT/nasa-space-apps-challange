@@ -1,0 +1,167 @@
+{
+  "task_id": "T0-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "fcf539bcea63d62066724194c2116607088ad21a",
+    "head": "b6ee40a78a7a3bb317f8088b57411c1a8ad1e54f",
+    "files": [
+      {
+        "path": "Makefile",
+        "sha256": "0c26e84fb2f09998a7f16d949a60aa1c129d79065f8f7a9382e2c38fb106bbc9"
+      },
+      {
+        "path": "eslint.config.mjs",
+        "sha256": "dcf6ad35442f6439f88f4b03a55576432d28fefc2d85749c0ad535d6c4b4e43c"
+      },
+      {
+        "path": "package.json",
+        "sha256": "1fdfd470a509fcc1708e1aa00d9f198182afb834c3442fa937b3f26e18a19952"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "bd4ebda191decfa68a24fbcabd4e28611d0a7e97091836da45029c046f053da9"
+      },
+      {
+        "path": "packages/schema/package.json",
+        "sha256": "e7499ce7267c48a4ef1fa3190f573de9dd786a9d76de157901837f5644942d48"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "3aafd1d22621ca884f555b137fab8ad83168688a98e6082ad83a8d690bc04d12"
+      },
+      {
+        "path": "packages/schema/src/generated/bundle-manifest.ts",
+        "sha256": "35b1d113c3f3f1fa9584d52c2e96dcf4d19bff9ef17425cd7ef4e066f244d4bd"
+      },
+      {
+        "path": "packages/schema/src/generated/gate-record.ts",
+        "sha256": "c11ed0984e377aff91ca924777963eee38f13b2166a4842094d1e6322885b7ac"
+      },
+      {
+        "path": "packages/schema/src/generated/validation.ts",
+        "sha256": "4aaaf6a86cff23d0f3f0ab1c6a809e73e0fc326aa55ad8137ebbb8ed74a6b851"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "242e0b14ecb3c0bf795f58eb9ff151b57dfa1cc496dd6657f09ccf7c9631396f"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "b9e7ee8b2714c2fbdf8da8fb7e758dc37547a3be5bf178e6a03ce62432e1f70f"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "18b5e249923aa83852b870797996d7af8515daf4dbac503bbd1c43c008d06f76"
+      },
+      {
+        "path": "packages/schema/tests/mock-bundle.test.ts",
+        "sha256": "4829874fd2097eefe2e057144163ebe7fc17f5c1ddb255cb71e9597c22efe56b"
+      },
+      {
+        "path": "packages/schema/tests/paths.ts",
+        "sha256": "cba321d8bcec62d38fb19f4587a534d817253ed17fa627ccd840105d703a6fc1"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "26f975b769cd52dc80ddc79635f0776954658aeca0800f3e76e4cee621492e8b"
+      },
+      {
+        "path": "packages/schema/tsconfig.json",
+        "sha256": "9181a0c15e562fbfb3d61584e57d8636a2dee2d53439f056d2d0f1d49d0ae988"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "4f24fe3c8b8ad651493dc9f87767f7a379f10ce89040281961a5da2ed5fa4f53"
+      },
+      {
+        "path": "pnpm-workspace.yaml",
+        "sha256": "ebaa1910ec8a8da2efdf2282db0a6e0dcf1c9cd58c8333a2e58989f486fd85c7"
+      },
+      {
+        "path": "tsconfig.base.json",
+        "sha256": "197cf133c4e0c90cd9909cadbe8e3a7317800831c2035707e340c22ff0fae26e"
+      },
+      {
+        "path": "turbo.json",
+        "sha256": "70144a9ab01026832c1ce4060ea87a7fd0e58bba67b72c7ec7d7ca920f093784"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:29:17Z",
+  "finished_utc": "2026-11-14T18:29:42Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "All four story checks (make setup, schema-check, check, test) exit 0. Each acceptance criterion is met on evidence I saw. The only gap is that turbo lint, typecheck and test replayed from cache, so those runs were not fresh executions. I found no blocker or high findings.",
+  "checks": [
+    {
+      "criterion": "Root package.json private, packageManager equals pnpm --version, engines.node 22.x; workspace includes packages/* and apps/*; lockfile committed; turbo defines build, typecheck, lint, test",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "package.json:4 has pnpm@12.16.1, which matches 'pnpm v12.16.1' in the make setup output; package.json:6 has \"22.x\". pnpm-workspace.yaml lists packages/* and apps/*. pnpm-lock.yaml appears in the diff (1726 lines changed). turbo.json defines all four tasks."
+    },
+    {
+      "criterion": "tsconfig.base.json enables strict, noUncheckedIndexedAccess and exactOptionalPropertyTypes; ESLint 9 flat config with typescript-eslint; Vitest; exact versions",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "tsconfig.base.json:12-14 enable all three. eslint.config.mjs is a flat config, with eslint 9.39.5 and typescript-eslint 8.72.2. vitest 5.1.0 is pinned. All dependency versions are exact, with no ranges."
+    },
+    {
+      "criterion": "@terraluna/schema exports zod 4 schemas and types for BundleManifest, GateRecord and the validation file, generated from the JSON Schemas by a pinned generator; generated files committed with a do-not-edit header",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "zod 4.6.7 and json-schema-to-zod 2.8.1 are pinned. src/generated/bundle-manifest.ts:1-3 carries the 'Do not edit' header, and the Schema and type exports are present. gate-record.ts and validation.ts are committed alongside it."
+    },
+    {
+      "criterion": "make schema regenerates zod too; make schema-check fails on drift in JSON Schema or zod",
+      "command": "make schema-check",
+      "outcome": "PASS",
+      "evidence": "Output: 'JSON Schemas match schema.py' and 'zod schemas match packages/schema/json'. Makefile:60-70 runs both checks and exits 1 if either finds drift. I did not trigger drift myself, since modifying files is not allowed."
+    },
+    {
+      "criterion": "Vitest tests written first: every case in cases.json gets its expected verdict from zod; mock manifest.json and validation.json parse",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "Vitest: 3 files, 148 tests passed, including 61 in cases.test.ts. Those tests assert the verdict for each case, plus toStrictEqual on accepted values. mock-bundle.test.ts has 2 tests. The pytest suite passed 404. The turbo test run was a cache hit, so it replayed a prior run."
+    },
+    {
+      "criterion": "Makefile targets setup-ts, check-ts, test-ts; setup, check and test include them",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "Makefile:22-24 and 43-55 wire the targets as required. setup-ts checks for Node 22.* and runs pnpm install --frozen-lockfile. make setup printed Node 22.23.3 and succeeded. make check ran ruff, mypy, and turbo lint and typecheck, all passing (the turbo tasks were cache hits)."
+    },
+    {
+      "criterion": "commitlint and husky setup keeps working",
+      "command": "make setup",
+      "outcome": "PASS",
+      "evidence": "package.json keeps \"prepare\": \"husky\" and the pinned @commitlint/cli, @commitlint/config-conventional (21.2.4) and husky 9.1.7. .husky/commit-msg exists. The install ran with --frozen-lockfile."
+    },
+    {
+      "criterion": "Story check: make setup",
+      "command": "make setup",
+      "outcome": "PASS",
+      "evidence": "Exit 0."
+    },
+    {
+      "criterion": "Scope: only files in the story's list changed",
+      "command": "git diff --stat",
+      "outcome": "PASS",
+      "evidence": "All 20 changed files fall under the package.json, pnpm-*, turbo.json, tsconfig.base.json, eslint.config.mjs, packages/schema/* and Makefile entries in the story's files list. The working tree is clean except for logs/."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "make check / make test",
+      "claim": "The turbo lint, typecheck and test results I saw were cache hits, not fresh executions.",
+      "evidence": "'cache hit, replaying logs' and 'FULL TURBO' in the output. The replayed logs show the checks passing, and the pytest portion ran fresh.",
+      "id": "claude-r1-1",
+      "resolution": null
+    }
+  ]
+}
