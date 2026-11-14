@@ -1,0 +1,22 @@
+# Ralph progress: t16-paper
+
+Append-only. Each iteration adds one entry at the end. Keep general, reusable facts in Codebase Patterns.
+
+## Codebase Patterns
+- Build Mac, checked 2026-11-14: uv 0.9.26; Python 3.12.13 via uv; Node 22.23.3 (nvm); pnpm 12.16.1; jq 1.8.2; GNU Make 3.81; actionlint installed.
+- `python3` on PATH is Anaconda's 3.14. Always use `uv run`, never bare `python3`.
+- GNU Make 3.81: no .ONESHELL, no grouped targets (`&:`), no `!=` assignment. Keep recipes POSIX sh.
+- No system GDAL (`gdalinfo` is missing). GDAL comes from the rasterio wheel.
+- macOS has no coreutils `timeout`.
+- Other workers may share this repository. Stage explicit paths only.
+- Commits: commitlint (config-conventional, scopes lower case such as t0-01) runs from the husky commit-msg hook (core.hooksPath=.husky/_). The root package.json already exists for this; T0-04 extends it.
+- ralph.sh commits review files, gate results, loop notes and compact logs (logs/agents/<date>/*.jsonl). Full transcripts are in git-ignored logs/agents/<date>/raw/.
+- ralph.sh matches story `files` with bash `[[ $p == $glob ]]`, so `*` also matches `/`: `pipeline/*` covers nested paths.
+- Context7 works over plain HTTP via WebFetch: https://context7.com/api/v1/<org>/<repo>?topic=<words>&tokens=<n>. For flags of an installed CLI, `<cli> --help` is authoritative.
+- The uv workspace root is virtual (no [project]). A plain `uv sync --locked` there installs both members and the dev group (checked on a fresh copy).
+- Bundle records live in pipeline/src/terraluna_pipeline/schema.py. Base `Record` uses extra=forbid, strict=True, frozen=True and regex_engine="rust-regex". Constraints are kept to what JSON Schema can express (patterns, enums, minLength, minimum), so T0-03/T0-04 can stay in parity.
+- Parity traps for T0-03 (both checked with jsonschema 4.26.0): (1) the Python `jsonschema` package matches `pattern` with `re.search`, where `$` also matches before a trailing newline, so "<64 hex>\n" passes `^[0-9a-f]{64}$` there but fails pydantic (rust-regex) and ECMA/zod. (2) pydantic strict rejects JSON `1.0` for an int, while JSON Schema `integer` accepts it and JS cannot tell 1.0 from 1.
+- mypy --strict reports a tuple of lambdas that are called later as no-untyped-call. Call the functions directly.
+- `mktemp` + `mv` leaves a file with mode 600. Run `chmod 644` after a jq rewrite of prd.json. `jq .` reproduces prd.json's formatting byte for byte.
+- The Codex reviewer runs in a read-only sandbox, so it marks every check command NOT_RUN. Only the Claude reviewer and the gate run commands. To show that a resolution edit changed only resolution fields, compare the hash of `jq 'del(.findings[].resolution)'` before and after.
+---
