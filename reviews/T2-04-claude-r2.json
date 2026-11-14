@@ -96,7 +96,11 @@
       "claim": "make check runs ruff and mypy only, not pytest, so its pass says nothing about the numerical tests.",
       "evidence": "make check output showed only ruff check, ruff format --check and mypy. The pytest run was done separately and passed (141 tests). Informational only.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect in this story. make check is the static target (ruff check, ruff format --check, mypy), and make test runs pytest (Makefile check-py and test-py). PRD 12 Commands defines make test as the unit-test command, separate from static checks. The story checks list runs uv run pytest pipeline/tests/test_polarimetry_derive.py as its first command, so the numerical tests are checked on their own. The reviewer confirms 141 passed and calls the note informational. The Makefile is also outside this story's files list. Rerun at resolve time: story pytest 141 passed (exit 0), mypy no issues (exit 0), make check exit 0, make test 883 passed."
+      }
     }
   ]
 }
