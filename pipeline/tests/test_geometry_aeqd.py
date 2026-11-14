@@ -16,16 +16,16 @@ Units and conventions used throughout:
   (27, 27) sits at x = -25 m, y = 25 m), where that is 2.5e-9 m.
 - Float64 puts a floor under this. A returned longitude near +-pi is resolved only to half an
   ulp of math.pi, 2.2e-16 rad, which is 1.4e-9 m on the Earth sphere, 0.56 of the allowance at
-  25 m. Closer than about 14 m to the centre, the allowance falls below that floor for any
-  float64 (latitude, longitude) pair. Round trips therefore use the D29 pixel centres, which
-  are the points where the resampler evaluates the inverse. Smaller offsets, down to subnormal
-  ones, are checked for finite results everywhere, and for the round trip only at the centre
-  (0, 0), where float64 resolves them.
+  25 m. Closer than about 14 m to the centre or to an axis, the allowance falls below that
+  floor for any float64 (latitude, longitude) pair. Round trips therefore use the D29 pixel
+  centres, which are the points where the resampler evaluates the inverse. Tiny offsets, down
+  to subnormal ones, also get a round trip at the centre (0, 0), where float64 resolves them.
 - Distances from the window centre are checked against rho to 1e-9 relative (PRD 7 Tests).
 
 The reference formulas here are written independently of the implementation: the grid with
-explicit loops, a forward AEQD from 3-D unit vectors evaluated exactly at 40 significant digits
-with mpmath, and the great-circle distance by the haversine formula.
+explicit loops, a forward and an inverse AEQD from 3-D unit vectors evaluated exactly at 40
+significant digits with mpmath, and the great-circle distance by the haversine formula. The two
+exact references are checked against each other at 40 digits.
 """
 
 from __future__ import annotations
@@ -35,6 +35,7 @@ import math
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 import mpmath  # type: ignore[import-untyped]
 import numpy as np
@@ -76,7 +77,7 @@ WINDOW_M = TERRAIN.window_m
 GRID_M = TERRAIN.analysis_grid_m
 GRID_SIZE = window_grid(WINDOW_M, GRID_M).size
 
-# Significant digits of the exact reference forward. Float64 carries about 16.
+# Significant digits of the exact references. Float64 carries about 16.
 REFERENCE_DIGITS = 40
 # Grid rows and columns checked against the exact reference: both edges, their neighbours, two
 # interior lines and the three lines through the centre pixel, where the offsets are smallest
@@ -84,9 +85,105 @@ REFERENCE_DIGITS = 40
 # forward; the exact reference costs about 0.1 ms per point, so it gets these 81 points.
 REFERENCE_LINES = (0, 1, 13, 26, 27, 28, 41, 53, 54)
 
+# The exact references must agree with each other far below the 1e-12 m allowance. At 40
+# digits each carries rounding of about radius * 1e-40, under 1e-33 m; 1e-25 m leaves room for
+# the conditioning of atan2 and sqrt and is still 13 orders below the allowance.
+REFERENCE_AGREEMENT_M = 1e-25
+
+HALF_WINDOW_M = WINDOW_M / 2
+# Explicit continuous offsets in the window: the centre, the corners and edge midpoints, tiny
+# and subnormal components, and offsets near an axis far from the centre, where the absolute
+# part of the tolerance binds.
+EDGE_OFFSETS = [
+    (0.0, 0.0),
+    (-0.0, -0.0),
+    (HALF_WINDOW_M, HALF_WINDOW_M),
+    (-HALF_WINDOW_M, -HALF_WINDOW_M),
+    (HALF_WINDOW_M, -0.0),
+    (0.0, -HALF_WINDOW_M),
+    (5e-324, 0.0),
+    (-1e-300, 1e-300),
+    (1e-12, -1e-9),
+    (2400.0, 1e-9),
+    (-1e-7, -2450.0),
+    (1234.5, -3e-6),
+    (0.4, 13.9),
+    (-13.9, -0.4),
+]
+
 
 # ---------------------------------------------------------------------------------------------
 # Independent reference formulas
+
+
+Vector = tuple[Any, Any, Any]
+"""Three mpmath numbers: a vector in the centre frame of :func:`centre_axes`."""
+
+
+def centre_axes(lat0: float) -> tuple[Vector, Vector, Vector]:
+    """East, north and up unit vectors at the window centre, at the working mpmath precision.
+
+    The body-fixed frame is turned about the polar axis so that the centre meridian lies in the
+    x-z plane: a point's longitude in this frame is its longitude minus the centre's. Call it
+    inside ``mpmath.workdps``.
+    """
+    phi0 = mpmath.mpf(lat0)
+    zero = mpmath.mpf(0)
+    east = (zero, mpmath.mpf(1), zero)
+    north = (-mpmath.sin(phi0), zero, mpmath.cos(phi0))
+    up = (mpmath.cos(phi0), zero, mpmath.sin(phi0))
+    return east, north, up
+
+
+def dot(a: Vector, b: Vector) -> Any:
+    return mpmath.fsum(p * q for p, q in zip(a, b, strict=True))
+
+
+def exact_offset_mp(
+    phi: Any, dlam: Any, axes: tuple[Vector, Vector, Vector], radius: Any
+) -> tuple[Any, Any]:
+    """Forward AEQD of one point on the true sphere, in mpmath numbers: (east, north) metres.
+
+    ``dlam`` is the point's longitude minus the centre's. The point is projected onto the
+    centre's east, north and up axes; the azimuth is (east, north) normalised and the distance
+    is radius * atan2(|horizontal|, up).
+    """
+    east, north, up = axes
+    point = (
+        mpmath.cos(phi) * mpmath.cos(dlam),
+        mpmath.cos(phi) * mpmath.sin(dlam),
+        mpmath.sin(phi),
+    )
+    e = dot(east, point)
+    n = dot(north, point)
+    u = dot(up, point)
+    horizontal = mpmath.sqrt(e * e + n * n)
+    if horizontal == 0:
+        return mpmath.mpf(0), mpmath.mpf(0)
+    scale = radius * mpmath.atan2(horizontal, u) / horizontal
+    return scale * e, scale * n
+
+
+def exact_point_mp(
+    x: Any, y: Any, axes: tuple[Vector, Vector, Vector], radius: Any
+) -> tuple[Any, Any]:
+    """Inverse AEQD of one offset on the true sphere, in mpmath numbers: (phi, lam - lam0).
+
+    The point lies a great-circle distance rho = hypot(x, y) from the centre, at azimuth
+    (x, y) / rho from north. Its unit vector is cos c * up + sin c * (azimuth in the east-north
+    plane), with c = rho / radius, read back as a latitude atan2(z, hypot(x, y)) and a longitude
+    difference atan2(y, x) in (-pi, pi]. At rho = 0 it is the centre, whose latitude is read
+    back from the up vector the same way, to the working precision.
+    """
+    east, north, up = axes
+    rho = mpmath.sqrt(x * x + y * y)
+    if rho == 0:
+        return mpmath.atan2(up[2], up[0]), mpmath.mpf(0)
+    c = rho / radius
+    azimuth = tuple(x / rho * a + y / rho * b for a, b in zip(east, north, strict=True))
+    point = tuple(mpmath.cos(c) * a + mpmath.sin(c) * b for a, b in zip(up, azimuth, strict=True))
+    phi = mpmath.atan2(point[2], mpmath.sqrt(point[0] ** 2 + point[1] ** 2))
+    return phi, mpmath.atan2(point[1], point[0])
 
 
 def exact_forward(
@@ -94,10 +191,9 @@ def exact_forward(
 ) -> tuple[Array, Array]:
     """Forward AEQD from 3-D unit vectors at 40 digits, written independently of the module.
 
-    Every float64 input is taken at its exact binary value. The point is projected onto the
-    centre's east, north and up axes in a body-fixed frame; the azimuth is (east, north)
-    normalised and the distance is radius * atan2(|horizontal|, up). Only the resulting metres
-    are rounded to float64, so the reference adds at most half an ulp to each coordinate.
+    Every float64 input is taken at its exact binary value (see :func:`exact_offset_mp`). Only
+    the resulting metres are rounded to float64, so the reference adds at most half an ulp to
+    each coordinate.
 
     A longitude more than math.pi from the centre is moved by 2 * math.pi first, which undoes
     the inverse's wrap into [-pi, pi) under the module's convention (see the module docstring).
@@ -107,43 +203,57 @@ def exact_forward(
     y_out = np.empty(lat.shape)
     with mpmath.workdps(REFERENCE_DIGITS):
         pi = mpmath.mpf(PI)
+        lam0 = mpmath.mpf(lon0)
+        axes = centre_axes(lat0)
+        r = mpmath.mpf(radius)
+        for index in np.ndindex(lat.shape):
+            dlam = mpmath.mpf(float(lon[index])) - lam0
+            if dlam > pi:
+                dlam -= 2 * pi
+            elif dlam < -pi:
+                dlam += 2 * pi
+            e, n = exact_offset_mp(mpmath.mpf(float(lat[index])), dlam, axes, r)
+            x_out[index] = float(e)
+            y_out[index] = float(n)
+    return x_out, y_out
+
+
+def exact_inverse(
+    x: Array, y: Array, lat0: float, lon0: float, radius: float
+) -> tuple[Array, Array, Array, Array]:
+    """Inverse AEQD from 3-D unit vectors at 40 digits, written independently of the module.
+
+    Every float64 offset is taken at its exact binary value (see :func:`exact_point_mp`).
+    Returns float64 ``(lat, lon, dlat, dlon)``: the latitude and longitude, and their exact
+    differences from the centre, each rounded once. ``dlon`` lies in (-pi, pi]. ``lon`` is
+    lon0 + dlon brought into [-pi, pi) by a shift of 2 * math.pi under the module's convention,
+    so after rounding it can equal math.pi; compare it with :func:`assert_angles_close`.
+    """
+    x, y = np.broadcast_arrays(np.asarray(x, np.float64), np.asarray(y, np.float64))
+    lat_out = np.empty(x.shape)
+    lon_out = np.empty(x.shape)
+    dlat_out = np.empty(x.shape)
+    dlon_out = np.empty(x.shape)
+    with mpmath.workdps(REFERENCE_DIGITS):
+        pi = mpmath.mpf(PI)
         phi0 = mpmath.mpf(lat0)
         lam0 = mpmath.mpf(lon0)
-        up = (
-            mpmath.cos(phi0) * mpmath.cos(lam0),
-            mpmath.cos(phi0) * mpmath.sin(lam0),
-            mpmath.sin(phi0),
-        )
-        east = (-mpmath.sin(lam0), mpmath.cos(lam0), mpmath.mpf(0))
-        north = (
-            -mpmath.sin(phi0) * mpmath.cos(lam0),
-            -mpmath.sin(phi0) * mpmath.sin(lam0),
-            mpmath.cos(phi0),
-        )
-        for index in np.ndindex(lat.shape):
-            phi = mpmath.mpf(float(lat[index]))
-            lam = mpmath.mpf(float(lon[index]))
-            if lam - lam0 > pi:
-                lam -= 2 * pi
-            elif lam - lam0 < -pi:
-                lam += 2 * pi
-            point = (
-                mpmath.cos(phi) * mpmath.cos(lam),
-                mpmath.cos(phi) * mpmath.sin(lam),
-                mpmath.sin(phi),
+        axes = centre_axes(lat0)
+        r = mpmath.mpf(radius)
+        for index in np.ndindex(x.shape):
+            phi, dlam = exact_point_mp(
+                mpmath.mpf(float(x[index])), mpmath.mpf(float(y[index])), axes, r
             )
-            e = mpmath.fsum(a * b for a, b in zip(east, point, strict=True))
-            n = mpmath.fsum(a * b for a, b in zip(north, point, strict=True))
-            u = mpmath.fsum(a * b for a, b in zip(up, point, strict=True))
-            horizontal = mpmath.sqrt(e * e + n * n)
-            if horizontal == 0:
-                x_out[index] = 0.0
-                y_out[index] = 0.0
-                continue
-            scale = mpmath.mpf(radius) * mpmath.atan2(horizontal, u) / horizontal
-            x_out[index] = float(scale * e)
-            y_out[index] = float(scale * n)
-    return x_out, y_out
+            lam = lam0 + dlam
+            if lam >= pi:
+                lam -= 2 * pi
+            elif lam < -pi:
+                lam += 2 * pi
+            lat_out[index] = float(phi)
+            lon_out[index] = float(lam)
+            dlat_out[index] = float(phi - phi0)
+            dlon_out[index] = float(dlam)
+    return lat_out, lon_out, dlat_out, dlon_out
 
 
 def haversine_m(lat: Array, lon: Array, lat0: float, lon0: float, radius: float) -> Array:
@@ -191,6 +301,17 @@ def assert_metres_close(
     """PRD 7 tolerances on window coordinates in plain metres: atol 1e-12 m, rtol 1e-10."""
     np.testing.assert_allclose(x_actual, x_expected, rtol=RTOL, atol=ATOL)
     np.testing.assert_allclose(y_actual, y_expected, rtol=RTOL, atol=ATOL)
+
+
+def assert_angles_close(actual: Array, expected: Array) -> None:
+    """PRD 7 tolerances on angles in radians, comparing the same meridian.
+
+    Each actual angle is first moved by the whole number of turns of 2 * math.pi that brings it
+    nearest the expected one, so that -math.pi and math.pi, which name the same meridian,
+    compare equal. Ranges are asserted separately.
+    """
+    turns = np.round((expected - actual) / (2 * PI))
+    np.testing.assert_allclose(actual + turns * (2 * PI), expected, rtol=RTOL, atol=ATOL)
 
 
 def story_grid() -> tuple[Array, Array]:
@@ -324,6 +445,55 @@ def test_grid_rejects_invalid_parameters(width: float, spacing: float) -> None:
 def test_grid_errors_are_value_errors() -> None:
     assert issubclass(WindowGridError, ValueError)
     assert issubclass(AeqdDomainError, ValueError)
+
+
+# ---------------------------------------------------------------------------------------------
+# The exact references
+
+
+@pytest.mark.parametrize("body", BODIES)
+@pytest.mark.parametrize(
+    "lat0",
+    [-HALF_PI, math.radians(-89.9), -0.7, 0.0, 1e-300, 1.0233922226196999, 1.4, HALF_PI],
+)
+def test_exact_references_invert_each_other(body: str, lat0: float) -> None:
+    """The exact inverse, then the exact forward, at 40 digits gives back each offset.
+
+    The centre frame removes the centre longitude, so the references do not depend on it.
+    """
+    radius = BODY_RADII_M[body]
+    rng = np.random.default_rng(20261114)
+    offsets = [*EDGE_OFFSETS, *rng.uniform(-HALF_WINDOW_M, HALF_WINDOW_M, (32, 2)).tolist()]
+    with mpmath.workdps(REFERENCE_DIGITS):
+        axes = centre_axes(lat0)
+        r = mpmath.mpf(radius)
+        for x, y in offsets:
+            phi, dlam = exact_point_mp(mpmath.mpf(x), mpmath.mpf(y), axes, r)
+            assert -mpmath.pi / 2 <= phi <= mpmath.pi / 2
+            assert -mpmath.pi < dlam <= mpmath.pi
+            x_back, y_back = exact_offset_mp(phi, dlam, axes, r)
+            assert abs(x_back - x) <= REFERENCE_AGREEMENT_M
+            assert abs(y_back - y) <= REFERENCE_AGREEMENT_M
+
+
+@pytest.mark.parametrize("body", BODIES)
+def test_exact_inverse_points_north_and_east(body: str) -> None:
+    """Orientation of the exact references: north along the meridian, east along the equator."""
+    radius = BODY_RADII_M[body]
+    with mpmath.workdps(REFERENCE_DIGITS):
+        r = mpmath.mpf(radius)
+        tolerance = mpmath.mpf(10) ** (8 - REFERENCE_DIGITS)
+        for lat0 in (-0.7, 0.0, 1.4):
+            axes = centre_axes(lat0)
+            for y in (-2500.0, -25.0, 1e-9, 2500.0):
+                phi, dlam = exact_point_mp(mpmath.mpf(0), mpmath.mpf(y), axes, r)
+                assert abs(phi - (mpmath.mpf(lat0) + y / r)) <= tolerance
+                assert dlam == 0
+        axes = centre_axes(0.0)
+        for x in (-2500.0, -25.0, 1e-9, 2500.0):
+            phi, dlam = exact_point_mp(mpmath.mpf(x), mpmath.mpf(0), axes, r)
+            assert phi == 0
+            assert abs(dlam - x / r) <= tolerance
 
 
 # ---------------------------------------------------------------------------------------------
