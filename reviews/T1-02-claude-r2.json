@@ -1,0 +1,90 @@
+{
+  "task_id": "T1-02",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "028c1c7e115b74fb6d5e109ed72501151f90a63e",
+    "head": "c74519e21b4289592bf8644f31604b12485b819f",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/quality.py",
+        "sha256": "06f2535e736b7cdc42612be8e219cb9814b1a22e92e11b25c0cea35317850933"
+      },
+      {
+        "path": "pipeline/tests/test_quality.py",
+        "sha256": "9cf9cab5c31bfc4685dff887009a380140e76688ccd22a8725a0336cbc67503c"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:09:41Z",
+  "finished_utc": "2026-11-14T19:09:58Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T1-02 round 2 passes. The codex-r1-1 blocker is fixed: declared nodata keeps its exact value, and long double arrays are refused on every platform. The claude-r1-1 rebuttal holds. Both story checks pass. Only quality.py and test_quality.py changed, and neither contains Stokes, CPR or S4-sign logic. I did not re-verify that the tests were written failing first, and I did not look at config/run.yaml. I did not read the full test file.",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_quality.py",
+      "command": "uv run pytest pipeline/tests/test_quality.py",
+      "outcome": "PASS",
+      "evidence": "92 passed in 0.38s"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check, ruff format --check and mypy all clean. No failure or exit code shown."
+    },
+    {
+      "criterion": "Tests are written and run failing first, on small synthetic numpy arrays only",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The tests use synthetic arrays only. I did not re-run the failing-first step. The log shows a test-first commit (d57fac2 before c94c693)."
+    },
+    {
+      "criterion": "Mask function returns valid bool array plus integer reason array. Enum has nodata, non_finite, outside_support. ISIS null is matched by a documented tolerance. Missing is never replaced by 0, and no threshold reason exists.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "quality.py:98-105 defines the enum. quality.py:94 gives the tolerance as half a float32 spacing (2**103). quality.py:364-374 builds a uint8 reason array and a bool valid array from it, and nothing modifies the values. A value of 0 stays valid unless declared as nodata. No threshold reason is defined, and the docstring at lines 46-47 notes radar.snr_rule is null."
+    },
+    {
+      "criterion": "No Stokes, SC/OC/CPR or S4-sign logic in quality.py",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Those names appear only in the docstring, quality.py:30-31 and 49-52, pointing to polarimetry.py. The code has no such logic."
+    },
+    {
+      "criterion": "Valid-fraction helper returns the covered fraction and counts, and raises on an empty window",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "quality.py:188-207 raises ValueError when valid.size == 0. ValidFraction (159-185) carries valid_pixels, total_pixels and fraction."
+    },
+    {
+      "criterion": "Round-1 fix for codex-r1-1 (nodata precision)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "_exact_value and _matches_declared (quality.py:226-296) keep the declared value as an exact Fraction. Integer arrays compare the exact integer. Floating arrays accept only a value that is exactly a double. Long double and complex long double arrays raise TypeError at quality.py:342. Regression tests are at test_quality.py:358-405."
+    },
+    {
+      "criterion": "Paths limited to the story's files list",
+      "command": "git diff --stat 028c1c7..c74519e",
+      "outcome": "PASS",
+      "evidence": "Only quality.py and test_quality.py changed, outside the excluded ralph, reviews and logs paths."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/quality.py:105",
+      "claim": "The ISIS_SATURATION code is a fourth reason beyond the three the story names. The author's rebuttal is accepted.",
+      "evidence": "It matches exact ISIS special-pixel bit patterns and uses no threshold. The enum is documented and pinned by test_reason_codes_are_fixed, per the author's account. I did not read that test. Downstream stories must adopt this vocabulary.",
+      "id": "claude-r2-1",
+      "resolution": null
+    }
+  ]
+}

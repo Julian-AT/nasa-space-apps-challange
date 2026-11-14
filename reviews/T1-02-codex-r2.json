@@ -1,0 +1,87 @@
+{
+  "task_id": "T1-02",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "028c1c7e115b74fb6d5e109ed72501151f90a63e",
+    "head": "c74519e21b4289592bf8644f31604b12485b819f",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/quality.py",
+        "sha256": "06f2535e736b7cdc42612be8e219cb9814b1a22e92e11b25c0cea35317850933"
+      },
+      {
+        "path": "pipeline/tests/test_quality.py",
+        "sha256": "9cf9cab5c31bfc4685dff887009a380140e76688ccd22a8725a0336cbc67503c"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:09:41Z",
+  "finished_utc": "2026-11-14T19:13:10Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. The prior precision fix is present with regression tests, and the saturation-code rebuttal is consistent with the PRD. Required execution and failing-first evidence remain unverified.",
+  "checks": [
+    {
+      "criterion": "Tests are written and run failing first on small synthetic numpy arrays only.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_quality.py uses synthetic arrays and substantive assertions; generated shapes are bounded at :519. Failing-first execution was not witnessed and cannot be established from source inspection. Execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "Validity masks provide documented reason codes, reject nodata, ISIS nulls and non-finite values, preserve valid zero, and introduce no threshold or fill value.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Implementation inspected at pipeline/src/terraluna_pipeline/quality.py:98, :261, :299 and :317; corresponding assertions at pipeline/tests/test_quality.py:136, :158, :194, :217, :278 and :437. config/run.yaml:34 retains snr_rule: null. No static defect found; numerical behavior remains unexecuted because checks are prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "quality.py contains no Stokes, SC/OC/CPR or S4-sign logic.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Read the complete executable module, pipeline/src/terraluna_pipeline/quality.py:55–374. Its enum and classification branches contain only nodata, ISIS saturation, non-finite and support rules; no polarimetry calculations or verdicts exist."
+    },
+    {
+      "criterion": "Valid-fraction helper returns the covered fraction and pixel counts and raises on empty windows.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Counting, division and empty-window rejection are implemented at pipeline/src/terraluna_pipeline/quality.py:166–207. Tests assert mixed, all-valid, all-invalid, unsupported and empty windows at pipeline/tests/test_quality.py:561–611. Execution is prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Focused test command",
+      "command": "uv run pytest pipeline/tests/test_quality.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the read-only sandbox prevents dependency and test-cache writes."
+    },
+    {
+      "criterion": "Repository check command",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the read-only sandbox prevents tool-environment and cache writes."
+    },
+    {
+      "criterion": "Verify codex-r1-1 precision fix.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static verification: pipeline/src/terraluna_pipeline/quality.py:226–240 preserves exact finite declarations, :265–273 compares integers exactly, :282–294 refuses lossy binary64 conversion, and :342–347 rejects extended-precision arrays. Regression assertions exist at pipeline/tests/test_quality.py:358–419. Their execution is unverified."
+    },
+    {
+      "criterion": "Review claude-r1-1 saturation-code rebuttal.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "PRD.md:413–421 requires distinct missing and invalid states without fixing an exhaustive reason enum. pipeline/src/terraluna_pipeline/quality.py:305–313 matches reserved bit patterns rather than a quality threshold; :364–372 preserves declared-nodata precedence. Assertions at pipeline/tests/test_quality.py:239–248 cover both behaviors."
+    },
+    {
+      "criterion": "Changes remain within the story files.",
+      "command": "git diff --name-status 028c1c7e115b74fb6d5e109ed72501151f90a63e c74519e21b4289592bf8644f31604b12485b819f -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output lists only additions of pipeline/src/terraluna_pipeline/quality.py and pipeline/tests/test_quality.py. No production mocks, result artifacts or configuration changes occur in the reviewed diff."
+    }
+  ],
+  "findings": []
+}

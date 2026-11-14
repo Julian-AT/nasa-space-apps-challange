@@ -83,17 +83,17 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 1,
+        "state": "reviewed",
+        "round": 2,
         "base": "028c1c7e115b74fb6d5e109ed72501151f90a63e",
-        "head": "4a76dc7538d6cc794878bd1f250dc25d652d5e8f",
+        "head": "c74519e21b4289592bf8644f31604b12485b819f",
         "files": [
-          "reviews/T1-02-claude.json",
-          "reviews/T1-02-codex.json"
+          "reviews/T1-02-claude-r2.json",
+          "reviews/T1-02-codex-r2.json"
         ],
         "digests": {
-          "reviews/T1-02-claude.json": "86c1f7bebb9c596af98f3e0c79184a64f1e2824cf9c287b240b80babcbf46e66",
-          "reviews/T1-02-codex.json": "0ba26f0002b02f7a36cf2e70880c25f522915b17af7fd5e900eda2cc2b364477"
+          "reviews/T1-02-claude-r2.json": "e86c69f363cc7ad1ab7f03e4a98015410caf5a76d61c17f9833911dbd73f8f1a",
+          "reviews/T1-02-codex-r2.json": "45e201073348833a1950fa93a35b2f29121f8fc202632f6459c660f82784b961"
         }
       },
       "notes": "Reviewer finding: S4-sign check and Stokes consistency removed (T2 owns them, orchestrator decision 2); below_threshold reason removed."
