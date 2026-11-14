@@ -5,12 +5,9 @@
   "description": "Release bundle contracts: JSON Schema generated from the Python records and zod generated from that JSON Schema (PRD 8.3, 8.4, D23).",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./json/*.schema.json": "./json/*.schema.json"
+    ".": "./src/index.ts"
   },
   "scripts": {
-    "generate": "node scripts/generate-zod.ts write json src/generated",
-    "generate-check": "node scripts/generate-zod.ts check json src/generated",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
