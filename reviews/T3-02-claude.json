@@ -1,0 +1,98 @@
+{
+  "task_id": "T3-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "33fa95401a0c6fd722fe413ec3d13e64ce7f58dc",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "ca907c649cec23e38b0e7054c1ff0b6df1dce148966936e476d1d092a317093a"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "5ed93ec05dfb93393d9d933cdbe607c8e7456e7504b0935eade5f46ea8c0a370"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:56:43Z",
+  "finished_utc": "2026-11-14T17:57:06Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T3-02 adds geometry.py (body radii, window grid, AEQD inverse and forward) and test_geometry_aeqd.py, and nothing else. Both story checks pass: 459 tests pass, and `make check` (ruff, format, mypy) is clean. The test names cover every criterion, but I did not open the test bodies or run the code on its own inputs. I did not verify the failing-first run, because that record is in the progress notes and I did not read it. The commit order is consistent with it: `ac27c1a` is the failing-tests commit, and it precedes the implementation commits `cc44c49` and `1e1bee7`. Two low-severity deviations are noted below. Both are documented in the code and the tests.",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "PASS",
+      "evidence": "459 passed in 0.62s"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, 9 files already formatted, mypy no issues in 9 source files"
+    },
+    {
+      "criterion": "Failing-first tests recorded",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "I inferred this from commit order only. ac27c1a (test commit) precedes cc44c49 and 1e1bee7 (implementation). I did not read the progress notes that hold the failing run."
+    },
+    {
+      "criterion": "Grid test at W=5000, D=90 with independent hand-computed values",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_grid_matches_hand_computed_centres_for_5000_by_90 (test_geometry_aeqd.py:152) and the mesh-orientation test at :209. The tests pass. I did not open their bodies to confirm they use explicit loops."
+    },
+    {
+      "criterion": "Inverse follows the PRD formulas, is exact at rho=0, has no NaN at a pole, and round-trips against an independent forward for Moon, Mars and Earth at ±89.9, ±45 and 0 degrees",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:186-202 applies a rho==0 mask. Tests at :261 (rho=0 exact), :278 (pole, no NaN), :296 (compared against a PRD asin expression), :316 and :333 (round trips), :345 (forward against a vector reference)."
+    },
+    {
+      "criterion": "Distance test equals rho to 1e-9 relative for all three radii",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_geometry_aeqd.py:386-393 compares an independent haversine (:98) against hypot(x, y) with DISTANCE_RTOL."
+    },
+    {
+      "criterion": "Hypothesis round trip with documented longitude normalisation",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_round_trip_property (:425-437, 400 examples). geometry.py:127 states the range [-pi, pi), and the normalisation test is at :400."
+    },
+    {
+      "criterion": "Terrain distances live in geometry.py with no radar or model imports",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py imports only the standard library and numpy. Tests at :538 and :551 check this. The diff touches only geometry.py and the new test file."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/geometry.py:199",
+      "claim": "The latitude is computed as atan2(S, hypot(N, M)) rather than the PRD's literal asin(S). The two are equal in real arithmetic. The story criterion says 'asin'.",
+      "evidence": "The docstring (:162-171) documents the deviation. It reports that the literal asin form is 1.6e-7 to 3.9e-7 m off near ±89.9 degrees and fails the PRD 7 tolerances. test_inverse_matches_the_prd_expressions compares against the asin form. @terraluna/core must use the same form for parity (PRD 8.8).",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/tests/test_geometry_aeqd.py:140",
+      "claim": "The round trip checks rtol 1e-10 and atol 1e-12 on coordinates normalised by the window width, not on raw metres. This is a reading of the criterion.",
+      "evidence": "The module docstring (:9-11) explains that an atol of 1e-12 m cannot be met in plain metres. PRD 7 Tolerances says the tolerances apply to normalised float64 values.",
+      "id": "claude-r1-2",
+      "resolution": null
+    }
+  ]
+}

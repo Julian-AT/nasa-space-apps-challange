@@ -94,12 +94,20 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "33fa95401a0c6fd722fe413ec3d13e64ce7f58dc",
+        "files": [
+          "reviews/T3-02-claude.json",
+          "reviews/T3-02-codex.json",
+          "reviews/T3-02-codex-2.json"
+        ],
+        "digests": {
+          "reviews/T3-02-claude.json": "378f50463e6aaf8848de53669906a453683dc556d07f18b957ab9ccd3d921aa5",
+          "reviews/T3-02-codex.json": "b583056e29c7e9cc3eed91d941ccfd732df4bee5860aa455518e7ca84c8b2235",
+          "reviews/T3-02-codex-2.json": "5c633c667f71cae8b2db1efc7eaefff4dfa17443e5dc7d171520641c846e4547"
+        }
       },
       "notes": "Failing run (2026-11-14, commit ac27c1a, before the grid and AEQD existed): `uv run pytest pipeline/tests/test_geometry_aeqd.py` stopped at collection with ImportError: cannot import name 'AeqdDomainError' from 'terraluna_pipeline.geometry'. After the implementation: 459 passed, make check exit 0, full suite 716 passed. Decisions for a human: (1) Pixel count. PRD 7 does not fix it when W/D is not whole (5000/90 is about 55.6). The grid takes the largest n with n*D <= W (55), keeps the PRD formula with W = 5000, and so is anchored at the top-left: a 50 m strip along the east and south edges is uncovered and the centre pixel (27, 27) sits at (-25, 25) m, not on the window centre. Alternatives would be 56 cells (the last cell reaches 40 m outside the window) or a grid centred with n*D in place of W (changes the formula). (2) Latitude evaluation. PRD 7 writes phi = asin(S). geometry.py computes the same S and the same atan2 longitude, but evaluates phi = atan2(S, hypot(N, M)), which equals asin(S) in real arithmetic. The literal asin fails the PRD 7 round-trip and 1e-9 distance tolerances at +-89.9 deg: measured against 40-digit mpmath it gives 1.6e-7 to 3.9e-7 m position error on the 5 km grid (Moon to Earth), against at most 7e-10 m for the atan2 form, and swapping asin back in fails 104 of the 459 tests. Site01 is south-polar, so this matters for the Moon. A test checks the latitude still equals the PRD asin expression to rtol 1e-10, atol 1e-12 in radians. The TypeScript mirror (T10) must use the same evaluation; a PRD 7 wording change is proposed in the progress log. (3) Tolerance units. PRD 7 tolerances are for normalised values, so round trips compare x/W and y/W (atol 1e-12 is 5e-9 m at W = 5000). In plain metres atol 1e-12 m cannot be met for small offsets: float64 resolves a longitude near +-pi only to 2.2e-16 rad, 1.4e-9 m on the Earth sphere. On the 55 x 55 grid the plain-metre check also held on this machine (worst 0.56 of the allowance), but that margin is too thin to commit across platforms. (4) Longitudes are radians in [-pi, pi) with pi = math.pi; a window centre must already be in that range, and the forward also accepts a point longitude of exactly pi. Worst observed use of each tolerance: module forward round trip 0.19, independent vector forward 0.39, haversine distance 0.074. Hypothesis runs 400 examples plus 4 explicit ones (poles, antimeridian, zero and subnormal offsets); a one-off 20000-example run also passed."
     },

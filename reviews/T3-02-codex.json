@@ -1,0 +1,90 @@
+{
+  "task_id": "T3-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "33fa95401a0c6fd722fe413ec3d13e64ce7f58dc",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "ca907c649cec23e38b0e7054c1ff0b6df1dce148966936e476d1d092a317093a"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "5ed93ec05dfb93393d9d933cdbe607c8e7456e7504b0935eade5f46ea8c0a370"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:56:43Z",
+  "finished_utc": "2026-11-14T17:59:30Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "The round-trip tests relax the story’s stated absolute tolerance. Runtime results and test-first history remain unverified because execution was prohibited.",
+  "checks": [
+    {
+      "criterion": "Tests fail before implementation, with test_geometry_aeqd.py failing first and the run recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "No failing execution was independently observed. Author notes cannot establish execution history, and running checks was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Grid matches the PRD formula, explicit-loop oracle, and hand-computed corners and centre for W=5000, D=90.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static coverage is present: pipeline/tests/test_geometry_aeqd.py:123-134 independently computes coordinates; lines 152-172 assert all corners and the centre. Runtime verification was prohibited."
+    },
+    {
+      "criterion": "Inverse AEQD preserves the centre exactly, including poles, and independently round-trips all specified bodies and latitudes at rtol=1e-10, atol=1e-12.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Centre and latitude cases are covered at pipeline/tests/test_geometry_aeqd.py:258-327, but every round-trip assertion uses the helper at lines 137-141, which divides coordinates by window width and changes the effective absolute tolerance."
+    },
+    {
+      "criterion": "Independent great-circle distances equal rho within 1e-9 relative for all three radii.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:98-102 implements haversine independently; lines 383-393 compare every grid point with rho using rtol=1e-9 and atol=0. Runtime verification was prohibited."
+    },
+    {
+      "criterion": "Hypothesis tests random centres and offsets within a 5 km window, with a documented longitude range.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:425-456 generates the required inputs and asserts [-pi, pi), but lines 454 and 456 delegate to the relaxed round-trip helper at lines 137-141."
+    },
+    {
+      "criterion": "Terrain geometry distances use metres on the body sphere, live in geometry.py, and remain separate from radar and model distances.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/geometry.py:183-190 computes angular distance as rho/radius; lines 254-261 scale forward coordinates by radius. Imports at lines 9-18 contain only standard-library and NumPy modules. No radar or model distance code is reused."
+    },
+    {
+      "criterion": "Focused geometry check",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the read-only sandbox prevents dependency and test-cache writes."
+    },
+    {
+      "criterion": "Repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the read-only sandbox prevents required tool and cache writes."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/tests/test_geometry_aeqd.py:137-141",
+      "claim": "The shared helper weakens the story’s round-trip absolute tolerance by comparing x/W and y/W instead of the recovered metre coordinates.",
+      "evidence": "With W=5000 from config/run.yaml:21, these assertions permit absolute error of 5e-9 m rather than the contracted 1e-12 m. For example, a 1e-9 m error at an expected zero would pass this helper. Both the specified-latitude tests and Hypothesis test use it. Restore the contracted comparisons or obtain an explicit contract amendment before accepting the normalized tolerance.",
+      "id": "codex-r1-1",
+      "resolution": null
+    }
+  ]
+}
