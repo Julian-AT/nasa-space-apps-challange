@@ -45,12 +45,18 @@
       "priority": 1,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "5d858c25b8e8897db6938d04ae005faaaf2a1d24",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "cb3b8eeaa309b3cccc00800e91ec5619d72bfcd3",
+        "files": [
+          "reviews/T7-01-claude.json",
+          "reviews/T7-01-codex.json"
+        ],
+        "digests": {
+          "reviews/T7-01-claude.json": "26f9d89d1f75347c1011005808882f0df738153a6639d76e1b3af5618d0c89e9",
+          "reviews/T7-01-codex.json": "4ef2cdde2a374a49b99fc9cab584253f5d06386c2ec9fbb6798e75603293083d"
+        }
       },
       "notes": "shadcn init creates apps/web/lib/utils.ts (cn helper) and may edit apps/web/tsconfig.json for the @/* alias; both are in files. apps/web/package.json and pnpm-lock.yaml are also edited by T15 (hono deps); the orchestrator resolves that at merge. T7 keeps all other files disjoint from T15 (apps/web/server/*, apps/web/app/api/*) and does not touch apps/web/lib/bundle* or apps/web/scripts/*."
     },
