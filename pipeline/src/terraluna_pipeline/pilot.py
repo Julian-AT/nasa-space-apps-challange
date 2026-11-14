@@ -52,6 +52,7 @@ from typing import Any, Final, Protocol
 
 import numpy as np
 import numpy.typing as npt
+import pyproj
 import rasterio  # type: ignore[import-untyped]
 import shapefile  # type: ignore[import-untyped]
 from affine import Affine
@@ -68,19 +69,39 @@ from terraluna_pipeline.io import (
     DownloadError,
     FetchedFile,
     FileTooLargeError,
+    Pds3ImageLayout,
+    Pds3Item,
+    Pds3Object,
+    Pds3PolarStereographic,
+    Pds3Quantity,
     ProductMetadata,
     RangeFetcher,
+    RangeNotSupportedError,
     RangeReadError,
+    RangeResponse,
     RasterWindow,
     RemoteWindow,
+    decode_pds3_rows,
     fetch_file,
+    fetch_pds3_rows,
     fetch_range,
+    parse_pds3_label,
+    pds3_image_layout,
+    pds3_polar_stereographic,
+    pds3_row_byte_range,
     read_geotiff_tags,
     read_product,
     read_remote_geotiff_window,
     sha256_file,
 )
-from terraluna_pipeline.quality import InvalidReason, ValidityMask, valid_fraction, validity_mask
+from terraluna_pipeline.quality import (
+    ISIS_NULL_REAL4,
+    ISIS_SATURATION_REAL4,
+    InvalidReason,
+    ValidityMask,
+    valid_fraction,
+    validity_mask,
+)
 from terraluna_pipeline.schema import UNKNOWN, ProductRecord, SourcesFile, has_url_credentials
 
 RAW_DIR: Final = Path("data/raw")
@@ -1736,7 +1757,1231 @@ class Pgda78Source:
         return notes
 
 
-SOURCES: Mapping[str, Source] = {"pgda78": Pgda78Source()}
+# --- minirf: the Mini-RF south-polar CPR mosaic, LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0 ------------------
+
+_PDS_MAGIC: Final = (b"PDS_VERSION_ID",)
+_ROWS_SUFFIX: Final = ".rows"
+"""The local file holding the image rows read by range, named after the image file."""
+
+_MINIRF_CATALOG_FILES: Final = (
+    ("dsmap", "dsmap.cat"),
+    ("data_set_catalog", "mrflro_5_cdr_mosaic_v1_0_ds.cat"),
+    ("instrument_catalog", "mrf_inst.cat"),
+)
+_QUANTITIES: Final = (
+    ("CPR", re.compile(r"circular polarization ratio")),
+    ("S1", re.compile(r"\bfirst stokes\b|\bs1\b")),
+    ("S2", re.compile(r"\bsecond stokes\b|\bs2\b")),
+    ("S3", re.compile(r"\bthird stokes\b|\bs3\b")),
+    ("S4", re.compile(r"\bfourth stokes\b|\bs4\b")),
+)
+_STOKES_QUANTITIES: Final = ("S1", "S2", "S3", "S4")
+_COMBINED_LOOK: Final = re.compile(r"This is a combined East and West-looking mosaic\.")
+_CPR_DEFINITION: Final = re.compile(r"\(CPR = [^)]*\)")
+_TRANSMIT_SENTENCE: Final = re.compile(r"The Mini-RF instrument transmits[^.]*\.")
+_S_BAND_SENTENCE: Final = re.compile(r"Mini-RF operated in S-band \([^)]*\)[^.]*\.")
+_PA_SENTENCE: Final = re.compile(r"[^.]*\bMoon Princip\w* Axis \(PA\) coordinate system[^.]*\.")
+_DSMAP_FORMULAS: Final = ("x = (Sample - S0) * Scale", "y = (L0 - Line) * Scale")
+_DSMAP_CENTRES: Final = "Integral values of line and sample correspond to the center of a pixel."
+_VALUE_RULE_WORDS: Final = ("VALID_MIN", "VALID_MAX", "MISSING", "INVALID")
+_HANDEDNESS_WORDS: Final = ("POLARIZATION", "HANDEDNESS", "TRANSMIT")
+_BYTE_ORDER: Final = {"<": "little-endian", ">": "big-endian", "|": "single byte"}
+
+
+def _collapse(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _page_links(page: str, page_url: str) -> list[str]:
+    """Every http(s) link on a page, resolved against its URL, without query or fragment."""
+    links: list[str] = []
+    for match in _HREF.finditer(page):
+        href = unescape(next(group for group in match.groups() if group is not None))
+        parts = urllib.parse.urlsplit(urllib.parse.urljoin(page_url, href))
+        if parts.scheme.lower() in ("http", "https"):
+            links.append(urllib.parse.urlunsplit(parts._replace(query="", fragment="")))
+    return links
+
+
+def _public(url: str, page_url: str) -> str:
+    if has_url_credentials(url):
+        raise PilotError(
+            f"a link on {page_url} has credentials or a signature; it was not followed"
+        )
+    return url
+
+
+def _child_link(page: str, page_url: str, child: str) -> str:
+    """The link on a directory page to ``child`` (a file name, or a folder ending in ``/``)."""
+    wanted = urllib.parse.urljoin(page_url, child).lower()
+    found = sorted({link for link in _page_links(page, page_url) if link.lower() == wanted})
+    if len(found) != 1:
+        raise PilotError(f"{page_url} does not link {child} (found {len(found)} links to it)")
+    return _public(found[0], page_url)
+
+
+def _directory_files(page: str, directory_url: str) -> dict[str, str]:
+    """The files a directory page links directly inside that directory: name -> URL."""
+    files: dict[str, str] = {}
+    prefix = directory_url.lower()
+    for link in _page_links(page, directory_url):
+        if not link.lower().startswith(prefix):
+            continue
+        rest = urllib.parse.unquote(link[len(directory_url) :])
+        if not rest or "/" in rest:
+            continue
+        name = _safe_file_name(rest, directory_url)
+        if files.get(name, link) != link:
+            raise PilotError(f"{directory_url} links {name} to two URLs")
+        files[name] = _public(link, directory_url)
+    return files
+
+
+def _rows_entry(
+    response: RangeResponse, local_name: str, retrieved_at: datetime, **extra: Any
+) -> dict[str, Any]:
+    """The fetch.json entry of image rows read by one range request, stored in ``local_name``."""
+    return {
+        **extra,
+        "read": "rows",
+        "file_name": local_name,
+        "url": response.url,
+        "final_url": response.final_url,
+        "http_status": response.status,
+        "requested_range": f"bytes={response.requested_first}-{response.requested_last}",
+        "content_range": response.content_range,
+        "first_byte": response.first_byte,
+        "last_byte": response.last_byte,
+        "remote_bytes": response.total_size,
+        "bytes_received": response.bytes_received,
+        "content_type": response.content_type,
+        "last_modified": response.last_modified,
+        "etag": response.etag,
+        "sha256": hashlib.sha256(response.data).hexdigest(),
+        "retrieved_at": utc_timestamp(retrieved_at),
+    }
+
+
+def _all_items(block: Pds3Object) -> list[Pds3Item]:
+    """Every statement of a PDS3 block and of the blocks nested in it."""
+    items = list(block.items)
+    for child in block.children:
+        items += _all_items(child)
+    return items
+
+
+def _find_text(block: Pds3Object, key: str) -> str | None:
+    for item in _all_items(block):
+        if item.key == key and isinstance(item.value, str):
+            return item.text()
+    return None
+
+
+def _label_text(block: Pds3Object, key: str) -> str | None:
+    item = block.get(key)
+    if item is None:
+        return None
+    return item.text() if isinstance(item.value, str) else item.raw
+
+
+def _bounds(left: float, bottom: float, right: float, top: float) -> dict[str, float]:
+    return {"left": left, "bottom": bottom, "right": right, "top": top}
+
+
+def _converted_bounds(
+    extent: Mapping[str, float], wkt: str, target: pyproj.CRS
+) -> tuple[float, float, float, float]:
+    """The bounds of ``extent`` (in the CRS ``wkt``) in ``target``, densified along the edges."""
+    transformer = pyproj.Transformer.from_crs(pyproj.CRS.from_wkt(wkt), target, always_xy=True)
+    left, bottom, right, top = transformer.transform_bounds(
+        extent["left"],
+        extent["bottom"],
+        extent["right"],
+        extent["top"],
+        densify_pts=21,
+        errcheck=True,
+    )
+    return float(left), float(bottom), float(right), float(top)
+
+
+@dataclass(frozen=True)
+class _SiteWindow:
+    """The Site01 extent as T1-03 recorded it and the mosaic window that covers it."""
+
+    site_extent: dict[str, Any]
+    bounds: tuple[float, float, float, float]
+    window: tuple[int, int, int, int]
+
+    def fetch_fields(self) -> dict[str, Any]:
+        col_off, row_off, width, height = self.window
+        return {
+            "site_extent": self.site_extent,
+            "pixel_window": {
+                "col_off": col_off,
+                "row_off": row_off,
+                "width": width,
+                "height": height,
+            },
+        }
+
+
+@dataclass(frozen=True)
+class MinirfSource:
+    """The Mini-RF south-polar CPR mosaic, LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0 (PRD 5 row 2).
+
+    ``fetch`` locates volume ``volume`` through the PDS Geosciences Node landing page and its
+    directory pages, and downloads the data set's catalog files, the volume errata and every
+    detached label in DATA/SAR/MOSAICS. Then it reads only the image rows that hold the Site01
+    window of ``cpr_product`` (the file PRD 5 names as a lead), with one HTTP range request. The
+    window is the smallest set of mosaic pixels that covers the Site01 extent T1-03 recorded in
+    ``site_record``, converted with pyproj into the projection the label states. No mosaic image
+    is downloaded whole. If the server ignores Range, fetch records that as the blocking
+    limitation and fails; if the Site01 extent is missing, no rows are read and the record is
+    PARTIAL with that reason.
+
+    ``build`` checks every PRD 5 layout lead against the label, decodes the window with the
+    label's layout and masks it with quality.validity_mask. It records raw CPR statistics only,
+    and establishes from the labels which Stokes layers exist. The mosaic has no S4 layer, so
+    the Stokes observation is recorded as not performed; an S4 label stops the record instead
+    of being ignored. No S4-sign verdict and no Stokes validity rule are computed here (T2).
+    """
+
+    landing_url: str = "https://pds-geosciences.wustl.edu/missions/lro/mrf.htm"
+    volume: str = "LROMRF_0005"
+    data_set_id: str = "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0"
+    cpr_product: str = "LSZ_XXXXX_3CP_PIU_90S000_V1"
+    site_record: str = "outputs/pilot/pgda78_site01.json"
+    whole_file_limit_bytes: int = WHOLE_FILE_LIMIT_BYTES
+
+    @property
+    def name(self) -> str:
+        return "minirf"
+
+    @property
+    def record_prefix(self) -> str:
+        return f"MINIRF/{self.volume}/"
+
+    @property
+    def cpr_label_name(self) -> str:
+        return f"{self.cpr_product.lower()}.lbl"
+
+    # -- fetch --
+
+    def _volume_url(self, landing: str) -> str:
+        target = "/" + self.volume.lower()
+        found = sorted(
+            {
+                link.rstrip("/") + "/"
+                for link in _page_links(landing, self.landing_url)
+                if urllib.parse.urlsplit(link).path.lower().rstrip("/").endswith(target)
+            }
+        )
+        if len(found) != 1:
+            raise PilotError(
+                f"{self.landing_url} links {len(found)} URLs to volume {self.volume}, expected one"
+            )
+        return _public(found[0], self.landing_url)
+
+    def fetch(
+        self, raw_dir: Path, download: Downloader, read_range: RangeFetcher, now: Clock
+    ) -> None:
+        root = raw_dir.parent.parent.parent
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        blocked: RangeNotSupportedError | None = None
+        with tempfile.TemporaryDirectory(dir=raw_dir, prefix=".fetch-") as staging_name:
+            staging = Path(staging_name)
+            documents: list[dict[str, Any]] = []
+
+            def document(role: str, url: str, file_name: str, magic: tuple[bytes, ...] = ()) -> str:
+                fetched = download(
+                    url, staging / file_name, max_bytes=self.whole_file_limit_bytes, magic=magic
+                )
+                documents.append(_fetch_entry(fetched, now(), role=role))
+                return _decode(staging / file_name)
+
+            landing = document("landing_page", self.landing_url, "landing_page.html")
+            volume_url = self._volume_url(landing)
+            volume_page = document("volume_index", volume_url, "volume_index.html")
+            catalog_url = _child_link(volume_page, volume_url, "catalog/")
+            data_url = _child_link(volume_page, volume_url, "data/")
+            errata_url = _child_link(volume_page, volume_url, "errata.txt")
+            catalog_page = document("catalog_index", catalog_url, "catalog_index.html")
+            for role, file_name in _MINIRF_CATALOG_FILES:
+                url = _child_link(catalog_page, catalog_url, file_name)
+                document(role, url, file_name, _PDS_MAGIC)
+            document("errata", errata_url, "errata.txt", _PDS_MAGIC)
+            data_page = document("data_index", data_url, "data_index.html")
+            sar_url = _child_link(data_page, data_url, "sar/")
+            sar_page = document("sar_index", sar_url, "sar_index.html")
+            mosaics_url = _child_link(sar_page, sar_url, "mosaics/")
+            mosaics_page = document("mosaics_index", mosaics_url, "mosaics_index.html")
+            listed = _directory_files(mosaics_page, mosaics_url)
+            label_links = {n: u for n, u in listed.items() if n.lower().endswith(".lbl")}
+            if self.cpr_label_name not in label_links:
+                raise PilotError(f"{mosaics_url} does not list {self.cpr_label_name}")
+            files: list[dict[str, Any]] = []
+            for file_name, url in sorted(label_links.items()):
+                fetched = download(
+                    url,
+                    staging / file_name,
+                    max_bytes=self.whole_file_limit_bytes,
+                    magic=_PDS_MAGIC,
+                )
+                files.append(_fetch_entry(fetched, now(), role="mosaic_label"))
+            label = self._parse_label(staging / self.cpr_label_name)
+            layout = pds3_image_layout(label)
+            projection = pds3_polar_stereographic(label)
+            image_name, image_url = self._image(layout, listed, mosaics_url)
+            site = self._site_window(root, projection)
+            window: dict[str, Any]
+            if isinstance(site, str):
+                window = {"status": "not_located", "reason": site}
+            else:
+                _, row_off, _, height = site.window
+                last_row = row_off + height - 1
+                try:
+                    response = fetch_pds3_rows(
+                        image_url, layout, row_off, last_row, fetch=read_range
+                    )
+                except RangeNotSupportedError as error:
+                    blocked = error
+                    window = {
+                        "status": "range_not_supported",
+                        "reason": (
+                            f"{error}; the window was not read and the mosaic was not "
+                            "downloaded whole, so no CPR value is recorded"
+                        ),
+                        **site.fetch_fields(),
+                    }
+                else:
+                    local_name = f"{image_name}{_ROWS_SUFFIX}"
+                    (staging / local_name).write_bytes(response.data)
+                    files.append(
+                        _rows_entry(
+                            response,
+                            local_name,
+                            now(),
+                            role="cpr_window_rows",
+                            provider_file_name=image_name,
+                            rows={"first": row_off, "last": last_row},
+                        )
+                    )
+                    window = {"status": "read", "reason": None, **site.fetch_fields()}
+            metadata = {
+                "source": self.name,
+                "command": f"{COMMAND} fetch {self.name}",
+                "landing_url": self.landing_url,
+                "volume_url": volume_url,
+                "mosaics_url": mosaics_url,
+                "whole_file_limit_bytes": self.whole_file_limit_bytes,
+                "documents": documents,
+                "files": files,
+                "image": {"file_name": image_name, "url": image_url},
+                "images_not_downloaded": sorted(
+                    name for name in listed if name.lower().endswith(".img")
+                ),
+                "window": window,
+            }
+            (raw_dir / FETCH_METADATA).unlink(missing_ok=True)
+            for entry in [*documents, *files]:
+                os.replace(staging / entry["file_name"], raw_dir / entry["file_name"])
+            _write_atomically(raw_dir / FETCH_METADATA, canonical_json(metadata))
+        if blocked is not None:
+            raise PilotError(
+                f"{blocked}. This is recorded in data/raw/{self.name}/{FETCH_METADATA} as the "
+                "blocking limitation; the mosaic was not downloaded whole"
+            )
+
+    def _parse_label(self, path: Path) -> Pds3Object:
+        try:
+            return parse_pds3_label(_decode(path))
+        except ValueError as error:
+            raise PilotError(f"{path.name} cannot be read as a PDS3 label: {error}") from error
+
+    def _image(
+        self, layout: Pds3ImageLayout, listed: Mapping[str, str], mosaics_url: str
+    ) -> tuple[str, str]:
+        """The listed image file the label's ^IMAGE names (the server's names are lower case)."""
+        found = [name for name in listed if name.lower() == layout.file_name.lower()]
+        if len(found) != 1:
+            raise PilotError(
+                f"{mosaics_url} lists {len(found)} files named {layout.file_name} (the image "
+                f"{self.cpr_label_name} points to), expected one"
+            )
+        return found[0], listed[found[0]]
+
+    def _site_window(self, root: Path, projection: Pds3PolarStereographic) -> _SiteWindow | str:
+        """The window covering the Site01 extent, or why it cannot be located."""
+        path = root / self.site_record
+        reason = (
+            "{}: T1-03 (pgda78) has not produced the Site01 extent, so the Site01 window "
+            "cannot be located in the mosaic"
+        )
+        if not path.is_file():
+            return reason.format(f"{self.site_record} is missing")
+        try:
+            record = json.loads(path.read_bytes())
+            (height,) = [entry for entry in record["files"] if entry.get("role") == "height"]
+            extent = {
+                key: float(height["extent_m"][key]) for key in ("left", "bottom", "right", "top")
+            }
+            wkt, file_name = str(height["crs_wkt"]), str(height["file_name"])
+        except (OSError, ValueError, KeyError, TypeError, AttributeError):
+            return reason.format(
+                f"{self.site_record} does not state the height map's extent_m and crs_wkt"
+            )
+        try:
+            bounds = _converted_bounds(extent, wkt, projection.crs)
+            window = projection.pixel_window(*bounds)
+        except (ValueError, pyproj.exceptions.ProjError) as error:
+            raise PilotError(
+                f"the Site01 extent in {self.site_record} cannot be placed in the mosaic: {error}"
+            ) from error
+        return _SiteWindow(
+            site_extent={
+                "source": self.site_record,
+                "file_name": file_name,
+                "crs_wkt": wkt,
+                "extent_m": extent,
+            },
+            bounds=bounds,
+            window=window,
+        )
+
+    # -- build --
+
+    def build(self, raw_dir: Path, root: Path) -> Build:
+        fetched = _load_fetch(raw_dir, self.name)
+        try:
+            return self._build(raw_dir, root, fetched)
+        except (KeyError, TypeError) as error:
+            raise PilotError(
+                f"data/raw/{self.name}/{FETCH_METADATA} lacks an expected entry ({error!r}); "
+                f"run: {COMMAND} fetch {self.name}"
+            ) from error
+
+    def _build(self, raw_dir: Path, root: Path, fetched: Mapping[str, Any]) -> Build:
+        documents = {entry["role"]: entry for entry in fetched["documents"]}
+        label_entries = {
+            entry["file_name"]: entry
+            for entry in fetched["files"]
+            if entry["role"] == "mosaic_label"
+        }
+        rows_entry = next((e for e in fetched["files"] if e.get("read") == "rows"), None)
+        texts = {
+            role: _decode(raw_dir / documents[role]["file_name"])
+            for role in ("dsmap", "data_set_catalog", "instrument_catalog", "errata")
+        }
+        catalog = self._parse_label(raw_dir / documents["data_set_catalog"]["file_name"])
+        label_entry = label_entries[self.cpr_label_name]
+        label = self._parse_label(raw_dir / self.cpr_label_name)
+        try:
+            layout = pds3_image_layout(label)
+            projection = pds3_polar_stereographic(label)
+        except ValueError as error:
+            raise PilotError(f"{self.cpr_label_name}: {error}") from error
+        image = fetched["image"]
+        site = self._site_window(root, projection)
+        window_meta = fetched["window"]
+        located_at_fetch = window_meta["status"] != "not_located"
+        if isinstance(site, str) == located_at_fetch or (
+            not isinstance(site, str)
+            and {key: window_meta[key] for key in ("site_extent", "pixel_window")}
+            != json.loads(json.dumps(site.fetch_fields()))
+        ):
+            raise PilotError(
+                f"the Site01 window from {self.site_record} differs from the one the fetch used; "
+                f"run: {COMMAND} fetch {self.name}"
+            )
+        if (rows_entry is None) == (window_meta["status"] == "read"):
+            raise PilotError(
+                f"data/raw/{self.name}/{FETCH_METADATA} lists window rows that do not match its "
+                f"window status; run: {COMMAND} fetch {self.name}"
+            )
+        image_block = label.child("IMAGE")
+        rules = [
+            item.key for item in image_block.items if any(w in item.key for w in _VALUE_RULE_WORDS)
+        ]
+        if rules:
+            raise PilotError(
+                f"{self.cpr_label_name} declares {', '.join(rules)}; the pilot applies no value "
+                "rule beyond the special pixels, so it cannot record this product faithfully"
+            )
+        if layout.scaling_factor != 1.0 or layout.value_offset != 0.0:
+            raise PilotError(
+                f"{self.cpr_label_name} states SCALING_FACTOR {layout.scaling_factor} and OFFSET "
+                f"{layout.value_offset}; the pilot records stored values only"
+            )
+        special = self._special_values(layout)
+        layers = [self._layer(raw_dir, entry, site) for _, entry in sorted(label_entries.items())]
+        stokes = self._stokes_observation(layers, str(fetched["mosaics_url"]), site)
+        convention = self._convention(label, texts["dsmap"], documents["dsmap"])
+        description = _collapse(_label_text(label, "DESCRIPTION") or "")
+        combined = _COMBINED_LOOK.search(description)
+        cpr_definition = _CPR_DEFINITION.search(description)
+        unit_item = image_block.get("UNIT")
+        if unit_item is not None:
+            units = unit_item.text() if isinstance(unit_item.value, str) else unit_item.raw
+            units_source = f"the label's IMAGE object: UNIT = {unit_item.raw}"
+        elif cpr_definition is not None:
+            units = (
+                f"dimensionless ratio: the label defines {cpr_definition.group(0)} and states "
+                "no unit"
+            )
+            units_source = "the label's DESCRIPTION; the IMAGE object has no UNIT keyword"
+        else:
+            units, units_source = UNKNOWN, "the label states neither a unit nor a CPR definition"
+        statistics = (
+            self._cpr_statistics(raw_dir, rows_entry, layout, site)
+            if rows_entry is not None and not isinstance(site, str)
+            else {"status": "not_computed", "reason": window_meta["reason"]}
+        )
+        leads = self._leads(label, layout, projection, image["file_name"], fetched, combined)
+        frequency = label.get("CENTER_FREQUENCY")
+        s_band = _S_BAND_SENTENCE.search(_collapse(texts["instrument_catalog"]))
+        transmit = _TRANSMIT_SENTENCE.search(_collapse(texts["errata"]))
+        pa = _PA_SENTENCE.search(_collapse(texts["data_set_catalog"]))
+        handedness_items = [
+            item for item in _all_items(label) if any(w in item.key for w in _HANDEDNESS_WORDS)
+        ]
+        incidence_items = [item.key for item in _all_items(label) if "INCIDENCE" in item.key]
+        look = label.get("LOOK_DIRECTION")
+        citation = _find_text(catalog, "CITATION_DESC")
+        licence = (
+            "licen" in texts["data_set_catalog"].lower()
+            or "licen" in _decode(raw_dir / self.cpr_label_name).lower()
+        )
+        attribution = (
+            UNKNOWN
+            if citation is None
+            else f"Cite the data set as its catalog asks (CITATION_DESC): '{citation}'"
+            + ("" if licence else "; neither the label nor the data set catalog states a licence")
+        )
+        incidence = (
+            "per-pixel incidence is not recoverable from the mosaic: the label states no "
+            "incidence angle, and the mosaic combines several acquisitions "
+            f"({label.require('START_TIME').raw} to {label.require('STOP_TIME').raw})"
+            + (" with East- and West-looking passes" if combined else "")
+            + ", so each pixel's viewing geometry is not known"
+        )
+        frequency_text = (
+            UNKNOWN
+            if frequency is None
+            else f"CENTER_FREQUENCY = {frequency.raw}, as the label states it"
+            + ("" if s_band is None else f"; the instrument catalog states '{s_band.group(0)}'")
+        )
+        map_block = label.child("IMAGE_MAP_PROJECTION")
+        common: dict[str, Any] = {
+            "provider": (
+                f"{_label_text(label, 'PRODUCER_INSTITUTION_NAME')} "
+                f"({_label_text(label, 'PRODUCER_FULL_NAME')}), as the label states; archived "
+                f"at the PDS Geosciences Node, volume {self.volume}"
+            ),
+            "version": f"PRODUCT_VERSION_ID {label.require('PRODUCT_VERSION_ID').raw} (label)",
+            "body": "moon",
+            "acquisition_time": (
+                f"{label.require('START_TIME').raw} to {label.require('STOP_TIME').raw} (label "
+                "START_TIME and STOP_TIME; the mosaic combines several acquisitions)"
+            ),
+            "frequency_or_wavelength": frequency_text,
+            "transmit_receive_convention": (
+                "; ".join(f"{item.key} = {item.raw}" for item in handedness_items)
+                if handedness_items
+                else UNKNOWN
+            ),
+            "units": units,
+            "calibration_type": f"DATA_SET_NAME '{_label_text(label, 'DATA_SET_NAME')}' (label)",
+            "native_grid": (
+                f"{layout.lines} x {layout.line_samples} {layout.sample_type} "
+                f"{layout.sample_bits}-bit samples, polar stereographic, MAP_RESOLUTION = "
+                f"{map_block.require('MAP_RESOLUTION').raw}, MAP_SCALE = "
+                f"{map_block.require('MAP_SCALE').raw}, SAMPLE_PROJECTION_OFFSET = "
+                f"{map_block.require('SAMPLE_PROJECTION_OFFSET').raw}, LINE_PROJECTION_OFFSET = "
+                f"{map_block.require('LINE_PROJECTION_OFFSET').raw} (label)"
+            ),
+            "effective_resolution": UNKNOWN,
+            "crs_and_frame": (
+                f"{projection.crs.srs}, from the label's IMAGE_MAP_PROJECTION "
+                f"(COORDINATE_SYSTEM_NAME = {map_block.require('COORDINATE_SYSTEM_NAME').raw}, "
+                f"COORDINATE_SYSTEM_TYPE = {map_block.require('COORDINATE_SYSTEM_TYPE').raw})"
+                + ("" if pa is None else f"; the data set catalog states '{pa.group(0).strip()}'")
+            ),
+            "incidence_source": incidence,
+            "qa_definition": (
+                "ISIS special pixels as the label's IMAGE object declares them ("
+                + ", ".join(f"{key} = {raw}" for key, raw in layout.special_raw.items())
+                + "), masked by quality.validity_mask; the label defines no other invalid value"
+            ),
+            "license_or_attribution": attribution,
+            "verification_status": "PARTIAL",
+        }
+        label_local = f"data/raw/{self.name}/{self.cpr_label_name}"
+        records = [
+            ProductRecord.model_validate(
+                {
+                    **common,
+                    "product_id": f"{self.record_prefix}{self.cpr_label_name}",
+                    "source_url": label_entry["url"],
+                    "local_path": label_local,
+                    "checksum": sha256_file(root / label_local),
+                }
+            )
+        ]
+        verification = {
+            records[0].product_id: {
+                "status": "PARTIAL",
+                "basis": (
+                    "downloaded and read as a PDS3 label; every PRD 5 layout lead is checked "
+                    "against it (layout_leads)"
+                ),
+            }
+        }
+        range_read: dict[str, Any]
+        if rows_entry is not None:
+            rows_local = f"data/raw/{self.name}/{rows_entry['file_name']}"
+            image_record = ProductRecord.model_validate(
+                {
+                    **common,
+                    "product_id": f"{self.record_prefix}{image['file_name']}",
+                    "source_url": image["url"],
+                    "local_path": rows_local,
+                    "checksum": sha256_file(root / rows_local),
+                }
+            )
+            records.append(image_record)
+            verification[image_record.product_id] = {
+                "status": "PARTIAL",
+                "basis": (
+                    "the Site01 window rows read by one HTTP range request (206), decoded with "
+                    "the label's layout and masked with quality.validity_mask; not plotted, so "
+                    "the PRD 5 entry rule is not complete"
+                ),
+            }
+            range_read = {
+                "status": "read",
+                "reason": None,
+                "url": rows_entry["url"],
+                "final_url": rows_entry["final_url"],
+                "requested_range": rows_entry["requested_range"],
+                "http_status": rows_entry["http_status"],
+                "content_range": rows_entry["content_range"],
+                "byte_ranges": [[rows_entry["first_byte"], rows_entry["last_byte"]]],
+                "bytes_received": rows_entry["bytes_received"],
+                "remote_bytes": rows_entry["remote_bytes"],
+                "content_type": rows_entry["content_type"],
+                "last_modified": rows_entry["last_modified"],
+                "etag": rows_entry["etag"],
+                "retrieved_at": rows_entry["retrieved_at"],
+                "local_path": rows_local,
+                "local_sha256": image_record.checksum,
+                "whole_file_downloaded": False,
+                "note": (
+                    "whole image rows are read; only the window's columns are decoded into the "
+                    "statistics, the other columns are stored but not used"
+                ),
+            }
+        else:
+            range_read = {
+                "status": (
+                    "range_not_supported"
+                    if window_meta["status"] == "range_not_supported"
+                    else "not_requested"
+                ),
+                "reason": window_meta["reason"],
+                "url": image["url"],
+                "whole_file_downloaded": False,
+            }
+        open_items = [
+            {
+                "item": (
+                    "Read one LRO-L-MRFLRO-5-CDR-MAP-V1.0 map-projected single-swath product over "
+                    "Site01 and observe its S1 and S4 layers (PRD 5 row 1)"
+                ),
+                "reason": (
+                    "the polar mosaic has no S4 layer (stokes_observation); reading a single "
+                    "swath is outside T1-04"
+                ),
+            }
+        ]
+        if rows_entry is None:
+            open_items.append(
+                {
+                    "item": "Read the Site01 window of the CPR mosaic",
+                    "reason": window_meta["reason"],
+                }
+            )
+        retrieved = sorted(
+            entry["retrieved_at"] for entry in [*fetched["documents"], *fetched["files"]]
+        )
+        result = {
+            "record": "minirf_mosaic",
+            "description": (
+                "The Mini-RF south-polar CPR mosaic over the Site01 window, as fetched and decoded "
+                "by the T1 pilot (PRD 5 rows 1 and 2, pilot step 3). Raw observations only: no "
+                "S4-sign verdict (T2-05), no Stokes validity rule (T2-02), and the shipping mode "
+                "and the G0 status are a human checkpoint (PRD 23.6) and are not recorded here."
+            ),
+            "source": self.name,
+            "data_set_id": _label_text(label, "DATA_SET_ID"),
+            "volume": self.volume,
+            "product_id": _label_text(label, "PRODUCT_ID"),
+            "located_through": {
+                "landing_page": fetched["landing_url"],
+                "volume_url": fetched["volume_url"],
+                "mosaics_url": fetched["mosaics_url"],
+            },
+            "documents": [
+                {
+                    key: entry[key]
+                    for key in (
+                        "role",
+                        "file_name",
+                        "url",
+                        "http_status",
+                        "content_type",
+                        "bytes_received",
+                        "sha256",
+                        "last_modified",
+                        "retrieved_at",
+                    )
+                }
+                | {"local_path": f"data/raw/{self.name}/{entry['file_name']}"}
+                for entry in fetched["documents"]
+            ],
+            "retrieval": {
+                "first_retrieved_at": retrieved[0],
+                "last_retrieved_at": retrieved[-1],
+                "fetch_metadata": f"data/raw/{self.name}/{FETCH_METADATA}",
+                "command": fetched["command"],
+            },
+            "label": {
+                "file_name": self.cpr_label_name,
+                "url": label_entry["url"],
+                "local_path": label_local,
+                "sha256": records[0].checksum,
+                "bytes": label_entry["bytes_received"],
+                "http_status": label_entry["http_status"],
+                "retrieved_at": label_entry["retrieved_at"],
+                "note": _label_text(label, "NOTE"),
+                "description": description,
+                "product_version_id": _label_text(label, "PRODUCT_VERSION_ID"),
+                "product_creation_time": _label_text(label, "PRODUCT_CREATION_TIME"),
+                "label_revision_note": _label_text(label, "LABEL_REVISION_NOTE"),
+                "software_name": _label_text(label, "SOFTWARE_NAME"),
+                "start_time": _label_text(label, "START_TIME"),
+                "stop_time": _label_text(label, "STOP_TIME"),
+            },
+            "data": {
+                "file_name": image["file_name"],
+                "url": image["url"],
+                "remote_bytes": None if rows_entry is None else rows_entry["remote_bytes"],
+                "label_file_bytes": layout.offset_bytes + layout.image_bytes,
+                "size_matches_label": (
+                    None
+                    if rows_entry is None
+                    else rows_entry["remote_bytes"] == layout.offset_bytes + layout.image_bytes
+                ),
+                "whole_file_downloaded": False,
+                "images_not_downloaded": fetched["images_not_downloaded"],
+            },
+            "layout": {
+                "lines": layout.lines,
+                "line_samples": layout.line_samples,
+                "bands": layout.bands,
+                "sample_type": layout.sample_type,
+                "sample_bits": layout.sample_bits,
+                "dtype": layout.dtype.str,
+                "byte_order": _BYTE_ORDER[layout.dtype.str[0]],
+                "offset_bytes": layout.offset_bytes,
+                "line_bytes": layout.line_bytes,
+                "record_bytes": layout.record_bytes,
+                "image_bytes": layout.image_bytes,
+                "scaling_factor": layout.scaling_factor,
+                "value_offset": layout.value_offset,
+                "scaling_applied": False,
+                "source": (
+                    "the label's ^IMAGE pointer and IMAGE object; PDS3 Standards Reference "
+                    "appendix C for the SAMPLE_TYPE byte order"
+                ),
+            },
+            "units": {"value": units, "source": units_source},
+            "null_value": special[0],
+            "special_values": special[1:],
+            "layout_leads": leads,
+            "projection": self._projection(projection, map_block, convention),
+            "window": self._window_record(site, window_meta, projection, rows_entry),
+            "range_read": range_read,
+            "cpr_statistics": statistics,
+            "transmit_handedness": {
+                "stated_by_product": (
+                    "; ".join(f"{item.key} = {item.raw}" for item in handedness_items)
+                    if handedness_items
+                    else "not stated"
+                ),
+                "label_keywords_searched": (
+                    "every keyword of the label containing " + ", ".join(_HANDEDNESS_WORDS)
+                ),
+                "volume_documentation": (
+                    []
+                    if transmit is None
+                    else [{"source": documents["errata"]["url"], "text": transmit.group(0)}]
+                ),
+                "note": (
+                    "PRD 15: sources disagree on the Mini-RF transmit handedness, so the "
+                    "ProductRecord stores what the product states; the convention is settled "
+                    "at G1, not assumed here"
+                ),
+            },
+            "look_direction": {
+                "mixed": True if combined else (False if look is not None else None),
+                "label_text": None if combined is None else combined.group(0),
+                "look_direction_keyword": None if look is None else look.raw,
+                "single_look_mosaics_listed": [
+                    layer["file_name"] for layer in layers if layer["look_direction"] is not None
+                ],
+            },
+            "incidence": {
+                "statement": incidence,
+                "label_incidence_keywords": incidence_items,
+            },
+            "frequency": {
+                "label_raw": None if frequency is None else frequency.raw,
+                "instrument_catalog_text": None if s_band is None else s_band.group(0),
+                "instrument_catalog_source": documents["instrument_catalog"]["url"],
+                "note": self._frequency_note(frequency, s_band),
+            },
+            "mosaic_layers": layers,
+            "stokes_observation": stokes,
+            "open_g0_items": open_items,
+            "verification": verification,
+            "field_notes": self._field_notes(),
+            "tool_versions": {
+                **tool_versions(),
+                "pyproj": importlib.metadata.version("pyproj"),
+                "proj": str(pyproj.proj_version_str),
+            },
+        }
+        return Build(
+            files={f"outputs/pilot/{self.name}_mosaic.json": canonical_json(result)},
+            records=tuple(sorted(records, key=lambda r: r.product_id)),
+            record_prefix=self.record_prefix,
+        )
+
+    def _special_values(self, layout: Pds3ImageLayout) -> list[dict[str, Any]]:
+        """CORE_NULL first, then the saturation codes, each with the mask reason it gets."""
+        if "CORE_NULL" not in layout.special_values:
+            raise PilotError(f"{self.cpr_label_name} declares no CORE_NULL")
+        result = []
+        for key, value in layout.special_values.items():
+            if key == "CORE_NULL":
+                reason = InvalidReason.NODATA.label
+            elif value in ISIS_SATURATION_REAL4:
+                reason = InvalidReason.ISIS_SATURATION.label
+            else:
+                raise PilotError(
+                    f"{self.cpr_label_name} declares {key} = {layout.special_raw[key]}, which is "
+                    "not one of the ISIS saturation codes quality.validity_mask masks"
+                )
+            result.append(
+                {
+                    "keyword": key,
+                    "raw": layout.special_raw[key],
+                    "value": value,
+                    "mask_reason": reason,
+                }
+            )
+        result.sort(key=lambda item: item["keyword"] != "CORE_NULL")
+        return result
+
+    def _layer(
+        self, raw_dir: Path, entry: Mapping[str, Any], site: _SiteWindow | str
+    ) -> dict[str, Any]:
+        """One mosaic label as the labels describe it: quantity, pole, look and coverage."""
+        name = str(entry["file_name"])
+        label = self._parse_label(raw_dir / name)
+        note = _collapse(_label_text(label, "NOTE") or "")
+        found = [quantity for quantity, pattern in _QUANTITIES if pattern.search(note.lower())]
+        if len(found) != 1:
+            raise PilotError(
+                f"{name}: the NOTE {note!r} does not name exactly one of CPR and S1 to S4, so the "
+                "layers the mosaic provides cannot be established from the labels"
+            )
+        try:
+            layout = pds3_image_layout(label)
+            projection = pds3_polar_stereographic(label)
+        except ValueError as error:
+            raise PilotError(f"{name}: {error}") from error
+        description = _collapse(_label_text(label, "DESCRIPTION") or "")
+        covers: bool | None = None
+        if not isinstance(site, _SiteWindow):
+            covers = None
+        else:
+            try:
+                extent = site.site_extent["extent_m"]
+                projection.pixel_window(
+                    *_converted_bounds(extent, site.site_extent["crs_wkt"], projection.crs)
+                )
+                covers = True
+            except (ValueError, pyproj.exceptions.ProjError):
+                covers = False
+        look = label.get("LOOK_DIRECTION")
+        return {
+            "file_name": name,
+            "url": entry["url"],
+            "sha256": entry["sha256"],
+            "product_id": _label_text(label, "PRODUCT_ID"),
+            "data_set_id": _label_text(label, "DATA_SET_ID"),
+            "note": note,
+            "quantity": found[0],
+            "center_latitude_deg": projection.center_latitude_deg,
+            "look_direction": None if look is None else look.text(),
+            "combined_east_west": _COMBINED_LOOK.search(description) is not None,
+            "map_resolution_ppd": projection.map_resolution_ppd,
+            "lines": layout.lines,
+            "line_samples": layout.line_samples,
+            "image_file": layout.file_name,
+            "covers_site01": covers,
+        }
+
+    def _stokes_observation(
+        self, layers: Sequence[Mapping[str, Any]], mosaics_url: str, site: _SiteWindow | str
+    ) -> dict[str, Any]:
+        s4 = [layer["file_name"] for layer in layers if layer["quantity"] == "S4"]
+        if s4:
+            raise PilotError(
+                f"the mosaic labels list S4 layers ({', '.join(s4)}); this source records no "
+                "Stokes observation for them, so the record would be incomplete. Extend "
+                "MinirfSource to range-read S1 and S4 (T1-04 AC5) instead of ignoring them"
+            )
+        quantities = sorted({str(layer["quantity"]) for layer in layers})
+        stokes = [layer for layer in layers if layer["quantity"] in _STOKES_QUANTITIES]
+        if isinstance(site, str):
+            coverage = "their coverage of Site01 is not established, because the extent is missing"
+        else:
+            covering = [str(layer["file_name"]) for layer in stokes if layer["covers_site01"]]
+            coverage = f"{len(covering)} S1 layers cover Site01 ({', '.join(covering)})"
+        return {
+            "status": "not_performed",
+            "reason": (
+                f"the {len(layers)} {self.data_set_id} labels listed at {mosaics_url} describe "
+                f"{' and '.join(quantities)} layers only: {coverage}, but no label describes an S4 "
+                "(fourth Stokes parameter) layer, so the S4 sign cannot be observed from this "
+                "mosaic. CPR is never used to infer S4. The S4-sign verdict is computed by "
+                "polarimetry.lunar_s4_sign_check (T2-05) at integration, from a product with S4"
+            ),
+        }
+
+    def _convention(
+        self, label: Pds3Object, dsmap: str, entry: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        """The pixel-to-map conversion that DSMAP.CAT (^DATA_SET_MAP_PROJECTION) states."""
+        pointer = _label_text(label.child("IMAGE_MAP_PROJECTION"), "^DATA_SET_MAP_PROJECTION")
+        if pointer is None or pointer.lower() != str(entry["file_name"]).lower():
+            raise PilotError(
+                f"{self.cpr_label_name} points to the map projection file {pointer!r}, not "
+                f"{entry['file_name']}"
+            )
+        text = _collapse(dsmap)
+        for statement in (*_DSMAP_FORMULAS, _DSMAP_CENTRES):
+            if statement not in text:
+                raise PilotError(
+                    f"{entry['url']} does not state '{statement}', so the pixel convention of the "
+                    "mosaic cannot be confirmed"
+                )
+        return {
+            "source": entry["url"],
+            "formulas": list(_DSMAP_FORMULAS),
+            "pixel_centres": _DSMAP_CENTRES,
+            "keywords": (
+                "S0 = SAMPLE_PROJECTION_OFFSET, L0 = LINE_PROJECTION_OFFSET, Scale = MAP_SCALE; "
+                "Sample and Line are 1-based, so the 0-based pixel edge coordinate is Sample - 0.5"
+            ),
+        }
+
+    def _projection(
+        self,
+        projection: Pds3PolarStereographic,
+        block: Pds3Object,
+        convention: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        pole = {
+            "col": projection.sample_projection_offset - 0.5,
+            "row": projection.line_projection_offset - 0.5,
+        }
+        centre = {"col": projection.line_samples / 2, "row": projection.lines / 2}
+        return {
+            "label_keywords": {item.key: item.raw for item in block.items},
+            "proj4": projection.crs.srs,
+            "crs_wkt": projection.crs.to_wkt(),
+            "radius_m": projection.radius_m,
+            "map_scale_m": projection.map_scale_m,
+            "transform": [float(value) for value in tuple(projection.transform)[:6]],
+            "conversion": dict(convention),
+            "pole_edge_coordinates": pole,
+            "image_centre_edge_coordinates": centre,
+            "centred_on_pole": all(abs(pole[key] - centre[key]) < 1e-6 for key in pole),
+        }
+
+    def _window_record(
+        self,
+        site: _SiteWindow | str,
+        window_meta: Mapping[str, Any],
+        projection: Pds3PolarStereographic,
+        rows_entry: Mapping[str, Any] | None,
+    ) -> dict[str, Any]:
+        if isinstance(site, str):
+            return {"status": "not_located", "reason": site}
+        col_off, row_off, width, height = site.window
+        t = projection.transform
+        left, top = t.c + col_off * t.a, t.f + row_off * t.e
+        return {
+            "status": "read" if rows_entry is not None else "located",
+            "reason": window_meta["reason"],
+            "site_extent": site.site_extent,
+            "transformation": (
+                f"pyproj {importlib.metadata.version('pyproj')} Transformer.from_crs(the site "
+                "CRS WKT, the label CRS, always_xy=True).transform_bounds(densify_pts=21, "
+                "errcheck=True)"
+            ),
+            "converted_bounds_m": _bounds(*site.bounds),
+            "pixel_window": site.fetch_fields()["pixel_window"],
+            "pixel_rule": (
+                "the smallest set of whole mosaic pixels covering the converted bounds: the low "
+                "edges floored and the high edges ceiled in 0-based pixel edge coordinates"
+            ),
+            "window_extent_m": _bounds(left, top + height * t.e, left + width * t.a, top),
+            "rows": {"first": row_off, "last": row_off + height - 1, "count": height},
+        }
+
+    def _cpr_statistics(
+        self,
+        raw_dir: Path,
+        rows_entry: Mapping[str, Any],
+        layout: Pds3ImageLayout,
+        site: _SiteWindow,
+    ) -> dict[str, Any]:
+        col_off, row_off, width, height = site.window
+        rows = rows_entry["rows"]
+        expected = pds3_row_byte_range(layout, row_off, row_off + height - 1)
+        if (rows["first"], rows["last"]) != (row_off, row_off + height - 1) or (
+            rows_entry["first_byte"],
+            rows_entry["last_byte"],
+        ) != expected:
+            raise PilotError(
+                f"the rows in data/raw/{self.name}/{rows_entry['file_name']} are not the window's "
+                f"rows; run: {COMMAND} fetch {self.name}"
+            )
+        data = (raw_dir / str(rows_entry["file_name"])).read_bytes()
+        window = decode_pds3_rows(data, layout, height)[:, col_off : col_off + width]
+        mask = validity_mask(window, nodata=layout.special_values["CORE_NULL"])
+        fraction = valid_fraction(mask)
+        values = np.asarray(window[mask.valid], dtype=np.float64)
+        return {
+            "status": "computed",
+            "reason": None,
+            "values": (
+                "the stored samples of the window's columns of the rows read, unscaled "
+                "(SCALING_FACTOR 1.0 and OFFSET 0.0 in the label)"
+            ),
+            "valid_pixels": fraction.valid_pixels,
+            "total_pixels": fraction.total_pixels,
+            "valid_fraction": fraction.fraction,
+            "invalid_by_reason": {
+                reason.label: count
+                for reason, count in mask.reason_counts().items()
+                if reason is not InvalidReason.VALID
+            },
+            "mask": (
+                "quality.validity_mask with nodata = the label's CORE_NULL; the label's four ISIS "
+                "saturation codes are isis_saturation"
+            ),
+            "min": float(np.min(values)) if values.size else None,
+            "max": float(np.max(values)) if values.size else None,
+            "median": float(np.median(values)) if values.size else None,
+            "median_definition": (
+                "numpy.median of the valid values in float64: the mean of the two middle values "
+                "for an even count"
+            ),
+            "zero_pixels": int(np.count_nonzero(values == 0)),
+            "negative_pixels": int(np.count_nonzero(values < 0)),
+            "positive_pixels": int(np.count_nonzero(values > 0)),
+            "non_positive_rule": (
+                "a CPR of 0 or below is kept as valid and counted, not masked: the label declares "
+                "no rule that makes it missing (layout_leads, missing_data_non_positive; PRD 7, F1)"
+            ),
+        }
+
+    def _leads(
+        self,
+        label: Pds3Object,
+        layout: Pds3ImageLayout,
+        projection: Pds3PolarStereographic,
+        image_name: str,
+        fetched: Mapping[str, Any],
+        combined: re.Match[str] | None,
+    ) -> list[dict[str, Any]]:
+        """Each PRD 5 lead for the mosaic layout, confirmed or contradicted by the label."""
+        block = label.child("IMAGE_MAP_PROJECTION")
+        raw = {item.key: item.raw for item in [*label.items, *block.items]}
+        note = _collapse(_label_text(label, "NOTE") or "")
+        start, stop = raw.get("START_TIME", ""), raw.get("STOP_TIME", "")
+        null = layout.special_values.get("CORE_NULL")
+        mosaics_url = str(fetched["mosaics_url"])
+        declared = ", ".join(layout.special_raw) or "no special values"
+
+        def lead(item: str, prd: str, value: str, confirmed: bool, basis: str) -> dict[str, Any]:
+            return {
+                "item": item,
+                "prd_lead": prd,
+                "label_value": value,
+                "status": "confirmed" if confirmed else "contradicted",
+                "basis": basis,
+            }
+
+        return [
+            lead(
+                "file",
+                "lsz_xxxxx_3cp_piu_90s000_v1.img, volume LROMRF_0005 of the Mini-RF CDR archive "
+                "at PDS Geosciences",
+                f"^IMAGE = {raw['^IMAGE']}; listed as {image_name} at {mosaics_url}",
+                image_name.lower() == "lsz_xxxxx_3cp_piu_90s000_v1.img"
+                and "/lromrf_0005/" in mosaics_url.lower(),
+                "the label's ^IMAGE pointer and the volume directory the landing page links",
+            ),
+            lead(
+                "data_set",
+                "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+                f"DATA_SET_ID = {raw['DATA_SET_ID']}",
+                _label_text(label, "DATA_SET_ID") == "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+                "the label's DATA_SET_ID",
+            ),
+            lead(
+                "size",
+                "10,346 x 10,346 pixels",
+                f"LINES = {layout.lines}, LINE_SAMPLES = {layout.line_samples}",
+                layout.lines == 10346 and layout.line_samples == 10346,
+                "the label's IMAGE object",
+            ),
+            lead(
+                "sample_type",
+                "Little-endian 32-bit float",
+                f"SAMPLE_TYPE = {layout.sample_type}, SAMPLE_BITS = {layout.sample_bits}",
+                layout.dtype == np.dtype("<f4"),
+                "PDS3 Standards Reference appendix C: PC_REAL is a little-endian IEEE real",
+            ),
+            lead(
+                "values",
+                "CPR values",
+                f"NOTE = '{note}'",
+                "circular polarization ratio" in note.lower(),
+                "the label's NOTE",
+            ),
+            lead(
+                "projection",
+                "South-polar stereographic",
+                f"MAP_PROJECTION_TYPE = {raw['MAP_PROJECTION_TYPE']}, CENTER_LATITUDE = "
+                f"{raw['CENTER_LATITUDE']}",
+                projection.center_latitude_deg == -90.0,
+                "the label's IMAGE_MAP_PROJECTION object",
+            ),
+            lead(
+                "pixels_per_degree",
+                "256 pixels per degree",
+                f"MAP_RESOLUTION = {raw.get('MAP_RESOLUTION')}",
+                projection.map_resolution_ppd == 256.0,
+                "the label's IMAGE_MAP_PROJECTION object",
+            ),
+            lead(
+                "pixel_size",
+                "about 118.45 m per pixel",
+                f"MAP_SCALE = {raw['MAP_SCALE']}",
+                round(projection.map_scale_m, 2) == 118.45,
+                "the label's MAP_SCALE, converted to metres and rounded to the lead's 2 decimals",
+            ),
+            lead(
+                "projection_centre",
+                "projection centre at sample and line 5173.5 (1-based)",
+                f"SAMPLE_PROJECTION_OFFSET = {raw['SAMPLE_PROJECTION_OFFSET']}, "
+                f"LINE_PROJECTION_OFFSET = {raw['LINE_PROJECTION_OFFSET']}",
+                abs(projection.sample_projection_offset - 5173.5) < 1e-6
+                and abs(projection.line_projection_offset - 5173.5) < 1e-6,
+                "DSMAP.CAT: x = (Sample - S0) * Scale and y = (L0 - Line) * Scale with Sample and "
+                "Line 1-based and integral at pixel centres, so the offsets are the pole's "
+                "1-based pixel-centre coordinates (compared to 1e-6 pixel)",
+            ),
+            lead(
+                "missing_data_isis_null",
+                "ISIS null values near -3.4e38",
+                f"CORE_NULL = {layout.special_raw.get('CORE_NULL')} ({null!r})",
+                null == ISIS_NULL_REAL4,
+                "the label's CORE_NULL bit pattern equals the ISIS 4-byte Null (SpecialPixel.h) "
+                "that quality.validity_mask uses",
+            ),
+            {
+                "item": "missing_data_non_positive",
+                "prd_lead": "non-positive values treated as missing",
+                "label_value": (
+                    f"the IMAGE object declares {declared} and no rule for non-positive values"
+                ),
+                "status": "not_stated_in_label",
+                "basis": (
+                    "the label does not make non-positive values missing, so a CPR of 0 or below "
+                    "is a valid value (PRD 7, F1) and is counted, not masked (cpr_statistics)"
+                ),
+            },
+            lead(
+                "acquisitions",
+                "East- and west-looking passes combined, 2009 to 2011",
+                f"'{combined.group(0) if combined else 'no combined-look statement'}'; "
+                f"START_TIME = {start}, STOP_TIME = {stop}",
+                combined is not None and start.startswith("2009") and stop.startswith("2011"),
+                "the label's DESCRIPTION, START_TIME and STOP_TIME",
+            ),
+        ]
+
+    def _frequency_note(
+        self, frequency: Pds3Item | None, s_band: re.Match[str] | None
+    ) -> str | None:
+        if frequency is None or s_band is None or not isinstance(frequency.value, Pds3Quantity):
+            return None
+        if frequency.value.unit.lower() == "ghz" and frequency.value.value > 100:
+            return (
+                f"the label states {frequency.raw}, but the instrument catalog states "
+                f"'{s_band.group(0)}': the two differ by a factor of 1000. Both are quoted as "
+                "stated; neither is corrected here"
+            )
+        return None
+
+    def _field_notes(self) -> dict[str, str]:
+        return {
+            "version": "PRODUCT_VERSION_ID as the label states it",
+            "effective_resolution": (
+                "unknown: MAP_SCALE is the nominal sampling of the grid; the mosaic blends several "
+                "acquisitions, and neither the label nor the catalog states an effective resolution"
+            ),
+            "transmit_receive_convention": (
+                "unknown in the ProductRecords: the label states no transmit handedness "
+                "(transmit_handedness); the volume errata's statement is quoted there, not adopted"
+            ),
+            "checksum": (
+                "for the image, the ProductRecord checksum and local_path are those of the image "
+                "rows read by range (range_read), not of the whole file, which was not downloaded"
+            ),
+            "pixel_convention": (
+                "the window uses DSMAP.CAT's conversion (projection.conversion). GDAL's PDS driver "
+                "with its default settings places the origin of such a label one pixel further "
+                "right and down (pinned in test_io_pds3.py); the GDAL documentation warns that "
+                "'Due to ambiguities in the PDS specification, the georeferencing of some "
+                "products is subtly or grossly incorrect'"
+            ),
+            "nodata": (
+                "special pixels are compared as the label's bit patterns; null_value.value is the "
+                "float32 value of CORE_NULL written as a JSON number"
+            ),
+        }
+
+
+SOURCES: Mapping[str, Source] = {"pgda78": Pgda78Source(), "minirf": MinirfSource()}
 """The registered pilot sources, by the name used on the command line."""
 
 

@@ -133,7 +133,9 @@ SPECIAL_PIXELS: dict[tuple[int, int], float] = {
 def mosaic_rows(first_row: int, row_count: int) -> npt.NDArray[np.float32]:
     """Rows of the virtual CPR mosaic, as float32."""
     rows, cols = np.mgrid[first_row : first_row + row_count, 0:LINES]
-    values = (0.05 + ((rows * 7 + cols * 13) % 97) / 100.0).astype(np.float32)
+    values: npt.NDArray[np.float32] = (0.05 + ((rows * 7 + cols * 13) % 97) / 100.0).astype(
+        np.float32
+    )
     for (row, col), value in SPECIAL_PIXELS.items():
         if first_row <= row < first_row + row_count:
             values[row - first_row, col] = np.float32(value)
