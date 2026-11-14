@@ -120,12 +120,12 @@ def assert_rejected(
     model: type[BaseModel], value: Any, loc: tuple[str | int, ...], error_type: str | None = None
 ) -> None:
     """Reject in both Python and JSON mode, with exactly one error at `loc`."""
-    for validate in (
-        lambda: model.model_validate(value),
-        lambda: model.model_validate_json(json.dumps(value)),
-    ):
+    for mode in ("python", "json"):
         with pytest.raises(ValidationError) as excinfo:
-            validate()
+            if mode == "python":
+                model.model_validate(value)
+            else:
+                model.model_validate_json(json.dumps(value))
         errors = excinfo.value.errors()
         assert [error["loc"] for error in errors] == [loc], errors
         if error_type is not None:
