@@ -528,7 +528,7 @@ def test_valid_fraction_of_an_empty_window_raises(shape: tuple[int, ...]) -> Non
 def test_valid_fraction_refuses_non_boolean_arrays() -> None:
     """A reason array (0 = valid) would otherwise be counted inverted."""
     with pytest.raises(TypeError, match="bool"):
-        valid_fraction(np.array([0, 0, 1], dtype=np.uint8))  # type: ignore[arg-type]
+        valid_fraction(np.array([0, 0, 1], dtype=np.uint8))
     with pytest.raises(TypeError, match="bool"):
         valid_fraction([True, False])  # type: ignore[arg-type]
 
