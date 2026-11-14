@@ -43,3 +43,6 @@ test-results/
 /paper/*.synctex.gz
 
 .claude/settings.local.json
+
+# Full agent transcripts; the compact run record in logs/agents/<date>/*.jsonl is committed.
+/logs/agents/*/raw/
