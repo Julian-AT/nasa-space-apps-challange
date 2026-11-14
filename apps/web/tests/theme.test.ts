@@ -7,7 +7,7 @@ import tailwindcss from '@tailwindcss/postcss';
 import postcss, { type Root } from 'postcss';
 import { describe, expect, it } from 'vitest';
 
-import { contrastRatio, isRed, parseHex } from './contrast.ts';
+import { composite, contrastRatio, isRed, parseHex } from './contrast.ts';
 import { WEB_DIR } from './helpers.ts';
 import { GLOBALS, token } from './tokens.ts';
 
@@ -92,6 +92,16 @@ describe('contrast helper', () => {
   it('accepts only #rrggbb', () => {
     expect(() => parseHex('oklch(0.5 0.1 20)')).toThrow(/#rrggbb/);
     expect(() => parseHex('#fff')).toThrow(/#rrggbb/);
+  });
+
+  it('composites a translucent colour over a backdrop in sRGB, as browsers paint it', () => {
+    // 127.5 rounds to 128 (0x80).
+    expect(composite('#000000', 0.5, '#ffffff')).toBe('#808080');
+    expect(composite('#171717', 0.8, '#ffffff')).toBe('#454545');
+    expect(composite('#123456', 1, '#abcdef')).toBe('#123456');
+    expect(composite('#123456', 0, '#abcdef')).toBe('#abcdef');
+    expect(() => composite('#000000', 1.5, '#ffffff')).toThrow(/alpha/);
+    expect(() => composite('#000000', -0.1, '#ffffff')).toThrow(/alpha/);
   });
 
   it('tells red from grey and blue', () => {
