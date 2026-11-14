@@ -616,6 +616,15 @@ def test_geographic_unproject_matches_exact_radians(lon_deg: list[float], lat_de
     lon_deg=[-179.8, 179.7, 179.49999999999997],
     lat_deg=0.0,
 )
+@example(
+    # A subnormal origin: lon - origin is -5e-324, and (lon - origin) / 360 underflows to -0.0,
+    # so a turn decided by that quotient alone leaves the point west of the origin.
+    lookup=GeographicLookup(
+        origin_lon_deg=5e-324, origin_lat_deg=0.0, pixel_width_deg=1.0, pixel_height_deg=1.0
+    ),
+    lon_deg=[0.0, -1e-320, 360.0 - 1e-13],
+    lat_deg=0.0,
+)
 def test_geographic_pixel_coordinates_match_exact_pixels(
     lookup: GeographicLookup, lon_deg: list[float], lat_deg: float
 ) -> None:
