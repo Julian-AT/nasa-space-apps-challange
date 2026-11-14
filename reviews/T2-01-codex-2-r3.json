@@ -116,7 +116,11 @@
       "claim": "List and tuple subclasses can bypass mask rejection through their own NumPy conversion protocol. Restrict these containers to exact built-in types or normalize the validated contents before coercion, and add regression tests.",
       "evidence": "Static trace, not executed: let m=np.ma.array([100.0,300.0], mask=[False,True]) and define class L(list) with __array__(self,dtype=None,copy=None) returning m. For decode_linear(L([100.0,300.0]), nodata=None), isinstance(item,list|tuple) succeeds at :219 and the walk validates only the two ordinary list entries. np.asarray at :240 instead invokes __array__, discarding the returned MaskedArray mask. Classification at :304–306 sees two positive finite DNs and :359 publishes both as VALID/NONE. The same helper protects angles, noise flags and StatedArray fields. Tests at test_polarimetry_decode.py:711–737 cover unrelated custom containers, but no list/tuple subclass with a conversion protocol. This leaves PRD 7's mask-preservation rule incompletely enforced.",
       "id": "codex2-r3-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "0f41cd735cb97b950409779c2534fe156edd4214",
+        "reason": "Same defect as codex-r3-1, fixed by the same commit. Your trace reproduced exactly: class L(list) with __array__ returning the masked array made decode_linear(L([100.0, 300.0]), nodata=None) publish both elements VALID/NONE. Lists, tuples and scalars are now matched by exact type in _require_plain, so the subclass raises TypeError before np.asarray runs; this protects every array argument and StatedArray field, which all go through the same walk. Regression tests in 22f2375 (run failing: 70 failed, 231 passed) cover list and tuple subclasses with a conversion protocol for every entry point and StatedArray field, at depth 0 to 3. After the fix: 330 passed; mypy and make check pass."
+      }
     },
     {
       "severity": "high",
@@ -124,7 +128,11 @@
       "claim": "Accepted finite floating DNs can cause whole-array failure or silently become valid zero power. Define and enforce the supported numerical range, avoid premature overflow, and cover range failures with per-element states and reasons.",
       "evidence": "Static arithmetic, not executed: :241 accepts floating arrays and :304–306 considers every finite positive DN valid. With DN=1e155, squaring at :359 overflows float64 before calibration, although calibrated power is representable at approximately 5.011872336e301; StatedArray then raises at :152–153, losing the entire array result. With DN=1e-160, calibrated power underflows to 0.0 and remains VALID/NONE, while decode_db returns approximately -3283 dB, so 10*log10(linear) cannot agree. The property generator at test_polarimetry_decode.py:800 excludes both cases and all fractional DNs.",
       "id": "codex2-r3-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "514b1bb040fd1e96776e72da382d8c0a6349ad70",
+        "reason": "Reproduced both: DN 1e155 raised ValueError (a VALID element must hold a finite value) for the whole array, and DN 1e-160 returned VALID 0.0. Fixed in two parts. (1) No premature overflow: power is computed as (DN * 10**(-offset/20))**2, the same quantity, so 1e155 now decodes VALID to 5.011872336272722e301 (and F8 is unchanged at 5.011872336272715e-05). (2) Per-element range rule: a valid element whose result overflows, or whose positive power is below the smallest normal float64, is INVALID with the new reason FLOAT64_OUT_OF_RANGE. This applies in decode_db and decode_linear alike, so the two forms agree on every pixel and 10*log10(linear) matches dB wherever VALID; it applies the same way in x_power and in radian angle conversion, where zero and subnormal angles stay valid. An offset whose amplitude factor 10**(-offset/20) is not a normal float64 raises ValueError. The rule is float64 representability (PRD 8.8: float64; PRD 7: inputs must be finite and supported), not a physical or product threshold; no DN range is introduced. Failing tests first in 0cd16ab (26 failed, 304 passed). Hypothesis now also draws any positive finite float DN (fractional, subnormal, near the limits), with a log10 oracle that checks VALID exactly where the exact result is a normal float64, for decoding and x_power. 3b661e1 corrected two defects in those test oracles; the tests still fail 26 against the pre-fix source. After the fix: 330 passed (also with -W error and over 60 hypothesis seeds); mypy and make check pass."
+      }
     }
   ]
 }
