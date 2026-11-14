@@ -1,0 +1,105 @@
+{
+  "task_id": "T3-03",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "b1191ababde57c06ee6abe47ae3071d99b3557b2",
+    "head": "6ea04852d3aa307da4f5dbf67f4f6ed63540544c",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "102de2f8dcdfe2138f1c79258929b0e53bdcb90945d7e34f25664d331b8f315a"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_resample.py",
+        "sha256": "392657399431030bcfda958b0f74129071386f08bc80ce3e00a1d027818692e5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:38:12Z",
+  "finished_utc": "2026-11-14T21:42:06Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Both previous blocker fixes and both rebuttals are supported by inspection. Execution-dependent criteria remain unverified because checks were prohibited in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "Tests precede implementation and a failing run is recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "At commit 63bc9ea, test_geometry_resample.py imports lookup and resampler symbols absent from that commit's geometry.py. Notes exist at scripts/ralph/batches/t3-terrain/prd.json:167, but historical execution was not independently observed and cannot be rerun under the review restrictions."
+    },
+    {
+      "criterion": "Three lookup forms have independent forward/inverse tests and explicit required georeferencing parameters.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:510,612,760 defines the three forms. Re-derived polar radius 2Rk0 tan(chi/2), north/south northing signs, equirectangular scales and half-pixel affine shifts agree with the implementation. Independent references appear at test_geometry_resample.py:158,218,240,256,265; directional assertions at :582,597,720,742,844,864; missing-parameter assertions at :409."
+    },
+    {
+      "criterion": "Interpolation uses exactly four bilinear neighbours; missing neighbours and outside points produce nodata.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1163 computes source bounds, :1166 selects the four-neighbour footprint, :1170 requires all four neighbours valid, and :1172 evaluates bilinear weights. At :1176 invalid outputs become NaN. Tests at test_geometry_resample.py:1156,1175,1186 exercise footprint isolation, outside points and missing zero-weight neighbours."
+    },
+    {
+      "criterion": "A source plane in the window frame meets the specified residual tolerance at small equirectangular extent.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_geometry_resample.py:1950 constructs source elevations from independently calculated window-frame offsets. The test at :1958 checks the curvature allowance below atol/2, fits the output plane and applies rtol=1e-10, atol=1e-12. The curvature expansion and interpolation bound are consistent on paper; the numerical residual requires execution, prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "Nodata tests establish exact footprint masking, all-nodata output and NaN/sentinel equivalence.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Assertions cover exact footprints at test_geometry_resample.py:1199 and :1787, all-nodata inputs at :1239, and sentinel equivalence at :1226,1390,1447. These are substantive tests, but their outcomes were not observed because test execution was prohibited."
+    },
+    {
+      "criterion": "Output includes float64 values and an explicit boolean valid mask; missing values are never zero.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1074 enforces float64 values, :1076 enforces boolean masks, :1082 requires finite valid values, and :1084 requires NaN for invalid values. bilinear_resample constructs these outputs at :1175. Assertions at test_geometry_resample.py:1544 check dtype, shape, mask and missing-value representation."
+    },
+    {
+      "criterion": "Required focused check",
+      "command": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user explicitly prohibited checks because dependency and test-cache writes cannot run in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed under the explicit read-only review restriction. Makefile:22 invokes uv-based ruff and mypy checks."
+    },
+    {
+      "criterion": "Previous finding codex2-r1-1: masked source pixels become missing observations.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static fix verified: geometry.py:1137 extracts the mask before extracting data, and :1153 excludes masked pixels from validity. resample_window preserves the source at :1204. Regression assertions include the reported fully masked zero source at test_geometry_resample.py:1276 and window integration at :1842."
+    },
+    {
+      "criterion": "Previous finding codex2-r1-2: sentinel detection uses the source storage type before float64 promotion.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static fix verified: geometry.py:1147 detects sentinels before :1148 promotes values. Float comparison casts the sentinel to the source dtype at :1238; integer comparison retains exact integers at :1248. Tests at test_geometry_resample.py:1371 and :1493 include rounded float32 sentinels and adjacent int64/uint64 values beyond 2**53."
+    },
+    {
+      "criterion": "Previous rebuttal claude-r1-1: orchestration bookkeeping is permitted and product changes stay within scope.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "First-parent path inspection shows the listed implementation/test commits touch only geometry.py and test_geometry_resample.py. scripts/ralph/prompt.md:21 expressly permits the story list and progress log. Additional review/log files belong to orchestration commits."
+    },
+    {
+      "criterion": "Previous rebuttal claude-r1-2: composition checks do not weaken the independent per-step tolerances.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_geometry_resample.py:99 retains rtol=1e-10 and atol=1e-12 for independent directional references. Projection and affine steps have separate reference assertions; composition wiring is checked at :975 and :992. Bitwise composition checks are not independent numerical oracles themselves, but supplement the independent component tests."
+    }
+  ],
+  "findings": []
+}

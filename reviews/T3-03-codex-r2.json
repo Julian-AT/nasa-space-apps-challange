@@ -1,0 +1,96 @@
+{
+  "task_id": "T3-03",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "b1191ababde57c06ee6abe47ae3071d99b3557b2",
+    "head": "6ea04852d3aa307da4f5dbf67f4f6ed63540544c",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "102de2f8dcdfe2138f1c79258929b0e53bdcb90945d7e34f25664d331b8f315a"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_resample.py",
+        "sha256": "392657399431030bcfda958b0f74129071386f08bc80ce3e00a1d027818692e5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:38:12Z",
+  "finished_utc": "2026-11-14T21:43:15Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "The round-1 fixes and rebuttals are supported by inspection, but the sentinel fix rejects boundary values that round to finite source values. No checks were executed.",
+  "checks": [
+    {
+      "criterion": "Tests precede implementation and the failing run is recorded.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Raw tool output at logs/agents/2026-11-14/t3-terrain/raw/ralph-science-analyst-195045.jsonl:1028 shows test_geometry_resample.py failing collection because EquirectangularLookup does not exist. The 63bc9ea tree contains the tests without lookup implementation; the failure is recorded at scripts/ralph/batches/t3-terrain/prd.json:167."
+    },
+    {
+      "criterion": "Three explicit lookup forms have independent forward/inverse tests and missing-parameter tests.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Classes exist at geometry.py:511,613,761. Independent references appear at test_geometry_resample.py:158,218,240,256,265; missing-parameter assertions at :409. Numerical execution was prohibited in this read-only review."
+    },
+    {
+      "criterion": "Interpolation uses only four neighbours, propagates nodata and returns nodata outside the source.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/geometry.py:1163-1178 bounds the coordinates, combines four validity flags, evaluates bilinear weights and assigns NaN outside validity. Locality and boundary assertions appear at test_geometry_resample.py:1156,1175,1186."
+    },
+    {
+      "criterion": "The window-frame plane residual meets the unchanged tolerance with stated curvature allowance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_resample.py:1884 derives the curvature allowance; :1958 tests the small-extent plane using the unchanged tolerance. Confirming residuals requires execution, prohibited in this read-only review."
+    },
+    {
+      "criterion": "Nodata footprint, all-nodata output and NaN/sentinel equivalence.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pipeline/src/terraluna_pipeline/geometry.py:1236 rejects a float16 sentinel of 65505.0 although storage rounding produces finite 65504.0. Such an all-sentinel source raises instead of matching its all-NaN equivalent. Boundary-rounding cases are absent from test_geometry_resample.py:1360."
+    },
+    {
+      "criterion": "Output includes a boolean valid mask beside float64 values; missing values are never zero.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/geometry.py:1074-1085 enforces float64 values, boolean masks, finite valid values and NaN invalid values; :1175-1178 constructs that output."
+    },
+    {
+      "criterion": "Focused story check.",
+      "command": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Execution explicitly prohibited because the read-only sandbox prevents dependency and test-cache writes."
+    },
+    {
+      "criterion": "Repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Execution explicitly prohibited because the read-only sandbox prevents required writes."
+    },
+    {
+      "criterion": "Verify previous fixes and rebuttals.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1134-1153 preserves source masks and detects sentinels before promotion; regression assertions appear at test_geometry_resample.py:1276,1371,1466. scripts/ralph/prompt.md:21 permits bookkeeping paths. Independent per-step references and composition assertions support the tolerance rebuttal; runtime verification remains unavailable."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/geometry.py:1236",
+      "claim": "Check representability after storage-type rounding: the current guard rejects finite rounded sentinels and breaks NaN/sentinel equivalence.",
+      "evidence": "By inspection, bilinear_resample(np.full((2, 2), 65505.0, dtype=np.float16), [0.5], [0.5], nodata=65505.0) raises because 65505 exceeds float16's maximum 65504, although the source conversion rounds to finite 65504. Likewise, float32 -3.4028235e38 rounds to finite -3.4028234663852886e38 but is rejected. Convert under controlled overflow handling, reject conversions that become nonfinite, and add boundary equivalence tests.",
+      "id": "codex-r2-1",
+      "resolution": null
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "task_id": "T3-03",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "b1191ababde57c06ee6abe47ae3071d99b3557b2",
+    "head": "6ea04852d3aa307da4f5dbf67f4f6ed63540544c",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "102de2f8dcdfe2138f1c79258929b0e53bdcb90945d7e34f25664d331b8f315a"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_resample.py",
+        "sha256": "392657399431030bcfda958b0f74129071386f08bc80ce3e00a1d027818692e5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:38:12Z",
+  "finished_utc": "2026-11-14T21:38:34Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 2 fixes for both round-1 blockers are verified. The story's two checks exit 0: pytest passes all 226 tests, and `make check` runs ruff, ruff format and mypy clean. The diff touches only geometry.py and test_geometry_resample.py. I did not re-audit the round-1 criteria beyond the passing test run.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "command": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "outcome": "PASS",
+      "evidence": "226 passed in 6.69s"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed (10 files), mypy found no issues in 10 source files. The output showed no pytest step."
+    },
+    {
+      "criterion": "Masked source pixels become missing (codex2-r1-1)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1135-1138 take np.ma.getmaskarray before np.ma.getdata, and geometry.py:1152-1153 apply that mask to the validity array. resample_window passes the source through unchanged to bilinear_resample (geometry.py:1204)."
+    },
+    {
+      "criterion": "Sentinel compared in the source's storage type (codex2-r1-2)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "_sentinel_pixels (geometry.py:1220-1248) casts the float sentinel to the grid dtype before comparing, compares integer sources exactly in their own type, and raises ResampleError for a sentinel the type cannot hold."
+    },
+    {
+      "criterion": "Outputs carry an explicit boolean valid mask; outside and missing are NaN, never 0; bilinear uses the four neighbours only",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1163-1179 build `inside` and `valid` as boolean arrays, take the value from the four neighbours only, and set `np.where(valid, value, np.nan)`."
+    },
+    {
+      "criterion": "Reviewed paths stay within the story's files list",
+      "command": "git diff --stat",
+      "outcome": "PASS",
+      "evidence": "Only geometry.py and test_geometry_resample.py changed."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/geometry.py:1236",
+      "claim": "The float-range guard only covers sources up to 8 bytes. A float32 sentinel just under finfo.max may round to infinity on casting and possibly emit an overflow warning.",
+      "evidence": "Seen by reading only. I did not run an edge-case probe, and the test run showed no failure.",
+      "id": "claude-r2-1",
+      "resolution": null
+    }
+  ]
+}
