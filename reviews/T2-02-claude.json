@@ -1,0 +1,90 @@
+{
+  "task_id": "T2-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "178e0a292a416903466fa30da513acfd9ce96233",
+    "head": "1f02b9f3d06297de407840d8fec0fbf18d1fe3ae",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "ca4d364fc13ca40e849988ea4cd7adbdf3d7aa0ac30bcc41f8e1f19e5e9fd94a"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_stokes.py",
+        "sha256": "ac86a4183037580555403a41baa04ed33181b1ae163a77ab7272312c22fe793b"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:36:11Z",
+  "finished_utc": "2026-11-14T18:36:32Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T2-02 meets its acceptance criteria. All 108 tests pass, mypy is clean and `make check` passes. The diff touches only polarimetry.py and test_polarimetry_stokes.py, both in the story's file list. I did not run the tests-first step. The commit order suggests it, but I did not check out the earlier commit.",
+  "checks": [
+    {
+      "criterion": "F1-F5 fixtures, with rtol=1e-10 and atol=1e-12, and F3 not truncated at 1.5",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_stokes.py",
+      "outcome": "PASS",
+      "evidence": "108 passed. The F1-F5 tests are at test_polarimetry_stokes.py:119-155, and F3 asserts CPR != 1.5 and > 1.5 at lines 141-142. The code marks F4 STOKES_S1_LT_ABS_S4 (polarimetry.py:795) and F5 OC_NONPOSITIVE (polarimetry.py:821), both with NaN values. No epsilon is added."
+    },
+    {
+      "criterion": "Formulas, required convention argument, ValueError on unknown convention",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "SC and OC are computed as half-sums (polarimetry.py:809-810) and CPR=SC/OC (831). `_check_stokes_convention` raises ValueError (640-646). Tests at lines 264-307 cover the undefined convention string 'S4 = SC - OC'."
+    },
+    {
+      "criterion": "Validity rules: named tolerance, S1>=|S4|, full Stokes bound, NONFINITE, PRODUCT_MASKED, no SNR rule hard-coded",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The tolerance is a named argument defaulting to ARITHMETIC_TOLERANCE (polarimetry.py:706). The docstring records that the real-data tolerance is an open decision (731-733). The rules are at polarimetry.py:786-801 and the tests at test_polarimetry_stokes.py:411-500, including test_no_snr_rule_is_hard_coded."
+    },
+    {
+      "criterion": "Array test: 2x3 array mixing F1-F5, NaN and a masked pixel; no 0.0 in CPR for invalid or missing pixels",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_array_mixing_fixtures_nan_and_mask is at line 531. `StatedArray` enforces NaN on any non-VALID element (polarimetry.py:193)."
+    },
+    {
+      "criterion": "Hypothesis property: SC>=0, OC>=0, SC+OC=S1, CPR/(1+CPR)=SC/S1",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_sc_and_oc_split_the_total_power at test_polarimetry_stokes.py:709-728 uses @given and asserts all four properties."
+    },
+    {
+      "criterion": "Docstring states that the factor 2 cancels in CPR but not in absolute powers, and that the product label defines the power definition",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:716-718. test_docstring_states_the_power_definition is at line 109."
+    },
+    {
+      "criterion": "Check: uv run mypy pipeline/src pipeline/tests",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 6 source files"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed, mypy reported no issues."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:822",
+      "claim": "A pixel with S1 < S4 inside the tolerance gets CPR INVALID with SC_NEGATIVE. The story does not list this reason.",
+      "evidence": "The behaviour is documented, tested (test_negative_sc_within_tolerance_never_gives_a_negative_cpr) and conservative: no negative CPR and no clipping. It is an extra reason code beyond the PRD list, worth noting for the PRD's reason vocabulary.",
+      "id": "claude-r1-1",
+      "resolution": null
+    }
+  ]
+}

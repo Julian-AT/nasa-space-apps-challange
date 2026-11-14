@@ -1,0 +1,102 @@
+{
+  "task_id": "T2-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "178e0a292a416903466fa30da513acfd9ce96233",
+    "head": "1f02b9f3d06297de407840d8fec0fbf18d1fe3ae",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "ca4d364fc13ca40e849988ea4cd7adbdf3d7aa0ac30bcc41f8e1f19e5e9fd94a"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_stokes.py",
+        "sha256": "ac86a4183037580555403a41baa04ed33181b1ae163a77ab7272312c22fe793b"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:36:11Z",
+  "finished_utc": "2026-11-14T18:39:40Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found one blocker in the full-Stokes validity tolerance. Checks were not run under the read-only restriction, and test-first execution remains unverified. Only the two permitted polarimetry files changed.",
+  "checks": [
+    {
+      "criterion": "AC1: F1–F5 tests, arithmetic tolerances, and failing execution before implementation",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_polarimetry_stokes.py:119 contains substantive F1–F5 assertions using the helpers at :65 and :71 and tolerances at :33. Execution was prohibited in the read-only sandbox; a preimplementation failing run cannot be established from source."
+    },
+    {
+      "criterion": "AC2: SC/OC/CPR formulas and required, explicitly declared convention",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static implementation is present at pipeline/src/terraluna_pipeline/polarimetry.py:632, :640, :698, :809 and :831. Unknown and opposite conventions are tested at pipeline/tests/test_polarimetry_stokes.py:282 and :307. Runtime behavior was not executed because the user prohibited checks in the read-only sandbox."
+    },
+    {
+      "criterion": "AC3: Stokes physicality tolerance, nonfinite inputs, product masks, and no hard-coded SNR rule",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:792 computes the tolerance in S1 units, then :797–800 applies it to the polarization norm. This differs from applying the same tolerance to the required squared inequality. Nonfinite and mask handling are present at :786–790."
+    },
+    {
+      "criterion": "AC4: Mixed 2x3 arrays preserve per-pixel values, states and reasons without unavailable CPR becoming zero",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_polarimetry_stokes.py:526 defines the mixed array; :531 checks shapes, values, states and reasons, and :566 asserts unavailable CPR is NaN and never zero. Array execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC5: Hypothesis properties for nonnegative powers, conservation and echo share",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_polarimetry_stokes.py:709 defines a substantive Hypothesis test with nonnegativity assertions at :716, conservation at :718 and the echo-share identity at :726. Property execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC6: Docstring explains the factor of two and product-defined power definition",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:716 explicitly states that the factor 2 cancels in CPR but not absolute powers, and that the selected product's label defines its Stokes powers."
+    },
+    {
+      "criterion": "Focused Stokes tests",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_stokes.py",
+      "outcome": "NOT_RUN",
+      "evidence": "The user prohibited running checks because the sandbox is read-only and test/environment caches may require writes."
+    },
+    {
+      "criterion": "Python type checking",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "The user prohibited running checks because the sandbox is read-only and environment/type-check caches may require writes."
+    },
+    {
+      "criterion": "Repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "The user prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Changed paths remain within the story scope",
+      "command": "git diff --name-status 178e0a292a416903466fa30da513acfd9ce96233 1f02b9f3d06297de407840d8fec0fbf18d1fe3ae -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Output lists only pipeline/src/terraluna_pipeline/polarimetry.py (modified) and pipeline/tests/test_polarimetry_stokes.py (added). No product configuration or release artifacts changed."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:797",
+      "claim": "Applying the unchanged tolerance after taking the square root weakens the required full-Stokes physicality bound and can publish a nonphysical measurement as VALID.",
+      "evidence": "By inspection, S1=1, S2=1+7.5e-11, S3=S4=0 passes lines 797–800: the norm excess is approximately 7.5e-11, below atol+rtol*S1=1.01e-10. But the squared excess required by AC3 is approximately 1.5e-10, exceeding the same tolerance, so it should yield STOKES_NONPHYSICAL rather than CPR=1 with VALID state. The boundary tests at pipeline/tests/test_polarimetry_stokes.py:425 do not distinguish these rules. Preserve the tolerance on the squared inequality using overflow-safe arithmetic and add a distinguishing boundary test.",
+      "id": "codex-r1-1",
+      "resolution": null
+    }
+  ]
+}
