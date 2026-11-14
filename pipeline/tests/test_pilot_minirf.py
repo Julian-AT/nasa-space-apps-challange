@@ -1310,8 +1310,14 @@ def test_a_refused_s4_range_read_keeps_the_s1_window_read_before_it(
     assert window["local_path"] == f"{RAW}/{S1}.img.rows"
     assert window["local_sha256"] == hashlib.sha256(rows).hexdigest()
     # No statistics for a pair with one window: neither layer is decoded.
-    assert not STOKES_STATISTICS & (set(window) | set(pair))
-    assert not any(key.startswith("s4_") for key in pair)
+    assert not STOKES_STATISTICS & set(window)
+    assert set(pair) == {
+        "pixel_window",
+        "s1_label_file_name",
+        "s4_label_file_name",
+        "windows_read",
+        "windows_not_read",
+    }
     (unread,) = pair["windows_not_read"]
     assert unread["label_file_name"] == f"{S4}.lbl"
     assert "ignored the Range header" in unread["reason"]
@@ -1322,7 +1328,8 @@ def test_a_refused_s4_range_read_keeps_the_s1_window_read_before_it(
     assert image.checksum == hashlib.sha256(rows).hexdigest()
     assert image.source_url == S1_IMG_URL
     assert image.verification_status == "PARTIAL"
-    assert "not decoded" in image.qa_definition and "masked by" not in image.qa_definition
+    qa = image.qa_definition
+    assert qa is not None and "not decoded" in qa and "masked by" not in qa
     assert f"MINIRF/LROMRF_0005/{S4}.img" not in records
     assert "not decoded" in record["verification"][f"MINIRF/LROMRF_0005/{S1}.img"]["basis"]
     assert "not decoded" in record["verification"][f"MINIRF/LROMRF_0005/{S1}.lbl"]["basis"]

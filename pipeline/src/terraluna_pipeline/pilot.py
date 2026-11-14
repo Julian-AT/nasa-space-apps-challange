@@ -2152,24 +2152,30 @@ class MinirfSource:
                     ),
                 }
             else:
-                try:
-                    read = [
-                        self._read_window_rows(layer, listed, mosaics_url, staging, read_range, now)
-                        for pair in pairs
-                        for layer in pair
-                    ]
-                except RangeNotSupportedError as error:
-                    blocked = error
-                    stokes = {
-                        "status": "range_not_supported",
-                        "reason": (
-                            f"{error}; the S1 and S4 windows were not read and no mosaic was "
-                            "downloaded whole, so no Stokes value is recorded"
-                        ),
-                    }
-                else:
-                    files.extend(read)
-                    stokes = {"status": "read", "reason": None}
+                # Pair by pair, S1 then S4. A refusal stops the reads; the windows read before
+                # it are kept with their HTTP metadata.
+                stokes_layers = [layer for pair in pairs for layer in pair]
+                stokes = {"status": "read", "reason": None}
+                for layer in stokes_layers:
+                    try:
+                        files.append(
+                            self._read_window_rows(
+                                layer, listed, mosaics_url, staging, read_range, now
+                            )
+                        )
+                    except RangeNotSupportedError as error:
+                        blocked = error
+                        kept = stokes_layers.index(layer)
+                        stokes = {
+                            "status": "range_not_supported",
+                            "reason": (
+                                f"{error}; {kept} of the {len(stokes_layers)} S1 and S4 windows "
+                                "had been read before this answer and are kept, the others were "
+                                "not requested, and no mosaic was downloaded whole"
+                            ),
+                            "refused_label_file_name": layer.file_name,
+                        }
+                        break
             metadata = {
                 "source": self.name,
                 "command": f"{COMMAND} fetch {self.name}",
@@ -2398,10 +2404,25 @@ class MinirfSource:
         read_rows = dict(stokes_rows)
         if rows_entry is not None:
             read_rows[self.cpr_label_name] = rows_entry
+        # A Stokes window is decoded only with its pair's other window; one read before a
+        # range refusal without its partner is stored as fetched (stokes_observation).
+        decoded = {self.cpr_label_name} if rows_entry is not None else set()
+        decoded |= {
+            layer.file_name
+            for pair in pairs
+            if all(member.file_name in stokes_rows for member in pair)
+            for layer in pair
+        }
         records: list[ProductRecord] = []
         verification: dict[str, dict[str, str]] = {}
         for layer in layers:
-            fields = self._record_fields(layer, raw_dir, docs, read=layer.file_name in read_rows)
+            fields = self._record_fields(
+                layer,
+                raw_dir,
+                docs,
+                read=layer.file_name in read_rows,
+                decoded=layer.file_name in decoded,
+            )
             label_local = f"data/raw/{self.name}/{layer.file_name}"
             label_record = ProductRecord.model_validate(
                 {
@@ -2415,7 +2436,9 @@ class MinirfSource:
             records.append(label_record)
             verification[label_record.product_id] = {
                 "status": "PARTIAL",
-                "basis": self._label_basis(layer.file_name, layer.file_name in read_rows),
+                "basis": self._label_basis(
+                    layer.file_name, layer.file_name in read_rows, layer.file_name in decoded
+                ),
             }
             rows = read_rows.get(layer.file_name)
             if rows is None:
@@ -2434,9 +2457,20 @@ class MinirfSource:
             verification[image_record.product_id] = {
                 "status": "PARTIAL",
                 "basis": (
-                    "the Site01 window rows read by one HTTP range request (206), decoded with "
-                    "the label's layout and masked with quality.validity_mask"
-                    + ("" if layer.file_name == self.cpr_label_name else " (stokes_observation)")
+                    (
+                        "the Site01 window rows read by one HTTP range request (206), decoded "
+                        "with the label's layout and masked with quality.validity_mask"
+                        + (
+                            ""
+                            if layer.file_name == self.cpr_label_name
+                            else " (stokes_observation)"
+                        )
+                        if layer.file_name in decoded
+                        else "the Site01 window rows read by one HTTP range request (206) and "
+                        "stored as fetched, but not decoded, because the other window of its S1 "
+                        "and S4 pair was not read after the server refused a range request "
+                        "(stokes_observation.pairs_not_observed)"
+                    )
                     + "; not plotted, so the PRD 5 entry rule is not complete"
                 ),
             }
@@ -2479,7 +2513,7 @@ class MinirfSource:
                 "url": image["url"],
                 "whole_file_downloaded": False,
             }
-        open_items = self._open_items(layers, pairs, fetched["stokes"])
+        open_items = self._open_items(layers, pairs, fetched["stokes"], stokes_rows)
         if rows_entry is None:
             open_items.append(
                 {
@@ -2651,17 +2685,23 @@ class MinirfSource:
             record_prefix=self.record_prefix,
         )
 
-    def _label_basis(self, file_name: str, read: bool) -> str:
+    def _label_basis(self, file_name: str, read: bool, decoded: bool) -> str:
         """Why a label's ProductRecord is PARTIAL, and what was done with it."""
         if file_name == self.cpr_label_name:
             return (
                 "downloaded and read as a PDS3 label; every PRD 5 layout lead is checked "
                 "against it (layout_leads)"
             )
-        if read:
+        if decoded:
             return (
                 "downloaded and read as a PDS3 label; its Site01 window was read "
                 "(stokes_observation)"
+            )
+        if read:
+            return (
+                "downloaded and read as a PDS3 label; its Site01 window rows were read and "
+                "stored but not decoded, because the other window of its S1 and S4 pair was "
+                "not read (stokes_observation.pairs_not_observed)"
             )
         return (
             "downloaded and read as a PDS3 label to establish the mosaic layers "
@@ -2690,9 +2730,13 @@ class MinirfSource:
         return UNKNOWN, "the label states no UNIT keyword and no definition of its values"
 
     def _record_fields(
-        self, layer: _Layer, raw_dir: Path, docs: _MosaicDocuments, *, read: bool
+        self, layer: _Layer, raw_dir: Path, docs: _MosaicDocuments, *, read: bool, decoded: bool
     ) -> dict[str, Any]:
-        """The ProductRecord fields a mosaic label states, shared by its label and image rows."""
+        """The ProductRecord fields a mosaic label states, shared by its label and image rows.
+
+        ``read``: the image's Site01 window rows were fetched; ``decoded``: they were also
+        decoded and masked.
+        """
         label, layout, projection = layer.label, layer.layout, layer.projection
         map_block = label.child("IMAGE_MAP_PROJECTION")
         frequency = label.get("CENTER_FREQUENCY")
@@ -2704,7 +2748,7 @@ class MinirfSource:
             if special
             else "the label's IMAGE object declares no special pixels"
         )
-        if read:
+        if decoded:
             qa = (
                 f"{declared}, masked by quality.validity_mask; the label defines no other "
                 "invalid value"
@@ -2718,7 +2762,12 @@ class MinirfSource:
                     if rules
                     else "; the label defines no other invalid value"
                 )
-                + "; the image was not read, so nothing was masked"
+                + (
+                    "; the Site01 window rows were read and stored but not decoded, so nothing "
+                    "was masked"
+                    if read
+                    else "; the image was not read, so nothing was masked"
+                )
             )
         return {
             "provider": (
@@ -2880,21 +2929,28 @@ class MinirfSource:
     def _stokes_rows(
         self, fetched: Mapping[str, Any], pairs: Sequence[tuple[_Layer, _Layer]]
     ) -> dict[str, Mapping[str, Any]]:
-        """The fetched S1 and S4 window rows by label file name; they must be the pairs' layers."""
-        rows = {
-            str(entry["label_file_name"]): entry
-            for entry in fetched["files"]
-            if entry["role"] == "stokes_window_rows"
-        }
-        status = fetched["stokes"]["status"]
-        expected = {layer.file_name for pair in pairs for layer in pair}
-        if (status == "read") != bool(rows) or (status == "read" and set(rows) != expected):
+        """The fetched S1 and S4 window rows by label file name.
+
+        They must be the pairs' layers in the order the fetch reads them (pair by pair, S1 then
+        S4): all of them when the stokes status is read, those before the refused one when the
+        server refused a range request, and none otherwise.
+        """
+        entries = [entry for entry in fetched["files"] if entry["role"] == "stokes_window_rows"]
+        stokes_meta = fetched["stokes"]
+        order = [layer.file_name for pair in pairs for layer in pair]
+        expected: list[str] | None = []
+        if stokes_meta["status"] == "read":
+            expected = order
+        elif stokes_meta["status"] == "range_not_supported":
+            refused = stokes_meta["refused_label_file_name"]
+            expected = order[: order.index(refused)] if refused in order else None
+        if expected is None or [str(entry["label_file_name"]) for entry in entries] != expected:
             raise PilotError(
                 f"data/raw/{self.name}/{FETCH_METADATA} lists S1 and S4 window rows that do not "
                 "match the S1 and S4 layers covering Site01 or its stokes status; "
                 f"run: {COMMAND} fetch {self.name}"
             )
-        return rows
+        return {str(entry["label_file_name"]): entry for entry in entries}
 
     def _stokes_observation(
         self,
@@ -2915,22 +2971,95 @@ class MinirfSource:
                 "status": "not_performed",
                 "reason": self._no_pair_reason(layers, mosaics_url, site),
             }
-        if stokes_meta["status"] != "read":
+        note = (
+            "Raw observations only: S1 and S4 are recorded as stored, with no scaling and no "
+            "change of sign, and no S1 and |S4| validity rule is applied (T2-02). "
+            f"{verdict_owner}. CPR is never used to infer S4"
+        )
+        if stokes_meta["status"] == "read":
             return {
-                "status": "not_performed",
-                "reason": (
-                    f"{stokes_meta['reason']}. CPR is never used to infer S4. {verdict_owner}"
-                ),
+                "status": "observed",
+                "reason": None,
+                "pairs": [self._stokes_pair(raw_dir, s1, s4, rows) for s1, s4 in pairs],
+                "note": note,
             }
+        reason = f"{stokes_meta['reason']}. CPR is never used to infer S4. {verdict_owner}"
+        if stokes_meta["status"] != "range_not_supported":
+            return {"status": "not_performed", "reason": reason}
+        read = [all(layer.file_name in rows for layer in pair) for pair in pairs]
         return {
-            "status": "observed",
-            "reason": None,
-            "pairs": [self._stokes_pair(raw_dir, s1, s4, rows) for s1, s4 in pairs],
+            "status": "incomplete" if any(read) else "not_performed",
+            "reason": reason,
+            "pairs": [
+                self._stokes_pair(raw_dir, s1, s4, rows)
+                for (s1, s4), complete in zip(pairs, read, strict=True)
+                if complete
+            ],
+            "pairs_not_observed": [
+                self._unobserved_pair(pair, rows, stokes_meta)
+                for pair, complete in zip(pairs, read, strict=True)
+                if not complete
+            ],
             "note": (
-                "Raw observations only: S1 and S4 are recorded as stored, with no scaling and no "
-                "change of sign, and no S1 and |S4| validity rule is applied (T2-02). "
-                f"{verdict_owner}. CPR is never used to infer S4"
+                f"{note}. A pair is decoded only when both its S1 and S4 windows were read: the "
+                "windows of pairs_not_observed that were read are stored as fetched "
+                "(windows_read), not decoded, and carry no statistics"
             ),
+        }
+
+    def _unobserved_pair(
+        self,
+        pair: tuple[_Layer, _Layer],
+        rows: Mapping[str, Mapping[str, Any]],
+        stokes_meta: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """An S1 and S4 pair the refusal interrupted: the windows read, and why the others not."""
+        s1, s4 = pair
+        if s4.window is None:
+            raise PilotError(f"{s4.file_name} does not cover Site01, so it has no window")
+        refused = stokes_meta["refused_label_file_name"]
+        return {
+            "pixel_window": _pixel_window(s4.window),
+            "s1_label_file_name": s1.file_name,
+            "s4_label_file_name": s4.file_name,
+            "windows_read": [
+                self._window_provenance(layer, rows[layer.file_name])
+                for layer in pair
+                if layer.file_name in rows
+            ],
+            "windows_not_read": [
+                {
+                    "label_file_name": layer.file_name,
+                    "reason": (
+                        f"the server refused the range request: {stokes_meta['reason']}"
+                        if layer.file_name == refused
+                        else f"not requested after the server refused the range request for "
+                        f"{refused}"
+                    ),
+                }
+                for layer in pair
+                if layer.file_name not in rows
+            ],
+        }
+
+    def _window_provenance(self, layer: _Layer, entry: Mapping[str, Any]) -> dict[str, Any]:
+        """Where the Site01 window rows of a Stokes layer came from, and where they are stored."""
+        units, units_source = self._units(layer.label)
+        return {
+            "label_file_name": layer.file_name,
+            "label_url": layer.entry["url"],
+            "label_sha256": layer.entry["sha256"],
+            "image_file_name": entry["provider_file_name"],
+            "url": entry["url"],
+            "http_status": entry["http_status"],
+            "content_range": entry["content_range"],
+            "byte_ranges": [[entry["first_byte"], entry["last_byte"]]],
+            "bytes_received": entry["bytes_received"],
+            "remote_bytes": entry["remote_bytes"],
+            "retrieved_at": entry["retrieved_at"],
+            "local_path": f"data/raw/{self.name}/{entry['file_name']}",
+            "local_sha256": entry["sha256"],
+            "units": {"value": units, "source": units_source},
         }
 
     def _no_pair_reason(
@@ -2989,24 +3118,9 @@ class MinirfSource:
         observed = {key: np.asarray(values[key][valid], dtype=np.float64) for key in ("s1", "s4")}
 
         def layer_record(key: str, layer: _Layer) -> dict[str, Any]:
-            entry = rows[layer.file_name]
-            units, units_source = self._units(layer.label)
             found = observed[key]
             return {
-                "label_file_name": layer.file_name,
-                "label_url": layer.entry["url"],
-                "label_sha256": layer.entry["sha256"],
-                "image_file_name": entry["provider_file_name"],
-                "url": entry["url"],
-                "http_status": entry["http_status"],
-                "content_range": entry["content_range"],
-                "byte_ranges": [[entry["first_byte"], entry["last_byte"]]],
-                "bytes_received": entry["bytes_received"],
-                "remote_bytes": entry["remote_bytes"],
-                "retrieved_at": entry["retrieved_at"],
-                "local_path": f"data/raw/{self.name}/{entry['file_name']}",
-                "local_sha256": entry["sha256"],
-                "units": {"value": units, "source": units_source},
+                **self._window_provenance(layer, rows[layer.file_name]),
                 "invalid_by_reason": {
                     reason.label: count
                     for reason, count in masks[key].reason_counts().items()
@@ -3042,15 +3156,18 @@ class MinirfSource:
         layers: Sequence[_Layer],
         pairs: Sequence[tuple[_Layer, _Layer]],
         stokes_meta: Mapping[str, Any],
+        stokes_rows: Mapping[str, Mapping[str, Any]],
     ) -> list[dict[str, Any]]:
         if pairs and stokes_meta["status"] == "read":
             return []
         if pairs:
+            unread = [layer.file_name for pair in pairs for layer in pair]
+            unread = [name for name in unread if name not in stokes_rows]
             return [
                 {
                     "item": (
                         "Read the Site01 windows of the S1 and S4 mosaic layers that cover Site01 "
-                        "(stokes_observation)"
+                        f"and were not read ({', '.join(unread)}) (stokes_observation)"
                     ),
                     "reason": stokes_meta["reason"],
                 }
