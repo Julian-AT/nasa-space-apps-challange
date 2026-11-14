@@ -360,7 +360,7 @@
         "files": [],
         "digests": {}
       },
-      "notes": ""
+      "notes": "\nralph orchestrator 2026-11-14T23:34:56Z: T2-07 inputs and tolerance, under the team's delegation (docs/ralph/DECISIONS.md, 2026-11-14). (1) The UAVSAR scene Icelnd_00208_15083_004_150530_L090_CX_01 (.ann, the 6 MLC and .inc, sha256-verified against its PROVENANCE.json) is at /Users/julianschmidt/terraluna-data/raw/uavsar/Icelnd_00208_15083_004_150530_L090_CX_01, and the loop exports TERRALUNA_UAVSAR_SCENE to that directory. (2) Declare the real-data oracle tolerance yourself in oracle_tolerance.json, as the person this story waits for, by deriving it from the float32 precision of the MLC inputs and the operation count of both implementations. Write the derivation into the file and commit it before running any comparison against polsartools. It must never be chosen or changed after the differences are seen. If the comparison fails at the derived tolerance, report FAIL honestly."
     }
   ]
 }
