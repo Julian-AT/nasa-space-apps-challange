@@ -1,9 +1,9 @@
 run:
-  working_start: null
+  working_start: "2026-11-14T18:01:00+01:00"  # first build iteration; the team may correct it
   assigned_event_timezone: Europe/Vienna  # team answer, 2026-11-14
   global_submission_cutoff: "2026-11-15T23:59:00+01:00"  # PRD 13: official page, Sunday 15 Nov 23:59 local
-  local_judging_cutoff: null
-  effective_cutoff: null
+  local_judging_cutoff: "2026-11-15T13:30:00+01:00"  # team answer: 13:30 local, Sunday
+  effective_cutoff: "2026-11-15T13:30:00+01:00"  # the earlier of the two cutoffs (PRD 13)
   shipping_mode: null
 targets:
   moon:
@@ -40,10 +40,10 @@ earth_search:
   masks:
     worldcover_allowed: [bare_sparse, snow_ice, grassland, shrubland]
     min_allowed_fraction: 0.9
-    water: null
+    water: worldcover_class_80  # G0-09, decided under team delegation: WorldCover permanent water bodies alone
 uncertainty:
   clones_used: 100
-  background_sample_size: null
+  background_sample_size: 1000  # ANA-02, decided under team delegation: eligible windows per target, fixed seed
 ml:
   input_px: 64
   input_m_per_px: 78.125
