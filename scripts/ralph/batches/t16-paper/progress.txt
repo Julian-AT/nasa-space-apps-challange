@@ -889,3 +889,14 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. The current tip be79891 is equally safe for paper/. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
 ---
+
+## 2026-11-14T19:18Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Main is still 8e3e5a9, the T0 tip is still be79891 and the merge base is still 3073be6. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty. pipeline/src/terraluna_pipeline/ still has only schema.py, and fixtures/ does not exist on this branch. In the T16-01 notes I changed only the iteration number, from 78 to 79. prd.json hashes the same before and after with that notes field removed (a78b70a9…, jq -S).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. The current tip be79891 is equally safe for paper/. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
+---
