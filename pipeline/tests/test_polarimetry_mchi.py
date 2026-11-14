@@ -14,6 +14,7 @@ import dataclasses
 import decimal
 import inspect
 import math
+from fractions import Fraction
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -622,6 +623,64 @@ def test_stokes_parameter_is_not_lost_beside_large_powers() -> None:
         assert hybrid.s3.value == 0.0
         # J_HV = -i V / 2 for t = (1, -i)/sqrt2 and +i V / 2 for (1, +i)/sqrt2; S4 = -V.
         np.testing.assert_allclose(hybrid.s4.value, -1.0 / 3.0, rtol=RTOL)
+
+
+def plane_and_hv(i: int, j: int) -> npt.NDArray[np.complex128]:
+    """The covariance of the scatterers (2**i, 0, 2**i) and (0, 2**j, 0): A = B = C = 2**(2i)
+    and V = 2**(2j). For either circular transmit the plane returns only OC = 2**(2i) and the
+    HV scatterer only SC = 2**(2j), so S1 = OC + SC, S2 = S3 = 0 and S4 = OC - SC exactly,
+    however far apart the two powers are."""
+    large, small = 2.0 ** (2 * i), 2.0 ** (2 * j)
+    return matrix(large, large, small, large, 0.0, 0.0)
+
+
+@settings(deadline=None, max_examples=200)
+@given(
+    st.integers(min_value=-500, max_value=500),
+    st.integers(min_value=-500, max_value=500),
+    st.sampled_from([CHI_LL, CHI_OPP]),
+    st.sampled_from([RAW, SQRT2]),
+)
+def test_cancelling_powers_give_exact_stokes_or_nothing(
+    i: int, j: int, chi_tx: float, ordering: CovarianceOrdering
+) -> None:
+    """S1 = OC + SC and S4 = OC - SC right to the PRD 7 rtol against exact fractions, S2 and
+    S3 exact zeros, at any magnitudes, as in story 3's cancelling-powers property; or, where
+    the parts are too far apart for one float64 scale, nothing at all. A lost power is never
+    a VALID zero. Where OC and SC are at most 2**1000 apart, every output is VALID."""
+    oc, sc = Fraction(2) ** (2 * i), Fraction(2) ** (2 * j)
+    covariance = in_ordering(plane_and_hv(i, j), ordering)
+    hybrid = synthesize(covariance, chi_tx=chi_tx, ordering=ordering)
+    within_range = abs(2 * (j - i)) <= 1000
+    if hybrid.s1.state != VALID:
+        assert not within_range
+        assert_nothing_published(hybrid, HYBRID_FIELDS, INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE)
+        return
+    exact = {"s1": oc + sc, "s2": Fraction(0), "s3": Fraction(0), "s4": oc - sc}
+    for name, value in exact.items():
+        field = getattr(hybrid, name)
+        assert field.state == VALID, name
+        assert abs(Fraction(float(field.value)) - value) <= Fraction(RTOL) * abs(value), name
+    result = m_chi_from_hybrid(hybrid)
+    if oc == sc:
+        assert result.m.value == 0.0
+        assert result.sin_2chi.reason == InvalidReason.M_ZERO
+        return
+    exact_m = abs(oc - sc) / (oc + sc)
+    if exact_m < Fraction(SMALLEST_NORMAL):
+        assert result.m.reason == InvalidReason.FLOAT64_OUT_OF_RANGE
+        return
+    assert abs(Fraction(float(result.m.value)) - exact_m) <= Fraction(RTOL) * exact_m
+    assert result.sin_2chi.value == (-1.0 if oc > sc else 1.0)
+
+
+def test_parts_float64_cannot_carry_at_one_scale_publish_nothing() -> None:
+    """Story 3, rule 3: L = 2**1000 beside v = 2**-1000 cannot be carried at one scale."""
+    large, small = 2.0**1000, 2.0**-1000
+    covariance = matrix(large, large, small, large, 0.0, 0.0)
+    for chi_tx in (CHI_LL, CHI_OPP):
+        hybrid = synthesize(covariance, chi_tx=chi_tx)
+        assert_nothing_published(hybrid, HYBRID_FIELDS, INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE)
 
 
 @pytest.mark.parametrize("ordering", [RAW, SQRT2])
