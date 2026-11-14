@@ -111,3 +111,16 @@
 {"ts":"2026-11-14T20:56:56Z","agent":"verifier","story":"T2-05","event":"tool_use","tool":"Grep","input":"^(from|import) "}
 {"ts":"2026-11-14T20:56:56Z","agent":"verifier","story":"T2-05","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T20:56:56Z","agent":"verifier","story":"T2-05","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":2}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"git diff --stat ceaaa37ab485acf6ecabeaf5e4c9335fac6af7b8 1eb32fcccde01ef9eef43af08b39d0bc844e318b -- . ':!scripts/ralph' ':!reviews' ':!logs'"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"git rev-parse HEAD"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Read","input":"/Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/t2-polarimetry/pipeline/src/terraluna_pipeline/polarimetry.py"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"git diff ceaaa37ab485acf6ecabeaf5e4c9335fac6af7b8 1eb32fcccde01ef9eef43af08b39d0bc844e318b -- pipeline/src/terraluna_pipeline/polarimetry.py"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Read","input":"/Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/t2-polarimetry/fixtures/polarimetry/g1-record.json"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Grep","input":"class GateRecord"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Grep","input":"commit|notes"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_polarimetry_gate.py"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"make test"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"Grep","input":"^def test_.*(fail|missing|tamper|exit|run_id|null|scope)"}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T21:36:01Z","agent":"verifier","story":"T2-06","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"FAIL","findings":3}

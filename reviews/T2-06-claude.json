@@ -1,0 +1,120 @@
+{
+  "task_id": "T2-06",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "ceaaa37ab485acf6ecabeaf5e4c9335fac6af7b8",
+    "head": "1eb32fcccde01ef9eef43af08b39d0bc844e318b",
+    "files": [
+      {
+        "path": "fixtures/polarimetry/g1-record.json",
+        "sha256": "8247a04b3297c0a59464b840a46abd06bfbc0ee3c88564ab5ad641aba6b1fa30"
+      },
+      {
+        "path": "fixtures/polarimetry/g1_required_tests.json",
+        "sha256": "65a8efa160bff116b331bc25d81399e237a2ea2d469408eb1498288a6eefce12"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "a9fbc785b8747b9047aa08ef072e4a7d8b0bad2a140b3f5839ba3b418b8bc0dd"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_gate.py",
+        "sha256": "8583a33ef70e9d357b1b0b606d59d2faad9837281be6aefd3bd18bcea0024396"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:35:20Z",
+  "finished_utc": "2026-11-14T21:36:01Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "The record-g1 command works and its logic and tests are sound. Every listed check passes (87 gate tests, 1143 in make test, make check clean). The committed g1-record.json does not state the commit it ran on, although the story requires it. I rate that medium, which leaves the verdict FAIL. G1 is correctly recorded as PARTIAL because the T2-07 real-scene test is absent.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests/test_polarimetry_gate.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_gate.py",
+      "outcome": "PASS",
+      "evidence": "87 passed in 3.63s"
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "1143 passed in 9.03s"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check, ruff format --check and mypy all clean"
+    },
+    {
+      "criterion": "AC1: gate test file and fixed test-id list (F1-F10 plus invalid-data tests of stories 1-3)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "fixtures/polarimetry/g1_required_tests.json (171 lines) lists the ids, and G1RequiredTests enforces exactly F1-F10 and T2-01..T2-03. The test file has 87 tests. I did not see the failing-first run, which is not reproducible from inspection."
+    },
+    {
+      "criterion": "AC2: record-g1 CLI reads pytest junit, writes one GateRecord, never PASS for a missing, failed, skipped or xfailed required test",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:2999-3250 (main, record_g1, _g1_status). GateRecord is built with gate_id G1, evidence_path, run_id None unless supplied, a scope string, and result as a JSON object of per-fixture counts. Skipped and xfailed tests count as skipped."
+    },
+    {
+      "criterion": "AC3: status rules and the scope states whether the real-scene check was included",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "_g1_status gives FAIL, NOT_RUN, PARTIAL or PASS. _real_scene_phrase writes 'not included (1 of 1 absent...)'. Tests at test_polarimetry_gate.py:435-483 cover absent, skipped and failed."
+    },
+    {
+      "criterion": "AC4: output written to the given path, notes field records exact command and commit; only fixtures/polarimetry/g1-record.json written",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The command is recorded in result. GateRecord has no notes field, so nothing records the commit, and g1-record.json has no commit hash. Only fixtures/polarimetry/g1-record.json is written, and outputs/validation.json is untouched."
+    },
+    {
+      "criterion": "AC5: failing-run test keeps the nonzero exit code; tampered report with a missing required test is not PASS; record validates against GateRecord; nulls stay null",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_polarimetry_gate.py:890 (failing run, exit code), :917 (tampered report missing a test), :951 (tampered report with failures deleted), :562 (GateRecord validation, nulls stay null)."
+    },
+    {
+      "criterion": "Scope and safety: no files outside the story's list, no invented gate pass, config/run.yaml untouched",
+      "command": "git diff --stat",
+      "outcome": "PASS",
+      "evidence": "The diff touches only fixtures/polarimetry/g1-record.json, fixtures/polarimetry/g1_required_tests.json, polarimetry.py and test_polarimetry_gate.py. The committed record is PARTIAL, not PASS."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:3154 (record_g1 result dict); fixtures/polarimetry/g1-record.json",
+      "claim": "The record does not state the commit it ran on, although AC4 requires the exact command and the commit.",
+      "evidence": "The T0 GateRecord has no notes field. The result JSON holds the command and the junit and required-list SHA-256 hashes, with no git commit or SHA. grep for 'commit' in the gate test finds only the committed-record path, so no test covers this.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "fixtures/polarimetry/g1-record.json:4",
+      "claim": "The committed record's evidence_path is /tmp/terraluna-g1/junit.xml. That file is not in the repository, so the evidence cannot be re-checked from a clean checkout.",
+      "evidence": "The junit_sha256 is recorded, but the junit file is not committed under fixtures/polarimetry/. The story permits a path outside the repository.",
+      "id": "claude-r1-2",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:2999",
+      "claim": "The CLI exits 1 for any non-PASS status, which matches the story's 'nonzero exit code is not hidden'. The G1 record stays PARTIAL until T2-07's real-scene test exists, which is intended.",
+      "evidence": "main() returns 0 only for PASS. g1-record.json status is PARTIAL with the oracle test listed as absent.",
+      "id": "claude-r1-3",
+      "resolution": null
+    }
+  ]
+}
