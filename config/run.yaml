@@ -1,0 +1,64 @@
+run:
+  working_start: null
+  assigned_event_timezone: null
+  global_submission_cutoff: null
+  local_judging_cutoff: null
+  effective_cutoff: null
+  shipping_mode: null
+targets:
+  moon:
+    product: PGDA78/Site01
+    primary_window_id: null
+  mars:
+    - name: jezero
+      collection: mro_ctx_controlled_usgs_dtms
+      bbox: [76.69, 17.41, 78.69, 19.41]
+      primary_window_id: null
+    - name: arcadia
+      collection: mro_ctx_controlled_usgs_dtms
+      bbox: null
+      primary_window_id: null
+  window_m: 5000
+  stride_m: 2500
+terrain:
+  analysis_grid_m: 90
+  lags_m: [270, 360, 540, 720, 1080]
+  min_lags_for_H: 4
+  min_lag_span_factor: 4
+  detrend: [none, plane]
+  min_valid_fraction: 0.8
+  resampler: aeqd_sphere
+radar:
+  common_support_m: 250
+  incidence_bins_deg: null
+  snr_rule: null
+  convention: {moon: null, earth: null}
+earth_search:
+  regions: []
+  window_m: 5000
+  stride_m: 2500
+  masks:
+    worldcover_allowed: [bare_sparse, snow_ice, grassland, shrubland]
+    min_allowed_fraction: 0.9
+    water: null
+uncertainty:
+  clones_used: 100
+  background_sample_size: null
+ml:
+  input_px: 64
+  input_m_per_px: 78.125
+  embedding_dim: 256
+  bodies: [moon, mars, earth]
+  lambda_adv: [0.0, 0.1, 0.3, 1.0]
+  alpha_phys: 1.0
+  seeds: [0, 1, 2]
+  g5:
+    phys_r2_min: 0.8
+    morph_gain_min: 0.10
+    body_acc_max: 0.60
+    agreement_rho_min: 0.5
+    seed_jaccard20_min: 0.5
+web:
+  bundle_version: null
+  asset_base: null
+  cop30_mode: null
