@@ -4,7 +4,7 @@ run:
   global_submission_cutoff: "2026-11-15T23:59:00+01:00"  # PRD 13: official page, Sunday 15 Nov 23:59 local
   local_judging_cutoff: "2026-11-15T11:00:00+01:00"  # team correction: 11:00 local, Sunday
   effective_cutoff: "2026-11-15T11:00:00+01:00"  # the earlier of the two cutoffs (PRD 13)
-  shipping_mode: null
+  shipping_mode: C  # G0-01 under team delegation and the PRD 13 deadline rule; see docs/ralph/DECISIONS.md
 targets:
   moon:
     product: PGDA78/Site01
