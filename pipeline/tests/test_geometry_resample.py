@@ -1560,6 +1560,81 @@ def test_a_sentinel_near_the_largest_float_is_held_as_the_source_type_rounds_it(
     assert_same_bits(result.valid, reference.valid)
 
 
+# At the other end, a nonzero sentinel that the float type rounds to zero would make every zero
+# pixel, which is data, missing, so it raises. A sentinel that rounds to a nonzero subnormal is
+# held as that value, and a declared zero of either sign masks both zeros, as equality does.
+FLOAT16_TINY = 2.0**-24  # The smallest subnormal of each type. Half of it is a tie that
+FLOAT32_TINY = 2.0**-149  # rounds to even, to zero.
+
+HELD_NEAR_ZERO = sentinel_cases(
+    [
+        (np.float16, FLOAT16_TINY),
+        (np.float16, -FLOAT16_TINY),
+        (np.float16, math.nextafter(FLOAT16_TINY / 2, 1.0)),
+        (np.float16, 5e-8),
+        (np.float32, FLOAT32_TINY),
+        (np.float32, math.nextafter(FLOAT32_TINY / 2, 1.0)),
+        (np.float32, -1e-45),
+        (np.float64, 5e-324),
+        (np.float64, -5e-324),
+    ]
+)
+
+ROUNDED_TO_ZERO = sentinel_cases(
+    [
+        (np.float16, FLOAT16_TINY / 2),
+        (np.float16, -FLOAT16_TINY / 2),
+        (np.float16, 1e-8),
+        (np.float32, FLOAT32_TINY / 2),
+        (np.float32, -1e-46),
+        (np.float32, 1e-50),
+        (np.float32, 5e-324),
+    ]
+)
+
+
+@pytest.mark.parametrize(("dtype", "nodata"), HELD_NEAR_ZERO)
+def test_a_tiny_sentinel_is_held_as_the_source_type_rounds_it_and_zero_stays_data(
+    dtype: Any, nodata: float
+) -> None:
+    stored = dtype(nodata)
+    assert stored != 0
+    source = np.array([[stored, stored, 0.0, 0.0], [stored, stored, 0.0, -0.0]], dtype=dtype)
+    u = np.array([0.5, 2.5, 1.5, 3.0])
+    v = np.array([0.5, 0.5, 0.5, 1.0])
+    result = bilinear_resample(source, u, v, nodata=nodata)
+    as_nan = np.where(source == stored, np.nan, source.astype(np.float64))
+    reference = bilinear_resample(as_nan, u, v, nodata=None)
+    assert_same_bits(result.valid, np.array([False, True, False, True]))
+    assert_same_bits(result.values, reference.values)
+    assert_same_bits(result.valid, reference.valid)
+
+
+@pytest.mark.parametrize(("dtype", "nodata"), ROUNDED_TO_ZERO)
+def test_a_nonzero_sentinel_that_rounds_to_zero_in_the_source_type_raises(
+    dtype: Any, nodata: float
+) -> None:
+    assert dtype(nodata) == 0
+    with pytest.raises(ResampleError, match="nodata"):
+        resample_uniform(dtype, 0.0, nodata)
+
+
+@pytest.mark.parametrize("dtype", FLOAT_TYPES)
+@pytest.mark.parametrize("nodata", [0.0, -0.0, 0])
+def test_a_declared_zero_sentinel_masks_both_signed_zeros(dtype: Any, nodata: float) -> None:
+    source = np.array(
+        [[0.0, 1.0, 2.0, 3.0], [-0.0, 5.0, 6.0, 7.0], [8.0, 9.0, 10.0, 11.0]], dtype=dtype
+    )
+    u = np.array([0.5, 2.5, 2.5, 0.5])
+    v = np.array([0.5, 0.5, 1.5, 1.5])
+    result = bilinear_resample(source, u, v, nodata=nodata)
+    reference = bilinear_resample(
+        np.where(source == 0.0, np.nan, source.astype(np.float64)), u, v, nodata=None
+    )
+    assert_same_bits(result.valid, np.array([False, True, True, False]))
+    assert_same_bits(result.values, reference.values)
+
+
 @pytest.mark.parametrize("dtype", FLOAT_TYPES)
 @pytest.mark.parametrize("nodata", [math.nan, math.inf, -math.inf])
 def test_a_nan_or_infinite_sentinel_of_a_float_source_adds_no_missing_pixels(
