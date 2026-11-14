@@ -1,0 +1,124 @@
+{
+  "task_id": "T1-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "3a2a5b98e25d630638928a885f890425ce7d1289",
+    "head": "7c54f39b0abd75065fb1ff4ce6c8b17ba8299c7d",
+    "files": [
+      {
+        "path": "outputs/pilot/ctx_dtm.json",
+        "sha256": "34c0059e15b25869be9dd3fb992eb3fa791237f3b1bcf731fb76bdb0ef8b5ccf"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "271a5825167aa6c86ca58dadae863585e9ba99846a2c7f2a01c64ed5799574d4"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "bd782300465759b8d05bd6c6b3658dba2193d977b9e3d25983c83cc43c041e04"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "ec48793d0eb6aa6f07f7eb5f0021d21de263fa18cb916b097d7d8a24924a39ac"
+      },
+      {
+        "path": "pipeline/tests/test_io_cog.py",
+        "sha256": "0f6232a02a541e298e5adbf187dbd56d89c24e9c4b52c754d74c44e3e02110d2"
+      },
+      {
+        "path": "pipeline/tests/test_io_stac.py",
+        "sha256": "f00c00a6005fbfec987803b207b80f5693f7d73d3ce8a64f7f175f93f0b99c2a"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_ctx.py",
+        "sha256": "fb03bf09c403c072fd528ab84188182de82a4be39b9d8edb50d702f6d9b882d9"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:04:47Z",
+  "finished_utc": "2026-11-14T22:09:10Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found two contract violations in transfer reporting and signed-URL handling. No files were changed. All three prescribed commands remain NOT_RUN.",
+  "checks": [
+    {
+      "criterion": "AC1: Correct STAC collection, pilot probe boxes, pagination, observed counts, and readers in io.py.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:3650-3658 defines the required endpoint, collection and probe boxes. io.py:1512-1550 follows pagination. Reading the saved JSON showed Jezero pages containing 80 and 0 features, and Arcadia pages containing 100, 36 and 0. outputs/pilot/ctx_dtm.json:453 and :661 record 80 and 136; :753-755 states no target window was chosen."
+    },
+    {
+      "criterion": "AC2: Deterministic item selection, metadata and QA read, bounded range window, byte count, and quality.py valid fraction.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Selection and quality calculations are implemented at pilot.py:3756-3782 and :4408-4413. However, pilot.py:4471 unconditionally records whole_file_downloaded=false, while io.py:1126-1175 permits a range response covering an entire small COG. The non-whole-download assertion is therefore not enforced. Decoding and numerical checks were not executed."
+    },
+    {
+      "criterion": "AC3: Exact CTX-MOLA standard-deviation quote, explicit absence handling, and no QA threshold decision.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "data/raw/ctx/qa_metrics.txt:6 states 'StdDev of difference: 12.6913 meters', reproduced with source and line number at outputs/pilot/ctx_dtm.json:717-722. Threshold value is null and applied=false at :725-728. pilot.py:4248-4267 explicitly records an absent QA asset."
+    },
+    {
+      "criterion": "AC4: Collection-backed licence and DOI, sorted reproducible ProductRecords, exact local bytes, and no signed URLs.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The saved collection states CC0-1.0 and DOI 10.5066/P9JKVWR3; _stated returns unknown when absent (pilot.py:4034-4039). ProductRecords use the shared sorted upsert. However, pilot.py:4225-4231 copies every chosen asset href into the committed pilot JSON without credential/signature validation. Unfetched assets bypass the download and ProductRecord URL guards. Rerun reproducibility was not executed."
+    },
+    {
+      "criterion": "AC5: Non-zero URL-specific fetch failures and synthetic loopback-only tests.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Execution prohibited by the user's read-only instructions. Inspected substantive synthetic COG/STAC fixtures and loopback server at pipeline/tests/test_pilot_ctx.py:173-196 and :375-400, with failure assertions at :546-595. These tests were not run."
+    },
+    {
+      "criterion": "AC6: Saved raw responses, QA and COG ranges with HTTP metadata; offline record and byte-for-byte check.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Raw files are present under data/raw/ctx/, including all five search pages, qa_metrics.txt, fetch.json and the 1,835,008-byte ranges file. Per-range HTTP metadata appears in fetch.json:175-195. Offline replay and byte-for-byte comparison require execution, which the user prohibited; inspected coverage at pipeline/tests/test_pilot_ctx.py:930-984."
+    },
+    {
+      "criterion": "Required pipeline test command",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox; test execution can write caches and temporary files."
+    },
+    {
+      "criterion": "Required offline CTX output verification",
+      "command": "uv run python -m terraluna_pipeline.pilot check ctx",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in this review."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/pilot.py:4471",
+      "claim": "A whole-file range transfer can be recorded as a partial download, violating AC2.",
+      "evidence": "The record hardcodes whole_file_downloaded=false and states that the whole-file checksum is unknown. io.py:1299 initially requests a 262,144-byte block; fetch_range accepts an EOF-clipped response, and _BlockCache only compares transferred bytes against the 200,000,000-byte limit (io.py:1126-1175). A COG smaller than the initial block is consequently downloaded completely and still reported as partial. Derive this field from actual range coverage and enforce the story's non-whole-download requirement; add a small-COG case.",
+      "id": "codex-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/pilot.py:4225",
+      "claim": "Signed URLs on unfetched STAC assets can enter committed output, violating AC4 and the credential guardrail.",
+      "evidence": "_chosen_record copies every asset href without calling has_url_credentials. Fetch only requests dtm and qa_metrics (pilot.py:3764-3795), so a thumbnail href containing X-Amz-Signature bypasses the request guards. The resulting dictionary is serialized into outputs/pilot/ctx_dtm.json at :4026; canonical_json performs JSON serialization only (export.py:177-183). Validate all hrefs before emitting them and cover a signed unfetched asset with the stub server.",
+      "id": "codex-r1-2",
+      "resolution": null
+    }
+  ]
+}

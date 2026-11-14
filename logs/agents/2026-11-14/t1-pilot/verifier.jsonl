@@ -95,3 +95,17 @@
 {"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"Bash","input":"git rev-parse HEAD"}
 {"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T21:31:24Z","agent":"verifier","story":"T1-04","event":"review","round":3,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":1}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"git diff --stat 3a2a5b98e25d630638928a885f890425ce7d1289 7c54f39b0abd75065fb1ff4ce6c8b17ba8299c7d -- . ':!scripts/ralph' ':!reviews' ':!logs'"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"uv run python -m terraluna_pipeline.pilot check ctx"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"git rev-parse HEAD"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"jq -c 'del(.stac_pages)|keys' outputs/pilot/ctx_dtm.json"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"cat outputs/sources.json"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"ls -la data/raw/ctx"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"jq '{probes,chosen_item:(.chosen_item|tostring|.[0:600]),qa_metrics,retrieval,dtm:(.dtm|tostring|.[0:1800]),target_windows,open_g0_items}' outputs/pilot/ctx_dtm.json"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"cat data/raw/ctx/qa_metrics.txt"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"jq '.dtm|{window,bytes:(.range_requests//null)|tostring|.[0:1500],keys:keys}' outputs/pilot/ctx_dtm.json"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"Bash","input":"jq '.dtm|{range_read:(.range_read|tostring|.[0:1800]),valid,units_stated_by_file}' outputs/pilot/ctx_dtm.json"}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T22:05:36Z","agent":"verifier","story":"T1-05","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":3}
