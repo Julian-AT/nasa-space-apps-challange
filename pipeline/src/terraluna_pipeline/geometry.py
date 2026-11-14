@@ -478,3 +478,537 @@ def _read_only(values: FloatArray) -> FloatArray:
     frozen = np.array(values, dtype=np.float64, copy=True)
     frozen.flags.writeable = False
     return frozen
+
+
+# ---------------------------------------------------------------------------------------------
+# Source lookup (PRD 7, "Window resampler (D29)": source lookup)
+
+BoolArray = npt.NDArray[np.bool_]
+
+# pi / 180 as an unevaluated sum hi + lo of two float64 values.
+_DEG_TO_RAD_HI: Final = 0.017453292519943295
+_DEG_TO_RAD_LO: Final = 2.9486522708701687e-19
+# pi - math.pi rounded to float64 (half of _TWO_PI_LO, exactly).
+_PI_LO: Final = 1.2246467991473532e-16
+# The float64 just above math.pi / 2: inverse latitudes that round to it are clipped to the pole.
+_HALF_PI_ABOVE: Final = math.nextafter(math.pi / 2.0, 4.0)
+
+Pole = Literal["north", "south"]
+"""The pole a polar stereographic raster is centred on."""
+
+
+class SourceLookupError(ValueError):
+    """Raised for a missing or invalid georeferencing parameter, or a point outside a form."""
+
+
+@dataclass(frozen=True, kw_only=True)
+class GeographicLookup:
+    """Geographic latitude-longitude raster (Copernicus DEM, WorldCover), PRD 7 source lookup.
+
+    The georeferencing is the raster's north-up geotransform in degrees, as GDAL and rasterio
+    report it: ``origin_lon_deg`` and ``origin_lat_deg`` locate the outer corner of pixel (row
+    0, column 0), and the pixel sizes are signed (the height is negative for a north-up raster).
+    Columns run east, so ``pixel_width_deg`` must be positive. Rotated geotransforms are not
+    supported. Every parameter is required; none is read from a product.
+
+    Projected coordinates are (longitude, latitude) in degrees. Pixel coordinates are
+    fractional indices of pixel centres: (column, row) = (0, 0) is the centre of the top-left
+    pixel. A longitude maps to the column east of ``origin_lon_deg`` by its difference reduced
+    to [0, 360), so a raster may cross the antimeridian or use the 0 to 360 convention; there
+    is no wrap between the first and last column of a raster that spans a full turn.
+
+    This is the only form the browser probe needs (PRD 7, 8.8): ``@terraluna/core`` mirrors
+    ``to_pixel``. Evaluation: lon_deg = lon * (180 / pi) and lat_deg = lat * (180 / pi) are
+    rounded once (``numpy.degrees``); east = lon_deg - origin_lon_deg is carried exactly as two
+    float64 values (Knuth's two-sum) and reduced to [0, 360) by a whole number of 360 degree
+    turns, deciding the turn on both parts; then column = east / pixel_width_deg - 0.5 and row
+    = (lat_deg - origin_lat_deg) / pixel_height_deg - 0.5, the difference again carried
+    exactly. The only roundings after the degrees are those of the final sums, the divisions
+    and the half-pixel shifts, so a column near 0 keeps its precision next to a large origin.
+    """
+
+    origin_lon_deg: float
+    origin_lat_deg: float
+    pixel_width_deg: float
+    pixel_height_deg: float
+
+    def __post_init__(self) -> None:
+        _store_real(self, "origin_lon_deg", minimum=-360.0, maximum=360.0)
+        _store_real(self, "origin_lat_deg", minimum=-90.0, maximum=90.0)
+        if _store_real(self, "pixel_width_deg") <= 0.0:
+            raise SourceLookupError("pixel_width_deg must be positive: columns run east")
+        _store_nonzero(self, "pixel_height_deg")
+
+    def project(
+        self, lat_rad: npt.ArrayLike, lon_rad: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(longitude, latitude) in degrees of points given in radians."""
+        lat, lon = _points(lat_rad, lon_rad)
+        return _float_array(np.degrees(lon)), _float_array(np.degrees(lat))
+
+    def unproject(
+        self, lon_deg: npt.ArrayLike, lat_deg: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(latitude, longitude) in radians, the longitude in [-pi, pi), of degrees."""
+        lon, lat = _projected(lon_deg, lat_deg)
+        if np.any(np.abs(lat) > 90.0):
+            raise SourceLookupError("latitudes must lie in [-90, 90] degrees")
+        turns = np.round(lon / 360.0)
+        reduced_hi, reduced_lo = _two_sum(lon, -360.0 * turns)
+        lon_hi, lon_lo = _deg_to_rad(reduced_hi, reduced_lo)
+        lat_hi, lat_lo = _deg_to_rad(lat, np.zeros_like(lat))
+        latitude = np.clip(lat_hi + lat_lo, -_HALF_PI, _HALF_PI)
+        return _float_array(latitude), _float_array(_wrap_longitude(lon_hi, lon_lo))
+
+    def pixel_from_projected(
+        self, lon_deg: npt.ArrayLike, lat_deg: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """Pixel coordinates (column, row) of (longitude, latitude) in degrees."""
+        lon, lat = _projected(lon_deg, lat_deg)
+        east_hi, east_lo = _two_sum(lon, np.full_like(lon, -self.origin_lon_deg))
+        turns = np.floor(east_hi / 360.0)
+        # A high part on a multiple of 360 with a negative low part lies just below it.
+        turns = np.where((east_hi == 360.0 * turns) & (east_lo < 0.0), turns - 1.0, turns)
+        shifted_hi, shifted_lo = _two_sum(east_hi, -360.0 * turns)
+        east = shifted_hi + (shifted_lo + east_lo)
+        north_hi, north_lo = _two_sum(lat, np.full_like(lat, -self.origin_lat_deg))
+        column = east / self.pixel_width_deg - 0.5
+        row = (north_hi + north_lo) / self.pixel_height_deg - 0.5
+        return _float_array(column), _float_array(row)
+
+    def projected_from_pixel(
+        self, column: npt.ArrayLike, row: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(longitude, latitude) in degrees of pixel coordinates, as the geotransform gives them."""
+        col, rw = _pixel_pair(column, row)
+        lon = _affine_inverse(col, self.pixel_width_deg, self.origin_lon_deg, 0.0)
+        lat = _affine_inverse(rw, self.pixel_height_deg, self.origin_lat_deg, 0.0)
+        return lon, lat
+
+    def to_pixel(
+        self, lat_rad: npt.ArrayLike, lon_rad: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """Pixel coordinates (column, row) of points in radians: project, then geotransform."""
+        return self.pixel_from_projected(*self.project(lat_rad, lon_rad))
+
+    def from_pixel(
+        self, column: npt.ArrayLike, row: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(latitude, longitude) in radians of pixel coordinates."""
+        return self.unproject(*self.projected_from_pixel(column, row))
+
+
+@dataclass(frozen=True, kw_only=True)
+class PolarStereographicLookup:
+    """Polar stereographic raster on the sphere (LOLA, Mini-RF, PGDA), PRD 7 source lookup.
+
+    The projection touches ``pole`` and is taken from the opposite pole, on a sphere of
+    ``radius_m`` (the product's sphere, an explicit parameter). With colatitude chi = pi/2 -
+    lat for the north aspect and pi/2 + lat for the south::
+
+        rho = 2 R k0 tan(chi / 2)
+        E = rho sin(lon - lon0),   N = -rho cos(lon - lon0) (north) or +rho cos(lon - lon0) (south)
+
+    so the central meridian ``central_meridian_deg`` runs down the map from the north pole and
+    up the map from the south pole, as in PROJ's ``stere`` with lat_0 = +-90 (Snyder 1987, USGS
+    Professional Paper 1395, polar stereographic, spherical form). The scale k0 at the pole is
+    ``scale_factor`` when ``latitude_of_true_scale_deg`` is +-90, and (1 + sin |lat_ts|) / 2,
+    true scale on the parallel lat_ts, otherwise. A scale factor other than 1 with a true-scale
+    latitude away from the pole is rejected: PROJ ignores k_0 then, so the pair is ambiguous.
+    The true-scale latitude lies in the pole's hemisphere: (0, 90] north, [-90, 0) south.
+
+    ``project`` returns (E, N) in metres from the pole, before false easting and northing;
+    ``pixel_from_projected`` adds ``false_easting_m`` and ``false_northing_m`` and applies the
+    north-up geotransform (origin at the outer corner of pixel (0, 0), signed pixel sizes in
+    metres). The form is Python-only (PRD 7).
+
+    Evaluation: chi is carried exactly as two float64 values, (pi/2 -+ lat) plus the part of
+    pi/2 that ``math.pi / 2`` leaves out, and tan(chi / 2) takes the low part to first order.
+    Beyond the equator, where chi > pi/2, it is 1 / tan((pi - chi) / 2) instead, so that the
+    tangent is never evaluated near its pole. lon - lon0 is carried as two float64 values, with
+    lon0 from degrees in double-double, and its sine and cosine take the low part to first
+    order. The opposite pole has no image and raises :class:`SourceLookupError`.
+    """
+
+    pole: Pole
+    central_meridian_deg: float
+    latitude_of_true_scale_deg: float
+    scale_factor: float
+    radius_m: float
+    false_easting_m: float
+    false_northing_m: float
+    origin_x_m: float
+    origin_y_m: float
+    pixel_width_m: float
+    pixel_height_m: float
+
+    def __post_init__(self) -> None:
+        pole: object = self.pole
+        if pole is None:
+            raise SourceLookupError("pole is required, got None")
+        if not (isinstance(pole, str) and pole in ("north", "south")):
+            raise SourceLookupError(f"pole must be 'north' or 'south', got {pole!r}")
+        _store_real(self, "central_meridian_deg", minimum=-360.0, maximum=360.0)
+        lat_ts = _store_real(self, "latitude_of_true_scale_deg")
+        if not (0.0 < lat_ts <= 90.0 if pole == "north" else -90.0 <= lat_ts < 0.0):
+            hemisphere = "(0, 90]" if pole == "north" else "[-90, 0)"
+            raise SourceLookupError(
+                f"latitude_of_true_scale_deg must lie in {hemisphere} for the {pole} pole, "
+                f"got {lat_ts!r}"
+            )
+        scale = _store_real(self, "scale_factor")
+        if scale <= 0.0:
+            raise SourceLookupError(f"scale_factor must be positive, got {scale!r}")
+        if abs(lat_ts) != 90.0 and scale != 1.0:
+            raise SourceLookupError(
+                "scale_factor must be 1 when latitude_of_true_scale_deg is off the pole: give the "
+                "scale either by a true-scale latitude or by a scale factor at the pole"
+            )
+        _store_positive(self, "radius_m")
+        _store_projected_affine(self)
+
+    def project(
+        self, lat_rad: npt.ArrayLike, lon_rad: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(E, N) in metres from the pole of points given in radians."""
+        lat, lon = _points(lat_rad, lon_rad)
+        north = self.pole == "north"
+        toward = lat if north else -lat
+        if np.any(toward == -_HALF_PI):
+            raise SourceLookupError("polar stereographic has no image of the opposite pole")
+        half_pi = np.full_like(toward, _HALF_PI)
+        near_hi, near_lo = _two_sum(half_pi, -toward)
+        near_hi, near_lo = _two_sum(near_hi, near_lo + _HALF_PI_LO)
+        far_hi, far_lo = _two_sum(half_pi, toward)
+        far_hi, far_lo = _two_sum(far_hi, far_lo + _HALF_PI_LO)
+        tangent = np.where(
+            toward >= 0.0, _tan_half(near_hi, near_lo), 1.0 / _tan_half(far_hi, far_lo)
+        )
+        rho = 2.0 * self.radius_m * self._scale_at_pole() * tangent
+        lon0_hi, lon0_lo = _degrees_to_rad(self.central_meridian_deg)
+        d_hi, d_lo = _two_sum(lon, np.full_like(lon, -lon0_hi))
+        d_hi, d_lo = _two_sum(d_hi, d_lo - lon0_lo)
+        sin_d_hi = np.sin(d_hi)
+        cos_d_hi = np.cos(d_hi)
+        sin_d = sin_d_hi + cos_d_hi * d_lo
+        cos_d = cos_d_hi - sin_d_hi * d_lo
+        northing = -rho * cos_d if north else rho * cos_d
+        return _float_array(rho * sin_d), _float_array(northing)
+
+    def unproject(
+        self, easting_m: npt.ArrayLike, northing_m: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(latitude, longitude) in radians of (E, N) from the pole; the pole gets lon0."""
+        east, north_m = _projected(easting_m, northing_m)
+        rho = np.hypot(east, north_m)
+        colatitude = 2.0 * np.arctan(rho / (2.0 * self.radius_m * self._scale_at_pole()))
+        lat_hi, lat_lo = _two_sum(np.full_like(rho, _HALF_PI), -colatitude)
+        lat = np.clip(lat_hi + (lat_lo + _HALF_PI_LO), -_HALF_PI, _HALF_PI)
+        if self.pole == "north":
+            angle = np.arctan2(east, -north_m)
+        else:
+            lat = -lat
+            angle = np.arctan2(east, north_m)
+        angle = np.where(rho == 0.0, 0.0, angle)
+        lon0_hi, lon0_lo = _degrees_to_rad(self.central_meridian_deg)
+        lon_hi, lon_lo = _two_sum(np.full_like(angle, lon0_hi), angle)
+        lon_hi, lon_lo = _two_sum(lon_hi, lon_lo + lon0_lo)
+        return _float_array(lat), _float_array(_wrap_longitude(lon_hi, lon_lo))
+
+    def pixel_from_projected(
+        self, easting_m: npt.ArrayLike, northing_m: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """Pixel coordinates (column, row) of (E, N): false easting and northing, geotransform."""
+        return _pixel_from_projected(self, easting_m, northing_m)
+
+    def projected_from_pixel(
+        self, column: npt.ArrayLike, row: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(E, N) in metres from the pole of pixel coordinates."""
+        return _projected_from_pixel(self, column, row)
+
+    def to_pixel(
+        self, lat_rad: npt.ArrayLike, lon_rad: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """Pixel coordinates (column, row) of points in radians: project, then geotransform."""
+        return self.pixel_from_projected(*self.project(lat_rad, lon_rad))
+
+    def from_pixel(
+        self, column: npt.ArrayLike, row: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(latitude, longitude) in radians of pixel coordinates."""
+        return self.unproject(*self.projected_from_pixel(column, row))
+
+    def _scale_at_pole(self) -> float:
+        if abs(self.latitude_of_true_scale_deg) == 90.0:
+            return self.scale_factor
+        lat_hi, lat_lo = _degrees_to_rad(abs(self.latitude_of_true_scale_deg))
+        return (1.0 + (math.sin(lat_hi) + math.cos(lat_hi) * lat_lo)) / 2.0
+
+
+@dataclass(frozen=True, kw_only=True)
+class EquirectangularLookup:
+    """Equirectangular raster on the sphere (CTX DTMs), PRD 7 source lookup.
+
+    On a sphere of ``radius_m`` (the product's sphere, an explicit parameter), with lon0 =
+    ``center_longitude_deg``, lat_ts = ``standard_parallel_deg`` (the latitude of true scale)
+    and lat_0 = ``latitude_of_origin_deg``::
+
+        E = R cos(lat_ts) (lon - lon0),   N = R (lat - lat_0)
+
+    as in PROJ's ``eqc`` (Snyder 1987, equidistant cylindrical, spherical form), with lon - lon0
+    reduced to [-pi, pi) on the true circle. ``project`` returns (E, N) in metres before false
+    easting and northing; ``pixel_from_projected`` adds ``false_easting_m`` and
+    ``false_northing_m`` and applies the north-up geotransform (origin at the outer corner of
+    pixel (0, 0), signed pixel sizes in metres). The form is Python-only (PRD 7).
+
+    Evaluation: lon0 and lat_0 come from degrees in double-double, and lon - lon0 and lat - lat_0
+    are carried as two float64 values before the final products, so E and N keep their
+    precision near 0. ``unproject`` raises :class:`SourceLookupError` for an easting beyond
+    pi R cos(lat_ts) or a latitude beyond a pole.
+    """
+
+    center_longitude_deg: float
+    standard_parallel_deg: float
+    latitude_of_origin_deg: float
+    radius_m: float
+    false_easting_m: float
+    false_northing_m: float
+    origin_x_m: float
+    origin_y_m: float
+    pixel_width_m: float
+    pixel_height_m: float
+
+    def __post_init__(self) -> None:
+        _store_real(self, "center_longitude_deg", minimum=-360.0, maximum=360.0)
+        standard = _store_real(self, "standard_parallel_deg")
+        if not -90.0 < standard < 90.0:
+            raise SourceLookupError(
+                f"standard_parallel_deg must lie in (-90, 90), got {standard!r}"
+            )
+        _store_real(self, "latitude_of_origin_deg", minimum=-90.0, maximum=90.0)
+        _store_positive(self, "radius_m")
+        _store_projected_affine(self)
+
+    def project(
+        self, lat_rad: npt.ArrayLike, lon_rad: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(E, N) in metres of points given in radians."""
+        lat, lon = _points(lat_rad, lon_rad)
+        lon0_hi, lon0_lo = _degrees_to_rad(self.center_longitude_deg)
+        d_hi, d_lo = _two_sum(lon, np.full_like(lon, -lon0_hi))
+        d_hi, d_lo = _two_sum(d_hi, d_lo - lon0_lo)
+        # Reduce to [-pi, pi) on the true circle; a turn is 2 * math.pi plus _TWO_PI_LO.
+        over = (d_hi > _PI) | ((d_hi == _PI) & (d_lo >= _PI_LO))
+        under = (d_hi < -_PI) | ((d_hi == -_PI) & (d_lo < -_PI_LO))
+        turns = np.where(over, -1.0, np.where(under, 1.0, 0.0))
+        d_hi, d_lo = _two_sum(d_hi + turns * _TWO_PI, d_lo + turns * _TWO_PI_LO)
+        scale = self._parallel_scale()
+        lat0_hi, lat0_lo = _degrees_to_rad(self.latitude_of_origin_deg)
+        n_hi, n_lo = _two_sum(lat, np.full_like(lat, -lat0_hi))
+        easting = scale * d_hi + scale * d_lo
+        northing = self.radius_m * (n_hi + (n_lo - lat0_lo))
+        return _float_array(easting), _float_array(northing)
+
+    def unproject(
+        self, easting_m: npt.ArrayLike, northing_m: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(latitude, longitude) in radians, the longitude in [-pi, pi), of (E, N)."""
+        east, north = _projected(easting_m, northing_m)
+        turn = east / self._parallel_scale()
+        if np.any(np.abs(turn) > _PI):
+            raise SourceLookupError("eastings must lie within pi R cos(lat_ts) of lon0")
+        lon0_hi, lon0_lo = _degrees_to_rad(self.center_longitude_deg)
+        lon_hi, lon_lo = _two_sum(np.full_like(turn, lon0_hi), turn)
+        lon_hi, lon_lo = _two_sum(lon_hi, lon_lo + lon0_lo)
+        lat0_hi, lat0_lo = _degrees_to_rad(self.latitude_of_origin_deg)
+        lat_hi, lat_lo = _two_sum(np.full_like(north, lat0_hi), north / self.radius_m)
+        lat = lat_hi + (lat_lo + lat0_lo)
+        if np.any(np.abs(lat) > _HALF_PI_ABOVE):
+            raise SourceLookupError("northings must give latitudes in [-pi/2, pi/2]")
+        latitude = np.clip(lat, -_HALF_PI, _HALF_PI)
+        return _float_array(latitude), _float_array(_wrap_longitude(lon_hi, lon_lo))
+
+    def pixel_from_projected(
+        self, easting_m: npt.ArrayLike, northing_m: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """Pixel coordinates (column, row) of (E, N): false easting and northing, geotransform."""
+        return _pixel_from_projected(self, easting_m, northing_m)
+
+    def projected_from_pixel(
+        self, column: npt.ArrayLike, row: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(E, N) in metres of pixel coordinates."""
+        return _projected_from_pixel(self, column, row)
+
+    def to_pixel(
+        self, lat_rad: npt.ArrayLike, lon_rad: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """Pixel coordinates (column, row) of points in radians: project, then geotransform."""
+        return self.pixel_from_projected(*self.project(lat_rad, lon_rad))
+
+    def from_pixel(
+        self, column: npt.ArrayLike, row: npt.ArrayLike
+    ) -> tuple[FloatArray, FloatArray]:
+        """(latitude, longitude) in radians of pixel coordinates."""
+        return self.unproject(*self.projected_from_pixel(column, row))
+
+    def _parallel_scale(self) -> float:
+        lat_hi, lat_lo = _degrees_to_rad(self.standard_parallel_deg)
+        return self.radius_m * (math.cos(lat_hi) - math.sin(lat_hi) * lat_lo)
+
+
+SourceLookup = GeographicLookup | PolarStereographicLookup | EquirectangularLookup
+"""The three closed-form source lookups of PRD 7."""
+
+
+def _store_real(
+    owner: object, name: str, *, minimum: float | None = None, maximum: float | None = None
+) -> float:
+    """Check that a parameter is a finite real number in range, and store it as a float."""
+    value: object = getattr(owner, name)
+    if value is None:
+        raise SourceLookupError(f"{name} is required, got None")
+    if isinstance(value, bool | np.bool_) or not isinstance(
+        value, int | float | np.integer | np.floating
+    ):
+        raise SourceLookupError(f"{name} must be a real number, got {value!r}")
+    number = float(value)
+    if not math.isfinite(number):
+        raise SourceLookupError(f"{name} must be finite, got {number!r}")
+    if (minimum is not None and number < minimum) or (maximum is not None and number > maximum):
+        raise SourceLookupError(f"{name} must lie in [{minimum}, {maximum}], got {number!r}")
+    object.__setattr__(owner, name, number)
+    return number
+
+
+def _store_positive(owner: object, name: str) -> float:
+    number = _store_real(owner, name)
+    if number <= 0.0:
+        raise SourceLookupError(f"{name} must be positive, got {number!r}")
+    return number
+
+
+def _store_nonzero(owner: object, name: str) -> float:
+    number = _store_real(owner, name)
+    if number == 0.0:
+        raise SourceLookupError(f"{name} must not be zero")
+    return number
+
+
+def _store_projected_affine(owner: PolarStereographicLookup | EquirectangularLookup) -> None:
+    for name in ("false_easting_m", "false_northing_m", "origin_x_m", "origin_y_m"):
+        _store_real(owner, name)
+    _store_nonzero(owner, "pixel_width_m")
+    _store_nonzero(owner, "pixel_height_m")
+
+
+def _points(lat_rad: npt.ArrayLike, lon_rad: npt.ArrayLike) -> tuple[FloatArray, FloatArray]:
+    lat, lon = np.broadcast_arrays(
+        np.asarray(lat_rad, dtype=np.float64), np.asarray(lon_rad, dtype=np.float64)
+    )
+    if not (np.all(np.isfinite(lat)) and np.all(np.isfinite(lon))):
+        raise SourceLookupError("latitudes and longitudes must be finite")
+    if np.any(np.abs(lat) > _HALF_PI):
+        raise SourceLookupError("latitudes must lie in [-pi/2, pi/2]")
+    if np.any(np.abs(lon) > _PI):
+        raise SourceLookupError("longitudes must lie in [-pi, pi]")
+    return lat, lon
+
+
+def _projected(first: npt.ArrayLike, second: npt.ArrayLike) -> tuple[FloatArray, FloatArray]:
+    a, b = np.broadcast_arrays(
+        np.asarray(first, dtype=np.float64), np.asarray(second, dtype=np.float64)
+    )
+    if not (np.all(np.isfinite(a)) and np.all(np.isfinite(b))):
+        raise SourceLookupError("projected coordinates must be finite")
+    return a, b
+
+
+def _pixel_pair(column: npt.ArrayLike, row: npt.ArrayLike) -> tuple[FloatArray, FloatArray]:
+    a, b = np.broadcast_arrays(
+        np.asarray(column, dtype=np.float64), np.asarray(row, dtype=np.float64)
+    )
+    if not (np.all(np.isfinite(a)) and np.all(np.isfinite(b))):
+        raise SourceLookupError("pixel coordinates must be finite")
+    return a, b
+
+
+def _pixel_from_projected(
+    lookup: PolarStereographicLookup | EquirectangularLookup,
+    easting_m: npt.ArrayLike,
+    northing_m: npt.ArrayLike,
+) -> tuple[FloatArray, FloatArray]:
+    """column = (E + FE - x0) / width - 0.5 and row = (N + FN - y0) / height - 0.5.
+
+    FE - x0 is carried exactly as two float64 values, and so is its sum with E, so the only
+    roundings are those of the final sum, the division and the half-pixel shift.
+    """
+    east, north = _projected(easting_m, northing_m)
+    column = _affine_forward(east, lookup.false_easting_m, lookup.origin_x_m, lookup.pixel_width_m)
+    row = _affine_forward(north, lookup.false_northing_m, lookup.origin_y_m, lookup.pixel_height_m)
+    return column, row
+
+
+def _projected_from_pixel(
+    lookup: PolarStereographicLookup | EquirectangularLookup,
+    column: npt.ArrayLike,
+    row: npt.ArrayLike,
+) -> tuple[FloatArray, FloatArray]:
+    """E = (column + 0.5) width + x0 - FE and N = (row + 0.5) height + y0 - FN."""
+    col, rw = _pixel_pair(column, row)
+    shift_x_hi, shift_x_lo = _two_sum(
+        np.asarray(lookup.origin_x_m), np.asarray(-lookup.false_easting_m)
+    )
+    shift_y_hi, shift_y_lo = _two_sum(
+        np.asarray(lookup.origin_y_m), np.asarray(-lookup.false_northing_m)
+    )
+    east = _affine_inverse(col, lookup.pixel_width_m, float(shift_x_hi), float(shift_x_lo))
+    north = _affine_inverse(rw, lookup.pixel_height_m, float(shift_y_hi), float(shift_y_lo))
+    return east, north
+
+
+def _affine_forward(
+    coordinate: FloatArray, false_offset: float, origin: float, size: float
+) -> FloatArray:
+    shift_hi, shift_lo = _two_sum(np.asarray(false_offset), np.asarray(-origin))
+    total_hi, total_lo = _two_sum(coordinate, np.full_like(coordinate, float(shift_hi)))
+    total = total_hi + (total_lo + float(shift_lo))
+    return _float_array(total / size - 0.5)
+
+
+def _affine_inverse(
+    index: FloatArray, size: float, offset_hi: float, offset_lo: float
+) -> FloatArray:
+    """(index + 0.5) * size + offset, with offset = offset_hi + offset_lo, in double-double."""
+    q_hi, q_lo = _two_sum(index, np.full_like(index, 0.5))
+    p_hi, p_lo = _two_prod(q_hi, np.full_like(q_hi, size))
+    p_lo = p_lo + q_lo * size
+    s_hi, s_lo = _two_sum(p_hi, np.full_like(p_hi, offset_hi))
+    return _float_array(s_hi + (s_lo + (p_lo + offset_lo)))
+
+
+def _deg_to_rad(deg_hi: FloatArray, deg_lo: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """(deg_hi + deg_lo) * pi / 180 as a normalised double-double value."""
+    product, error = _two_prod(deg_hi, np.full_like(deg_hi, _DEG_TO_RAD_HI))
+    error = error + (deg_hi * _DEG_TO_RAD_LO + deg_lo * _DEG_TO_RAD_HI)
+    return _two_sum(product, error)
+
+
+def _degrees_to_rad(degrees: float) -> tuple[float, float]:
+    """A parameter in degrees as radians in double-double, first reduced to [-180, 180).
+
+    For |degrees| <= 360 the reduction by 360 is exact (Sterbenz).
+    """
+    reduced = (
+        degrees - 360.0 if degrees >= 180.0 else degrees + 360.0 if degrees < -180.0 else degrees
+    )
+    hi, lo = _deg_to_rad(np.asarray([reduced]), np.zeros(1))
+    return float(hi[0]), float(lo[0])
+
+
+def _tan_half(angle_hi: FloatArray, angle_lo: FloatArray) -> FloatArray:
+    """tan(angle / 2) for angle = angle_hi + angle_lo in [0, pi/2], the low part to first order."""
+    t = np.tan(angle_hi / 2.0)
+    tangent: FloatArray = t + (angle_lo / 2.0) * (1.0 + t * t)
+    return tangent
