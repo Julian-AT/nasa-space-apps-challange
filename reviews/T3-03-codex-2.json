@@ -84,7 +84,11 @@
       "claim": "Masked source pixels silently become valid observations. Preserve the input mask when building source validity, or reject masked inputs explicitly.",
       "evidence": "np.asarray(source) strips a NumPy MaskedArray's mask. Lines 1131-1134 subsequently recognize only nonfinite values and sentinel equality. By inspection, np.ma.array(np.zeros((2, 2)), mask=True), sampled at column=row=0.5 with nodata=None, therefore yields valid zero. No masked-source test covers this. This violates CLAUDE.md:20 and PRD.md:415,458.",
       "id": "codex2-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "3a2b203eb58110d14696bd630b083987b0383a33",
+        "reason": "fixed in 3a2b203 (tests first in 2e5decc, which failed 5 of 6 new tests). bilinear_resample now takes a numpy masked array's mask with np.ma.getmaskarray before np.ma.getdata, so a masked pixel masks its four-neighbour footprint like NaN, whatever value it hides; resample_window passes the source through unchanged. The reviewer's case, np.ma.array(np.zeros((2, 2)), mask=True) at (0.5, 0.5) with nodata=None, now gives valid False and NaN. New tests: that case; a Hypothesis property (300 examples, hidden values 0, -9999 and 1e6, with and without a sentinel) that masked equals NaN bit for bit; a mask combined with NaN and a sentinel; masked arrays with nothing masked; an int16 masked source; and a 5 km Mars window through resample_window. A scratch run of the property at 5,000 examples passed. Checks: uv run pytest pipeline/tests/test_geometry_resample.py exit 0 (226 passed), make check exit 0."
+      }
     },
     {
       "severity": "blocker",
@@ -92,7 +96,11 @@
       "claim": "Sentinel detection after float64 promotion misses nodata encoded in float32. Compare against the sentinel in the source storage representation before promotion and add a float32 equivalence test.",
       "evidence": "A float32 source filled with declared nodata -9999.1 stores -9999.099609375. Line 1131 preserves that stored value during promotion, while lines 1134 and 1194 compare it against float64 -9999.1; every comparison reports data. Thus an all-nodata raster produces finite, valid output instead of matching its NaN equivalent. The sentinel tests at test_geometry_resample.py:1223-1245 construct float64 sources, leaving this case uncovered.",
       "id": "codex2-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "d28539a1e2bf65b440111c45ac2646e71d10b424",
+        "reason": "fixed in d28539a (tests first in 8f99977, 31 failures before the fix, among them the reviewer's float32 -9999.1 case and a Hypothesis-found uint64 pixel 2**64 - 1024 merged with the sentinel 2**64 - 1023 through float64). The sentinel is now compared in the source's storage type, as GDAL's nodata mask band does (gcore/gdalnodatamaskband.cpp converts the double nodata with static_cast<float> for Float32 bands and compares integer bands in their own type). A float sentinel is taken as a float64 and rounded to the source type, then compared exactly. An integer source needs an integral sentinel in its range and compares exactly, beyond 2**53 too. A sentinel the type cannot hold (0.5 or 256 for uint8, 1e39 for float32, an int beyond float64) raises ResampleError rather than masking nothing. GDAL also treats float pixels within about 4.8e-7 relative of the sentinel as nodata (ARE_REAL_EQUAL in gcore/gdal_cpp_functions.h); this rule stays exact and the docstring says so, recorded as a human decision in the story notes. New tests: float16/32/64 sources filled with rounded sentinels are all nodata; Hypothesis equivalence of NaN and the sentinel in every float and integer type (300 examples each, 5,000 in a scratch run); exact matching of float32/float16 neighbours, a float64 source holding the float32 value, int64 and uint64 beyond 2**53; NaN and infinite sentinels; unrepresentable sentinels raise. Checks: uv run pytest pipeline/tests/test_geometry_resample.py exit 0 (226 passed), make check exit 0."
+      }
     }
   ]
 }

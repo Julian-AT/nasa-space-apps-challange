@@ -84,7 +84,11 @@
       "claim": "The story's commit range also touches two orchestration files outside the story's files list.",
       "evidence": "git diff --stat over the range lists both files. The prd.json change only sets review.state to requested, sets the base hash and adds the notes. These are the orchestrator's normal bookkeeping, not product code. The reviewed scope, geometry.py and test_geometry_resample.py, is within the story's files.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect. The Ralph author instructions allow exactly these two paths beyond the story files: \"Change only paths that match the story's files patterns, plus the story list and the progress log\" (scripts/ralph/batches/t3-terrain/prd.json and progress.txt). The finding itself says the change only sets review.state, the base hash and the notes and is normal bookkeeping, and that geometry.py and test_geometry_resample.py are within the story files. This round again touches only those paths."
+      }
     },
     {
       "severity": "low",
@@ -92,7 +96,11 @@
       "claim": "to_pixel and from_pixel are checked bitwise against their steps instead of at atol 1e-12 pixels. The notes flag this as a human decision.",
       "evidence": "The notes justify it by the half-ulp of the float64 projected coordinate, up to 1.5e-12 pixels for a polar raster. Each step is still checked at PRD 7 tolerance against the mpmath reference. Not a threshold weakening I could demonstrate, but a human should confirm the scope.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect, and no threshold is weakened, as the finding states. Each step of each lookup is checked against an independent 40-digit reference at PRD 7 rtol 1e-10, atol 1e-12 in its own units (degrees or metres, radians, pixels), which is the per-direction pattern the orchestrator set for this batch on 2026-11-14T18:41:54Z (T3-02 notes: checks against a high-precision reference at the unchanged PRD tolerances). to_pixel and from_pixel are checked bitwise against those steps, which is stricter than any tolerance on the composition relative to its steps. A composed check at atol 1e-12 pixels cannot hold for an interface that hands a float64 projected coordinate to the geotransform: adjacent float64 values near 3e5 m differ by math.ulp(3e5) = 5.82e-11 m, so at 20 m pixels the composition can be 1.46e-12 pixels from the exact column, and near 179.99 deg at 1 arcsec pixels 5.1e-11 pixels (math.ulp(179.99) / 2 * 3600), where a column near 0 leaves atol alone. The scope stays recorded for a human as decision (2) in the story notes and in the progress log's proposed PRD 7 wording, so a human can amend it at the next checkpoint without the loop stopping."
+      }
     }
   ]
 }
