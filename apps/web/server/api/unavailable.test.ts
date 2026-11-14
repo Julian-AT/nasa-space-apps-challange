@@ -263,6 +263,77 @@ describe('the one rule for unavailable data', () => {
   }
 });
 
+// The split for ids that manifest.targets does not list (T15-05 round 2, orchestrator decision on
+// AC0). Two manifests that differ only in listing windows/earth.json, a top-N window file without a
+// @terraluna/schema schema. Without it, manifest.json rules the ids out: 404. With it, only that
+// file could resolve a window or comparison id, and it is not parsed: 501, naming the missing
+// record schema. A target id manifest.targets does not list stays a 404 either way, since
+// targets.json and comparisons/<target_id>.json hold only listed targets. t15b-api replaces the
+// 501s once WindowRecord and ComparisonRecord exist.
+describe('ids outside manifest.targets, with and without a listed windows file', () => {
+  const TOP_N = windowsTopNPath('earth');
+  const WITHOUT: Record<string, Uint8Array> = {
+    'targets.json': testBytes('a target window file'),
+    [comparisonPath(OTHER)]: testBytes('a comparison file'),
+  };
+  const WITH: Record<string, Uint8Array> = { ...WITHOUT, [TOP_N]: testBytes('a window file') };
+  const without = () => releaseBundleReader({ targets: [OTHER], files: WITHOUT });
+  const withTopN = () => releaseBundleReader({ targets: [OTHER], files: WITH });
+
+  it('builds two manifests that differ only in listing the windows file', () => {
+    const a = without()().manifest;
+    const b = withTopN()().manifest;
+    expect(b.targets).toEqual(a.targets);
+    expect([WINDOW_A, WINDOW_B, TARGET].some((id) => a.targets.includes(id))).toBe(false);
+    const pathsA = a.files.map((file) => file.path);
+    const pathsB = b.files.map((file) => file.path);
+    expect(pathsA).not.toContain(TOP_N);
+    expect(pathsB.filter((path) => !pathsA.includes(path))).toEqual([TOP_N]);
+    expect(pathsA.every((path) => pathsB.includes(path))).toBe(true);
+  });
+
+  // [request, the missing record schema the 501 names]
+  const SPLIT: readonly [string, string][] = [
+    [`/api/v1/windows/${WINDOW_A}`, 'WindowRecord'],
+    [`/api/v1/compare?a=${WINDOW_A}&b=${WINDOW_B}`, 'ComparisonRecord'],
+  ];
+
+  for (const [path, schema] of SPLIT) {
+    it(`gives ${path} a 404 without the windows file and a 501 naming ${schema} with it`, async () => {
+      const missing = await expectProblem(
+        await quietApi(without()).api.request(path),
+        NOT_IN_BUNDLE_STATUS,
+        'Not Found',
+      );
+      expect(missing.detail).toContain(`not in bundle ${RELEASE_VERSION}`);
+      expect(missing.detail).not.toContain('not served yet');
+
+      const { api, log } = quietApi(withTopN());
+      const response = await api.request(path);
+      const text = await response.clone().text();
+      const unserved = await expectProblem(response, NOT_SERVED_STATUS, 'Not Implemented');
+      expect(unserved.detail).toContain(`in bundle ${RELEASE_VERSION} (${TOP_N})`);
+      expect(unserved.detail).toContain(`@terraluna/schema has no ${schema} schema`);
+      expect(unserved.detail).toContain('not served yet');
+      expect(text).not.toContain(TEST_BYTES_MARKER);
+      expect(log).not.toHaveBeenCalled();
+    });
+  }
+
+  for (const path of [`/api/v1/targets/${TARGET}`, `${MATCHES}?body=earth&family=terrain`]) {
+    it(`gives ${path} a 404 with or without the windows file`, async () => {
+      for (const reader of [without, withTopN]) {
+        const problem = await expectProblem(
+          await quietApi(reader()).api.request(path),
+          NOT_IN_BUNDLE_STATUS,
+          'Not Found',
+        );
+        expect(problem.detail).toBe(`Target ${TARGET} is not in bundle ${RELEASE_VERSION}.`);
+      }
+    });
+  }
+});
+
 describe('/compare computes nothing', () => {
   const sources = () =>
     readdirSync(join(WEB_DIR, 'server', 'api'))
