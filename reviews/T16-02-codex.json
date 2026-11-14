@@ -136,7 +136,11 @@
       "claim": "Comments between commands and their arguments leak into prose and can defeat overlap detection.",
       "evidence": "Static trace: for \"\\cite% note\\n{key}\", space_end() does not consume the comment, and mandatory_argument_end() returns immediately after %. The scanner blanks only \"\\cite%\", leaving \"note\" and \"key\" as prose instead of removing the comment and citation argument. Placing this citation between the sixth and seventh words of a shared 12-word passage inserts unrelated tokens into overlap_check.py:118 and hides the run. Skip and record comments while locating arguments, and add regression cases for both consumers.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "234d208551f4be9a9a9cd2e5d7d2a81ff5e92a02",
+        "reason": "Reproduced: \"\\cite% note\\n{key}\" gave the prose \"note\" and \"key\". Failing tests first in b42a6ec (test_tex_prose, test_lint_prose and three overlap cases that put a commented \\citep, \\cite or \\ref between the sixth and seventh words of a 12-word run). The fix makes _CodeScanner.space_end skip what TeX skips before an argument (spaces, comments, single line breaks; a blank line ends it as \\par) and records the skipped comments. The same reading now locates \\begin and \\end names, the closing \\end of math and TikZ, environment layout arguments (tabular columns, float placement) and the [length] of \\\\, all in pass 1 where comments are visible; pass 2 only drops names and braces. hyperref's \\url makes % and the end of line active before reading its argument (in the pinned Tectonic bundle, hyperref.sty:4749 defines \\url as \\hyper@normalise\\url@, and \\hyper@normalise at line 4553 makes % and the end of line active), so a comment or line break there is a syntax finding instead of a guess; \\href reads its { first and accepts comments. lint_prose.py finds lists and tables through the shared environment_boundary pattern, so a comment before {itemize} or {tabular} no longer hides a list or opens a false syntax error. All five checks pass (582 tests)."
+      }
     },
     {
       "severity": "blocker",
@@ -144,7 +148,11 @@
       "claim": "The TikZ word checks discard command arguments that the contract requires checking as raw text.",
       "evidence": "The full pass still uses KEY_COMMANDS and blanks their arguments at paper/scripts/tex_prose.py:350. Because tikzset is included at :71, a tikzpicture containing \"\\tikzset{every node/.style={label={seamless}}}\" loses the banned label before banned_word_hits() runs. A label containing \"it is important to note\" is similarly lost. The existing TikZ tests cover direct node text but not these discarded arguments. Preserve this text for rules b and c while continuing to exclude TikZ from the other rules.",
       "id": "codex-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "f07044c2ba4abc4d7c0981e250ba3827d37a9e78",
+        "reason": "Reproduced: \"\\begin{tikzpicture}\\tikzset{every node/.style={label={seamless}}}\\end{tikzpicture}\" gave no finding. Failing tests first in ca45bf2 (\\tikzset, \\pgfplotsset, \\textcolor, \\ref and math inside a tikzpicture, plus the phrase in a \\tikzset label). With keep_tikz a tikzpicture now stays in the code as raw text and only its comments are blanked and recorded (blank_comments), so every argument, option, style name and math reaches the prose read by banned-word and important-to-note; pass 2 removes only command names and braces and reads two adjacent groups as two words. Comments stay out, because they never print and the robust allow comment lives there; test_tikz_comments_and_style_code_pass checks that, the allow comment inside TikZ and \\tikzset path styles. The other rules still read the extraction without TikZ. All five checks pass (582 tests)."
+      }
     }
   ]
 }

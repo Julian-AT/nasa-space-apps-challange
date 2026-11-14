@@ -130,7 +130,11 @@
       "claim": "The story's commits change files outside the story's files list.",
       "evidence": "git diff --stat shows prd.json and progress.txt changed. These are Ralph bookkeeping files, so this is likely expected.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The author iteration may change the story files plus its batch story list and progress log (Ralph author prompt, section 2: \"Change only paths that match the story's files patterns, plus the story list and the progress log\"). scripts/ralph/batches/t16-paper/prd.json and progress.txt are exactly those two files; the change to prd.json is the review.state field and the base the loop set, and progress.txt gained the required append-only entry. No other path outside paper/ changed (git diff --stat 8669311..6e93964)."
+      }
     },
     {
       "severity": "low",
@@ -138,7 +142,11 @@
       "claim": "The bold rule matches \\bf as a command anywhere, not just in a `{\\bf ...}` group. This stays within the stated rule, but it is looser than a group-only match.",
       "evidence": "BOLD = \\\\(?:textbf|bfseries|bf)(?![A-Za-z]). This causes no failure on the current manuscript.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "\\bf switches to bold until the end of the enclosing group or environment, so a bare \\bf (at the start of a paragraph, inside an environment, or in a macro body) gives bold text inside sentences just as {\\bf ...} does. Rule (f) of PRD 22.6 forbids that bold text, and a group-only match would let those forms through. The match is word-bounded (BOLD at lint_prose.py:104 ends in (?![A-Za-z]), so \\bfdefault or \\textbfseries do not match; test_bold_rule_passes covers \\textbfseries), and it skips tabular environments, comments, math and TikZ. The reviewer agrees it stays within the stated rule, and it causes no finding on the manuscript (make -C paper lint: no findings in 15 .tex files)."
+      }
     }
   ]
 }
