@@ -58,3 +58,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: numpy 2.5.4 and hypothesis 6.170.15, installed packages. Behaviour was probed directly with uv run python: np.asarray calls `__array__` on list and tuple subclasses; it reads a list subclass through iteration, so an overridden `__iter__` hides nothing; it ignores `__array__` on float, int and str subclasses; a subclass of np.bool_ constructs plain np.bool_; and np.dtype(sub).type is the numpy base type for a numpy scalar subclass. Python stdlib math.pow raises OverflowError on overflow and returns 0.0 on underflow; mypy types it as float, unlike `float ** float`, which it types as Any. st.floats(min_value=0.0, exclude_min=True, allow_nan=False, allow_infinity=False) was already a known strategy.
 - Learnings: test oracles need the same overflow care as the code. `angle * 180 / pi` overflows near 1e306 where `angle * (180 / pi)` does not, and only some hypothesis seeds find it, so run new range properties over many `--hypothesis-seed` values. For a 0-d StatedArray, `reason.tolist()` is a str, so use `np.ravel(reason).tolist()` before building a set. commitlint warns (footer-leading-blank) when a body line starts with a token like `1e155:`, because it reads it as a footer; reword such lines.
 ---
+
+## 2026-11-14T18:22Z · T2-01 · resolve
+- Done: round 4. None of the three reviews had findings: claude-r4 passed; codex-r4 and codex2-r4 found nothing in static review and marked the checks NOT_RUN because their read-only sandbox blocked execution. Nothing needed a resolution, so the review files are unchanged. I reran the story checks below and set review.state to resolved.
+- Commits: none for code; only the bookkeeping commit chore(ralph): resolve review findings for t2-01.
+- Checks: uv run pytest pipeline/tests/test_polarimetry_decode.py -> 330 passed, exit 0; uv run mypy pipeline/src pipeline/tests -> no issues in 5 source files, exit 0; make check -> ruff check, ruff format --check, mypy (6 source files) pass, exit 0.
+- Docs used: none (no library interface was touched).
+- Learnings: the codex reviewers mark the checks NOT_RUN in their read-only sandbox, so the checks rerun here and the deterministic gate are what verify execution.
+---
