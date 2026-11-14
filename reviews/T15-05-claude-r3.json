@@ -142,7 +142,11 @@
       "claim": "For a window or comparison id outside manifest.targets while a windows/<body>.json top-N file is listed, an unknown id gets a 501, the same answer a known id would get.",
       "evidence": "windowSources returns every listed top-N file for any id. unavailable.ts:11-15 and unavailable.test.ts:266-272 document this as the orchestrator-approved rule for AC0, to be replaced by t15b-api once WindowRecord and ComparisonRecord exist. This is not a defect under the amended criterion.",
       "id": "claude-r3-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect, as the finding itself states. The orchestrator decided the round 2 escalation (codex-r2-1, claude-r2-1) for option (a) and amended AC0 in prd.json: 404 for an id that manifest.json rules out, and 501 naming the missing record schema for an id that only a listed file without an @terraluna/schema schema (windows/<body>.json, comparisons/<target_id>.json) could resolve, because PRD 8.5 and T15-01 AC3 forbid parsing those files. windows.ts:98-104 gives exactly that 501 when windowSources lists a top-N file, and the detail names the file and the missing WindowRecord schema. unavailable.ts:11-15 documents the rule, and unavailable.test.ts:266-335 pins it with two manifests that differ only in listing windows/earth.json (404 without it, 501 naming WindowRecord or ComparisonRecord with it). Telling an unknown id from a known one here would mean parsing a schema-less file, which the PRD rules out. The amended AC0 assigns the real 404 or 200 to t15b-api T15B-02, T15B-03 and T15B-05 once t0b-contracts adds WindowRecord and ComparisonRecord. No code change. All five story checks exit 0 at 0338a39 (web 457 tests, server/api 295, typecheck, make check, make test with pytest 404 and schema 157)."
+      }
     }
   ]
 }

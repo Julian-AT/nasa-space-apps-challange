@@ -164,3 +164,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: no new library or CLI interface (vitest 5.1.0, prettier 3.10.1 from packages/schema, jq 1.8.2 as before).
 - Learnings: when an escalation comes back as an amended criterion, resolve against the new wording. Pin the decided split with one paired test, where two fixtures differ in exactly the deciding input and the difference itself is asserted, rather than relying on rows spread across several test tables.
 ---
+
+## 2026-11-14T21:14Z · T15-05 · resolve
+- Done: Round 3 had one low finding from Claude (claude-r3-1, verdict PASS) and none from Codex (verdict NOT_RUN: read-only sandbox). I rebutted claude-r3-1, which the reviewer itself calls not a defect under the amended criterion. Its subject is the 501 for an id outside manifest.targets while windows/<body>.json is listed, and that is the rule the orchestrator chose for AC0 (option a). windows.ts:98-104 implements it, unavailable.ts:11-15 documents it, and unavailable.test.ts:266-335 pins it with the paired manifests. t15b-api T15B-02, T15B-03 and T15B-05 replace these 501s once WindowRecord and ComparisonRecord exist. No code changed. review.state is resolved.
+- Commits: none for findings (rebutted); this resolve commit.
+- Checks: pnpm --filter @terraluna/web test exit 0 (17 files, 457 passed); pnpm --filter @terraluna/web exec vitest run server/api exit 0 (11 files, 295 passed); pnpm --filter @terraluna/web typecheck exit 0; make check exit 0 (turbo 4 of 4 successful); make test exit 0 (pytest 404 passed, schema 157, web 457). Before and after the resolution edit, `jq -S 'del(.findings[].resolution)'` reproduces review.digests for both round 3 files (90919e8e…, 9fd47efd…).
+- Docs used: no library or CLI interface beyond those already recorded (jq 1.8.2 --rawfile and rtrimstr).
+- Learnings: when a reviewer files a finding and also says it is not a defect under the amended criterion, rebut it by citing the decision, the code and the pinning test. Do not change the code again.
+---
