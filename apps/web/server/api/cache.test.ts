@@ -2,7 +2,14 @@
 // a documented max-age, immutable while fresh, and an ETag derived from bundle_version (T15-03).
 import { describe, expect, it } from 'vitest';
 
-import { bundleCacheHeaders, bundleETag, PER_BUNDLE_MAX_AGE, PER_DEPLOY_MAX_AGE } from './cache.ts';
+import {
+  bundleCacheHeaders,
+  bundleETag,
+  contentETag,
+  deployCacheHeaders,
+  PER_BUNDLE_MAX_AGE,
+  PER_DEPLOY_MAX_AGE,
+} from './cache.ts';
 
 describe('cache policies', () => {
   it('keeps per-deploy responses fresh for 60 s, so a new deploy shows within a minute', () => {
@@ -37,4 +44,25 @@ describe('bundleETag', () => {
       expect(() => bundleETag(version)).toThrow(/bundle_version/);
     });
   }
+});
+
+// Responses fixed by the deploy, not the bundle (/openapi.json, /docs, T15-06).
+describe('contentETag', () => {
+  it('is a strong entity tag holding the base64url SHA-256 of the UTF-8 bytes', () => {
+    expect(contentETag('')).toBe('"47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU"');
+    expect(contentETag('abc')).toBe('"ungWv48Bz-pBQUDeXa4iI7ADYaOWF3qctBD_YfIAFa0"');
+  });
+
+  it('differs when a single byte differs', () => {
+    expect(contentETag('abc')).not.toBe(contentETag('abd'));
+  });
+});
+
+describe('deployCacheHeaders', () => {
+  it('is the per-deploy Cache-Control with the content ETag of the body', () => {
+    expect(deployCacheHeaders('abc')).toEqual({
+      'Cache-Control': 'public, max-age=60, immutable',
+      ETag: contentETag('abc'),
+    });
+  });
 });
