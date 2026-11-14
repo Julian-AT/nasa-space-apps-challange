@@ -110,7 +110,11 @@
       "claim": "Masked inputs silently lose their validity masks and can publish unavailable pixels as VALID measurements. Preserve the masks or explicitly reject masked inputs before coercion, with regression tests.",
       "evidence": "Static trace, not executed: decode_linear(np.ma.array([100.0, 300.0], mask=[False, True]), nodata=None) reaches np.asarray at line 180, which strips the MaskedArray subclass and mask. Classification at lines 234–242 then sees two finite positive values, so both receive VALID/NONE and finite powers. angle_to_degrees uses the same helper, and _bool_mask repeats the mask-stripping conversion at line 188. This violates PRD.md:415's requirement to retain product validity/noise flags and line 421's distinction between unavailable and valid observations. The test file contains no masked-input regression.",
       "id": "codex2-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "6a0aa160f4bd6c8821024827158549e173bfbc1f",
+        "reason": "Same defect as codex-r1-1, fixed by the same commit. _real_array and _bool_mask (the line 188 path for the noise flags) both refuse masked inputs before np.asarray, and StatedArray refuses masked fields, so no mask is dropped silently. Masked regression tests were added first (commit c77bbbb, 31 failed before the fix) for every array argument, a mask with nothing masked, a masked array inside a list, and the masked constant; now 103 passed, also with -W error."
+      }
     }
   ]
 }

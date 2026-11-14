@@ -104,7 +104,11 @@
       "claim": "x_power's docstring says the calibration offset cancels only under a shared-calibration assumption, but the code has no check for it.",
       "evidence": "The ratio is computed as (hv/hh)**2 with no offset argument. This matches F9, so it is an optional note only.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "PRD 7 Decoding rules define x_power = (DN_HV / DN_HH)**2 for one product, the PALSAR-2 yearly mosaic, with a single stated offset (83 dB) for both channels, and say: \"The ratio assumes both channels share the stated calibration and pass quality and noise checks.\" The offset cancels in the ratio, so it is not an input. x_power receives DN only, with no per-channel calibration metadata to compare, so a check here would mean inventing a calibration argument that PRD 7 and 8.11 do not define. The quality and noise half of the assumption is enforced: hh_noise_dominated and hv_noise_dominated are required arguments. Shared calibration is a property of the product record (PRD 8.11 ProductRecord.calibration_type) and belongs to product qualification on ingest, which is not built yet; meanwhile the docstring (polarimetry.py x_power) states that the function is valid only under that assumption. The reviewer also judged it optional and consistent with F9."
+      }
     },
     {
       "severity": "low",
@@ -112,7 +116,11 @@
       "claim": "The failing-tests-first requirement could not be re-verified from a recorded failing run.",
       "evidence": "I saw only the commit order and titles. The git log call was denied.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The failing run is reproducible. git ls-tree 670def0 pipeline/src/terraluna_pipeline/ lists only __init__.py, py.typed and schema.py, so the tests were committed before polarimetry.py existed (it first appears in 9fe9daa). Rerunning that commit against its own tree, with git archive 670def0 pipeline extracted to a temp dir and PYTHONPATH=<tmp>/pipeline/src uv run pytest <tmp>/pipeline/tests/test_polarimetry_decode.py -p no:cacheprovider, gives \"E ModuleNotFoundError: No module named terraluna_pipeline.polarimetry\" at test_polarimetry_decode.py:20, \"1 error during collection\", exit 2. The progress log entry for T2-01 implement records the same failure. The masked-input regression tests in this round were also committed failing first (c77bbbb: 31 failed, 72 passed)."
+      }
     }
   ]
 }

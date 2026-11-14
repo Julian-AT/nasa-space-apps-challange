@@ -104,7 +104,11 @@
       "claim": "Preserve or explicitly reject masked inputs before array coercion. np.asarray silently discards a MaskedArray mask, allowing an excluded pixel to be published as a valid measurement.",
       "evidence": "Static trace: decode_linear(np.ma.array([100.0], mask=[True]), nodata=None) loses its mask at line 180. Classification at lines 234-242 sees only positive finite DN, and lines 293-296 produce finite power with VALID/NONE. The same conversion serves decode_db, x_power, and angle_to_degrees. No mask handling or rejection exists in the module or tests. This violates PRD.md:415 and CLAUDE.md's requirement to preserve masks.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "6a0aa160f4bd6c8821024827158549e173bfbc1f",
+        "reason": "Every array argument (decode_db/decode_linear dn, x_power dn_hh, dn_hv and both noise flags, angle_to_degrees angle) and StatedArray now call _refuse_masked before np.asarray and raise TypeError for a numpy masked array, a sequence holding one, or np.ma.masked, whatever the mask content. Product flags enter only through explicit arguments (nodata, noise flags), as PRD 7 Validity rules require; the module docstring says so. Regression tests in test_polarimetry_decode.py (commit c77bbbb, run failing first: 31 failed) include the exact trace decode_linear(np.ma.array([100.0, 300.0], mask=[False, True]), nodata=None) for every entry point; now 103 passed."
+      }
     }
   ]
 }
