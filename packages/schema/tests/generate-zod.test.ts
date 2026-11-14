@@ -302,6 +302,9 @@ describe('if/then and not translation', () => {
       'conditional-null',
       'conditional-integer',
       'conditional-all-of',
+      'integer-const',
+      'discriminated-union',
+      'discriminated-union-nullable',
     ]);
     expect(groups.flatMap((g) => g.cases).length).toBeGreaterThanOrEqual(20);
   });
@@ -1120,5 +1123,407 @@ describe('writeModules', () => {
   it('returns the written paths in contract order', async () => {
     const out = join(scratch(), 'generated');
     expect(await writeModules(JSON_DIR, out)).toEqual(CONTRACTS.map((c) => join(out, c.module)));
+  });
+});
+
+// --- Integer const and discriminated union (T0B-02) -------------------------------------------
+// pydantic emits `Literal[512]` as {"const": 512, "type": "integer"} and
+// `Annotated[A | B, Field(discriminator="kind")]` as an OpenAPI `discriminator` next to a `oneOf`
+// of `$ref`s. In JSON Schema 2020-12 `discriminator` is an unknown annotation, so the verdict is
+// plain `oneOf`; json-schema-to-zod would turn that into z.any().superRefine, so the generator
+// translates it as z.discriminatedUnion. Every refusal is checked by message, because the
+// generator refuses `const` on an integer and `oneOf` today, with its generic "unsupported
+// keyword" message: a test passes only for a refusal that names the rule at the right pointer.
+
+/** The message of the SchemaError the generator throws for `schema`, from dereference or check. */
+function refusalOf(schema: JsonObject): string {
+  try {
+    zodExpression(schema);
+  } catch (error) {
+    if (error instanceof SchemaError) {
+      return error.message;
+    }
+    throw error;
+  }
+  throw new Error('the generator accepted a schema it must refuse');
+}
+
+/** Refused with a dedicated message at `pointer` (or below it), not the generic keyword one. */
+function expectRefusedAt(schema: JsonObject, pointer: string, mention?: string): void {
+  const message = refusalOf(schema);
+  expect(message.startsWith(pointer), message).toBe(true);
+  expect(message, 'a dedicated message, not the generic one').not.toContain('unsupported keyword');
+  if (mention !== undefined) {
+    expect(message).toContain(mention);
+  }
+}
+
+function generatorGroup(name: string): GeneratorGroup {
+  const group = readGeneratorCases().find((g) => g.name === name);
+  if (group === undefined) {
+    throw new Error(`no generator case group ${name}`);
+  }
+  return group;
+}
+
+describe('integer const', () => {
+  const tile = (extra: JsonObject): JsonObject =>
+    object({ tile_px: { type: 'integer', const: 512, ...extra } });
+
+  it('translates to z.literal of the integer', () => {
+    expect(zodExpression({ type: 'integer', const: 512 })).toBe('z.literal(512)');
+    expect(zodExpression({ type: 'integer', const: -3, title: 'Offset' })).toBe('z.literal(-3)');
+    expect(zodExpression({ type: 'integer', const: 0 })).toBe('z.literal(0)');
+  });
+
+  it('keeps the description', () => {
+    expect(zodExpression({ type: 'integer', const: 512, description: 'Tile edge.' })).toBe(
+      'z.literal(512).describe("Tile edge.")',
+    );
+  });
+
+  it('inside a record is a literal, with the verdicts of the integer-const group', () => {
+    const group = generatorGroup('integer-const');
+    expect(zodExpression(group.schema)).toContain('z.literal(512)');
+    const schema = compile(zodExpression(group.schema));
+    expect(schema.safeParse({ tile_px: 512 }).success).toBe(true);
+    for (const value of [511, 513, '512', true, null, 512.5]) {
+      expect(schema.safeParse({ tile_px: value }).success, JSON.stringify(value)).toBe(false);
+    }
+  });
+
+  it('is accepted by assertSupported next to a title and a description only', () => {
+    expect(() => {
+      assertSupported({ type: 'integer', const: 512, title: 'Tile Px', description: 'Edge.' });
+    }).not.toThrow();
+  });
+
+  it.each([
+    ['a float', { type: 'integer', const: 1.5 }],
+    ['an unsafe integer', { type: 'integer', const: 2 ** 53 }],
+    ['a negative unsafe integer', { type: 'integer', const: -(2 ** 53) }],
+    ['a string', { type: 'integer', const: '512' }],
+    ['a boolean', { type: 'integer', const: true }],
+    ['null', { type: 'integer', const: null }],
+    ['an array', { type: 'integer', const: [512] }],
+    ['a minimum next to it', { type: 'integer', const: 512, minimum: 0 }],
+    ['a maximum next to it', { type: 'integer', const: 512, maximum: 1024 }],
+    ['a minimum and a maximum next to it', { type: 'integer', const: 512, minimum: 0, maximum: 1024 }],
+  ])('refuses a const of %s with a message at its pointer', (_label, constant) => {
+    expectRefusedAt(object({ tile_px: constant }), '/properties/tile_px', 'const');
+  });
+
+  it('still accepts an integer with bounds and no const', () => {
+    expect(() => {
+      assertSupported({ type: 'integer', minimum: 0, maximum: 1024 });
+    }).not.toThrow();
+    expect(zodExpression(tile({ title: 'Tile Px' }))).toContain('z.literal(512)');
+  });
+});
+
+describe('discriminated union', () => {
+  const kind = (value: string, extra: JsonObject = {}): JsonObject => ({
+    const: value,
+    title: 'Kind',
+    type: 'string',
+    ...extra,
+  });
+  const CLASSES = object(
+    { kind: kind('classes'), count: { type: 'integer', minimum: 1 } },
+    { title: 'ClassesLegend' },
+  );
+  const NUMERIC = object(
+    { kind: kind('numeric'), scale: { type: 'string', enum: ['viridis', 'cividis'] } },
+    { title: 'NumericLegend' },
+  );
+  const DEFS: JsonObject = { ClassesLegend: CLASSES, NumericLegend: NUMERIC };
+  const MAPPING: JsonObject = {
+    classes: '#/$defs/ClassesLegend',
+    numeric: '#/$defs/NumericLegend',
+  };
+  const ONE_OF: Json[] = [{ $ref: '#/$defs/ClassesLegend' }, { $ref: '#/$defs/NumericLegend' }];
+
+  /** The union as pydantic emits it, with `extra` overriding or adding keywords. */
+  const union = (extra: JsonObject = {}): JsonObject => ({
+    discriminator: { mapping: MAPPING, propertyName: 'kind' },
+    oneOf: ONE_OF,
+    ...extra,
+  });
+  /** A record with one property `legend` holding `legend`, next to `$defs`. */
+  const withLegend = (legend: JsonObject, defs: JsonObject = DEFS): JsonObject => ({
+    $defs: defs,
+    ...object({ legend }),
+  });
+  const LEGEND_AT = '/properties/legend';
+
+  it('accepts the union as pydantic emits it', () => {
+    expect(() => zodExpression(withLegend(union({ title: 'Legend' })))).not.toThrow();
+    expect(() =>
+      zodExpression(withLegend({ anyOf: [union(), { type: 'null' }], title: 'Legend' })),
+    ).not.toThrow();
+  });
+
+  it('inlines the $refs of a oneOf and keeps the discriminator as data', () => {
+    const resolved = dereference(withLegend(union({ title: 'Legend' })));
+    expect(resolved).toEqual(
+      object({
+        legend: {
+          discriminator: { mapping: MAPPING, propertyName: 'kind' },
+          oneOf: [CLASSES, NUMERIC],
+          title: 'Legend',
+        },
+      }),
+    );
+    expect(() => {
+      assertSupported(resolved);
+    }).not.toThrow();
+  });
+
+  it('refuses a $ref inside oneOf that is not defined, naming the pointer', () => {
+    const message = refusalOf(
+      withLegend(union({ oneOf: [{ $ref: '#/$defs/ClassesLegend' }, { $ref: '#/$defs/Missing' }] })),
+    );
+    expect(message.startsWith(`${LEGEND_AT}/oneOf/1`), message).toBe(true);
+    expect(message).toContain('#/$defs/Missing');
+  });
+
+  describe('translation', () => {
+    const group = generatorGroup('discriminated-union');
+    // Read inside each test, so a missing translation fails one test, not the whole file.
+    const translated = (): string => zodExpression(group.schema);
+
+    it('is z.discriminatedUnion on the property name, with the branches in order', () => {
+      const source = translated();
+      expect(source).toMatch(/z\.discriminatedUnion\(["']kind["'], \[/);
+      expect(source).not.toContain('z.any(');
+      const classes = source.indexOf('"classes"');
+      const numeric = source.indexOf('"numeric"');
+      expect(classes).toBeGreaterThan(-1);
+      expect(numeric).toBeGreaterThan(classes);
+      expect(source).toContain('"viridis"');
+    });
+
+    it('is a union or null for the nullable form, again without z.any', () => {
+      const nullable = zodExpression(generatorGroup('discriminated-union-nullable').schema);
+      expect(nullable).toMatch(/z\.discriminatedUnion\(["']kind["'], \[/);
+      expect(nullable).toContain('z.null()');
+      expect(nullable).not.toContain('z.any(');
+    });
+
+    it('keeps a description of the union and does not describe its title', () => {
+      const described = zodExpression(
+        withLegend(union({ title: 'Legend', description: 'Which legend the layer uses.' })),
+      );
+      expect(described).toContain('.describe("Which legend the layer uses.")');
+      expect(described).not.toContain('.describe("Legend")');
+      const plain = zodExpression(withLegend(union({ title: 'Legend' })));
+      expect(plain).not.toContain('.describe(');
+      const schema = compile(described);
+      expect(schema.safeParse({ legend: { kind: 'classes', count: 2 } }).success).toBe(true);
+      expect(schema.safeParse({ legend: { kind: 'other', count: 2 } }).success).toBe(false);
+    });
+
+    it('rejects a document whose kind selects a branch it does not match, with an issue below the legend', () => {
+      const schema = compile(translated());
+      const result = schema.safeParse({
+        legend: { kind: 'classes', maximum: 2.5, scale: 'viridis' },
+      });
+      expect(result.success).toBe(false);
+      expect(result.error?.issues.every((issue) => issue.path[0] === 'legend')).toBe(true);
+      const unknown = schema.safeParse({ legend: { kind: 'binary', count: 1, labels: [] } });
+      expect(unknown.success).toBe(false);
+    });
+  });
+
+  describe.each([
+    ['discriminated-union'],
+    ['discriminated-union-nullable'],
+  ])('%s group', (name) => {
+    const group = generatorGroup(name);
+
+    it('has verdicts from both branches and from neither', () => {
+      expect(group.cases.filter((c) => c.valid).length).toBeGreaterThanOrEqual(2);
+      expect(group.cases.filter((c) => !c.valid).length).toBeGreaterThanOrEqual(5);
+    });
+
+    it('is accepted whole by assertSupported after dereference', () => {
+      expect(() => {
+        assertSupported(dereference(group.schema));
+      }).not.toThrow();
+    });
+  });
+
+  describe('refusals', () => {
+    it.each([
+      ['a oneOf without a discriminator', withLegend({ oneOf: ONE_OF })],
+      ['a discriminator without a oneOf', withLegend({ discriminator: { propertyName: 'kind', mapping: MAPPING } })],
+      ['a discriminator with an empty oneOf', withLegend(union({ oneOf: [] }))],
+      ['a oneOf next to a type', withLegend(union({ type: 'object' }))],
+      ['a oneOf next to an anyOf', withLegend(union({ anyOf: [{ type: 'null' }] }))],
+      ['a oneOf next to a not', withLegend(union({ not: { pattern: 'a' } }))],
+      ['a oneOf that is not an array', withLegend(union({ oneOf: { $ref: '#/$defs/ClassesLegend' } }))],
+    ])('refuses %s at the union', (_label, schema) => {
+      expectRefusedAt(schema, LEGEND_AT, 'oneOf');
+    });
+
+    it.each([
+      ['no propertyName', { mapping: MAPPING }],
+      ['a propertyName that is not a string', { propertyName: 1, mapping: MAPPING }],
+      ['an empty propertyName', { propertyName: '', mapping: MAPPING }],
+      ['an extra key', { propertyName: 'kind', mapping: MAPPING, other: 'x' }],
+      ['no mapping', { propertyName: 'kind' }],
+      ['a mapping that is not an object', { propertyName: 'kind', mapping: ['a'] }],
+      ['a mapping value that is not a string', { propertyName: 'kind', mapping: { ...MAPPING, classes: 1 } }],
+    ])('refuses a discriminator with %s', (_label, discriminator) => {
+      expectRefusedAt(withLegend(union({ discriminator })), LEGEND_AT, 'discriminator');
+    });
+
+    it('refuses a discriminator that is not an object', () => {
+      expectRefusedAt(withLegend(union({ discriminator: 'kind' })), LEGEND_AT, 'discriminator');
+    });
+
+    it('refuses a propertyName that no branch has, at the first branch', () => {
+      expectRefusedAt(
+        withLegend(union({ discriminator: { propertyName: 'type', mapping: MAPPING } })),
+        `${LEGEND_AT}/oneOf/0`,
+        'type',
+      );
+    });
+
+    it.each([
+      ['not an object', 'ClassesLegend', { type: 'string' }, 0],
+      ['an object without the discriminator property', 'ClassesLegend', object({ count: { type: 'integer' } }), 0],
+      [
+        'an object whose discriminator property is not required',
+        'NumericLegend',
+        object({ kind: kind('numeric'), scale: STRING }, { required: ['scale'] }),
+        1,
+      ],
+      [
+        'an object whose discriminator property is an enum',
+        'ClassesLegend',
+        object({ kind: { type: 'string', enum: ['classes'] }, count: { type: 'integer' } }),
+        0,
+      ],
+      [
+        'an object whose discriminator property is a plain string',
+        'NumericLegend',
+        object({ kind: STRING, scale: STRING }),
+        1,
+      ],
+      [
+        'an object whose discriminator const is an integer',
+        'ClassesLegend',
+        object({ kind: { type: 'integer', const: 1 }, count: { type: 'integer' } }),
+        0,
+      ],
+      [
+        'an object whose discriminator const is a boolean',
+        'NumericLegend',
+        object({ kind: { type: 'boolean', const: true }, scale: STRING }),
+        1,
+      ],
+      [
+        'an object whose discriminator const is an anyOf with null',
+        'ClassesLegend',
+        object({ kind: { anyOf: [kind('classes'), { type: 'null' }] }, count: { type: 'integer' } }),
+        0,
+      ],
+      [
+        'a map',
+        'NumericLegend',
+        { type: 'object', additionalProperties: STRING },
+        1,
+      ],
+      [
+        'an object that allows other properties',
+        'ClassesLegend',
+        object({ kind: kind('classes') }, { additionalProperties: true }),
+        0,
+      ],
+    ])('refuses a branch that is %s, at the branch', (_label, name, definition, index) => {
+      expectRefusedAt(
+        withLegend(union(), { ...DEFS, [name]: definition }),
+        `${LEGEND_AT}/oneOf/${String(index)}`,
+      );
+    });
+
+    it('refuses an empty-string or a non-ASCII discriminator const of the branch property', () => {
+      expectRefusedAt(
+        withLegend(union(), {
+          ...DEFS,
+          NumericLegend: object({ kind: kind(''), scale: STRING }),
+        }),
+        `${LEGEND_AT}/oneOf/1/properties/kind`,
+      );
+    });
+
+    it('refuses two branches with the same const, at the second branch, naming it', () => {
+      expectRefusedAt(
+        withLegend(
+          union({ discriminator: { propertyName: 'kind', mapping: { classes: '#/$defs/ClassesLegend' } } }),
+          { ...DEFS, NumericLegend: object({ kind: kind('classes'), scale: STRING }) },
+        ),
+        `${LEGEND_AT}/oneOf/1`,
+        '"classes"',
+      );
+    });
+
+    it.each([
+      [
+        'a value that no branch has',
+        { ...MAPPING, other: '#/$defs/NumericLegend' },
+        'other',
+      ],
+      ['a branch value it misses', { classes: '#/$defs/ClassesLegend' }, 'numeric'],
+      ['no values', {}, 'classes'],
+      [
+        'a value mapped to the other branch',
+        { classes: '#/$defs/NumericLegend', numeric: '#/$defs/ClassesLegend' },
+        'classes',
+      ],
+      [
+        'a value mapped to a definition that is not a branch',
+        { ...MAPPING, numeric: '#/$defs/Other' },
+        'numeric',
+      ],
+      ['a value mapped to a remote reference', { ...MAPPING, numeric: 'https://example.org/n.json' }, 'numeric'],
+      ['a value mapped to a bare name', { ...MAPPING, numeric: 'NumericLegend' }, 'numeric'],
+    ])('refuses a mapping with %s, naming the value', (_label, mapping, value) => {
+      expectRefusedAt(
+        withLegend(union({ discriminator: { propertyName: 'kind', mapping } }), {
+          ...DEFS,
+          Other: object({ kind: kind('other') }),
+        }),
+        LEGEND_AT,
+        value,
+      );
+    });
+
+    it('refuses a branch with an unsupported keyword at the keyword, as for any object', () => {
+      const message = refusalOf(
+        withLegend(union(), {
+          ...DEFS,
+          NumericLegend: object({ kind: kind('numeric'), scale: { type: 'string', format: 'uri' } }),
+        }),
+      );
+      expect(message.startsWith(`${LEGEND_AT}/oneOf/1/properties/scale: unsupported keyword "format"`)).toBe(
+        true,
+      );
+    });
+
+    it('refuses a oneOf with one pydantic branch and a null branch', () => {
+      expectRefusedAt(
+        withLegend({ ...union(), oneOf: [{ $ref: '#/$defs/ClassesLegend' }, { type: 'null' }] }),
+        `${LEGEND_AT}/oneOf/1`,
+      );
+    });
+  });
+
+  it('keeps refusing a oneOf of plain schemas, which json-schema-to-zod would turn into z.any', () => {
+    expect(() => zodExpression({ oneOf: [STRING, { type: 'null' }] })).toThrow(SchemaError);
+    expect(() => zodExpression(object({ a: { oneOf: [STRING, { type: 'number' }] } }))).toThrow(
+      SchemaError,
+    );
   });
 });
