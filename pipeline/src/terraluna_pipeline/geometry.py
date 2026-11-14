@@ -159,19 +159,40 @@ def aeqd_inverse(
 
     and (phi, lam) = (phi0, lam0) exactly at rho = 0, with no division by zero.
 
-    Evaluation: with e = x / rho and n = y / rho, ``S = cos c sin phi0 + n sin c cos phi0`` is
-    the PRD's asin argument and ``N = e sin c``, ``M = cos phi0 cos c - n sin phi0 sin c`` are
-    its atan2 arguments divided by rho, so lam = lam0 + atan2(N, M) is the PRD longitude. On
-    the unit sphere S is sin phi and hypot(N, M) is cos phi, so the latitude is evaluated as
-    phi = atan2(S, hypot(N, M)), which equals asin(S) exactly in real arithmetic. asin is not
-    used because it amplifies the rounding of S by 1 / cos phi: on the 5 km, 90 m grid centred
-    at +-89.9 deg, the literal asin evaluation was measured against 40-digit mpmath at 1.6e-7
-    to 3.9e-7 m position error (Moon to Earth), against at most 7e-10 m for this form, and it
-    fails the PRD 7 round-trip and distance tolerances there. ``@terraluna/core`` must evaluate
-    the same way (PRD 8.8).
+    Evaluation: with e = x / rho, n = y / rho and k = 2 sin^2(c / 2) = 1 - cos c, the PRD's
+    asin argument is ``S = sin phi0 + s`` and its atan2 arguments divided by rho are
+    ``N = e sin c`` and ``M = cos phi0 + m``, where the increments
+
+        s = n sin c cos phi0 - k sin phi0,   m = -k cos phi0 - n sin c sin phi0
+
+    are small on a window and carry no cancellation. lam = lam0 + atan2(N, M) is the PRD
+    longitude. On the unit sphere S = sin phi and H = hypot(N, M) = cos phi, so with
+    h = H - cos phi0 = (N^2 + m (2 cos phi0 + m)) / (H + cos phi0)::
+
+        sin(phi - phi0) = s cos phi0 - h sin phi0
+        cos(phi - phi0) = 1 + h cos phi0 + s sin phi0
+        phi = phi0 + atan2(sin(phi - phi0), cos(phi - phi0))
+
+    which equals asin(S) in real arithmetic. On a window every rounding before the final
+    additions to phi0 and lam0 scales a small quantity, so the latitude is within about half an
+    ulp of phi plus a relative error of the small increment, whatever the accuracy of the
+    platform's sin, cos and atan2. The literal asin(S) amplifies the rounding of S by
+    1 / cos phi: centred at +-89.9 deg it was measured against 40-digit mpmath at 1.6e-7 to
+    3.9e-7 m position error on the 5 km, 90 m grid (Moon to Earth), failing the PRD 7
+    round-trip and distance tolerances. atan2(S, H) on the full S and H keeps their order-one
+    rounding: on the Earth sphere at y = 25 m it used up to 1.01 of the PRD 7 round-trip
+    allowance in metres (1e-12 m + 1e-10 * |y|) against the exact forward, where the increment
+    form uses 0.28. ``@terraluna/core`` must evaluate the same way (PRD 8.8).
+
+    For a long offset that ends next to a pole, the increment is of order one and phi0 plus it
+    can round past +-math.pi / 2, so the latitude is clipped to [-pi/2, pi/2]. The exact
+    latitude lies within 6.2e-17 of that range and the nearest float64 beyond it is 2.2e-16
+    out, so the clip only moves such a value closer to the exact latitude.
 
     Longitude: lam0 + atan2(N, M) lies in [-2 pi, 2 pi) and is brought into [-pi, pi) by one
-    shift of 2 * math.pi, which is exact in float64 (Sterbenz).
+    shift of 2 * math.pi, which is exact in float64 (Sterbenz). A longitude and the same value
+    plus or minus 2 * math.pi name the same meridian, as for ``math.degrees``, which maps
+    ``math.pi`` to exactly 180.
 
     Raises :class:`AeqdDomainError` for a centre outside [-pi/2, pi/2] x [-pi, pi), a radius
     that is not finite and positive, a non-finite offset, or rho > pi * R.
@@ -189,14 +210,20 @@ def aeqd_inverse(
     north = y / safe_rho
     c = rho / radius
     sin_c = np.sin(c)
-    cos_c = np.cos(c)
+    k = 2.0 * np.sin(c / 2.0) ** 2
     sin_lat0 = math.sin(lat0)
     cos_lat0 = math.cos(lat0)
 
-    sin_lat = cos_c * sin_lat0 + north * sin_c * cos_lat0
+    s = north * sin_c * cos_lat0 - k * sin_lat0
+    m = -k * cos_lat0 - north * sin_c * sin_lat0
     lon_num = east * sin_c
-    lon_den = cos_lat0 * cos_c - north * sin_lat0 * sin_c
-    lat = np.where(at_centre, lat0, np.arctan2(sin_lat, np.hypot(lon_num, lon_den)))
+    lon_den = cos_lat0 + m
+    # cos_lat0 >= cos(math.pi / 2) > 0 in float64, so the denominator is positive.
+    h = (lon_num * lon_num + m * (2.0 * cos_lat0 + m)) / (np.hypot(lon_num, lon_den) + cos_lat0)
+    sin_dlat = s * cos_lat0 - h * sin_lat0
+    cos_dlat = 1.0 + h * cos_lat0 + s * sin_lat0
+    lat = lat0 + np.arctan2(sin_dlat, cos_dlat)
+    lat = np.where(at_centre, lat0, np.clip(lat, -_HALF_PI, _HALF_PI))
     lon = lon0 + np.arctan2(lon_num, lon_den)
     lon = np.where(lon >= _PI, lon - _TWO_PI, np.where(lon < -_PI, lon + _TWO_PI, lon))
     lon = np.where(at_centre, lon0, lon)
