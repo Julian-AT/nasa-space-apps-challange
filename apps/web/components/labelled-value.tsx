@@ -31,8 +31,11 @@ export interface UnavailableValueProps {
 export type LabelledValueProps = PresentValueProps | UnavailableValueProps;
 
 // Text that only stands in for a missing value: blank, dashes or a minus sign, a question mark,
-// or a word for absence, including what String() makes of a missing or non-finite number.
-const PLACEHOLDER = /^\s*([-\u2010-\u2015\u2212]*|\?|n\/?a|nan|null|undefined|none|unknown)\s*$/iu;
+// a word for absence (including what String() makes of a missing or non-finite number), or a
+// to-be-determined marker. Only the whole value is matched, so longer text that contains one of
+// these words still renders.
+const PLACEHOLDER =
+  /^\s*([-\u2010-\u2015\u2212]*|\?|n\/?a|nan|null|undefined|none|unknown|missing|tb[dca])\s*$/iu;
 
 function isText(value: unknown): value is string {
   return typeof value === 'string' && value.trim() !== '';
