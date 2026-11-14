@@ -1,0 +1,320 @@
+{
+  "project": "Terraluna",
+  "branchName": "ralph/t2-polarimetry",
+  "description": "PRD section 12, T2 (numerical polarimetry) on synthetic inputs, plus the real-scene polsartools oracle check as the last story, which cannot pass until a UAVSAR scene from T1 exists locally. Stories run in priority order. The author iteration never sets passes; ralph.sh runs the independent reviews and a deterministic gate first. This file is Ralph's task list, not the product PRD.",
+  "userStories": [
+    {
+      "id": "T2-01",
+      "title": "PALSAR decoding, angle conversion and validity vocabulary",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "7 (Decoding rules, Validity rules, Tolerances)",
+        "F8",
+        "F9",
+        "F10",
+        "8.11"
+      ],
+      "description": "First numerical slice of polarimetry.py: PALSAR-2 amplitude decoding, explicit angle conversion, and the shared vocabulary for observation states and invalid reasons that every later story uses. Adds numpy as a dependency of terraluna-pipeline.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "pipeline/tests/test_polarimetry*.py",
+        "pipeline/tests/polarimetry/*",
+        "fixtures/polarimetry/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "pipeline/pyproject.toml gains numpy (and scipy only if a later story in this batch needs it); uv.lock is updated; mypy --strict still passes. No other dependency is added.",
+        "polarimetry.py defines, with docstrings stating units and conventions: an ObsState with exactly three distinct states MISSING, INVALID and VALID (PRD 7: missing observation, invalid measurement and valid low CPR stay distinct); and an InvalidReason enumeration with machine-readable string codes. Every function returns values together with a per-element state and reason array; NaN is never used to mean 'zero' and 0.0 is never used to mean missing.",
+        "pipeline/tests/test_polarimetry_decode.py is written and run failing (import error or missing functions) before any implementation. Cases, all float64 with rtol=1e-10 and atol=1e-12 (PRD 7 Tolerances): F8 DN=100 gives gamma0_db = -43 and gamma0_linear = 5.011872336272722e-5 (DN**2 * 10**-8.3, compared against the PRD's 'about 5.011872e-5'); F9 DN_HH=1000, DN_HV=100 gives x_power = 0.01 and the test asserts it is not 0.1; F10 pi/3 radians gives 60 degrees.",
+        "Further failing tests first: DN = 0 and a declared nodata DN give state INVALID or MISSING (the test fixes which and the code documents it) with reasons, never -inf dB and never a finite number; x_power with DN_HH = 0, nodata HH, or HH flagged noise-dominated is unavailable with reason DENOMINATOR_INVALID, and no epsilon is added; averaging is not offered: a test asserts the decode functions take amplitude DN and return power, and that mean of decoded linear power differs from the square of mean DN on a two-pixel case (DN 100 and 300).",
+        "Angle conversion takes an explicit declared unit ('radians' or 'degrees') and raises on any other value or on None; a test shows that 1.0 declared radians and 1.0 declared degrees give different results, so units are never inferred from magnitude (PRD 7). Convert to one internal unit, degrees, as F10 states; the docstring says so.",
+        "Property tests with hypothesis: decode_linear is monotone in DN for DN > 0; db and linear forms agree via 10*log10 within the PRD 7 tolerance.",
+        "The nodata value and the calibration offset (83 dB) are named constants or arguments with the PRD 7 formula cited in the docstring; nothing else is hard-coded."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+        "uv run mypy pipeline/src pipeline/tests",
+        "make check"
+      ],
+      "priority": 1,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "",
+      "codexPasses": 2
+    },
+    {
+      "id": "T2-02",
+      "title": "Mini-RF Stokes to SC, OC and CPR with validity (F1-F5)",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "6.2 (Mini-RF)",
+        "7 (Validity rules, Tolerances, F1-F5)",
+        "8.11 derive_circular"
+      ],
+      "description": "Convert Mini-RF Stokes parameters to SC, OC and CPR under the declared SIS convention S4 = OC - SC, with the PRD's validity rules and explicit exclusion reasons.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "pipeline/tests/test_polarimetry*.py",
+        "pipeline/tests/polarimetry/*",
+        "fixtures/polarimetry/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "pipeline/tests/test_polarimetry_stokes.py is written and run failing before the implementation. Fixtures from PRD 7 with rtol=1e-10, atol=1e-12: F1 S1=2, S4=2 gives SC=0, OC=2, CPR=0 and state VALID (a valid low CPR, distinct from missing); F2 S1=2, S4=0 gives SC=1, OC=1, CPR=1; F3 S1=4, S4=-2 gives SC=3, OC=1, CPR=3, VALID, and the test asserts CPR is not truncated at 1.5; F4 S1=1, S4=2 is INVALID with reason STOKES_S1_LT_ABS_S4 and no CPR (NaN with INVALID state, never a number); F5 S1=2, S4=-2 gives OC=0, SC=2, CPR unavailable with reason OC_NONPOSITIVE, not clipped, not regularized (the test asserts no epsilon is added: no finite or huge CPR is returned).",
+        "Formulas as in PRD 6.2: SC=(S1-S4)/2, OC=(S1+S4)/2, CPR=SC/OC. The convention is a required argument (a named constant for the SIS convention S4 = OC - SC); passing an undeclared or unknown convention raises ValueError and yields no output. A test with a second, undefined sign convention string confirms the refusal.",
+        "Validity tests: S1 >= |S4| is checked within a tolerance that is a named, documented argument; the PRD gives no numeric Stokes tolerance, so the test uses the PRD 7 arithmetic tolerance (rtol=1e-10, atol=1e-12) and the notes record that any real-data tolerance is an open decision (PRD 7: real-data tolerances come from the product). Where all four Stokes exist, S1^2 >= S2^2 + S3^2 + S4^2 within the same tolerance, otherwise INVALID with reason STOKES_NONPHYSICAL. Non-finite input is INVALID with reason NONFINITE; an input masked by the product's validity or noise flag is MISSING with reason PRODUCT_MASKED. The product's own flags are passed through, and no SNR rule is hard-coded (PRD 7: any added SNR rule is written in config).",
+        "Array tests: a 2x3 array mixing F1 to F5 inputs, one NaN and one masked pixel returns per-pixel SC, OC, CPR and a state/reason array of the same shape; invalid and missing pixels never hold 0.0 in CPR.",
+        "A hypothesis property test: for S1 > 0 and |S4| < S1 within tolerance, SC >= 0, OC >= 0 and SC + OC = S1 (PRD 6.2 formulas); CPR/(1+CPR) equals SC/S1 where OC > 0 (PRD 6.2: the share of total echo is CPR/(1+CPR)).",
+        "The docstring states that the factor 2 cancels in CPR but not in absolute powers and that the label of the selected product defines the power definition (PRD 6.2)."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_polarimetry_stokes.py",
+        "uv run mypy pipeline/src pipeline/tests",
+        "make check"
+      ],
+      "priority": 2,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "",
+      "codexPasses": 2
+    },
+    {
+      "id": "T2-03",
+      "title": "UAVSAR covariance to circular SC and OC by explicit basis transformation (F6, F7)",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "6.2 (UAVSAR)",
+        "7 (Validity rules, F6, F7)",
+        "8.11 derive_circular"
+      ],
+      "description": "Implement covariance to circular conversion as a declared basis transformation, validated against the PRD expanded formulas and against an independent single-scatterer calculation, with Hermitian PSD checks and no silent repair.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "pipeline/tests/test_polarimetry*.py",
+        "pipeline/tests/polarimetry/*",
+        "fixtures/polarimetry/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "Tests written first and run failing in pipeline/tests/test_polarimetry_covariance.py plus oracle helpers in pipeline/tests/polarimetry/ (an expanded-formula oracle and a separately written Jones-vector single-scatterer oracle; neither imports polarimetry.py). Tolerances: rtol=1e-10, atol=1e-12 (PRD 7).",
+        "Fixture construction asserts first that each covariance is Hermitian and positive semidefinite (PRD 7): F6 is built from the rank-one scattering vector HH=1, HV=0.2i, VV=0; F7's two matrices are checked to have eigenvalues (0.1, 0.1, 1.9) and (0.1, 0.9, 1.1) before use.",
+        "F6: A=1, B=0, V=0.04, C=0, D=-0.2i, E=0 gives OC=0.25, SC_LL=0.49, SC_opp=0.09. F7: A=B=1, V=0.1, D=E=0, with C=0.9 versus C=0.1 gives identical HH and HV powers and CPR = 0.1578947... versus 1.0 (compare to 3/19 and 1 to the PRD tolerance); a further test asserts the two CPR values differ, so two-channel data cannot determine CPR.",
+        "The implementation applies an explicit unitary basis transformation to the 3x3 covariance in the declared (HH, sqrt2 HV, VV) or (HH, HV, VV) vector ordering, stated in the docstring, with the transmit vector (1,-i)/sqrt2 for the SC_LL convention of Neish et al. (PRD 6.2). It does not contain the expanded formulas. A test compares the implementation with both oracles on F6, F7 and 200 random PSD covariances from hypothesis (rank 1 to 3), including SC_opp.",
+        "Convention is a required argument naming LL/LR (SC_LL) or the opposite handedness (SC_opp); unknown or missing convention raises and returns no value. No result may carry the label Mini-RF-equivalent: the output record carries handedness_verified = False until a caller sets it, and a test checks the default (PRD 6.2).",
+        "Invalid covariance tests: non-Hermitian (off-diagonal mismatch beyond the tolerance), negative eigenvalue below -tol, negative diagonal, and NaN each give INVALID with a distinct cause code (COV_NOT_HERMITIAN, COV_NOT_PSD, COV_NONFINITE) and no SC/OC/CPR published; the input is not repaired and no eigenvalue clipping occurs (PRD 7). The numeric PSD tolerance is an argument defaulting to the PRD 7 arithmetic tolerance; the notes record that a real-data PSD tolerance is open.",
+        "OC <= 0 gives CPR unavailable with reason OC_NONPOSITIVE and no epsilon (PRD 7). The handedness term Im D + Im E and its ratio to base_SC are returned beside SC; base_SC <= 0 makes the ratio unavailable with an explicit reason. The numeric threshold for 'not small' is not set: PRD 6.2 says it is set on development data, so no threshold appears in code and the notes record the open decision."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_polarimetry_covariance.py",
+        "uv run mypy pipeline/src pipeline/tests",
+        "make check"
+      ],
+      "priority": 3,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "",
+      "codexPasses": 2
+    },
+    {
+      "id": "T2-04",
+      "title": "derive_circular interface and named aggregation statistics",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "6.2 (Aggregation)",
+        "7 (Validity rules)",
+        "8.11 derive_circular and radar_fingerprint input",
+        "6.2 (Use per mode)"
+      ],
+      "description": "Unify Stokes and covariance input behind derive_circular and add the two separately named block statistics, with mask-aware aggregation of powers before ratios.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "pipeline/tests/test_polarimetry*.py",
+        "pipeline/tests/polarimetry/*",
+        "fixtures/polarimetry/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "pipeline/tests/test_polarimetry_derive.py is written and run failing first. derive_circular(input_kind, data, convention, validity_mask) returns SC, OC, CPR in linear units, plus per-pixel state and invalid-reason arrays (PRD 8.11); unknown input kind or undeclared convention raises. Results for F1 to F7 inputs through this interface equal the story 2 and 3 results to the PRD 7 tolerance.",
+        "Aggregation tests use a 4x4 block with hand-computed values: mean SC and mean OC over VALID pixels first, then the ratio gives 'ratio of mean powers'; the pixelwise CPR mean over VALID-CPR pixels gives 'mean of pixelwise ratios'. The test chooses pixels where the two differ (for example OC values 1 and 3 with SC values 1 and 1: ratio of mean powers 0.5, mean of pixelwise ratios 0.666...) and asserts both are returned under different field names (PRD 6.2: separate, named statistics; primary is ratio of mean powers).",
+        "Missing and invalid pixels are excluded from the means and counted: the result carries n_valid, n_invalid_by_reason, n_missing and valid_fraction. A block with zero valid pixels returns state MISSING or INVALID with the reason and no statistic (never 0). A pixel with OC <= 0 contributes to neither the pixelwise-CPR mean nor silently to a regularized value; whether its SC enters the ratio-of-means is decided in the test and documented (SC and OC are aggregated over the same valid-pixel set so the ratio is consistent).",
+        "Aggregation operates on linear power; a test asserts that passing dB values is impossible by type (a dB-tagged array raises) and that a dB summary helper exists only for display (PRD 6.2). Amplitude DN is never averaged as power (reuse story 1).",
+        "Block support: the function takes a block size in pixels and returns per-block results plus block origin; blocks are not presented as independent samples (the record has a field blocks_independent set False). The 250 m common-support size is not hard-coded: PRD 6.2 says 'about 250 m if the resolution allows', so it is an argument.",
+        "Hypothesis property: permuting pixels within a block leaves both statistics unchanged within the PRD tolerance; scaling SC and OC by the same factor leaves CPR statistics unchanged."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_polarimetry_derive.py",
+        "uv run mypy pipeline/src pipeline/tests",
+        "make check"
+      ],
+      "priority": 4,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "",
+      "codexPasses": 2
+    },
+    {
+      "id": "T2-05",
+      "title": "Hybrid-polarimetric Stokes synthesis, m-chi and the lunar S4-sign check",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "6.2 (Additional hybrid-polarimetric observables, D18)",
+        "7 (Validity rules)",
+        "D18",
+        "D19"
+      ],
+      "description": "Optional observables: synthesize the hybrid-pol 2x2 covariance and four Stokes parameters from the UAVSAR 3x3 covariance with a declared transmit ellipticity, then compute m and chi, with the S4-sign check helper for T1 lunar data.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "pipeline/tests/test_polarimetry*.py",
+        "pipeline/tests/polarimetry/*",
+        "fixtures/polarimetry/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "pipeline/tests/test_polarimetry_mchi.py is written and run failing first, with its own oracle in pipeline/tests/polarimetry/ computed by direct Jones-vector calculation (no import of polarimetry.py).",
+        "Declared transmit ellipticity is a required argument, chi_tx in {+45, -45} degrees; anything else or None raises and returns nothing. The record states the handedness used (PRD 6.2: record it). Synthesised Stokes from a rank-one covariance with the (1,-i)/sqrt2 transmit vector reproduce the story 3 SC_LL and OC for F6, so S1=SC+OC and S4=OC-SC under the SIS convention; compare to the PRD tolerance. For the opposite ellipticity the same test gives SC_opp.",
+        "m = sqrt(S2^2+S3^2+S4^2)/S1 and sin(2chi) = -S4/(m*S1): tests on a fully polarized single scatterer give m = 1 within tolerance; on a covariance of identity (unpolarized) m = 0 and sin(2chi) is UNAVAILABLE with reason M_ZERO (not 0, not NaN-as-number). S1 <= 0 is INVALID. m greater than 1 beyond tolerance is INVALID with reason STOKES_NONPHYSICAL (S1^2 >= S2^2+S3^2+S4^2, PRD 7).",
+        "The m-chi decomposition into single-bounce, double-bounce and random parts is NOT implemented here unless the Raney et al. (2012) formulas are read from the cited source and put in the docstring; if not implemented, the function says so, returns only m and chi, and the notes list the decomposition as deferred. PRD 6.2 names the decomposition but gives no formula.",
+        "Lunar sign check helper lunar_s4_sign_check(s1, s4, valid_mask): returns the fraction of valid pixels with CPR above 1 and with S4 > 0, plus a verdict field. Tested on synthetic arrays: 95 percent of pixels with CPR 0.5 gives a pass state; the same array with S4 negated gives 'SIGN_SUSPECT' and the test asserts the helper never silently flips the sign. The fraction that counts as 'most' follows PRD 6.2 (most pixels, i.e. more than half); no other threshold is introduced. Only synthetic arrays are used here: the real Site01 run belongs to T1.",
+        "The observables are labelled context in Mode B and not distance inputs before G2 (PRD 6.2): the returned record has a field role = 'context'. No cross-band comparison function is added."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_polarimetry_mchi.py",
+        "uv run mypy pipeline/src pipeline/tests",
+        "make check"
+      ],
+      "priority": 5,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "",
+      "codexPasses": 2
+    },
+    {
+      "id": "T2-06",
+      "title": "G1 gate record produced from real test results",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "9 (G1)",
+        "8.12 (GateRecord)",
+        "7 (Fixtures)",
+        "12 (T2)"
+      ],
+      "description": "A command that runs the fixture tests, reads their actual results and writes a GateRecord for G1. No hand-written gate record exists.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "pipeline/tests/test_polarimetry*.py",
+        "pipeline/tests/polarimetry/*",
+        "fixtures/polarimetry/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "pipeline/tests/test_polarimetry_gate.py is written and run failing first. Test functions for F1 to F10 carry fixed test ids (pytest markers or a naming rule, for example test_F1_..., listed in fixtures/polarimetry/g1_required_tests.json) and the invalid-data tests of stories 1 to 3 are listed as well.",
+        "polarimetry.py (or a small module main under the same file) exposes 'uv run python -m terraluna_pipeline.polarimetry record-g1 --junit <path> --out <path>'. It reads a pytest junit XML file produced by 'uv run pytest --junitxml=<path>' (pytest's own report; the junit path is outside the repo or under fixtures/polarimetry/), checks that every required test id is present and passed, and writes one GateRecord (the T0 schema model) with gate_id G1, evidence_path, the command string, a run_id of null unless supplied, a scope string and a result object holding the counts per fixture. It never writes PASS when a required test is missing, failed, skipped or xfailed.",
+        "Status rules in tests: all required tests passed gives PASS; any failed gives FAIL with the failing ids in result; any required id absent or skipped gives NOT_RUN or PARTIAL (the test fixes which and documents it). The PRD says G1 evidence is F1-F10 against an independent basis transformation plus invalid-data behaviour, and the real-scene oracle check is a T2 addition: scope must state that the real-scene check was or was not included, read from the junit result of story 7's test, and the command must not claim it when absent.",
+        "The output file is written to the path given and is never written by hand: the notes field records the exact command used and the commit it ran on. Output location: validation.json lives in outputs/, which this batch does not own, so the story writes fixtures/polarimetry/g1-record.json only; merging it into outputs/validation.json is left to the owner of the export step.",
+        "A test feeds the command a junit file built from a deliberately failing run and asserts FAIL and a nonzero exit code is not hidden; another feeds a tampered file where a required test is missing and asserts it is not PASS. The record validates against the T0 GateRecord model; null fields stay null."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_polarimetry_gate.py",
+        "make test",
+        "make check"
+      ],
+      "priority": 6,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T2-07",
+      "title": "Oracle check against polsartools on one real UAVSAR scene",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "12 (Added to T1 and T2)",
+        "6.2 (Earth side)",
+        "D19",
+        "9 (G1)",
+        "5 (UAVSAR products)"
+      ],
+      "description": "Compare the team's covariance-to-circular and m-chi code with polsartools on one real UAVSAR scene. This story needs T1 data and may not run before it exists.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "pipeline/tests/test_polarimetry*.py",
+        "pipeline/tests/polarimetry/*",
+        "fixtures/polarimetry/*",
+        "pipeline/pyproject.toml",
+        "uv.lock"
+      ],
+      "acceptanceCriteria": [
+        "pipeline/pyproject.toml adds polsartools to the dev dependency group only (GPL-3.0, D19); a test asserts that no module under pipeline/src imports polsartools, so it is never a runtime dependency. uv.lock is updated.",
+        "pipeline/tests/test_polarimetry_oracle.py is written and run first. If no scene is present it FAILS (not skips, not passes) with the explicit message 'data not present' and the path it looked at; the scene location is taken from the environment variable TERRALUNA_UAVSAR_SCENE (open: T1 has not fixed a data path; a human or T1 sets it). No fixture file or synthetic substitute is committed in place of the real scene.",
+        "With a scene present, the test reads the six .grd products and the .ann file (units and layout from the annotation, PRD 5; angles in radians converted with story 1), builds the covariance, and compares our SC, OC, base_SC, hybrid-pol Stokes (both ellipticities) and m with polsartools outputs on a stated window. The comparison tolerance is not invented: before looking at results, the test file records the tolerance in fixtures/polarimetry/oracle_tolerance.json with a written justification, and the human decides it. Until that file exists the test fails with 'tolerance not declared'.",
+        "The outcome is the actual one: a mismatch fails the test and is reported with the field, pixel count and max difference, and the code is not tuned to match. Differences that arise from the polsartools convention (vector ordering, handedness, ellipticity sign) are reported as convention differences and must be resolved by declaring the convention, not by flipping a sign until the numbers agree.",
+        "The test records the scene file hashes (sha256), the polsartools version and the window in fixtures/polarimetry/oracle_run.json, written by the test run itself, never by hand. This feeds the story 6 scope statement; the notes say that G1 may not be PASS before this check has run on a real scene unless the human decides otherwise."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_polarimetry_oracle.py",
+        "uv run mypy pipeline/tests",
+        "make check"
+      ],
+      "priority": 7,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    }
+  ]
+}
