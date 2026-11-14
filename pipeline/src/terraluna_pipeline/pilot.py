@@ -1778,6 +1778,7 @@ _QUANTITIES: Final = (
 _STOKES_QUANTITIES: Final = ("S1", "S2", "S3", "S4")
 _COMBINED_LOOK: Final = re.compile(r"This is a combined East and West-looking mosaic\.")
 _CPR_DEFINITION: Final = re.compile(r"\(CPR = [^)]*\)")
+_STOKES_DEFINITION: Final = re.compile(r"\bS[1-4] = [^.]*")
 _TRANSMIT_SENTENCE: Final = re.compile(r"The Mini-RF instrument transmits[^.]*\.")
 _S_BAND_SENTENCE: Final = re.compile(r"Mini-RF operated in S-band \([^)]*\)")
 _PA_SENTENCE: Final = re.compile(
@@ -1915,16 +1916,78 @@ class _SiteWindow:
     window: tuple[int, int, int, int]
 
     def fetch_fields(self) -> dict[str, Any]:
-        col_off, row_off, width, height = self.window
-        return {
-            "site_extent": self.site_extent,
-            "pixel_window": {
-                "col_off": col_off,
-                "row_off": row_off,
-                "width": width,
-                "height": height,
-            },
-        }
+        return {"site_extent": self.site_extent, "pixel_window": _pixel_window(self.window)}
+
+
+@dataclass(frozen=True)
+class _MosaicDocuments:
+    """What the volume's catalog files state for every mosaic label's ProductRecord."""
+
+    s_band: re.Match[str] | None
+    pa: re.Match[str] | None
+    citation: str | None
+    catalog_licence: bool
+
+
+def _handedness_items(label: Pds3Object) -> list[Pds3Item]:
+    return [item for item in _all_items(label) if any(w in item.key for w in _HANDEDNESS_WORDS)]
+
+
+def _value_rules(label: Pds3Object) -> list[str]:
+    """The IMAGE keywords that would make values invalid beyond the special pixels."""
+    return [
+        item.key
+        for item in label.child("IMAGE").items
+        if any(word in item.key for word in _VALUE_RULE_WORDS)
+    ]
+
+
+def _incidence_statement(label: Pds3Object) -> str:
+    combined = _COMBINED_LOOK.search(_collapse(_label_text(label, "DESCRIPTION") or ""))
+    return (
+        "per-pixel incidence is not recoverable from the mosaic: the label states no "
+        "incidence angle, and the mosaic combines several acquisitions "
+        f"({label.require('START_TIME').raw} to {label.require('STOP_TIME').raw})"
+        + (" with East- and West-looking passes" if combined else "")
+        + ", so each pixel's viewing geometry is not known"
+    )
+
+
+@dataclass(frozen=True)
+class _Layer:
+    """One mosaic label as read: its mosaic_layers entry and what a window read needs.
+
+    ``window`` is the Site01 window in this layer's own grid, or None when the Site01 extent is
+    missing or the layer does not cover it.
+    """
+
+    file_name: str
+    entry: Mapping[str, Any]
+    label: Pds3Object
+    layout: Pds3ImageLayout
+    projection: Pds3PolarStereographic
+    quantity: str
+    window: tuple[int, int, int, int] | None
+    inventory: dict[str, Any]
+
+    @property
+    def grid(self) -> tuple[Any, ...]:
+        """What two layers share when they are one mosaic: grid, look and acquisition times."""
+        return (
+            self.projection.crs.srs,
+            tuple(self.projection.transform)[:6],
+            self.layout.lines,
+            self.layout.line_samples,
+            self.inventory["look_direction"],
+            self.inventory["combined_east_west"],
+            _label_text(self.label, "START_TIME"),
+            _label_text(self.label, "STOP_TIME"),
+        )
+
+
+def _pixel_window(window: tuple[int, int, int, int]) -> dict[str, int]:
+    col_off, row_off, width, height = window
+    return {"col_off": col_off, "row_off": row_off, "width": width, "height": height}
 
 
 @dataclass(frozen=True)
@@ -1936,16 +1999,20 @@ class MinirfSource:
     detached label in DATA/SAR/MOSAICS. Then it reads only the image rows that hold the Site01
     window of ``cpr_product`` (the file PRD 5 names as a lead), with one HTTP range request. The
     window is the smallest set of mosaic pixels that covers the Site01 extent T1-03 recorded in
-    ``site_record``, converted with pyproj into the projection the label states. No mosaic image
-    is downloaded whole. If the server ignores Range, fetch records that as the blocking
-    limitation and fails; if the Site01 extent is missing, no rows are read and the record is
-    PARTIAL with that reason.
+    ``site_record``, converted with pyproj into the projection the label states. Where S1 and
+    S4 layers on one grid (same projection, size, look and acquisition times) cover Site01, the
+    Site01 window rows of both are read the same way, in that grid. No mosaic image is
+    downloaded whole. If the server ignores Range, fetch records that as the blocking limitation
+    and fails; if the Site01 extent is missing, no rows are read and the record is PARTIAL with
+    that reason. An S4 layer over Site01 without exactly one S1 layer on its grid stops the
+    fetch, because its raw statistics could not be recorded faithfully.
 
     ``build`` checks every PRD 5 layout lead against the label, decodes the window with the
-    label's layout and masks it with quality.validity_mask. It records raw CPR statistics only,
-    and establishes from the labels which Stokes layers exist. The mosaic has no S4 layer, so
-    the Stokes observation is recorded as not performed; an S4 label stops the record instead
-    of being ignored. No S4-sign verdict and no Stokes validity rule are computed here (T2).
+    label's layout and masks it with quality.validity_mask. It records raw CPR statistics, and
+    establishes from the labels which Stokes layers exist. Raw S1 and S4 statistics are
+    recorded where both were read; otherwise the Stokes observation is recorded as not
+    performed, with the reason. No S4-sign verdict and no Stokes validity rule are computed
+    here (T2).
     """
 
     landing_url: str = "https://pds-geosciences.wustl.edu/missions/lro/mrf.htm"
@@ -2033,8 +2100,9 @@ class MinirfSource:
             label = self._parse_label(staging / self.cpr_label_name)
             layout = pds3_image_layout(label)
             projection = pds3_polar_stereographic(label)
-            image_name, image_url = self._image(layout, listed, mosaics_url)
+            image_name, image_url = self._image(layout, listed, mosaics_url, self.cpr_label_name)
             site = self._site_window(root, projection)
+            pairs = self._stokes_pairs([self._layer(staging, entry, site) for entry in files])
             window: dict[str, Any]
             if isinstance(site, str):
                 window = {"status": "not_located", "reason": site}
@@ -2069,6 +2137,39 @@ class MinirfSource:
                         )
                     )
                     window = {"status": "read", "reason": None, **site.fetch_fields()}
+            stokes: dict[str, Any]
+            if not pairs:
+                stokes = {
+                    "status": "not_requested",
+                    "reason": "no pair of S1 and S4 layers on one grid covers Site01",
+                }
+            elif window["status"] != "read":
+                stokes = {
+                    "status": "not_requested",
+                    "reason": (
+                        f"the CPR window was not read ({window['status']}), so the S1 and S4 "
+                        "windows were not requested"
+                    ),
+                }
+            else:
+                try:
+                    read = [
+                        self._read_window_rows(layer, listed, mosaics_url, staging, read_range, now)
+                        for pair in pairs
+                        for layer in pair
+                    ]
+                except RangeNotSupportedError as error:
+                    blocked = error
+                    stokes = {
+                        "status": "range_not_supported",
+                        "reason": (
+                            f"{error}; the S1 and S4 windows were not read and no mosaic was "
+                            "downloaded whole, so no Stokes value is recorded"
+                        ),
+                    }
+                else:
+                    files.extend(read)
+                    stokes = {"status": "read", "reason": None}
             metadata = {
                 "source": self.name,
                 "command": f"{COMMAND} fetch {self.name}",
@@ -2083,6 +2184,7 @@ class MinirfSource:
                     name for name in listed if name.lower().endswith(".img")
                 ),
                 "window": window,
+                "stokes": stokes,
             }
             (raw_dir / FETCH_METADATA).unlink(missing_ok=True)
             for entry in [*documents, *files]:
@@ -2101,16 +2203,71 @@ class MinirfSource:
             raise PilotError(f"{path.name} cannot be read as a PDS3 label: {error}") from error
 
     def _image(
-        self, layout: Pds3ImageLayout, listed: Mapping[str, str], mosaics_url: str
+        self,
+        layout: Pds3ImageLayout,
+        listed: Mapping[str, str],
+        mosaics_url: str,
+        label_name: str,
     ) -> tuple[str, str]:
         """The listed image file the label's ^IMAGE names (the server's names are lower case)."""
         found = [name for name in listed if name.lower() == layout.file_name.lower()]
         if len(found) != 1:
             raise PilotError(
                 f"{mosaics_url} lists {len(found)} files named {layout.file_name} (the image "
-                f"{self.cpr_label_name} points to), expected one"
+                f"{label_name} points to), expected one"
             )
         return found[0], listed[found[0]]
+
+    def _read_window_rows(
+        self,
+        layer: _Layer,
+        listed: Mapping[str, str],
+        mosaics_url: str,
+        staging: Path,
+        read_range: RangeFetcher,
+        now: Clock,
+    ) -> dict[str, Any]:
+        """Range-read the Site01 window rows of a Stokes layer into ``staging``."""
+        if layer.window is None:
+            raise PilotError(f"{layer.file_name} does not cover Site01, so it has no window")
+        name, url = self._image(layer.layout, listed, mosaics_url, layer.file_name)
+        _, row_off, _, height = layer.window
+        last_row = row_off + height - 1
+        response = fetch_pds3_rows(url, layer.layout, row_off, last_row, fetch=read_range)
+        local_name = f"{name}{_ROWS_SUFFIX}"
+        (staging / local_name).write_bytes(response.data)
+        return _rows_entry(
+            response,
+            local_name,
+            now(),
+            role="stokes_window_rows",
+            quantity=layer.quantity,
+            label_file_name=layer.file_name,
+            provider_file_name=name,
+            rows={"first": row_off, "last": last_row},
+            pixel_window=_pixel_window(layer.window),
+        )
+
+    def _stokes_pairs(self, layers: Sequence[_Layer]) -> list[tuple[_Layer, _Layer]]:
+        """Each S4 layer that covers Site01 with the one S1 layer on its grid, by S4 file name."""
+        pairs = []
+        for s4 in sorted(
+            (layer for layer in layers if layer.quantity == "S4" and layer.window is not None),
+            key=lambda layer: layer.file_name,
+        ):
+            partners = [
+                layer
+                for layer in layers
+                if layer.quantity == "S1" and layer.window is not None and layer.grid == s4.grid
+            ]
+            if len(partners) != 1:
+                raise PilotError(
+                    f"{s4.file_name} is an S4 layer that covers Site01, but {len(partners)} S1 "
+                    "layers share its grid, look direction and acquisition times, expected one; "
+                    "its raw S1 and S4 statistics cannot be recorded faithfully"
+                )
+            pairs.append((partners[0], s4))
+        return pairs
 
     def _site_window(self, root: Path, projection: Pds3PolarStereographic) -> _SiteWindow | str:
         """The window covering the Site01 extent, or why it cannot be located."""
@@ -2169,7 +2326,9 @@ class MinirfSource:
             for entry in fetched["files"]
             if entry["role"] == "mosaic_label"
         }
-        rows_entry = next((e for e in fetched["files"] if e.get("read") == "rows"), None)
+        rows_entry = next(
+            (entry for entry in fetched["files"] if entry["role"] == "cpr_window_rows"), None
+        )
         texts = {
             role: _decode(raw_dir / documents[role]["file_name"])
             for role in ("dsmap", "data_set_catalog", "instrument_catalog", "errata")
@@ -2200,39 +2359,24 @@ class MinirfSource:
                 f"data/raw/{self.name}/{FETCH_METADATA} lists window rows that do not match its "
                 f"window status; run: {COMMAND} fetch {self.name}"
             )
-        image_block = label.child("IMAGE")
-        rules = [
-            item.key for item in image_block.items if any(w in item.key for w in _VALUE_RULE_WORDS)
-        ]
-        if rules:
-            raise PilotError(
-                f"{self.cpr_label_name} declares {', '.join(rules)}; the pilot applies no value "
-                "rule beyond the special pixels, so it cannot record this product faithfully"
-            )
-        if layout.scaling_factor != 1.0 or layout.value_offset != 0.0:
-            raise PilotError(
-                f"{self.cpr_label_name} states SCALING_FACTOR {layout.scaling_factor} and OFFSET "
-                f"{layout.value_offset}; the pilot records stored values only"
-            )
-        special = self._special_values(layout)
+        self._check_stored_values(label, layout, self.cpr_label_name)
+        special = self._special_values(layout, self.cpr_label_name)
         layers = [self._layer(raw_dir, entry, site) for _, entry in sorted(label_entries.items())]
-        stokes = self._stokes_observation(layers, str(fetched["mosaics_url"]), site)
+        pairs = self._stokes_pairs(layers)
+        stokes_rows = self._stokes_rows(fetched, pairs)
+        stokes = self._stokes_observation(
+            layers,
+            pairs,
+            fetched["stokes"],
+            stokes_rows,
+            raw_dir,
+            str(fetched["mosaics_url"]),
+            site,
+        )
         convention = self._convention(label, texts["dsmap"], documents["dsmap"])
         description = _collapse(_label_text(label, "DESCRIPTION") or "")
         combined = _COMBINED_LOOK.search(description)
-        cpr_definition = _CPR_DEFINITION.search(description)
-        unit_item = image_block.get("UNIT")
-        if unit_item is not None:
-            units = unit_item.text() if isinstance(unit_item.value, str) else unit_item.raw
-            units_source = f"the label's IMAGE object: UNIT = {unit_item.raw}"
-        elif cpr_definition is not None:
-            units = (
-                f"dimensionless ratio: the label defines {cpr_definition.group(0)} and states "
-                "no unit"
-            )
-            units_source = "the label's DESCRIPTION; the IMAGE object has no UNIT keyword"
-        else:
-            units, units_source = UNKNOWN, "the label states neither a unit nor a CPR definition"
+        units, units_source = self._units(label)
         statistics = (
             self._cpr_statistics(raw_dir, rows_entry, layout, site)
             if rows_entry is not None and not isinstance(site, str)
@@ -2242,110 +2386,48 @@ class MinirfSource:
         frequency = label.get("CENTER_FREQUENCY")
         s_band = _S_BAND_SENTENCE.search(_collapse(texts["instrument_catalog"]))
         transmit = _TRANSMIT_SENTENCE.search(_collapse(texts["errata"]))
-        pa = _PA_SENTENCE.search(_collapse(texts["data_set_catalog"]))
-        handedness_items = [
-            item for item in _all_items(label) if any(w in item.key for w in _HANDEDNESS_WORDS)
-        ]
+        handedness_items = _handedness_items(label)
         incidence_items = [item.key for item in _all_items(label) if "INCIDENCE" in item.key]
         look = label.get("LOOK_DIRECTION")
-        citation = _find_text(catalog, "CITATION_DESC")
-        licence = (
-            "licen" in texts["data_set_catalog"].lower()
-            or "licen" in _decode(raw_dir / self.cpr_label_name).lower()
+        docs = _MosaicDocuments(
+            s_band=s_band,
+            pa=_PA_SENTENCE.search(_collapse(texts["data_set_catalog"])),
+            citation=_find_text(catalog, "CITATION_DESC"),
+            catalog_licence="licen" in texts["data_set_catalog"].lower(),
         )
-        attribution = (
-            UNKNOWN
-            if citation is None
-            else f"Cite the data set as its catalog asks (CITATION_DESC): '{citation}'"
-            + ("" if licence else "; neither the label nor the data set catalog states a licence")
-        )
-        incidence = (
-            "per-pixel incidence is not recoverable from the mosaic: the label states no "
-            "incidence angle, and the mosaic combines several acquisitions "
-            f"({label.require('START_TIME').raw} to {label.require('STOP_TIME').raw})"
-            + (" with East- and West-looking passes" if combined else "")
-            + ", so each pixel's viewing geometry is not known"
-        )
-        frequency_text = (
-            UNKNOWN
-            if frequency is None
-            else f"CENTER_FREQUENCY = {frequency.raw}, as the label states it"
-            + ("" if s_band is None else f"; the instrument catalog states '{s_band.group(0)}'")
-        )
-        map_block = label.child("IMAGE_MAP_PROJECTION")
-        common: dict[str, Any] = {
-            "provider": (
-                f"{_label_text(label, 'PRODUCER_INSTITUTION_NAME')} "
-                f"({_label_text(label, 'PRODUCER_FULL_NAME')}), as the label states; archived "
-                f"at the PDS Geosciences Node, volume {self.volume}"
-            ),
-            "version": f"PRODUCT_VERSION_ID {label.require('PRODUCT_VERSION_ID').raw} (label)",
-            "body": "moon",
-            "acquisition_time": (
-                f"{label.require('START_TIME').raw} to {label.require('STOP_TIME').raw} (label "
-                "START_TIME and STOP_TIME; the mosaic combines several acquisitions)"
-            ),
-            "frequency_or_wavelength": frequency_text,
-            "transmit_receive_convention": (
-                "; ".join(f"{item.key} = {item.raw}" for item in handedness_items)
-                if handedness_items
-                else UNKNOWN
-            ),
-            "units": units,
-            "calibration_type": f"DATA_SET_NAME '{_label_text(label, 'DATA_SET_NAME')}' (label)",
-            "native_grid": (
-                f"{layout.lines} x {layout.line_samples} {layout.sample_type} "
-                f"{layout.sample_bits}-bit samples, polar stereographic, MAP_RESOLUTION = "
-                f"{map_block.require('MAP_RESOLUTION').raw}, MAP_SCALE = "
-                f"{map_block.require('MAP_SCALE').raw}, SAMPLE_PROJECTION_OFFSET = "
-                f"{map_block.require('SAMPLE_PROJECTION_OFFSET').raw}, LINE_PROJECTION_OFFSET = "
-                f"{map_block.require('LINE_PROJECTION_OFFSET').raw} (label)"
-            ),
-            "effective_resolution": UNKNOWN,
-            "crs_and_frame": (
-                f"{projection.crs.srs}, from the label's IMAGE_MAP_PROJECTION "
-                f"(COORDINATE_SYSTEM_NAME = {map_block.require('COORDINATE_SYSTEM_NAME').raw}, "
-                f"COORDINATE_SYSTEM_TYPE = {map_block.require('COORDINATE_SYSTEM_TYPE').raw})"
-                + ("" if pa is None else f"; the data set catalog states '{pa.group(0)}'")
-            ),
-            "incidence_source": incidence,
-            "qa_definition": (
-                "ISIS special pixels as the label's IMAGE object declares them ("
-                + ", ".join(f"{key} = {raw}" for key, raw in layout.special_raw.items())
-                + "), masked by quality.validity_mask; the label defines no other invalid value"
-            ),
-            "license_or_attribution": attribution,
-            "verification_status": "PARTIAL",
-        }
-        label_local = f"data/raw/{self.name}/{self.cpr_label_name}"
-        records = [
-            ProductRecord.model_validate(
+        read_rows = dict(stokes_rows)
+        if rows_entry is not None:
+            read_rows[self.cpr_label_name] = rows_entry
+        records: list[ProductRecord] = []
+        verification: dict[str, dict[str, str]] = {}
+        for layer in layers:
+            if layer.file_name not in read_rows and layer.file_name != self.cpr_label_name:
+                continue
+            fields = self._record_fields(layer, raw_dir, docs, read=layer.file_name in read_rows)
+            label_local = f"data/raw/{self.name}/{layer.file_name}"
+            label_record = ProductRecord.model_validate(
                 {
-                    **common,
-                    "product_id": f"{self.record_prefix}{self.cpr_label_name}",
-                    "source_url": label_entry["url"],
+                    **fields,
+                    "product_id": f"{self.record_prefix}{layer.file_name}",
+                    "source_url": layer.entry["url"],
                     "local_path": label_local,
                     "checksum": sha256_file(root / label_local),
                 }
             )
-        ]
-        verification = {
-            records[0].product_id: {
+            records.append(label_record)
+            verification[label_record.product_id] = {
                 "status": "PARTIAL",
-                "basis": (
-                    "downloaded and read as a PDS3 label; every PRD 5 layout lead is checked "
-                    "against it (layout_leads)"
-                ),
+                "basis": self._label_basis(layer.file_name, layer.file_name in read_rows),
             }
-        }
-        range_read: dict[str, Any]
-        if rows_entry is not None:
-            rows_local = f"data/raw/{self.name}/{rows_entry['file_name']}"
+            rows = read_rows.get(layer.file_name)
+            if rows is None:
+                continue
+            rows_local = f"data/raw/{self.name}/{rows['file_name']}"
             image_record = ProductRecord.model_validate(
                 {
-                    **common,
-                    "product_id": f"{self.record_prefix}{image['file_name']}",
-                    "source_url": image["url"],
+                    **fields,
+                    "product_id": f"{self.record_prefix}{rows['provider_file_name']}",
+                    "source_url": rows["url"],
                     "local_path": rows_local,
                     "checksum": sha256_file(root / rows_local),
                 }
@@ -2355,10 +2437,16 @@ class MinirfSource:
                 "status": "PARTIAL",
                 "basis": (
                     "the Site01 window rows read by one HTTP range request (206), decoded with "
-                    "the label's layout and masked with quality.validity_mask; not plotted, so "
-                    "the PRD 5 entry rule is not complete"
+                    "the label's layout and masked with quality.validity_mask"
+                    + ("" if layer.file_name == self.cpr_label_name else " (stokes_observation)")
+                    + "; not plotted, so the PRD 5 entry rule is not complete"
                 ),
             }
+        by_id = {item.product_id: item for item in records}
+        label_local = f"data/raw/{self.name}/{self.cpr_label_name}"
+        range_read: dict[str, Any]
+        if rows_entry is not None:
+            rows_local = f"data/raw/{self.name}/{rows_entry['file_name']}"
             range_read = {
                 "status": "read",
                 "reason": None,
@@ -2375,7 +2463,7 @@ class MinirfSource:
                 "etag": rows_entry["etag"],
                 "retrieved_at": rows_entry["retrieved_at"],
                 "local_path": rows_local,
-                "local_sha256": image_record.checksum,
+                "local_sha256": by_id[f"{self.record_prefix}{image['file_name']}"].checksum,
                 "whole_file_downloaded": False,
                 "note": (
                     "whole image rows are read; only the window's columns are decoded into the "
@@ -2393,18 +2481,7 @@ class MinirfSource:
                 "url": image["url"],
                 "whole_file_downloaded": False,
             }
-        open_items = [
-            {
-                "item": (
-                    "Read one LRO-L-MRFLRO-5-CDR-MAP-V1.0 map-projected single-swath product over "
-                    "Site01 and observe its S1 and S4 layers (PRD 5 row 1)"
-                ),
-                "reason": (
-                    "the polar mosaic has no S4 layer (stokes_observation); reading a single "
-                    "swath is outside T1-04"
-                ),
-            }
-        ]
+        open_items = self._open_items(layers, pairs, fetched["stokes"])
         if rows_entry is None:
             open_items.append(
                 {
@@ -2415,6 +2492,7 @@ class MinirfSource:
         retrieved = sorted(
             entry["retrieved_at"] for entry in [*fetched["documents"], *fetched["files"]]
         )
+        incidence = _incidence_statement(label)
         result = {
             "record": "minirf_mosaic",
             "description": (
@@ -2460,7 +2538,7 @@ class MinirfSource:
                 "file_name": self.cpr_label_name,
                 "url": label_entry["url"],
                 "local_path": label_local,
-                "sha256": records[0].checksum,
+                "sha256": by_id[f"{self.record_prefix}{self.cpr_label_name}"].checksum,
                 "bytes": label_entry["bytes_received"],
                 "http_status": label_entry["http_status"],
                 "retrieved_at": label_entry["retrieved_at"],
@@ -2510,7 +2588,9 @@ class MinirfSource:
             "null_value": special[0],
             "special_values": special[1:],
             "layout_leads": leads,
-            "projection": self._projection(projection, map_block, convention),
+            "projection": self._projection(
+                projection, label.child("IMAGE_MAP_PROJECTION"), convention
+            ),
             "window": self._window_record(site, window_meta, projection, rows_entry),
             "range_read": range_read,
             "cpr_statistics": statistics,
@@ -2539,11 +2619,11 @@ class MinirfSource:
                 "label_text": None if combined is None else combined.group(0),
                 "look_direction_keyword": None if look is None else look.raw,
                 "single_look_mosaics_covering_site01": [
-                    layer["file_name"]
+                    layer.file_name
                     for layer in layers
-                    if layer["look_direction"] is not None
-                    and layer["quantity"] == "CPR"
-                    and layer["covers_site01"] is True
+                    if layer.inventory["look_direction"] is not None
+                    and layer.quantity == "CPR"
+                    and layer.inventory["covers_site01"] is True
                 ],
             },
             "incidence": {
@@ -2556,7 +2636,7 @@ class MinirfSource:
                 "instrument_catalog_source": documents["instrument_catalog"]["url"],
                 "note": self._frequency_note(frequency, s_band),
             },
-            "mosaic_layers": layers,
+            "mosaic_layers": [layer.inventory for layer in layers],
             "stokes_observation": stokes,
             "open_g0_items": open_items,
             "verification": verification,
@@ -2573,10 +2653,152 @@ class MinirfSource:
             record_prefix=self.record_prefix,
         )
 
-    def _special_values(self, layout: Pds3ImageLayout) -> list[dict[str, Any]]:
+    def _label_basis(self, file_name: str, read: bool) -> str:
+        """Why a label's ProductRecord is PARTIAL, and what was done with it."""
+        if file_name == self.cpr_label_name:
+            return (
+                "downloaded and read as a PDS3 label; every PRD 5 layout lead is checked "
+                "against it (layout_leads)"
+            )
+        if read:
+            return (
+                "downloaded and read as a PDS3 label; its Site01 window was read "
+                "(stokes_observation)"
+            )
+        return (
+            "downloaded and read as a PDS3 label to establish the mosaic layers "
+            "(mosaic_layers); its image was not read"
+        )
+
+    def _units(self, label: Pds3Object) -> tuple[str, str]:
+        """The units of a layer's values and where they come from, as its label states them."""
+        unit = label.child("IMAGE").get("UNIT")
+        if unit is not None:
+            value = unit.text() if isinstance(unit.value, str) else unit.raw
+            return value, f"the label's IMAGE object: UNIT = {unit.raw}"
+        description = _collapse(_label_text(label, "DESCRIPTION") or "")
+        cpr = _CPR_DEFINITION.search(description)
+        if cpr is not None:
+            return (
+                f"dimensionless ratio: the label defines {cpr.group(0)} and states no unit",
+                "the label's DESCRIPTION; the IMAGE object has no UNIT keyword",
+            )
+        stokes = _STOKES_DEFINITION.search(description)
+        if stokes is not None:
+            return UNKNOWN, (
+                "the label's IMAGE object has no UNIT keyword, and its DESCRIPTION defines "
+                f"'{stokes.group(0)}' without a unit"
+            )
+        return UNKNOWN, "the label states no UNIT keyword and no definition of its values"
+
+    def _record_fields(
+        self, layer: _Layer, raw_dir: Path, docs: _MosaicDocuments, *, read: bool
+    ) -> dict[str, Any]:
+        """The ProductRecord fields a mosaic label states, shared by its label and image rows."""
+        label, layout, projection = layer.label, layer.layout, layer.projection
+        map_block = label.child("IMAGE_MAP_PROJECTION")
+        frequency = label.get("CENTER_FREQUENCY")
+        handedness = _handedness_items(label)
+        licence = docs.catalog_licence or "licen" in _decode(raw_dir / layer.file_name).lower()
+        special = ", ".join(f"{key} = {raw}" for key, raw in layout.special_raw.items())
+        declared = (
+            f"ISIS special pixels as the label's IMAGE object declares them ({special})"
+            if special
+            else "the label's IMAGE object declares no special pixels"
+        )
+        if read:
+            qa = (
+                f"{declared}, masked by quality.validity_mask; the label defines no other "
+                "invalid value"
+            )
+        else:
+            rules = _value_rules(label)
+            qa = (
+                declared
+                + (
+                    f"; the label also declares {', '.join(rules)}"
+                    if rules
+                    else "; the label defines no other invalid value"
+                )
+                + "; the image was not read, so nothing was masked"
+            )
+        return {
+            "provider": (
+                f"{_label_text(label, 'PRODUCER_INSTITUTION_NAME')} "
+                f"({_label_text(label, 'PRODUCER_FULL_NAME')}), as the label states; archived "
+                f"at the PDS Geosciences Node, volume {self.volume}"
+            ),
+            "version": f"PRODUCT_VERSION_ID {label.require('PRODUCT_VERSION_ID').raw} (label)",
+            "body": "moon",
+            "acquisition_time": (
+                f"{label.require('START_TIME').raw} to {label.require('STOP_TIME').raw} (label "
+                "START_TIME and STOP_TIME; the mosaic combines several acquisitions)"
+            ),
+            "frequency_or_wavelength": (
+                UNKNOWN
+                if frequency is None
+                else f"CENTER_FREQUENCY = {frequency.raw}, as the label states it"
+                + (
+                    ""
+                    if docs.s_band is None
+                    else f"; the instrument catalog states '{docs.s_band.group(0)}'"
+                )
+            ),
+            "transmit_receive_convention": (
+                "; ".join(f"{item.key} = {item.raw}" for item in handedness)
+                if handedness
+                else UNKNOWN
+            ),
+            "units": self._units(label)[0],
+            "calibration_type": f"DATA_SET_NAME '{_label_text(label, 'DATA_SET_NAME')}' (label)",
+            "native_grid": (
+                f"{layout.lines} x {layout.line_samples} {layout.sample_type} "
+                f"{layout.sample_bits}-bit samples, polar stereographic, MAP_RESOLUTION = "
+                f"{map_block.require('MAP_RESOLUTION').raw}, MAP_SCALE = "
+                f"{map_block.require('MAP_SCALE').raw}, SAMPLE_PROJECTION_OFFSET = "
+                f"{map_block.require('SAMPLE_PROJECTION_OFFSET').raw}, LINE_PROJECTION_OFFSET = "
+                f"{map_block.require('LINE_PROJECTION_OFFSET').raw} (label)"
+            ),
+            "effective_resolution": UNKNOWN,
+            "crs_and_frame": (
+                f"{projection.crs.srs}, from the label's IMAGE_MAP_PROJECTION "
+                f"(COORDINATE_SYSTEM_NAME = {map_block.require('COORDINATE_SYSTEM_NAME').raw}, "
+                f"COORDINATE_SYSTEM_TYPE = {map_block.require('COORDINATE_SYSTEM_TYPE').raw})"
+                + ("" if docs.pa is None else f"; the data set catalog states '{docs.pa.group(0)}'")
+            ),
+            "incidence_source": _incidence_statement(label),
+            "qa_definition": qa,
+            "license_or_attribution": (
+                UNKNOWN
+                if docs.citation is None
+                else f"Cite the data set as its catalog asks (CITATION_DESC): '{docs.citation}'"
+                + (
+                    ""
+                    if licence
+                    else "; neither the label nor the data set catalog states a licence"
+                )
+            ),
+            "verification_status": "PARTIAL",
+        }
+
+    def _check_stored_values(self, label: Pds3Object, layout: Pds3ImageLayout, name: str) -> None:
+        """Refuse a layer whose values need a rule the pilot does not apply."""
+        rules = _value_rules(label)
+        if rules:
+            raise PilotError(
+                f"{name} declares {', '.join(rules)}; the pilot applies no value rule beyond the "
+                "special pixels, so it cannot record this product faithfully"
+            )
+        if layout.scaling_factor != 1.0 or layout.value_offset != 0.0:
+            raise PilotError(
+                f"{name} states SCALING_FACTOR {layout.scaling_factor} and OFFSET "
+                f"{layout.value_offset}; the pilot records stored values only"
+            )
+
+    def _special_values(self, layout: Pds3ImageLayout, name: str) -> list[dict[str, Any]]:
         """CORE_NULL first, then the saturation codes, each with the mask reason it gets."""
         if "CORE_NULL" not in layout.special_values:
-            raise PilotError(f"{self.cpr_label_name} declares no CORE_NULL")
+            raise PilotError(f"{name} declares no CORE_NULL")
         result = []
         for key, value in layout.special_values.items():
             if key == "CORE_NULL":
@@ -2585,7 +2807,7 @@ class MinirfSource:
                 reason = InvalidReason.ISIS_SATURATION.label
             else:
                 raise PilotError(
-                    f"{self.cpr_label_name} declares {key} = {layout.special_raw[key]}, which is "
+                    f"{name} declares {key} = {layout.special_raw[key]}, which is "
                     "not one of the ISIS saturation codes quality.validity_mask masks"
                 )
             result.append(
@@ -2599,9 +2821,7 @@ class MinirfSource:
         result.sort(key=lambda item: item["keyword"] != "CORE_NULL")
         return result
 
-    def _layer(
-        self, raw_dir: Path, entry: Mapping[str, Any], site: _SiteWindow | str
-    ) -> dict[str, Any]:
+    def _layer(self, raw_dir: Path, entry: Mapping[str, Any], site: _SiteWindow | str) -> _Layer:
         """One mosaic label as the labels describe it: quantity, pole, look and coverage."""
         name = str(entry["file_name"])
         label = self._parse_label(raw_dir / name)
@@ -2619,19 +2839,19 @@ class MinirfSource:
             raise PilotError(f"{name}: {error}") from error
         description = _collapse(_label_text(label, "DESCRIPTION") or "")
         covers: bool | None = None
-        if not isinstance(site, _SiteWindow):
-            covers = None
-        else:
+        window: tuple[int, int, int, int] | None = None
+        if isinstance(site, _SiteWindow):
             try:
-                extent = site.site_extent["extent_m"]
-                projection.pixel_window(
-                    *_converted_bounds(extent, site.site_extent["crs_wkt"], projection.crs)
+                window = projection.pixel_window(
+                    *_converted_bounds(
+                        site.site_extent["extent_m"], site.site_extent["crs_wkt"], projection.crs
+                    )
                 )
                 covers = True
             except (ValueError, pyproj.exceptions.ProjError):
                 covers = False
         look = label.get("LOOK_DIRECTION")
-        return {
+        inventory = {
             "file_name": name,
             "url": entry["url"],
             "sha256": entry["sha256"],
@@ -2648,34 +2868,210 @@ class MinirfSource:
             "image_file": layout.file_name,
             "covers_site01": covers,
         }
+        return _Layer(
+            file_name=name,
+            entry=entry,
+            label=label,
+            layout=layout,
+            projection=projection,
+            quantity=found[0],
+            window=window,
+            inventory=inventory,
+        )
+
+    def _stokes_rows(
+        self, fetched: Mapping[str, Any], pairs: Sequence[tuple[_Layer, _Layer]]
+    ) -> dict[str, Mapping[str, Any]]:
+        """The fetched S1 and S4 window rows by label file name; they must be the pairs' layers."""
+        rows = {
+            str(entry["label_file_name"]): entry
+            for entry in fetched["files"]
+            if entry["role"] == "stokes_window_rows"
+        }
+        status = fetched["stokes"]["status"]
+        expected = {layer.file_name for pair in pairs for layer in pair}
+        if (status == "read") != bool(rows) or (status == "read" and set(rows) != expected):
+            raise PilotError(
+                f"data/raw/{self.name}/{FETCH_METADATA} lists S1 and S4 window rows that do not "
+                "match the S1 and S4 layers covering Site01 or its stokes status; "
+                f"run: {COMMAND} fetch {self.name}"
+            )
+        return rows
 
     def _stokes_observation(
-        self, layers: Sequence[Mapping[str, Any]], mosaics_url: str, site: _SiteWindow | str
+        self,
+        layers: Sequence[_Layer],
+        pairs: Sequence[tuple[_Layer, _Layer]],
+        stokes_meta: Mapping[str, Any],
+        rows: Mapping[str, Mapping[str, Any]],
+        raw_dir: Path,
+        mosaics_url: str,
+        site: _SiteWindow | str,
     ) -> dict[str, Any]:
-        s4 = [layer["file_name"] for layer in layers if layer["quantity"] == "S4"]
+        verdict_owner = (
+            "The S4-sign verdict is computed by polarimetry.lunar_s4_sign_check (T2-05) at "
+            "integration"
+        )
+        if not pairs:
+            return {
+                "status": "not_performed",
+                "reason": self._no_pair_reason(layers, mosaics_url, site),
+            }
+        if stokes_meta["status"] != "read":
+            return {
+                "status": "not_performed",
+                "reason": (
+                    f"{stokes_meta['reason']}. CPR is never used to infer S4. {verdict_owner}"
+                ),
+            }
+        return {
+            "status": "observed",
+            "reason": None,
+            "pairs": [self._stokes_pair(raw_dir, s1, s4, rows) for s1, s4 in pairs],
+            "note": (
+                "Raw observations only: S1 and S4 are recorded as stored, with no scaling and no "
+                "change of sign, and no S1 and |S4| validity rule is applied (T2-02). "
+                f"{verdict_owner}. CPR is never used to infer S4"
+            ),
+        }
+
+    def _no_pair_reason(
+        self, layers: Sequence[_Layer], mosaics_url: str, site: _SiteWindow | str
+    ) -> str:
+        quantities = sorted({layer.quantity for layer in layers})
+        s4 = [layer.file_name for layer in layers if layer.quantity == "S4"]
+        tail = (
+            "CPR is never used to infer S4. The S4-sign verdict is computed by "
+            "polarimetry.lunar_s4_sign_check (T2-05) at integration, from a product with S4"
+        )
+        listed = f"the {len(layers)} {self.data_set_id} labels listed at {mosaics_url}"
         if s4:
-            raise PilotError(
-                f"the mosaic labels list S4 layers ({', '.join(s4)}); this source records no "
-                "Stokes observation for them, so the record would be incomplete. Extend "
-                "MinirfSource to range-read S1 and S4 (T1-04 AC5) instead of ignoring them"
+            coverage = (
+                "their coverage of Site01 is not established, because the extent is missing"
+                if isinstance(site, str)
+                else "none of them covers Site01"
             )
-        quantities = sorted({str(layer["quantity"]) for layer in layers})
-        stokes = [layer for layer in layers if layer["quantity"] in _STOKES_QUANTITIES]
+            return (
+                f"{listed} describe S4 (fourth Stokes parameter) layers ({', '.join(s4)}), but "
+                f"{coverage}, so the S4 sign cannot be observed over Site01 from this mosaic. "
+                + tail
+            )
+        stokes = [layer for layer in layers if layer.quantity in _STOKES_QUANTITIES]
         if isinstance(site, str):
             coverage = "their coverage of Site01 is not established, because the extent is missing"
         else:
-            covering = [str(layer["file_name"]) for layer in stokes if layer["covers_site01"]]
+            covering = [layer.file_name for layer in stokes if layer.window is not None]
             coverage = f"{len(covering)} S1 layers cover Site01 ({', '.join(covering)})"
+        return (
+            f"{listed} describe {' and '.join(quantities)} layers only: {coverage}, but no label "
+            "describes an S4 (fourth Stokes parameter) layer, so the S4 sign cannot be observed "
+            f"from this mosaic. {tail}"
+        )
+
+    def _stokes_pair(
+        self,
+        raw_dir: Path,
+        s1: _Layer,
+        s4: _Layer,
+        rows: Mapping[str, Mapping[str, Any]],
+    ) -> dict[str, Any]:
+        """Raw S1 and S4 statistics over the Site01 window of one grid."""
+        if s4.window is None or s1.window != s4.window:
+            raise PilotError(f"{s1.file_name} and {s4.file_name} do not share a Site01 window")
+        values: dict[str, npt.NDArray[Any]] = {}
+        masks: dict[str, ValidityMask] = {}
+        for key, layer in (("s1", s1), ("s4", s4)):
+            self._check_stored_values(layer.label, layer.layout, layer.file_name)
+            self._special_values(layer.layout, layer.file_name)
+            values[key] = self._window_values(
+                raw_dir, rows[layer.file_name], layer.layout, s4.window
+            )
+            masks[key] = validity_mask(values[key], nodata=layer.layout.special_values["CORE_NULL"])
+        valid = masks["s1"].valid & masks["s4"].valid
+        observed = {key: np.asarray(values[key][valid], dtype=np.float64) for key in ("s1", "s4")}
+
+        def layer_record(key: str, layer: _Layer) -> dict[str, Any]:
+            entry = rows[layer.file_name]
+            units, units_source = self._units(layer.label)
+            found = observed[key]
+            return {
+                "label_file_name": layer.file_name,
+                "label_url": layer.entry["url"],
+                "label_sha256": layer.entry["sha256"],
+                "image_file_name": entry["provider_file_name"],
+                "url": entry["url"],
+                "http_status": entry["http_status"],
+                "content_range": entry["content_range"],
+                "byte_ranges": [[entry["first_byte"], entry["last_byte"]]],
+                "bytes_received": entry["bytes_received"],
+                "remote_bytes": entry["remote_bytes"],
+                "retrieved_at": entry["retrieved_at"],
+                "local_path": f"data/raw/{self.name}/{entry['file_name']}",
+                "local_sha256": entry["sha256"],
+                "units": {"value": units, "source": units_source},
+                "invalid_by_reason": {
+                    reason.label: count
+                    for reason, count in masks[key].reason_counts().items()
+                    if reason is not InvalidReason.VALID
+                },
+                "min": float(np.min(found)) if found.size else None,
+                "max": float(np.max(found)) if found.size else None,
+            }
+
+        s4_values = observed["s4"]
         return {
-            "status": "not_performed",
-            "reason": (
-                f"the {len(layers)} {self.data_set_id} labels listed at {mosaics_url} describe "
-                f"{' and '.join(quantities)} layers only: {coverage}, but no label describes an S4 "
-                "(fourth Stokes parameter) layer, so the S4 sign cannot be observed from this "
-                "mosaic. CPR is never used to infer S4. The S4-sign verdict is computed by "
-                "polarimetry.lunar_s4_sign_check (T2-05) at integration, from a product with S4"
+            "pixel_window": _pixel_window(s4.window),
+            "s1": layer_record("s1", s1),
+            "s4": layer_record("s4", s4),
+            "mask": (
+                "quality.validity_mask of each layer with nodata = its label's CORE_NULL and the "
+                "label's four ISIS saturation codes as isis_saturation; a pixel counts when it "
+                "is valid in both S1 and S4"
             ),
+            "values": (
+                "the stored samples of the window's columns, unscaled (SCALING_FACTOR 1.0 and "
+                "OFFSET 0.0 in both labels); min and max are over the pixels valid in both"
+            ),
+            "valid_pixels": int(np.count_nonzero(valid)),
+            "total_pixels": int(valid.size),
+            "s4_positive_pixels": int(np.count_nonzero(s4_values > 0)),
+            "s4_negative_pixels": int(np.count_nonzero(s4_values < 0)),
+            "s4_zero_pixels": int(np.count_nonzero(s4_values == 0)),
         }
+
+    def _open_items(
+        self,
+        layers: Sequence[_Layer],
+        pairs: Sequence[tuple[_Layer, _Layer]],
+        stokes_meta: Mapping[str, Any],
+    ) -> list[dict[str, Any]]:
+        if pairs and stokes_meta["status"] == "read":
+            return []
+        if pairs:
+            return [
+                {
+                    "item": (
+                        "Read the Site01 windows of the S1 and S4 mosaic layers that cover Site01 "
+                        "(stokes_observation)"
+                    ),
+                    "reason": stokes_meta["reason"],
+                }
+            ]
+        no_s4 = not any(layer.quantity == "S4" for layer in layers)
+        return [
+            {
+                "item": (
+                    "Read one LRO-L-MRFLRO-5-CDR-MAP-V1.0 map-projected single-swath product over "
+                    "Site01 and observe its S1 and S4 layers (PRD 5 row 1)"
+                ),
+                "reason": (
+                    "the polar mosaic has no S4 layer"
+                    if no_s4
+                    else "no S4 layer of the polar mosaic covers Site01"
+                )
+                + " (stokes_observation); reading a single swath is outside T1-04",
+            }
+        ]
 
     def _convention(
         self, label: Pds3Object, dsmap: str, entry: Mapping[str, Any]
@@ -2759,6 +3155,31 @@ class MinirfSource:
             "rows": {"first": row_off, "last": row_off + height - 1, "count": height},
         }
 
+    def _window_values(
+        self,
+        raw_dir: Path,
+        entry: Mapping[str, Any],
+        layout: Pds3ImageLayout,
+        window: tuple[int, int, int, int],
+    ) -> npt.NDArray[Any]:
+        """The stored samples of ``window`` from the rows ``entry`` lists; its rows must match."""
+        col_off, row_off, width, height = window
+        rows = entry["rows"]
+        expected = pds3_row_byte_range(layout, row_off, row_off + height - 1)
+        if (rows["first"], rows["last"]) != (row_off, row_off + height - 1) or (
+            entry["first_byte"],
+            entry["last_byte"],
+        ) != expected:
+            raise PilotError(
+                f"the rows in data/raw/{self.name}/{entry['file_name']} are not the window's "
+                f"rows; run: {COMMAND} fetch {self.name}"
+            )
+        data = (raw_dir / str(entry["file_name"])).read_bytes()
+        values: npt.NDArray[Any] = decode_pds3_rows(data, layout, height)[
+            :, col_off : col_off + width
+        ]
+        return values
+
     def _cpr_statistics(
         self,
         raw_dir: Path,
@@ -2766,19 +3187,7 @@ class MinirfSource:
         layout: Pds3ImageLayout,
         site: _SiteWindow,
     ) -> dict[str, Any]:
-        col_off, row_off, width, height = site.window
-        rows = rows_entry["rows"]
-        expected = pds3_row_byte_range(layout, row_off, row_off + height - 1)
-        if (rows["first"], rows["last"]) != (row_off, row_off + height - 1) or (
-            rows_entry["first_byte"],
-            rows_entry["last_byte"],
-        ) != expected:
-            raise PilotError(
-                f"the rows in data/raw/{self.name}/{rows_entry['file_name']} are not the window's "
-                f"rows; run: {COMMAND} fetch {self.name}"
-            )
-        data = (raw_dir / str(rows_entry["file_name"])).read_bytes()
-        window = decode_pds3_rows(data, layout, height)[:, col_off : col_off + width]
+        window = self._window_values(raw_dir, rows_entry, layout, site.window)
         mask = validity_mask(window, nodata=layout.special_values["CORE_NULL"])
         fraction = valid_fraction(mask)
         values = np.asarray(window[mask.valid], dtype=np.float64)
