@@ -11,8 +11,10 @@ from __future__ import annotations
 import dataclasses
 import inspect
 import math
+import numbers
 import struct
 import warnings
+from fractions import Fraction
 from typing import Any, Literal
 
 import numpy as np
@@ -348,6 +350,73 @@ def test_nodata_must_be_real_numbers(nodata: Any) -> None:
 def test_nodata_not_representable_in_the_dtype_is_refused(dtype: Any, nodata: float) -> None:
     with pytest.raises(ValueError, match="nodata"):
         validity_mask(np.zeros(2, dtype=dtype), nodata=nodata)
+
+
+# --- Exact nodata conversion --------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("dtype", [np.longdouble, np.clongdouble])
+def test_extended_precision_arrays_are_refused(dtype: Any) -> None:
+    """long double is 64 or 80 bits depending on the platform, and no GDAL band type is wider than
+    Float64, so a long double array is refused on every platform rather than compared with a
+    nodata value that went through a double."""
+    with pytest.raises(TypeError, match="long double"):
+        validity_mask(np.zeros(2, dtype=dtype))
+    values = np.array(["9007199254740992", "9007199254740993"], dtype=dtype)
+    with pytest.raises(TypeError, match="long double"):
+        validity_mask(values, nodata=9007199254740993)
+
+
+@pytest.mark.parametrize(
+    ("dtype", "values", "nodata"),
+    [
+        (np.int64, [2**53, 2**53 + 1], 2**53 + 1),
+        (np.int64, [2**53, 2**53 + 1], np.int64(2**53 + 1)),
+        (np.int64, [2**53, 2**53 + 1], Fraction(2**53 + 1)),
+        (np.uint64, [2**64 - 2, 2**64 - 1], Fraction(2**64 - 1)),
+        (np.int16, [2, 3], Fraction(6, 2)),
+    ],
+)
+def test_integer_nodata_is_compared_exactly(dtype: Any, values: list[int], nodata: Any) -> None:
+    """An integer array compares the exact declared integer; a double would round 2**53 + 1."""
+    mask = validity_mask(np.array(values, dtype=dtype), nodata=nodata)
+    assert reasons(mask) == [R.VALID, R.NODATA]
+
+
+@pytest.mark.parametrize(
+    ("dtype", "nodata"),
+    [
+        # Rounded through a double, 2**60 + 2**36 + 1 becomes 2**60 + 2**36, a float32 tie that
+        # goes to 2**60; rounded once it is 2**60 + 2**37. Either way a guess, so it is refused.
+        (np.float32, 2**60 + 2**36 + 1),
+        (np.float64, 2**53 + 1),
+        (np.float64, Fraction(1, 3)),
+        (np.float16, Fraction(1, 10)),
+        (np.complex128, 2**53 + 1),
+    ],
+)
+def test_floating_nodata_that_is_not_a_double_is_refused(dtype: Any, nodata: Any) -> None:
+    with pytest.raises(ValueError, match=r"nodata .* not exactly a binary64 double"):
+        validity_mask(np.zeros(2, dtype=dtype), nodata=nodata)
+
+
+@pytest.mark.parametrize(
+    "nodata",
+    [2**24 + 1, 16777217.0, Fraction(2**24 + 1), np.float64(2**24 + 1), np.longdouble(2**24 + 1)],
+)
+def test_floating_nodata_that_is_a_double_is_rounded_once(nodata: Any) -> None:
+    """2**24 + 1 is a double; a float32 band stores it as 2**24 (round to nearest, ties to even)."""
+    mask = validity_mask(f32(2.0**24, 2.0**24 + 2), nodata=nodata)
+    assert reasons(mask) == [R.NODATA, R.VALID]
+
+
+def test_nodata_without_an_exact_value_is_refused() -> None:
+    class Opaque:
+        """A registered real number type that exposes no exact value."""
+
+    numbers.Real.register(Opaque)
+    with pytest.raises(TypeError, match=r"nodata .* exact value"):
+        validity_mask(f32(0.0), nodata=Opaque())  # type: ignore[arg-type]
 
 
 def test_shapes_are_preserved() -> None:
