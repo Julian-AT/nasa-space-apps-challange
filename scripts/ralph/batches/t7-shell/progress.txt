@@ -93,3 +93,14 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - The component test reads PRD.md, but turbo's `test` task hashes only `$TURBO_DEFAULT$` and `$TURBO_ROOT$/fixtures/**`, so a PRD-only change can replay a cached pass. Suggested turbo.json change (no T7 story owns it): add "$TURBO_ROOT$/PRD.md" to the test inputs, or to a `@terraluna/web#test` task. Until then, run `TURBO_FORCE=true make test` after editing PRD section 3.
 ---
+
+## 2026-11-14T20:13Z · T7-02 · resolve
+- Done: resolved round 1. claude-r1-1 fixed: LabelledValue now also refuses a value that is only TBD, TBC, TBA or missing (any case, surrounding blanks), like n/a or unknown. "none" and "unknown" stay refused on purpose, because a value label that reads only that is missing evidence shown as a value (PRD 3). The pattern is anchored, and new tests show that longer text containing these words still renders. claude-r1-2 rebutted: an observation, not a defect. The widened Vitest include is what lets the story check find the colocated test. codex-r1-1 rebutted as a defect of this story, with the fact confirmed: `turbo run test --filter @terraluna/web --dry=json` has no PRD.md in the web test inputs. The fix is in turbo.json, which no T7 story owns. The story check runs Vitest outside Turborepo at every gate, so the PRD 3 contract is checked fresh there. The turbo.json change is proposed below again.
+- Commits: 4f24fcd test(t7-02): add failing cases for tbd, tbc, tba and missing given as a value; 5a529dd fix(t7-02): refuse tbd, tbc, tba and missing as a value (claude-r1-1)
+- Checks: the new cases failed first (4 failed, 53 passed). Then make check exit 0; make test exit 0 (pytest 404 passed, schema 157, web 181); `pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx` exit 0 (57 passed). The resolution-free digests of both review files equal review.digests.
+- Docs used: none new. turbo 2.11.11 `--dry=json` output (.tasks[].inputs, .globalCacheInputs.files) for the cache-key evidence.
+- Learnings: `turbo run <task> --filter <pkg> --dry=json | jq '.tasks[] | select(.taskId=="<pkg>#<task>") | .inputs'` shows whether a file outside the package is in a task's cache key. A finding whose fix lies in a file no story owns cannot be fixed in the story: record the fix as a proposal and say so plainly in the resolution.
+
+### Proposed instruction changes
+- turbo.json (no T7 story owns it): add "$TURBO_ROOT$/PRD.md" to the `test` task inputs, next to "$TURBO_ROOT$/fixtures/**", so a PRD-only edit to section 3 reruns apps/web/components/evidence-label.test.tsx under make test (review finding codex-r1-1). Until then, run `TURBO_FORCE=true make test` after editing PRD section 3.
+---

@@ -116,7 +116,11 @@
       "claim": "Include PRD.md in the web test cache inputs so changes to evidence definitions rerun their contract tests.",
       "evidence": "The new tests read repository-root PRD.md at runtime. turbo.json:23 configures test inputs as $TURBO_DEFAULT$ and $TURBO_ROOT$/fixtures/**; its globalDependencies also omit PRD.md. Consequently, a PRD-only definition change can replay a cached successful web test result through make test without evaluating the new definitions.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted as a defect of this story. The cache-key fact is correct: `turbo run test --filter @terraluna/web --dry=json` lists no PRD.md among the task inputs, and the global inputs are only .gitattributes, eslint.config.mjs and tsconfig.base.json. But the change it asks for is in turbo.json, whose test inputs were set by T0-04 and T0-05. turbo.json is in no T7 story files list (T7-02 owns the four component files, apps/web/{eslint.config.mjs,package.json,tests/*,vitest.config.ts} and pnpm-lock.yaml), and ralph.sh sends a story back when it changes a path outside them. Nothing inside those files can change what Turborepo hashes. The test file is right to read PRD.md at run time, because that is how a copy that drifts from section 3 fails. Removing that read to suit the cache would weaken the test. The PRD contract is still checked fresh where it matters: this story check runs `pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx` directly, outside Turborepo, at every gate (57 passed now). Any change under apps/web, which every later T7 story makes, also misses the cache. The repo has no CI workflow that could replay a remote cache. The leftover gap is a PRD-only edit followed by a warm local make test. The one-line turbo.json fix (add \"$TURBO_ROOT$/PRD.md\" to the test inputs) is proposed for a human under \"Proposed instruction changes\" in progress.txt (T7-02 implement and resolve entries). Until then, run `TURBO_FORCE=true make test` after editing PRD section 3."
+      }
     }
   ]
 }

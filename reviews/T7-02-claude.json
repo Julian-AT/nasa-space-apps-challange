@@ -116,7 +116,11 @@
       "claim": "The placeholder regex may over-refuse a legitimate string value such as 'none' or 'unknown' for an Observed or Derived label. It would also let a placeholder like 'TBD' through.",
       "evidence": "PLACEHOLDER matches blank, dashes, ?, n/a, nan, null, undefined, none and unknown. The behaviour is stricter than the criterion requires and fails safe. It is a judgement call, not a defect.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "5a529dd3463f2f0bd4c6345eeda14ec3de50dead",
+        "reason": "Fixed in 5a529dd (failing tests first in 4f24fcd). The PLACEHOLDER pattern in apps/web/components/labelled-value.tsx now also refuses a value that is only TBD, TBC, TBA or missing, in any case and with surrounding blanks. Such a value is a marker for evidence that is not there, and PRD 3 labels missing evidence Unavailable with a reason, so the build fails instead of showing it. None and unknown stay refused on purpose. A value labelled Observed, Derived, Predicted or Assumed that reads only unknown or none is missing evidence presented as a value, which section 3 and CLAUDE.md forbid. Refusing it fails next build loudly and names label Unavailable, so nothing is hidden; a record that means a real result can say so in words (for example \"no detection\"). The pattern is anchored, so a value that merely contains one of these words still renders. New tests show test-none-value, \"test-value tbd\" and unknown-test-value. pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx: 57 passed (4 failed before the fix)."
+      }
     },
     {
       "severity": "low",
@@ -124,7 +128,11 @@
       "claim": "The include list was widened to components/**, which the story's file list allows. Colocated component tests now run in the default `vitest run`, which is intended.",
       "evidence": "`make test` shows components/evidence-label.test.tsx among the 9 files. No action needed.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted: this is not a defect, and the finding says no action is needed. vitest.config.ts is in the story files list. Widening include to components/**/*.test.{ts,tsx} is what makes the story check `pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx` find the colocated test at all. Before the change Vitest collected only tests/**, as the Codebase Patterns entry from T7-01 records. The same include serves the colocated tests that T7-03 to T7-06 name in their checks. make test runs 9 web test files and 181 tests, including this one."
+      }
     }
   ]
 }
