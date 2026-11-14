@@ -5,17 +5,27 @@ Units and conventions used throughout:
 - Window coordinates x (east) and y (north) are metres on the body sphere, measured from the
   window centre. Angles are radians. The radii are the D29 spheres from ``BODY_RADII_M``.
 - Longitudes returned by the inverse lie in the half-open range [-pi, pi), where pi is the
-  float64 ``math.pi``. A window centre must already be in that range.
-- PRD 7 Tolerances (rtol 1e-10, atol 1e-12) apply to normalised float64 values. Round trips
-  compare window coordinates normalised by the window width W: u = x / W and v = y / W, both in
-  [-0.5, 0.5]. At W = 5000 m, atol 1e-12 is 5e-9 m. In plain metres atol 1e-12 m cannot be met
-  for small offsets by any float64 (latitude, longitude) pair: a longitude near +-pi is
-  resolved only to half an ulp of pi, 2.2e-16 rad, which is 1.4e-9 m on the Earth sphere.
+  float64 ``math.pi``. A window centre must already be in that range. A longitude and the same
+  value plus or minus 2 * math.pi name the same meridian, which is the convention
+  ``math.degrees`` follows (``math.degrees(math.pi) == 180.0``). Real trigonometry has period
+  2 pi, which is 2.4e-16 more than 2 * math.pi, so the exact reference below first moves a
+  longitude that lies more than math.pi from the centre by 2 * math.pi, at 40 digits.
+- Round trips use PRD 7 Tolerances (rtol 1e-10, atol 1e-12) on the window coordinates in plain
+  metres, with no normalisation: inverse then forward must give back each of x and y to within
+  1e-12 m + 1e-10 * |value|. On the 5 km, 90 m grid the smallest offsets are 25 m (pixel
+  (27, 27) sits at x = -25 m, y = 25 m), where that is 2.5e-9 m.
+- Float64 puts a floor under this. A returned longitude near +-pi is resolved only to half an
+  ulp of math.pi, 2.2e-16 rad, which is 1.4e-9 m on the Earth sphere, 0.56 of the allowance at
+  25 m. Closer than about 14 m to the centre, the allowance falls below that floor for any
+  float64 (latitude, longitude) pair. Round trips therefore use the D29 pixel centres, which
+  are the points where the resampler evaluates the inverse. Smaller offsets, down to subnormal
+  ones, are checked for finite results everywhere, and for the round trip only at the centre
+  (0, 0), where float64 resolves them.
 - Distances from the window centre are checked against rho to 1e-9 relative (PRD 7 Tests).
 
 The reference formulas here are written independently of the implementation: the grid with
-explicit loops, a forward AEQD from 3-D unit vectors, and the great-circle distance by the
-haversine formula.
+explicit loops, a forward AEQD from 3-D unit vectors evaluated exactly at 40 significant digits
+with mpmath, and the great-circle distance by the haversine formula.
 """
 
 from __future__ import annotations
@@ -26,6 +36,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import mpmath  # type: ignore[import-untyped]
 import numpy as np
 import numpy.typing as npt
 import pytest
@@ -63,36 +74,76 @@ CENTRE_LONGITUDES_RAD = (0.0, 0.65449846949787, -PI, math.radians(179.99), math.
 TERRAIN = load_terrain_config()
 WINDOW_M = TERRAIN.window_m
 GRID_M = TERRAIN.analysis_grid_m
+GRID_SIZE = window_grid(WINDOW_M, GRID_M).size
+
+# Significant digits of the exact reference forward. Float64 carries about 16.
+REFERENCE_DIGITS = 40
+# Grid rows and columns checked against the exact reference: both edges, their neighbours, two
+# interior lines and the three lines through the centre pixel, where the offsets are smallest
+# (25 m) and the absolute tolerance binds. The full 55 x 55 grid is checked against the module
+# forward; the exact reference costs about 0.1 ms per point, so it gets these 81 points.
+REFERENCE_LINES = (0, 1, 13, 26, 27, 28, 41, 53, 54)
 
 
 # ---------------------------------------------------------------------------------------------
 # Independent reference formulas
 
 
-def reference_forward(
+def exact_forward(
     lat: Array, lon: Array, lat0: float, lon0: float, radius: float
 ) -> tuple[Array, Array]:
-    """Forward AEQD from 3-D unit vectors, written independently of the implementation.
+    """Forward AEQD from 3-D unit vectors at 40 digits, written independently of the module.
 
-    The point is projected onto the local east, north and up axes of the centre. The azimuthal
-    direction is (east, north) normalised and the distance is radius * atan2(|horizontal|, up).
+    Every float64 input is taken at its exact binary value. The point is projected onto the
+    centre's east, north and up axes in a body-fixed frame; the azimuth is (east, north)
+    normalised and the distance is radius * atan2(|horizontal|, up). Only the resulting metres
+    are rounded to float64, so the reference adds at most half an ulp to each coordinate.
+
+    A longitude more than math.pi from the centre is moved by 2 * math.pi first, which undoes
+    the inverse's wrap into [-pi, pi) under the module's convention (see the module docstring).
     """
-    lat, lon = np.broadcast_arrays(lat, lon)
-    point = np.stack([np.cos(lat) * np.cos(lon), np.cos(lat) * np.sin(lon), np.sin(lat)])
-    up = np.array(
-        [math.cos(lat0) * math.cos(lon0), math.cos(lat0) * math.sin(lon0), math.sin(lat0)]
-    )
-    east = np.array([-math.sin(lon0), math.cos(lon0), 0.0])
-    north = np.array(
-        [-math.sin(lat0) * math.cos(lon0), -math.sin(lat0) * math.sin(lon0), math.cos(lat0)]
-    )
-    e = np.tensordot(east, point, axes=1)
-    n = np.tensordot(north, point, axes=1)
-    u = np.tensordot(up, point, axes=1)
-    horizontal = np.hypot(e, n)
-    angle = np.arctan2(horizontal, u)
-    scale = np.divide(angle, horizontal, out=np.zeros_like(angle), where=horizontal > 0)
-    return radius * scale * e, radius * scale * n
+    lat, lon = np.broadcast_arrays(np.asarray(lat, np.float64), np.asarray(lon, np.float64))
+    x_out = np.empty(lat.shape)
+    y_out = np.empty(lat.shape)
+    with mpmath.workdps(REFERENCE_DIGITS):
+        pi = mpmath.mpf(PI)
+        phi0 = mpmath.mpf(lat0)
+        lam0 = mpmath.mpf(lon0)
+        up = (
+            mpmath.cos(phi0) * mpmath.cos(lam0),
+            mpmath.cos(phi0) * mpmath.sin(lam0),
+            mpmath.sin(phi0),
+        )
+        east = (-mpmath.sin(lam0), mpmath.cos(lam0), mpmath.mpf(0))
+        north = (
+            -mpmath.sin(phi0) * mpmath.cos(lam0),
+            -mpmath.sin(phi0) * mpmath.sin(lam0),
+            mpmath.cos(phi0),
+        )
+        for index in np.ndindex(lat.shape):
+            phi = mpmath.mpf(float(lat[index]))
+            lam = mpmath.mpf(float(lon[index]))
+            if lam - lam0 > pi:
+                lam -= 2 * pi
+            elif lam - lam0 < -pi:
+                lam += 2 * pi
+            point = (
+                mpmath.cos(phi) * mpmath.cos(lam),
+                mpmath.cos(phi) * mpmath.sin(lam),
+                mpmath.sin(phi),
+            )
+            e = mpmath.fsum(a * b for a, b in zip(east, point, strict=True))
+            n = mpmath.fsum(a * b for a, b in zip(north, point, strict=True))
+            u = mpmath.fsum(a * b for a, b in zip(up, point, strict=True))
+            horizontal = mpmath.sqrt(e * e + n * n)
+            if horizontal == 0:
+                x_out[index] = 0.0
+                y_out[index] = 0.0
+                continue
+            scale = mpmath.mpf(radius) * mpmath.atan2(horizontal, u) / horizontal
+            x_out[index] = float(scale * e)
+            y_out[index] = float(scale * n)
+    return x_out, y_out
 
 
 def haversine_m(lat: Array, lon: Array, lat0: float, lon0: float, radius: float) -> Array:
@@ -134,15 +185,39 @@ def hand_grid(width: float, spacing: float) -> tuple[list[float], list[float]]:
     return xs, ys
 
 
-def assert_window_round_trip(
-    x: Array, y: Array, x_back: Array, y_back: Array, width: float = WINDOW_M
+def assert_metres_close(
+    x_actual: Array, y_actual: Array, x_expected: Array, y_expected: Array
 ) -> None:
-    np.testing.assert_allclose(x_back / width, x / width, rtol=RTOL, atol=ATOL)
-    np.testing.assert_allclose(y_back / width, y / width, rtol=RTOL, atol=ATOL)
+    """PRD 7 tolerances on window coordinates in plain metres: atol 1e-12 m, rtol 1e-10."""
+    np.testing.assert_allclose(x_actual, x_expected, rtol=RTOL, atol=ATOL)
+    np.testing.assert_allclose(y_actual, y_expected, rtol=RTOL, atol=ATOL)
 
 
 def story_grid() -> tuple[Array, Array]:
     return window_grid(WINDOW_M, GRID_M).mesh_m()
+
+
+def reference_grid() -> tuple[Array, Array]:
+    """The grid points on ``REFERENCE_LINES`` (rows and columns), for the exact reference."""
+    x, y = story_grid()
+    lines = np.array(REFERENCE_LINES)
+    return x[np.ix_(lines, lines)], y[np.ix_(lines, lines)]
+
+
+def assert_grid_round_trip(
+    x: Array, y: Array, *, lat0: float, lon0: float, radius: float, exact: bool
+) -> None:
+    """Inverse, then forward, recovers (x, y) in metres to PRD 7 tolerances.
+
+    Checks the module forward and, with ``exact``, the 40-digit reference forward.
+    """
+    lat, lon = aeqd_inverse(x, y, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
+    x_back, y_back = aeqd_forward(lat, lon, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
+    assert x_back.dtype == y_back.dtype == np.float64
+    assert_metres_close(x_back, y_back, x, y)
+    if exact:
+        x_ref, y_ref = exact_forward(lat, lon, lat0, lon0, radius)
+        assert_metres_close(x_ref, y_ref, x, y)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -317,14 +392,9 @@ def test_round_trip_on_the_window_grid(body: str, lat0_deg: float, lon0: float) 
     radius = BODY_RADII_M[body]
     lat0 = math.radians(lat0_deg)
     x, y = story_grid()
-    lat, lon = aeqd_inverse(x, y, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
-
-    x_back, y_back = aeqd_forward(lat, lon, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
-    assert x_back.dtype == y_back.dtype == np.float64
-    assert_window_round_trip(x, y, x_back, y_back)
-
-    x_ref, y_ref = reference_forward(lat, lon, lat0, lon0, radius)
-    assert_window_round_trip(x, y, x_ref, y_ref)
+    assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=False)
+    x, y = reference_grid()
+    assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=True)
 
 
 @pytest.mark.parametrize("body", BODIES)
@@ -333,27 +403,27 @@ def test_round_trip_on_the_window_grid(body: str, lat0_deg: float, lon0: float) 
 def test_round_trip_on_a_pole_centred_window(body: str, lat0: float, lon0: float) -> None:
     radius = BODY_RADII_M[body]
     x, y = story_grid()
-    lat, lon = aeqd_inverse(x, y, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
-    x_back, y_back = aeqd_forward(lat, lon, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
-    assert_window_round_trip(x, y, x_back, y_back)
-    x_ref, y_ref = reference_forward(lat, lon, lat0, lon0, radius)
-    assert_window_round_trip(x, y, x_ref, y_ref)
+    assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=False)
+    x, y = reference_grid()
+    assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=True)
 
 
 @pytest.mark.parametrize("body", BODIES)
 @pytest.mark.parametrize("lat0_deg", STORY_LATITUDES_DEG)
-def test_forward_matches_the_vector_reference(body: str, lat0_deg: float) -> None:
+@pytest.mark.parametrize("lon0", [0.65449846949787, -PI])
+def test_forward_matches_the_exact_reference(body: str, lat0_deg: float, lon0: float) -> None:
     radius = BODY_RADII_M[body]
     lat0 = math.radians(lat0_deg)
-    lon0 = 0.65449846949787
-    # Points up to about 4 km away in every direction, built without the inverse.
+    # Points up to about 4 km away in every direction, built without the inverse. Points due
+    # east and west of the centre have |y| of a metre or less, so absolute errors show here.
     angle = np.linspace(-PI, PI, 37)
     reach = 4000.0 / radius
     lat = np.clip(lat0 + reach * np.sin(angle), -HALF_PI, HALF_PI)
     lon = lon0 + reach * np.cos(angle)
+    lon = np.where(lon < -PI, lon + 2 * PI, lon)
     x, y = aeqd_forward(lat, lon, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
-    x_ref, y_ref = reference_forward(lat, lon, lat0, lon0, radius)
-    assert_window_round_trip(x_ref, y_ref, x, y)
+    x_ref, y_ref = exact_forward(lat, lon, lat0, lon0, radius)
+    assert_metres_close(x, y, x_ref, y_ref)
 
 
 def test_forward_returns_the_origin_at_the_centre() -> None:
@@ -422,38 +492,72 @@ def test_a_window_on_the_antimeridian_wraps_west_points_to_the_east_end() -> Non
 # Property test
 
 
+PIXELS = st.lists(
+    st.tuples(st.integers(0, GRID_SIZE - 1), st.integers(0, GRID_SIZE - 1)),
+    min_size=1,
+    max_size=16,
+)
+
+
 @settings(max_examples=400, deadline=None)
 @given(
     body=st.sampled_from(BODIES),
     lat0=st.floats(-HALF_PI, HALF_PI),
     lon0=st.floats(-PI, PI, exclude_max=True),
-    u=st.lists(st.floats(-0.5, 0.5), min_size=1, max_size=16),
-    v=st.lists(st.floats(-0.5, 0.5), min_size=1, max_size=16),
+    pixels=PIXELS,
 )
-@example(body="moon", lat0=-HALF_PI, lon0=-PI, u=[0.0, 0.5, -0.5], v=[0.0, -0.5, 0.5])
-@example(body="earth", lat0=HALF_PI, lon0=0.0, u=[1e-12, -0.5], v=[0.0, 1e-300])
-@example(body="earth", lat0=0.0, lon0=-PI, u=[-0.5, 1e-9, 0.5], v=[0.0, 0.0, 0.0])
-@example(body="mars", lat0=math.radians(89.99), lon0=math.nextafter(PI, 0.0), u=[0.1], v=[0.5])
+@example(body="moon", lat0=-HALF_PI, lon0=-PI, pixels=[(0, 0), (27, 27), (54, 54), (0, 54)])
+@example(body="earth", lat0=0.0, lon0=-PI, pixels=[(27, 27), (27, 0), (0, 27), (54, 28)])
+@example(body="earth", lat0=HALF_PI, lon0=0.0, pixels=[(27, 27), (26, 28), (0, 54)])
+@example(
+    body="mars", lat0=math.radians(89.99), lon0=math.nextafter(PI, 0.0), pixels=[(27, 28), (0, 0)]
+)
 def test_round_trip_property(
-    body: str, lat0: float, lon0: float, u: list[float], v: list[float]
+    body: str, lat0: float, lon0: float, pixels: list[tuple[int, int]]
 ) -> None:
-    """Random centres anywhere on the sphere, random offsets within the 5 km window.
+    """Random centres anywhere on the sphere, random pixel centres of the 5 km window.
 
-    Longitudes come back in [-pi, pi) and latitudes in [-pi/2, pi/2]; window coordinates
-    survive inverse-then-forward to PRD 7 tolerances on x / W and y / W.
+    Each pixel is (row, column) on the configured D29 grid. Longitudes come back in [-pi, pi)
+    and latitudes in [-pi/2, pi/2], and the window coordinates survive inverse then forward,
+    through both the module and the exact reference, to PRD 7 tolerances in plain metres.
     """
     radius = BODY_RADII_M[body]
-    size = min(len(u), len(v))
-    x = np.array(u[:size]) * WINDOW_M
-    y = np.array(v[:size]) * WINDOW_M
+    grid = window_grid(WINDOW_M, GRID_M)
+    x = np.array([grid.x_m[column] for _, column in pixels])
+    y = np.array([grid.y_m[row] for row, _ in pixels])
     lat, lon = aeqd_inverse(x, y, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
     assert np.all((lon >= -PI) & (lon < PI))
     assert np.all(np.abs(lat) <= HALF_PI)
+    assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=True)
 
+
+@pytest.mark.parametrize("body", BODIES)
+@pytest.mark.parametrize(
+    ("lat0", "lon0"),
+    [(-HALF_PI, -PI), (HALF_PI, 0.0), (0.0, -PI), (math.radians(45.0), math.nextafter(PI, 0.0))],
+)
+def test_tiny_offsets_give_finite_coordinates(body: str, lat0: float, lon0: float) -> None:
+    """Offsets far below the float64 floor of the module docstring, down to subnormal ones."""
+    radius = BODY_RADII_M[body]
+    x = np.array([5e-324, -1e-300, 1e-12, 0.0, -1e-9, 3e-6])
+    y = np.array([0.0, 1e-300, -1e-12, 5e-324, 1e-9, -7e-7])
+    lat, lon = aeqd_inverse(x, y, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
+    assert np.all(np.isfinite(lat))
+    assert np.all(np.isfinite(lon))
+    assert np.all(np.abs(lat) <= HALF_PI)
+    assert np.all((lon >= -PI) & (lon < PI))
     x_back, y_back = aeqd_forward(lat, lon, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
-    assert_window_round_trip(x, y, x_back, y_back)
-    x_ref, y_ref = reference_forward(lat, lon, lat0, lon0, radius)
-    assert_window_round_trip(x, y, x_ref, y_ref)
+    assert np.all(np.isfinite(x_back))
+    assert np.all(np.isfinite(y_back))
+
+
+@pytest.mark.parametrize("body", BODIES)
+def test_tiny_offsets_round_trip_at_the_origin_centre(body: str) -> None:
+    """At (0, 0) float64 resolves tiny angles, so tiny offsets meet PRD 7 tolerances in metres."""
+    radius = BODY_RADII_M[body]
+    x = np.array([5e-324, -1e-300, 1e-12, 0.0, -1e-9, 3e-6])
+    y = np.array([0.0, 1e-300, -1e-12, 5e-324, 1e-9, -7e-7])
+    assert_grid_round_trip(x, y, lat0=0.0, lon0=0.0, radius=radius, exact=True)
 
 
 # ---------------------------------------------------------------------------------------------
