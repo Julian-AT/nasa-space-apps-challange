@@ -18,7 +18,7 @@ import math
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Final, Literal
+from typing import Any, Final, Literal
 
 import numpy as np
 import numpy.typing as npt
@@ -1102,8 +1102,19 @@ def bilinear_resample(
     ``row`` are fractional indices of pixel centres ((0, 0) is the centre of the top-left pixel)
     and broadcast together. ``nodata`` is the product's declared sentinel, or None if it declares
     none; it must be given either way. A source pixel is missing if it is masked, NaN, infinite
-    or equal to the sentinel (compared in float64, as GDAL reports nodata), so a masked pixel,
-    NaN and a declared sentinel behave identically, whatever value a mask hides. Zero is data.
+    or equal to the sentinel, so a masked pixel, NaN and a declared sentinel behave identically,
+    whatever value a mask hides. Zero is data.
+
+    The sentinel is compared in the source's own type, as GDAL's nodata mask band converts it
+    to the band's type first. For a float source it is taken as a float64 (GDAL reports nodata
+    as a double) and rounded to the source type, so a float32 band stores and matches -9999.1
+    as -9999.099609375. Equality is then exact, whereas GDAL's mask band also takes values
+    within about 4.8e-7 relative of the sentinel (ARE_REAL_EQUAL); a masked array carries
+    whatever mask its reader derived, and that mask is honoured as given. An integer source
+    matches an integral sentinel in its range exactly, beyond 2**53 too. A sentinel the source
+    type cannot hold, such as 0.5 or 256 for uint8, or a finite value beyond the float type's
+    range, raises ResampleError rather than masking nothing. A NaN or infinite sentinel of a
+    float source adds no missing pixels.
 
     A point is inside when 0 <= column <= ncols - 1 and 0 <= row <= nrows - 1. Its four
     neighbours are columns i and i + 1 and rows j and j + 1, with i = min(floor(column),
@@ -1133,11 +1144,11 @@ def bilinear_resample(
     rows, cols = grid.shape
     if rows < 2 or cols < 2:
         raise ResampleError(f"source must have at least 2 rows and 2 columns, got {grid.shape}")
-    sentinel = _nodata_value(nodata)
+    at_sentinel = _sentinel_pixels(grid, nodata)
     z = grid.astype(np.float64)
     good = np.isfinite(z)
-    if sentinel is not None:
-        good &= z != sentinel
+    if at_sentinel is not None:
+        good &= ~at_sentinel
     if masked is not None:
         good &= ~masked
     z = np.where(good, z, np.nan)
@@ -1193,14 +1204,48 @@ def resample_window(
     return bilinear_resample(source, column, row, nodata=nodata)
 
 
-def _nodata_value(nodata: object) -> float | None:
+def _nodata_value(nodata: object) -> int | float | None:
+    """The declared sentinel as a Python int (exact) or float, or None if none is declared."""
     if nodata is None:
         return None
     if isinstance(nodata, bool | np.bool_) or not isinstance(
         nodata, int | float | np.integer | np.floating
     ):
         raise ResampleError(f"nodata must be a real number or None, got {nodata!r}")
+    if isinstance(nodata, int | np.integer):
+        return int(nodata)
     return float(nodata)
+
+
+def _sentinel_pixels(grid: npt.NDArray[Any], nodata: object) -> BoolArray | None:
+    """Where ``grid`` holds the declared sentinel, compared in ``grid``'s own type."""
+    sentinel = _nodata_value(nodata)
+    if sentinel is None:
+        return None
+    dtype: np.dtype[Any] = grid.dtype
+    if dtype.kind == "f":
+        try:
+            declared = float(sentinel)  # Only an int too large for a float64 overflows.
+        except OverflowError:
+            raise ResampleError(
+                f"nodata {sentinel!r} lies beyond the range of the {dtype} source"
+            ) from None
+        if not math.isfinite(declared):
+            return None
+        # Every float64 fits a wider float type; float() of its maximum would overflow.
+        if dtype.itemsize <= 8 and abs(declared) > float(np.finfo(dtype).max):
+            raise ResampleError(f"nodata {sentinel!r} lies beyond the range of the {dtype} source")
+        return np.asarray(grid == dtype.type(declared), dtype=np.bool_)
+    if isinstance(sentinel, float):
+        if not sentinel.is_integer():
+            raise ResampleError(
+                f"nodata {sentinel!r} is not an integer, so no {dtype} pixel holds it"
+            )
+        sentinel = int(sentinel)
+    info = np.iinfo(dtype)
+    if not int(info.min) <= sentinel <= int(info.max):
+        raise ResampleError(f"nodata {sentinel!r} lies beyond the range of the {dtype} source")
+    return np.asarray(grid == dtype.type(sentinel), dtype=np.bool_)
 
 
 def _read_only_mask(values: BoolArray) -> BoolArray:
