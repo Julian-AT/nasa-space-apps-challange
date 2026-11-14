@@ -697,8 +697,8 @@ def _compare_crs(prj_wkt: str | None, height_crs: str | None) -> tuple[bool | No
         return False, f"the .prj cannot be parsed: {error}"
     if prj_params == height_params:
         return True, (
-            "the .prj and the height map state the same PROJ parameters "
-            f"({CRS.from_wkt(height_crs).to_proj4()}); their WKT differs only in names"
+            "the .prj and the height map WKT texts differ in wording but both resolve to the "
+            f"same PROJ parameters ({CRS.from_wkt(height_crs).to_proj4()})"
         )
     return False, (
         f"the .prj states {CRS.from_wkt(prj_wkt).to_proj4()} but the height map states "
@@ -805,10 +805,10 @@ class Pgda78Source:
 
     # -- fetch --
 
-    def _site_links(self, page: str, page_url: str) -> tuple[dict[str, str], int]:
-        """Links to files directly in the site folder (name -> URL), and how many go deeper."""
+    def _site_links(self, page: str, page_url: str) -> tuple[dict[str, str], set[str]]:
+        """Links to files directly in the site folder (name -> URL), and the deeper paths."""
         links: dict[str, str] = {}
-        deeper = 0
+        deeper: set[str] = set()
         for match in _HREF.finditer(page):
             href = unescape(next(group for group in match.groups() if group is not None))
             url = urllib.parse.urljoin(page_url, href)
@@ -825,7 +825,7 @@ class Pgda78Source:
             if not relative:
                 continue
             if "/" in relative:
-                deeper += 1
+                deeper.add(relative)
                 continue
             name = _safe_file_name(relative, page_url)
             url = urllib.parse.urlunsplit(parts._replace(fragment=""))
@@ -850,10 +850,10 @@ class Pgda78Source:
                     "it may be an error page"
                 )
             listed: dict[str, dict[str, Any]] = {}
-            clone_links = 0
+            subfolder_files: set[str] = set()
             for role, url, file_name in self._documents()[1:]:
                 links, deeper = self._site_links(_decode(staging / file_name), url)
-                clone_links += deeper
+                subfolder_files |= deeper
                 for name, link in links.items():
                     entry = listed.setdefault(name, {"url": link, "listed_by": []})
                     if entry["url"] != link:
@@ -905,7 +905,10 @@ class Pgda78Source:
                     }
                     for name in sorted(set(listed) - chosen)
                 ],
-                "links_below_the_site_folder_not_fetched": clone_links,
+                "subfolder_files_not_fetched": {
+                    "count": len(subfolder_files),
+                    "folders": sorted({path.split("/")[0] + "/" for path in subfolder_files}),
+                },
             }
             (raw_dir / FETCH_METADATA).unlink(missing_ok=True)
             for entry in [*documents, *files]:
@@ -1049,9 +1052,7 @@ class Pgda78Source:
             },
             "files": entries,
             "listed_not_fetched": fetched["listed_not_fetched"],
-            "links_below_the_site_folder_not_fetched": fetched[
-                "links_below_the_site_folder_not_fetched"
-            ],
+            "subfolder_files_not_fetched": fetched["subfolder_files_not_fetched"],
             "dem_valid_fraction": entries[0]["valid"]["valid_fraction"],
             "effective_support": support,
             "roi": roi,
