@@ -1,0 +1,224 @@
+{
+  "task_id": "T16-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "85f55c1057c5f9c3009fd43d7f5fb99687297690",
+    "head": "44378b3bb3e39e67c5bd89cc5bde90d46b4a602f",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "2daadbb1c2f6d1f70e52456f4aa41449872dc87dd49b3aa05b2a51803bc62e52"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "45d1221259ef643cfcc41ca58c0abeabdec64d09d828a5429a145ec78878d9c2"
+      },
+      {
+        "path": "paper/abstract.tex",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "paper/appendix-data-analysis.tex",
+        "sha256": "c23aff2757f7e2648e05afc5be1993bc3b5524f34e44b2eaf715c06965f16b66"
+      },
+      {
+        "path": "paper/appendix-embeddings.tex",
+        "sha256": "f8ec88cfc00805ad1019ff3f0392580c680300d25e556e929b0bf487ec58cb80"
+      },
+      {
+        "path": "paper/architecture.tex",
+        "sha256": "787389cb8145785e4d4b2665df60984b8db92559ce006617fd95ec698eef1649"
+      },
+      {
+        "path": "paper/arxiv.sty",
+        "sha256": "47cab51c71a6e0ab391f25a664c8607c6fdf92184b1b86a075d5fd6457ce6c4b"
+      },
+      {
+        "path": "paper/background.tex",
+        "sha256": "dae257589a54ac4f5a4be439401358ae85f1afa75f564fdde447149a808e9507"
+      },
+      {
+        "path": "paper/conclusion.tex",
+        "sha256": "f536f22216e926e425f6f6f2396155c5d64fb68bff39d8ff0c96b26a72a8f543"
+      },
+      {
+        "path": "paper/data.tex",
+        "sha256": "cd87cbd924f144e02955e0754f3e65007b744848b820fb5b0167f467ed4c054a"
+      },
+      {
+        "path": "paper/embedding.tex",
+        "sha256": "291f2dffbc6c03bf1e70d474aca2ecda98f6340a68787877c2c7b3cf0ff6bbe3"
+      },
+      {
+        "path": "paper/fingerprint.tex",
+        "sha256": "d025b988255686f41856c9ba3f978ebdbae64f8576df5c47edc9a20a4c153713"
+      },
+      {
+        "path": "paper/generated/numbers.tex",
+        "sha256": "bc9b269b053b4bc4fc51c6dd98b817e81b11f7fc1a0c2b0538a2f108ebfc685d"
+      },
+      {
+        "path": "paper/introduction.tex",
+        "sha256": "974daa51e28311d103ab166aead5d91926df564ecc3ffb2b4b0e2f57d036e77e"
+      },
+      {
+        "path": "paper/limitations.tex",
+        "sha256": "72ca3454a888575752e7f07422b2d27f50d7bede5b78ffb73cca19a04f0aefa6"
+      },
+      {
+        "path": "paper/main.tex",
+        "sha256": "35b99bfe0e137bd4a5fdd6e930d0a567853d55381854e770558159cf1c30c1b2"
+      },
+      {
+        "path": "paper/mypy.ini",
+        "sha256": "90a9af17d1ceacf47ba09a9e777835d789da725f45b757bc576c5246a4b4015e"
+      },
+      {
+        "path": "paper/results.tex",
+        "sha256": "bde1993fedd972634fbfb7590c50cf875501499e3747df36f30d4b8c05033eb6"
+      },
+      {
+        "path": "paper/ruff.toml",
+        "sha256": "87532688f7c2ea23c9b0fb46ca6716e77d3b4e4aac654ae4d7f47b9ac92a9a94"
+      },
+      {
+        "path": "paper/scripts/__init__.py",
+        "sha256": "86c39f174b737dd4586f5f208fb57871f26e08eae6b6f6ddcf75fc76426e3d34"
+      },
+      {
+        "path": "paper/scripts/check_log.py",
+        "sha256": "d972b19a0f4d75a3fd4dd2c3908b4f8c1606ba0414252cda36e41cdbec2641fa"
+      },
+      {
+        "path": "paper/scripts/numbers.py",
+        "sha256": "6d7bbf20160f13905cd21e565549aadccfa06042d3bd03a4f11842d79b1daa40"
+      },
+      {
+        "path": "paper/scripts/test_check_log.py",
+        "sha256": "f7372e0c4127c1ebbfb13fbe310a1092158e97a0b366a1909f5fccf99e623f22"
+      },
+      {
+        "path": "paper/scripts/test_manuscript.py",
+        "sha256": "30b5d48b82dfb18f080d5e53fab87bcf7620f4e6ee3f66c53bf0deb3d6d180c7"
+      },
+      {
+        "path": "paper/scripts/test_numbers.py",
+        "sha256": "9e633471118a588ace2c4835b5dbeabd908a06efb15a5e3de775e02bd5d5f7be"
+      },
+      {
+        "path": "paper/training.tex",
+        "sha256": "2398392623583485c5c8f73b744bf304327008d8011cd16f010f8fdd6e4f6f39"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:38:09Z",
+  "finished_utc": "2026-11-14T19:42:37Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Two defects found by inspection: selecting a release bundle makes the default build fail its own tests, and starred graphics commands bypass the required path restriction. All four check commands remain NOT_RUN because execution was prohibited.",
+  "checks": [
+    {
+      "criterion": "AC1: Article class, repository style, packages, fonts, title, authors and empty date",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/main.tex:1-12 declares the required class, style, working title, Gradient Descent and empty date. paper/arxiv.sty:3-20 contains the small package configuration with the required geometry and packages, without fontenc or inputenc."
+    },
+    {
+      "criterion": "AC2: Empty manuscript skeleton and required include order",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/main.tex:4 and :18-35 contain the required inputs in order. Each section and appendix file contains only its required section and label. Reading abstract.tex showed 0 bytes; the tracked paper file list contains no Appendix C."
+    },
+    {
+      "criterion": "AC3: Deterministic generated macros and header-only committed artifact",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/scripts/numbers.py:39-55 defines the spec and empty MACROS; :163-170 writes bytes atomically. paper/generated/numbers.tex contains exactly the required two comments, and its byte dump showed LF endings and a trailing newline. Generator execution and repeated-output verification were prohibited by the read-only review."
+    },
+    {
+      "criterion": "AC4: Production bundle validation, provenance, invalid-value rejection and preservation on failure",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/scripts/numbers.py:98-110 rejects invalid numeric values; :132 calls validate_bundle with production=True; :135-159 records provenance and resolves listed inputs; :193-198 prevents writing on reported errors. Runtime validation and output-preservation checks require execution prohibited by this review."
+    },
+    {
+      "criterion": "AC5: Test-first numbers tests and required temporary-bundle coverage",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/scripts/test_numbers.py:54-69 constructs the required temporary bundles; :111-349 covers the specified success and failure cases. Git tree inspection showed test_numbers.py existed before numbers.py. Its historical failing execution and current test results cannot be independently verified without relying on excluded logs or running prohibited checks."
+    },
+    {
+      "criterion": "AC6: Test-first manuscript rules with positive and negative examples",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "paper/scripts/test_manuscript.py:443 recognizes only unstarred includegraphics. Consequently the guard at :463-465 ignores a valid starred command such as \\includegraphics*{../external.pdf}, allowing graphics outside figures/generated/. Tests at :501-517 cover only the unstarred form."
+    },
+    {
+      "criterion": "AC7: Post-Tectonic log gate and pattern tests",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/scripts/check_log.py:24-46 defines the required patterns and :65-105 applies them to log and optional blg files. paper/scripts/test_check_log.py:44-190 supplies clean, failing and boundary excerpts. Running these tests or a Tectonic build was prohibited."
+    },
+    {
+      "criterion": "AC8: Makefile targets, bundle selection, pinned Tectonic bundle and existing Python toolchain",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "paper/Makefile:18-25 makes all generate numbers from BUNDLE_VERSION before running tests. paper/scripts/numbers.py:138-140 then writes a release source line, while paper/scripts/test_numbers.py:130-131 unconditionally requires the no-bundle source line. Thus a valid selected bundle makes the default build fail before pdf."
+    },
+    {
+      "criterion": "AC9: Ignored build outputs, short README, protected root files and proposed instructions",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": ".gitignore:41-49 ignores the required outputs; no Tectonic output appears in the tracked paper tree. paper/README.md:7-22 contains the prerequisites, pinned bundle, generated-file policy and commands. The listed story commits leave the protected root files unchanged. Successful execution of every documented command was not independently verified because checks were prohibited."
+    },
+    {
+      "criterion": "Required check: lint, formatting and strict typing",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox; tool and cache writes are unavailable."
+    },
+    {
+      "criterion": "Required check: generated-number drift",
+      "command": "make -C paper numbers-check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; this target creates and removes a temporary output file."
+    },
+    {
+      "criterion": "Required check: paper tests",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; the suite writes temporary bundles, outputs and test caches."
+    },
+    {
+      "criterion": "Required check: complete paper build",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; this target regenerates numbers, runs tests and writes Tectonic outputs."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/test_numbers.py:130",
+      "claim": "The header-only artifact assertion prevents the default build from accepting any valid BUNDLE_VERSION.",
+      "evidence": "paper/Makefile:18-25 regenerates generated/numbers.tex from the selected bundle before test. numbers.py:138-140 writes the required release-version and manifest-hash source line, but test_numbers.py:130-131 requires that same working-tree file to equal NO_BUNDLE. This contradiction stops the build before pdf even when MACROS is empty. Test no-bundle output in a temporary file and cover the bundle-enabled build sequence.",
+      "id": "codex-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/test_manuscript.py:443",
+      "claim": "Starred includegraphics commands bypass the required generated-PDF path guard.",
+      "evidence": "INCLUDEGRAPHICS requires whitespace, options or an opening brace immediately after the command name, so it cannot capture \\includegraphics*{../external.pdf}. disallowed_graphics at :463-465 checks only captured paths and therefore reports no violation. The raster scan cannot enforce the required PDF location either. Recognize the starred form and add allowed/disallowed examples for it.",
+      "id": "codex-r1-2",
+      "resolution": null
+    }
+  ]
+}

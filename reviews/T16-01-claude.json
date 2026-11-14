@@ -1,0 +1,216 @@
+{
+  "task_id": "T16-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "85f55c1057c5f9c3009fd43d7f5fb99687297690",
+    "head": "44378b3bb3e39e67c5bd89cc5bde90d46b4a602f",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "2daadbb1c2f6d1f70e52456f4aa41449872dc87dd49b3aa05b2a51803bc62e52"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "45d1221259ef643cfcc41ca58c0abeabdec64d09d828a5429a145ec78878d9c2"
+      },
+      {
+        "path": "paper/abstract.tex",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "paper/appendix-data-analysis.tex",
+        "sha256": "c23aff2757f7e2648e05afc5be1993bc3b5524f34e44b2eaf715c06965f16b66"
+      },
+      {
+        "path": "paper/appendix-embeddings.tex",
+        "sha256": "f8ec88cfc00805ad1019ff3f0392580c680300d25e556e929b0bf487ec58cb80"
+      },
+      {
+        "path": "paper/architecture.tex",
+        "sha256": "787389cb8145785e4d4b2665df60984b8db92559ce006617fd95ec698eef1649"
+      },
+      {
+        "path": "paper/arxiv.sty",
+        "sha256": "47cab51c71a6e0ab391f25a664c8607c6fdf92184b1b86a075d5fd6457ce6c4b"
+      },
+      {
+        "path": "paper/background.tex",
+        "sha256": "dae257589a54ac4f5a4be439401358ae85f1afa75f564fdde447149a808e9507"
+      },
+      {
+        "path": "paper/conclusion.tex",
+        "sha256": "f536f22216e926e425f6f6f2396155c5d64fb68bff39d8ff0c96b26a72a8f543"
+      },
+      {
+        "path": "paper/data.tex",
+        "sha256": "cd87cbd924f144e02955e0754f3e65007b744848b820fb5b0167f467ed4c054a"
+      },
+      {
+        "path": "paper/embedding.tex",
+        "sha256": "291f2dffbc6c03bf1e70d474aca2ecda98f6340a68787877c2c7b3cf0ff6bbe3"
+      },
+      {
+        "path": "paper/fingerprint.tex",
+        "sha256": "d025b988255686f41856c9ba3f978ebdbae64f8576df5c47edc9a20a4c153713"
+      },
+      {
+        "path": "paper/generated/numbers.tex",
+        "sha256": "bc9b269b053b4bc4fc51c6dd98b817e81b11f7fc1a0c2b0538a2f108ebfc685d"
+      },
+      {
+        "path": "paper/introduction.tex",
+        "sha256": "974daa51e28311d103ab166aead5d91926df564ecc3ffb2b4b0e2f57d036e77e"
+      },
+      {
+        "path": "paper/limitations.tex",
+        "sha256": "72ca3454a888575752e7f07422b2d27f50d7bede5b78ffb73cca19a04f0aefa6"
+      },
+      {
+        "path": "paper/main.tex",
+        "sha256": "35b99bfe0e137bd4a5fdd6e930d0a567853d55381854e770558159cf1c30c1b2"
+      },
+      {
+        "path": "paper/mypy.ini",
+        "sha256": "90a9af17d1ceacf47ba09a9e777835d789da725f45b757bc576c5246a4b4015e"
+      },
+      {
+        "path": "paper/results.tex",
+        "sha256": "bde1993fedd972634fbfb7590c50cf875501499e3747df36f30d4b8c05033eb6"
+      },
+      {
+        "path": "paper/ruff.toml",
+        "sha256": "87532688f7c2ea23c9b0fb46ca6716e77d3b4e4aac654ae4d7f47b9ac92a9a94"
+      },
+      {
+        "path": "paper/scripts/__init__.py",
+        "sha256": "86c39f174b737dd4586f5f208fb57871f26e08eae6b6f6ddcf75fc76426e3d34"
+      },
+      {
+        "path": "paper/scripts/check_log.py",
+        "sha256": "d972b19a0f4d75a3fd4dd2c3908b4f8c1606ba0414252cda36e41cdbec2641fa"
+      },
+      {
+        "path": "paper/scripts/numbers.py",
+        "sha256": "6d7bbf20160f13905cd21e565549aadccfa06042d3bd03a4f11842d79b1daa40"
+      },
+      {
+        "path": "paper/scripts/test_check_log.py",
+        "sha256": "f7372e0c4127c1ebbfb13fbe310a1092158e97a0b366a1909f5fccf99e623f22"
+      },
+      {
+        "path": "paper/scripts/test_manuscript.py",
+        "sha256": "30b5d48b82dfb18f080d5e53fab87bcf7620f4e6ee3f66c53bf0deb3d6d180c7"
+      },
+      {
+        "path": "paper/scripts/test_numbers.py",
+        "sha256": "9e633471118a588ace2c4835b5dbeabd908a06efb15a5e3de775e02bd5d5f7be"
+      },
+      {
+        "path": "paper/training.tex",
+        "sha256": "2398392623583485c5c8f73b744bf304327008d8011cd16f010f8fdd6e4f6f39"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:38:09Z",
+  "finished_utc": "2026-11-14T19:38:45Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T16-01 passes. All four story checks ran and exited 0: check, numbers-check, test (179 tests) and the default target, which built main.pdf with Tectonic 0.17.0. The story commits touch only files in the story's list. I did not run a real bundle through `--bundle`, and no Tectonic log with errors through `check_log.py`. Those two paths are covered only by the unit tests.",
+  "checks": [
+    {
+      "criterion": "Check: make -C paper check (ruff check, ruff format --check, mypy --strict)",
+      "command": "make -C paper check",
+      "outcome": "PASS",
+      "evidence": "All checks passed; 6 files already formatted; mypy: no issues found in 6 source files"
+    },
+    {
+      "criterion": "Check: make -C paper numbers-check",
+      "command": "make -C paper numbers-check",
+      "outcome": "PASS",
+      "evidence": "numbers-check: generated/numbers.tex is current"
+    },
+    {
+      "criterion": "Check: make -C paper test",
+      "command": "make -C paper test",
+      "outcome": "PASS",
+      "evidence": "179 passed in 0.33s (test_check_log, test_manuscript, test_numbers)"
+    },
+    {
+      "criterion": "Check: make -C paper (all = numbers, test, pdf)",
+      "command": "make -C paper",
+      "outcome": "PASS",
+      "evidence": "numbers wrote 0 macros, then 179 tests passed, then Tectonic 0.17.0 wrote main.pdf, then 'check_log.py: main.log clean'. Exit 0."
+    },
+    {
+      "criterion": "main.tex, arxiv.sty, title, author, date",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "main.tex:1-12 is article 11pt, title, `\\author{Gradient Descent}` and empty `\\date{}`. arxiv.sty:6-14 loads geometry (letterpaper, 1in), natbib (authoryear, round), amsmath, amssymb, booktabs, xcolor, graphicx and hyperref. It does not load fontenc or inputenc. I did not compare the title wording against PRD 22.1."
+    },
+    {
+      "criterion": "Include order, section files, empty abstract, no Appendix C",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "main.tex:4,19-35 has the required order, with `\\appendix` before the two appendix files. Each section file holds only `\\section{...}` and `\\label{sec:<stem>}`. paper/abstract.tex is empty (0 bytes in the diff stat). There are no other appendix files."
+    },
+    {
+      "criterion": "numbers.py output format, empty MACROS, no figures target, scripts or measurement-review.json",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "numbers.py:29-30,55,198 writes the header, the 'Source: no release bundle was read.' line and a trailing LF. MACROS is empty. The Makefile has no figures target. The story commits add no figures.py or measurement-review.json."
+    },
+    {
+      "criterion": "--bundle path: validate_bundle(production=True), errors printed, output unchanged, macro error cases",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "numbers.py:129-160 validates in production mode, then checks that each macro file is listed in the manifest, re-checks its SHA-256, resolves the JSON pointer and rejects null, NaN, bool and string values. spec_errors (numbers.py:62-71) rejects duplicate names and names with non-letters. main (numbers.py:193-197) prints all errors, returns 1 and leaves the file unchanged. test_numbers.py names the required cases (mock bundle, changed file, bad values, bad names). I read the test names and did not review the test bodies. They passed."
+    },
+    {
+      "criterion": "test_numbers.py and test_check_log.py written failing first",
+      "command": "git log --first-parent --no-merges",
+      "outcome": "PASS",
+      "evidence": "The test commits a8e74f1, 9e7d514 and 70db065 come before the implementation commits 9e0ba17 and e3a90f2. I did not run the tests at the earlier commits."
+    },
+    {
+      "criterion": "test_manuscript.py rules 1-6 with positive and negative string cases",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_manuscript.py has parametrised pass and fail strings for titles (:197-244), placeholders (:269-298), digits (:323-357), abstract words (:411-432), figures and raster images (:488-552) and generated files (:578-618). The tests that read the real manuscript pass. No fixture .tex files exist under paper/."
+    },
+    {
+      "criterion": "check_log.py patterns",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "check_log.py:24-47 covers undefined citations and references, 'Label(s) may have changed', 'Missing character', Overfull \\hbox wider than 1pt, and BibTeX warnings and errors. The 37 tests in test_check_log.py pass, and the real log was reported clean."
+    },
+    {
+      "criterion": "Makefile requirements",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/Makefile:7-13 sets TECTONIC ?=, UV ?=, an empty BUNDLE_VERSION and the pinned bundle URL. all: numbers test pdf (line 22). Lines 49-56 hold the 'tectonic not found' message, the version print, `--keep-logs --bundle`, and check_log. Recipes use `uv run --frozen`. numbers-check runs the diff. I did not run it under GNU Make 3.81. The only syntax I looked for was `$(if ...)`, which Make 3.81 supports."
+    },
+    {
+      "criterion": "Ignored outputs, README, unchanged root files and dependencies",
+      "command": "git status --short --ignored paper",
+      "outcome": "PASS",
+      "evidence": "main.pdf and main.log show as ignored (!!) and nothing else is untracked. The story commits do not touch the root README, Makefile, .gitignore, pyproject.toml or uv.lock. paper/README.md is short and lists the prerequisites, the pin, 'never edit it by hand' and the five commands that ran. progress.txt has a 'Proposed instruction changes' entry with a root README line."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "paper/scripts/numbers.py:204",
+      "claim": "Running numbers.py without `python -P` exits with a message. The Makefile always passes -P.",
+      "evidence": "The guard on sys.flags.safe_path stops direct use such as `python scripts/numbers.py`. The cause is the file shadowing the stdlib `numbers` module. This follows from the spec's file name and is documented, so I noted it and did not count it as a defect.",
+      "id": "claude-r1-1",
+      "resolution": null
+    }
+  ]
+}
