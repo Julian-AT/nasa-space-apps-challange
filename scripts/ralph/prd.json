@@ -300,9 +300,9 @@
       "priority": 6,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "be7989195cbd16ceb02bb70b0b669b46ab5b7fd7",
         "head": null,
         "files": [],
         "digests": {}
