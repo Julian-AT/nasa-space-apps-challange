@@ -179,6 +179,14 @@ describe('dereference', () => {
     ).toThrow(SchemaError);
   });
 
+  it('reads $ref only where a schema is expected, so a property may be named $ref', () => {
+    const schema = object({ $ref: STRING, values: { type: 'string', enum: ['$ref'] } });
+    expect(dereference(schema)).toEqual(schema);
+    expect(() => {
+      assertSupported(dereference(schema));
+    }).not.toThrow();
+  });
+
   it('refuses a recursive reference', () => {
     expect(() =>
       dereference({
