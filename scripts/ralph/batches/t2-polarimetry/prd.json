@@ -198,14 +198,14 @@
       "priority": 4,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "42da1c6ec1ce7d59e432c2c9ec0f7051143d3074",
         "head": null,
         "files": [],
         "digests": {}
       },
-      "notes": "",
+      "notes": "Decisions and open items (T2-04). (1) validity_mask is a boolean array, True where the product marks a pixel valid (the polarity of a GDAL mask band); derive_circular passes its negation as product_masked, so a False pixel is MISSING/PRODUCT_MASKED in every output, and a mask of any other dtype raises TypeError. (2) The ratio of mean powers uses the pixels whose SC and OC are both VALID. A pixel with a valid zero OC (F5), or an SC or OC negative within the conversion tolerance, enters both means as computed but not the mean of pixelwise ratios, where it is counted under its CPR reason. (3) n_valid, n_missing, n_invalid_by_reason and valid_fraction are kept per statistic, in power_support (mean SC, mean OC, ratio of mean powers) and ratio_support (mean of pixelwise ratios), because the two statistics use different pixel sets. (4) A block with no usable pixel is MISSING/BLOCK_NO_VALID_PIXELS where every pixel is missing, otherwise INVALID/BLOCK_NO_VALID_PIXELS. (5) The pixel grid must divide into whole blocks (ValueError otherwise), so there are no partial blocks and no dropped pixels. No minimum valid fraction is applied, since the PRD sets none. (6) Open, outside this story: looks and footprint in metres (PRD 6.2: recorded) need the effective resolution from the ProductRecord, and the per-window handedness ratio (Im D + Im E) / base_SC (PRD 6.2) is not aggregated here; both belong with radar_fingerprint. (7) A dB display value of a zero or negative linear value is INVALID/DB_OF_NONPOSITIVE. decode_db (T2-01) still returns an untagged StatedArray of dB values; it cannot enter aggregate_blocks or the conversions, which take only circular records or plain arrays.",
       "codexPasses": 2
     },
     {
