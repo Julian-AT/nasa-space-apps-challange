@@ -3,38 +3,16 @@
 // ring, a red reserved for the mock banner, and no webfont, image or dark theme.
 import { readFileSync } from 'node:fs';
 
-import tailwindcss from '@tailwindcss/postcss';
-import postcss, { type Root } from 'postcss';
+import postcss from 'postcss';
 import { describe, expect, it } from 'vitest';
 
 import { composite, contrastRatio, isRed, parseHex } from './contrast.ts';
-import { WEB_DIR } from './helpers.ts';
+import { compile, declarations } from './tailwind.ts';
 import { GLOBALS, token } from './tokens.ts';
 
 /** WCAG 2.2 SC 1.4.3 (AA) for text, SC 1.4.11 for focus indicators and component borders. */
 const AA_TEXT = 4.5;
 const AA_NON_TEXT = 3;
-
-/** Compiles app/globals.css as next build does, plus the given candidate classes. */
-async function compile(candidates: readonly string[]): Promise<{ css: string; root: Root }> {
-  const source = `${readFileSync(GLOBALS, 'utf8')}\n@source inline(${JSON.stringify(candidates.join(' '))});\n`;
-  const result = await postcss([tailwindcss({ base: WEB_DIR, optimize: false })]).process(source, {
-    from: GLOBALS,
-  });
-  return { css: result.css, root: result.root };
-}
-
-/** The declarations of every rule whose selector list contains `selector`, last one winning. */
-function declarations(root: Root, selector: string): Map<string, string> {
-  const found = new Map<string, string>();
-  root.walkRules((rule) => {
-    if (!rule.selectors.includes(selector)) return;
-    rule.each((node) => {
-      if (node.type === 'decl') found.set(node.prop, node.value);
-    });
-  });
-  return found;
-}
 
 const COLOUR_TOKENS = [
   'background',
