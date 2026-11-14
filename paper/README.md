@@ -14,6 +14,9 @@ hand.
 
 ## Commands
 
+- `make -C paper` runs `numbers`, `test` and `pdf` in that order.
+- `make -C paper check` runs ruff and mypy --strict on `scripts/`.
+- `make -C paper test` runs the paper's pytest suite in `scripts/`.
 - `make -C paper numbers` writes `generated/numbers.tex`.
 - `make -C paper numbers-check` fails with a diff if `generated/numbers.tex` is out of date.
 - `make -C paper pdf` builds `main.pdf` and fails on undefined citations, references or log errors.
