@@ -1,0 +1,353 @@
+{
+  "project": "Terraluna",
+  "branchName": "ralph/t15-api",
+  "description": "PRD section 12, T15 (public read-only Hono API) on the mock bundle only. First extends bundle:pull and the loader (T15-01), then serves what was pulled: health, manifest, gates, targets (empty on the mock), OpenAPI and Scalar docs. Records the bundle lacks return problem+json, never fabricated values. The DEM proxy is excluded until G0 requires it. Assumes all of T0 has passed. Stories run in priority order. The author iteration never sets passes; ralph.sh runs two independent reviews and a deterministic gate first. This file is Ralph's task list, not the product PRD.",
+  "userStories": [
+    {
+      "id": "T15-01",
+      "title": "Extend bundle:pull and the bundle loader to every small JSON the manifest lists",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.2",
+        "8.5",
+        "D23",
+        "12 (end-to-end checks)"
+      ],
+      "description": "T15 takes over from T0-05 (finished before T15 starts, so no overlap) the files apps/web/lib/bundle* and apps/web/scripts/*. Extend pnpm --filter @terraluna/web bundle:pull and the loader so the server-side API (PRD 8.5) can serve everything small the manifest lists. Tests first. Keep every T0-05 guarantee and test.",
+      "files": [
+        "apps/web/lib/bundle*",
+        "apps/web/lib/errors.ts",
+        "apps/web/lib/json.ts",
+        "apps/web/package.json",
+        "apps/web/scripts/*",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "bundle:pull copies into apps/web/data/ every small JSON file the manifest lists for server-side use: manifest.json, validation.json, sources.json and targets.json when listed, and later comparisons and windows top-N files when the manifest lists them. Large artifacts (tiles, fingerprints, models) are never copied.",
+        "For each copied file the script verifies the SHA-256 and byte count against the manifest entry and fails with a message naming the file on any mismatch. A file the manifest lists but the bundle lacks fails the pull; a file the manifest does not list is not copied.",
+        "Each file is validated with the matching @terraluna/schema zod schema where one exists (manifest, validation). Files with no schema yet (sources, targets, comparisons, windows top-N) are copied after the checksum check only, and the notes list each as a schema gap for human decision; no hand-written substitute schema is added.",
+        "The loader (apps/web/lib/bundle*) exports typed accessors for each pulled file, a typed error for a missing or invalid file, and the production mock guard as an exported function the API will import. Absent optional files (targets.json on the mock) read as 'not present', never as an empty default.",
+        "All T0-05 guarantees keep passing unchanged: mock with VERCEL_ENV=production throws in bundle:pull and next build, the mock is the source only when BUNDLE_VERSION is unset or empty, a missing requested BUNDLE_VERSION throws instead of falling back to the mock, and an invalid manifest throws.",
+        "Vitest tests are written first and seen failing: checksum mismatch, byte-count mismatch, listed-but-missing file, unlisted file not copied, optional file absent on the mock, schema-invalid file, plus the existing T0-05 cases. Tests use temporary directories and do not depend on release/ existing.",
+        "make web-build and make web-smoke still pass with the mock bundle. Put tests under apps/web/lib/ named bundle*.test.ts so the exec vitest run lib/bundle check selects them; if T0-05 placed them elsewhere, keep that location and record the filter in notes."
+      ],
+      "checks": [
+        "pnpm --filter @terraluna/web test",
+        "pnpm --filter @terraluna/web exec vitest run lib/bundle",
+        "pnpm --filter @terraluna/web typecheck",
+        "make check",
+        "make test",
+        "make web-build",
+        "make web-smoke"
+      ],
+      "priority": 1,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Ownership decision by the orchestrator: T15 owns apps/web/lib/bundle* and apps/web/scripts/* after T0-05. T7 and T15 may both edit apps/web/package.json and pnpm-lock.yaml for dependencies; the orchestrator resolves that at merge. T7 owns apps/web/app/* (except app/api) and apps/web/components/*."
+    },
+    {
+      "id": "T15-02",
+      "title": "Hono app skeleton, problem+json errors and route-test harness over the shared loader",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.2",
+        "8.5",
+        "8.4",
+        "D23",
+        "D24"
+      ],
+      "description": "Create the Hono app under apps/web/server/api/ with base path /api/v1, wrapping the T15-01 loader, and RFC 9457 error handling. Write the Vitest harness and failing tests first. No endpoint beyond /health yet.",
+      "files": [
+        "apps/web/lib/bundle*",
+        "apps/web/lib/errors.ts",
+        "apps/web/lib/json.ts",
+        "apps/web/package.json",
+        "apps/web/server/api/*",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "Dependencies are added to apps/web/package.json only (hono 4, @hono/zod-openapi, zod 4, @scalar/hono-api-reference, and vitest if T0-05 did not add it), resolved from current documentation fetched through Context7 or the official docs, and pinned by pnpm-lock.yaml. T7 may also edit that file for its own dependencies; do not touch its entries.",
+        "If apps/web/package.json lacks a test or typecheck script, add only those two entries (vitest run, tsc --noEmit) so the listed checks exist; record this in notes.",
+        "Route tests live beside the app in apps/web/server/api/ and call app.request() with no Next import and no network. They are written and seen failing before the implementation. The check 'vitest run server/api' fails if no test there is collected, so the gate cannot pass vacuously.",
+        "The API reads the bundle only through the T15-01 loader in apps/web/lib/bundle*, importing it and never copying it, and an injectable reader lets route tests pass fixtures without bundle:pull having run. A missing or invalid file raises a typed error that becomes a 500 problem+json, and no default is ever substituted. If the loader lacks an accessor the API needs, add it in T15-01's files in this story's commit and record it in notes; do not write a second filesystem reader.",
+        "A shared error handler returns application/problem+json with type, title, status, detail and instance for: unknown route (404), validation failure of path or query (400 or 422, one choice documented in the code and tested), and unexpected errors (500, no stack trace in the body). Tests cover each.",
+        "GET /api/v1/health returns status, bundle_version and schema_version taken from the manifest, with Cache-Control: no-store. Its response schema is built from @terraluna/schema types, not redeclared by hand. A test asserts the values equal fixtures/mock-bundle/manifest.json.",
+        "Only GET and HEAD are routed; POST, PUT, PATCH and DELETE on any path return 405 problem+json with an Allow header. A test covers this."
+      ],
+      "checks": [
+        "pnpm --filter @terraluna/web test",
+        "pnpm --filter @terraluna/web exec vitest run server/api",
+        "pnpm --filter @terraluna/web typecheck",
+        "make check",
+        "make test"
+      ],
+      "priority": 2,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Review finding applied: wrap the T0-05/T15-01 loader instead of a second reader."
+    },
+    {
+      "id": "T15-03",
+      "title": "Manifest and gates endpoints with typed schemas and cache headers",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.4",
+        "8.5",
+        "8.12",
+        "D23",
+        "D24"
+      ],
+      "description": "Add GET /manifest and GET /gates as zod-openapi routes whose request and response schemas are imported from @terraluna/schema. Tests first.",
+      "files": [
+        "apps/web/app/api/*",
+        "apps/web/lib/errors.ts",
+        "apps/web/lib/json.ts",
+        "apps/web/package.json",
+        "apps/web/server/api/*",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "GET /api/v1/manifest returns manifest.json unchanged and valid against the BundleManifest schema, including mock=true for the mock bundle. A test asserts deep equality with fixtures/mock-bundle/manifest.json.",
+        "GET /api/v1/gates returns validation.json unchanged. A test asserts that every gate status in the response is one of NOT_RUN, PASS, FAIL, PARTIAL, NOT_APPLICABLE and that statuses equal those in fixtures/mock-bundle/validation.json, so an untested gate is never reported as PASS.",
+        "Both responses are validated against their response schema in tests, and a deliberately corrupted reader fixture (wrong schema_version type) produces 500 problem+json instead of passing the data through.",
+        "Cache-Control is set per the 8.5 table (per deploy for /manifest, per bundle for /gates): public with a documented max-age and immutable semantics tied to bundle_version, plus an ETag derived from bundle_version. Tests assert the headers and a 304 on matching If-None-Match.",
+        "The routes define no response fields beyond those in the @terraluna/schema types; the OpenAPI components reference the generated schemas."
+      ],
+      "checks": [
+        "pnpm --filter @terraluna/web test",
+        "pnpm --filter @terraluna/web exec vitest run server/api",
+        "pnpm --filter @terraluna/web typecheck",
+        "make check",
+        "make test"
+      ],
+      "priority": 3,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T15-04",
+      "title": "Targets list and target detail that return only what the bundle holds",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.4",
+        "8.5",
+        "8.12",
+        "12 (end-to-end checks)",
+        "D23"
+      ],
+      "description": "Add GET /targets and GET /targets/{id}, serving what bundle:pull copied (manifest targets). The mock bundle lists no targets, so the list is empty and any id is 404. Tests first.",
+      "files": [
+        "apps/web/app/api/*",
+        "apps/web/lib/errors.ts",
+        "apps/web/lib/json.ts",
+        "apps/web/package.json",
+        "apps/web/server/api/*",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "GET /api/v1/targets returns 200 with the manifest's bundle_version and shipping_mode, and as items the manifest's target id strings only (typed from BundleManifest.targets); for the mock bundle the list is empty, never a 500. Body and footprint (PRD 8.5) are not served until a TargetRecord schema exists, and the OpenAPI description says so. The route never synthesizes a target field from an id.",
+        "targets.json, when pulled by T15-01, is not passed through unvalidated: no route returns its records until a TargetRecord schema exists in @terraluna/schema. Absence of targets.json is not an error when the manifest lists no targets.",
+        "GET /api/v1/targets/{id} returns 404 application/problem+json, whose detail names the id and says it is not in bundle <bundle_version>, when the id is not in manifest.targets. When the id is in the manifest it returns 501 problem+json saying target records are not served yet (no TargetRecord schema in @terraluna/schema). The id parameter is validated (a documented pattern and length limit); a malformed id returns 400 or 422 as chosen in T15-02.",
+        "Response schemas are built from the @terraluna/schema BundleManifest type plus the problem+json schema; no hand-written target record schema is added. The story notes list the missing TargetRecord schema as a human decision.",
+        "A test injects a reader fixture whose manifest lists two clearly named test ids (defined inside the test file, never under fixtures/mock-bundle or the app source). It asserts that the list returns exactly those ids, that a listed id gives 501, and that an unlisted id gives 404. Null values are never turned into zero or an empty string.",
+        "Cache-Control is per bundle, as in T15-03."
+      ],
+      "checks": [
+        "pnpm --filter @terraluna/web test",
+        "pnpm --filter @terraluna/web exec vitest run server/api",
+        "pnpm --filter @terraluna/web typecheck",
+        "make check",
+        "make test"
+      ],
+      "priority": 4,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Review finding applied with the orchestrator's amendment: targets come from manifest.targets; targets.json is pulled by T15-01 but served only once a TargetRecord schema exists. Human decision needed: TargetRecord schema."
+    },
+    {
+      "id": "T15-05",
+      "title": "Unavailable-data endpoints return explicit problem+json, never fabricated values",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.5",
+        "8.4",
+        "8.12",
+        "12 (end-to-end checks)",
+        "D23"
+      ],
+      "description": "Cover matches, windows, compare and model. Each is either routed to a 404 or 501-class problem+json stating that the data is not in this bundle, or omitted; decide per endpoint by what the bundle can hold. Tests first.",
+      "files": [
+        "apps/web/app/api/*",
+        "apps/web/lib/errors.ts",
+        "apps/web/lib/json.ts",
+        "apps/web/package.json",
+        "apps/web/server/api/*",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "GET /targets/{id}/matches, /windows/{id}, /compare and /model are routed with validated parameters (body, family in terrain|radar|model, limit 1 to 500 with default 50, cursor) and respond with application/problem+json whose detail says the requested record or file is not in bundle <bundle_version>. Status is 404 for unknown ids and 404 or 501 for record types the bundle does not contain, one rule documented in a code comment and tested.",
+        "family=model returns a problem+json explaining that model-family matches exist only when a model is in the bundle. With the mock bundle (model absent or G5 NOT_RUN) it never returns distances, and any future response path that returns model-family data must carry the Predicted label and be refused while G5 is not PASS; a test pins the refusal.",
+        "/compare is not computed in this batch. No @terraluna/core call is made and no Derived-on-request value is produced. The story notes record that on-request computation waits for T10 and real fingerprints.",
+        "A test scans the response bodies of these routes against the mock bundle and asserts no numeric distance, rank or fingerprint field appears.",
+        "These routes appear in the OpenAPI document with their problem+json responses, so the documented contract matches the behaviour."
+      ],
+      "checks": [
+        "pnpm --filter @terraluna/web test",
+        "pnpm --filter @terraluna/web exec vitest run server/api",
+        "pnpm --filter @terraluna/web typecheck",
+        "make check",
+        "make test"
+      ],
+      "priority": 5,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Comparisons and windows top-N files, once listed in a manifest and pulled by T15-01, may be served only when a schema exists; until then these routes stay problem+json."
+    },
+    {
+      "id": "T15-06",
+      "title": "OpenAPI 3.1 document and Scalar reference",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.2",
+        "8.5",
+        "8.6",
+        "D24"
+      ],
+      "description": "Expose /openapi.json from the zod-openapi definitions and /docs through @scalar/hono-api-reference. Tests first.",
+      "files": [
+        "apps/web/app/api/*",
+        "apps/web/lib/errors.ts",
+        "apps/web/lib/json.ts",
+        "apps/web/package.json",
+        "apps/web/server/api/*",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "GET /api/v1/openapi.json returns an OpenAPI 3.1 document (openapi field starts with 3.1) listing every routed path and method from T15-02 to T15-05, with request and response schemas and the problem+json error responses. A test asserts the set of paths equals the routed set and that only get operations exist.",
+        "A test validates the document structurally with a current OpenAPI 3.1 validator added as a devDependency in apps/web/package.json, chosen from current documentation, or fails the story if none can be used offline.",
+        "GET /api/v1/docs returns HTML from the Scalar integration pointing at the relative openapi.json URL, using the package's current API (check its documentation). It loads no resources from other hosts unless the package requires a CDN script; if so, that host is listed in the story notes as a CSP decision for 8.10 and is not silently allowed.",
+        "Document info carries the bundle-independent API version and a statement that the API is read-only and that mock bundles are placeholders. No numbers or targets appear in the text.",
+        "Cache-Control is per deploy for both routes.",
+        "PRD 8.5 (/api/v1/docs) and 8.6 (/api/docs) disagree. The Scalar reference is served at /api/v1/docs, and /api/docs redirects to it (permanent redirect, Location /api/v1/docs, tested), so both PRD paths work. The redirect is the only route outside the /api/v1 base path."
+      ],
+      "checks": [
+        "pnpm --filter @terraluna/web test",
+        "pnpm --filter @terraluna/web exec vitest run server/api",
+        "pnpm --filter @terraluna/web typecheck",
+        "make check",
+        "make test"
+      ],
+      "priority": 6,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Orchestrator decision: docs at /api/v1/docs, /api/docs redirects to it."
+    },
+    {
+      "id": "T15-07",
+      "title": "Next mount with typed fetch wrapper and production guards",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.5",
+        "8.6",
+        "8.9",
+        "8.10",
+        "D24",
+        "12 (end-to-end checks)"
+      ],
+      "description": "Mount the app at apps/web/app/api/[[...route]]/route.ts and prove it builds. Apply the hono issue 4877 typed wrapper. Do not touch other apps/web routes or components.",
+      "files": [
+        "apps/web/app/api/*",
+        "apps/web/lib/errors.ts",
+        "apps/web/lib/json.ts",
+        "apps/web/next.config.*",
+        "apps/web/package.json",
+        "apps/web/server/api/*",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "apps/web/app/api/[[...route]]/route.ts exports GET and HEAD as typed (req: Request) => app.fetch(req) wrappers, not handle(app) from hono/vercel, with a comment citing hono issue 4877. Non-read method exports are absent or return 405 through the app. The mount also routes /api/docs to the redirect from T15-06. The route sets runtime nodejs explicitly if the loader needs the filesystem.",
+        "pnpm --filter @terraluna/web typecheck passes with the mount, and make web-build passes with the mock bundle: the build output lists the /api/[[...route]] route and the existing / page is unchanged.",
+        "The loader's path to apps/web/data/ resolves under next build and next start, with outputFileTracingIncludes in next.config set for the API route using current Next 16 documentation so Vercel traces the data files. Evidence: after make web-build, starting the built server and fetching /api/v1/health returns the manifest bundle_version. Record the exact commands that worked in the story notes; do not add a Makefile target (not owned). Tracing on Vercel itself cannot be proven locally; say so in notes.",
+        "A route test imports the same app instance used by the mount and asserts that a mock manifest with VERCEL_ENV=production makes /health and /manifest return 503 problem+json rather than serving mock data. It uses the production guard exported by the T15-01 loader by import; the logic is not copied.",
+        "Mount path matches PRD 8.5 (/api/v1/*), plus the /api/docs redirect from T15-06.",
+        "The DEM proxy /dem/cop30/{tile} is not built. The notes state it waits for a human checkpoint: G0 must set cop30_mode to proxy, which has not been recorded; any proxy must be bounded (range limits, allowed host) and the OpenAPI document does not list it until then."
+      ],
+      "checks": [
+        "pnpm --filter @terraluna/web test",
+        "pnpm --filter @terraluna/web exec vitest run server/api",
+        "pnpm --filter @terraluna/web typecheck",
+        "make check",
+        "make test",
+        "make web-build"
+      ],
+      "priority": 7,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "DEM proxy is a human checkpoint (G0 cop30_mode). T7 owns the rest of apps/web/app; this story touches only apps/web/app/api."
+    }
+  ]
+}
