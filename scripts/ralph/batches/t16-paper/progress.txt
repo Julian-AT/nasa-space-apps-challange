@@ -449,3 +449,14 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (review requested at b6ee40a). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
 ---
+
+## 2026-11-14T18:36Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap is still at b6ee40a (T0-04 review requested), and `git diff b6ee40a ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirty-nine author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (review requested at b6ee40a). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
