@@ -162,7 +162,11 @@
       "claim": "The built-server health evidence for AC3 was recorded by the author and not re-run in this review.",
       "evidence": "Bash permission was denied for `next start`, so this reviewer could not reproduce the 200 mock-0 response from the built server. Recommend the orchestrator re-run the recorded `next start` and curl commands.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Re-ran the recorded evidence on this head (db0c1d2; no code has changed since b641329) at 2026-11-14T21:57Z. make web-build exited 0 with the route table ○ /, ○ /_not-found, ƒ /api/[[...route]] and the pulled mock-0 bundle. The route's trace .next/server/app/api/[[...route]]/route.js.nft.json lists ../../../../../data/manifest.json and ../../../../../data/validation.json. Then from apps/web the recorded next start command (story notes item 5) on 127.0.0.1:3157 returned HTTP/1.1 200 OK, cache-control: no-store, content-type: application/json, body {\"bundle_version\":\"mock-0\",\"schema_version\":\"1.0.0\",\"status\":\"ok\"} for /api/v1/health, 200 application/json for /api/v1/manifest and 308 to /api/v1/docs for /api/docs. The same start with VERCEL_ENV=production (port 3158) returned 503 application/problem+json for /api/v1/health and /api/v1/manifest and 200 application/json for /api/v1/openapi.json. The recorded evidence holds, so nothing needs to change. The reviewer's NOT_RUN came from its own Bash permission, not from the change. That Vercel ships the traced files still cannot be proven locally (notes item 4)."
+      }
     },
     {
       "severity": "low",
@@ -170,7 +174,11 @@
       "claim": "The comment says handle(app) type-checks with next 16.4.6 and hono 4.13.18, so the wrapper is not needed for tsc.",
       "evidence": "This is a candid note and AC1 asks for the wrapper. PRD 8.5 still names handle(app), and the author's proposed README and PRD wording is left for a human to apply. No action is needed in this story.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The finding itself says no action is needed in this story. PRD 8.5 (PRD.md:594) asks for the mount to be wrapped in a typed (req: Request) => app.fetch(req) because of hono issue 4877, and T15-07 AC1 asks for exactly that wrapper with a comment citing the issue. route.ts:5-10 has both and also records that handle(app) type-checks with next 16.4.6 and hono 4.13.18, which keeps the comment accurate. Next's route validator still checks the explicit handler type (.next/types/validator.ts, story notes item 2). The PRD 8.5 sentence about handle(app) is a human change, since PRD.md is read-only for this loop. It is proposed under \"Proposed instruction changes\" in the T15-07 implement entry of the progress log."
+      }
     }
   ]
 }
