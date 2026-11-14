@@ -30,8 +30,9 @@ export interface UnavailableValueProps {
 
 export type LabelledValueProps = PresentValueProps | UnavailableValueProps;
 
-// A value that only stands in for a missing one: nothing but dashes or a minus sign.
-const PLACEHOLDER = /^[\s\-‐-―−]*$/u;
+// Text that only stands in for a missing value: blank, dashes or a minus sign, a question mark,
+// or a word for absence, including what String() makes of a missing or non-finite number.
+const PLACEHOLDER = /^\s*([-\u2010-\u2015\u2212]*|\?|n\/?a|nan|null|undefined|none|unknown)\s*$/iu;
 
 function isText(value: unknown): value is string {
   return typeof value === 'string' && value.trim() !== '';
