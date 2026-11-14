@@ -920,3 +920,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: none new (pytest 9.2.0, Tectonic 0.17.0 as installed; graphicx syntax for \includegraphics* and the [llx,lly][urx,ury] form is from the graphicx package documentation already in use).
 - Learnings: A test that compares a build-written working-tree file with its committed bytes breaks any build that regenerates that file with other inputs. Pin committed bytes with the drift check (numbers-check), and make the test accept every valid generator output. A regex allowlist over LaTeX commands should find each command name and fail closed on any form it cannot read.
 ---
+
+## 2026-11-14T19:53Z · T16-01 · resolve
+- Done: Resolved round 2. claude-r2-1 (low) rebutted: it restates the round-1 python -P note (claude-r1-1), and the reviewer agrees with that rebuttal. The file name numbers.py is fixed by the story, the guard is at numbers.py:203-205, and every Makefile target runs python -P (Makefile:16-17). codex-r2 has no findings, so its file is unchanged. With resolutions removed, the claude-r2 file hashes the same as the digest the loop recorded (816e6ed7…). prd.json hashes the same with T16-01 review.state removed, before and after (6423fa10…, jq -S). No paper/ change. The stale "Blocked on merging T0" text in the T16-01 notes is still there, because this job changes only review.state. It no longer applies, since the merge landed at c2eac70; the orchestrator may clear it.
+- Commits: chore(ralph): resolve review findings for t16-01
+- Checks: `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 6 files). `make -C paper numbers-check` PASS. `make -C paper test` PASS (217 passed). `make -C paper` PASS (217 passed; Tectonic 0.17.0; check_log.py: main.log clean).
+- Docs used: none new.
+- Learnings: none new.
+---

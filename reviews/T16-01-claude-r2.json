@@ -186,7 +186,11 @@
       "claim": "numbers.py must be run with python -P; running it directly exits with a message.",
       "evidence": "This is the round-1 note, rebutted by the author. I agree with the rebuttal. The file name is fixed by the spec, the guard is documented, and every Makefile target passes -P.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The reviewer agrees this is not a defect; it restates the round-1 note claude-r1-1, which was rebutted. The story fixes the file name paper/scripts/numbers.py (acceptance criterion 3). Run as python scripts/numbers.py, Python puts scripts/ first on sys.path, so any import of the standard library numbers module (decimal, fractions, pydantic via validate_bundle) would load this file instead and fail obscurely. The guard at numbers.py:203-205 turns that into a one-line message naming the fix, and every Makefile target runs python -P (Makefile:16-17, PYTHON = $(UV_RUN) python -P). make -C paper numbers, numbers-check, test and the default target all pass, so no change is needed."
+      }
     }
   ]
 }
