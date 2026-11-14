@@ -263,10 +263,16 @@ def aeqd_forward(
     is exact in float64 when the two are within a factor of two (Sterbenz), so on a window
     every rounding here scales a small quantity.
 
+    The longitude difference d is carried exactly, as an unevaluated sum d_hi + d_lo of two
+    float64 values (Knuth's two-sum), and sin d and hav enter to first order in d_lo. When
+    |d| > pi it is moved by 2 * math.pi, which is exact for d_hi (Sterbenz). A rounded d would
+    be off by up to half an ulp of pi, 2.2e-16 rad, wherever |d| is near pi, which happens next
+    to the antimeridian and on the far side of a pole anywhere: there x scales with sin d, and
+    in a window centred within 3.6 km of a pole the rounding moved x near 0 by up to 1.14 times
+    the PRD 7 allowance against the exact forward.
+
     ``lat_rad`` must lie in [-pi/2, pi/2] and ``lon_rad`` in [-pi, pi]; the centre as for
-    :func:`aeqd_inverse`. When |d| > pi it is brought into [-pi, pi] as
-    (lam - pi) - (lam0 + pi) or (lam + pi) - (lam0 - pi), whose parts are exact near the
-    antimeridian. Returns float64 metres broadcast to the shape of the inputs.
+    :func:`aeqd_inverse`. Returns float64 metres broadcast to the shape of the inputs.
     """
     lat0, lon0, radius = _centre(lat0_rad, lon0_rad, radius_m)
     lat, lon = np.broadcast_arrays(
@@ -278,16 +284,20 @@ def aeqd_forward(
         raise AeqdDomainError("latitudes must lie in [-pi/2, pi/2]")
     if np.any(np.abs(lon) > _PI):
         raise AeqdDomainError("longitudes must lie in [-pi, pi]")
-    d = lon - lon0
-    d = np.where(d > _PI, (lon - _PI) - (lon0 + _PI), d)
-    d = np.where(d < -_PI, (lon + _PI) - (lon0 - _PI), d)
+    d_hi, d_lo = _two_sum(lon, np.full_like(lon, -lon0))
+    over = (d_hi > _PI) | ((d_hi == _PI) & (d_lo > 0.0))
+    under = (d_hi < -_PI) | ((d_hi == -_PI) & (d_lo < 0.0))
+    d_hi = np.where(over, d_hi - _TWO_PI, np.where(under, d_hi + _TWO_PI, d_hi))
+    d_hi, d_lo = _two_sum(d_hi, d_lo)
+    sin_d_hi = np.sin(d_hi)
+    sin_d = sin_d_hi + np.cos(d_hi) * d_lo
     sin_lat0 = math.sin(lat0)
     cos_lat0 = math.cos(lat0)
     cos_lat = np.cos(lat)
     dlat = lat - lat0
-    hav = 2.0 * np.sin(d / 2.0) ** 2
+    hav = 2.0 * np.sin(d_hi / 2.0) ** 2 + sin_d_hi * d_lo
 
-    east = cos_lat * np.sin(d)
+    east = cos_lat * sin_d
     north = np.sin(dlat) + sin_lat0 * cos_lat * hav
     up = np.cos(dlat) - cos_lat0 * cos_lat * hav
     horizontal = np.hypot(east, north)
@@ -308,6 +318,13 @@ def _centre(lat0_rad: float, lon0_rad: float, radius_m: float) -> tuple[float, f
     if not (math.isfinite(lon0) and -_PI <= lon0 < _PI):
         raise AeqdDomainError(f"lon0_rad must lie in [-pi, pi), got {lon0!r}")
     return lat0, lon0, radius
+
+
+def _two_sum(a: FloatArray, b: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """Return (s, e) with s = fl(a + b) and s + e = a + b exactly (Knuth's two-sum)."""
+    s = a + b
+    b_part = s - a
+    return s, (a - (s - b_part)) + (b - b_part)
 
 
 def _float_array(values: npt.ArrayLike) -> FloatArray:
