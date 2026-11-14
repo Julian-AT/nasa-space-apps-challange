@@ -1,9 +1,9 @@
 // What make web-smoke asserts about the HTML of / (PRD 8.4, 8.6): the red mock banner exactly when
 // the bundle is mock, the shipping-mode banner once, the bundle and schema versions in the footer,
-// each as the whole text of its element wherever the layout puts it, and one <main> that shows only
-// the title and HOME_LINE, so no numbers, targets or claims. The layout's skip link and navigation
-// sit outside <main>. Only the rendered markup counts: <script> elements, which hold the RSC
-// payload, are removed first.
+// each as the whole text of its element (and of a banner's own container) wherever the layout puts
+// it, and one <main> that shows only the title and HOME_LINE, so no numbers, targets or claims.
+// The layout's skip link and navigation sit outside <main>. Only the rendered markup counts:
+// <script> elements, which hold the RSC payload, are removed first.
 import type { Bundle } from '../lib/bundle.ts';
 import { shellText, SITE_TITLE } from '../lib/shell.ts';
 
@@ -70,25 +70,43 @@ const BLOCK_ELEMENTS: ReadonlySet<string> = new Set([
   'tr', 'ul',
 ]);
 
-interface BlockText {
-  /** The text directly in the block, inline elements included and nested blocks left out. */
-  readonly own: string;
-  /** All of the block's text, nested blocks included. */
-  readonly full: string;
+/**
+ * WAI-ARIA 1.2 live region roles. Assistive technology announces a live region as one message,
+ * so a banner inside one reads as the region's whole text.
+ */
+const LIVE_ROLES: ReadonlySet<string> = new Set(['alert', 'log', 'marquee', 'status', 'timer']);
+
+/** An attribute's value in a start tag, quoted or not, or undefined when the tag lacks it. */
+function attribute(tag: string, name: string): string | undefined {
+  const match = new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'=<>\`]+))`, 'i').exec(tag);
+  return match === null ? undefined : (match[1] ?? match[2] ?? match[3] ?? '');
 }
 
-/** The text of each block element in the markup, as a reader sees it, whitespace collapsed. */
-function blockTexts(markup: string): BlockText[] {
-  const open: { name: string; own: string; full: string }[] = [];
-  const blocks: BlockText[] = [];
+/** Whether a start tag opens a live region: a live role among its roles, or aria-live polite or assertive. */
+function isLiveRegion(tag: string): boolean {
+  const roles = (attribute(tag, 'role') ?? '').toLowerCase().split(/\s+/);
+  const live = (attribute(tag, 'aria-live') ?? '').trim().toLowerCase();
+  return roles.some((role) => LIVE_ROLES.has(role)) || live === 'polite' || live === 'assertive';
+}
+
+interface Block {
+  /** The text directly in the block, inline elements included and nested blocks left out. */
+  own: string;
+  /** All of the block's text, nested blocks included. */
+  full: string;
+  readonly live: boolean;
+  readonly parent: Block | undefined;
+  readonly children: Block[];
+}
+
+/** Every block element in the markup, with its text as a reader sees it, whitespace collapsed. */
+function blockTree(markup: string): Block[] {
+  const open: { name: string; block: Block }[] = [];
+  const blocks: Block[] = [];
   const add = (text: string) => {
-    for (const block of open) block.full += text;
+    for (const { block } of open) block.full += text;
     const innermost = open.at(-1);
-    if (innermost !== undefined) innermost.own += text;
-  };
-  const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
-  const close = (block: { own: string; full: string }) => {
-    blocks.push({ own: collapse(block.own), full: collapse(block.full) });
+    if (innermost !== undefined) innermost.block.own += text;
   };
   // With one capturing group, split puts the text between tags at even indexes, the tags at odd ones.
   markup.split(/(<[^>]*>)/).forEach((token, index) => {
@@ -101,24 +119,58 @@ function blockTexts(markup: string): BlockText[] {
     if (tag === null || name === undefined || !BLOCK_ELEMENTS.has(name)) return;
     add(' ');
     if (tag[1] === '/') {
-      const at = open.map((block) => block.name).lastIndexOf(name);
-      if (at >= 0) open.splice(at).reverse().forEach(close);
+      const at = open.map((entry) => entry.name).lastIndexOf(name);
+      if (at >= 0) open.splice(at);
     } else if (name !== 'hr' && !token.endsWith('/>')) {
-      open.push({ name, own: '', full: '' });
+      const parent = open.at(-1)?.block;
+      const block: Block = { own: '', full: '', live: isLiveRegion(token), parent, children: [] };
+      parent?.children.push(block);
+      blocks.push(block);
+      open.push({ name, block });
     }
   });
-  open.reverse().forEach(close);
+  const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
+  for (const block of blocks) {
+    block.own = collapse(block.own);
+    block.full = collapse(block.full);
+  }
   return blocks;
 }
 
+/** The block's only child block that holds text, or undefined when it has none or several. */
+function soleTextChild(block: Block): Block | undefined {
+  const withText = block.children.filter((child) => child.full !== '');
+  return withText.length === 1 ? withText[0] : undefined;
+}
+
 /**
- * A banner is the block whose own text holds its first words (the marker). That block's whole
- * text, inline and nested elements included, must be the banner and nothing else.
+ * The blocks that are part of the banner held by `holder`. One is its container: walking out from
+ * the holder while the parent holds no other block with text, so text the parent adds beside the
+ * banner belongs to it. A parent that holds several blocks with text, as the header holds both
+ * banners and the navigation, groups them and is part of none. The other is the nearest live
+ * region around the holder, if any, which is announced as one message.
  */
-function bannerProblem(blocks: readonly BlockText[], marker: string, banner: string, name: string): string | null {
+function bannerParts(holder: Block): Block[] {
+  let container = holder;
+  let parent = holder.parent;
+  while (parent !== undefined && soleTextChild(parent) === container) {
+    container = parent;
+    parent = parent.parent;
+  }
+  let region: Block | undefined = holder;
+  while (region !== undefined && !region.live) region = region.parent;
+  return region === undefined || region === container ? [container] : [container, region];
+}
+
+/**
+ * A banner is held by the block whose own text holds its first words (the marker). The banner's
+ * container and live region (bannerParts) must each read the banner and nothing else, inline and
+ * nested elements included.
+ */
+function bannerProblem(blocks: readonly Block[], marker: string, banner: string, name: string): string | null {
   const holders = blocks.filter((block) => block.own.includes(marker));
   if (holders.length === 0) return `the ${name} "${banner}" is missing`;
-  const wrong = holders.find((block) => block.full !== banner);
+  const wrong = holders.flatMap(bannerParts).find((block) => block.full !== banner);
   return wrong === undefined ? null : `the ${name} must read "${banner}", but reads "${wrong.full}"`;
 }
 
@@ -134,13 +186,13 @@ function modeBanner(bundle: Bundle, shippingMode: string): string {
 
 // Each protected text must be whole: a mock banner, mode banner or footer that only starts with
 // the expected text (bundle version v10 for v1, mode BA for B), or that has words added inside its
-// element, fails, as it failed the T0-05 check of the whole page. Text outside <main> other than
-// these is the layout's chrome and is not checked.
+// element or in a container of the banner's own, fails, as it failed the T0-05 check of the whole
+// page. Text outside <main> other than these is the layout's chrome and is not checked.
 export function pageProblems(html: string, bundle: Bundle): string[] {
   const expected = shellText(bundle);
   const markup = renderedMarkup(html);
   const text = visibleText(html);
-  const blocks = blockTexts(markup);
+  const blocks = blockTree(markup);
   const problems: string[] = [];
   if (expected.mockBanner !== null) {
     const problem = bannerProblem(blocks, MOCK_MARKER, expected.mockBanner, 'mock banner');
