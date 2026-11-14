@@ -1,7 +1,8 @@
 // What make web-smoke asserts about the HTML of / (PRD 8.4, 8.6): the red mock banner exactly when
 // the bundle is mock, the shipping-mode banner once, the bundle and schema versions in the footer,
-// each as the whole text of its element (and of a banner's own container) wherever the layout puts
-// it, and one <main> that shows only the title and HOME_LINE, so no numbers, targets or claims.
+// each as the whole text of its element (and of a banner's own container and every live region
+// around it) wherever the layout puts it, and one <main> that shows only the title and HOME_LINE,
+// so no numbers, targets or claims.
 // The layout's skip link and navigation sit outside <main>. Only the rendered markup counts:
 // <script> elements, which hold the RSC payload, are removed first.
 import type { Bundle } from '../lib/bundle.ts';
@@ -70,6 +71,11 @@ const BLOCK_ELEMENTS: ReadonlySet<string> = new Set([
   'tr', 'ul',
 ]);
 
+/** Elements that never have content or an end tag (HTML Living Standard, void elements). */
+const VOID_ELEMENTS: ReadonlySet<string> = new Set([
+  'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr',
+]);
+
 /**
  * WAI-ARIA 1.2 live region roles. Assistive technology announces a live region as one message,
  * so a banner inside one reads as the region's whole text.
@@ -89,24 +95,45 @@ function isLiveRegion(tag: string): boolean {
   return roles.some((role) => LIVE_ROLES.has(role)) || live === 'polite' || live === 'assertive';
 }
 
-interface Block {
-  /** The text directly in the block, inline elements included and nested blocks left out. */
-  own: string;
-  /** All of the block's text, nested blocks included. */
+/** The whole text of an element, nested elements included. */
+interface Extent {
   full: string;
-  readonly live: boolean;
-  readonly parent: Block | undefined;
-  readonly children: Block[];
 }
 
-/** Every block element in the markup, with its text as a reader sees it, whitespace collapsed. */
+interface Block extends Extent {
+  /** The text directly in the block, inline elements included and nested blocks left out. */
+  own: string;
+  readonly parent: Block | undefined;
+  readonly children: Block[];
+  /** Every live region the block sits in, on a block or an inline element, itself included. */
+  readonly regions: readonly Extent[];
+}
+
+/** An open element: a block, a live region, both, or neither (a plain inline element). */
+interface OpenElement {
+  readonly name: string;
+  readonly block: Block | undefined;
+  readonly region: Extent | undefined;
+}
+
+/**
+ * Every block element in the markup, with its text as a reader sees it, whitespace collapsed.
+ * All elements are tracked, so an end tag closes its own element, but only blocks split the text.
+ */
 function blockTree(markup: string): Block[] {
-  const open: { name: string; block: Block }[] = [];
+  const open: OpenElement[] = [];
   const blocks: Block[] = [];
+  const extents: Extent[] = [];
+  const innermostBlock = () => open.findLast((entry) => entry.block !== undefined)?.block;
   const add = (text: string) => {
-    for (const { block } of open) block.full += text;
-    const innermost = open.at(-1);
-    if (innermost !== undefined) innermost.block.own += text;
+    const filled = new Set<Extent>();
+    for (const { block, region } of open) {
+      if (block !== undefined) filled.add(block);
+      if (region !== undefined) filled.add(region);
+    }
+    for (const extent of filled) extent.full += text;
+    const innermost = innermostBlock();
+    if (innermost !== undefined) innermost.own += text;
   };
   // With one capturing group, split puts the text between tags at even indexes, the tags at odd ones.
   markup.split(/(<[^>]*>)/).forEach((token, index) => {
@@ -116,24 +143,37 @@ function blockTree(markup: string): Block[] {
     }
     const tag = /^<(\/?)([a-z][a-z0-9-]*)/i.exec(token);
     const name = tag?.[2]?.toLowerCase();
-    if (tag === null || name === undefined || !BLOCK_ELEMENTS.has(name)) return;
-    add(' ');
+    if (tag === null || name === undefined) return;
+    const isBlock = BLOCK_ELEMENTS.has(name);
+    if (isBlock) add(' ');
     if (tag[1] === '/') {
       const at = open.map((entry) => entry.name).lastIndexOf(name);
       if (at >= 0) open.splice(at);
-    } else if (name !== 'hr' && !token.endsWith('/>')) {
-      const parent = open.at(-1)?.block;
-      const block: Block = { own: '', full: '', live: isLiveRegion(token), parent, children: [] };
+      return;
+    }
+    if (VOID_ELEMENTS.has(name) || token.endsWith('/>')) return;
+    const live = isLiveRegion(token);
+    const around = open.flatMap((entry) => (entry.region === undefined ? [] : [entry.region]));
+    let block: Block | undefined;
+    if (isBlock) {
+      const parent = innermostBlock();
+      const regions: Extent[] = [...around];
+      block = { own: '', full: '', parent, children: [], regions };
+      if (live) regions.push(block);
       parent?.children.push(block);
       blocks.push(block);
-      open.push({ name, block });
+      extents.push(block);
     }
+    let region: Extent | undefined;
+    if (live) {
+      region = block ?? { full: '' };
+      if (block === undefined) extents.push(region);
+    }
+    open.push({ name, block, region });
   });
   const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
-  for (const block of blocks) {
-    block.own = collapse(block.own);
-    block.full = collapse(block.full);
-  }
+  for (const extent of extents) extent.full = collapse(extent.full);
+  for (const block of blocks) block.own = collapse(block.own);
   return blocks;
 }
 
@@ -144,28 +184,27 @@ function soleTextChild(block: Block): Block | undefined {
 }
 
 /**
- * The blocks that are part of the banner held by `holder`. One is its container: walking out from
- * the holder while the parent holds no other block with text, so text the parent adds beside the
- * banner belongs to it. A parent that holds several blocks with text, as the header holds both
- * banners and the navigation, groups them and is part of none. The other is the nearest live
- * region around the holder, if any, which is announced as one message.
+ * The elements that are part of the banner held by `holder`. One is its container: walking out
+ * from the holder while the parent holds no other block with text, so text the parent adds beside
+ * the banner belongs to it. A parent that holds several blocks with text, as the header holds both
+ * banners and the navigation, groups them and is part of none. The others are every live region
+ * around the holder, nearest to outermost, on a block or an inline element: each is announced as
+ * one message, so each must be the banner alone.
  */
-function bannerParts(holder: Block): Block[] {
+function bannerParts(holder: Block): Extent[] {
   let container = holder;
   let parent = holder.parent;
   while (parent !== undefined && soleTextChild(parent) === container) {
     container = parent;
     parent = parent.parent;
   }
-  let region: Block | undefined = holder;
-  while (region !== undefined && !region.live) region = region.parent;
-  return region === undefined || region === container ? [container] : [container, region];
+  return [container, ...holder.regions.filter((region) => region !== container)];
 }
 
 /**
  * A banner is held by the block whose own text holds its first words (the marker). The banner's
- * container and live region (bannerParts) must each read the banner and nothing else, inline and
- * nested elements included.
+ * container and every live region around it (bannerParts) must each read the banner and nothing
+ * else, inline and nested elements included.
  */
 function bannerProblem(blocks: readonly Block[], marker: string, banner: string, name: string): string | null {
   const holders = blocks.filter((block) => block.own.includes(marker));
