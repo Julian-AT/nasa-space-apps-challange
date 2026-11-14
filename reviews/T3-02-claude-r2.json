@@ -1,0 +1,106 @@
+{
+  "task_id": "T3-02",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "14af29a8b2902b68f74b9b3030a6448bb0590230",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "3e9209ef8e2efafe28a4473498d6426183a2458774946099af47cb8ca0e1b996"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "635ddb7f10e1cd8314b4ed68514b893297e00fc54deccffa3d26dac9cbf84259"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "1207838ff9401a7a1f403b6c52ad2d8591d2f3e331e9d9fb883b02ce7db04cc1"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "f0e8fb434d2ad8116bb5c09624e0ce5ceb506cc5c01f7e313ee0ba42d0b38686"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:27:32Z",
+  "finished_utc": "2026-11-14T18:27:53Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 2 of T3-02, reviewed by Claude Sonnet 5.5 (claude-sonnet-5-5). Reviewed commit 14af29a against base 4573b46. All six criteria pass. The round 1 fixes hold: round-trip tolerances are now asserted in plain metres, and the one rebuttal is justified. Both story checks pass. I did not independently re-verify the failing-first record or the mpmath reference arithmetic.",
+  "checks": [
+    {
+      "criterion": "Tests written and failing before implementation (recorded in notes)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Author's record, not independently verified. The round 1 resolutions cite a failing run of 22 failed and 473 passed (2c6e7b9), and the test commits come before the fixes."
+    },
+    {
+      "criterion": "Grid test: hand-computed corner and centre values for W=5000, D=90",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_grid_matches_hand_computed_centres_for_5000_by_90 (test_geometry_aeqd.py:227) passes in the 498-test run. geometry.py:113-119 implements x_i and y_j as specified, with row 0 at the top."
+    },
+    {
+      "criterion": "Inverse AEQD exact at rho=0 and at poles; independent forward round-trips at rtol 1e-10, atol 1e-12 in metres, for Moon, Mars and Earth at -89.9, -45, 0, 45 and 89.9 degrees",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "PASS",
+      "evidence": "498 passed. The shared helper (test_geometry_aeqd.py:191-193) asserts RTOL and ATOL directly on metre coordinates, with no division by W. The at-centre return is explicit at geometry.py:226-229. The pole-centred tests have no NaN."
+    },
+    {
+      "criterion": "Distance test: great-circle distance from the centre equals rho to 1e-9 relative, for all three radii",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "PASS",
+      "evidence": "test_great_circle_distance_from_the_centre_equals_rho (test_geometry_aeqd.py:510-517) asserts DISTANCE_RTOL with atol=0 and passes."
+    },
+    {
+      "criterion": "Hypothesis property test of the round trip, with the longitude range stated",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "PASS",
+      "evidence": "test_round_trip_property (test_geometry_aeqd.py:556-569, 400 examples) passes. The longitude range is stated as [-pi, pi) in LONGITUDE_RANGE_RAD (geometry.py:127) and in the test_longitudes_are_normalised_to_minus_pi_inclusive_pi_exclusive test name. Continuous offsets within about 14 m of the centre are not checked at atol 1e-12 m; the property test uses D29 pixel centres, and the author documents the float64 limit."
+    },
+    {
+      "criterion": "Terrain distances in metres live in geometry.py with no radar or model distance code",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py imports only math, dataclasses, types, typing and numpy. Two tests (test_geometry_imports_only_the_standard_library_and_numpy, test_importing_geometry_loads_no_other_terraluna_module) enforce this and pass."
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "Output showed ruff check passed, ruff format --check passed (9 files) and mypy found no issues. Exit status was not displayed, but no failure output appeared."
+    },
+    {
+      "criterion": "Scope: only story files changed",
+      "command": "git diff --stat 4573b46..14af29a",
+      "outcome": "PASS",
+      "evidence": "Changed files are pipeline/pyproject.toml, geometry.py, test_geometry_aeqd.py and uv.lock. All are on the story's file list. The diff stat is 1007 insertions."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/geometry.py:225",
+      "claim": "The latitude is evaluated as phi0 + atan2(sin dphi, cos dphi), not the literal asin(S) the criterion names. The rebuttal is accepted.",
+      "evidence": "The docstring (:162-185) documents the deviation. test_inverse_matches_the_prd_expressions (:393-400) compares against the asin form at rtol 1e-10, atol 1e-12. @terraluna/core (T10) must use the same evaluation for parity (PRD 8.8); the author flagged this as a human decision.",
+      "id": "claude-r2-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/tests/test_geometry_aeqd.py:13",
+      "claim": "The 40-digit mpmath reference makes the independent-forward check stronger than the story required. It adds a dev dependency (pyproject.toml and uv.lock changed), and that dependency is in the story's files list.",
+      "evidence": "git diff --stat shows pipeline/pyproject.toml with +1 line and uv.lock changed. Both are in the story's files list.",
+      "id": "claude-r2-2",
+      "resolution": null
+    }
+  ]
+}

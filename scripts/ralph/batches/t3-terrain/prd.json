@@ -94,19 +94,19 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 1,
+        "state": "reviewed",
+        "round": 2,
         "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
-        "head": "33fa95401a0c6fd722fe413ec3d13e64ce7f58dc",
+        "head": "14af29a8b2902b68f74b9b3030a6448bb0590230",
         "files": [
-          "reviews/T3-02-claude.json",
-          "reviews/T3-02-codex.json",
-          "reviews/T3-02-codex-2.json"
+          "reviews/T3-02-claude-r2.json",
+          "reviews/T3-02-codex-2-r2.json",
+          "reviews/T3-02-codex-r2.json"
         ],
         "digests": {
-          "reviews/T3-02-claude.json": "378f50463e6aaf8848de53669906a453683dc556d07f18b957ab9ccd3d921aa5",
-          "reviews/T3-02-codex.json": "b583056e29c7e9cc3eed91d941ccfd732df4bee5860aa455518e7ca84c8b2235",
-          "reviews/T3-02-codex-2.json": "5c633c667f71cae8b2db1efc7eaefff4dfa17443e5dc7d171520641c846e4547"
+          "reviews/T3-02-claude-r2.json": "b061d2343030544e78bf13cb676169d501ee5a00f3afc4a7855c1b76f7fb4cc3",
+          "reviews/T3-02-codex-2-r2.json": "45e00d3e5249b4130769431223a27e4f617a1bc2e8fe8accb936c8a482e59ac6",
+          "reviews/T3-02-codex-r2.json": "b72125a44e8709d3385233c2b2af11557ebd3dfcfb96f7c0aeaa4e0772fa6ce8"
         }
       },
       "notes": "Failing run (2026-11-14, commit ac27c1a, before the grid and AEQD existed): `uv run pytest pipeline/tests/test_geometry_aeqd.py` stopped at collection with ImportError: cannot import name 'AeqdDomainError' from 'terraluna_pipeline.geometry'. After the implementation: 459 passed, make check exit 0, full suite 716 passed. Round 1 resolution (2026-11-14): with the round trips in plain metres, the failing run at 2c6e7b9 against the round-1 geometry.py gave 22 failed, 473 passed: six Earth centres broke the metre round-trip tolerance, and 16 forward cases failed at millimetre y. After f8538d5 and 795230c: 498 passed, make check exit 0, full suite 755 passed. Decisions for a human: (1) Pixel count. PRD 7 does not fix it when W/D is not whole (5000/90 is about 55.6). The grid takes the largest n with n*D <= W (55), keeps the PRD formula with W = 5000, and so is anchored at the top-left. A 50 m strip along the east and south edges is uncovered, and the centre pixel (27, 27) sits at (-25, 25) m, not on the window centre. Alternatives would be 56 cells (the last cell reaches 40 m outside the window) or a grid centred with n*D in place of W (which changes the formula). (2) Latitude evaluation. PRD 7 writes phi = asin(S). geometry.py returns that value and keeps the PRD atan2 longitude, but evaluates phi = phi0 + atan2(sin(phi - phi0), cos(phi - phi0)) from small increments of S and M (see the aeqd_inverse docstring). The literal asin fails the PRD 7 tolerances at +-89.9 deg: 1.6e-7 to 3.9e-7 m against 40-digit mpmath, and a mutation run with it fails 105 of 498 tests. atan2(S, hypot(N, M)) on the full S and H also broke the metre round-trip allowance at y = 25 m on Earth (1.01 from the inverse alone); the increment form uses 0.28. For the same reason the forward evaluates Snyder's N and U from phi - phi0 and 2 sin^2(d/2). The latitude is clipped to [-pi/2, pi/2], because a long offset ending at a pole can round past it. A test still checks the latitude against the PRD asin expression to rtol 1e-10, atol 1e-12 rad. The TypeScript mirror (T10) must use the same evaluation; a PRD 7 wording proposal is in the progress log. (3) Tolerance units. Round trips apply PRD 7 rtol 1e-10, atol 1e-12 to x and y in plain metres (codex-r1-1). Float64 sets a floor here: near +-pi a longitude resolves only to 2.2e-16 rad, 1.4e-9 m on Earth, 0.56 of the allowance at the 25 m grid offsets. Closer than about 14 m to the centre no float64 (lat, lon) can meet atol 1e-12 m. So the round trips and the Hypothesis test use D29 pixel centres, and tiny offsets get a finiteness test plus a metre round trip at the (0, 0) centre. The exact reference is a 40-digit mpmath forward, a test-only dev dependency (mpmath 1.4.1, BSD-3-Clause). Worst use after the fixes: 0.57 over 20000 random centres on the full grid, which is the longitude floor, and 0.31 over 600000 Earth centres at |lat0| 1.0 to 1.07 rad. (4) Longitudes are radians in [-pi, pi) with pi = math.pi. A window centre must already be in that range, and the forward also accepts a point longitude of exactly pi. A longitude and the same value plus or minus 2*math.pi name the same meridian, as for math.degrees, which maps math.pi to exactly 180. Real trigonometry has period 2 pi, 2.4e-16 more, so the exact test reference undoes the inverse's wrap before it evaluates."
