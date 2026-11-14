@@ -284,6 +284,19 @@ while :; do
   state="$(field "$id" .review.state)"
   case "$state" in
     pending|reviewed)
+      # waitsFor ["<batch>:<STORY>", ...]: every listed story must have passed and be merged into this branch.
+      missing=""
+      while IFS= read -r w; do
+        [ -n "$w" ] || continue
+        git log -1 --format=%H --grep="^chore(ralph): mark $(lc "${w#*:}") as passed$" HEAD | grep -q . || missing="$missing $w"
+      done < <(field "$id" '(.waitsFor // [])[]')
+      if [ -n "$missing" ]; then
+        note "$id" "waiting for these stories to pass and be merged into $BRANCH:$missing"
+        setreview "$id" '.state="blocked"'
+        # shellcheck disable=SC2046
+        commit_state "chore(ralph): record that $(lc "$id") waits for merges" $(state_paths)
+        human "$id waits for merges:$missing"
+      fi
       if [ "$n" -ge "$MAX" ]; then echo "ralph: reached $MAX author iterations; state is in $PRD" >&2; exit 1; fi
       n=$((n + 1))
       if [ "$state" = pending ] && [ "$(field "$id" .review.base)" = null ]; then
