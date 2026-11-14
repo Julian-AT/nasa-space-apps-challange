@@ -1,0 +1,78 @@
+{
+  "task_id": "T1-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "028c1c7e115b74fb6d5e109ed72501151f90a63e",
+    "head": "4a76dc7538d6cc794878bd1f250dc25d652d5e8f",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/quality.py",
+        "sha256": "d6bd325ac6a45e33239fbe47ac61c9fed4233b84e32c047a30bc3bd3bdcd6d35"
+      },
+      {
+        "path": "pipeline/tests/test_quality.py",
+        "sha256": "5dd6ed56b750abdc514668019554b8a7e5b6c5fbd9d3512484b01941fbf7056c"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:57:36Z",
+  "finished_utc": "2026-11-14T18:57:55Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T1-02 meets every acceptance criterion. Both story checks pass. The diff touches only quality.py and test_quality.py, which are the story's files. Failing-first could only be inferred from commit order, not re-run. The isis_saturation reason code goes beyond the three the story names.",
+  "checks": [
+    {
+      "criterion": "Tests written failing first, on small synthetic numpy arrays only",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The tests commit 4c56d6e comes before the implementation commit 5180862. All inputs in test_quality.py are small synthetic arrays, including the hypothesis-generated ones (shapes up to 5 per side). I did not re-run the tests against the pre-implementation state, so the failing-first claim rests on commit order."
+    },
+    {
+      "criterion": "validity_mask returns bool valid plus integer reason array with documented enum (nodata, non_finite, outside_support); explicit nodata and ISIS null matched with documented tolerance; NaN/inf invalid; nothing filled; 0 valid unless declared; no threshold reason",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "quality.py:92-99 defines InvalidReason with NODATA, NON_FINITE and OUTSIDE_SUPPORT. The ISIS null is matched by float32 rounding with a documented tolerance of 2**103 (quality.py:88, 259-274). The only extra code is ISIS_SATURATION. The function returns only the valid and reason arrays and never writes to the input. Tests cover zero (test_zero_is_valid_unless_declared and test_zero_is_nodata_when_the_label_says_so), NaN/inf, the unchanged input, and a per-pixel struct-based oracle."
+    },
+    {
+      "criterion": "No Stokes/SC/OC/CPR/S4-sign logic in quality.py",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The Stokes and S4 names appear only in the docstring (quality.py:44-47), as pointers to polarimetry.py. test_no_threshold_or_polarimetry_reason_or_function_exists checks that none of those tokens appear in the enum or in __all__."
+    },
+    {
+      "criterion": "valid_fraction returns fraction and pixel counts, raises on empty window",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "quality.py:182-201 returns ValidFraction(valid_pixels, total_pixels) and raises ValueError when the array is empty. test_valid_fraction_of_an_empty_window_raises covers three empty shapes."
+    },
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_quality.py",
+      "command": "uv run pytest pipeline/tests/test_quality.py",
+      "outcome": "PASS",
+      "evidence": "74 passed in 0.37s"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check, ruff format --check and mypy all passed, with no issues in 12 source files. The make check output shows no pytest step."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/quality.py:99",
+      "claim": "The story lists three reason codes (nodata, non_finite, outside_support), but the implementation adds ISIS_SATURATION. It also treats ISIS saturation special pixels as invalid.",
+      "evidence": "This is additive and documented, and the nodata, non_finite and outside_support codes are present. No threshold is involved. Confirm that the PRD 5 and 7 vocabulary allows the fourth code before downstream tasks rely on it.",
+      "id": "claude-r1-1",
+      "resolution": null
+    }
+  ]
+}

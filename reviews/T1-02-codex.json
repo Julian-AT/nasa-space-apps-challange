@@ -1,0 +1,84 @@
+{
+  "task_id": "T1-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "028c1c7e115b74fb6d5e109ed72501151f90a63e",
+    "head": "4a76dc7538d6cc794878bd1f250dc25d652d5e8f",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/quality.py",
+        "sha256": "d6bd325ac6a45e33239fbe47ac61c9fed4233b84e32c047a30bc3bd3bdcd6d35"
+      },
+      {
+        "path": "pipeline/tests/test_quality.py",
+        "sha256": "5dd6ed56b750abdc514668019554b8a7e5b6c5fbd9d3512484b01941fbf7056c"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:57:36Z",
+  "finished_utc": "2026-11-14T19:01:00Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found a nodata precision defect. Required checks and fail-first execution remain unverified because execution was prohibited in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests are written and run failing first, using small synthetic numpy arrays only.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_quality.py:134-350 and :446-458 use small synthetic arrays. No fail-first execution was observed; tests were not run because the user prohibited execution in the read-only sandbox."
+    },
+    {
+      "criterion": "AC2: Boolean validity and integer reason arrays correctly handle explicit nodata, ISIS nulls, non-finite values, support and zero without added thresholds.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pipeline/src/terraluna_pipeline/quality.py:243 converts declared nodata through Python float before converting to the array dtype at :252. Extended-precision arrays are accepted at :296-298, so explicit nodata can lose precision and remain valid. The enum, ISIS matching and classification are implemented at :92-99, :259-274 and :307-325; config/run.yaml:34 keeps snr_rule null."
+    },
+    {
+      "criterion": "AC3: quality.py contains no Stokes, SC/OC/CPR or S4-sign logic.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Reading pipeline/src/terraluna_pipeline/quality.py:50-325 shows only validity classification, nodata matching, reason records and fraction counting. No polarimetry transformations, verdicts or tolerances are implemented."
+    },
+    {
+      "criterion": "AC4: Valid-fraction helper returns the covered fraction and pixel counts, and raises on empty windows.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static implementation is present at pipeline/src/terraluna_pipeline/quality.py:153-201, with assertions covering counts, bounds, support and empty windows at pipeline/tests/test_quality.py:492-525. Runtime verification was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Required focused test command.",
+      "command": "uv run pytest pipeline/tests/test_quality.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user explicitly prohibited checks because dependency and test-cache writes fail in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository check command.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user explicitly prohibited checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Change scope and configuration guardrails.",
+      "command": "git diff --no-ext-diff 028c1c7e115b74fb6d5e109ed72501151f90a63e 4a76dc7538d6cc794878bd1f250dc25d652d5e8f -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "The diff adds only pipeline/src/terraluna_pipeline/quality.py and pipeline/tests/test_quality.py. It introduces no production mocks, results, gate passes or configuration changes. Unresolved kickoff fields remain null in config/run.yaml:2-7."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/quality.py:243",
+      "claim": "Converting declared nodata through Python float can leave explicit nulls valid in accepted extended-precision arrays.",
+      "evidence": "The function accepts every floating dtype at :296-298, but :243 narrows nodata to binary64 before :252 casts it to the destination dtype. Where np.longdouble has additional precision, values=np.array(['9007199254740992', '9007199254740993'], dtype=np.longdouble), nodata=9007199254740993 therefore classifies the first value as NODATA and the declared null as VALID, by inspection. Preserve destination-dtype precision or reject unsupported dtypes, and add a regression test.",
+      "id": "codex-r1-1",
+      "resolution": null
+    }
+  ]
+}
