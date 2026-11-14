@@ -1642,3 +1642,14 @@
 {"ts":"2026-11-14T22:22:25Z","agent":"ralph-data-engineer","story":"T1-05","event":"tool_use","tool":"Bash","input":"cat >> scripts/ralph/batches/t1-pilot/progress.txt <<'EOF'\n\n## 2026-11-14T22:21Z · T1-05 · resolve\n- Done: resolved round 1 (2 Codex, 3 Claude findings). codex-r1-1 fixed. io.read_remote_geotiff_window refuses a range read that would hold the whole file. A request that would complete the file is not sent, and a first response holding a file no larger than one block is refused, both as RangeReadErr"}
 {"ts":"2026-11-14T22:22:25Z","agent":"ralph-data-engineer","story":"T1-05","event":"tool_result","is_error":false}
 {"ts":"2026-11-14T22:22:25Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":72,"total_cost_usd":4.2875044,"permission_denials":0}
+{"ts":"2026-11-14T22:27:40Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:28:43Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:30:45Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:33:48Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:37:50Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:42:52Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:48:54Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:55:56Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T23:03:58Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T23:13:00Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T23:23:01Z","agent":"ralph-data-engineer","story":"T1-05","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
