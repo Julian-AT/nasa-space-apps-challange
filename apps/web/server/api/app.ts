@@ -18,7 +18,9 @@ import {
   loadBundle,
   type PulledBundle,
 } from '../../lib/bundle.ts';
+import { gatesHandler, gatesRoute } from './gates.ts';
 import { healthHandler, healthRoute } from './health.ts';
+import { manifestHandler, manifestRoute } from './manifest.ts';
 import { problemResponse, VALIDATION_STATUS } from './problem.ts';
 
 export const API_BASE_PATH = '/api/v1';
@@ -131,5 +133,7 @@ export function createApi({
   });
   const read = guarded(reader);
   api.openapi(healthRoute, healthHandler(read));
+  api.openapi(manifestRoute, manifestHandler(read));
+  api.openapi(gatesRoute, gatesHandler(read));
   return api;
 }

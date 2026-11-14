@@ -45,7 +45,9 @@ const MAX_AGE: Readonly<Record<CachePolicy, number>> = {
 export function bundleETag(bundleVersion: string): string {
   // The schema allows only [A-Za-z0-9._-], all valid inside an entity tag (RFC 9110 8.8.3).
   if (!BundleManifestSchema.shape.bundle_version.safeParse(bundleVersion).success) {
-    throw new Error(`not a bundle_version, so it cannot be an ETag: ${JSON.stringify(bundleVersion)}`);
+    throw new Error(
+      `not a bundle_version, so it cannot be an ETag: ${JSON.stringify(bundleVersion)}`,
+    );
   }
   return `W/"${bundleVersion}"`;
 }
@@ -58,6 +60,20 @@ export function bundleCacheHeaders(
   return {
     'Cache-Control': `public, max-age=${String(MAX_AGE[policy])}, immutable`,
     ETag: bundleETag(bundleVersion),
+  };
+}
+
+/** The Cache-Control and ETag headers of a 200, for the OpenAPI document. */
+export function bundleCacheResponseHeaders(policy: CachePolicy) {
+  return {
+    'Cache-Control': {
+      description: `public, max-age=${String(MAX_AGE[policy])}, immutable (${policy.replace('-', ' ')}).`,
+      schema: { type: 'string' as const },
+    },
+    ETag: {
+      description: 'W/"<bundle_version>": the same for everything read from one bundle.',
+      schema: { type: 'string' as const },
+    },
   };
 }
 
