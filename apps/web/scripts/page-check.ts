@@ -1,9 +1,9 @@
 // What make web-smoke asserts about the HTML of / (PRD 8.4, 8.6): the red mock banner exactly when
 // the bundle is mock, the shipping-mode banner once, the bundle and schema versions in the footer,
-// each as an exact text wherever the layout puts it, and one <main> that shows only the title and
-// HOME_LINE, so no numbers, targets or claims. The layout's skip link and navigation sit outside
-// <main>. Only the rendered markup counts: <script> elements, which hold the RSC payload, are
-// removed first.
+// each as the whole text of its element wherever the layout puts it, and one <main> that shows only
+// the title and HOME_LINE, so no numbers, targets or claims. The layout's skip link and navigation
+// sit outside <main>. Only the rendered markup counts: <script> elements, which hold the RSC
+// payload, are removed first.
 import type { Bundle } from '../lib/bundle.ts';
 import { shellText, SITE_TITLE } from '../lib/shell.ts';
 
@@ -22,6 +22,7 @@ export const PRD4_TITLES: Readonly<Record<NonNullable<Bundle['manifest']['shippi
 };
 
 const SHIPPING_MODE = 'Shipping mode:';
+const MOCK_MARKER = 'Mock bundle';
 
 const ENTITIES: Readonly<Record<string, string>> = {
   amp: '&',
@@ -56,12 +57,69 @@ function renderedMarkup(html: string): string {
     .replace(/<!--[\s\S]*?-->/g, '');
 }
 
-/** Each run of text between two tags, decoded and trimmed. React renders each banner string as one run. */
-function textRuns(markup: string): string[] {
-  return markup
-    .split(/<[^>]*>/)
-    .map((run) => decodeEntities(run).replace(/\s+/g, ' ').trim())
-    .filter((run) => run !== '');
+/**
+ * Elements a browser lays out as a box of their own by default (HTML Living Standard, Rendering).
+ * Every other element, such as a, span, b or strong, flows inline with the text around it. An
+ * element missing here only joins more text into one block, so the check gets stricter, not weaker.
+ */
+const BLOCK_ELEMENTS: ReadonlySet<string> = new Set([
+  'address', 'article', 'aside', 'blockquote', 'body', 'caption', 'dd', 'details', 'dialog', 'div',
+  'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5',
+  'h6', 'head', 'header', 'hgroup', 'hr', 'html', 'legend', 'li', 'main', 'menu', 'nav', 'ol', 'p',
+  'pre', 'search', 'section', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'title',
+  'tr', 'ul',
+]);
+
+interface BlockText {
+  /** The text directly in the block, inline elements included and nested blocks left out. */
+  readonly own: string;
+  /** All of the block's text, nested blocks included. */
+  readonly full: string;
+}
+
+/** The text of each block element in the markup, as a reader sees it, whitespace collapsed. */
+function blockTexts(markup: string): BlockText[] {
+  const open: { name: string; own: string; full: string }[] = [];
+  const blocks: BlockText[] = [];
+  const add = (text: string) => {
+    for (const block of open) block.full += text;
+    const innermost = open.at(-1);
+    if (innermost !== undefined) innermost.own += text;
+  };
+  const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
+  const close = (block: { own: string; full: string }) => {
+    blocks.push({ own: collapse(block.own), full: collapse(block.full) });
+  };
+  // With one capturing group, split puts the text between tags at even indexes, the tags at odd ones.
+  markup.split(/(<[^>]*>)/).forEach((token, index) => {
+    if (index % 2 === 0) {
+      add(decodeEntities(token));
+      return;
+    }
+    const tag = /^<(\/?)([a-z][a-z0-9-]*)/i.exec(token);
+    const name = tag?.[2]?.toLowerCase();
+    if (tag === null || name === undefined || !BLOCK_ELEMENTS.has(name)) return;
+    add(' ');
+    if (tag[1] === '/') {
+      const at = open.map((block) => block.name).lastIndexOf(name);
+      if (at >= 0) open.splice(at).reverse().forEach(close);
+    } else if (name !== 'hr' && !token.endsWith('/>')) {
+      open.push({ name, own: '', full: '' });
+    }
+  });
+  open.reverse().forEach(close);
+  return blocks;
+}
+
+/**
+ * A banner is the block whose own text holds its first words (the marker). That block's whole
+ * text, inline and nested elements included, must be the banner and nothing else.
+ */
+function bannerProblem(blocks: readonly BlockText[], marker: string, banner: string, name: string): string | null {
+  const holders = blocks.filter((block) => block.own.includes(marker));
+  if (holders.length === 0) return `the ${name} "${banner}" is missing`;
+  const wrong = holders.find((block) => block.full !== banner);
+  return wrong === undefined ? null : `the ${name} must read "${banner}", but reads "${wrong.full}"`;
 }
 
 function occurrences(text: string, part: string): number {
@@ -75,25 +133,24 @@ function modeBanner(bundle: Bundle, shippingMode: string): string {
 }
 
 // Each protected text must be whole: a mock banner, mode banner or footer that only starts with
-// the expected text (bundle version v10 for v1, mode BA for B) fails, as it failed the T0-05 check
-// of the whole page. Text outside <main> other than these is the layout's chrome and is not checked.
+// the expected text (bundle version v10 for v1, mode BA for B), or that has words added inside its
+// element, fails, as it failed the T0-05 check of the whole page. Text outside <main> other than
+// these is the layout's chrome and is not checked.
 export function pageProblems(html: string, bundle: Bundle): string[] {
   const expected = shellText(bundle);
   const markup = renderedMarkup(html);
   const text = visibleText(html);
-  const runs = textRuns(markup);
+  const blocks = blockTexts(markup);
   const problems: string[] = [];
   if (expected.mockBanner !== null) {
-    if (!runs.includes(expected.mockBanner)) {
-      problems.push(`the mock banner "${expected.mockBanner}" is missing`);
-    }
-  } else if (text.includes('Mock bundle')) {
+    const problem = bannerProblem(blocks, MOCK_MARKER, expected.mockBanner, 'mock banner');
+    if (problem !== null) problems.push(problem);
+  } else if (text.includes(MOCK_MARKER)) {
     problems.push('a mock banner is shown, but the bundle is not mock');
   }
   const banner = modeBanner(bundle, expected.shippingMode);
-  if (!runs.includes(banner)) {
-    problems.push(`the shipping-mode banner "${banner}" is missing`);
-  }
+  const modeProblem = bannerProblem(blocks, SHIPPING_MODE, banner, 'shipping-mode banner');
+  if (modeProblem !== null) problems.push(modeProblem);
   const modeLines = occurrences(text, SHIPPING_MODE);
   if (modeLines > 1) {
     problems.push(`"${SHIPPING_MODE}" appears ${String(modeLines)} times; the page must state its mode once`);
