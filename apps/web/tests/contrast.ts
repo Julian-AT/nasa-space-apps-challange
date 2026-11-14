@@ -1,6 +1,7 @@
 // WCAG 2.2 contrast for the design-token tests (PRD 8.10): relative luminance and contrast ratio
-// as defined in WCAG 2.2, section "Definitions" (relative luminance, contrast ratio), plus the HSL
-// hue and saturation used to tell the reserved mock red apart from every other token.
+// as defined in WCAG 2.2, section "Definitions" (relative luminance, contrast ratio), alpha
+// compositing for translucent fills, and the HSL hue and saturation used to tell the reserved
+// mock red apart from every other token.
 
 export interface Rgb {
   readonly r: number;
@@ -29,6 +30,23 @@ export function contrastRatio(a: string, b: string): number {
   const la = relativeLuminance(parseHex(a));
   const lb = relativeLuminance(parseHex(b));
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+function hex2(channel: number): string {
+  return Math.round(channel).toString(16).padStart(2, '0');
+}
+
+/**
+ * `top` at opacity `alpha` painted over the opaque `bottom`. Browsers composite in gamma-encoded
+ * sRGB (CSS Compositing and Blending Level 1, simple alpha compositing), so each 8-bit channel is
+ * mixed linearly and rounded to the nearest value.
+ */
+export function composite(top: string, alpha: number, bottom: string): string {
+  if (!(alpha >= 0 && alpha <= 1)) throw new Error(`alpha must be in [0, 1], got ${String(alpha)}`);
+  const t = parseHex(top);
+  const b = parseHex(bottom);
+  const mix = (front: number, back: number): string => hex2(alpha * front + (1 - alpha) * back);
+  return `#${mix(t.r, b.r)}${mix(t.g, b.g)}${mix(t.b, b.b)}`;
 }
 
 /** HSL hue in degrees [0, 360) and saturation in [0, 1]. */
