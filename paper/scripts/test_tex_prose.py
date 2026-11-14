@@ -11,7 +11,17 @@ from pathlib import Path
 
 import pytest
 
-from scripts.tex_prose import TexSyntaxError, checked_files, extract, fold_latex, line_at, prose
+from scripts.tex_prose import (
+    CITE_COMMAND,
+    KEY_COMMANDS,
+    STARRED_KEY_COMMANDS,
+    TexSyntaxError,
+    checked_files,
+    extract,
+    fold_latex,
+    line_at,
+    prose,
+)
 
 
 def words(text: str, *, keep_tikz: bool = False) -> list[str]:
@@ -268,6 +278,37 @@ def test_a_blank_line_before_a_star_is_a_paragraph() -> None:
     with pytest.raises(TexSyntaxError):
         extract("\\citep\n\n*{other}")
     assert words("a\\\\\n\n*[2pt] b") == ["a", "*[2pt]", "b"]
+
+
+# A command without a starred form reads a * after it as its argument, as TeX reads any one
+# token: seam\label *less sets the label * and prints seamless, and \eqref*{eq} prints a
+# reference to the key * and then eq. natbib's \citeyear reads the * as its key (natbib.sty in
+# bundle v33).
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("seam\\label *less", ["seamless"]),
+        ("seam\\label*less", ["seamless"]),
+        ("seam\\label\n*less", ["seamless"]),
+        ("seam\\label % note\n  *less", ["seamless"]),
+        ("lu\\nocite *nar", ["lunar"]),
+        ("see \\label*{x} now", ["see", "x", "now"]),
+        ("see \\eqref*{eq} now", ["see", "eq", "now"]),
+        ("a \\citeyear *{b} c", ["a", "b", "c"]),
+        ("a \\citenum*{b} c", ["a", "b", "c"]),
+    ],
+)
+def test_a_star_after_a_command_without_a_starred_form_is_its_argument(
+    text: str, expected: list[str]
+) -> None:
+    assert words(text) == expected
+
+
+def test_starred_key_commands_are_key_commands() -> None:
+    assert all(
+        name in KEY_COMMANDS or CITE_COMMAND.fullmatch(name) for name in STARRED_KEY_COMMANDS
+    )
+    assert {"label", "eqref", "url", "href", "nocite", "citeyear"}.isdisjoint(STARRED_KEY_COMMANDS)
 
 
 def test_comments_before_an_argument_are_recorded() -> None:

@@ -165,6 +165,8 @@ def twelve_with(change: str) -> str:
         return " ".join(w[:5]) + " " + w[5][:2] + "% a note\n" + w[5][2:] + " " + " ".join(w[6:])
     if change == "label inside a word":
         return " ".join(w[:5]) + " " + w[5][:2] + "\\label{x}" + w[5][2:] + " " + " ".join(w[6:])
+    if change == "star after a label inside a word":
+        return " ".join(w[:5]) + " " + w[5][:2] + "\\label *" + w[5][2:] + " " + " ".join(w[6:])
     if change == "colour inside a word":
         return (
             " ".join(w[:5])
@@ -226,6 +228,7 @@ def twelve_with(change: str) -> str:
         "declaration inside a word",
         "comment inside a word",
         "label inside a word",
+        "star after a label inside a word",
         "colour inside a word",
         "unbraced input",
         "unbraced input at a line end",
