@@ -38,14 +38,17 @@ check-py:
 test-py:
 	$(UV_RUN) pytest
 
-# Node 22 (PRD 8.2), then the exact pnpm lockfile. The root prepare script installs the husky
-# commit-msg hook.
+# Node 22 (PRD 8.2) at 22.18 or later: it is the first 22.x that strips types by default, so
+# $(ZOD) and the generator tests run the .ts script without a flag (Vitest 5 itself needs 22.12).
+# Then the exact pnpm lockfile. The root prepare script installs the husky commit-msg hook.
+NODE_MIN_MINOR := 18
+
 setup-ts:
 	@v=$$($(NODE) -p 'process.versions.node') || { echo "setup-ts: node cannot be run" >&2; exit 1; }; \
-	case "$$v" in \
-		22.*) echo "Node $$v" ;; \
-		*) echo "setup-ts: Node 22 is required, found $$v" >&2; exit 1 ;; \
-	esac
+	case "$$v" in 22.*) minor=$${v#22.}; minor=$${minor%%.*} ;; *) minor= ;; esac; \
+	case "$$minor" in '' | *[!0-9]*) minor=-1 ;; esac; \
+	if [ "$$minor" -ge $(NODE_MIN_MINOR) ]; then echo "Node $$v"; else \
+		echo "setup-ts: Node 22.$(NODE_MIN_MINOR) or a later 22.x is required, found $$v" >&2; exit 1; fi
 	$(PNPM) install --frozen-lockfile
 
 check-ts:
