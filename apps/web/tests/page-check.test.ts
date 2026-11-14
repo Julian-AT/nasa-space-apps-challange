@@ -204,6 +204,57 @@ describe('pageProblems', () => {
     expect(pageProblems(MOCK_PAGE.replace(MOCK_P, banner), MOCK).join('\n')).toMatch(/mock banner/);
   });
 
+  // Every live region around a banner is announced as one message, not only the nearest one, and
+  // a live region counts whatever element carries it, inline ones included (codex-r4-1).
+  it.each([
+    {
+      name: 'a status region around the status paragraph and a second paragraph',
+      banner: `<div role="status"><p role="status">${MOCK_TEXT}</p><p>Radar match passed</p></div>`,
+    },
+    {
+      name: 'an aria-live region around the status paragraph and a second paragraph',
+      banner: `<div aria-live="polite"><p role="status">${MOCK_TEXT}</p><p>Radar match passed</p></div>`,
+    },
+    {
+      name: 'an alert region two blocks out',
+      banner: `<section role="alert"><div><p role="status">${MOCK_TEXT}</p></div><p>Radar match passed</p></section>`,
+    },
+    {
+      name: 'an inline status region around its paragraph',
+      banner: `<span role="status"><p>${MOCK_TEXT}</p> except the radar match</span>`,
+    },
+    {
+      name: 'an inline aria-live region around the status paragraph',
+      banner: `<span aria-live="assertive"><p role="status">${MOCK_TEXT}</p><b> Radar match passed</b></span>`,
+    },
+    {
+      name: 'words after an empty span in an inline status region',
+      banner: `<span role="status"><p>${MOCK_TEXT}</p><span class="sep"></span> except the radar match</span>`,
+    },
+    { name: 'words after an inline status region', banner: `<p><span role="status">${MOCK_TEXT}</span> yet</p>` },
+    { name: 'an inline status region alone in the header', banner: `<span role="status">${MOCK_TEXT}</span>` },
+  ])('reports a mock banner inside a live region with words added ($name)', ({ banner }) => {
+    expect(pageProblems(MOCK_PAGE.replace(MOCK_P, banner), MOCK).join('\n')).toMatch(/mock banner/);
+  });
+
+  it.each([
+    { name: 'nested status regions', banner: `<div role="status"><p role="status">${MOCK_TEXT}</p></div>` },
+    { name: 'an inline status region around its paragraph', banner: `<span role="status"><p>${MOCK_TEXT}</p></span>` },
+    { name: 'an inline status region in its paragraph', banner: `<p><span role="status">${MOCK_TEXT}</span></p>` },
+    {
+      name: 'an inline status region split by inline markup',
+      banner: `<p><span role="status"><span>Mock bundle</span> — <b>placeholder data</b>, not results</span></p>`,
+    },
+  ])('accepts a mock banner in live regions that read exactly the banner ($name)', ({ banner }) => {
+    expect(pageProblems(MOCK_PAGE.replace(MOCK_P, banner), MOCK)).toStrictEqual([]);
+  });
+
+  it('reports a shipping-mode banner in a status region around a second paragraph', () => {
+    const banner = `<div role="status"><p role="status">${MODE_B}</p><p>Radar match passed</p></div>`;
+    const html = REAL_PAGE.replace(`<p>${MODE_B}</p>`, banner);
+    expect(pageProblems(html, REAL).join('\n')).toMatch(/shipping-mode banner/);
+  });
+
   it.each([
     { name: 'words in a span after its paragraph', banner: `<div><p>${MODE_B}</p><span>; radar match passed</span></div>` },
     {
