@@ -1,0 +1,149 @@
+{
+  "description": "Tests that G1 (PRD 9, conversion correctness) requires, as pytest node ids of test functions; every parametrized case of a listed function counts. fixtures: every test named test_F<n>_ or test_F<a>_to_F<b>_ (PRD 7 fixtures F1-F10), listed under each fixture it covers. invalid_data: the invalid-data tests of stories T2-01 (decoding, x_power, angles, masked inputs), T2-02 (Stokes) and T2-03 (covariance). real_scene_check: the T2-07 polsartools oracle check on one real UAVSAR scene (PRD 12); G1 is not PASS until it has passed. Read by 'python -m terraluna_pipeline.polarimetry record-g1'.",
+  "fixtures": {
+    "F1": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_F1_minirf_zero_cpr_is_valid_not_missing",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_derive_circular_gives_a_valid_zero_cpr",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_to_F5_derive_circular_on_an_array_equals_circular_from_stokes"
+    ],
+    "F2": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_F2_minirf_unit_cpr",
+      "pipeline/tests/test_polarimetry_derive.py::test_F2_derive_circular_gives_unit_cpr",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_to_F5_derive_circular_on_an_array_equals_circular_from_stokes"
+    ],
+    "F3": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_F3_valid_cpr_above_the_old_bound_is_not_truncated",
+      "pipeline/tests/test_polarimetry_derive.py::test_F3_derive_circular_keeps_cpr_above_the_old_bound",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_to_F5_derive_circular_on_an_array_equals_circular_from_stokes"
+    ],
+    "F4": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_F4_invalid_stokes_pair_publishes_no_ratio",
+      "pipeline/tests/test_polarimetry_derive.py::test_F4_derive_circular_publishes_nothing_for_an_invalid_stokes_pair",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_to_F5_derive_circular_on_an_array_equals_circular_from_stokes"
+    ],
+    "F5": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_F5_zero_opposite_sense_power_leaves_cpr_unavailable",
+      "pipeline/tests/test_polarimetry_derive.py::test_F5_derive_circular_gives_no_ratio_for_zero_oc",
+      "pipeline/tests/test_polarimetry_derive.py::test_F1_to_F5_derive_circular_on_an_array_equals_circular_from_stokes"
+    ],
+    "F6": [
+      "pipeline/tests/test_polarimetry_covariance.py::test_F6_fixture_is_a_rank_one_hermitian_psd_covariance",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F6_full_covariance_handedness",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F6_matches_both_oracles",
+      "pipeline/tests/test_polarimetry_derive.py::test_F6_derive_circular_full_covariance_handedness",
+      "pipeline/tests/test_polarimetry_mchi.py::test_F6_hybrid_stokes_reproduce_story_3_sc_ll_and_oc",
+      "pipeline/tests/test_polarimetry_mchi.py::test_F6_opposite_ellipticity_gives_sc_opp",
+      "pipeline/tests/test_polarimetry_mchi.py::test_F6_matches_the_jones_oracle"
+    ],
+    "F7": [
+      "pipeline/tests/test_polarimetry_covariance.py::test_F7_fixtures_are_hermitian_psd_with_the_prd_eigenvalues",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F7_matches_both_oracles",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F7_same_hh_and_hv_powers_give_different_cpr",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F7_two_channel_data_cannot_determine_cpr",
+      "pipeline/tests/test_polarimetry_covariance.py::test_F7_has_no_handedness_term",
+      "pipeline/tests/test_polarimetry_derive.py::test_F7_derive_circular_two_channel_data_cannot_determine_cpr"
+    ],
+    "F8": [
+      "pipeline/tests/test_polarimetry_decode.py::test_F8_palsar_amplitude_to_db",
+      "pipeline/tests/test_polarimetry_decode.py::test_F8_palsar_amplitude_to_linear"
+    ],
+    "F9": [
+      "pipeline/tests/test_polarimetry_decode.py::test_F9_palsar_power_ratio"
+    ],
+    "F10": [
+      "pipeline/tests/test_polarimetry_decode.py::test_F10_radians_to_degrees"
+    ]
+  },
+  "invalid_data": {
+    "T2-01": [
+      "pipeline/tests/test_polarimetry_decode.py::test_obs_state_has_exactly_three_distinct_states",
+      "pipeline/tests/test_polarimetry_decode.py::test_no_state_is_encoded_as_zero",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_rejects_nan_for_a_valid_element",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_rejects_zero_for_a_missing_element",
+      "pipeline/tests/test_polarimetry_decode.py::test_stated_array_rejects_a_finite_number_for_an_invalid_element",
+      "pipeline/tests/test_polarimetry_decode.py::test_zero_dn_is_invalid_and_never_minus_infinity",
+      "pipeline/tests/test_polarimetry_decode.py::test_declared_nodata_is_missing",
+      "pipeline/tests/test_polarimetry_decode.py::test_nonfinite_dn_is_invalid",
+      "pipeline/tests/test_polarimetry_decode.py::test_negative_dn_is_invalid",
+      "pipeline/tests/test_polarimetry_decode.py::test_decode_array_keeps_states_apart",
+      "pipeline/tests/test_polarimetry_decode.py::test_decode_rejects_non_real_input",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_zero_hh_is_an_invalid_denominator",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_nodata_hh_is_an_invalid_denominator_and_missing",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_noise_dominated_hh_is_an_invalid_denominator",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_adds_no_epsilon",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_invalid_numerator",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_reports_the_denominator_first",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_array_with_noise_masks",
+      "pipeline/tests/test_polarimetry_decode.py::test_units_are_not_inferred_from_magnitude",
+      "pipeline/tests/test_polarimetry_decode.py::test_undeclared_or_unknown_angle_unit_raises",
+      "pipeline/tests/test_polarimetry_decode.py::test_angle_array_marks_nonfinite_values",
+      "pipeline/tests/test_polarimetry_decode.py::test_dn_whose_power_is_out_of_float64_range_is_invalid",
+      "pipeline/tests/test_polarimetry_decode.py::test_out_of_range_dn_fails_only_its_own_element",
+      "pipeline/tests/test_polarimetry_decode.py::test_x_power_out_of_float64_range_is_invalid",
+      "pipeline/tests/test_polarimetry_decode.py::test_angle_whose_degrees_overflow_is_invalid",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_input_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_input_is_refused_even_with_nothing_masked",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_array_inside_a_sequence_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_constant_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_masked_array_nested_at_any_depth_is_refused",
+      "pipeline/tests/test_polarimetry_decode.py::test_containers_that_could_hide_a_mask_are_refused"
+    ],
+    "T2-02": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_total_power_is_kept_where_cpr_is_unavailable",
+      "pipeline/tests/test_polarimetry_stokes.py::test_total_power_below_the_smallest_normal_float64_is_out_of_range",
+      "pipeline/tests/test_polarimetry_stokes.py::test_high_cpr_is_never_truncated",
+      "pipeline/tests/test_polarimetry_stokes.py::test_near_zero_oc_gets_no_epsilon",
+      "pipeline/tests/test_polarimetry_stokes.py::test_powers_below_the_smallest_normal_float64_are_out_of_range",
+      "pipeline/tests/test_polarimetry_stokes.py::test_positive_oc_that_underflows_is_out_of_range_not_nonpositive",
+      "pipeline/tests/test_polarimetry_stokes.py::test_undeclared_or_unknown_convention_raises",
+      "pipeline/tests/test_polarimetry_stokes.py::test_opposite_sign_convention_is_refused_not_reinterpreted",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s4_above_s1_within_tolerance_is_accepted_and_not_clipped",
+      "pipeline/tests/test_polarimetry_stokes.py::test_negative_sc_within_tolerance_never_gives_a_negative_cpr",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s4_above_s1_beyond_tolerance_is_invalid",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s4_below_minus_s1_within_tolerance_gives_nonpositive_oc",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s4_below_minus_s1_beyond_tolerance_is_invalid",
+      "pipeline/tests/test_polarimetry_stokes.py::test_negative_s1_beyond_tolerance_is_invalid",
+      "pipeline/tests/test_polarimetry_stokes.py::test_opposite_extremes_are_invalid_without_overflow_passing_them",
+      "pipeline/tests/test_polarimetry_stokes.py::test_full_stokes_beyond_the_polarization_bound_is_nonphysical",
+      "pipeline/tests/test_polarimetry_stokes.py::test_s1_below_abs_s4_is_reported_before_the_full_bound",
+      "pipeline/tests/test_polarimetry_stokes.py::test_squared_excess_beyond_the_tolerance_is_nonphysical",
+      "pipeline/tests/test_polarimetry_stokes.py::test_nonfinite_input_is_invalid",
+      "pipeline/tests/test_polarimetry_stokes.py::test_product_masked_pixel_is_missing",
+      "pipeline/tests/test_polarimetry_stokes.py::test_product_mask_wins_over_every_other_rule",
+      "pipeline/tests/test_polarimetry_stokes.py::test_no_snr_rule_is_hard_coded",
+      "pipeline/tests/test_polarimetry_stokes.py::test_non_real_stokes_are_refused",
+      "pipeline/tests/test_polarimetry_stokes.py::test_array_mixing_fixtures_nan_and_mask",
+      "pipeline/tests/test_polarimetry_stokes.py::test_record_refuses_a_valid_cpr_without_valid_powers",
+      "pipeline/tests/test_polarimetry_stokes.py::test_masked_input_is_refused",
+      "pipeline/tests/test_polarimetry_stokes.py::test_masked_array_nested_in_a_list_is_refused",
+      "pipeline/tests/test_polarimetry_stokes.py::test_any_finite_stokes_pair_gives_a_published_state"
+    ],
+    "T2-03": [
+      "pipeline/tests/test_polarimetry_covariance.py::test_unknown_or_missing_convention_raises_and_returns_nothing",
+      "pipeline/tests/test_polarimetry_covariance.py::test_unknown_or_missing_ordering_raises_and_returns_nothing",
+      "pipeline/tests/test_polarimetry_covariance.py::test_record_refuses_a_valid_cpr_without_valid_powers",
+      "pipeline/tests/test_polarimetry_covariance.py::test_record_refuses_a_valid_ratio_without_a_positive_base_sc",
+      "pipeline/tests/test_polarimetry_covariance.py::test_nonphysical_covariance_is_invalid_with_its_cause",
+      "pipeline/tests/test_polarimetry_covariance.py::test_nonfinite_covariance_is_invalid",
+      "pipeline/tests/test_polarimetry_covariance.py::test_each_invalid_case_has_a_distinct_cause",
+      "pipeline/tests/test_polarimetry_covariance.py::test_rules_apply_in_order_and_the_product_mask_wins",
+      "pipeline/tests/test_polarimetry_covariance.py::test_hermitian_mismatch_beyond_the_tolerance_is_refused",
+      "pipeline/tests/test_polarimetry_covariance.py::test_negative_eigenvalue_within_the_tolerance_is_not_clipped",
+      "pipeline/tests/test_polarimetry_covariance.py::test_negative_eigenvalue_beyond_the_tolerance_is_not_psd",
+      "pipeline/tests/test_polarimetry_covariance.py::test_negative_diagonal_beyond_the_tolerance_is_its_own_cause",
+      "pipeline/tests/test_polarimetry_covariance.py::test_zero_oc_leaves_cpr_unavailable_without_an_epsilon",
+      "pipeline/tests/test_polarimetry_covariance.py::test_near_zero_oc_gets_no_epsilon",
+      "pipeline/tests/test_polarimetry_covariance.py::test_high_cpr_is_never_truncated",
+      "pipeline/tests/test_polarimetry_covariance.py::test_non_numeric_covariances_are_refused",
+      "pipeline/tests/test_polarimetry_covariance.py::test_masked_covariance_or_mask_is_refused",
+      "pipeline/tests/test_polarimetry_covariance.py::test_powers_beyond_the_float64_range_are_out_of_range_per_pixel",
+      "pipeline/tests/test_polarimetry_covariance.py::test_powers_below_the_smallest_normal_float64_are_out_of_range",
+      "pipeline/tests/test_polarimetry_covariance.py::test_parts_float64_cannot_hold_at_one_scale_publish_nothing",
+      "pipeline/tests/test_polarimetry_covariance.py::test_cancelling_powers_are_published_right_or_not_at_all",
+      "pipeline/tests/test_polarimetry_covariance.py::test_any_finite_hermitian_matrix_gives_a_state_for_every_field"
+    ]
+  },
+  "real_scene_check": [
+    "pipeline/tests/test_polarimetry_oracle.py::test_real_scene_matches_polsartools"
+  ]
+}
