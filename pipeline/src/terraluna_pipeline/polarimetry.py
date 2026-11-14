@@ -695,6 +695,34 @@ def _stokes_array(
     return array
 
 
+def _beyond_squared_bound(
+    s1: npt.NDArray[np.float64],
+    s2: npt.NDArray[np.float64],
+    s3: npt.NDArray[np.float64],
+    s4: npt.NDArray[np.float64],
+    tolerance: Tolerance,
+) -> npt.NDArray[np.bool_]:
+    """Return where ``S2**2 + S3**2 + S4**2 - S1**2 > atol + rtol * S1**2``.
+
+    The tolerance applies to the squared inequality itself, so ``atol`` is in squared power
+    units here. Each pixel's four parameters are first scaled by one power of two that brings
+    the largest magnitude into [0.5, 1), and ``atol`` by its square. The scaling is exact, so
+    no square overflows or underflows enough to change the outcome. Where the scaled ``atol``
+    overflows to infinity, all four squares are far below ``atol``, so the exact bound holds and
+    the infinite allowance gives the same answer. An all-zero pixel holds the bound. Elements
+    with non-finite input give an arbitrary answer; callers classify them first.
+    """
+    with np.errstate(over="ignore", under="ignore", invalid="ignore"):
+        largest = np.maximum(np.maximum(np.abs(s1), np.abs(s2)), np.maximum(np.abs(s3), np.abs(s4)))
+        _, exponent = np.frexp(largest)
+        p1, p2, p3, p4 = (np.ldexp(stokes, -exponent) for stokes in (s1, s2, s3, s4))
+        total = p1 * p1
+        polarized = p2 * p2 + p3 * p3 + p4 * p4
+        allowed = np.ldexp(tolerance.atol, -2 * exponent) + tolerance.rtol * total
+        beyond: npt.NDArray[np.bool_] = polarized - total > allowed
+    return beyond
+
+
 def circular_from_stokes(
     s1: npt.ArrayLike,
     s4: npt.ArrayLike,
@@ -738,10 +766,11 @@ def circular_from_stokes(
     2. Any given Stokes parameter is NaN or infinite: ``INVALID``, ``NONFINITE``.
     3. ``|S4| - S1 > atol + rtol * |S1|``, that is S1 >= |S4| fails beyond the tolerance:
        ``INVALID``, ``STOKES_S1_LT_ABS_S4``.
-    4. With S2 and S3: ``sqrt(S2**2 + S3**2 + S4**2) - S1 > atol + rtol * |S1|``, which is
-       S1**2 >= S2**2 + S3**2 + S4**2 for S1 >= 0 with the tolerance in the units of S1 as in
-       rule 3, evaluated on halved inputs so no square overflows: ``INVALID``,
-       ``STOKES_NONPHYSICAL``.
+    4. With S2 and S3: ``S2**2 + S3**2 + S4**2 - S1**2 > atol + rtol * S1**2``, that is
+       S1**2 >= S2**2 + S3**2 + S4**2 fails beyond the same tolerance, applied to the squared
+       inequality, so ``atol`` is in squared power units here: ``INVALID``,
+       ``STOKES_NONPHYSICAL``. It is evaluated after scaling each pixel's four parameters by
+       one exact power of two, so no square overflows or underflows to change the outcome.
 
     Then total power (S1), SC and OC each: ``INVALID`` with ``FLOAT64_OUT_OF_RANGE`` where the
     exact power is not zero but its float64 magnitude is below the smallest normal float64. An
@@ -794,10 +823,10 @@ def circular_from_stokes(
         excess = np.abs(s4_values) - s1_values
         base.mark(excess > allowed, ObsState.INVALID, InvalidReason.STOKES_S1_LT_ABS_S4)
         if others is not None:
-            half_norm = np.hypot(np.hypot(0.5 * others[0], 0.5 * others[1]), 0.5 * s4_values)
-            half_excess = half_norm - 0.5 * s1_values
             base.mark(
-                half_excess > 0.5 * allowed, ObsState.INVALID, InvalidReason.STOKES_NONPHYSICAL
+                _beyond_squared_bound(s1_values, others[0], others[1], s4_values, tolerance),
+                ObsState.INVALID,
+                InvalidReason.STOKES_NONPHYSICAL,
             )
 
     valid = base.valid
