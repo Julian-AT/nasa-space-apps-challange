@@ -12,12 +12,18 @@ these functions, so they never guess a value:
 - ``fetch_range`` and ``fetch_file`` are the only functions here that use the network. They send
   no project or personal identifiers and refuse URLs with credentials or signatures.
   ``fetch_range`` sends a Range header; ``fetch_file`` downloads one whole file below a size limit.
+  ``read_remote_geotiff_window`` reads one window of a remote GeoTIFF through GDAL and uses the
+  network only through its ``fetch`` argument (``fetch_range`` by default), so only the byte
+  ranges GDAL needs are transferred. ``ByteRanges`` keeps those bytes so the window can be
+  decoded again offline.
 """
 
 from __future__ import annotations
 
+import bisect
 import hashlib
 import http.client
+import io
 import os
 import re
 import tempfile
@@ -25,15 +31,16 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import warnings
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import IO, Any, Required, TypedDict
+from typing import IO, Any, Final, Protocol, Required, TypedDict
 
 import numpy as np
 import numpy.typing as npt
 import rasterio  # type: ignore[import-untyped]
 from affine import Affine
+from rasterio.abc import FileContainer  # type: ignore[import-untyped]
 from rasterio.errors import NotGeoreferencedWarning  # type: ignore[import-untyped]
 from rasterio.windows import Window  # type: ignore[import-untyped]
 
@@ -89,15 +96,41 @@ def _whole_pixels(window: Window) -> tuple[int, int, int, int]:
     return col_off, row_off, width, height
 
 
-def read_geotiff_window(path: Path, window: Window | None = None, *, band: int = 1) -> RasterWindow:
+def read_geotiff_window(
+    path: Path,
+    window: Window | None = None,
+    *,
+    band: int = 1,
+    ranges: ByteRanges | None = None,
+) -> RasterWindow:
     """Read ``band`` (1-based) of ``window``, or of the whole raster when ``window`` is None.
 
     Raises ValueError for a band the file does not have, and for a window that is empty, has
-    fractional offsets or sizes, or does not lie wholly inside the raster.
+    fractional offsets or sizes, or does not lie wholly inside the raster. When ``ranges`` is
+    given, the GeoTIFF is decoded from those stored byte ranges (opened as ``ranges.name``) and
+    ``path`` is only used in messages; RangeCacheError is raised, never a zero-filled array, if
+    GDAL needs a byte they do not hold.
     """
+    if ranges is None:
+        return _read_window(path, str(path), window, band, None)
+    errors: list[Exception] = []
+    container = _SingleFileContainer(ranges.name, ranges.size, ranges.read, errors)
+    return _surface_errors(
+        errors, lambda: _read_window(ranges.name, str(path), window, band, container)
+    )
+
+
+def _read_window(
+    target: Path | str,
+    label: str,
+    window: Window | None,
+    band: int,
+    opener: FileContainer | None,
+) -> RasterWindow:
+    path = label
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
-        with rasterio.open(path) as src:
+        with rasterio.open(target, opener=opener) as src:
             if not 1 <= band <= src.count:
                 raise ValueError(f"{path} has bands 1 to {src.count}, not band {band}")
             if window is None:
@@ -159,11 +192,35 @@ def read_geotiff_window(path: Path, window: Window | None = None, *, band: int =
     )
 
 
-def _band_count(path: Path) -> int:
+def _band_count(path: Path, ranges: ByteRanges | None = None) -> int:
+    if ranges is not None:
+        errors: list[Exception] = []
+        container = _SingleFileContainer(ranges.name, ranges.size, ranges.read, errors)
+        return _surface_errors(errors, lambda: _band_count_of(ranges.name, container))
+    return _band_count_of(path, None)
+
+
+def _band_count_of(target: Path | str, opener: FileContainer | None) -> int:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", NotGeoreferencedWarning)
-        with rasterio.open(path) as src:
+        with rasterio.open(target, opener=opener) as src:
             return int(src.count)
+
+
+def read_geotiff_tags(path: Path, *, ranges: ByteRanges | None = None) -> dict[str, str]:
+    """The default-domain dataset tags of a GeoTIFF as stated, read from ``ranges`` if given."""
+
+    def read(target: Path | str, opener: FileContainer | None) -> dict[str, str]:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", NotGeoreferencedWarning)
+            with rasterio.open(target, opener=opener) as src:
+                return {str(key): str(value) for key, value in src.tags().items()}
+
+    if ranges is None:
+        return read(path, None)
+    errors: list[Exception] = []
+    container = _SingleFileContainer(ranges.name, ranges.size, ranges.read, errors)
+    return _surface_errors(errors, lambda: read(ranges.name, container))
 
 
 # --- read_product (PRD 8.11) --------------------------------------------------------------------
@@ -280,6 +337,7 @@ def read_product(
     *,
     root: Path | None = None,
     window: Window | None = None,
+    ranges: ByteRanges | None = None,
 ) -> tuple[tuple[RasterWindow, ...], ProductRecord]:
     """Read every band of one GeoTIFF and describe it with a ProductRecord (PRD 8.11).
 
@@ -296,6 +354,11 @@ def read_product(
 
     The record is PARTIAL: this function decodes the file but does not mask or plot it, which the
     PRD 5 entry rule also requires before a product is VERIFIED.
+
+    When ``ranges`` is given, ``local_files[0]`` is the local file that holds exactly
+    ``ranges.data`` (a ValueError names the file if its SHA-256 differs) and the bands, band
+    count included, are decoded from ``ranges``. The checksum is then that of the byte ranges
+    held locally, not of the whole remote file.
     """
     files = list(local_files)
     if len(files) != 1:
@@ -306,15 +369,21 @@ def read_product(
     _check_metadata(metadata)
     path = Path(files[0])
     local_path = _local_path(path, Path.cwd() if root is None else root)
+    checksum = sha256_file(path)
+    if ranges is not None and checksum != hashlib.sha256(ranges.data).hexdigest():
+        raise ValueError(
+            f"{path} does not hold exactly the bytes of the byte ranges for {ranges.name}"
+        )
     bands = tuple(
-        read_geotiff_window(path, window, band=band) for band in range(1, _band_count(path) + 1)
+        read_geotiff_window(path, window, band=band, ranges=ranges)
+        for band in range(1, _band_count(path, ranges) + 1)
     )
     fields: dict[str, Any] = {name: metadata.get(name, UNKNOWN) for name in _UNKNOWN_BY_DEFAULT}
     fields.update(
         product_id=product_id,
         source_url=metadata.get("source_url"),
         local_path=local_path,
-        checksum=sha256_file(path),
+        checksum=checksum,
         body=metadata["body"],
         units=_units(metadata, bands),
         native_grid=_native_grid(bands[0]),
@@ -342,7 +411,8 @@ class RangeResponse:
     ``requested_first`` and ``requested_last`` are the inclusive range asked for, and
     ``first_byte`` and ``last_byte`` the range the server's Content-Range states; the last byte
     is smaller only when the file ends first. ``total_size`` is None when the server gives ``*``.
-    ``final_url`` differs from ``url`` after a redirect.
+    ``final_url`` differs from ``url`` after a redirect. ``content_type``, ``last_modified`` and
+    ``etag`` are the response headers as sent, None if absent.
     """
 
     url: str
@@ -356,6 +426,9 @@ class RangeResponse:
     total_size: int | None
     bytes_received: int
     data: bytes = field(repr=False)
+    content_type: str | None = None
+    last_modified: str | None = None
+    etag: str | None = None
 
 
 _CONTENT_RANGE = re.compile(r"bytes ([0-9]+)-([0-9]+)/([0-9]+|\*)")
@@ -429,6 +502,9 @@ def fetch_range(url: str, first: int, last: int, *, timeout: float = 60.0) -> Ra
     with response:
         status = response.status
         final_url = response.geturl()
+        content_type = response.headers.get("Content-Type")
+        last_modified = response.headers.get("Last-Modified")
+        etag = response.headers.get("ETag")
         if status == 200:
             raise RangeNotSupportedError(
                 f"{url}: the server ignored the Range header and answered HTTP 200 with the "
@@ -482,6 +558,9 @@ def fetch_range(url: str, first: int, last: int, *, timeout: float = 60.0) -> Ra
         total_size=total_size,
         bytes_received=len(data),
         data=data,
+        content_type=content_type,
+        last_modified=last_modified,
+        etag=etag,
     )
 
 
@@ -648,3 +727,411 @@ def fetch_file(
         sha256=digest.hexdigest(),
         path=dest,
     )
+
+
+# --- Stored byte ranges and windowed reads of a remote GeoTIFF ----------------------------------
+
+RANGE_BLOCK_BYTES: Final = 1 << 18
+"""The aligned block size, in bytes, of a remote windowed read."""
+
+
+class RangeFetcher(Protocol):
+    """One HTTP range request; ``fetch_range`` satisfies it."""
+
+    def __call__(self, url: str, first: int, last: int) -> RangeResponse: ...
+
+
+class RangeCacheError(ValueError):
+    """A decode asked for bytes that the stored byte ranges do not hold."""
+
+
+@dataclass(frozen=True)
+class ByteRanges:
+    """The bytes of one remote file that were actually read, with where they sit in the file.
+
+    ``name`` is the file name GDAL sees (a plain name, no ``/``) and ``size`` the remote file's
+    size. ``ranges`` are inclusive ``(first, last)`` byte positions, sorted, disjoint and not
+    adjacent (adjacent blocks are merged), each ending inside the file. ``data`` is the bytes of
+    every range concatenated in order. A byte outside the ranges is unknown, never zero.
+    """
+
+    name: str
+    size: int
+    ranges: tuple[tuple[int, int], ...]
+    data: bytes = field(repr=False)
+    _starts: tuple[int, ...] = field(init=False, repr=False, compare=False)
+    _offsets: tuple[int, ...] = field(init=False, repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        if not self.name or "/" in self.name or "\\" in self.name or self.name in (".", ".."):
+            raise ValueError(
+                f"ByteRanges name must be a plain, non-empty file name, got {self.name!r}"
+            )
+        if self.size <= 0:
+            raise ValueError(f"ByteRanges size must be positive, got {self.size}")
+        if not self.ranges:
+            raise ValueError("ByteRanges needs at least one range")
+        previous_last = -2
+        offsets: list[int] = []
+        total = 0
+        for first, last in self.ranges:
+            if first < 0 or last < first:
+                raise ValueError(f"invalid byte range {first}-{last}: need 0 <= first <= last")
+            if last >= self.size:
+                raise ValueError(f"byte range {first}-{last} ends past the {self.size}-byte file")
+            if first <= previous_last:
+                raise ValueError(
+                    f"byte range {first}-{last} is unsorted or overlaps the one before"
+                )
+            if first == previous_last + 1:
+                raise ValueError(
+                    f"byte range {first}-{last} is adjacent to the one before; merge them"
+                )
+            previous_last = last
+            offsets.append(total)
+            total += last - first + 1
+        if len(self.data) != total:
+            raise ValueError(f"data holds {len(self.data)} bytes, but the ranges cover {total}")
+        object.__setattr__(self, "_starts", tuple(first for first, _ in self.ranges))
+        object.__setattr__(self, "_offsets", tuple(offsets))
+
+    def read(self, offset: int, length: int) -> bytes:
+        """The bytes ``[offset, offset + length)`` clipped to the file size, like a file read.
+
+        At or after the end of the file this is ``b""``. RangeCacheError names the first missing
+        byte span, and the file, if a requested byte below ``size`` is not held.
+        """
+        if offset < 0 or length < 0:
+            raise ValueError(f"invalid read of {length} bytes at offset {offset}")
+        end = min(offset + length, self.size)
+        parts: list[bytes] = []
+        position = offset
+        while position < end:
+            index = bisect.bisect_right(self._starts, position) - 1
+            if index >= 0 and self.ranges[index][1] >= position:
+                first, last = self.ranges[index]
+                stop = min(last + 1, end)
+                start_in_data = self._offsets[index] + position - first
+                parts.append(self.data[start_in_data : start_in_data + stop - position])
+                position = stop
+                continue
+            following = self._starts[index + 1] if index + 1 < len(self._starts) else self.size
+            missing_last = min(following, end) - 1
+            raise RangeCacheError(
+                f"bytes {position}-{missing_last} of {self.name} are not held in the stored byte "
+                "ranges, so they cannot be decoded; they were not read from the remote file"
+            )
+        return b"".join(parts)
+
+
+def _surface_errors[T](errors: list[Exception], call: Callable[[], T]) -> T:
+    """Run ``call``; an error stored by a GDAL read callback is raised in place of anything else.
+
+    rasterio calls the file's ``read`` from C code, which cannot propagate an exception, so the
+    reader stores it and returns no bytes. It is raised here, after rasterio returns or fails.
+    """
+    try:
+        result = call()
+    except Exception as error:
+        if errors:
+            raise errors[0] from error
+        raise
+    if errors:
+        raise errors[0]
+    return result
+
+
+class _RangeFile(io.RawIOBase):
+    """A read-only file whose bytes come from ``reader``; ``read`` never raises."""
+
+    def __init__(
+        self,
+        size: int,
+        reader: Callable[[int, int], bytes],
+        errors: list[Exception],
+    ) -> None:
+        super().__init__()
+        self._size = size
+        self._reader = reader
+        self._errors = errors
+        self._position = 0
+
+    def readable(self) -> bool:
+        return True
+
+    def seekable(self) -> bool:
+        return True
+
+    def tell(self) -> int:
+        return self._position
+
+    def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
+        base = {os.SEEK_SET: 0, os.SEEK_CUR: self._position, os.SEEK_END: self._size}.get(whence)
+        if base is None:
+            raise ValueError(f"invalid whence {whence}")
+        self._position = max(0, base + offset)
+        return self._position
+
+    def read(self, size: int = -1) -> bytes:
+        try:
+            length = self._size - self._position if size < 0 else size
+            data = self._reader(self._position, max(length, 0))
+        except Exception as error:  # GDAL calls this from C, which cannot propagate it.
+            self._errors.append(error)
+            return b""
+        self._position += len(data)
+        return data
+
+
+class _SingleFileContainer(FileContainer):  # type: ignore[misc]
+    """A rasterio opener that serves exactly one read-only file and nothing else."""
+
+    def __init__(
+        self,
+        name: str,
+        size: int,
+        reader: Callable[[int, int], bytes],
+        errors: list[Exception],
+    ) -> None:
+        self._name = name
+        self._size = size
+        self._reader = reader
+        self._errors = errors
+
+    def _check(self, path: str) -> None:
+        if path != self._name:
+            raise FileNotFoundError(path)
+
+    def open(self, path: str, mode: str = "r", **kwds: Any) -> _RangeFile:
+        self._check(path)
+        if "w" in mode or "a" in mode or "+" in mode:
+            raise PermissionError(f"{path} is read-only")
+        return _RangeFile(self._size, self._reader, self._errors)
+
+    def isfile(self, path: str) -> bool:
+        return path == self._name
+
+    def isdir(self, path: str) -> bool:
+        return False
+
+    def ls(self, path: str) -> list[str]:
+        return []
+
+    def mtime(self, path: str) -> int:
+        self._check(path)
+        return 0
+
+    def rm(self, path: str) -> None:
+        raise PermissionError(f"{path} is read-only")
+
+    def size(self, path: str) -> int:
+        self._check(path)
+        return self._size
+
+
+class _BlockCache:
+    """Aligned blocks of one remote file, each contiguous run of missing blocks fetched once."""
+
+    def __init__(self, url: str, fetch: RangeFetcher, block_bytes: int, max_bytes: int) -> None:
+        self.url = url
+        self._fetch = fetch
+        self._block = block_bytes
+        self._max_bytes = max_bytes
+        self.blocks: dict[int, bytes] = {}
+        self.first: RangeResponse | None = None
+        self.size: int | None = None
+        self.requests = 0
+        self.bytes_received = 0
+
+    def _request(self, first_block: int, last_block: int) -> None:
+        first = first_block * self._block
+        last = (last_block + 1) * self._block - 1
+        expected = last - first + 1 if self.size is None else min(last, self.size - 1) - first + 1
+        if self.bytes_received + expected >= self._max_bytes:
+            raise RangeReadError(
+                f"{self.url}: reading bytes {first}-{last} would bring the bytes received to "
+                f"{self.bytes_received + expected}, at or over the limit of {self._max_bytes}; a "
+                "windowed read never downloads the file whole"
+            )
+        response = self._fetch(self.url, first, last)
+        self.requests += 1
+        self.bytes_received += response.bytes_received
+        if response.total_size is None:
+            raise RangeReadError(f"{self.url}: the server does not state the file size")
+        if self.first is None:
+            self.first, self.size = response, response.total_size
+        else:
+            changed = (
+                response.total_size != self.size
+                or (self.first.etag is not None and response.etag != self.first.etag)
+                or (
+                    self.first.last_modified is not None
+                    and response.last_modified != self.first.last_modified
+                )
+            )
+            if changed:
+                raise RangeReadError(f"{self.url}: the file changed while it was read")
+        end = min(last, response.total_size - 1)
+        if response.first_byte != first or response.last_byte != end:
+            raise RangeReadError(
+                f"{self.url}: asked for bytes {first}-{end} but received "
+                f"{response.first_byte}-{response.last_byte}"
+            )
+        for index in range(first_block, last_block + 1):
+            start = index * self._block
+            if start > end:
+                break
+            self.blocks[index] = response.data[start - first : start - first + self._block]
+
+    def read(self, offset: int, length: int) -> bytes:
+        if self.size is None:
+            self._request(0, 0)
+        assert self.size is not None
+        end = min(offset + length, self.size)
+        if offset >= end:
+            return b""
+        first_block, last_block = offset // self._block, (end - 1) // self._block
+        run_start: int | None = None
+        for index in range(first_block, last_block + 2):
+            missing = index <= last_block and index not in self.blocks
+            if missing and run_start is None:
+                run_start = index
+            elif not missing and run_start is not None:
+                self._request(run_start, index - 1)
+                run_start = None
+        data = b"".join(self.blocks[index] for index in range(first_block, last_block + 1))
+        start = offset - first_block * self._block
+        return data[start : start + end - offset]
+
+    def byte_ranges(self, name: str) -> ByteRanges:
+        assert self.size is not None
+        runs: list[list[int]] = []
+        for index in sorted(self.blocks):
+            if runs and runs[-1][1] == index - 1:
+                runs[-1][1] = index
+            else:
+                runs.append([index, index])
+        ranges = tuple(
+            (a * self._block, min((b + 1) * self._block, self.size) - 1) for a, b in runs
+        )
+        data = b"".join(self.blocks[index] for index in sorted(self.blocks))
+        return ByteRanges(name=name, size=self.size, ranges=ranges, data=data)
+
+
+@dataclass(frozen=True)
+class RemoteWindow:
+    """One window of a remote GeoTIFF, with the evidence of how it was read.
+
+    ``status``, ``final_url``, ``content_type``, ``last_modified`` and ``etag`` come from the
+    first range response. ``requests`` is the number of range requests sent and
+    ``bytes_received`` the bytes they returned, which equals ``len(ranges.data)``. ``window`` is
+    ``(col_off, row_off, width, height)``. ``band`` is the window as decoded.
+    """
+
+    url: str
+    final_url: str
+    status: int
+    content_type: str | None
+    last_modified: str | None
+    etag: str | None
+    requests: int
+    bytes_received: int
+    ranges: ByteRanges
+    window: tuple[int, int, int, int]
+    raster_width: int
+    raster_height: int
+    band: RasterWindow = field(repr=False, compare=False)
+
+
+def _same_decode(a: RasterWindow, b: RasterWindow) -> bool:
+    def same_number(x: float | None, y: float | None) -> bool:
+        if x is None or y is None:
+            return x is y
+        return x == y or (np.isnan(x) and np.isnan(y))
+
+    floating = a.array.dtype.kind in "fc"
+    return (
+        a.array.dtype == b.array.dtype
+        and a.array.shape == b.array.shape
+        and bool(np.array_equal(a.array, b.array, equal_nan=floating))
+        and same_number(a.nodata, b.nodata)
+        and a.crs == b.crs
+        and a.transform == b.transform
+    )
+
+
+def read_remote_geotiff_window(
+    url: str,
+    choose_window: Callable[[int, int], Window],
+    *,
+    band: int = 1,
+    fetch: RangeFetcher = fetch_range,
+    block_bytes: int = RANGE_BLOCK_BYTES,
+    max_bytes: int = WHOLE_FILE_LIMIT_BYTES,
+) -> RemoteWindow:
+    """Read ``band`` of one window of a remote GeoTIFF; GDAL's reads are served by range requests.
+
+    ``choose_window(width, height)`` picks the window once the raster size is known. GDAL reads
+    through an in-memory cache of aligned ``block_bytes`` blocks; each contiguous run of missing
+    blocks is one ``fetch(url, first, last)`` call, the first being block 0, whose Content-Range
+    must state the file size. Every response must state the same size, and the same ETag and
+    Last-Modified as the first, or the read fails with RangeReadError ("the file changed while it
+    was read"). A request that would bring the bytes received to ``max_bytes`` is not sent, so a
+    windowed read never downloads the file whole. Errors from ``fetch`` propagate unchanged.
+
+    The window is then decoded again from the fetched bytes alone (``ByteRanges``); any difference
+    in values, dtype, nodata, CRS or transform raises RangeReadError. Raises ValueError, before
+    any request, for a non-http(s) URL, one with credentials or a signature, ``block_bytes`` or
+    ``max_bytes`` <= 0, or a URL whose last path segment is not a plain file name.
+    """
+    _check_public_http_url(url, "read_remote_geotiff_window")
+    if block_bytes <= 0:
+        raise ValueError(f"block_bytes must be positive, got {block_bytes}")
+    if max_bytes <= 0:
+        raise ValueError(f"max_bytes must be positive, got {max_bytes}")
+    name = urllib.parse.unquote(urllib.parse.urlsplit(url).path.rsplit("/", 1)[-1])
+    if not name or "/" in name or "\\" in name or name in (".", ".."):
+        raise ValueError(f"{url} does not end in a plain file name that GDAL can open")
+
+    cache = _BlockCache(url, fetch, block_bytes, max_bytes)
+    errors: list[Exception] = []
+    cache.read(0, 1)  # block 0 first: it states the file size, which GDAL asks for at once
+    assert cache.size is not None and cache.first is not None
+    container = _SingleFileContainer(name, cache.size, cache.read, errors)
+
+    def read() -> RasterWindow:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", NotGeoreferencedWarning)
+            with rasterio.open(name, opener=container) as src:
+                width, height = int(src.width), int(src.height)
+        return _read_window(name, url, choose_window(width, height), band, container)
+
+    decoded = _surface_errors(errors, read)
+    ranges = cache.byte_ranges(name)
+    again = read_geotiff_window(Path(url), Window(*_window_of(decoded)), band=band, ranges=ranges)
+    if not _same_decode(decoded, again):
+        raise RangeReadError(
+            f"{url}: decoding the window again from the stored byte ranges gave a different "
+            "result; the byte ranges are not a faithful copy of what GDAL read"
+        )
+    first = cache.first
+    return RemoteWindow(
+        url=url,
+        final_url=first.final_url,
+        status=first.status,
+        content_type=first.content_type,
+        last_modified=first.last_modified,
+        etag=first.etag,
+        requests=cache.requests,
+        bytes_received=cache.bytes_received,
+        ranges=ranges,
+        window=_window_of(decoded),
+        raster_width=decoded.raster_width,
+        raster_height=decoded.raster_height,
+        band=decoded,
+    )
+
+
+def _window_of(window: RasterWindow) -> tuple[int, int, int, int]:
+    height, width = window.array.shape
+    return window.col_off, window.row_off, int(width), int(height)
