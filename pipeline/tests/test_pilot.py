@@ -370,6 +370,8 @@ def test_fetch_uses_whole_file_limit_and_magic_and_skips_clones_points_and_mosai
     assert set(by_url[SITE_URL + ROIS]["magic"]) == {b"\x1f\x8b"}
     metadata = json.loads((root / "data/raw/pgda78/fetch.json").read_bytes())
     assert XYZI in {item["file_name"] for item in metadata["listed_not_fetched"]}
+    # Two distinct clone files are linked (one per page); each counts once.
+    assert metadata["subfolder_files_not_fetched"] == {"count": 2, "folders": ["Clones/"]}
 
 
 @pytest.mark.parametrize("name", [SURF, SLPERR, ROIS])
@@ -587,6 +589,7 @@ def test_roi_shapefiles_are_listed_and_drawn(recorded: Path) -> None:
     assert layer["shape_type"] == "POLYGON"
     assert layer["shape_count"] == len(ROI_SQUARES)
     assert layer["crs_matches_height"] is True
+    assert "resolve to the same PROJ parameters" in layer["crs_comparison"]
     assert layer["inside_height_extent"] is True
     assert [shape["bbox_m"] for shape in layer["shapes"]] == [list(s) for s in ROI_SQUARES]
     assert roi["outlines_drawn"] is True
