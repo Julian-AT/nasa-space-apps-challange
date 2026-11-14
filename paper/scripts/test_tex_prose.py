@@ -14,6 +14,7 @@ import pytest
 from scripts.tex_prose import (
     CITE_COMMAND,
     KEY_COMMANDS,
+    KEY_OPTIONS,
     STARRED_KEY_COMMANDS,
     TexSyntaxError,
     checked_files,
@@ -309,6 +310,66 @@ def test_starred_key_commands_are_key_commands() -> None:
         name in KEY_COMMANDS or CITE_COMMAND.fullmatch(name) for name in STARRED_KEY_COMMANDS
     )
     assert {"label", "eqref", "url", "href", "nocite", "citeyear"}.isdisjoint(STARRED_KEY_COMMANDS)
+
+
+# A command reads only the optional [..] arguments it defines, where it defines them, as the
+# pinned bundle (v33) defines them. \label, \ref, \eqref, \nocite and natbib's \citenum read none,
+# so a [ after one is its argument, as TeX reads any one token: \label[seamless]{} sets the label
+# [ and prints seamless]. natbib's citations read at most two before the key, and a float reads
+# one placement.
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("a \\label[seamless]{} b", ["a", "seamless]", "b"]),
+        ("seam\\label[less]{} now", ["seamless]", "now"]),
+        ("seam\\label [less]{} now", ["seamless]", "now"]),
+        ("seam\\label\n[less]{} now", ["seamless]", "now"]),
+        ("lu\\nocite[nar]{} now", ["lunar]", "now"]),
+        ("see \\ref[x]{} now", ["see", "x]", "now"]),
+        ("see \\eqref [x]{} now", ["see", "x]", "now"]),
+        ("a \\citenum[x]{} b", ["a", "x]", "b"]),
+        ("a \\citep[see][p.~3][x]{} b", ["a", "x]", "b"]),
+        ("\\begin{figure}[t][x] y\\end{figure}", ["[x]", "y"]),
+    ],
+)
+def test_a_bracket_where_a_command_reads_no_option_is_its_argument(
+    text: str, expected: list[str]
+) -> None:
+    assert words(text) == expected
+
+
+# The optional arguments that commands do read stay out of the prose (bundle v33): natbib's
+# \NAT@citetp, latex.ltx's \@lbibitem, \@float and \minipage, graphics.sty's \Gin@ii, xcolor.sty's
+# \definecolor, \color and \textcolor, hyperref's \href[options], multirow.sty's [vpos],
+# [bigstruts] and [vmove], \newcommand's argument count and default, and wrapfig.sty's [lines]
+# and [overhang].
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("a \\citep[see][p.~3]{k} b", ["a", "b"]),
+        ("a \\citet [see] [p.~3] {k} b", ["a", "b"]),
+        ("a \\citeyear[x]{k} b", ["a", "b"]),
+        ("\\bibitem[Shepard(2001)]{shepard2001} text", ["text"]),
+        ("\\includegraphics[0,0][1,1]{f} text", ["text"]),
+        ("\\definecolor[named]{c}{rgb}{1,0,0} text", ["text"]),
+        ("seam\\color[rgb]{1,0,0}less", ["seamless"]),
+        ("seam\\textcolor[rgb]{1,0,0}{less}", ["seamless"]),
+        ("seam\\href[pdfnewwindow]{https://x.org/}{less}", ["seamless"]),
+        ("\\multirow[t]{2}[1]{*}[2pt]{text}", ["text"]),
+        ("\\newcommand{\\x}[1][a]{body}", ["body"]),
+        ("\\begin{minipage}[t][2cm][b]{0.5\\linewidth}x\\end{minipage}", ["x"]),
+        ("\\begin{wrapfigure}[10]{r}[0pt]{5cm}x\\end{wrapfigure}", ["x"]),
+        ("\\begin{longtable}[c]{ll}x\\end{longtable}", ["x"]),
+        ("\\begin{tabularx}{\\linewidth}[t]{lX}x\\end{tabularx}", ["x"]),
+    ],
+)
+def test_the_options_a_command_reads_are_removed(text: str, expected: list[str]) -> None:
+    assert words(text) == expected
+
+
+def test_key_options_name_key_commands_with_one_count_per_key() -> None:
+    assert all(len(KEY_OPTIONS[name]) == KEY_COMMANDS[name] for name in KEY_OPTIONS)
+    assert {"label", "ref", "eqref", "nocite", "url", "input"}.isdisjoint(KEY_OPTIONS)
 
 
 def test_comments_before_an_argument_are_recorded() -> None:
