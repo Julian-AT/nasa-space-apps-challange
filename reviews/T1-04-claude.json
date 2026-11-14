@@ -118,7 +118,11 @@
       "claim": "The label's CENTER_FREQUENCY (2379.99968158 <GHz>) disagrees with the instrument catalog (2.38 GHz) by a factor of 1000.",
       "evidence": "The record quotes both values and corrects neither, which is appropriate. Downstream consumers must not use the label value as GHz. This is noted only for awareness.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect; the finding notes it for awareness and calls the record appropriate. The label states CENTER_FREQUENCY = 2379.99968158 <GHz> and the instrument catalog states 'Mini-RF operated in S-band (2.38 GHz)'. minirf_mosaic.json quotes both (frequency.label_raw, frequency.instrument_catalog_text), and frequency.note says they differ by a factor of 1000 and that neither is corrected. Every Mini-RF ProductRecord's frequency_or_wavelength quotes both statements. Rewriting the label value would change a provider statement, but CLAUDE.md requires preserving labels and units. The quirk is also in the progress log's Codebase Patterns for later stories."
+      }
     },
     {
       "severity": "low",
@@ -126,7 +130,11 @@
       "claim": "Both products stay PARTIAL because the PRD 5 entry rule (plot) is not complete, so G0 is not claimed.",
       "evidence": "The verification entries say 'not plotted, so the PRD 5 entry rule is not complete'. This is honest, and no gate pass is invented.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect; the finding calls it honest. PRD 5's entry rule requires a sample to be downloaded, decoded, masked and plotted. T1-04 plots nothing, so PARTIAL is the correct status. G0 and the shipping mode are a human checkpoint (PRD 23.6) and are not written. After this round, every Mini-RF ProductRecord (24 labels and the CPR window rows) is PARTIAL, and each verification basis says what was done."
+      }
     },
     {
       "severity": "low",
@@ -134,7 +142,11 @@
       "claim": "The certifi dependency was added alongside pyproj, and the fix commit 34e070c uses certifi's CA bundle for TLS verification.",
       "evidence": "The diff adds 'certifi>=2026.10.23'. It is not in the story text but supports the TLS fix in io.py (covered by test_io_tls.py), and pyproject.toml is within the story's files list.",
       "id": "claude-r1-3",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect; the finding confirms the dependency is in the story's files and tested. certifi was declared in 1a5cc6e for the TLS fix 34e070c. The uv-managed Python's OpenSSL reads /etc/ssl/cert.pem, which lacks the SSL.com TLS RSA Root CA 2022 that pds-geosciences.wustl.edu chains to, so fetches from that server failed with CERTIFICATE_VERIFY_FAILED. io.tls_context verifies against certifi's bundle and never disables verification; test_io_tls.py covers it. pipeline/pyproject.toml and uv.lock are in T1-04's files, and uv.lock pins certifi."
+      }
     }
   ]
 }

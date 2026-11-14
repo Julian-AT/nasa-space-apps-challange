@@ -118,7 +118,11 @@
       "claim": "The required Stokes-present behavior is unimplemented. When S1 and S4 labels cover Site01, recording aborts instead of range-reading both layers and emitting the required raw statistics.",
       "evidence": "fetch only reads CPR rows at pilot.py:2045-2047. _stokes_observation raises for every S4 label at :2655-2661 without considering coverage. test_pilot_minirf.py:891-895 supplies a south-polar S4 layer alongside S1 and requires PilotError, locking in behavior contrary to AC5.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "eddb5103b6f61fbdc77a3cfd6c8e9f5757d3f5ac",
+        "reason": "Fixed in eddb510 (tests in 4ba1c81; wording follow-up 7a49dc5). fetch now pairs each S4 layer covering Site01 with the one S1 layer on its grid (projection, size, look direction, START and STOP time). It range-reads the Site01 window rows of both in that grid, one request each, and stores them as <image>.img.rows. record decodes them with each label's layout and masks them with quality.validity_mask. stokes_observation (status observed) gives, per pair: layer file names, byte ranges, units, the count valid in both layers, the S4 > 0, < 0 and = 0 counts, and S1 and S4 min and max as stored. There is no verdict, no S1 and |S4| validity count and no minimum pixel count, and it names polarimetry.lunar_s4_sign_check (T2-05). The test that expected PilotError is replaced by tests for: the reads, the raw statistics against a bit-pattern oracle (positive, negative and zero S4), records for the rows, a second pair on the 512 pix/deg grid, an S4 layer outside Site01 (not read), and an S4 layer with no S1 partner (fetch stops before any read). Also: a refused Stokes range read (blocking limitation, recorded) and a fetch.json without the Stokes rows (refused). The real archive has no S4 layer, so the real record (1ef66eb) still says not_performed; its measured values are unchanged."
+      }
     },
     {
       "severity": "blocker",
@@ -126,7 +130,11 @@
       "claim": "The source manifest omits ProductRecords for 23 other mosaic product labels that are downloaded and parsed, violating AC6's per-product provenance requirement.",
       "evidence": "All label entries are parsed at pilot.py:2218, but record construction at :2320-2353 includes only the selected CPR label and rows. The committed mosaic inventory contains 24 labels at outputs/pilot/minirf_mosaic.json:337-745; outputs/sources.json:2-43 contains only two Mini-RF records. test_pilot_minirf.py:643-647 explicitly restricts the expected manifest to those two.",
       "id": "codex-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "a61fae42d5cf0e2ee9595a10cdb13567bf363659",
+        "reason": "Fixed in a61fae4 (tests in 7fffc64; the per-label fields were introduced in eddb510). Every mosaic label fetch downloads now gets a PARTIAL ProductRecord, with product_id MINIRF/LROMRF_0005/<label>, source_url, local_path and the sha256 of the label file. Its fields come from its own label (grid, CRS, units, times, special values), and qa_definition and the verification basis say whether its image was read. Image rows that were read keep their own record. The real record was re-fetched and re-recorded (1ef66eb): all 24 label records plus the CPR window rows, sorted by product_id. Every checksum equals the sha256 of its data/raw/minirf file, and the two existing CPR records are byte-identical. sources.json is 81,804 bytes, under the PRD 8.4 budget of 200 kB."
+      }
     }
   ]
 }
