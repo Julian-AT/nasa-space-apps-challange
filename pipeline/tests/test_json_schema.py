@@ -1126,8 +1126,8 @@ def test_verified_units_verdicts_agree(units: str) -> None:
 # are pydantic-only and stay out of these combinations.
 
 
-def definition_accepts(file_name: str, definition: str, value: Any) -> bool:
-    schema = committed_schema(file_name)
+def definition_accepts(name: str, definition: str, value: Any) -> bool:
+    schema = committed_schema(name)
     wrapped = {
         "$schema": JSON_SCHEMA_DIALECT,
         "$defs": schema.get("$defs", {}),
@@ -1152,7 +1152,7 @@ def verdicts_agree(
 
 
 def comparison_with(family: str, entry: dict[str, Any]) -> dict[str, Any]:
-    value = science_case("comparison-terrain-only")
+    value: dict[str, Any] = science_case("comparison-terrain-only")
     value["distances_by_family"][family] = entry
     return value
 
@@ -1253,9 +1253,9 @@ def test_window_entry_reason_rule_agrees_on_every_combination() -> None:
 
 def test_distance_entry_definition_alone_follows_the_same_rules() -> None:
     entry = science_case("comparison-terrain-only")["distances_by_family"]["radar_cpr"]
-    assert definition_accepts("comparison-record.schema.json", "DistanceEntry", entry)
+    assert definition_accepts("ComparisonRecord", "DistanceEntry", entry)
     entry["reason"] = None
-    assert not definition_accepts("comparison-record.schema.json", "DistanceEntry", entry)
+    assert not definition_accepts("ComparisonRecord", "DistanceEntry", entry)
 
 
 @pytest.mark.parametrize(
