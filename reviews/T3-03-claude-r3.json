@@ -1,0 +1,63 @@
+{
+  "task_id": "T3-03",
+  "round": 3,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "b1191ababde57c06ee6abe47ae3071d99b3557b2",
+    "head": "327d1d04781f563908a507a5f796d8c1f27001ac",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "5d2548fe96ccd758d2bb58ce40645c0f230297710d877a1ab7de661181976476"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_resample.py",
+        "sha256": "557ea95d2abf6a0ddefe847288b230058a020750f2d6bab849690593d75a0eb5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:52:30Z",
+  "finished_utc": "2026-11-14T21:52:52Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 3 of T3-03 passes. Both story checks ran clean: the 275 resampler tests pass, and make check (ruff, format, mypy) passes. The round-2 fixes are in the code. Masked sources are treated as missing, the sentinel is compared in the source's storage type, and the boundary and zero-rounding cases raise or round as intended. The changes to geometry.py and test_geometry_resample.py are within the story's files. I did not re-read the failing-test-first records or the lookup and plane tests; those rest on the earlier rounds and the commit order.",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_geometry_resample.py",
+      "command": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "outcome": "PASS",
+      "evidence": "275 passed in 7.13s"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check reported 10 files already formatted, and mypy reported no issues in 10 source files."
+    },
+    {
+      "criterion": "Bilinear on four neighbours only; outside is nodata, never zero-filled; no cubic or averaging",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1167-1178 computes inside, then the four-neighbour validity, then the (1-p), p and (1-q), q blend. Outside points become NaN with valid=False."
+    },
+    {
+      "criterion": "Explicit boolean valid mask beside the float64 array; missing is never 0; NaN, sentinel and masked-array inputs behave identically",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1138-1158 merges the NaN, sentinel and np.ma.getmaskarray masks into one good mask. Lines 1179-1183 return values, valid and inside, with invalid pixels set to NaN. The sentinel is compared in the source type (lines 1224-1264). The 275 tests pass."
+    },
+    {
+      "criterion": "Three lookup forms, parameters explicit, plane test, and tests written failing first",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The diff scope contains the three lookups, and the full test module passes. The commit order shows test commits before their fix commits (63bc9ea before 2b0a044). I did not independently re-inspect the plane-test tolerances or the missing-parameter raise tests."
+    }
+  ],
+  "findings": []
+}
