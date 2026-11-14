@@ -1,0 +1,108 @@
+{
+  "task_id": "T2-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "9d01f414237e43bc4f2c5462675940f565fd39c4",
+    "head": "dce2274d9954d295c7c4f43c6e474467582ba983",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "b1364bd96fd54a56037481e59d8ddda59a4bc6ee9ced2122f8a98898d4334eee"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/hybrid_oracle.py",
+        "sha256": "e6640bbf691dfbb8abc306fae817f31b437a2a066cd4f3b1cf07cf7e74e487a6"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_mchi.py",
+        "sha256": "ee390cbdc23c5ba520208bb40f7dae49fcd067c10263f89c9369878436bbbb97"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:56:21Z",
+  "finished_utc": "2026-11-14T20:56:56Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T2-05 round 1: all three story checks pass. The change touches only polarimetry.py, test_polarimetry_mchi.py and the new oracle, all inside the files list. The Jones-vector oracle is independent of polarimetry.py. m-chi, the S4-sign helper and the role field are implemented and tested as the criteria require. Raney decomposition is deferred and says so. The only deviation is wording: UNAVAILABLE is expressed as INVALID with M_ZERO. This review did not verify that the tests were run failing first.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests/test_polarimetry_mchi.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_mchi.py",
+      "outcome": "PASS",
+      "evidence": "173 passed in 1.45s"
+    },
+    {
+      "criterion": "uv run mypy pipeline/src pipeline/tests",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 13 source files"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check reported 14 files already formatted, mypy found no issues in 14 source files"
+    },
+    {
+      "criterion": "AC1: test file with an independent oracle in pipeline/tests/polarimetry/ (written failing first)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "hybrid_oracle.py imports only math, numpy and typing and says it never imports terraluna_pipeline.polarimetry; it computes the Jones field per scatterer (lines 43-124). Tests import it as jones_oracle. The failing-first run is not verifiable from the final diff; the commits are test-first named but I did not run them."
+    },
+    {
+      "criterion": "AC2: chi_tx required and in {+45,-45}, handedness recorded, F6 SC_LL/OC/SC_opp reproduced",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_polarimetry_mchi.py:242 (F6 reproduces story 3 SC_LL and OC), :263 (SC_opp), :366 (handedness recorded), :377/:385/:415 (missing or undeclared chi_tx raises)"
+    },
+    {
+      "criterion": "AC3: m=1 for a single scatterer; identity gives m=0 and sin2chi with reason M_ZERO; S1<=0 INVALID; m>1 STOKES_NONPHYSICAL",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:2498-2525 and tests at :716, :744, :813, :828. The unavailable state is INVALID with reason M_ZERO, since the code has only MISSING/INVALID/VALID. No 0 or NaN-as-number is published."
+    },
+    {
+      "criterion": "AC4: decomposition not implemented, stated in docstring, returns only m and chi",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:2566-2569 says the Raney et al. (2012) decomposition is deferred; test_decomposition_is_deferred_and_only_m_and_chi_are_returned at :938"
+    },
+    {
+      "criterion": "AC5: lunar_s4_sign_check with strict-majority verdict, SIGN_SUSPECT on negated S4, sign never flipped",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:2672-2680 uses 2*count > n_used and no other threshold; the record holds no Stokes values; tests at :1077 and :1088. The tests use synthetic arrays only."
+    },
+    {
+      "criterion": "AC6: role='context' and no cross-band comparison function",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "CONTEXT_ROLE at polarimetry.py:2148; _check_role at :2231; tests at :438 and :947"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:2525",
+      "claim": "The criterion text says sin(2chi) is UNAVAILABLE with reason M_ZERO. The code uses INVALID with reason M_ZERO; no UNAVAILABLE state exists in PRD.md or the pipeline.",
+      "evidence": "Grep for UNAVAILABLE finds nothing; ObsState has only MISSING, INVALID and VALID (lines 108-120). The behaviour is consistent: no value is published and the reason is M_ZERO. Documenting the mapping would be optional.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:2672",
+      "claim": "lunar_s4_sign_check adds INCONCLUSIVE and NO_VALID_PIXELS verdicts beyond the pass/SIGN_SUSPECT the criterion names.",
+      "evidence": "Both are defined in SignCheckVerdict, lines 2665-2669, and neither counts as a pass. They add no threshold and are not a strict violation.",
+      "id": "claude-r1-2",
+      "resolution": null
+    }
+  ]
+}
