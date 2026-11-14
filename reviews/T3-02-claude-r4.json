@@ -1,0 +1,98 @@
+{
+  "task_id": "T3-02",
+  "round": 4,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "4609837fa23b4370d7029e03545c8130bd84c7ce",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "3e9209ef8e2efafe28a4473498d6426183a2458774946099af47cb8ca0e1b996"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "bba1457a06441ef035bd04932e4a4da402fd32673175affc00417c98ea83cb5a"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "09d4ff4b6f1b5adba9ecb515209efb9167eb74768a99b0877a956b5799fe0fb1"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "f0e8fb434d2ad8116bb5c09624e0ce5ceb506cc5c01f7e313ee0ba42d0b38686"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:45:10Z",
+  "finished_utc": "2026-11-14T19:45:33Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 4 review of T3-02, reviewer Claude Sonnet 5.5, commit range 4573b46..4609837. Both story checks pass. I judged the acceptance criteria from the test and source files and from the check output. I did not independently re-derive the numerical tolerances. Both round-3 blockers (codex2-r3-1, codex-r3-1) are addressed by tests that now exist. No new defects. In scope, only pipeline/pyproject.toml, geometry.py, test_geometry_aeqd.py and uv.lock changed. The git diff stat also lists reviews/, logs/ and scripts/ralph/ files, which are orchestrator files outside the four reviewed paths.",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "PASS",
+      "evidence": "713 passed in 3.42s"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed (9 files), mypy found no issues in 9 source files. The tool result showed no error exit code. The captured output ended at mypy, so I did not see the make-check test stage."
+    },
+    {
+      "criterion": "AC1: tests written first and failing run recorded",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Commit ac27c1a is titled 'add failing tests for the window grid and spherical aeqd' and comes before the implementation commits cc44c49 and 1e1bee7. I did not re-run the pre-implementation state or read the notes recording the failing run."
+    },
+    {
+      "criterion": "AC2: grid test, W=5000, D=90, hand-computed corners and centre",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_geometry_aeqd.py:391 test_grid_matches_hand_computed_centres_for_5000_by_90, :437 for the encoder grid, :453-461 random widths and spacings. All in the passing run."
+    },
+    {
+      "criterion": "AC3: inverse follows the PRD, exact at rho=0, no NaN at the pole, independent forward round trip for 3 bodies at 5 latitudes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Tests at :598 (rho=0 exact), :615 (pole window has no NaN), :655 (PRD expressions), :676-745 (round trips), :758 (forward against the 40-digit mpmath reference). All pass. The latitude is evaluated as an increment, not the literal asin. The deviation is documented and tested against asin at the PRD tolerances, and the earlier rounds accepted it."
+    },
+    {
+      "criterion": "AC4: great-circle distance equals rho to 1e-9 for all three radii",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_geometry_aeqd.py:860 test_great_circle_distance_from_the_centre_equals_rho passes."
+    },
+    {
+      "criterion": "AC5: Hypothesis round trip on the two D29 grids at random centres, and per-direction continuous offsets against mpmath, tolerances unchanged",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The round-trip property is at :965-1009 (400 examples) and covers the 90 m and 78.125 m grids. The continuous-offset inverse test is at :1123 and the forward test at :1181, both against the mpmath reference. Longitude normalisation is documented and tested at :874 and :921. All pass. The grid-range amendment is an orchestrator decision recorded in the notes, which I accepted as written without reading it."
+    },
+    {
+      "criterion": "AC6: terrain distances live in geometry.py, no radar or model distance imports",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py imports only math, collections.abc, dataclasses, types, typing and numpy (lines 9-18). Tests at :1288 and :1301 enforce the imports. mpmath is dev-only."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/geometry.py",
+      "claim": "The latitude uses an increment form instead of the literal asin. The forward uses double-double arithmetic and a true-2pi longitude turn. @terraluna/core (T10) must reproduce these for Python/TypeScript parity (PRD 8.8).",
+      "evidence": "Previously rebutted and accepted in rounds 1 to 3. It is recorded as a human decision in the story notes. This is a note for T10, not a T3-02 defect.",
+      "id": "claude-r4-1",
+      "resolution": null
+    }
+  ]
+}
