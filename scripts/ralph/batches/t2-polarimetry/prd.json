@@ -251,14 +251,14 @@
       "priority": 5,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "9d01f414237e43bc4f2c5462675940f565fd39c4",
         "head": null,
         "files": [],
         "digests": {}
       },
-      "notes": "",
+      "notes": "Decisions and open items (T2-05). (1) chi_tx is +45 or -45 degrees only (TRANSMIT_ELLIPTICITIES), with the transmit Jones vector t(chi) = (cos chi, i sin chi): -45 is (1, -i)/sqrt2, SC_LL (NEISH_SC_LL_CONVENTION); +45 is (1, +i)/sqrt2, SC_opp (OPPOSITE_SC_CONVENTION). The polsartools simulate_CP docstring calls +45 right and -45 left circular; whether its numbers follow this convention is for T2-07 to show on a real scene, by declaring the convention, not by flipping a sign. (2) The synthesized S4 is OC - SC relative to the declared transmit (SIS), so S1 = SC + OC and S4 reproduce story 3's SC and OC for the matching handedness. S2 = J_HH - J_VV and S3 = 2 Re J_HV are in the covariance's (H, V) basis. Under this S4, chi < 0 for an OC-dominant return whatever the transmit; it is the received wave's own ellipticity only for chi_tx = -45. (3) AC3 'covariance of identity (unpolarized), m = 0' holds for the 2x2 hybrid covariance J = I, tested through m_chi. The 3x3 identity is not unpolarized under circular transmit, because HV is received coherently in both channels: m = 1/2 in the (HH, HV, VV) ordering and 1/3 in the (HH, sqrt2 HV, VV) ordering. A test pins both against the Jones oracle, and the reflection-symmetric volume A = B = 1, C = V = 1/2, D = E = 0 gives m = 0 exactly from the 3x3 side. (4) m-chi rule order: masked, non-finite, S1 <= 0 (STOKES_S1_NONPOSITIVE, new), then the squared bound S2^2 + S3^2 + S4^2 - S1^2 > atol + rtol S1^2 (m > 1 beyond tolerance, STOKES_NONPHYSICAL), then S1 >= |S4| (STOKES_S1_LT_ABS_S4). So every m > 1 beyond the squared tolerance is STOKES_NONPHYSICAL, while the same pixel through circular_from_stokes gets STOKES_S1_LT_ABS_S4 first. An m above 1 within the tolerance is reported as computed. sin_2chi and chi are INVALID/M_ZERO only where S2 = S3 = S4 = 0 exactly. No tolerance-based zero is applied, so an m at the rounding level gives a chi without meaning; whether a real-data rule should mark that is open. (5) Deferred: the Raney et al. (2012) m-chi decomposition into single-bounce, double-bounce and random parts. PRD 6.2 gives no formula and the formulas were not read from the source, so m_chi returns only m, sin(2 chi) and chi, and its docstring says so. (6) lunar_s4_sign_check verdicts: SIGN_SUSPECT where more than half of the used pixels have CPR > 1 (the PRD 6.2 stop rule); PASS where more than half have S4 > 0; INCONCLUSIVE otherwise; NO_VALID_PIXELS where none is used. INCONCLUSIVE is an addition, so a pass needs a majority with the expected sign. Used pixels are those with a VALID CPR from circular_from_stokes. A pixel with OC <= 0 (CPR unavailable, for example S4 = -S1) is counted under OC_NONPOSITIVE, not as CPR above 1. (7) The real-data Stokes and PSD tolerances stay open; both default to ARITHMETIC_TOLERANCE.",
       "codexPasses": 2
     },
     {
