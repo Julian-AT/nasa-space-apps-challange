@@ -1221,6 +1221,77 @@ def _ratio(
     return base, out
 
 
+def _checked_covariance(
+    covariance: npt.ArrayLike,
+    *,
+    ordering: CovarianceOrdering,
+    product_masked: npt.ArrayLike,
+    tolerance: Tolerance,
+) -> tuple[
+    _Classifier,
+    npt.NDArray[np.complex128],
+    npt.NDArray[np.complex128],
+    npt.NDArray[np.int32],
+]:
+    """Apply the shared covariance rules 1-6 of :func:`circular_from_covariance`.
+
+    Returns ``(base, scaled, hermitian, exponent)``: the classifier after the rules; each
+    matrix in its declared ordering scaled by ``2**-e``, with non-finite matrices replaced by
+    zeros (rule 2 has marked them); the Hermitian part of the (HH, sqrt2 HV, VV) form ``C'``
+    at that scale; and each matrix's exponent ``e``. Every conversion of a 3x3 covariance runs
+    these rules, so the same covariance gets the same shared states in each.
+    """
+    matrices = _covariance_array("covariance", covariance)
+    shape = matrices.shape[:-2]
+    masked = _bool_mask("product_masked", product_masked, shape)
+
+    base = _Classifier(shape)
+    base.mark(masked, ObsState.MISSING, InvalidReason.PRODUCT_MASKED)
+    finite = np.asarray(np.all(np.isfinite(matrices), axis=(-2, -1)))
+    base.mark(~finite, ObsState.INVALID, InvalidReason.COV_NONFINITE)
+    # Non-finite matrices are already invalid; zeros keep the arithmetic below quiet for them.
+    finite_matrices = np.where(finite[..., np.newaxis, np.newaxis], matrices, 0.0)
+
+    scaled, exponent = _scale_by_power_of_two(finite_matrices)
+    with np.errstate(over="ignore", under="ignore", invalid="ignore"):
+        # The rules run on the (HH, sqrt2 HV, VV) form at the matrix's scale, so they do not
+        # depend on the declared ordering.
+        normalized = scaled * _TO_SQRT2_ORDERING[ordering]
+        # Rule 3: parts too far below the largest part to be carried at the matrix's scale.
+        largest_part = np.maximum(np.abs(normalized.real), np.abs(normalized.imag)).max(
+            axis=(-2, -1)
+        )
+        smallest_carried = np.ldexp(largest_part, -_CARRIED_RANGE)[..., np.newaxis, np.newaxis]
+        lost_real = (finite_matrices.real != 0.0) & (np.abs(normalized.real) < smallest_carried)
+        lost_imag = (finite_matrices.imag != 0.0) & (np.abs(normalized.imag) < smallest_carried)
+        base.mark(
+            np.asarray(np.any(lost_real | lost_imag, axis=(-2, -1))),
+            ObsState.INVALID,
+            InvalidReason.FLOAT64_OUT_OF_RANGE,
+        )
+        adjoint = np.conj(np.swapaxes(normalized, -1, -2))
+        largest = np.abs(normalized).max(axis=(-2, -1))
+        allowance = np.ldexp(tolerance.atol, -exponent) + tolerance.rtol * largest
+        mismatch = np.abs(normalized - adjoint).max(axis=(-2, -1))
+        base.mark(
+            np.asarray(mismatch > allowance), ObsState.INVALID, InvalidReason.COV_NOT_HERMITIAN
+        )
+        hermitian = 0.5 * (normalized + adjoint)
+        diagonal = np.diagonal(hermitian, axis1=-2, axis2=-1).real
+        base.mark(
+            np.asarray(diagonal.min(axis=-1) < -allowance),
+            ObsState.INVALID,
+            InvalidReason.COV_NEGATIVE_DIAGONAL,
+        )
+        smallest_eigenvalue = np.linalg.eigvalsh(hermitian)[..., 0]
+        base.mark(
+            np.asarray(smallest_eigenvalue < -allowance),
+            ObsState.INVALID,
+            InvalidReason.COV_NOT_PSD,
+        )
+    return base, scaled, hermitian, exponent
+
+
 def circular_from_covariance(
     covariance: npt.ArrayLike,
     *,
@@ -1331,55 +1402,11 @@ def circular_from_covariance(
     _check_handedness_convention(convention)
     if type(tolerance) is not Tolerance:
         raise TypeError(f"tolerance must be a Tolerance, got {tolerance!r}")
-    matrices = _covariance_array("covariance", covariance)
-    shape = matrices.shape[:-2]
-    masked = _bool_mask("product_masked", product_masked, shape)
+    base, _, hermitian, exponent = _checked_covariance(
+        covariance, ordering=ordering, product_masked=product_masked, tolerance=tolerance
+    )
 
-    base = _Classifier(shape)
-    base.mark(masked, ObsState.MISSING, InvalidReason.PRODUCT_MASKED)
-    finite = np.asarray(np.all(np.isfinite(matrices), axis=(-2, -1)))
-    base.mark(~finite, ObsState.INVALID, InvalidReason.COV_NONFINITE)
-    # Non-finite matrices are already invalid; zeros keep the arithmetic below quiet for them.
-    finite_matrices = np.where(finite[..., np.newaxis, np.newaxis], matrices, 0.0)
-
-    scaled, exponent = _scale_by_power_of_two(finite_matrices)
     with np.errstate(over="ignore", under="ignore", invalid="ignore"):
-        # The rules and the transformation run on the (HH, sqrt2 HV, VV) form at the matrix's
-        # scale, so neither depends on the declared ordering.
-        normalized = scaled * _TO_SQRT2_ORDERING[ordering]
-        # Rule 3: parts too far below the largest part to be carried at the matrix's scale.
-        largest_part = np.maximum(np.abs(normalized.real), np.abs(normalized.imag)).max(
-            axis=(-2, -1)
-        )
-        smallest_carried = np.ldexp(largest_part, -_CARRIED_RANGE)[..., np.newaxis, np.newaxis]
-        lost_real = (finite_matrices.real != 0.0) & (np.abs(normalized.real) < smallest_carried)
-        lost_imag = (finite_matrices.imag != 0.0) & (np.abs(normalized.imag) < smallest_carried)
-        base.mark(
-            np.asarray(np.any(lost_real | lost_imag, axis=(-2, -1))),
-            ObsState.INVALID,
-            InvalidReason.FLOAT64_OUT_OF_RANGE,
-        )
-        adjoint = np.conj(np.swapaxes(normalized, -1, -2))
-        largest = np.abs(normalized).max(axis=(-2, -1))
-        allowance = np.ldexp(tolerance.atol, -exponent) + tolerance.rtol * largest
-        mismatch = np.abs(normalized - adjoint).max(axis=(-2, -1))
-        base.mark(
-            np.asarray(mismatch > allowance), ObsState.INVALID, InvalidReason.COV_NOT_HERMITIAN
-        )
-        hermitian = 0.5 * (normalized + adjoint)
-        diagonal = np.diagonal(hermitian, axis1=-2, axis2=-1).real
-        base.mark(
-            np.asarray(diagonal.min(axis=-1) < -allowance),
-            ObsState.INVALID,
-            InvalidReason.COV_NEGATIVE_DIAGONAL,
-        )
-        smallest_eigenvalue = np.linalg.eigvalsh(hermitian)[..., 0]
-        base.mark(
-            np.asarray(smallest_eigenvalue < -allowance),
-            ObsState.INVALID,
-            InvalidReason.COV_NOT_PSD,
-        )
-
         # The basis transformation, at the matrix's scale.
         circular = CIRCULAR_BASIS @ hermitian @ CIRCULAR_BASIS.conj().T
         diagonal_powers = np.diagonal(circular, axis1=-2, axis2=-1).real
