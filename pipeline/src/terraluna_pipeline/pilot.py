@@ -44,7 +44,7 @@ import tempfile
 import urllib.parse
 import warnings
 import zlib
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
@@ -406,10 +406,55 @@ def fetch(
     )
 
 
+_URL_IN_TEXT: Final = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[!#$%&'()*+,./0-9:;=?@A-Z\[\]_a-z~-]+")
+"""A URL inside any text: a scheme, ``://`` and the RFC 3986 characters that follow."""
+
+
+def _credential_url_paths(value: Any, path: str = "$") -> Iterator[str]:
+    """The JSON paths in ``value`` of keys or strings holding a URL with credentials or a signature.
+
+    Every URL found in the text is checked with ``schema.has_url_credentials``, so a URL quoted
+    inside a sentence counts as much as a URL field.
+    """
+    if isinstance(value, str):
+        if any(has_url_credentials(url) for url in _URL_IN_TEXT.findall(value)):
+            yield path
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            child = f"{path}.{key}"
+            if isinstance(key, str) and next(_credential_url_paths(key, child), None):
+                yield child
+            yield from _credential_url_paths(item, child)
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            yield from _credential_url_paths(item, f"{path}[{index}]")
+
+
+def _refuse_credential_urls(files: Mapping[str, bytes]) -> None:
+    """Refuse outputs that would commit a URL with credentials or a signature (PRD 8.12).
+
+    Provider documents state URLs that fetch never requests (asset hrefs, provider and citation
+    links), so the URL guard on requests does not cover them; every JSON output is checked here.
+    The URL itself is not repeated, so a secret never reaches a log.
+    """
+    for relative, data in sorted(files.items()):
+        if not relative.endswith(".json"):
+            continue
+        found = next(_credential_url_paths(json.loads(data)), None)
+        if found is not None:
+            raise PilotError(
+                f"{relative} would hold a URL with credentials or a signature at {found}; "
+                "nothing is written, because records keep public URLs only"
+            )
+
+
 def expected_outputs(
     name: str, *, root: Path | None = None, sources: Mapping[str, Source] | None = None
 ) -> dict[str, bytes]:
-    """The committed outputs recomputed from data/raw/<name>/, without writing anything."""
+    """The committed outputs recomputed from data/raw/<name>/, without writing anything.
+
+    Raises PilotError if a JSON output would hold a URL with credentials or a signature.
+    """
     base = Path.cwd() if root is None else root
     source = _source(name, sources)
     build = source.build(_require_raw(base, name), base)
@@ -417,6 +462,7 @@ def expected_outputs(
     sources_path = base / SOURCES_PATH
     existing = sources_path.read_bytes() if sources_path.is_file() else None
     files[SOURCES_PATH] = upsert_sources(existing, build.records, build.record_prefix)
+    _refuse_credential_urls(files)
     return files
 
 
@@ -3761,6 +3807,7 @@ class CtxSource:
                 assets = item.get("assets")
                 if not isinstance(assets, dict):
                     raise PilotError(f"the STAC item {chosen_id} has no assets object")
+                self._refuse_signed_assets(chosen_id, assets)
                 qa_asset = assets.get("qa_metrics")
                 if qa_asset is None:
                     qa_status = "absent"
@@ -3824,6 +3871,23 @@ class CtxSource:
             for entry in [*documents, *files]:
                 os.replace(staging / entry["file_name"], raw_dir / entry["file_name"])
             _write_atomically(raw_dir / FETCH_METADATA, canonical_json(metadata))
+
+    @staticmethod
+    def _refuse_signed_assets(item_id: str, assets: Mapping[str, Any]) -> None:
+        """Refuse the chosen item if any asset href has credentials or a signature.
+
+        Every asset of the chosen item is recorded, though only dtm and qa_metrics are
+        requested, so each href is checked before any asset request and again at record. The
+        href is not repeated, so a secret never reaches a log.
+        """
+        for key, asset in sorted(assets.items()):
+            href = asset.get("href") if isinstance(asset, dict) else None
+            if isinstance(href, str) and has_url_credentials(href):
+                raise PilotError(
+                    f"the {key} asset of the STAC item {item_id} has an href with credentials "
+                    "or a signature; it is neither requested nor recorded, because records keep "
+                    "public URLs only"
+                )
 
     def _asset_href(self, item_id: str, key: str, asset: Any) -> str:
         href = asset.get("href") if isinstance(asset, dict) else None
@@ -3914,6 +3978,7 @@ class CtxSource:
         else:
             page_number, item = next((n, i) for n, i in jezero if i["id"] == chosen_id)
             assets = item["assets"]
+            self._refuse_signed_assets(chosen_id, assets)
             chosen = self._chosen_record(chosen_id, page_number, item)
             qa, qa_record, std_line = self._qa(
                 raw_dir, fetched, files, chosen_id, assets, provider, attribution, qa
