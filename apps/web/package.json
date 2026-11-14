@@ -1,0 +1,32 @@
+{
+  "name": "@terraluna/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Terraluna web app: Next.js App Router pages rendered from the release bundle (PRD 8.3, 8.6).",
+  "type": "module",
+  "scripts": {
+    "bundle:pull": "node scripts/bundle-pull.ts",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "smoke": "node scripts/smoke.ts",
+    "lint": "eslint .",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@terraluna/schema": "workspace:*",
+    "next": "16.4.6",
+    "react": "19.2.9",
+    "react-dom": "19.2.9"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "eslint": "9.39.5",
+    "typescript": "6.0.3",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  }
+}

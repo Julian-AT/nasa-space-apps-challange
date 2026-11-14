@@ -1,0 +1,117 @@
+{
+  "task_id": "T0-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "54fc7a50da7a3815dc3ba19dc0267c9e98a4d14a",
+    "head": "9acf9cccdac9f552aef34c03f982c0269d59b758",
+    "files": [
+      {
+        "path": "Makefile",
+        "sha256": "7efd5d1321e809f1044eaf889b2da00ea3623b4fbddbd2ad1ff31d96b5857e07"
+      },
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "1312abf11683f0fad0dacfd51867ca003494cef31f5bfccaa3e7e532ea1daafa"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "fc7a4c5fd31dc089ab931bcb28ec83b2c5978ca6163bcade9e28df84b9a9bbc3"
+      },
+      {
+        "path": "packages/schema/json/bundle-manifest.schema.json",
+        "sha256": "00da70546a2dd52b18c07d32ad252962d2cf50ac4f41d3e34f4145f82c385fcf"
+      },
+      {
+        "path": "packages/schema/json/gate-record.schema.json",
+        "sha256": "4c13ca418452822bf06fa67eed5187dc17e4713c48d38772082f96df779adab2"
+      },
+      {
+        "path": "packages/schema/json/validation.schema.json",
+        "sha256": "20085ce63a02e09f26a2ce6acacdcc434be8a24e628e772d2c82ccc7da17ad12"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "2bff00f4d5b0cabc525215a3d09f12b4e1b50e92909a2f4b5459aa6deaeb7293"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "49dc7a65da22afff7fa9984738a6ea3e7bcad582786de35a61ff0052d82f6b80"
+      },
+      {
+        "path": "pipeline/tests/test_schema.py",
+        "sha256": "c9bb0f57815ae49d443fae4c81d7875f8381f83c92f8b0339f1763d674278bf8"
+      },
+      {
+        "path": "pyproject.toml",
+        "sha256": "cee58c83cf47bbaf5e4befa71b8e03ef191ee8902af6861c5340720af1b09cbc"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e487289bc895470035c644a50fc585cf3c51716f708d97f77ad855f5a187d483"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:03:16Z",
+  "finished_utc": "2026-11-14T18:03:37Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T0-03 meets all four acceptance criteria on evidence I saw. make schema-check, make check and make test all exit 0 (404 tests pass). Only story-listed files changed: Makefile, pyproject.toml, uv.lock, schema.py, tests, schemas and cases. I found no blocker or high issues. I did not run `make schema`, because it writes files.",
+  "checks": [
+    {
+      "criterion": "make schema writes the three schema files as 2020-12 JSON Schema, deterministically",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Makefile `schema` target runs `schema write packages/schema/json`. schema.py:152-196 sets the 2020-12 dialect, uses fixed indentation and a trailing newline, and defines Validation as list[GateRecord]. The three committed files exist in packages/schema/json. The test at test_json_schema.py:224 checks determinism across processes. I did not run `make schema` itself (it writes files); `make schema-check` regenerates in a temporary directory and reported a match."
+    },
+    {
+      "criterion": "make schema-check regenerates into a temp dir and exits non-zero, printing the diff, when the committed files differ",
+      "command": "make schema-check",
+      "outcome": "PASS",
+      "evidence": "Output: 'JSON Schemas match schema.py: packages/schema/json'. schema.py:218-251 builds a unified diff and main returns 1 on any difference. Tests at test_json_schema.py:254-325 cover an extra field, a differing file, and missing, extra or irregular files."
+    },
+    {
+      "criterion": "cases.json lists {name, schema, valid, value} cases covering the required minimum",
+      "command": "jq -r '.[] | \"\\(.schema) \\(.valid) \\(.name)\"' fixtures/schema-cases/cases.json",
+      "outcome": "PASS",
+      "evidence": "The file has 54 cases. It includes manifest-real-shaped, manifest-mock, manifest-missing-mock, manifest-unknown-field, bad sha256 variants, gate-bad-status, gate-missing-status and gate-result-null (valid), plus Validation cases."
+    },
+    {
+      "criterion": "Tests check every case against pydantic and the generated JSON Schema (jsonschema dev-only), validate the mock bundle's manifest.json and validation.json, and show an extra-field model drifts",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "404 passed. test_json_schema.py:447 (pydantic verdict), :452 (JSON Schema verdict), :456 (mock bundle files) and :254 (extra field drift) exist and ran. jsonschema is added only to the root dev dependency group in pyproject.toml. The tests use a custom oracle that fixes the trailing-newline `$` matching in stock jsonschema, and the tests document why."
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check reported 7 files already formatted, mypy found no issues."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "404 passed in 0.73s."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/tests/test_schema.py:325",
+      "claim": "Existing test_schema.py was modified, which is not a pattern in the story's file list (pipeline/tests/* does cover it).",
+      "evidence": "It adds 2**53 to the rejected byte counts. This tightens the test rather than weakening it. Informational only.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted. pipeline/tests/test_schema.py matches the story files pattern pipeline/tests/* (the finding says so itself, and ralph.sh matching [[ pipeline/tests/test_schema.py == pipeline/tests/* ]] is true). The only change, in failing-tests commit 8bb1ae9, adds 2**53 to the rejected sizes of test_bytes_rejects_negative_or_non_integer. That tightens the test and pins the new BundleFile.bytes bound le=JS_MAX_SAFE_INTEGER (schema.py:57, :104), so a byte count the web would read as a rounded JS number is rejected in pydantic and in the generated JSON Schema alike (PRD 8.4 contract, D23 parity). The accept test already stopped at 2**53-1. Removing the bound makes this case fail (recorded in the T0-03 implement entry). No change is needed."
+      }
+    }
+  ]
+}

@@ -26,6 +26,7 @@ from terraluna_pipeline.export import (
     ErrorCode,
     budget_errors,
     main,
+    mock_bundle_differences,
     validate_bundle,
     write_bundle,
     write_mock_bundle,
@@ -400,8 +401,15 @@ def test_missing_manifest_is_reported(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     "raw",
-    [b"{", b"", b'{"mock": NaN}', b'{"mock": true, "mock": false}', b"\xff\xfe{}"],
-    ids=["truncated", "empty", "nan", "duplicate-key", "not-utf-8"],
+    [
+        b"{",
+        b"",
+        b'{"mock": NaN}',
+        b'{"mock": true, "mock": false}',
+        b"\xff\xfe{}",
+        b"[" * 20_000 + b"]" * 20_000,
+    ],
+    ids=["truncated", "empty", "nan", "duplicate-key", "not-utf-8", "too-deeply-nested"],
 )
 def test_unparseable_manifest_is_reported(tmp_path: Path, raw: bytes) -> None:
     bundle = make_bundle(tmp_path)
@@ -582,8 +590,11 @@ def test_validation_json_must_be_an_array(tmp_path: Path) -> None:
     ]
 
 
-def test_validation_json_must_be_json(tmp_path: Path) -> None:
-    bundle = make_bundle(tmp_path, files({"validation.json": b"[NaN]"}))
+@pytest.mark.parametrize(
+    "raw", [b"[NaN]", b"[" * 20_000 + b"]" * 20_000], ids=["nan", "too-deeply-nested"]
+)
+def test_validation_json_must_be_json(tmp_path: Path, raw: bytes) -> None:
+    bundle = make_bundle(tmp_path, files({"validation.json": raw}))
     assert codes(validate_bundle(bundle, production=False)) == [
         ("validation_invalid_json", "validation.json")
     ]
@@ -696,6 +707,96 @@ def test_mock_created_utc_is_a_fixed_constant() -> None:
     assert MOCK_CREATED_UTC == "1970-01-01T00:00:00Z"
 
 
+def test_mock_bundle_without_replace_refuses_a_non_empty_directory(tmp_path: Path) -> None:
+    out = tmp_path / "mock-bundle"
+    write_mock_bundle(out)
+    with pytest.raises(FileExistsError):
+        write_mock_bundle(out)
+
+
+def test_mock_bundle_replace_overwrites_an_existing_mock_bundle(tmp_path: Path) -> None:
+    out = tmp_path / "mock-bundle"
+    write_mock_bundle(out)
+    (out / "validation.json").write_bytes(b"[]\n")
+    write_mock_bundle(out, replace=True)
+    assert disk_files(out) == disk_files(MOCK_BUNDLE)
+
+
+def test_mock_bundle_replace_refuses_a_directory_with_other_files(tmp_path: Path) -> None:
+    out = tmp_path / "mock-bundle"
+    write_mock_bundle(out)
+    (out / "validation.json").write_bytes(b"[]\n")
+    (out / "cards").mkdir()
+    (out / "cards/x.json").write_bytes(b"{}\n")
+    before = disk_files(out)
+    with pytest.raises(FileExistsError, match=r"cards/x\.json"):
+        write_mock_bundle(out, replace=True)
+    assert disk_files(out) == before
+
+
+@pytest.mark.parametrize(
+    "manifest",
+    [b'{"mock": false}\n', b'{"mock": "true"}\n', b"{\n", b"[]\n"],
+    ids=["mock-false", "string-mock", "invalid-json", "not-an-object"],
+)
+def test_mock_bundle_replace_refuses_a_bundle_not_marked_mock(
+    tmp_path: Path, manifest: bytes
+) -> None:
+    out = tmp_path / "bundle"
+    out.mkdir()
+    (out / "manifest.json").write_bytes(manifest)
+    with pytest.raises(FileExistsError, match="mock"):
+        write_mock_bundle(out, replace=True)
+    assert disk_files(out) == {"manifest.json": manifest}
+
+
+def test_mock_bundle_replace_refuses_a_directory_without_a_manifest(tmp_path: Path) -> None:
+    out = tmp_path / "bundle"
+    out.mkdir()
+    (out / "validation.json").write_bytes(b"[]\n")
+    with pytest.raises(FileExistsError, match="mock"):
+        write_mock_bundle(out, replace=True)
+    assert disk_files(out) == {"validation.json": b"[]\n"}
+
+
+def test_mock_bundle_replace_refuses_a_file(tmp_path: Path) -> None:
+    out = tmp_path / "mock-bundle"
+    out.write_bytes(b"keep")
+    with pytest.raises(FileExistsError):
+        write_mock_bundle(out, replace=True)
+    assert out.read_bytes() == b"keep"
+
+
+def test_mock_bundle_replace_writes_a_new_directory(tmp_path: Path) -> None:
+    write_mock_bundle(tmp_path / "mock-bundle", replace=True)
+    assert disk_files(tmp_path / "mock-bundle") == disk_files(MOCK_BUNDLE)
+
+
+def test_mock_bundle_differences_are_empty_for_the_committed_copy() -> None:
+    assert mock_bundle_differences(MOCK_BUNDLE) == []
+
+
+@pytest.mark.parametrize("drift", ["changed", "extra", "missing", "absent-directory"])
+def test_mock_bundle_differences_report_drift(tmp_path: Path, drift: str) -> None:
+    copy = tmp_path / "mock-bundle"
+    write_mock_bundle(copy)
+    if drift == "changed":
+        (copy / "validation.json").write_bytes(b"[]\n")
+        expected = "validation.json"
+    elif drift == "extra":
+        (copy / "extra.json").write_bytes(b"{}\n")
+        expected = "extra.json"
+    elif drift == "missing":
+        (copy / "validation.json").unlink()
+        expected = "validation.json"
+    else:
+        copy = tmp_path / "absent"
+        expected = str(copy)
+    differences = mock_bundle_differences(copy)
+    assert differences
+    assert any(expected in line for line in differences), differences
+
+
 # --- CLI ----------------------------------------------------------------------------------------
 
 
@@ -726,6 +827,45 @@ def test_cli_validate_prints_every_error_and_exits_1(
 def test_cli_mock_bundle_writes_a_valid_mock_bundle(tmp_path: Path) -> None:
     assert main(["mock-bundle", str(tmp_path / "mock")]) == 0
     assert disk_files(tmp_path / "mock") == disk_files(MOCK_BUNDLE)
+
+
+def test_cli_mock_bundle_regenerates_over_an_existing_mock_bundle(tmp_path: Path) -> None:
+    out = tmp_path / "mock"
+    write_mock_bundle(out)
+    (out / "validation.json").write_bytes(b"[]\n")
+    assert main(["mock-bundle", str(out)]) == 0
+    assert disk_files(out) == disk_files(MOCK_BUNDLE)
+
+
+def test_cli_mock_bundle_refuses_a_directory_with_other_files(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    out = tmp_path / "mock"
+    write_mock_bundle(out)
+    (out / "extra.json").write_bytes(b"{}\n")
+    assert main(["mock-bundle", str(out)]) == 1
+    assert "extra.json" in capsys.readouterr().err
+    assert (out / "extra.json").read_bytes() == b"{}\n"
+
+
+def test_cli_mock_bundle_check_passes_on_the_committed_copy(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert main(["mock-bundle-check", str(MOCK_BUNDLE)]) == 0
+    assert capsys.readouterr().out.strip()
+
+
+def test_cli_mock_bundle_check_prints_drift_and_exits_1(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    copy = tmp_path / "mock-bundle"
+    write_mock_bundle(copy)
+    (copy / "extra.json").write_bytes(b"{}\n")
+    (copy / "validation.json").write_bytes(b"[]\n")
+    assert main(["mock-bundle-check", str(copy)]) == 1
+    out = capsys.readouterr().out
+    assert "extra.json" in out
+    assert "validation.json" in out
 
 
 def test_module_entry_point_validates_the_mock_bundle_for_production() -> None:

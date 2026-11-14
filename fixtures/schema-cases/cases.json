@@ -1,0 +1,1496 @@
+[
+  {
+    "name": "manifest-real-shaped",
+    "schema": "BundleManifest",
+    "valid": true,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-mock",
+    "schema": "BundleManifest",
+    "valid": true,
+    "value": {
+      "bundle_version": "mock-0",
+      "created_utc": "1970-01-01T00:00:00Z",
+      "files": [
+        {
+          "bytes": 1158,
+          "path": "validation.json",
+          "sha256": "d49244039d7045d1ed46ac4322f9ca49fbc30e01d7e050e6967955417c44df77"
+        }
+      ],
+      "git_sha": null,
+      "mock": true,
+      "model": null,
+      "run_id": null,
+      "schema_version": "1.0.0",
+      "shipping_mode": null,
+      "targets": []
+    }
+  },
+  {
+    "name": "manifest-missing-mock",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-unknown-field",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ],
+      "notes": "not a manifest field"
+    }
+  },
+  {
+    "name": "manifest-model-unknown-field",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN",
+        "notes": "not a model field"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-unknown-field",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331,
+          "notes": "not a file field"
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-bad-sha256-uppercase",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-bad-sha256-63-chars",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-bad-sha256-trailing-newline",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-mock-as-string",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": "false",
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-mock-as-number",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": 0,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-mock-null",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": null,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-run-id-missing",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-run-id-empty-string",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-shipping-mode-unknown",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "D",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-shipping-mode-lowercase",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "b",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-model-null",
+    "schema": "BundleManifest",
+    "valid": true,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": null,
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-model-status-unknown",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "STABLE",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-model-g5-unknown",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "PASSED"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-bytes-zero",
+    "schema": "BundleManifest",
+    "valid": true,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 0
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-bytes-max-safe-integer",
+    "schema": "BundleManifest",
+    "valid": true,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 9007199254740991
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-bytes-above-max-safe-integer",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 9007199254740992
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-bytes-negative",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": -1
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-bytes-fractional",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 1.5
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-bytes-boolean",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-bytes-string",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": "412331"
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-path-parent",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "../secret.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-path-absolute",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "/etc/passwd",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-path-backslash",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "cards\\a.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-file-path-trailing-newline",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "targets.json\n",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-bundle-version-with-slash",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "a/b",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-schema-version-not-semver",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-created-utc-offset",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00+00:00",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-created-utc-fraction",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00.5Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-created-utc-trailing-newline",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z\n",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-targets-empty-string",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        ""
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-targets-not-array",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": "moon-cr-site01-w000",
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": [
+        {
+          "path": "comparisons/moon-cr-site01-w000.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "bytes": 412331
+        }
+      ]
+    }
+  },
+  {
+    "name": "manifest-files-empty",
+    "schema": "BundleManifest",
+    "valid": true,
+    "value": {
+      "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+      "schema_version": "1.0.0",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "git_sha": "3f9c2a1",
+      "created_utc": "2026-11-15T09:00:00Z",
+      "shipping_mode": "B",
+      "targets": [
+        "moon-cr-site01-w000",
+        "mars-jezero-w000",
+        "mars-arcadia-w000"
+      ],
+      "model": {
+        "id": "terraluna-enc-v1",
+        "status": "EXPERIMENTAL",
+        "g5": "NOT_RUN"
+      },
+      "files": []
+    }
+  },
+  {
+    "name": "manifest-array",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": [
+      {
+        "bundle_version": "2026-11-15T0900Z-3f9c2a1",
+        "schema_version": "1.0.0",
+        "mock": false,
+        "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "git_sha": "3f9c2a1",
+        "created_utc": "2026-11-15T09:00:00Z",
+        "shipping_mode": "B",
+        "targets": [
+          "moon-cr-site01-w000",
+          "mars-jezero-w000",
+          "mars-arcadia-w000"
+        ],
+        "model": {
+          "id": "terraluna-enc-v1",
+          "status": "EXPERIMENTAL",
+          "g5": "NOT_RUN"
+        },
+        "files": [
+          {
+            "path": "comparisons/moon-cr-site01-w000.json",
+            "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "bytes": 412331
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "manifest-null",
+    "schema": "BundleManifest",
+    "valid": false,
+    "value": null
+  },
+  {
+    "name": "gate-not-run",
+    "schema": "GateRecord",
+    "valid": true,
+    "value": {
+      "gate_id": "G0",
+      "status": "NOT_RUN",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": null,
+      "consequence": null
+    }
+  },
+  {
+    "name": "gate-result-null",
+    "schema": "GateRecord",
+    "valid": true,
+    "value": {
+      "gate_id": "G0",
+      "status": "NOT_APPLICABLE",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": "schema case scope",
+      "result": null,
+      "consequence": null
+    }
+  },
+  {
+    "name": "gate-every-field-set",
+    "schema": "GateRecord",
+    "valid": true,
+    "value": {
+      "gate_id": "G1",
+      "status": "PARTIAL",
+      "evidence_path": "test/schema-case-evidence.json",
+      "run_id": "schema-case-run",
+      "scope": "schema case scope",
+      "result": "schema case result",
+      "consequence": "schema case consequence"
+    }
+  },
+  {
+    "name": "gate-bad-status",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "status": "PASSED",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": null,
+      "consequence": null
+    }
+  },
+  {
+    "name": "gate-status-lowercase",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "status": "not_run",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": null,
+      "consequence": null
+    }
+  },
+  {
+    "name": "gate-missing-status",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": null,
+      "consequence": null
+    }
+  },
+  {
+    "name": "gate-status-null",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "status": null,
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": null,
+      "consequence": null
+    }
+  },
+  {
+    "name": "gate-unknown-gate-id",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G7",
+      "status": "NOT_RUN",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": null,
+      "consequence": null
+    }
+  },
+  {
+    "name": "gate-missing-result",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "status": "NOT_RUN",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "consequence": null
+    }
+  },
+  {
+    "name": "gate-result-empty-string",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "status": "NOT_RUN",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": "",
+      "consequence": null
+    }
+  },
+  {
+    "name": "gate-result-zero",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "status": "NOT_RUN",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": 0,
+      "consequence": null
+    }
+  },
+  {
+    "name": "gate-unknown-field",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "status": "NOT_RUN",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": null,
+      "consequence": null,
+      "notes": "not a gate field"
+    }
+  },
+  {
+    "name": "validation-mock",
+    "schema": "Validation",
+    "valid": true,
+    "value": [
+      {
+        "consequence": null,
+        "evidence_path": null,
+        "gate_id": "G0",
+        "result": null,
+        "run_id": null,
+        "scope": null,
+        "status": "NOT_RUN"
+      },
+      {
+        "consequence": null,
+        "evidence_path": null,
+        "gate_id": "G1",
+        "result": null,
+        "run_id": null,
+        "scope": null,
+        "status": "NOT_RUN"
+      },
+      {
+        "consequence": null,
+        "evidence_path": null,
+        "gate_id": "G2",
+        "result": null,
+        "run_id": null,
+        "scope": null,
+        "status": "NOT_RUN"
+      },
+      {
+        "consequence": null,
+        "evidence_path": null,
+        "gate_id": "G3",
+        "result": null,
+        "run_id": null,
+        "scope": null,
+        "status": "NOT_RUN"
+      },
+      {
+        "consequence": null,
+        "evidence_path": null,
+        "gate_id": "G4",
+        "result": null,
+        "run_id": null,
+        "scope": null,
+        "status": "NOT_RUN"
+      },
+      {
+        "consequence": null,
+        "evidence_path": null,
+        "gate_id": "G5",
+        "result": null,
+        "run_id": null,
+        "scope": null,
+        "status": "NOT_RUN"
+      },
+      {
+        "consequence": null,
+        "evidence_path": null,
+        "gate_id": "G6",
+        "result": null,
+        "run_id": null,
+        "scope": null,
+        "status": "NOT_RUN"
+      }
+    ]
+  },
+  {
+    "name": "validation-one-record",
+    "schema": "Validation",
+    "valid": true,
+    "value": [
+      {
+        "gate_id": "G1",
+        "status": "PARTIAL",
+        "evidence_path": "test/schema-case-evidence.json",
+        "run_id": "schema-case-run",
+        "scope": "schema case scope",
+        "result": "schema case result",
+        "consequence": "schema case consequence"
+      }
+    ]
+  },
+  {
+    "name": "validation-bad-record",
+    "schema": "Validation",
+    "valid": false,
+    "value": [
+      {
+        "gate_id": "G0",
+        "status": "NOT_RUN",
+        "evidence_path": null,
+        "run_id": null,
+        "scope": null,
+        "result": null,
+        "consequence": null
+      },
+      {
+        "gate_id": "G1",
+        "status": "PASSED",
+        "evidence_path": null,
+        "run_id": null,
+        "scope": null,
+        "result": null,
+        "consequence": null
+      }
+    ]
+  },
+  {
+    "name": "validation-record-not-object",
+    "schema": "Validation",
+    "valid": false,
+    "value": [
+      "G0"
+    ]
+  },
+  {
+    "name": "validation-not-array",
+    "schema": "Validation",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "status": "NOT_RUN",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": null,
+      "consequence": null
+    }
+  }
+]

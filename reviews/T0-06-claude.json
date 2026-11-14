@@ -1,0 +1,99 @@
+{
+  "task_id": "T0-06",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "be7989195cbd16ceb02bb70b0b669b46ab5b7fd7",
+    "head": "efe76a8c04024e6d788ea1f4b5b25765aff25cfc",
+    "files": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "sha256": "166f13bf0d593548a4747478e7fc00480b296c9b019ba288fdf2a745e26b02ae"
+      },
+      {
+        "path": "README.md",
+        "sha256": "52e46bb261968ec8fa461e518b69111e7d42e5c1f2b53f3e3585231f7435c881"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:22:22Z",
+  "finished_utc": "2026-11-14T19:22:49Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T0-06 review round 1. The diff touches only .github/workflows/ci.yml and README.md, both inside the story's files list. All five listed checks exit 0 locally, and the workflow meets the structural criteria on reading. I did not independently verify that the pinned action SHAs resolve to the stated tags, or that CI runs on GitHub. Neither was possible offline, and both are reported honestly in the README. Reviewer: Claude Sonnet 5.5 (claude-sonnet-5-5) via Claude Code, 2026-11-14. Reviewed range: be7989195cbd16ceb02bb70b0b669b46ab5b7fd7..efe76a8c04024e6d788ea1f4b5b25765aff25cfc.",
+  "checks": [
+    {
+      "criterion": "ci.yml triggers on pull_request and push to main. Job py runs make setup-py check-py test-py. Job ts runs make setup-ts check-ts test-ts. Job schema runs make schema-check mock-bundle-check. Job commitlint runs pnpm exec commitlint from base SHA to head SHA with fetch-depth 0. Versions come from .python-version and .node-version. Lockfiles are frozen. permissions is contents: read. Actions are pinned to SHAs with tag comments.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "ci.yml:8-11 triggers; :32, :45 and :63-64 job commands; :82-85 commitlint with --from/--to and BASE_SHA/HEAD_SHA via env; :75 fetch-depth: 0; :13-14 contents: read; :44, :62 and :80 node-version-file: .node-version. The repo's .python-version (3.12) is picked up by uv, since setup-uv is given no python-version input. Frozen installs come through Makefile lines 31 (uv sync --locked) and 55 (pnpm install --frozen-lockfile). All actions use 40-hex SHAs with # vX.Y.Z comments. The commitlint job runs only on pull_request (ci.yml:69), which fits the base/head SHA wording. SHA-to-tag correctness was not verified, see the NOT_RUN entry."
+    },
+    {
+      "criterion": "actionlint reports no errors for the workflow",
+      "command": "actionlint .github/workflows/ci.yml",
+      "outcome": "PASS",
+      "evidence": "No output, exit 0."
+    },
+    {
+      "criterion": "Every make target a job calls passes locally, with the outcome recorded in progress.txt",
+      "command": "make check; make test; make schema-check; make mock-bundle-check",
+      "outcome": "PASS",
+      "evidence": "make check: ruff and mypy clean, turbo 4/4 tasks successful. make test: pytest 404 passed, Vitest 157 + 80 passed (turbo replayed cached results). make schema-check: both 'match' lines. make mock-bundle-check: 'mock bundle matches the generator and is valid'. Each exited 0. progress.txt:159-160 records the outcomes, including a fresh-clone run of every job's commands. I did not re-run setup-py or setup-ts, so the fresh-clone claim rests on progress.txt."
+    },
+    {
+      "criterion": "README has a short Build and test section listing only commands that ran, one line each. It says GitHub CI and the Vercel preview have not run. Existing content is kept and the README stays short.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "README.md:17-35. Eleven one-line commands. Line 35 states 'CI has not run on GitHub yet, and the Vercel preview has not been deployed yet.' The diff adds 20 lines and removes none. I ran make check, test, schema-check, mock-bundle-check and actionlint myself. The other listed commands (setup, schema, mock-bundle, web-build, web-smoke, web-dev) are supported only by progress.txt:160."
+    },
+    {
+      "criterion": "Pinned action SHAs resolve to the tags named in the comments",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Needs network access to GitHub, and the review rules permit only local read-only commands. progress.txt:161 says each SHA was fetched and confirmed to be a commit, but I did not check it."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": ".github/workflows/ci.yml:29-31",
+      "claim": "setup-uv pins uv 0.9.26 by hand, so the uv version is not read from a repo file. This is the one toolchain version not taken from .python-version or .node-version.",
+      "evidence": "version: 0.9.26 appears in both the py and schema jobs. It is a deliberate choice and is noted in a comment, but it will need a manual bump.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The acceptance criterion requires Python and Node versions to come from .python-version and .node-version, and they do: uv reads .python-version, and setup-node gets node-version-file: .node-version. uv is the installer, and the criterion names no file for its version. setup-uv takes a uv version from the repo only as required-version in uv.toml or pyproject.toml (setup-uv v10.3.3 README, \"Install a required-version or latest (default)\", and action.yml version/version-file inputs at the pinned SHA). This repo has no uv.toml, and pyproject.toml has only [tool.uv.workspace], so removing the version input would install the latest uv, unpinned. The explicit pin is what makes uv reproducible. Since 7739f02 (claude-r1-3) it also fixes the managed Python build that uv downloads. One source read by both local uv and setup-uv would be a [tool.uv] required-version in pyproject.toml, but pyproject.toml is outside this story's files. It is recorded in progress.txt as a follow-up for a human."
+      }
+    },
+    {
+      "severity": "low",
+      "location": ".github/workflows/ci.yml:69",
+      "claim": "The commitlint job is skipped on push to main, so it never runs there.",
+      "evidence": "if: github.event_name == 'pull_request'. This follows the acceptance wording and progress.txt discloses it.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The criterion defines the commitlint job as linting \"the pull request commits, from the base SHA to the head SHA\". A push to main has no pull request and no base SHA, so the job is skipped there and reported as skipped, not passed. Commits that reach main through a pull request were linted in that pull request, and each local commit also passes the husky commit-msg hook. Linting github.event.before..after on push could not block anything, because the commits are already on main. That range is also undefined when before is all zeros (a new ref), and after a force push before may be missing from the fetched history. Direct pushes to main are a branch-protection setting, which is a human step after the first GitHub run (T0-06 implement entry in progress.txt)."
+      }
+    },
+    {
+      "severity": "low",
+      "location": ".github/workflows/ci.yml:22",
+      "claim": "The runner may use a system Python 3.12 patch release that differs from the local 3.12.13. setup-py rejects anything other than 3.12.",
+      "evidence": ".python-version is 3.12 and setup-uv gets no python-version input. progress.txt:157 notes the risk.",
+      "id": "claude-r1-3",
+      "resolution": {
+        "action": "fixed",
+        "commit": "7739f02b2608ab1e80ef0db891b0f0a61902a440",
+        "reason": "Fixed in 7739f02. ci.yml now sets UV_MANAGED_PYTHON: \"1\" for the workflow, so uv never uses the runner image's system Python. Checked with uv 0.9.26: (a) with an empty UV_PYTHON_INSTALL_DIR, `uv python find 3.14 --no-project` returns the system /opt/anaconda3/bin/python3 by default, and with UV_MANAGED_PYTHON=1 it refuses it (exit 2, \"No interpreter found ... in virtual environments or managed installations\"). (b) uv 0.9.26 resolves 3.12 to cpython-3.12.12-linux-x86_64-gnu, python-build-standalone release 20260114 (`uv python list --only-downloads --all-platforms --all-arches --output-format json`). (c) In a fresh clone with an empty install directory, the py job (make setup-py check-py test-py) downloaded cpython 3.12.12 and exited 0 with 404 tests passed. The schema job (make setup-py setup-ts, then make schema-check mock-bundle-check) also exited 0. On a hosted runner, setup-uv sets UV_PYTHON_INSTALL_DIR to $RUNNER_TEMP/uv-python-dir (src/utils/inputs.ts at the pinned SHA). Remaining difference: CI gets 3.12.12, one patch release below the build Mac's 3.12.13, which a newer Homebrew uv (0.11.16) installed. setup-py prints the patch release in each job log. Making the two identical would need a patch release in .python-version, which is outside this story's files."
+      }
+    }
+  ]
+}

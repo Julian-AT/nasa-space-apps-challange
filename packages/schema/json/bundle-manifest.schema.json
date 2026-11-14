@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "BundleFile": {
+      "additionalProperties": false,
+      "description": "One file in the bundle, other than manifest.json itself (PRD 8.4).",
+      "properties": {
+        "path": {
+          "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*)*$",
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "bytes": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "bytes"
+      ],
+      "title": "BundleFile",
+      "type": "object"
+    },
+    "ModelSummary": {
+      "additionalProperties": false,
+      "description": "The encoder shipped in the bundle (PRD 8.4). It stays out of rankings until G5 passes.",
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "status": {
+          "const": "EXPERIMENTAL",
+          "title": "Status",
+          "type": "string"
+        },
+        "g5": {
+          "enum": [
+            "NOT_RUN",
+            "PASS",
+            "FAIL",
+            "PARTIAL",
+            "NOT_APPLICABLE"
+          ],
+          "title": "G5",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "g5"
+      ],
+      "title": "ModelSummary",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "manifest.json: every field of the PRD 8.4 example.",
+  "properties": {
+    "bundle_version": {
+      "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*$",
+      "title": "Bundle Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "mock": {
+      "title": "Mock",
+      "type": "boolean"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Run Id"
+    },
+    "git_sha": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Git Sha"
+    },
+    "created_utc": {
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$",
+      "title": "Created Utc",
+      "type": "string"
+    },
+    "shipping_mode": {
+      "anyOf": [
+        {
+          "enum": [
+            "A",
+            "B",
+            "C"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Shipping Mode"
+    },
+    "targets": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Targets",
+      "type": "array"
+    },
+    "model": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ModelSummary"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/BundleFile"
+      },
+      "title": "Files",
+      "type": "array"
+    }
+  },
+  "required": [
+    "bundle_version",
+    "schema_version",
+    "mock",
+    "run_id",
+    "git_sha",
+    "created_utc",
+    "shipping_mode",
+    "targets",
+    "model",
+    "files"
+  ],
+  "title": "BundleManifest",
+  "type": "object"
+}

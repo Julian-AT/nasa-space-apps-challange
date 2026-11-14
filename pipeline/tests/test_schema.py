@@ -322,7 +322,7 @@ def test_bytes_accepts_non_negative_integers(size: int) -> None:
     assert_accepted(BundleFile, bundle_file(bytes=size))
 
 
-@pytest.mark.parametrize("size", [-1, 1.0, True, "1", None])
+@pytest.mark.parametrize("size", [-1, 1.0, True, "1", None, 2**53])
 def test_bytes_rejects_negative_or_non_integer(size: object) -> None:
     assert_rejected(BundleFile, bundle_file(bytes=size), ("bytes",))
 

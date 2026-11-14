@@ -91,14 +91,20 @@
         "make mock-bundle-check"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "passed",
+        "round": 1,
+        "base": "0d57a25f869d71257c5c0e1b1c0dabc539dc0356",
+        "head": "b8d6b132c42d7e6e9d31e9f58bf82271f991ad4b",
+        "files": [
+          "reviews/T0-02-claude.json",
+          "reviews/T0-02-codex.json"
+        ],
+        "digests": {
+          "reviews/T0-02-claude.json": "4a36cd6f7449ea1bf6973bbb9dd61a87d25b71772dd22a0ba81a8c591a3524e6",
+          "reviews/T0-02-codex.json": "5608a40c82855bc2938b20f8197cc421bca942da6a6a8c76684b86d4f05f2748"
+        }
       },
       "notes": ""
     },
@@ -136,14 +142,20 @@
         "make test"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "passed",
+        "round": 1,
+        "base": "54fc7a50da7a3815dc3ba19dc0267c9e98a4d14a",
+        "head": "9acf9cccdac9f552aef34c03f982c0269d59b758",
+        "files": [
+          "reviews/T0-03-claude.json",
+          "reviews/T0-03-codex.json"
+        ],
+        "digests": {
+          "reviews/T0-03-claude.json": "c55613fc171b12d0a1120d044d228ce9287eabd17760c3dceda3a637c6a8f66f",
+          "reviews/T0-03-codex.json": "3cd03fdba7618c6538edf171a8da7550e618acedeffacaab539b6aa9cedfb178"
+        }
       },
       "notes": ""
     },
@@ -186,14 +198,20 @@
         "make test"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "passed",
+        "round": 1,
+        "base": "fcf539bcea63d62066724194c2116607088ad21a",
+        "head": "b6ee40a78a7a3bb317f8088b57411c1a8ad1e54f",
+        "files": [
+          "reviews/T0-04-claude.json",
+          "reviews/T0-04-codex.json"
+        ],
+        "digests": {
+          "reviews/T0-04-claude.json": "b8571872b09f5c970f1b2a283eacfc9cf9ec96cb13c0ea48c1898e6a3cf24629",
+          "reviews/T0-04-codex.json": "55b438403995e3aae9fa529ddb652cb548f06cee3d0e241a242bbced8517275f"
+        }
       },
       "notes": ""
     },
@@ -232,16 +250,23 @@
         "make web-smoke"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "passed",
+        "round": 1,
+        "base": "aaec3d22c58e46d94cb63de5201eef04cc4f1e38",
+        "head": "420ac3f44662a732179728854d8ae18c2b79d907",
+        "files": [
+          "reviews/T0-05-claude.json",
+          "reviews/T0-05-codex.json"
+        ],
+        "digests": {
+          "reviews/T0-05-claude.json": "4162083d0c9a1c3eded27bfa4fa326e3690734073af9e678dd547218ba795278",
+          "reviews/T0-05-codex.json": "4210f4be7bdfdc6c573a300cd49386deb35256ed28d08e710d50f83bf6756f6e"
+        },
+        "bounces": 1
       },
-      "notes": ""
+      "notes": "ralph 2026-11-14T19:04:04Z: uncommitted changes were left; commit them or restore them"
     },
     {
       "id": "T0-06",
@@ -273,14 +298,20 @@
         "make mock-bundle-check"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "passed",
+        "round": 1,
+        "base": "be7989195cbd16ceb02bb70b0b669b46ab5b7fd7",
+        "head": "efe76a8c04024e6d788ea1f4b5b25765aff25cfc",
+        "files": [
+          "reviews/T0-06-claude.json",
+          "reviews/T0-06-codex.json"
+        ],
+        "digests": {
+          "reviews/T0-06-claude.json": "51455c666845f397c51d059504296b0d912e3c6d3ea6769d729f1928feaf519e",
+          "reviews/T0-06-codex.json": "a206503636dc3429fd4b314fd8ed45f8d2c643c7080005271ad6b25109077a07"
+        }
       },
       "notes": ""
     }

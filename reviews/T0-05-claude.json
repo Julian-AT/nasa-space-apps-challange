@@ -1,0 +1,209 @@
+{
+  "task_id": "T0-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "aaec3d22c58e46d94cb63de5201eef04cc4f1e38",
+    "head": "420ac3f44662a732179728854d8ae18c2b79d907",
+    "files": [
+      {
+        "path": ".gitignore",
+        "sha256": "110373d512903dd6d9d4afc84dec7e7d851f694b78083e7db545b4bf9d3fa809"
+      },
+      {
+        "path": "Makefile",
+        "sha256": "50b071208cec13c13a8f4c984ccfc35511a330dcd7367f0f35fc91da041a7587"
+      },
+      {
+        "path": "apps/web/README.md",
+        "sha256": "96c059d4b30ddd0f66dd59dfb1d28f462f9366c46c7f1a5cd4131a666a669119"
+      },
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "8ffd4a94f3a144a7f7e7456ce63d1dddec475738a49d179092dbafced38ba569"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "218db9703752817d3c98566cf768802b8032ae805adea56aaf8b1c4da63dd3e5"
+      },
+      {
+        "path": "apps/web/eslint.config.mjs",
+        "sha256": "7834f6283676eb083197b94e080933c8c413fd3f31e8f0b96af7547d91760378"
+      },
+      {
+        "path": "apps/web/lib/bundle.ts",
+        "sha256": "dd133c47226d7a9e763141f32f0987c804bc2d38ea76ebe14530ebba9a8ea31d"
+      },
+      {
+        "path": "apps/web/lib/errors.ts",
+        "sha256": "b4e3e3e9dc398b613c72bedb12ad9dacf1b17672104e163b705a310e56afc621"
+      },
+      {
+        "path": "apps/web/lib/json.ts",
+        "sha256": "47273c0e37f886c2738d4ccfee39f8cc5a48a0b885151813d5c41d187cfd3e4d"
+      },
+      {
+        "path": "apps/web/lib/shell.ts",
+        "sha256": "01914970a4d3d9334fe38d84c396cd7d38544834f68be9fe7af472e544b38680"
+      },
+      {
+        "path": "apps/web/next.config.ts",
+        "sha256": "e87be26c3b2b5eb6905a6f82dec468020ff25dadce502ebbcf8e87bc1a35deb0"
+      },
+      {
+        "path": "apps/web/package.json",
+        "sha256": "c1f0ca5d6829dc2bc7a4e0e0c4831ec37ff131e060479bc53f7f512779b26b4e"
+      },
+      {
+        "path": "apps/web/scripts/bundle-pull.ts",
+        "sha256": "f2e2d44da5b821721607b24c07759ff89fb54924c0c0b55ec7c60f9d0a88e64e"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "3d473e9772956eda060f21530940ee948781b755ecb6e68130cf96fcc6618baf"
+      },
+      {
+        "path": "apps/web/scripts/smoke.ts",
+        "sha256": "24064be981ee15ab04bee6a8d24b98c4dc96e3d5494e1bde7ce9c1a73dc8d2c6"
+      },
+      {
+        "path": "apps/web/tests/bundle-pull-cli.test.ts",
+        "sha256": "88601987ce6e838671e7bb85d2e47aac09f6d523654d8a6c2ef5d6e50e3c62a0"
+      },
+      {
+        "path": "apps/web/tests/bundle.test.ts",
+        "sha256": "434f2538a0cd5fb0f91e92b2a61e5a72c01d36f77992db5723e654f7bfc6ac30"
+      },
+      {
+        "path": "apps/web/tests/helpers.ts",
+        "sha256": "eecd32c4cd97541195dba2d94f16617c2df37046a95bb8f3530053eb25255a95"
+      },
+      {
+        "path": "apps/web/tests/json.test.ts",
+        "sha256": "64dbd99da986dc8b3494946856c8486854d4e3f849ced5a598cda08999708d73"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "156045a74a11d082d7d9a63672d757681d59f400e2c80dff7a3d6df808c15f64"
+      },
+      {
+        "path": "apps/web/tests/shell.test.ts",
+        "sha256": "2f42e8f4efea673426aa6999dd08df4c286a1394107ce26e21f5df31fbe2c9f8"
+      },
+      {
+        "path": "apps/web/tsconfig.json",
+        "sha256": "0d3e76d5ac3060ddbe1883beec122aa5f49cd9b918f172015c1c8b9058341594"
+      },
+      {
+        "path": "apps/web/vitest.config.ts",
+        "sha256": "ca50a0eb43780d733ea8c31c4f6a9b966fb8e8dce52bf768eea80d69a7a5c89b"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "091ab0b0c569da72231ae8ebcbcf0aece45ff3c9fc3d61c773ad2a56880e8df7"
+      },
+      {
+        "path": "turbo.json",
+        "sha256": "ef52323a8684ed122ce3dbb1ad6e2376dd8d7e463f64ad5b0d219a773af5855e"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:06:40Z",
+  "finished_utc": "2026-11-14T19:07:22Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T0-05 meets every acceptance criterion I checked. All four story checks (make check, make test, make web-build, make web-smoke) exit 0. The change reviewed is commit 420ac3f44662a732179728854d8ae18c2b79d907. Changed paths stay within the story's files list. The one exception is an unrelated `/.vscode/` line in `.gitignore`; I rate it low. I did not read config/run.yaml, so I found no invented gate passes or kickoff values. I ran the commands only and did not read the Python bundle validator. Reviewer: Claude Sonnet 5.5 (claude-sonnet-5-5) in Claude Code. Timestamp: 2026-11-14. I did not hash the input artifacts.",
+  "checks": [
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff and mypy pass; turbo lint and typecheck: 4 successful"
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed; web vitest 80 passed (5 files); schema vitest 157 passed"
+    },
+    {
+      "criterion": "make web-build",
+      "command": "make web-build",
+      "outcome": "PASS",
+      "evidence": "bundle:pull copied the mock bundle (mock-0); next build 16.4.6 succeeded; route / is ○ static"
+    },
+    {
+      "criterion": "make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "PASS",
+      "evidence": "web-smoke: GET http://127.0.0.1:52944/ (prerendered) shows the mock banner, \"Shipping mode: not chosen (G0 NOT_RUN)\" and bundle version mock-0 in the footer"
+    },
+    {
+      "criterion": "@terraluna/web with Next 16, React 19.2, strict TypeScript, no Tailwind or UI kit",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/package.json:19-21 pins next 16.4.6 and react 19.2.9; no Tailwind or UI kit dependency. I did not read tsconfig.json to confirm strict mode, but typecheck passes."
+    },
+    {
+      "criterion": "bundle:pull sources, validation and no mock fallback",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/lib/bundle.ts:61-76,208-222: an unset or empty BUNDLE_VERSION selects the mock, otherwise release/<v>. Both files are validated with the @terraluna/schema Zod schemas. A missing release throws; the test at tests/bundle.test.ts:129 covers this. apps/web/data/ is git-ignored (.gitignore)."
+    },
+    {
+      "criterion": "bundle:pull and next build fail on mock=true with VERCEL_ENV=production",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "assertDeployable is called in pullBundle (bundle.ts:217) and in loadBundle (bundle.ts:240), which app/layout.tsx:24 runs at build time. Tests: bundle.test.ts:70,74,247; bundle-pull-cli.test.ts:25-28."
+    },
+    {
+      "criterion": "Vitest tests cover production-mock throw, preview/unset pass, missing requested version throw, invalid manifest throw",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "bundle.test.ts:70-92 (mock with production throws; preview and unset pass), :129 (missing requested version), :141-168 (invalid manifest cases). The tests check specific errors and file contents, not no-ops."
+    },
+    {
+      "criterion": "/ is static and shows the required text and nothing else",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page.tsx sets dynamic='error' and shows only the title. shell.ts:15-29 builds the banner, the shipping-mode line and the footer from manifest.json and validation.json. The build lists / as ○ static. A missing G0 record shows 'not recorded', not a status."
+    },
+    {
+      "criterion": "Makefile targets web-build, web-smoke, web-dev",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Makefile web-build runs bundle:pull then build. web-smoke depends on web-build and runs scripts/smoke.ts, which the make web-smoke run exercised. web-dev runs bundle:pull then dev."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": ".gitignore:2-3",
+      "claim": "The `/.vscode/` ignore rule is not needed by this story, but it is harmless.",
+      "evidence": "The diff for .gitignore adds `/.vscode/`, which has nothing to do with T0-05. It is allowed because .gitignore is in the story's files list.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The rule is needed for this story to reach review at all. ralph.sh dirty() is `git status --porcelain`, which lists untracked files, and an untracked .vscode/settings.json (a personal editor setting created at 19:44 local by someone else, not by this story) made the loop return T0-05 before review: prd.json notes \"ralph 2026-11-14T19:04:04Z: uncommitted changes were left\". CLAUDE.md says to preserve other workers' changes, so the file could be neither committed nor deleted. .gitignore is in the story's files, and commit a16bb75 ignores /.vscode/, which keeps the file in place (`git check-ignore -v .vscode/settings.json` prints \".gitignore:3:/.vscode/\") and the tree clean. The finding itself agrees the change is allowed and harmless. No change."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/lib/bundle.ts:47-59",
+      "claim": "An unknown VERCEL_ENV value, such as 'prod', makes the build fail instead of being treated as unset.",
+      "evidence": "The code throws for any VERCEL_ENV other than production, preview, development or unset, and tests/bundle.test.ts:64 covers this. This is stricter than the story requires, but it fails safe.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "This is the intended fail-safe behaviour, as the finding itself notes. The guard exists so a mock bundle can never build for production (story criterion 3; PRD 8.4: the mock bundle \"uses the same schemas with mock: true; the UI shows a red banner for it and CI refuses it on production\"; PRD 8.9: production is pinned to BUNDLE_VERSION). Vercel sets VERCEL_ENV only to production, preview or development, so any other value is an operator typo. Treating \"prod\" or \" production\" as unset would build the mock for a deployment meant to be production, the exact failure the criterion forbids, while refusing it costs one clear error message naming the allowed values (lib/bundle.ts:49-58). tests/bundle.test.ts:64 pins this for \"prod\", \"Production\" and \" production\". No change."
+      }
+    }
+  ]
+}

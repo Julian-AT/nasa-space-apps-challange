@@ -1,0 +1,104 @@
+{
+  "task_id": "T0-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "0d57a25f869d71257c5c0e1b1c0dabc539dc0356",
+    "head": "b8d6b132c42d7e6e9d31e9f58bf82271f991ad4b",
+    "files": [
+      {
+        "path": "Makefile",
+        "sha256": "8e955470a94cc4cc75b6411fd945746eaa380dcfd365a031d6b7adf50a1488fe"
+      },
+      {
+        "path": "fixtures/mock-bundle/manifest.json",
+        "sha256": "3769f649aac7876bed183dc9ef81ae3c789f90900258f8b256110cb441c67c4b"
+      },
+      {
+        "path": "fixtures/mock-bundle/validation.json",
+        "sha256": "d49244039d7045d1ed46ac4322f9ca49fbc30e01d7e050e6967955417c44df77"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/export.py",
+        "sha256": "a82435790ba7705ba8f24af298f954c6610f2ec1362ff748577a8b3312ee4d49"
+      },
+      {
+        "path": "pipeline/tests/test_export.py",
+        "sha256": "c95d83786200d4bcebd52f2c0f35ad8125b688ada4114a76a2ee77041f31e9ba"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:46:31Z",
+  "finished_utc": "2026-11-14T17:49:42Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No actionable defects found by inspection. All five changed files are within scope. Runtime behavior and required checks remain unverified under the read-only instruction.",
+  "checks": [
+    {
+      "criterion": "AC1: Bundle writer and validator APIs; structured errors with code and path.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/export.py:75 defines BundleError with code and path; :271 defines write_bundle; :433 defines validate_bundle returning list[BundleError]."
+    },
+    {
+      "criterion": "AC2: Complete file listing, SHA-256, byte counts and deterministic JSON.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Implementation present at export.py:177 and :236; corresponding assertions at pipeline/tests/test_export.py:163, :193 and :209. Writing and examining a temporary bundle was not performed because this review prohibits writes and test execution."
+    },
+    {
+      "criterion": "AC3: Manifest, inventory, integrity, SI budget, GateRecord and production validation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Branches inspected at export.py:125, :319, :336, :378 and :399. Required negative tests contain specific assertions. Runtime verification requires temporary bundle mutations, prohibited in this review."
+    },
+    {
+      "criterion": "AC4: Validation CLI prints every error and returns the required exit status.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "CLI dispatch and exit handling are at export.py:577; output assertions at test_export.py:809 and subprocess assertions at :871. CLI verification was not executed under the instruction to review by reading."
+    },
+    {
+      "criterion": "AC5: make mock-bundle generates exactly the prescribed manifest and G0–G6 NOT_RUN records.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Makefile:33 invokes the generator; export.py:459 defines the fixed metadata and gate records. Committed manifest.json:2 and validation.json:1 contain the prescribed values. Regeneration was not executed because it writes files."
+    },
+    {
+      "criterion": "AC6: make mock-bundle-check regenerates temporarily and fails on differences.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Makefile:38 invokes export.py:543, which generates in TemporaryDirectory and compares file inventory and bytes; :618 propagates differences to failure. Execution is prohibited because it creates temporary files."
+    },
+    {
+      "criterion": "AC7: Required tests were written first, use temporary bundles and assert committed mock acceptance/rejection.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Git history shows test_export.py added in 3073be6 before export.py was added in ada4d43. Required assertions are at test_export.py:287, :294, :307, :325, :462, :570, :621 and :629, using tmp_path through :91. Committed mock assertions are at :658 and :662. Subsequent test changes add coverage without weakening these assertions."
+    },
+    {
+      "criterion": "Required check: make check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instruction; tool execution may write dependency or lint/type-check caches."
+    },
+    {
+      "criterion": "Required check: make test",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instruction; tests write temporary bundles and caches."
+    },
+    {
+      "criterion": "Required check: make mock-bundle-check",
+      "command": "make mock-bundle-check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instruction; regeneration writes a temporary bundle."
+    }
+  ],
+  "findings": []
+}

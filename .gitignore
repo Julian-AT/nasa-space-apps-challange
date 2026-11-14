@@ -1,4 +1,6 @@
 .DS_Store
+# Personal editor settings stay local.
+/.vscode/
 __pycache__/
 /reference-library/repositories/
 
@@ -28,6 +30,10 @@ test-results/
 
 /data/
 /release/
+# Copied from the bundle by `pnpm --filter @terraluna/web bundle:pull` (PRD 8.5); Next.js writes
+# next-env.d.ts on every build, dev and typegen run.
+/apps/web/data/
+/apps/web/next-env.d.ts
 /ml/checkpoints/
 /ml/shards/
 /wandb/

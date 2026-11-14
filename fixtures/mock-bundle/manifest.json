@@ -1,0 +1,18 @@
+{
+  "bundle_version": "mock-0",
+  "created_utc": "1970-01-01T00:00:00Z",
+  "files": [
+    {
+      "bytes": 1158,
+      "path": "validation.json",
+      "sha256": "d49244039d7045d1ed46ac4322f9ca49fbc30e01d7e050e6967955417c44df77"
+    }
+  ],
+  "git_sha": null,
+  "mock": true,
+  "model": null,
+  "run_id": null,
+  "schema_version": "1.0.0",
+  "shipping_mode": null,
+  "targets": []
+}

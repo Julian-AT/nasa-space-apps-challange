@@ -1,0 +1,92 @@
+# Terraluna CI, the T0 jobs of PRD 8.9 and 12. Each job runs the Makefile targets that a local
+# build runs. Python comes from .python-version (uv finds it; see env below), Node from
+# .node-version and pnpm from the packageManager field in package.json. The setup targets install
+# from the lockfiles frozen: `uv sync --locked` and `pnpm install --frozen-lockfile`. Every action
+# is pinned to a full commit SHA, with its release tag in a comment.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# uv uses only its own managed Python builds, never the runner image's system Python (by default
+# it prefers an installed system 3.12 to a download). With uv pinned below, the 3.12 request in
+# .python-version then always resolves to the same python-build-standalone download: cpython
+# 3.12.12+20260114 for uv 0.9.26. The ts and commitlint jobs do not run uv.
+env:
+  UV_MANAGED_PYTHON: "1"
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  py:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The uv of the build machine that wrote uv.lock (scripts/ralph/progress.txt).
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: 0.9.26
+      - run: make setup-py check-py test-py
+
+  ts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - run: make setup-ts check-ts test-ts
+
+  # Regenerates the JSON Schemas (Python) and the zod modules (Node) and fails on any diff, then
+  # regenerates and validates the mock bundle.
+  schema:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: 0.9.26
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - run: make setup-py setup-ts
+      - run: make schema-check mock-bundle-check
+
+  # Lints every commit of the pull request, from its base SHA to its head SHA, so it needs the
+  # full history.
+  commitlint:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - run: make setup-ts
+      - run: pnpm exec commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
