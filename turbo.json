@@ -6,6 +6,12 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
+    "@terraluna/web#build": {
+      "dependsOn": ["^build"],
+      "env": ["BUNDLE_VERSION", "VERCEL_ENV"],
+      "inputs": ["$TURBO_DEFAULT$", "data/**"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
     "typecheck": {
       "dependsOn": ["^typecheck"],
       "outputs": []
