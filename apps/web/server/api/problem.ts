@@ -19,10 +19,29 @@ const TITLES = {
   404: 'Not Found',
   405: 'Method Not Allowed',
   500: 'Internal Server Error',
+  501: 'Not Implemented',
 } as const;
 
 /** The statuses the API answers with a problem. */
 export type ProblemStatus = keyof typeof TITLES;
+
+/**
+ * An expected answer that is a problem, such as an id the bundle does not hold. A handler throws
+ * it, and the API's error handler answers with problemResponse(status, detail) without logging it,
+ * since nothing failed. The detail is public, so it must name only what the request and the
+ * manifest already show.
+ */
+export class ProblemError extends Error {
+  readonly status: ProblemStatus;
+  readonly detail: string;
+
+  constructor(status: ProblemStatus, detail: string) {
+    super(detail);
+    this.name = 'ProblemError';
+    this.status = status;
+    this.detail = detail;
+  }
+}
 
 export const ProblemSchema = z
   .object({
