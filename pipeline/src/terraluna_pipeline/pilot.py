@@ -3023,8 +3023,8 @@ class MinirfSource:
             "s4": layer_record("s4", s4),
             "mask": (
                 "quality.validity_mask of each layer with nodata = its label's CORE_NULL and the "
-                "label's four ISIS saturation codes as isis_saturation; a pixel counts when it "
-                "is valid in both S1 and S4"
+                "ISIS saturation codes its label declares as isis_saturation; a pixel counts "
+                "when it is valid in both S1 and S4"
             ),
             "values": (
                 "the stored samples of the window's columns, unscaled (SCALING_FACTOR 1.0 and "
