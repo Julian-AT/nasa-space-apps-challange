@@ -1,0 +1,105 @@
+{
+  "task_id": "T2-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4c7bed65810af0f32c1ce98046509d687b4c2147",
+    "head": "12aa9a91dcc9432ad8c48bd1c5f373b11ff28b83",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "450ecfb3f30a659c5e238ce6559b4471e9414a152951e2d8c1412fb7f18109f3"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/__init__.py",
+        "sha256": "b289526dda104254fa6f93383fddf1a78a39efd42c287dd17c2ccd0b2bcc7694"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/expanded_oracle.py",
+        "sha256": "ed198181d0d443868c91faa1a71c5f42465bb96bb827e53c3930d6517f339e31"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/jones_oracle.py",
+        "sha256": "3290b0f2e13ec282e07c261a0cbe866dbda63f68642bca89e6c0fb25909d02d8"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_covariance.py",
+        "sha256": "13400d795f4da692f5eb2eb1296f267aa34fb643e6f2757a16f29387c5f56b4d"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:17:17Z",
+  "finished_utc": "2026-11-14T19:22:14Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Reviewed all five changed files and the binding PRD sections. No definite defects identified by static review. Required execution checks and the failing-first run remain unverified because execution was prohibited.",
+  "checks": [
+    {
+      "criterion": "1. Tests first, independent expanded-formula and Jones-vector oracles, and PRD arithmetic tolerances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Both independent oracles exist and contain no production-module imports: pipeline/tests/polarimetry/expanded_oracle.py:19 and jones_oracle.py:20. Fixture comparisons use rtol=1e-10 and atol=1e-12 at test_polarimetry_covariance.py:43 and :115. A historical failing run was not observed; execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "2. Fixture construction asserts Hermitian PSD properties and the required F6/F7 eigenvalues before use.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_polarimetry_covariance.py:104 asserts Hermitian symmetry and PSD. F6 is constructed from (1, 0.2j, 0) and checked before return at :141–153. Both F7 eigenvalue sets are checked before return at :156–166."
+    },
+    {
+      "criterion": "3. F6 powers and F7 CPR ambiguity match the specified values.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_polarimetry_covariance.py:194–211 asserts OC=0.25, SC_LL=0.49 and SC_opp=0.09. Lines 256–273 assert identical channel powers, CPR values 3/19 and 1, and differing CPR. Numerical results were not executed because the sandbox is read-only."
+    },
+    {
+      "criterion": "4. Explicit unitary basis transformation and comparisons against both oracles on F6, F7 and 200 Hypothesis covariances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:957 defines the basis; :1176–1186 declares ordering and transmit vectors; :1302 applies U C U^H without expanded-formula computation. Tests at test_polarimetry_covariance.py:214, :233 and :923 compare both handednesses with both oracles. The numerical and randomized checks were not executed because execution was prohibited."
+    },
+    {
+      "criterion": "5. Required explicit convention, rejection of undeclared conventions, and handedness_verified=False by default.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1166 requires convention; :983–992 rejects unknown values. The output flag defaults to False at :1040 and conversion does not override it at :1335–1346. No equivalence label is emitted. Tests cover omitted/unknown conventions and the default flag at test_polarimetry_covariance.py:351, :371 and :397."
+    },
+    {
+      "criterion": "6. Invalid covariance causes, unpublished invalid values, no repair/clipping, and configurable arithmetic PSD tolerance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1268–1298 classifies nonfinite, non-Hermitian, negative-diagonal and non-PSD inputs; :283–287 blanks invalid outputs to NaN. Tests at test_polarimetry_covariance.py:512–549 assert distinct causes and no published values; :608–622 checks negative eigenvalues without clipping; :697 checks input preservation. The tolerance argument is at polarimetry.py:1168, with the open real-data decision documented at :1202. Execution was prohibited."
+    },
+    {
+      "criterion": "7. Nonpositive OC/base_SC handling, handedness diagnostics, no epsilon, and no development threshold.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1308–1309 derives base_SC and the handedness term; :1319 and :1326–1332 apply explicit nonpositive-denominator reasons. Division at :1156 adds no epsilon, and no handedness threshold is applied. Tests at test_polarimetry_covariance.py:708–752 cover zero denominators, diagnostics and threshold absence. Numerical behavior was not executed because execution was prohibited."
+    },
+    {
+      "criterion": "Focused covariance tests.",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_covariance.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the read-only sandbox prohibits dependency and test-cache writes."
+    },
+    {
+      "criterion": "Python type checking.",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the read-only sandbox prohibits dependency and type-checker cache writes."
+    },
+    {
+      "criterion": "Repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the read-only sandbox prohibits writes required by the uv-backed checks."
+    }
+  ],
+  "findings": []
+}

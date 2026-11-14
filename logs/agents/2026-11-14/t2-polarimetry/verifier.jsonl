@@ -52,3 +52,15 @@
 {"ts":"2026-11-14T18:47:49Z","agent":"verifier","story":"T2-02","event":"tool_use","tool":"Bash","input":"git rev-parse HEAD"}
 {"ts":"2026-11-14T18:47:49Z","agent":"verifier","story":"T2-02","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T18:47:49Z","agent":"verifier","story":"T2-02","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":1}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"Bash","input":"git diff --stat 4c7bed65810af0f32c1ce98046509d687b4c2147 12aa9a91dcc9432ad8c48bd1c5f373b11ff28b83 -- . ':!scripts/ralph' ':!reviews' ':!logs'"}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_polarimetry_covariance.py"}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"Bash","input":"uv run mypy pipeline/src pipeline/tests"}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"Read","input":"/Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/t2-polarimetry/pipeline/src/terraluna_pipeline/polarimetry.py"}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"Read","input":"/Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/t2-polarimetry/pipeline/src/terraluna_pipeline/polarimetry.py"}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"Grep","input":"max_examples|^def test_|^class Test|import .*polarimetry|from terraluna|handedness_verified|PSD tolerance|open"}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"Grep","input":"max_examples|^def test_|import .*polarimetry|from terraluna|^from tests|^import"}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"Read","input":"/Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/t2-polarimetry/pipeline/tests/test_polarimetry_covariance.py"}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"Bash","input":"git status --short"}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T19:17:54Z","agent":"verifier","story":"T2-03","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":2}
