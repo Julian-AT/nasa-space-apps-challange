@@ -125,7 +125,9 @@ describe('GET /api/v1/openapi.json', () => {
 
   it('describes every error response as problem+json and gives every body a schema', async () => {
     for (const [path, , operation] of operations(await documentOf())) {
-      for (const [status, response] of Object.entries(operation.responses as Record<string, Json>)) {
+      for (const [status, response] of Object.entries(
+        operation.responses as Record<string, Json>,
+      )) {
         const where = `${path} ${status}`;
         expect(response.description, where).toEqual(expect.any(String));
         const content = (response.content ?? {}) as Record<string, Json>;
@@ -157,7 +159,9 @@ describe('GET /api/v1/openapi.json', () => {
     expect(Object.keys(components)).toEqual(
       expect.arrayContaining(['BundleManifest', 'Health', 'Problem', 'TargetList', 'Validation']),
     );
-    const refs = [...JSON.stringify(document).matchAll(/"\$ref":"#\/components\/schemas\/([^"]+)"/g)];
+    const refs = [
+      ...JSON.stringify(document).matchAll(/"\$ref":"#\/components\/schemas\/([^"]+)"/g),
+    ];
     expect(refs.length).toBeGreaterThan(0);
     for (const [, name] of refs) expect(components, name).toHaveProperty(name ?? '');
   });

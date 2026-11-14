@@ -63,7 +63,9 @@ describe('GET /api/v1/docs', () => {
   it('loads one script, from the pinned CDN URL the package requires, and no other resource', async () => {
     const html = await page();
     const scripts = [...html.matchAll(/<script\b[^>]*>/gi)].map((m) => m[0]);
-    expect(scripts.filter((tag) => /\bsrc=/.test(tag))).toEqual([`<script src="${SCALAR_SCRIPT}">`]);
+    expect(scripts.filter((tag) => /\bsrc=/.test(tag))).toEqual([
+      `<script src="${SCALAR_SCRIPT}">`,
+    ]);
     expect(html).not.toMatch(/<script[^>]*type=["']module["']/i);
     expect(html).not.toMatch(/<link\b/i);
     expect(html).not.toMatch(/@import/i);
