@@ -1111,10 +1111,13 @@ def bilinear_resample(
     as -9999.099609375. Equality is then exact, whereas GDAL's mask band also takes values
     within about 4.8e-7 relative of the sentinel (ARE_REAL_EQUAL); a masked array carries
     whatever mask its reader derived, and that mask is honoured as given. An integer source
-    matches an integral sentinel in its range exactly, beyond 2**53 too. A sentinel the source
-    type cannot hold, such as 0.5 or 256 for uint8, or a finite value beyond the float type's
-    range, raises ResampleError rather than masking nothing. A NaN or infinite sentinel of a
-    float source adds no missing pixels.
+    matches an integral sentinel in its range exactly, beyond 2**53 too. The rounding is to
+    nearest, ties to even, so a float sentinel less than half an ulp beyond the type's largest
+    finite value is held as that value, as storing it does: a float32 band holds -3.4028235e38
+    as -3.4028234663852886e38. A sentinel the source type cannot hold, such as 0.5 or 256 for
+    uint8, or a finite float that rounds to infinity in the source type, raises ResampleError
+    rather than masking nothing. A NaN or infinite sentinel of a float source adds no missing
+    pixels.
 
     A point is inside when 0 <= column <= ncols - 1 and 0 <= row <= nrows - 1. Its four
     neighbours are columns i and i + 1 and rows j and j + 1, with i = min(floor(column),
@@ -1232,10 +1235,16 @@ def _sentinel_pixels(grid: npt.NDArray[Any], nodata: object) -> BoolArray | None
             ) from None
         if not math.isfinite(declared):
             return None
-        # Every float64 fits a wider float type; float() of its maximum would overflow.
-        if dtype.itemsize <= 8 and abs(declared) > float(np.finfo(dtype).max):
-            raise ResampleError(f"nodata {sentinel!r} lies beyond the range of the {dtype} source")
-        return np.asarray(grid == dtype.type(declared), dtype=np.bool_)
+        # Round to nearest, ties to even, as storing it in the band does: less than half an ulp
+        # beyond the largest finite value rounds to that value, and only from there to infinity.
+        with np.errstate(over="ignore", under="ignore"):
+            stored = dtype.type(declared)
+        if not np.isfinite(stored):
+            raise ResampleError(
+                f"nodata {sentinel!r} rounds to infinity in the {dtype} source, "
+                "beyond the range it holds"
+            )
+        return np.asarray(grid == stored, dtype=np.bool_)
     if isinstance(sentinel, float):
         if not sentinel.is_integer():
             raise ResampleError(
