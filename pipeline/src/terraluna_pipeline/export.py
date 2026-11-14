@@ -199,11 +199,14 @@ def _unique_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 def _load_json(data: bytes) -> object:
     """Parse strict JSON: UTF-8, no NaN or infinities, and no duplicate keys.
 
-    Raises ValueError otherwise.
+    Raises ValueError otherwise, also for nesting too deep to parse.
     """
-    return json.loads(
-        data.decode("utf-8"), parse_constant=_refuse_constant, object_pairs_hook=_unique_keys
-    )
+    try:
+        return json.loads(
+            data.decode("utf-8"), parse_constant=_refuse_constant, object_pairs_hook=_unique_keys
+        )
+    except RecursionError:
+        raise ValueError("JSON is nested too deeply to parse") from None
 
 
 def _describe(error: ErrorDetails) -> str:
@@ -510,8 +513,10 @@ def _refuse_to_replace(out: Path, written: Mapping[str, bytes]) -> None:
             f"{out} holds files the mock bundle does not write, so it is left as it is: "
             + ", ".join(others)
         )
-    if MANIFEST not in sizes:
+    if not sizes:
         return
+    if MANIFEST not in sizes:
+        raise FileExistsError(f"{out} has no {MANIFEST} marked mock, so it is left as it is")
     try:
         manifest = _load_json((out / MANIFEST).read_bytes())
     except ValueError:
