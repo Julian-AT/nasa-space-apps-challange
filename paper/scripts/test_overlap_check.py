@@ -145,6 +145,10 @@ def twelve_with(change: str) -> str:
         return " ".join(w[:6]) + " \\citep% see the note\n{a} " + " ".join(w[6:])
     if change == "comment lines before a citation":
         return " ".join(w[:6]) + " \\cite %\n% more\n {a,\n b} " + " ".join(w[6:])
+    if change == "space before a citation star":
+        return " ".join(w[:6]) + " \\citep *{other} " + " ".join(w[6:])
+    if change == "comment before a citation star":
+        return " ".join(w[:6]) + " \\citet% note\n  *[see]{other} " + " ".join(w[6:])
     if change == "comment before a reference":
         return " ".join(w[:6]) + " (\\ref%\n{fig:map}) " + " ".join(w[6:])
     if change == "grouped word":
@@ -212,6 +216,8 @@ def twelve_with(change: str) -> str:
         "markup",
         "comment before a citation",
         "comment lines before a citation",
+        "space before a citation star",
+        "comment before a citation star",
         "comment before a reference",
         "grouped word",
         "adjacent groups",

@@ -229,6 +229,47 @@ def test_comments_before_environment_arguments_are_skipped(text: str, expected: 
     assert words(text) == expected
 
 
+# TeX skips the spaces after a control word, and LaTeX's \@ifstar looks for its * with
+# \@ifnextchar, which skips space tokens. So a space, a comment or one line break may stand
+# before the * of a starred command, and the keys after it are still not prose.
+@pytest.mark.parametrize(
+    "command",
+    [
+        "\\citep *{other}",
+        "\\citet  *[see][p.~5]{other}",
+        "\\citep% note\n  *{other}",
+        "\\citeauthor\n*{other}",
+        "\\ref *{fig:other}",
+        "\\autoref %\n%\n *{fig:other}",
+        "\\\\ *[2pt]",
+        "\\\\\n*\n[2pt]",
+        "\\\\ % note\n *[2pt]",
+    ],
+)
+def test_a_star_after_a_gap_belongs_to_its_command(command: str) -> None:
+    assert words(f"before {command} after") == ["before", "after"]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("seam\\vspace *{2pt}less", ["seamless"]),
+        ("seam\\vspace\n*{2pt}less", ["seamless"]),
+        ("seam\\vspace % note\n  *{2pt}less", ["seamless"]),
+    ],
+)
+def test_a_starred_unprinted_command_after_a_gap_joins_its_word(
+    text: str, expected: list[str]
+) -> None:
+    assert words(text) == expected
+
+
+def test_a_blank_line_before_a_star_is_a_paragraph() -> None:
+    with pytest.raises(TexSyntaxError):
+        extract("\\citep\n\n*{other}")
+    assert words("a\\\\\n\n*[2pt] b") == ["a", "*[2pt]", "b"]
+
+
 def test_comments_before_an_argument_are_recorded() -> None:
     source = extract("\\cite% one\n% two\n{shepard2001} text")
     assert source.comments == {1: " one", 2: " two"}

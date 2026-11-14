@@ -75,6 +75,7 @@ def test_dash_rule_fails(text: str) -> None:
         "a % a dash -- here --- and \u2014 there\nb",
         "\\url{https://x.org/a--b}",
         "\\ref{fig:a--b} and \\label{sec:a---b}",
+        "\\ref *{fig:a--b} and \\citep\n*{a---b}",
         "\\verb|a -- b|",
         "\\begin{tikzpicture}\n\\draw (a) -- (b);\n\\draw (b) -> (c);\n\\end{tikzpicture}",
         "$x$-axis",
