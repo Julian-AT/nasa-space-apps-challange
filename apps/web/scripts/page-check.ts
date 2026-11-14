@@ -40,8 +40,16 @@ export const LAYOUT_LABELS: readonly string[] = [
   'Data',
 ];
 
-/** Elements whose text the check compares as a whole, or never shows (<head>). */
-const COMPARED_ELEMENTS: ReadonlySet<string> = new Set(['head', 'main', 'footer']);
+/** Elements whose text the check compares as a whole. */
+const COMPARED_ELEMENTS: ReadonlySet<string> = new Set(['main', 'footer']);
+
+/**
+ * Whether a block is the document head, the first block in <html>, whose text a browser never
+ * shows. A head tag anywhere else is ignored by the HTML parser, which shows its text in the body.
+ */
+function isDocumentHead(block: Block): boolean {
+  return block.name === 'head' && block.parent?.name === 'html' && block.parent.children[0] === block;
+}
 
 const SHIPPING_MODE = 'Shipping mode:';
 const MOCK_MARKER = 'Mock bundle';
@@ -246,13 +254,13 @@ function checkBanner(blocks: readonly Block[], marker: string, banner: string, n
 
 /**
  * The text outside the elements whose text the check compares as a whole: every block's own text,
- * unless the block is in <head>, <main>, a footer or a banner part, or sits in a live region that
- * is a banner part. Each of these texts must be a layout label.
+ * unless the block is in the document head, <main>, a footer or a banner part, or sits in a live
+ * region that is a banner part. Each of these texts must be a layout label.
  */
 function strayTexts(blocks: readonly Block[], banners: readonly Extent[]): string[] {
   const compared = new Set<Extent>(banners);
   for (const block of blocks) {
-    if (COMPARED_ELEMENTS.has(block.name)) compared.add(block);
+    if (COMPARED_ELEMENTS.has(block.name) || isDocumentHead(block)) compared.add(block);
   }
   const isCompared = (block: Block): boolean => {
     for (let at: Block | undefined = block; at !== undefined; at = at.parent) {
