@@ -1,4 +1,6 @@
 .DS_Store
+# Personal editor settings stay local.
+/.vscode/
 __pycache__/
 /reference-library/repositories/
 
