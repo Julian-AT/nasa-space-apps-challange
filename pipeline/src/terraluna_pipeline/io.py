@@ -24,12 +24,14 @@ these functions, so they never guess a value:
 from __future__ import annotations
 
 import bisect
+import functools
 import hashlib
 import http.client
 import io
 import math
 import os
 import re
+import ssl
 import tempfile
 import urllib.error
 import urllib.parse
@@ -40,6 +42,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import IO, Any, Final, Protocol, Required, TypedDict
 
+import certifi
 import numpy as np
 import numpy.typing as npt
 import pyproj
@@ -477,6 +480,23 @@ class _PublicRedirectHandler(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
+@functools.cache
+def tls_context() -> ssl.SSLContext:
+    """The TLS context of every request: hostname and certificate checks with certifi's CAs.
+
+    The bundle is the Mozilla CA list that certifi ships, pinned by uv.lock, so verification does
+    not depend on the platform's OpenSSL file, which can lack current roots (the uv-managed Python
+    on macOS reads /etc/ssl/cert.pem). Verification is never disabled.
+    """
+    return ssl.create_default_context(cafile=certifi.where())
+
+
+def _opener(redirects: _PublicRedirectHandler) -> urllib.request.OpenerDirector:
+    return urllib.request.build_opener(
+        redirects, urllib.request.HTTPSHandler(context=tls_context())
+    )
+
+
 def fetch_range(url: str, first: int, last: int, *, timeout: float = 60.0) -> RangeResponse:
     """Fetch bytes ``first`` to ``last`` (inclusive) of ``url`` with an HTTP Range request.
 
@@ -495,7 +515,7 @@ def fetch_range(url: str, first: int, last: int, *, timeout: float = 60.0) -> Ra
     request = urllib.request.Request(
         url, headers={"Range": requested, "Accept-Encoding": "identity"}
     )
-    opener = urllib.request.build_opener(_PublicRedirectHandler())
+    opener = _opener(_PublicRedirectHandler())
     try:
         response: http.client.HTTPResponse = opener.open(request, timeout=timeout)
     except urllib.error.HTTPError as error:
@@ -642,7 +662,7 @@ def fetch_file(
     if not dest.parent.is_dir():
         raise FileNotFoundError(f"the directory {dest.parent} for {dest.name} does not exist")
     request = urllib.request.Request(url, headers={"Accept-Encoding": "identity"})
-    opener = urllib.request.build_opener(_PublicRedirectHandler(DownloadError))
+    opener = _opener(_PublicRedirectHandler(DownloadError))
     try:
         response: http.client.HTTPResponse = opener.open(request, timeout=timeout)
     except urllib.error.HTTPError as error:
