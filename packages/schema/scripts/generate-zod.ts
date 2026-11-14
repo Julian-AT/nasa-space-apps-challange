@@ -11,6 +11,12 @@
 // ignores `if`/`then` without `else`, and drops `propertyNames` from a map, so translateOverride
 // translates those itself: `not` as a negated pattern, a record object's `if`/`then`/`else` and
 // `allOf` of such conditionals as refinements, and a map object as a zod record.
+//
+// Two more forms need no override, only checks that make the converter's output faithful: an
+// integer `const` (z.literal), and pydantic's discriminated union, an OpenAPI `discriminator`
+// next to a `oneOf` of `$ref`s to record objects, which the converter turns into
+// z.discriminatedUnion once dereference and assertSupported have verified the branches and the
+// mapping. Any other `oneOf` is refused, because the converter would emit z.any().superRefine.
 import { lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
@@ -169,10 +175,51 @@ function at(pointer: string): string {
 // --- $ref resolution ------------------------------------------------------------------------
 
 /**
+ * For a `discriminator` next to a `oneOf` of `$ref`s, refuse a mapping that sends a branch's
+ * discriminator value to another definition than the one that branch references. Inlining loses
+ * the definition names, so this is checked here, on the node before and after inlining. Shapes
+ * this cannot read, and values several branches share, are left to assertUnion, which refuses
+ * them with their own messages.
+ */
+function checkMappingTargets(node: JsonObject, inlined: JsonObject, pointer: string): void {
+  const { oneOf, discriminator } = node;
+  const resolved = inlined['oneOf'];
+  if (!Array.isArray(oneOf) || !Array.isArray(resolved) || !isObject(discriminator)) {
+    return;
+  }
+  const { propertyName, mapping } = discriminator;
+  if (typeof propertyName !== 'string' || !isObject(mapping)) {
+    return;
+  }
+  const branches: { name: string; value: string; index: number }[] = [];
+  oneOf.forEach((element, index) => {
+    const ref = isObject(element) ? element['$ref'] : undefined;
+    const name = typeof ref === 'string' ? /^#\/\$defs\/([A-Za-z0-9_.-]+)$/.exec(ref)?.[1] : undefined;
+    const branch = resolved[index];
+    const properties = isObject(branch) ? branch['properties'] : undefined;
+    const property = isObject(properties) ? properties[propertyName] : undefined;
+    const value = isObject(property) ? property['const'] : undefined;
+    if (name !== undefined && typeof value === 'string') {
+      branches.push({ name, value, index });
+    }
+  });
+  for (const { name, value, index } of branches) {
+    if (branches.filter((other) => other.value === value).length > 1 || !Object.hasOwn(mapping, value)) {
+      continue;
+    }
+    if (mapping[value] !== `#/$defs/${name}`) {
+      throw new SchemaError(
+        `${at(pointer)}: discriminator mapping sends ${JSON.stringify(value)} to ${JSON.stringify(mapping[value])}, not to #/$defs/${name}, the definition of oneOf/${String(index)}`,
+      );
+    }
+  }
+}
+
+/**
  * Inline every `{"$ref": "#/$defs/<Name>"}` and drop the root `$defs`.
  *
- * References are read only where a subschema is expected: under `properties`, `items`, `anyOf`
- * and a schema-valued `additionalProperties`, the keywords assertSupported accepts. Elsewhere,
+ * References are read only where a subschema is expected: under `properties`, `items`, `anyOf`,
+ * `oneOf` and a schema-valued `additionalProperties`, the keywords assertSupported accepts. Elsewhere,
  * such as in a `properties` map or an `enum`, `$ref` is plain data. pydantic emits only local
  * references with no sibling keywords, so anything else is refused, as is a recursive
  * reference, which inlining cannot express.
@@ -194,7 +241,7 @@ export function dereference(root: JsonObject): JsonObject {
     if (key === 'additionalProperties' && isObject(value)) {
       return inline(value, pointer, stack);
     }
-    if (key === 'anyOf' && Array.isArray(value)) {
+    if ((key === 'anyOf' || key === 'oneOf') && Array.isArray(value)) {
       return value.map((branch, index) => inline(branch, `${pointer}/${String(index)}`, stack));
     }
     if (key === 'properties' && isObject(value)) {
@@ -215,12 +262,14 @@ export function dereference(root: JsonObject): JsonObject {
     }
     const ref = node['$ref'];
     if (ref === undefined) {
-      return Object.fromEntries(
+      const inlined = Object.fromEntries(
         Object.entries(node).map(([key, value]) => [
           key,
           inlineKeyword(key, value, `${pointer}/${pointerToken(key)}`, stack),
         ]),
       );
+      checkMappingTargets(node, inlined, pointer);
+      return inlined;
     }
     if (Object.keys(node).length !== 1) {
       throw new SchemaError(`${at(pointer)}: keywords next to $ref are not supported`);
@@ -257,7 +306,7 @@ const ANNOTATIONS = ['title', 'description'];
 const KEYWORDS_BY_TYPE: ReadonlyMap<string, ReadonlySet<string>> = new Map(
   Object.entries({
     string: ['type', 'pattern', 'minLength', 'enum', 'const', 'not'],
-    integer: ['type', 'minimum', 'maximum'],
+    integer: ['type', 'minimum', 'maximum', 'const'],
     number: ['type', 'minimum', 'maximum', 'exclusiveMinimum'],
     boolean: ['type', 'const'],
     null: ['type'],
@@ -278,9 +327,110 @@ const KEYWORDS_BY_TYPE: ReadonlyMap<string, ReadonlySet<string>> = new Map(
 
 // A schema without `type` may only be a union or a negated pattern.
 const UNTYPED_KEYWORDS: ReadonlySet<string> = new Set(['anyOf', 'not', ...ANNOTATIONS]);
+const UNION_KEYWORDS: ReadonlySet<string> = new Set(['oneOf', 'discriminator', ...ANNOTATIONS]);
 
 function sameKeys(keys: readonly string[], expected: readonly string[]): boolean {
   return keys.length === expected.length && expected.every((key) => keys.includes(key));
+}
+
+/**
+ * Refuse a union other than pydantic's discriminated union: a non-empty `oneOf` of record objects
+ * next to a `discriminator` of exactly `propertyName` and `mapping`, and nothing else but
+ * annotations (and `$schema` at the root).
+ *
+ * Every branch is an object assertSupported accepts whose `propertyName` property is required and
+ * is exactly a non-empty string `const`; no two branches share a value, and `mapping` has one
+ * entry for each value. (dereference has already checked that each entry names its branch's
+ * definition.) The converter then emits z.discriminatedUnion, with every branch check intact.
+ */
+function assertUnion(node: JsonObject, pointer: string): void {
+  const where = at(pointer);
+  for (const key of Object.keys(node)) {
+    const isRootDialect = key === '$schema' && pointer === '';
+    if (!UNION_KEYWORDS.has(key) && !isRootDialect) {
+      throw new SchemaError(`${where}: "oneOf" cannot be combined with ${JSON.stringify(key)}`);
+    }
+  }
+  const { oneOf: branches, discriminator } = node;
+  if (branches === undefined || discriminator === undefined) {
+    throw new SchemaError(
+      `${where}: a "oneOf" is supported only with a "discriminator", and a "discriminator" only with a "oneOf"`,
+    );
+  }
+  if (!Array.isArray(branches) || branches.length === 0) {
+    throw new SchemaError(`${where}: "oneOf" must be a non-empty array of branches`);
+  }
+  const mapping = isObject(discriminator) ? discriminator['mapping'] : undefined;
+  const propertyName = isObject(discriminator) ? discriminator['propertyName'] : undefined;
+  if (
+    !isObject(discriminator) ||
+    !sameKeys(Object.keys(discriminator), ['propertyName', 'mapping']) ||
+    typeof propertyName !== 'string' ||
+    propertyName === '' ||
+    !isObject(mapping) ||
+    !Object.values(mapping).every((target) => typeof target === 'string')
+  ) {
+    throw new SchemaError(
+      `${where}: "discriminator" must be exactly a non-empty string "propertyName" and a "mapping" of strings`,
+    );
+  }
+  const seen = new Map<string, number>();
+  branches.forEach((branch, index) => {
+    const branchPointer = `${pointer}/oneOf/${String(index)}`;
+    const property = isObject(branch) ? branch['properties'] : undefined;
+    const tag = isObject(property) ? property[propertyName] : undefined;
+    if (
+      !isObject(branch) ||
+      branch['type'] !== 'object' ||
+      !isObject(property) ||
+      branch['additionalProperties'] !== false
+    ) {
+      throw new SchemaError(
+        `${branchPointer}: a "oneOf" branch must be a record object with "additionalProperties": false`,
+      );
+    }
+    const required = branch['required'];
+    if (tag === undefined || !Array.isArray(required) || !required.includes(propertyName)) {
+      throw new SchemaError(
+        `${branchPointer}: a "oneOf" branch must have the required discriminator property ${JSON.stringify(propertyName)}`,
+      );
+    }
+    const tagPointer = `${branchPointer}/properties/${pointerToken(propertyName)}`;
+    const value = isObject(tag) ? tag['const'] : undefined;
+    if (
+      !isObject(tag) ||
+      tag['type'] !== 'string' ||
+      typeof value !== 'string' ||
+      value === '' ||
+      !Object.keys(tag).every((key) => ['type', 'const', ...ANNOTATIONS].includes(key))
+    ) {
+      throw new SchemaError(
+        `${tagPointer}: the discriminator property must be a string "const" of a non-empty value, with only annotations besides`,
+      );
+    }
+    const first = seen.get(value);
+    if (first !== undefined) {
+      throw new SchemaError(
+        `${branchPointer}: discriminator value ${JSON.stringify(value)} is also the value of oneOf/${String(first)}`,
+      );
+    }
+    seen.set(value, index);
+    assertSupported(branch, branchPointer);
+  });
+  for (const value of seen.keys()) {
+    if (!Object.hasOwn(mapping, value)) {
+      throw new SchemaError(
+        `${where}: discriminator mapping has no entry for ${JSON.stringify(value)}`,
+      );
+    }
+  }
+  for (const key of Object.keys(mapping)) {
+    if (!seen.has(key)) {
+      throw new SchemaError(
+        `${where}: discriminator mapping names ${JSON.stringify(key)}, which no branch has`,
+      );
+    }
+  }
 }
 
 /**
@@ -458,6 +608,21 @@ export function assertSupported(node: Json, pointer = ''): void {
   if (type !== undefined && typeof type !== 'string') {
     throw new SchemaError(`${where}: unsupported type ${JSON.stringify(type)}`);
   }
+  if (node['oneOf'] !== undefined || node['discriminator'] !== undefined) {
+    if (type !== undefined) {
+      throw new SchemaError(`${where}: "oneOf" cannot be combined with "type"`);
+    }
+    for (const key of ANNOTATIONS) {
+      if (node[key] !== undefined && typeof node[key] !== 'string') {
+        throw new SchemaError(`${where}: ${key} must be a string`);
+      }
+    }
+    if (node['$schema'] !== undefined && node['$schema'] !== DRAFT_2020_12) {
+      throw new SchemaError(`${where}: $schema must be ${DRAFT_2020_12}`);
+    }
+    assertUnion(node, pointer);
+    return;
+  }
   const allowed = type === undefined ? UNTYPED_KEYWORDS : KEYWORDS_BY_TYPE.get(type);
   if (allowed === undefined) {
     throw new SchemaError(`${where}: unsupported type ${JSON.stringify(type)}`);
@@ -536,6 +701,18 @@ export function assertSupported(node: Json, pointer = ''): void {
       return;
     }
     case 'integer': {
+      const constant = node['const'];
+      if (constant !== undefined) {
+        if (!(typeof constant === 'number' && Number.isSafeInteger(constant))) {
+          throw new SchemaError(`${where}: const must be a safe integer`);
+        }
+        // json-schema-to-zod emits only z.literal for a const and drops the bounds beside it.
+        if (node['minimum'] !== undefined || node['maximum'] !== undefined) {
+          throw new SchemaError(
+            `${where}: "const" cannot be combined with "minimum" or "maximum", because only the const would be translated`,
+          );
+        }
+      }
       for (const key of ['minimum', 'maximum']) {
         const bound = node[key];
         if (bound !== undefined && !(typeof bound === 'number' && Number.isSafeInteger(bound))) {
