@@ -112,7 +112,11 @@
       "claim": "The top-level keys label_url, data_url and label_sha256 are null; the values sit under nested keys.",
       "evidence": "jq on the top level shows label_url null, data_url null and label_sha256 null. data.url, range_read.url and label.sha256 (d5d7e292...) hold the real values. A consumer reading the flat names gets null, which is a naming issue and not lost data.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The keys label_url, data_url and label_sha256 do not exist in outputs/pilot/minirf_mosaic.json: jq 'has(\"label_url\")', 'has(\"data_url\")' and 'has(\"label_sha256\")' are all false, and jq prints null for any absent key, so no field is null. AC4 lists what the record must contain, not flat key names. The record groups each file's provenance under one object: label.url (https://pds-geosciences.wustl.edu/.../lsz_xxxxx_3cp_piu_90s000_v1.lbl), label.sha256 (d5d7e292...), label.local_path, label.bytes, label.http_status and label.retrieved_at, and data.url (.../lsz_xxxxx_3cp_piu_90s000_v1.img) with data.remote_bytes and data.size_matches_label. The finding's own evidence, and this review's AC4 check, find all three values there. Adding flat copies would store the same value twice and let them drift, so the layout stays as it is."
+      }
     }
   ]
 }

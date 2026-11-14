@@ -136,7 +136,11 @@
       "claim": "Preserve successful Stokes reads when a later range request is refused. Currently, an S1 window successfully fetched before an S4 refusal loses its bytes, HTTP metadata and image ProductRecord, violating AC2 and AC6.",
       "evidence": "_read_window_rows writes each successful response at :2236-2248, but files.extend(read) runs only after the entire comprehension succeeds. On a later RangeNotSupportedError, earlier entries are lost and their staged files are deleted. test_pilot_minirf.py:1238-1249 explicitly expects the successfully fetched S1 file and all Stokes metadata to disappear. Retain each successful read and its provenance while reporting the incomplete pair without paired statistics.",
       "id": "codex-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "7d6dea41384e27c8bd0ee0b75a1d29e4882d5b07",
+        "reason": "Fixed in 7d6dea41384e27c8bd0ee0b75a1d29e4882d5b07, with the failing tests first in af1b1a905f1e17052d59a99330a711d7bb0007b5. fetch now reads the S1 and S4 windows one at a time, pair by pair with S1 first, and stops at the first RangeNotSupportedError. The windows already read keep their staged .img.rows files and fetch.json stokes_window_rows entries (http_status, content_range, bytes_received, sha256, retrieved_at). fetch.json stokes then holds status range_not_supported, the reason, and refused_label_file_name. record gives each kept window an image ProductRecord with the checksum of its rows. Pairs read in full keep their raw statistics under stokes_observation.pairs, with status incomplete, or not_performed when no pair is complete. The interrupted pair is listed under pairs_not_observed: windows_read carries each kept window's provenance with no statistics and no decoding, and windows_not_read says which window was refused and which was not requested. The ProductRecord qa_definition and the verification basis say that those rows were stored but not decoded. _stokes_rows now requires exactly the windows the fetch order implies. Tests: test_a_refused_s4_range_read_keeps_the_s1_window_read_before_it (this replaces the test that expected the S1 file to be absent), test_a_refusal_keeps_the_statistics_of_the_pairs_read_before_it, test_a_refused_first_stokes_read_requests_no_other_window and test_record_refuses_a_refused_fetch_that_lacks_the_windows_read_before_it. The real LROMRF_0005 record has no S4 layer, so it does not change, and pilot check minirf still matches."
+      }
     }
   ]
 }
