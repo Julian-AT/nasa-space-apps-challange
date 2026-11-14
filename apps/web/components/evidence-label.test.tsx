@@ -374,12 +374,24 @@ describe('LabelledValue', () => {
     ['the text undefined', 'undefined'],
     ['the text none', 'None'],
     ['the text unknown', 'unknown'],
+    ['the text missing', 'Missing'],
+    ['the text TBD', 'TBD'],
+    ['the text TBC', 'tbc'],
+    ['the text TBA', ' TBA '],
     ['a question mark', '?'],
   ] as const)('refuses %s as a value, because missing evidence is labelled Unavailable', (_, value) => {
     expect(() =>
       render(<LabelledValue label="Observed" value={value} unit="test-unit" source="test-source" />),
     ).toThrow(/Unavailable/);
   });
+
+  it.each(['test-none-value', 'test-value tbd', 'unknown-test-value'])(
+    'shows %s, because only a value that is nothing but a placeholder is refused',
+    (value) => {
+      const html = render(<LabelledValue label="Observed" value={value} unit="test-unit" source="test-source" />);
+      expect(oneBySlot(html, 'value').text).toBe(value);
+    },
+  );
 
   it('refuses a blank reason, source or unit', () => {
     expect(() => render(<LabelledValue label="Unavailable" reason=" " />)).toThrow(/reason/);
