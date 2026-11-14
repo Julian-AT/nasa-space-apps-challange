@@ -1,0 +1,144 @@
+{
+  "task_id": "T15-06",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "019d7dd49f85113e1379e15ef29ed8bd0904a6b0",
+    "head": "a902948e121905cbdd6e6f1f2c6513e86a8ff22f",
+    "files": [
+      {
+        "path": "apps/web/package.json",
+        "sha256": "ef2bda0583f7dcf343035d39ec1fc4c5fd97b3e81712502b8bfad169ebb54fb2"
+      },
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "cbfe3dc1cf1e7243836b7615db673a76239b9c2d56868303662aec299524f46a"
+      },
+      {
+        "path": "apps/web/server/api/cache.test.ts",
+        "sha256": "38aeee7a437bf12b0d9723cf15641d7a3160d28b713b165f9d7b68e1f002632e"
+      },
+      {
+        "path": "apps/web/server/api/cache.ts",
+        "sha256": "8d6c102bd0e8a9fd48e9cc843f547a5a130f65897ad6f5af79d455e6f68e2e7e"
+      },
+      {
+        "path": "apps/web/server/api/docs.test.ts",
+        "sha256": "9f7aaca2a04919fdc6f8825868d6bbeb260dc255c2d17ebbe5a4eaf8cc5707de"
+      },
+      {
+        "path": "apps/web/server/api/docs.ts",
+        "sha256": "9942a9f86a48f8cd133a833c5430eeaef25c658e75d68a63d5b9091982da98aa"
+      },
+      {
+        "path": "apps/web/server/api/openapi.test.ts",
+        "sha256": "787f121aaadf1e51ac767b986f6945bfe476151b3e12868956919dcbb50297dc"
+      },
+      {
+        "path": "apps/web/server/api/openapi.ts",
+        "sha256": "364c863ec760e58653329ab107f97e1e2b383896cfa904f83d46bf6fb9d89c9b"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "97c2cd6c5ada750576fd039c2c83f39a948a57b608217ed14d32f3bc536d8d11"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:30:15Z",
+  "finished_utc": "2026-11-14T21:30:47Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "All six acceptance criteria pass on evidence. All five story checks exited 0: web test 505 passed, server/api 343 passed, typecheck, make check, make test (pytest 404 passed). I reviewed the nine in-scope files by reading the diff and sources. Findings are low severity only.",
+  "checks": [
+    {
+      "criterion": "AC1: /api/v1/openapi.json is OpenAPI 3.1, lists exactly the routed paths and only get operations, with schemas and problem+json errors",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "openapi.test.ts:92-106 compares the documented paths with ROUTED_PATHS and with api.routes, and requires every operation method to be 'get'. openapi.test.ts:116-155 checks the 500/4xx problem+json $ref and the 400 on parameterised routes. 343 passed."
+    },
+    {
+      "criterion": "AC2: structural validation with a current OpenAPI 3.1 validator as a devDependency, offline",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "apps/web/package.json devDependencies add @seriousme/openapi-schema-validator 2.12.0. openapi.test.ts:77-90 asserts valid:true and version '3.1', and that a document without info.version is refused, so the check is not vacuous. 505 passed."
+    },
+    {
+      "criterion": "AC3: /api/v1/docs serves Scalar HTML with the relative openapi.json URL; any CDN host is declared, not silently allowed",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "docs.ts:56-70 uses Scalar({url:'openapi.json', cdn:SCALAR_SCRIPT, ...}) with fonts, telemetry, agent, MCP and developer tools off. docs.test.ts:59-111 checks the relative URL, exactly one pinned script from cdn.jsdelivr.net, no other hosts, and the disabled options. The docs.ts header comment says whether the CSP allows the CDN is a human decision. I did not open the story notes."
+    },
+    {
+      "criterion": "AC4: info carries the API version, read-only and mock-placeholder statements, and no numbers or targets",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "openapi.ts:30-48 sets API_VERSION 1.0.0 and the description text. openapi.test.ts:184-212 checks the version, the read-only, GET and HEAD, mock bundle and placeholder wording, and asserts no digit in title, summary or description."
+    },
+    {
+      "criterion": "AC5: Cache-Control is per deploy for both routes",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "cache.ts:84-86 deployCacheHeaders; openapi.test.ts:235-260 and docs.test.ts:125-136 assert 'public, max-age=60, immutable', a strong ETag, and 304 on a matching If-None-Match."
+    },
+    {
+      "criterion": "AC6: /api/docs is a permanent redirect to /api/v1/docs, tested, and is the only route outside the base path",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "docs.ts:131-137 returns 308 with Location. app.ts:163 mounts it on the root. docs.test.ts:165-172 asserts 308 and Location '/api/v1/docs'. openapi.test.ts:108-114 asserts the redirect is the only route outside /api/v1 and is not in the document."
+    },
+    {
+      "criterion": "Check: pnpm --filter @terraluna/web test",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "19 files, 505 tests passed"
+    },
+    {
+      "criterion": "Check: pnpm --filter @terraluna/web exec vitest run server/api",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "13 files, 343 tests passed"
+    },
+    {
+      "criterion": "Check: pnpm --filter @terraluna/web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "PASS",
+      "evidence": "next typegen, tsc --noEmit and tsc -p server/api finished with no errors"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy and turbo lint and typecheck all succeeded"
+    },
+    {
+      "criterion": "Check: make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed; turbo web 505 and schema 157 passed"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/server/api/cache.ts:20",
+      "claim": "The ETag comment at lines 9-17 still describes only the weak bundle ETag, although contentETag and deployCacheHeaders now add a strong variant.",
+      "evidence": "The header comment at lines 23-25 covers T15-06, but the earlier paragraph says 'The ETag is weak'. This is a documentation nit with no behaviour impact.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t15-api/prd.json",
+      "claim": "The range diff also touched prd.json and progress.txt, which are outside the story's files list.",
+      "evidence": "git diff --stat lists scripts/ralph/batches/t15-api/prd.json and progress.txt. They look like Ralph bookkeeping, not product code. I did not read the CSP note for the CDN host there.",
+      "id": "claude-r1-2",
+      "resolution": null
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "task_id": "T15-06",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "019d7dd49f85113e1379e15ef29ed8bd0904a6b0",
+    "head": "a902948e121905cbdd6e6f1f2c6513e86a8ff22f",
+    "files": [
+      {
+        "path": "apps/web/package.json",
+        "sha256": "ef2bda0583f7dcf343035d39ec1fc4c5fd97b3e81712502b8bfad169ebb54fb2"
+      },
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "cbfe3dc1cf1e7243836b7615db673a76239b9c2d56868303662aec299524f46a"
+      },
+      {
+        "path": "apps/web/server/api/cache.test.ts",
+        "sha256": "38aeee7a437bf12b0d9723cf15641d7a3160d28b713b165f9d7b68e1f002632e"
+      },
+      {
+        "path": "apps/web/server/api/cache.ts",
+        "sha256": "8d6c102bd0e8a9fd48e9cc843f547a5a130f65897ad6f5af79d455e6f68e2e7e"
+      },
+      {
+        "path": "apps/web/server/api/docs.test.ts",
+        "sha256": "9f7aaca2a04919fdc6f8825868d6bbeb260dc255c2d17ebbe5a4eaf8cc5707de"
+      },
+      {
+        "path": "apps/web/server/api/docs.ts",
+        "sha256": "9942a9f86a48f8cd133a833c5430eeaef25c658e75d68a63d5b9091982da98aa"
+      },
+      {
+        "path": "apps/web/server/api/openapi.test.ts",
+        "sha256": "787f121aaadf1e51ac767b986f6945bfe476151b3e12868956919dcbb50297dc"
+      },
+      {
+        "path": "apps/web/server/api/openapi.ts",
+        "sha256": "364c863ec760e58653329ab107f97e1e2b383896cfa904f83d46bf6fb9d89c9b"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "97c2cd6c5ada750576fd039c2c83f39a948a57b608217ed14d32f3bc536d8d11"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:30:15Z",
+  "finished_utc": "2026-11-14T21:35:08Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No concrete defects found in the scoped static review. Runtime acceptance and all five required checks remain unverified under the read-only review instructions.",
+  "checks": [
+    {
+      "criterion": "AC1: OpenAPI 3.1 document covers every routed path, GET operation, schema and problem response.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "app.ts:148 registers the routes; app.ts:159 uses getOpenAPI31Document. openapi.test.ts:92 compares documented and routed paths, :101 checks GET-only operations, and :127 checks response schemas. Generation and route tests were not executed because checks are prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC2: A current offline OpenAPI 3.1 validator structurally validates the document.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/package.json:28 pins @seriousme/openapi-schema-validator 2.12.0. openapi.test.ts:77 validates the document; :85 rejects a deliberately broken document. Installed source loads bundled schemas without network access, consistent with the [validator documentation](https://github.com/seriousme/openapi-schema-validator#api). Validation was not executed under the read-only instructions."
+    },
+    {
+      "criterion": "AC3: Scalar HTML uses relative openapi.json and only the documented CDN host.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "docs.ts:56 uses Scalar with url openapi.json, a pinned CDN script, and disabled external integrations, consistent with [Scalar documentation](https://scalar.com/products/api-references/integrations/hono). prd.json:328 records cdn.jsdelivr.net as a CSP decision. docs.test.ts:59 checks configuration and HTML URLs, but script execution and browser resource requests were not observed; runtime checks are prohibited."
+    },
+    {
+      "criterion": "AC4: Document info has a bundle-independent API version, read-only and mock-placeholder statements, and no numbers or targets in its prose.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "openapi.ts:30 defines API_VERSION independently of bundle data. openapi.ts:36 supplies the required statements without digits or named targets in the title/description; app.ts:159 passes this info directly to the generator."
+    },
+    {
+      "criterion": "AC5: Both routes have per-deploy Cache-Control.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "cache.ts:84 selects the per-deploy policy; openapi.ts:98 and docs.ts:120 attach it. openapi.test.ts:235 and docs.test.ts:125 assert response headers. Actual responses were not executed under the read-only instructions."
+    },
+    {
+      "criterion": "AC6: /api/docs permanently redirects to /api/v1/docs and is the only route outside the base path.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "app.ts:163 registers the alias; docs.ts:131 returns status 308 with Location supplied as /api/v1/docs. docs.test.ts:165 asserts the redirect, and openapi.test.ts:108 checks outside-base routes. These behavior tests were not executed under the read-only instructions."
+    },
+    {
+      "criterion": "Required web test suite",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: this read-only review prohibits check execution and test filesystem writes."
+    },
+    {
+      "criterion": "Required focused API tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: this read-only review prohibits check execution and test filesystem writes."
+    },
+    {
+      "criterion": "Required web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the sandbox is read-only, and the script includes next typegen, which generates files."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run: the user explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository tests",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run: the user explicitly prohibited running checks in the read-only sandbox."
+    }
+  ],
+  "findings": []
+}

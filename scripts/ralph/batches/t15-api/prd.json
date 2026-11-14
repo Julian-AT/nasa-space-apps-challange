@@ -318,12 +318,18 @@
       "priority": 6,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "019d7dd49f85113e1379e15ef29ed8bd0904a6b0",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "a902948e121905cbdd6e6f1f2c6513e86a8ff22f",
+        "files": [
+          "reviews/T15-06-claude.json",
+          "reviews/T15-06-codex.json"
+        ],
+        "digests": {
+          "reviews/T15-06-claude.json": "1146d0537d02658ff087376b992d3e04f4c521eb788e8994171a88dbb57a7e62",
+          "reviews/T15-06-codex.json": "4af4beeb931acd82faab91a80059f37d0c64400b71096806775b39d33d8e6852"
+        }
       },
       "notes": "Orchestrator decision: docs at /api/v1/docs, /api/docs redirects to it.\nAuthor (T15-06): (1) CSP decision for PRD 8.10 (human): @scalar/hono-api-reference 0.12.20 renders a page that loads the reference script from a CDN and ships no script that the API could serve itself. So /api/v1/docs loads exactly one script from one other host, cdn.jsdelivr.net, pinned to https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.78.1/dist/browser/standalone.js (published with hono-api-reference 0.12.20, same @scalar/types 0.28.1; SCALAR_SCRIPT in server/api/docs.ts). No CSP is set or widened here. A strict CSP for the page would also have to admit the integration's inline init script and inline style (its nonce option covers both, but per the package docs style-src still needs 'unsafe-inline' for inline style attributes), and the integration offers no SRI attribute. Options for a human: allow cdn.jsdelivr.net for /api/v1/docs only, or self-host @scalar/api-reference (about 57 MB unpacked) under 'self'. Scalar's fonts (fonts.scalar.com), telemetry, agent, MCP and developer tools are off and no proxyUrl is set. That the pinned script makes no other request at run time cannot be checked offline; no browser run was made. (2) Document: api.getOpenAPI31Document with openapi 3.1.1 and info title Terraluna API, version API_VERSION 1.0.0 (bundle-independent; its major is the /api/v1 base path) and a read-only, mock-placeholder statement with no digits and no target. It lists all eleven /api/v1 paths, including /openapi.json and /docs themselves, only as get operations; the /api/docs redirect is the only route outside the base path and is not documented. Validator: @seriousme/openapi-schema-validator 2.12.0 (devDependency, official OpenAPI 3.1 JSON Schema bundled, no network). (3) Caching per deploy: Cache-Control public, max-age=60, immutable (the /manifest policy) with a strong ETag, the base64url SHA-256 of the body, because neither route reads the bundle and a deploy fixes the bytes; hono/etag answers a matching If-None-Match with 304. The 308 redirect has the same Cache-Control and no ETag. (4) Scalar's url is the path-relative openapi.json, which resolves to /api/v1/openapi.json from /api/v1/docs. /api/docs redirects rather than serving a copy, because there the relative URL would resolve to /api/openapi.json; /api/v1/docs/ stays a 404. (5) Neither route reads the bundle, so a broken or production-mock bundle does not change them; the 503 for /health and /manifest stays with T15-07. No app/api file was touched."
     },
