@@ -408,16 +408,48 @@ def test_round_trip_on_a_pole_centred_window(body: str, lat0: float, lon0: float
     assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=True)
 
 
+# Earth centres where the round trip broke the metre allowance while the inverse latitude came
+# from order-one sin and cos values and the forward y from a difference of order-one products.
+# Found by random search over 2.4 million centres with |lat0| in [1.0, 1.07] rad, where a
+# latitude's ulp is 2.2e-16 rad, so the allowance at y = 25 m (2.5e-9 m) is under two ulps.
+# The first five used 1.06 to 1.12 of it through the module forward at row 27. The last used
+# 1.01 of it at (x, y) = (1955, 25) m against the exact reference, from the inverse alone.
+ORDER_ONE_ROUNDING_CENTRES = (
+    (1.0233922226196999, -2.3583296722334133),
+    (1.0174834226785296, 1.8291693112611698),
+    (1.0242115398115987, -1.9434293942504273),
+    (1.0134364985476998, 0.18244481513276095),
+    (-1.0407524042164307, -2.013019339623809),
+    (-1.0149308119477685, 2.6707139144457486),
+)
+
+
+@pytest.mark.parametrize(("lat0", "lon0"), ORDER_ONE_ROUNDING_CENTRES)
+def test_round_trip_where_order_one_rounding_exceeded_the_allowance(
+    lat0: float, lon0: float
+) -> None:
+    radius = BODY_RADII_M["earth"]
+    x, y = story_grid()
+    assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=False)
+    # The row and the column through the centre pixel hold the 25 m offsets.
+    middle = GRID_SIZE // 2
+    x_lines = np.concatenate([x[middle, :], x[:, middle]])
+    y_lines = np.concatenate([y[middle, :], y[:, middle]])
+    assert_grid_round_trip(x_lines, y_lines, lat0=lat0, lon0=lon0, radius=radius, exact=True)
+
+
 @pytest.mark.parametrize("body", BODIES)
 @pytest.mark.parametrize("lat0_deg", STORY_LATITUDES_DEG)
 @pytest.mark.parametrize("lon0", [0.65449846949787, -PI])
 def test_forward_matches_the_exact_reference(body: str, lat0_deg: float, lon0: float) -> None:
     radius = BODY_RADII_M[body]
     lat0 = math.radians(lat0_deg)
-    # Points up to about 4 km away in every direction, built without the inverse. Points due
-    # east and west of the centre have |y| of a metre or less, so absolute errors show here.
-    angle = np.linspace(-PI, PI, 37)
-    reach = 4000.0 / radius
+    # Points 4 km away in every direction, built without the inverse, plus points 0.5 to 4 km
+    # away just off due east and due west. Those have |y| from millimetres to tens of metres,
+    # where the absolute part of the tolerance binds, so order-one rounding in y shows there.
+    tilt = np.array([-1e-2, -1e-4, -1e-6, 1e-6, 1e-4, 1e-2])
+    angle = np.concatenate([np.linspace(-PI, PI, 37), tilt, PI + tilt])
+    reach = np.concatenate([np.full(37, 4000.0), np.tile([500.0, 2000.0, 4000.0], 4)]) / radius
     lat = np.clip(lat0 + reach * np.sin(angle), -HALF_PI, HALF_PI)
     lon = lon0 + reach * np.cos(angle)
     lon = np.where(lon < -PI, lon + 2 * PI, lon)
