@@ -128,7 +128,11 @@
       "claim": "Nested sequences still silently discard validity masks and can publish excluded pixels as VALID. Inspect sequence members recursively before NumPy coercion and add deeper-nesting regression tests.",
       "evidence": "Static trace, not executed: with m=np.ma.array([100.0,300.0], mask=[False,True]), decode_linear([[m]], nodata=None) reaches the probe at line 197. The installed locked NumPy implementation (.venv/lib/python3.12/site-packages/numpy/ma/core.py:2940–2948) reconstructs masks only from immediate children using np.asanyarray; converting the child [m] drops m's mask, so the probe sees nomask. Line 212 then produces a plain numeric array; lines 267–275 classify both positive values VALID, and line 328 publishes finite power for the masked 300 with reason NONE. The same helper serves angle and noise inputs. test_polarimetry_decode.py:574–579 tests [m], not [[m]]. This leaves the previous finding incompletely fixed and violates PRD.md:415 and :421.",
       "id": "codex2-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "f0b5b2b4a15b35fb1a531a6df9dce064988f6708",
+        "reason": "Reproduced: decode_linear([[m]]), [[[m]]], ([m],), [[m],[m]] and [[np.ma.masked]] published the masked element VALID or as NaN. np.ma.asarray only reads masks from immediate members. Fixed in f0b5b2b4a15b35fb1a531a6df9dce064988f6708: _require_plain walks the input iteratively to every depth over an allowlist (exact np.ndarray or np.memmap, scalars, lists and tuples up to numpy's 64-dimension limit). A masked array or np.ma.masked anywhere raises TypeError. So does any other container (custom sequence, __array__ object, third-party ndarray subclass), because numpy converts those by its own protocol and can drop a mask the same way. Deeper or self-referential nesting raises ValueError. Failing tests first in 2536629 (103 failed, 115 passed): the reviewer's [[m]] case, every array argument at depths 2 and 3 in lists and tuples, the nested masked constant, a hypothesis property placing the mask anywhere in a homogeneous nesting, the hiding containers, and nested StatedArray fields. Guards for nested plain values, memmaps and the 64-level boundary pass. 43f7bed pins the object-dtype refusal that covers plain object arrays. Now 226 passed with -W error; mypy and make check exit 0."
+      }
     }
   ]
 }
