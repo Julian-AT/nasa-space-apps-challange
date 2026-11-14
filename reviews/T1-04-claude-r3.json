@@ -100,7 +100,11 @@
       "claim": "The real archive has no S4 layer, so the Stokes-present code path is exercised only by synthetic tests. This is expected, and the record correctly reports not_performed.",
       "evidence": "stokes_observation.status is not_performed. The record lists the MAP-V1.0 single-swath read as an open G0 item.",
       "id": "claude-r3-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect; the reviewer marks it as expected. AC5 is conditional: when the mosaic has no Stokes S4 layer, the required output is stokes_observation {status: not_performed, reason} plus the MAP-V1.0 single-swath read listed as an open G0 item, and reading a single swath is out of scope. The 24 downloaded LROMRF_0005 mosaic labels in data/raw/minirf/ are 12 CPR (3cp) and 12 S1 (3s1) layers; no label mentions S4 or a fourth Stokes parameter (grep -il on the .lbl files finds none). outputs/pilot/minirf_mosaic.json records status not_performed with that reason, and open_g0_items lists the MAP-V1.0 single-swath S1/S4 read. Real data cannot exercise the S4-present branch, so per the story notes it is tested on synthetic labels and windows (test_pilot_minirf.py:1037, :1068, :1140, :1155, :1192, :1215, :1252, :1380, :1418), and the real not_performed path at :990. Creating a fake S4 layer to run against would invent an observation, which CLAUDE.md forbids. Re-run: uv run pytest pipeline/tests gives 1235 passed, 2 xfailed, exit 0; pilot check minirf exit 0; make check exit 0."
+      }
     }
   ]
 }

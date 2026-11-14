@@ -162,3 +162,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: no new library or CLI interface. Python 3.12.13 stdlib, numpy 2.5.4, pydantic 2.14.3 and pytest 9.2.0, all as locked.
 - Learnings: a list comprehension over network reads loses every earlier result when one read raises, so partial provenance needs an explicit loop that appends before the next request. The fix commit's body says the old test was replaced there; that replacement is in af1b1a9, the test commit.
 ---
+
+## 2026-11-14T21:40Z · T1-04 · resolve
+- Done: resolved round 3. Codex reported no findings. Claude passed the story and left one low note, claude-r3-1, which is rebutted. Real data only exercises the Stokes path through synthetic tests. That is what AC5's conditional branch requires, not a defect. The 24 downloaded LROMRF_0005 mosaic labels are 12 CPR (3cp) and 12 S1 (3s1) layers, and none mentions S4. The record says not_performed with that reason, open_g0_items lists the MAP-V1.0 single-swath read, and the S4-present branch has synthetic tests (test_pilot_minirf.py:1037 to :1418). No code or output changed.
+- Commits: none for code. This entry and the resolution go in `chore(ralph): resolve review findings for t1-04`.
+- Checks: uv run pytest pipeline/tests -> 1235 passed, 2 xfailed (strict; the ProductRecord and Sources schema-case fixtures are outside T1's files), exit 0; uv run python -m terraluna_pipeline.pilot check minirf -> "committed outputs match data/raw/minirf/", exit 0; make check -> exit 0 (ruff check passed, ruff format --check: 19 files already formatted, mypy: no issues in 19 source files). The sha256 of `jq -S 'del(.findings[].resolution)'` still equals review.digests for both round 3 files.
+- Docs used: no new library or CLI interface; jq 1.8.2.
+- Learnings: in zsh, `${PIPESTATUS[0]}` is empty (zsh uses lowercase `pipestatus`), and `echo $?` after `cmd | tail` reports tail's exit code. To record a check's real exit code, run it without a pipe and redirect its output.
+---
