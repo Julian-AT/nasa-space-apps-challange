@@ -1855,44 +1855,69 @@ def _no_valid_pixels(support: BlockSupport) -> _Classifier:
     return classifier
 
 
-def _scaled_sums(
-    values: npt.NDArray[np.float64], used: npt.NDArray[np.bool_]
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.int32]]:
-    """Per block, the sum of the used values at the block's own scale, and that scale.
+_ULP_EXPONENT: Final = 1074
+"""Every finite float64 is an integer multiple of ``2**-1074``, the smallest subnormal."""
 
-    Each block's used values are multiplied by one exact power of two, ``2**-e``, that brings
-    their largest magnitude into [0.5, 1); the sum is then at most the pixel count and cannot
-    overflow. The true sum is ``ldexp(sum, e)``. A value below float64 resolution at that scale
-    is below the resolution of the sum as well, so the scaling loses nothing the sum keeps.
+
+def _exact_sums(values: npt.NDArray[np.float64], used: npt.NDArray[np.bool_]) -> list[int]:
+    """Per block, the exact sum of the used values, as an integer count of ``2**-1074``.
+
+    ``values`` and ``used`` hold each block's pixels in their last axis (:func:`_to_blocks`);
+    the sums list the blocks in row-major order. Every finite float64 is an integer multiple
+    of ``2**-1074``, so each sum is an exact Python int: it has no rounding error and cannot
+    overflow, cancellation between powers of opposite sign loses nothing, and the sum is the
+    same for every order of the pixels. The used values are ``VALID``, hence finite. The loop
+    runs in Python, at about 0.2 s per million used values on the build machine.
     """
-    chosen = np.where(used, values, 0.0)
-    largest = np.max(np.abs(chosen), axis=-1)
-    _, exponent = np.frexp(largest)
-    exponent = np.asarray(exponent)
-    with np.errstate(under="ignore"):
-        scaled = np.ldexp(chosen, -exponent[..., np.newaxis])
-    return np.asarray(np.sum(scaled, axis=-1), dtype=np.float64), exponent
+    n_pixels = values.shape[-1]
+    sums = [0] * (values.size // n_pixels)
+    blocks = (np.flatnonzero(used) // n_pixels).tolist()
+    for block, value in zip(blocks, values[used].tolist(), strict=True):
+        numerator, denominator = value.as_integer_ratio()
+        # denominator is 2**k with k <= 1074, so the shift 1074 - k is never negative.
+        sums[block] += numerator << (_ULP_EXPONENT + 1 - denominator.bit_length())
+    return sums
+
+
+def _signs(sums: list[int], grid: tuple[int, ...]) -> npt.NDArray[np.int8]:
+    """The exact sign of each block's sum, -1, 0 or 1, over the block grid."""
+    signs = np.array([(total > 0) - (total < 0) for total in sums], dtype=np.int8)
+    return signs.reshape(grid)
+
+
+def _rounded_quotients(
+    numerators: list[int], denominators: list[int], use: npt.NDArray[np.bool_]
+) -> npt.NDArray[np.float64]:
+    """``numerator / denominator`` per block where ``use`` is set, NaN elsewhere.
+
+    The denominators are positive. Python's int division rounds the exact quotient once,
+    correctly, subnormal results included; a quotient that rounds past the largest float64
+    becomes an infinity of the numerator's sign, which the range rules then mark.
+    """
+    result = np.full(use.shape, np.nan)
+    flat = result.reshape(-1)
+    for index in np.flatnonzero(use).tolist():
+        try:
+            flat[index] = numerators[index] / denominators[index]
+        except OverflowError:
+            flat[index] = math.inf if numerators[index] > 0 else -math.inf
+    return result
 
 
 def _block_mean(
-    base: _Classifier,
-    scaled_sum: npt.NDArray[np.float64],
-    exponent: npt.NDArray[np.int32],
-    count: npt.NDArray[np.int64],
+    base: _Classifier, sums: list[int], count: npt.NDArray[np.int64]
 ) -> tuple[_Classifier, npt.NDArray[np.float64]]:
-    """The mean ``ldexp(scaled_sum / count, e)`` where ``base`` is valid, with range rules.
+    """The mean, the exact sum over ``count`` rounded once, where ``base`` is valid.
 
     A mean float64 cannot hold is ``INVALID`` with ``FLOAT64_OUT_OF_RANGE``: one that rounds
-    past the largest float64, or one that is not zero but below the smallest normal float64.
-    A zero mean of zero powers is a valid zero.
+    past the largest float64, or one whose exact sum is not zero but whose mean is below the
+    smallest normal float64. A zero sum gives a valid zero mean.
     """
     classifier = base.copy()
-    mean = np.full(scaled_sum.shape, np.nan)
-    use = classifier.valid
-    with np.errstate(over="ignore", under="ignore"):
-        mean[use] = np.ldexp(scaled_sum[use] / count[use], exponent[use])
+    denominators = [int(n) << _ULP_EXPONENT for n in count.ravel().tolist()]
+    mean = _rounded_quotients(sums, denominators, classifier.valid)
     classifier.mark_out_of_range(mean, positive=False)
-    classifier.mark_below_normal(mean, nonzero=np.asarray(scaled_sum != 0.0))
+    classifier.mark_below_normal(mean, nonzero=_signs(sums, count.shape) != 0)
     return classifier, mean
 
 
@@ -1947,10 +1972,15 @@ def aggregate_blocks(
     5. Mean SC or mean OC out of float64 range, or a ratio float64 cannot hold: ``INVALID``,
        ``FLOAT64_OUT_OF_RANGE``. A valid high ratio is never truncated.
 
-    Each block's values are summed at the block's own power-of-two scale, one scale per
-    quantity, so no sum overflows and neither power is lost at the other's scale. Blocks are
-    not independent samples (``blocks_independent`` is False). Units: mean SC and OC in the
-    linear power units of the input; both ratio statistics dimensionless.
+    Each block's values are summed exactly, as integers counting ``2**-1074`` (every finite
+    float64 is such a multiple). A sum therefore has no rounding error and no overflow, powers
+    of opposite sign (accepted within the conversion's tolerance) cancel without losing their
+    residual at any magnitude, and no statistic, state or reason depends on the order of the
+    pixels. Rules 3 and 4 test the signs of the exact sums. Each statistic is then rounded once
+    to float64: a mean is the exact sum over the count, and the ratio of mean powers is the
+    exact SC sum over the exact OC sum. Blocks are not independent samples
+    (``blocks_independent`` is False). Units: mean SC and OC in the linear power units of the
+    input; both ratio statistics dimensionless.
     """
     if type(circular) not in (CircularPowers, CovarianceCircularPowers):
         raise TypeError(
@@ -1985,31 +2015,26 @@ def aggregate_blocks(
     )
     power_used = _to_blocks(np.equal(pair_state, ObsState.VALID), rows, cols)
     power_base = _no_valid_pixels(power_support)
-    sc_sum, sc_exponent = _scaled_sums(_to_blocks(circular.sc.value, rows, cols), power_used)
-    oc_sum, oc_exponent = _scaled_sums(_to_blocks(circular.oc.value, rows, cols), power_used)
-    sc_classifier, mean_sc = _block_mean(power_base, sc_sum, sc_exponent, power_support.n_valid)
-    oc_classifier, mean_oc = _block_mean(power_base, oc_sum, oc_exponent, power_support.n_valid)
+    sc_sums = _exact_sums(_to_blocks(circular.sc.value, rows, cols), power_used)
+    oc_sums = _exact_sums(_to_blocks(circular.oc.value, rows, cols), power_used)
+    sc_classifier, mean_sc = _block_mean(power_base, sc_sums, power_support.n_valid)
+    oc_classifier, mean_oc = _block_mean(power_base, oc_sums, power_support.n_valid)
 
+    # Signs and zeros come from the exact sums, so no rounding can flip a decision.
+    sc_sign = _signs(sc_sums, grid)
+    oc_sign = _signs(oc_sums, grid)
     ratio_classifier = power_base.copy()
-    ratio_classifier.mark(np.asarray(oc_sum <= 0.0), ObsState.INVALID, InvalidReason.OC_NONPOSITIVE)
-    ratio_classifier.mark(np.asarray(sc_sum < 0.0), ObsState.INVALID, InvalidReason.SC_NEGATIVE)
+    ratio_classifier.mark(oc_sign <= 0, ObsState.INVALID, InvalidReason.OC_NONPOSITIVE)
+    ratio_classifier.mark(sc_sign < 0, ObsState.INVALID, InvalidReason.SC_NEGATIVE)
     ratio_classifier.mark(
         ~(sc_classifier.valid & oc_classifier.valid),
         ObsState.INVALID,
         InvalidReason.FLOAT64_OUT_OF_RANGE,
     )
-    ratio = np.full(grid, np.nan)
-    use = ratio_classifier.valid
-    # Mantissas first, so the division cannot overflow; the exponents carry the scale.
-    sc_mantissa, sc_shift = np.frexp(sc_sum[use])
-    oc_mantissa, oc_shift = np.frexp(oc_sum[use])
-    with np.errstate(over="ignore", under="ignore"):
-        ratio[use] = np.ldexp(
-            sc_mantissa / oc_mantissa,
-            (sc_exponent[use] + sc_shift) - (oc_exponent[use] + oc_shift),
-        )
+    # The count and the 2**-1074 unit cancel: the ratio is the exact SC sum over the exact OC sum.
+    ratio = _rounded_quotients(sc_sums, oc_sums, ratio_classifier.valid)
     ratio_classifier.mark_out_of_range(ratio, positive=False)
-    ratio_classifier.mark_below_normal(ratio, nonzero=np.asarray(sc_sum != 0.0))
+    ratio_classifier.mark_below_normal(ratio, nonzero=sc_sign != 0)
 
     # Ratio support: a pixel is used where its CPR is VALID.
     ratio_support = _support(
@@ -2018,9 +2043,9 @@ def aggregate_blocks(
         n_pixels,
     )
     cpr_used = _to_blocks(_is_valid(circular.cpr), rows, cols)
-    cpr_sum, cpr_exponent = _scaled_sums(_to_blocks(circular.cpr.value, rows, cols), cpr_used)
+    cpr_sums = _exact_sums(_to_blocks(circular.cpr.value, rows, cols), cpr_used)
     pixelwise_classifier, pixelwise = _block_mean(
-        _no_valid_pixels(ratio_support), cpr_sum, cpr_exponent, ratio_support.n_valid
+        _no_valid_pixels(ratio_support), cpr_sums, ratio_support.n_valid
     )
 
     if type(circular) is CovarianceCircularPowers:
