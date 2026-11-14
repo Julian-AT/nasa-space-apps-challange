@@ -8,7 +8,9 @@
 # Routine problems go back to the author with a note in the story; integrity problems stop the loop.
 # The loop commits its own bookkeeping (reviews, gate results, compact logs) with Conventional Commits.
 #
-# Usage:  scripts/ralph/ralph.sh [max_author_iterations]
+# Usage:  [RALPH_BATCH=<name>] scripts/ralph/ralph.sh [max_author_iterations]
+#   RALPH_BATCH selects scripts/ralph/batches/<name>/{prd.json,progress.txt}; parallel batches run in their own
+#   git worktrees and branches (see new-batch.sh). Without it the loop uses scripts/ralph/prd.json (the T0 batch).
 # Env (generous defaults):
 #   RALPH_MAX_ITERATIONS=200   author iterations per run (the argument overrides it)
 #   RALPH_MAX_REVIEW_ROUNDS=4  review rounds per story before a human looks
@@ -16,20 +18,24 @@
 #   RALPH_MAX_IDLE=10          consecutive author iterations with no commit and no state change
 #   RALPH_REVIEW_ATTEMPTS=3    attempts per review round before a human looks
 #   RALPH_PERMISSION_MODE=auto auto (classifier-reviewed, prompts denied) or bypass
-#   CODEX_MODEL, REVIEW_TIMEOUT are passed to review.sh
+#   REVIEW_TIMEOUT is passed to review.sh (Codex always runs gpt-6.1-sol)
 # Exit:   0 every story passed the gate · 1 iteration limit reached · 2 a human is needed
 # Works with macOS /bin/bash 3.2.
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git -C "$DIR" rev-parse --show-toplevel)"
-PRD="$DIR/prd.json"
 MAX="${1:-${RALPH_MAX_ITERATIONS:-200}}"
 MAX_ROUNDS="${RALPH_MAX_REVIEW_ROUNDS:-4}"
 MAX_BOUNCES="${RALPH_MAX_BOUNCES:-8}"
 MAX_IDLE="${RALPH_MAX_IDLE:-10}"
 REVIEW_ATTEMPTS="${RALPH_REVIEW_ATTEMPTS:-3}"
 cd "$ROOT"
+BATCH="${RALPH_BATCH:-}"
+if [ -n "$BATCH" ]; then STATE_DIR="$DIR/batches/$BATCH"; else STATE_DIR="$DIR"; fi
+PRD="$STATE_DIR/prd.json"; PROGRESS="$STATE_DIR/progress.txt"
+PRD_REL="${PRD#"$ROOT"/}"; PROGRESS_REL="${PROGRESS#"$ROOT"/}"
+[ -f "$PRD" ] || { echo "ralph: no story list at $PRD_REL" >&2; exit 2; }
 
 # Each iteration is a clean top-level session, even when this loop is started from inside Claude Code.
 unset CLAUDECODE CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_MESSAGING_SOCKET CLAUDE_CODE_MESSAGING_TOKEN \
@@ -39,13 +45,14 @@ unset CLAUDECODE CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_MESSAGING_SOCKET CLAUDE_CODE
 export BASH_DEFAULT_TIMEOUT_MS="${BASH_DEFAULT_TIMEOUT_MS:-900000}" BASH_MAX_TIMEOUT_MS="${BASH_MAX_TIMEOUT_MS:-3600000}"
 
 # Paths that hold loop state rather than story work.
-STATE_SPEC=(':!scripts/ralph/prd.json' ':!scripts/ralph/progress.txt' ':!reviews' ':!logs/agents')
+STATE_SPEC=(":!$PRD_REL" ":!$PROGRESS_REL" ':!reviews' ':!logs/agents')
 WORK_SPEC=(':!scripts/ralph' ':!reviews' ':!logs')
 TRAILER="Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 # Guard rails for author iterations. Deny rules stop the usual invocation forms; they are not a
 # security boundary, so the prompt repeats them and this script checks the outcome after each run.
-DENY=(Agent Workflow
+# Subagents (the Agent tool) are allowed: authors may fan out bounded, file-owned subtasks.
+DENY=(Workflow
   "Bash(git push *)" "Bash(git merge *)" "Bash(git rebase *)" "Bash(git reset --hard *)"
   "Bash(git switch *)" "Bash(git checkout *)" "Bash(git add -A*)" "Bash(git add .)" "Bash(git commit -a*)"
   "Bash(git commit --amend*)" "Bash(git commit --no-verify*)" "Bash(git commit -n *)" "Bash(git config *)"
@@ -78,7 +85,7 @@ COMPACT='fromjson? | if .type=="assistant" then (.message.content[]? | select(.t
   else empty end'
 
 now()   { date -u +%Y-%m-%dT%H:%M:%SZ; }
-human() { echo >&2; echo "ralph: HUMAN NEEDED: $*" >&2; exit 2; }
+human() { echo >&2; echo "ralph${BATCH:+[$BATCH]}: HUMAN NEEDED: $*" >&2; exit 2; }
 sha()   { shasum -a 256 | cut -d' ' -f1; }
 field() { jq -r --arg id "$1" ".userStories[] | select(.id==\$id) | $2" "$PRD"; }
 edit()  { local tmp; tmp="$(mktemp)"; jq "$@" "$PRD" > "$tmp" && mv "$tmp" "$PRD"; }
@@ -87,7 +94,7 @@ setreview() { local id="$1" expr="$2"; shift 2; edit --arg id "$id" "$@" "(.user
 contract()  { jq -S '[.userStories[] | {id, priority, owner, prdRefs, files, acceptanceCriteria, checks}]' "$PRD" | sha; }
 dirty()     { git status --porcelain -- . "${STATE_SPEC[@]}"; }
 lc()        { tr '[:upper:]' '[:lower:]' <<<"$1"; }
-logdir()    { local d; d="$ROOT/logs/agents/$(date -u +%F)"; mkdir -p "$d/raw"; echo "$d"; }
+logdir()    { local d; d="$ROOT/logs/agents/$(date -u +%F)${BATCH:+/$BATCH}"; mkdir -p "$d/raw"; echo "$d"; }
 
 commit_state() { # <message> <path>... : commit loop bookkeeping with explicit paths (hook checks the message)
   local msg="$1" p; shift
@@ -121,7 +128,9 @@ for t in git jq claude codex uv pnpm node perl shasum; do
 done
 BRANCH="$(jq -r .branchName "$PRD")"
 [ "$(git branch --show-current)" = "$BRANCH" ] || human "check out $BRANCH first: git switch -c $BRANCH"
-[ "$(git config core.hooksPath || true)" = ".husky/_" ] || human "commit hooks are not installed; run pnpm install"
+[ -e .husky/_/commit-msg ] || pnpm install --frozen-lockfile >/dev/null 2>&1 || true
+{ [ "$(git config core.hooksPath || true)" = ".husky/_" ] && [ -e .husky/_/commit-msg ]; } \
+  || human "commit hooks are not installed; run pnpm install"
 if [ -n "$(dirty)" ]; then dirty >&2; human "the working tree has changes outside Ralph's state; commit or restore them first"; fi
 CONTRACT="$(contract)"
 
@@ -129,9 +138,10 @@ CONTRACT="$(contract)"
 author() { # <id> <n>
   local id="$1" n="$2" owner d stamp
   owner="$(field "$id" .owner)"; d="$(logdir)"; stamp="$(date -u +%H%M%S)"
-  echo; echo "=== author iteration $n/$MAX · $id · $(field "$id" .review.state) · as $owner · $(now) ==="
-  claude -p "${PERM[@]}" --disallowedTools "${DENY[@]}" --output-format stream-json --verbose \
-    < "$DIR/prompt.md" | tee "$d/raw/ralph-$owner-$stamp.jsonl" | jq -rj --unbuffered "$VIEW" || true
+  echo; echo "=== ${BATCH:-t0} author iteration $n/$MAX · $id · $(field "$id" .review.state) · as $owner · $(now) ==="
+  { printf 'Batch: %s\nStory list: %s\nProgress log: %s\n\n' "${BATCH:-t0-bootstrap}" "$PRD_REL" "$PROGRESS_REL"
+    cat "$DIR/prompt.md"; } \
+    | claude -p "${PERM[@]}" --disallowedTools "${DENY[@]}" --output-format stream-json --verbose | tee "$d/raw/ralph-$owner-$stamp.jsonl" | jq -rj --unbuffered "$VIEW" || true
   jq -R -c --arg ts "$(now)" --arg agent "ralph-$owner" --arg story "$id" "$COMPACT" \
     "$d/raw/ralph-$owner-$stamp.jsonl" >> "$d/ralph-$owner.jsonl" || true
 }
@@ -149,7 +159,7 @@ outside_paths() { # <id> <base>: changed paths outside the story's files pattern
 }
 
 review() { # <id>
-  local id="$1" base round head suffix="" claude_f codex_f outside attempt=1
+  local id="$1" base round head outside attempt=1 list f files digests
   base="$(field "$id" .review.base)"; round="$(( $(field "$id" .review.round) + 1 ))"; head="$(git rev-parse HEAD)"
   if [ -n "$(dirty)" ]; then bounce "$id" pending "uncommitted changes were left; commit them or restore them"; return; fi
   if git diff --quiet "$base" HEAD -- . "${WORK_SPEC[@]}"; then bounce "$id" pending "review was requested but nothing is committed since $base"; return; fi
@@ -160,16 +170,19 @@ review() { # <id>
   fi
   commits_ok "$base"
   echo; echo "=== review round $round · $id · $base..$head · $(now) ==="
-  until "$DIR/review.sh" "$id" "$round" "$base" "$head"; do
+  list="$(mktemp)"
+  until RALPH_PRD="$PRD" RALPH_LOG_DIR="$(logdir)" RALPH_REVIEW_LIST="$list" "$DIR/review.sh" "$id" "$round" "$base" "$head"; do
     [ "$attempt" -lt "$REVIEW_ATTEMPTS" ] || human "$id: review round $round failed $attempt times; see reviews/$id-*.json"
-    attempt=$((attempt + 1)); echo "ralph: review attempt $attempt for $id in 120 s"; sleep 120
+    attempt=$((attempt + 1)); : > "$list"; echo "ralph: review attempt $attempt for $id in 120 s"; sleep 120
   done
-  [ "$round" -gt 1 ] && suffix="-r$round"
-  claude_f="reviews/$id-claude$suffix.json"; codex_f="reviews/$id-codex$suffix.json"
-  setreview "$id" '.state="reviewed" | .round=$r | .head=$h | .files=[$cf, $xf] | .digests={($cf): $cd, ($xf): $xd}' \
-    --argjson r "$round" --arg h "$head" --arg cf "$claude_f" --arg xf "$codex_f" \
-    --arg cd "$(jq -S 'del(.findings[].resolution)' "$claude_f" | sha)" \
-    --arg xd "$(jq -S 'del(.findings[].resolution)' "$codex_f" | sha)"
+  files="[]"; digests="{}"
+  while IFS= read -r f; do
+    files="$(jq -c --arg f "$f" '. + [$f]' <<<"$files")"
+    digests="$(jq -c --arg f "$f" --arg d "$(jq -S 'del(.findings[].resolution)' "$f" | sha)" '. + {($f): $d}' <<<"$digests")"
+  done < "$list"
+  [ "$(jq length <<<"$files")" -ge 2 ] || human "$id: review round $round produced fewer than two review files"
+  setreview "$id" '.state="reviewed" | .round=$r | .head=$h | .files=$files | .digests=$digests' \
+    --argjson r "$round" --arg h "$head" --argjson files "$files" --argjson digests "$digests"
   # shellcheck disable=SC2046
   commit_state "chore(ralph): record round $round reviews for $(lc "$id")" $(state_paths)
 }
@@ -240,6 +253,11 @@ gate() { # <id>
     echo "gate> $c"
     if ! bash -c "$c" > "$out" 2>&1; then tail -n 40 "$out"; gate_failure "$id" "$c" "$out"; return; fi
   done < <(field "$id" '.checks[]')
+  # Checks must be repeatable: a check that rewrites tracked files or leaves new ones breaks the next gate.
+  if [ -n "$(dirty)" ]; then
+    { echo "The story's checks left these changes in the working tree:"; dirty; } > "$out"
+    cat "$out"; gate_failure "$id" "story checks must leave the working tree unchanged" "$out"; return
+  fi
   edit --arg id "$id" '(.userStories[] | select(.id==$id)) |= (.passes = true | .review.state = "passed")'
   echo "ralph: $id passed review and the gate"
   # shellcheck disable=SC2046
