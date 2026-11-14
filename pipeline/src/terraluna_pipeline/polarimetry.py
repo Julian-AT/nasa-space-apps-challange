@@ -2890,9 +2890,11 @@ class G1RequiredTests(BaseModel):
     Every id is a test function in ``pipeline/tests/test_polarimetry*.py``, written as a pytest
     node id without parameters, so every parametrized case of it counts. ``fixtures`` maps F1
     to F10 (PRD 7) to the tests named ``test_F<n>_`` or ``test_F<a>_to_F<b>_``; a test covering
-    several fixtures is listed under each. ``conventions`` and ``invalid_data`` hold, per story
-    T2-01 to T2-03, the tests that conventions are declared and labelled and the invalid-data
-    tests (PRD 9 G1: "conventions labelled; invalid-data behaviour tested").
+    several fixtures is listed under each. ``conventions``, ``invalid_data`` and ``other`` hold,
+    per story T2-01 to T2-03, the tests that conventions are declared and labelled, the
+    invalid-data tests (PRD 9 G1: "conventions labelled; invalid-data behaviour tested") and
+    every other test of the story's test file, so that every test of the three stories is
+    required.
     ``real_scene_check`` is the T2-07 oracle check on a real UAVSAR scene.
     ``parametrized_cases`` maps each listed function that pytest parametrizes to its case ids
     (the text between the brackets of a node id, possibly empty), so that every case counts;
@@ -2905,6 +2907,7 @@ class G1RequiredTests(BaseModel):
     fixtures: dict[str, _RequiredTestList]
     conventions: dict[str, _RequiredTestList]
     invalid_data: dict[str, _RequiredTestList]
+    other: dict[str, _RequiredTestList]
     real_scene_check: _RequiredTestList
     parametrized_cases: dict[_RequiredTestId, _CaseList]
 
@@ -2912,10 +2915,11 @@ class G1RequiredTests(BaseModel):
     def _check_groups(self) -> Self:
         if set(self.fixtures) != set(_G1_FIXTURE_IDS):
             raise ValueError(f"fixtures must name exactly {', '.join(_G1_FIXTURE_IDS)}")
-        for name, group in (("conventions", self.conventions), ("invalid_data", self.invalid_data)):
+        for name, group in self.story_groups().items():
             if set(group) != set(_G1_STORIES):
                 raise ValueError(f"{name} must name exactly {', '.join(_G1_STORIES)}")
-        groups = [*self.fixtures.values(), *self.conventions.values(), *self.invalid_data.values()]
+        groups = [ids for group in self.story_groups().values() for ids in group.values()]
+        groups += self.fixtures.values()
         for ids in [*groups, self.real_scene_check]:
             if len(set(ids)) != len(ids):
                 raise ValueError(f"a test is listed twice in one group: {ids}")
@@ -2929,11 +2933,19 @@ class G1RequiredTests(BaseModel):
                 raise ValueError(f"a case of {nodeid} holds '::', which pytest's junit splits")
         return self
 
+    def story_groups(self) -> dict[str, dict[str, tuple[str, ...]]]:
+        """The per-story groups by name: conventions, invalid_data and other."""
+        return {
+            "conventions": self.conventions,
+            "invalid_data": self.invalid_data,
+            "other": self.other,
+        }
+
     def all_ids(self) -> tuple[str, ...]:
         """Every required test once, in list order."""
         ids = [nodeid for group in self.fixtures.values() for nodeid in group]
-        ids += [nodeid for group in self.conventions.values() for nodeid in group]
-        ids += [nodeid for group in self.invalid_data.values() for nodeid in group]
+        for group in self.story_groups().values():
+            ids += [nodeid for story in group.values() for nodeid in story]
         return tuple(dict.fromkeys([*ids, *self.real_scene_check]))
 
     def junit_names(self, nodeid: str) -> tuple[str, ...]:
@@ -3154,9 +3166,10 @@ def _real_scene_phrase(counts: Mapping[str, int]) -> str:
 def _g1_scope(real_scene: Mapping[str, int]) -> str:
     return (
         "G1 conversion correctness (PRD 9): fixtures F1-F10 against an independent basis"
-        " transformation, and the convention and invalid-data tests of T2-01 to T2-03, as listed in"
-        f" {_G1_REQUIRED_TESTS} and read from a pytest junit report. The real-scene polsartools"
-        f" oracle check (T2-07, PRD 12): {_real_scene_phrase(real_scene)}."
+        " transformation, and every test of T2-01 to T2-03 (the convention tests, the invalid-data"
+        f" tests and the others), in every listed case, as listed in {_G1_REQUIRED_TESTS} and read"
+        " from a pytest junit report. The real-scene polsartools oracle check (T2-07, PRD 12):"
+        f" {_real_scene_phrase(real_scene)}."
     )
 
 
@@ -3192,18 +3205,17 @@ def record_g1(
     repository or under ``fixtures/polarimetry/``. The required tests come from
     :data:`G1_REQUIRED_TESTS_PATH`; the status follows the rules above this function, so a
     required test that is absent, failed, skipped, xfailed or missing a listed case never gives
-    PASS. ``command`` is
-    the command line to record and ``run_id`` stays null unless given.
+    PASS. ``command`` is the command line to record and ``run_id`` stays null unless given.
 
     The record holds ``gate_id`` G1, the status, ``evidence_path`` (the junit report), the
     scope (stating whether the real-scene check was included), ``consequence`` (PRD 9's failure
     action unless PASS, else null) and ``result``. GateRecord's ``result`` is a string, so it
     holds a JSON object: the command, the SHA-256 of the report and of the required list, the
-    report timestamps, the counts per fixture, per story (conventions and invalid data) and for
-    the real-scene check (tests, passed, failed, skipped, incomplete, absent and junit cases),
-    the ids that failed, were skipped, were incomplete or were absent, the listed cases absent
-    from tests that were reported (``absent_cases``, as node ids with parameters), and other
-    failing tests in the same modules (``other_failed``, as junit ``classname::name``).
+    report timestamps, the counts per fixture, per story (conventions, invalid data and other)
+    and for the real-scene check (tests, passed, failed, skipped, incomplete, absent and junit
+    cases), the ids that failed, were skipped, were incomplete or were absent, the listed cases
+    absent from tests that were reported (``absent_cases``, as node ids with parameters), and
+    other failing tests in the same modules (``other_failed``, as junit ``classname::name``).
 
     Raises :class:`G1InputError`, writing nothing, if an input cannot be read or trusted, and
     OSError if ``out`` cannot be written.
@@ -3236,11 +3248,9 @@ def record_g1(
         "required_tests": _G1_REQUIRED_TESTS,
         "required_tests_sha256": hashlib.sha256(required_bytes).hexdigest(),
         "fixtures": {key: _g1_counts(required.fixtures[key], outcomes) for key in _G1_FIXTURE_IDS},
-        "conventions": {
-            key: _g1_counts(required.conventions[key], outcomes) for key in _G1_STORIES
-        },
-        "invalid_data": {
-            key: _g1_counts(required.invalid_data[key], outcomes) for key in _G1_STORIES
+        **{
+            name: {key: _g1_counts(group[key], outcomes) for key in _G1_STORIES}
+            for name, group in required.story_groups().items()
         },
         "real_scene_check": real_scene,
         "failed": ids_with("failed"),
