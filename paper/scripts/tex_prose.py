@@ -14,13 +14,19 @@ text. extract() works in two passes.
    spaces, comments and single line breaks. A blank line, which TeX reads as \par, ends the
    search.
 2. Prose. Commands, environment names and braces are removed from the code. Formatting commands
-   such as \emph, \textit and \textbf keep their text, a tie ~ reads as a space, and accent
-   commands give their base letter. Adjacent groups join as TeX prints them, so {seam}{less}
-   reads seamless; only two arguments of one command, as in \textcolor{red}{x} in kept TikZ
-   text, are separate words (argument_breaks).
+   such as \emph, \textit and \textbf and declarations such as \bf keep their text, a tie ~
+   reads as a space, and accent commands give their base letter. Adjacent groups join as TeX
+   prints them, so {seam}{less} reads seamless; only two arguments of one command, as in
+   \textcolor{red}{x} in kept TikZ text, are separate words (argument_breaks). What TeX skips
+   without printing a space is dropped (unprinted): the spaces, comments and single line break
+   after a control word or before the letter of an accent, and a comment with its line break
+   and the indent of the next line. So seam\emph {less}, seam{\bf less} and sea% with mless on
+   the next line all read seamless.
 
-Both passes keep every line break, so line n of the code and of the prose is line n of the
-source. An unclosed construct raises TexSyntaxError with the line where it opens, so a check
+The code keeps every character offset and the prose every line break of the source. A word that
+TeX joins across a line break it skips is written whole on the line where the word starts, and
+the line break follows the word, so line n of the prose holds the words that start on line n of
+the source. An unclosed construct raises TexSyntaxError with the line where it opens, so a check
 fails instead of reading the rest of the file wrongly.
 """
 
@@ -133,9 +139,9 @@ TEXT_COMMANDS = frozenset(
     }
 )
 
-# Font and size declarations and other commands that take no argument. A group after one is
-# ordinary text, so \bf{seam}{less} prints seamless, as {seam}{less} does.
-NO_ARGUMENT_COMMANDS = frozenset(
+# Font and size declarations and other commands that print nothing. A word they stand in prints
+# as one word, so seam{\bf less} reads seamless.
+DECLARATIONS = frozenset(
     {
         "bf",
         "it",
@@ -165,14 +171,20 @@ NO_ARGUMENT_COMMANDS = frozenset(
         "LARGE",
         "huge",
         "Huge",
-        "item",
         "noindent",
-        "indent",
         "centering",
         "raggedright",
         "raggedleft",
-        "par",
         "relax",
+    }
+)
+# Commands that take no argument. A group after one is ordinary text, so \bf{seam}{less} prints
+# seamless, as {seam}{less} does.
+NO_ARGUMENT_COMMANDS = DECLARATIONS | frozenset(
+    {
+        "item",
+        "indent",
+        "par",
         "newline",
         "quad",
         "qquad",
@@ -193,9 +205,14 @@ TEXT_ARGUMENTS_AFTER_KEYS: dict[str, int] = {
     "multirow": 1,
 }
 
-# The one-letter accent commands, \v{c} and the like.
+# The one-letter accent commands, \v{c} and the like, and the accent control symbols, \'e and the
+# like.
 ACCENT_LETTERS = "vuHckrdbtG"
 ACCENT_COMMANDS = frozenset(ACCENT_LETTERS)
+ACCENT_SYMBOLS = frozenset("'`^\"~=.")
+# Commands that print no text of their own, so no word break: formatting commands print their
+# argument, declarations nothing and accents their letter.
+PRINTS_NO_TEXT = TEXT_COMMANDS | DECLARATIONS | ACCENT_COMMANDS
 # A LaTeX accent command and the letter it accents: \'e, \'{e}, \"{\i}, \v{c} or \v c.
 ACCENT = re.compile(
     r"\\(?:['`^\"~=.]|[" + ACCENT_LETTERS + r"](?![A-Za-z]))[ \t]*"
@@ -263,7 +280,8 @@ def extract(text: str, *, keep_tikz: bool = False) -> Source:
     """
     scanner = _CodeScanner(text, keep_tikz)
     code = scanner.run()
-    return Source(code, _prose(code, scanner.argument_breaks(code)), scanner.comments)
+    breaks = scanner.argument_breaks(code)
+    return Source(code, _prose(code, breaks, scanner.unprinted(code)), scanner.comments)
 
 
 def prose(text: str, *, keep_tikz: bool = False) -> str:
@@ -327,6 +345,8 @@ class _CodeScanner:
         self.keep_tikz = keep_tikz
         self.out = list(text)
         self.comments: dict[int, str] = {}
+        # Each comment with its line break and the indent of the next line, which TeX drops.
+        self.comment_offsets: set[int] = set()
         self.line_starts: list[int] | None = None
 
     def line(self, offset: int) -> int:
@@ -363,9 +383,12 @@ class _CodeScanner:
 
     def comment(self, start: int) -> int:
         """Record the comment that starts at text[start] == '%' and return the end of its line."""
-        end = self.text.find("\n", start)
-        end = len(self.text) if end == -1 else end
-        self.comments.setdefault(self.line(start), self.text[start + 1 : end])
+        text = self.text
+        end = text.find("\n", start)
+        end = len(text) if end == -1 else end
+        self.comments.setdefault(self.line(start), text[start + 1 : end])
+        dropped_end = end if end == len(text) else _blanks_end(text, end + 1)
+        self.comment_offsets.update(range(start, dropped_end))
         return end
 
     def skip(self, i: int) -> int:
@@ -635,6 +658,21 @@ class _CodeScanner:
                     breaks.add(i - 1)
         return frozenset(breaks)
 
+    def unprinted(self, code: str) -> frozenset[int]:
+        r"""Offsets in code of what TeX skips without printing a space. Pass 2 drops them.
+
+        After a control word, and before the letter of an accent such as \', TeX skips spaces,
+        comments and one line break (space_end, read in the source, where a comment line is not
+        a blank line). A comment goes with its line break and the indent of the next line. So
+        seam\emph {less}, seam{\bf less} and caf\' with e on the next line print one word. A blank
+        line is \par and stays.
+        """
+        offsets: set[int] = set()
+        for match in CONTROL_SEQUENCE.finditer(code):
+            if match[1] is not None or match[0][1] in ACCENT_SYMBOLS:
+                offsets.update(range(match.end(), self.space_end(match.end())))
+        return frozenset(offsets | self.comment_offsets)
+
     def optional_arguments_end(self, i: int) -> int:
         text = self.text
         while True:
@@ -726,26 +764,58 @@ def _code_bracket_end(code: str, start: int) -> int:
     return len(code)
 
 
-def _prose(code: str, breaks: frozenset[int]) -> str:
-    out: list[str] = []
+class _ProseWriter:
+    r"""The prose of pass 2.
+
+    A line break that TeX skips inside a word, as in seam\emph, a line break and {less}, is held
+    back until the word ends, so the word is written whole and the prose keeps every line break.
+    """
+
+    def __init__(self) -> None:
+        self.parts: list[str] = []
+        self.held = 0
+
+    def write(self, text: str) -> None:
+        if self.held and text[0].isspace():
+            self.parts.append("\n" * self.held)
+            self.held = 0
+        self.parts.append(text)
+
+    def unprinted_line_break(self) -> None:
+        if self.parts and not self.parts[-1][-1].isspace():
+            self.held += 1
+        else:
+            self.parts.append("\n")
+
+    def text(self) -> str:
+        return "".join(self.parts) + "\n" * self.held
+
+
+def _prose(code: str, breaks: frozenset[int], unprinted: frozenset[int]) -> str:
+    out = _ProseWriter()
     i = 0
     while i < len(code):
         char = code[i]
-        if char == "\\":
+        if i in unprinted:
+            # White space or a blanked comment that TeX skips; see _CodeScanner.unprinted.
+            if char == "\n":
+                out.unprinted_line_break()
+            i += 1
+        elif char == "\\":
             i = _prose_command(code, i, out)
         elif i in breaks:
             # The end of one argument when the next one follows, as in \textcolor{red}{x}.
-            out.append(" ")
+            out.write(" ")
             i += 1
         elif char in "{}":
             i += 1
         elif char == "~":
-            out.append(" ")
+            out.write(" ")
             i += 1
         else:
-            out.append(char)
+            out.write(char)
             i += 1
-    return "".join(out)
+    return out.text()
 
 
 def _removed(span: str) -> str:
@@ -753,14 +823,14 @@ def _removed(span: str) -> str:
     return "\n" * span.count("\n") or " "
 
 
-def _prose_command(code: str, start: int, out: list[str]) -> int:
+def _prose_command(code: str, start: int, out: _ProseWriter) -> int:
     accent = ACCENT.match(code, start)
     if accent is not None:
-        out.append(next(group for group in accent.groups() if group))
+        out.write(next(group for group in accent.groups() if group))
         return accent.end()
     letter = SPECIAL_LETTER.match(code, start)
     if letter is not None:
-        out.append(SPECIAL_LETTERS[letter[1]])
+        out.write(SPECIAL_LETTERS[letter[1]])
         return letter.end()
     if start + 1 >= len(code):
         return len(code)
@@ -774,23 +844,25 @@ def _prose_command(code: str, start: int, out: list[str]) -> int:
             environment = CODE_ENVIRONMENT.match(code, start)
             if environment is not None:
                 end = environment.end()
-            out.append(_removed(code[start:end]))
+            out.write(_removed(code[start:end]))
             return end
         if code.startswith("*", end):
             end += 1
-        if name not in TEXT_COMMANDS:
-            out.append(" ")
+        if name not in PRINTS_NO_TEXT:
+            out.write(" ")
         return end
     if following == "\\":
         # A line break; pass 1 has blanked its * and [length].
-        out.append(" ")
+        out.write(" ")
         return start + 2
-    if following in "-/@":
+    if following in "-/@" or following in ACCENT_SYMBOLS:
+        # A discretionary hyphen, an italic correction, \@, or an accent whose letter is not on
+        # its line; the letter follows as text.
         return start + 2
     if following in "%&#$_{}":
-        out.append(following)
+        out.write(following)
     elif following == "\n":
-        out.append("\n")
+        out.write("\n")
     else:
-        out.append(" ")
+        out.write(" ")
     return start + 2
