@@ -17,11 +17,12 @@ dev = [
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-src = ["pipeline/src", "ml/src", "pipeline/tests"]
+src = ["pipeline/src", "ml/src", "pipeline/tests", "ml/tests"]
 include = [
     "pipeline/src/**/*.py",
     "ml/src/**/*.py",
     "pipeline/tests/**/*.py",
+    "ml/tests/**/*.py",
 ]
 
 [tool.ruff.lint]
@@ -45,6 +46,6 @@ init_typed = true
 warn_required_dynamic_aliases = true
 
 [tool.pytest.ini_options]
-testpaths = ["pipeline/tests"]
+testpaths = ["pipeline/tests", "ml/tests"]
 addopts = ["--strict-markers", "--strict-config", "-ra"]
 xfail_strict = true
