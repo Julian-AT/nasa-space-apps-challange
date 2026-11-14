@@ -1,8 +1,9 @@
 """Numerical polarimetry: decoding, angles, Stokes conversion and validity (PRD 6.2, 7, 8.11).
 
 This module is the numerical contract of PRD section 7. Every function works elementwise on
-float64 arrays and returns a :class:`StatedArray`: the values together with a per-element
-observation state (:class:`ObsState`) and a machine-readable reason (:class:`InvalidReason`).
+float64 arrays, or per pixel on one 3x3 complex covariance per pixel, and returns
+:class:`StatedArray` values: the values together with a per-element observation state
+(:class:`ObsState`) and a machine-readable reason (:class:`InvalidReason`).
 
 Conventions that hold for every function here:
 
@@ -19,7 +20,7 @@ Conventions that hold for every function here:
   other numerical range is imposed.
 - Product validity and noise flags enter only through explicit arguments, such as ``nodata``,
   the noise flags of :func:`x_power` and ``product_masked`` of :func:`circular_from_stokes`
-  (PRD 7: keep the product's flags). Array arguments
+  and :func:`circular_from_covariance` (PRD 7: keep the product's flags). Array arguments
   are plain numpy arrays (memory-mapped ones included), scalars, or lists and tuples of them
   nested to any depth, all matched by exact type. A numpy masked array is refused with
   TypeError wherever it appears, because converting it to an array drops its mask and a masked
@@ -41,19 +42,28 @@ import numpy.typing as npt
 
 __all__ = [
     "ARITHMETIC_TOLERANCE",
+    "CIRCULAR_BASIS",
+    "COVARIANCE_HH_HV_VV",
+    "COVARIANCE_HH_SQRT2HV_VV",
     "INTERNAL_ANGLE_UNIT",
     "MINIRF_SIS_CONVENTION",
+    "NEISH_SC_LL_CONVENTION",
+    "OPPOSITE_SC_CONVENTION",
     "PALSAR2_CALIBRATION_OFFSET_DB",
     "REASON_DTYPE",
     "STATE_DTYPE",
     "AngleUnit",
     "CircularPowers",
+    "CovarianceCircularPowers",
+    "CovarianceOrdering",
+    "HandednessConvention",
     "InvalidReason",
     "ObsState",
     "StatedArray",
     "StokesConvention",
     "Tolerance",
     "angle_to_degrees",
+    "circular_from_covariance",
     "circular_from_stokes",
     "decode_db",
     "decode_linear",
@@ -123,8 +133,28 @@ class InvalidReason(StrEnum):
     (state ``INVALID``). No epsilon is added (PRD 7)."""
 
     SC_NEGATIVE = "SC_NEGATIVE"
-    """SC is below zero, accepted within the Stokes tolerance and reported as computed, but no
-    ratio is formed from a negative power and none is clipped to zero (state ``INVALID``)."""
+    """SC is below zero, accepted within the Stokes or covariance tolerance and reported as
+    computed, but no ratio is formed from a negative power and none is clipped to zero (state
+    ``INVALID``)."""
+
+    COV_NONFINITE = "COV_NONFINITE"
+    """A covariance element has a NaN or infinite real or imaginary part (state ``INVALID``)."""
+
+    COV_NOT_HERMITIAN = "COV_NOT_HERMITIAN"
+    """The covariance differs from its conjugate transpose beyond the tolerance, off the
+    diagonal or by an imaginary diagonal (state ``INVALID``). It is not repaired (PRD 7)."""
+
+    COV_NEGATIVE_DIAGONAL = "COV_NEGATIVE_DIAGONAL"
+    """A diagonal power of the covariance is negative beyond the tolerance (state
+    ``INVALID``). It is not repaired (PRD 7)."""
+
+    COV_NOT_PSD = "COV_NOT_PSD"
+    """The covariance has an eigenvalue below zero beyond the tolerance, so it is not positive
+    semidefinite (state ``INVALID``). No eigenvalue is clipped (PRD 7)."""
+
+    BASE_SC_NONPOSITIVE = "BASE_SC_NONPOSITIVE"
+    """base_SC is zero or negative, so the handedness ratio ``(Im D + Im E) / base_SC`` is
+    unavailable (state ``INVALID``). No epsilon is added."""
 
 
 STATE_DTYPE: Final = np.dtype(np.uint8)
@@ -867,5 +897,444 @@ def circular_from_stokes(
         oc=oc_classifier.finish(oc),
         cpr=cpr_classifier.finish(cpr),
         convention=convention,
+        tolerance=tolerance,
+    )
+
+
+# --- UAVSAR covariance to circular powers (PRD 6.2, 7; F6, F7) -------------------------------
+
+CovarianceOrdering = Literal["HH_HV_VV", "HH_SQRT2HV_VV"]
+"""Vector orderings a 3x3 covariance may be declared in; none is assumed."""
+
+COVARIANCE_HH_HV_VV: Final[CovarianceOrdering] = "HH_HV_VV"
+"""Covariance of the scattering vector ``k = (HH, HV, VV)``, ``C_ij = <k_i k_j*>``, with the
+elements of PRD 6.2, as the UAVSAR products store them::
+
+    [[A,  D,  C],      A = <HH HH*>   B = <VV VV*>   V = <HV HV*>
+     [D*, V,  E],      C = <HH VV*>   D = <HH HV*>   E = <HV VV*>
+     [C*, E*, B]]
+"""
+
+COVARIANCE_HH_SQRT2HV_VV: Final[CovarianceOrdering] = "HH_SQRT2HV_VV"
+"""Covariance of ``k = (HH, sqrt2 HV, VV)``, the lexicographic C3 matrix: the
+:data:`COVARIANCE_HH_HV_VV` matrix with its middle row and column multiplied by sqrt2, so the
+middle element is ``2 V``."""
+
+_ORDERINGS: Final[tuple[str, ...]] = (COVARIANCE_HH_HV_VV, COVARIANCE_HH_SQRT2HV_VV)
+
+_SQRT2: Final = math.sqrt(2.0)
+_SQRT_HALF: Final = math.sqrt(0.5)
+
+
+def _read_only(array: npt.NDArray[Any]) -> npt.NDArray[Any]:
+    array.setflags(write=False)
+    return array
+
+
+_TO_SQRT2_ORDERING: Final[dict[str, npt.NDArray[np.float64]]] = {
+    COVARIANCE_HH_HV_VV: _read_only(
+        np.array([[1.0, _SQRT2, 1.0], [_SQRT2, 2.0, _SQRT2], [1.0, _SQRT2, 1.0]])
+    ),
+    COVARIANCE_HH_SQRT2HV_VV: _read_only(np.ones((3, 3))),
+}
+"""Elementwise factors ``n_i n_j`` with ``n = (1, sqrt2, 1)`` that express a covariance in the
+(HH, sqrt2 HV, VV) ordering, ``C' = N C N`` with ``N = diag(n)``. This is the change of vector
+normalization between the two declared orderings, not a repair. The middle factor is exactly 2."""
+
+HandednessConvention = Literal["NEISH_SC_LL_TX_1_MINUS_I", "SC_OPP_TX_1_PLUS_I"]
+"""Transmit handedness conventions this module knows (PRD 6.2); none is assumed."""
+
+NEISH_SC_LL_CONVENTION: Final[HandednessConvention] = "NEISH_SC_LL_TX_1_MINUS_I"
+"""SC is SC_LL, the LL/LR convention of Neish et al. (PRD 6.2): the transmit Jones vector is
+``(1, -i)/sqrt2`` in the (H, V) basis of the covariance."""
+
+OPPOSITE_SC_CONVENTION: Final[HandednessConvention] = "SC_OPP_TX_1_PLUS_I"
+"""SC is SC_opp, the opposite transmit handedness in the same basis (PRD 6.2): the transmit
+Jones vector is ``(1, +i)/sqrt2``."""
+
+_HANDEDNESS_CONVENTIONS: Final[tuple[str, ...]] = (NEISH_SC_LL_CONVENTION, OPPOSITE_SC_CONVENTION)
+
+CIRCULAR_BASIS: Final[npt.NDArray[np.complex128]] = _read_only(
+    np.array(
+        [
+            [0.5, complex(0.0, -_SQRT_HALF), -0.5],
+            [_SQRT_HALF, 0.0, _SQRT_HALF],
+            [0.5, complex(0.0, _SQRT_HALF), -0.5],
+        ],
+        dtype=np.complex128,
+    )
+)
+"""The unitary 3x3 transformation from the (HH, sqrt2 HV, VV) basis to circular amplitudes.
+
+For a reciprocal scatterer ``S = [[HH, HV], [HV, VV]]`` and a transmit Jones vector ``t`` in
+the (H, V) basis, the same-sense amplitude is ``t^T S t`` and the opposite-sense amplitude is
+``t^H S t``, with transmit and receive in the same basis. With ``k = (HH, sqrt2 HV, VV)``:
+
+- row 0, ``(1, -i sqrt2, -1) / 2``: ``t^T S t = (HH - 2i HV - VV) / 2`` for
+  ``t = (1, -i)/sqrt2``, the SC_LL amplitude (LL/LR convention of Neish et al., PRD 6.2);
+- row 1, ``(1, 0, 1) / sqrt2``: sqrt2 times ``t^H S t = (HH + VV) / 2``, the OC amplitude,
+  which is the same for both transmit handednesses;
+- row 2, ``(1, i sqrt2, -1) / 2``: ``t^T S t = (HH + 2i HV - VV) / 2`` for
+  ``t = (1, +i)/sqrt2``, the SC_opp amplitude.
+
+The rows are orthonormal, so the matrix is unitary. The array is read-only."""
+
+
+def _check_declared(kind: str, value: object, allowed: tuple[str, ...]) -> None:
+    if type(value) is not str or value not in allowed:
+        raise ValueError(
+            f"{kind} must be declared as one of {allowed}, got {value!r}; an undeclared "
+            f"{kind} is refused, never guessed"
+        )
+
+
+def _check_handedness_convention(convention: object) -> None:
+    _check_declared("handedness convention", convention, _HANDEDNESS_CONVENTIONS)
+
+
+def _check_ordering(ordering: object) -> None:
+    _check_declared("covariance vector ordering", ordering, _ORDERINGS)
+
+
+def _is_valid(stated: StatedArray) -> npt.NDArray[np.bool_]:
+    return np.equal(stated.state, ObsState.VALID)
+
+
+@dataclass(frozen=True, slots=True)
+class CovarianceCircularPowers:
+    """Circular powers of a UAVSAR covariance under a declared transmit handedness (PRD 6.2).
+
+    Each field is a :class:`StatedArray` with its own states, and all have the pixel shape of
+    the covariance. Powers are linear, in the units of the covariance:
+
+    - ``sc``: same-sense power under ``convention``, SC_LL or SC_opp;
+    - ``oc``: opposite-sense power, the same for both handednesses;
+    - ``total``: ``SC + OC``, the received power for the declared circular transmit, kept
+      beside CPR (PRD 6.2). It is not the quad-pol span ``A + 2 V + B``;
+    - ``base_sc``: the handedness-independent part of SC, ``(SC_LL + SC_opp) / 2``;
+    - ``handedness_term``: ``Im D + Im E = (SC_opp - SC_LL) / 2`` (PRD 6.2), so that
+      ``SC_LL = base_SC - Im D - Im E`` and ``SC_opp = base_SC + Im D + Im E``.
+
+    ``cpr`` is SC/OC, a dimensionless linear ratio, not the share of total echo, which is
+    ``CPR / (1 + CPR)`` (PRD 6.2). ``handedness_ratio`` is ``handedness_term / base_sc``,
+    dimensionless, reported per pixel without a threshold. A ``VALID`` CPR needs a ``VALID``,
+    non-negative SC and a ``VALID``, positive OC; a ``VALID`` handedness ratio needs a ``VALID``
+    handedness term and a ``VALID``, positive base_SC.
+
+    ``convention``, ``ordering`` and ``tolerance`` are the declarations the conversion used.
+    ``handedness_verified`` is False: no Earth result is Mini-RF-equivalent until handedness
+    and basis are verified on both sides (PRD 6.2). The conversion never sets it; a caller that
+    has verified both may record that with ``dataclasses.replace``.
+    """
+
+    total: StatedArray
+    sc: StatedArray
+    oc: StatedArray
+    cpr: StatedArray
+    base_sc: StatedArray
+    handedness_term: StatedArray
+    handedness_ratio: StatedArray
+    convention: HandednessConvention
+    ordering: CovarianceOrdering
+    tolerance: Tolerance
+    handedness_verified: bool = False
+
+    def __post_init__(self) -> None:
+        fields = (
+            "total",
+            "sc",
+            "oc",
+            "cpr",
+            "base_sc",
+            "handedness_term",
+            "handedness_ratio",
+        )
+        for name in fields:
+            if type(getattr(self, name)) is not StatedArray:
+                raise TypeError(f"{name} must be a StatedArray")
+        shapes = [getattr(self, name).value.shape for name in fields]
+        if any(shape != shapes[0] for shape in shapes):
+            raise ValueError(f"{', '.join(fields)} must have the same shape, got {shapes}")
+        _check_handedness_convention(self.convention)
+        _check_ordering(self.ordering)
+        if type(self.tolerance) is not Tolerance:
+            raise TypeError(f"tolerance must be a Tolerance, got {self.tolerance!r}")
+        if type(self.handedness_verified) is not bool:
+            raise TypeError(f"handedness_verified must be a bool, got {self.handedness_verified!r}")
+        with np.errstate(invalid="ignore"):
+            sc_usable = _is_valid(self.sc) & (self.sc.value >= 0.0)
+            oc_usable = _is_valid(self.oc) & (self.oc.value > 0.0)
+            base_usable = _is_valid(self.base_sc) & (self.base_sc.value > 0.0)
+        if np.any(_is_valid(self.cpr) & ~(sc_usable & oc_usable)):
+            raise ValueError("a VALID CPR needs a VALID, non-negative SC and a VALID, positive OC")
+        if np.any(
+            _is_valid(self.handedness_ratio) & ~(_is_valid(self.handedness_term) & base_usable)
+        ):
+            raise ValueError(
+                "a VALID handedness_ratio needs a VALID handedness_term and a VALID, positive "
+                "base_sc"
+            )
+
+
+def _covariance_array(name: str, values: npt.ArrayLike) -> npt.NDArray[np.complex128]:
+    """Return ``values`` as a complex128 array of shape ``(..., 3, 3)``, or raise.
+
+    Integer, floating and complex dtypes are accepted (a real covariance is a complex one with
+    zero imaginary parts); booleans, strings and objects raise TypeError, and so do masked
+    arrays and inputs whose conversion could drop a mask (:func:`_require_plain`). The result
+    is a new array, so the caller's input is never modified.
+    """
+    _require_plain(name, values)
+    array = np.asarray(values)
+    if not (
+        np.issubdtype(array.dtype, np.integer)
+        or np.issubdtype(array.dtype, np.floating)
+        or np.issubdtype(array.dtype, np.complexfloating)
+    ):
+        raise TypeError(f"{name} must be a real or complex numeric array, got {array.dtype}")
+    if array.ndim < 2 or array.shape[-2:] != (3, 3):
+        raise ValueError(f"{name} must end in a 3x3 matrix, shape (..., 3, 3), got {array.shape}")
+    return array.astype(np.complex128)
+
+
+def _scale_by_power_of_two(
+    covariance: npt.NDArray[np.complex128],
+) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.int32]]:
+    """Scale each matrix by one power of two so its largest real or imaginary part lies in
+    [0.5, 1), and return the scaled matrices with each matrix's exponent ``e``.
+
+    ``covariance == ldexp(scaled, e)``. The scaling is exact for every part within a factor of
+    about ``2**1021`` of the matrix's largest part; a smaller part is below float64 resolution
+    at the matrix's scale and may round to a subnormal or to zero. An all-zero matrix keeps
+    exponent 0. Inputs must be finite.
+    """
+    with np.errstate(under="ignore"):
+        largest = np.asarray(
+            np.maximum(np.abs(covariance.real), np.abs(covariance.imag)).max(axis=(-2, -1))
+        )
+        _, exponent = np.frexp(largest)
+        exponent = np.asarray(exponent)
+        shift = (-exponent)[..., np.newaxis, np.newaxis]
+        scaled = np.empty_like(covariance)
+        scaled.real = np.ldexp(covariance.real, shift)
+        scaled.imag = np.ldexp(covariance.imag, shift)
+    return scaled, exponent
+
+
+def _unscaled_power(
+    base: _Classifier, scaled: npt.NDArray[np.float64], exponent: npt.NDArray[np.int32]
+) -> tuple[_Classifier, npt.NDArray[np.float64]]:
+    """Undo the power-of-two scaling of one result and mark the elements float64 cannot hold.
+
+    The result is ``ldexp(scaled, e)``. Where it overflows, or where ``scaled`` is not zero but
+    the result falls below the smallest normal float64, the element is ``INVALID`` with
+    ``FLOAT64_OUT_OF_RANGE``. A zero at the matrix's scale stays a valid zero.
+    """
+    classifier = base.copy()
+    with np.errstate(over="ignore", under="ignore", invalid="ignore"):
+        value = np.asarray(np.ldexp(scaled, exponent), dtype=np.float64)
+        nonzero = np.asarray(scaled != 0.0)
+    classifier.mark_out_of_range(value, positive=False)
+    classifier.mark_below_normal(value, nonzero=nonzero)
+    return classifier, value
+
+
+def _ratio(
+    base: _Classifier,
+    numerator: npt.NDArray[np.float64],
+    denominator: npt.NDArray[np.float64],
+    *,
+    usable: npt.NDArray[np.bool_],
+) -> tuple[_Classifier, npt.NDArray[np.float64]]:
+    """Divide where ``base`` is still valid, then mark ratios float64 cannot hold.
+
+    Both operands are taken at the matrix's scale, where the ratio is the same as for the
+    unscaled powers. ``usable`` must already be folded into ``base`` by the caller's rules.
+    """
+    out = np.full(base.state.shape, np.nan)
+    with np.errstate(over="ignore", under="ignore", divide="ignore", invalid="ignore"):
+        np.divide(numerator, denominator, out=out, where=usable & base.valid)
+    base.mark_out_of_range(out, positive=False)
+    base.mark_below_normal(out, nonzero=np.asarray(numerator != 0.0))
+    return base, out
+
+
+def circular_from_covariance(
+    covariance: npt.ArrayLike,
+    *,
+    ordering: CovarianceOrdering,
+    convention: HandednessConvention,
+    product_masked: npt.ArrayLike,
+    tolerance: Tolerance = ARITHMETIC_TOLERANCE,
+) -> CovarianceCircularPowers:
+    """Convert a UAVSAR 3x3 covariance to circular SC, OC and CPR (PRD 6.2, 7; F6, F7).
+
+    The conversion is an explicit unitary basis transformation; the PRD 6.2 expanded formulas
+    are used only as a test oracle. ``covariance`` has shape ``(..., 3, 3)``, one matrix per
+    pixel, in the declared vector ``ordering``:
+
+    - :data:`COVARIANCE_HH_HV_VV`: ``k = (HH, HV, VV)``, as UAVSAR stores it;
+    - :data:`COVARIANCE_HH_SQRT2HV_VV`: ``k = (HH, sqrt2 HV, VV)``.
+
+    with ``C_ij = <k_i k_j*>``. Reciprocity (``HV = VH``) is assumed, as in the product. A
+    covariance in the (HH, HV, VV) ordering is first expressed in the (HH, sqrt2 HV, VV)
+    ordering, ``C' = N C N`` with ``N = diag(1, sqrt2, 1)``, a change of vector normalization.
+    Then the unitary :data:`CIRCULAR_BASIS` ``U`` maps it to the circular covariance
+    ``U C' U^H``, whose diagonal is ``(SC_LL, 2 OC, SC_opp)``. Its rows are the amplitudes
+    ``t^T S t`` (same sense) and ``t^H S t`` (opposite sense) for the transmit Jones vector
+    ``t = (1, -i)/sqrt2`` in the (H, V) basis, which gives SC_LL in the LL/LR convention of
+    Neish et al., and for ``(1, +i)/sqrt2``, the opposite handedness, which gives SC_opp.
+
+    ``convention`` selects SC: :data:`NEISH_SC_LL_CONVENTION` (SC_LL) or
+    :data:`OPPOSITE_SC_CONVENTION` (SC_opp). ``ordering`` and ``convention`` are required, and
+    anything other than the named constants, ``None`` included, raises ValueError and nothing is
+    returned. The record's ``handedness_verified`` is False: no result is labelled
+    Mini-RF-equivalent until handedness and basis are verified on both sides (PRD 6.2).
+
+    The handedness term ``Im D + Im E = (SC_opp - SC_LL) / 2`` and the handedness-independent
+    ``base_SC = (SC_LL + SC_opp) / 2`` come from the same transformation and are returned beside
+    SC, with their ratio. For natural ground near reflection symmetry the term is small. The
+    threshold for "not small" is set on development data (PRD 6.2), so none is applied here.
+
+    ``product_masked`` is a boolean array that broadcasts to the pixel shape and is True where
+    the product's own validity or noise flag, or a configured SNR rule, excludes the pixel
+    (PRD 7). ``tolerance`` is the Hermitian and positive-semidefinite tolerance. It defaults to
+    :data:`ARITHMETIC_TOLERANCE`, the PRD 7 arithmetic tolerance; a real-data tolerance is an
+    open decision (PRD 7: it comes from the product). For each pixel the allowance is
+    ``atol + rtol * s``, where ``s`` is the largest element magnitude ``max |C_ij|`` of the
+    matrix as given (for a PSD matrix, its largest diagonal power). The relative part is taken
+    at the matrix's scale because rounding in a covariance and in its eigenvalues scales with
+    the matrix norm, not with each element. ``atol`` is in the power units of the covariance.
+
+    Each matrix is first scaled by one exact power of two (its largest real or imaginary part
+    into [0.5, 1)); the rules and the transformation run on the scaled matrix and the powers are
+    scaled back, so no intermediate overflows or underflows. Parts smaller than about
+    ``2**-1021`` times the largest part are below float64 resolution at that scale; they can
+    decide an outcome only for an allowance below that size.
+
+    Rules shared by every output, in order (the first match wins):
+
+    1. ``product_masked``: ``MISSING``, ``PRODUCT_MASKED``.
+    2. Any element has a NaN or infinite real or imaginary part: ``INVALID``, ``COV_NONFINITE``.
+    3. ``max |C_ij - conj(C_ji)| > allowance``, an off-diagonal mismatch or an imaginary
+       diagonal beyond the tolerance: ``INVALID``, ``COV_NOT_HERMITIAN``.
+    4. A diagonal power below ``-allowance``: ``INVALID``, ``COV_NEGATIVE_DIAGONAL``.
+    5. The smallest eigenvalue below ``-allowance``: ``INVALID``, ``COV_NOT_PSD``.
+
+    A materially nonphysical covariance is flagged with its cause and nothing is published for
+    it; the input is not repaired and no eigenvalue is clipped (PRD 7). A matrix inside the
+    tolerance is not altered either. Its eigenvalues and powers are evaluated on its Hermitian
+    part ``(C + C^H) / 2``, which is ``C`` for a Hermitian input; for a power this is exactly
+    the real part of the quadratic form ``u C u^H`` that defines it. A power that is negative
+    within the tolerance is reported as computed, never clipped to zero.
+
+    Then total, SC, OC, base_SC and the handedness term each: ``INVALID`` with
+    ``FLOAT64_OUT_OF_RANGE`` where the scaled-back value overflows, or is not zero at the
+    matrix's scale but falls below the smallest normal float64.
+
+    Then CPR:
+
+    6. ``OC <= 0``: ``INVALID``, ``OC_NONPOSITIVE``. No epsilon is added to a zero or
+       near-zero OC (PRD 7). OC carries the transformation's rounding error, of the order of
+       float64 precision times ``s``, and a small positive OC gives the large CPR it implies;
+       whether such an OC is reliable is the product's flag to set (``product_masked``).
+    7. ``SC < 0``, a negative SC accepted within the tolerance: ``INVALID``, ``SC_NEGATIVE``.
+    8. SC or OC out of float64 range, or a CPR float64 cannot hold: ``INVALID``,
+       ``FLOAT64_OUT_OF_RANGE``. A valid high CPR is never truncated (PRD 7).
+
+    And the handedness ratio:
+
+    9. ``base_SC <= 0``: ``INVALID``, ``BASE_SC_NONPOSITIVE``. No epsilon is added.
+    10. The handedness term or base_SC out of float64 range, or a ratio float64 cannot hold:
+        ``INVALID``, ``FLOAT64_OUT_OF_RANGE``.
+
+    Missing, invalid and valid low CPR stay distinct (PRD 7): a pixel that is not ``VALID``
+    holds NaN with its state and reason, never 0.0. Units: total, SC, OC, base_SC and the
+    handedness term in the linear power units of the covariance; CPR and the handedness ratio
+    dimensionless.
+    """
+    _check_ordering(ordering)
+    _check_handedness_convention(convention)
+    if type(tolerance) is not Tolerance:
+        raise TypeError(f"tolerance must be a Tolerance, got {tolerance!r}")
+    matrices = _covariance_array("covariance", covariance)
+    shape = matrices.shape[:-2]
+    masked = _bool_mask("product_masked", product_masked, shape)
+
+    base = _Classifier(shape)
+    base.mark(masked, ObsState.MISSING, InvalidReason.PRODUCT_MASKED)
+    finite = np.asarray(np.all(np.isfinite(matrices), axis=(-2, -1)))
+    base.mark(~finite, ObsState.INVALID, InvalidReason.COV_NONFINITE)
+    # Non-finite matrices are already invalid; zeros keep the arithmetic below quiet for them.
+    finite_matrices = np.where(finite[..., np.newaxis, np.newaxis], matrices, 0.0)
+
+    scaled, exponent = _scale_by_power_of_two(finite_matrices)
+    adjoint = np.conj(np.swapaxes(scaled, -1, -2))
+    with np.errstate(over="ignore", under="ignore", invalid="ignore"):
+        largest = np.abs(scaled).max(axis=(-2, -1))
+        allowance = np.ldexp(tolerance.atol, -exponent) + tolerance.rtol * largest
+        mismatch = np.abs(scaled - adjoint).max(axis=(-2, -1))
+        base.mark(
+            np.asarray(mismatch > allowance), ObsState.INVALID, InvalidReason.COV_NOT_HERMITIAN
+        )
+        hermitian = 0.5 * (scaled + adjoint)
+        diagonal = np.diagonal(hermitian, axis1=-2, axis2=-1).real
+        base.mark(
+            np.asarray(diagonal.min(axis=-1) < -allowance),
+            ObsState.INVALID,
+            InvalidReason.COV_NEGATIVE_DIAGONAL,
+        )
+        smallest_eigenvalue = np.linalg.eigvalsh(hermitian)[..., 0]
+        base.mark(
+            np.asarray(smallest_eigenvalue < -allowance),
+            ObsState.INVALID,
+            InvalidReason.COV_NOT_PSD,
+        )
+
+        # The basis transformation, at the matrix's scale.
+        normalized = hermitian * _TO_SQRT2_ORDERING[ordering]
+        circular = CIRCULAR_BASIS @ normalized @ CIRCULAR_BASIS.conj().T
+        diagonal_powers = np.diagonal(circular, axis1=-2, axis2=-1).real
+        sc_ll = diagonal_powers[..., 0]
+        oc = 0.5 * diagonal_powers[..., 1]
+        sc_opp = diagonal_powers[..., 2]
+        sc = sc_ll if convention == NEISH_SC_LL_CONVENTION else sc_opp
+        base_sc = 0.5 * (sc_ll + sc_opp)
+        handedness_term = 0.5 * (sc_opp - sc_ll)
+        total = sc + oc
+
+    total_classifier, total_value = _unscaled_power(base, total, exponent)
+    sc_classifier, sc_value = _unscaled_power(base, sc, exponent)
+    oc_classifier, oc_value = _unscaled_power(base, oc, exponent)
+    base_classifier, base_value = _unscaled_power(base, base_sc, exponent)
+    term_classifier, term_value = _unscaled_power(base, handedness_term, exponent)
+
+    cpr_classifier = base.copy()
+    cpr_classifier.mark(np.asarray(oc <= 0.0), ObsState.INVALID, InvalidReason.OC_NONPOSITIVE)
+    cpr_classifier.mark(np.asarray(sc < 0.0), ObsState.INVALID, InvalidReason.SC_NEGATIVE)
+    powers_in_range = sc_classifier.valid & oc_classifier.valid
+    cpr_classifier.mark(~powers_in_range, ObsState.INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE)
+    cpr_classifier, cpr = _ratio(cpr_classifier, sc, oc, usable=powers_in_range)
+
+    ratio_classifier = base.copy()
+    ratio_classifier.mark(
+        np.asarray(base_sc <= 0.0), ObsState.INVALID, InvalidReason.BASE_SC_NONPOSITIVE
+    )
+    parts_in_range = term_classifier.valid & base_classifier.valid
+    ratio_classifier.mark(~parts_in_range, ObsState.INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE)
+    ratio_classifier, ratio = _ratio(
+        ratio_classifier, handedness_term, base_sc, usable=parts_in_range
+    )
+
+    return CovarianceCircularPowers(
+        total=total_classifier.finish(total_value),
+        sc=sc_classifier.finish(sc_value),
+        oc=oc_classifier.finish(oc_value),
+        cpr=cpr_classifier.finish(cpr),
+        base_sc=base_classifier.finish(base_value),
+        handedness_term=term_classifier.finish(term_value),
+        handedness_ratio=ratio_classifier.finish(ratio),
+        convention=convention,
+        ordering=ordering,
         tolerance=tolerance,
     )
