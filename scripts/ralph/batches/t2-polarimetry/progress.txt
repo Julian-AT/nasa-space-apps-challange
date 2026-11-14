@@ -88,3 +88,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: numpy 2.5.4 installed docstrings for np.frexp and np.ldexp, because Context7 numpy/numpy has no entry for them. Probed directly: frexp returns int32 exponents, (0.0, 0) for zero, normalized mantissas for subnormals, and (inf, 0) and (nan, 0) for non-finite input; ldexp(1e-12, 2146) overflows to inf without error under errstate. hypothesis 6.170.15: assume and settings(deadline=None), already in the installed package.
 - Learnings: with atol on squares, near S1 = 0 the bound admits a polarized magnitude up to sqrt(atol), which is 1e-6 for the arithmetic tolerance. That is the literal rule, and a test pins it so the real-data tolerance decision sees it. The 1e-200 underflow test needs atol = 0, because atol otherwise dominates and hides whether the squares underflowed.
 ---
+
+## 2026-11-14T18:52Z · T2-02 · resolve
+- Done: round 2. codex-r2 and codex2-r2 had no findings (static review; checks NOT_RUN in their read-only sandbox). claude-r2 passed with one low finding, claude-r2-1, which restates the round-1 SC_NEGATIVE point and accepts the earlier rebuttal. Rebutted with PRD 7 (numerator must be finite and supported; no clipping, no epsilon): without the rule, S1 = 0 and S4 = 5e-13 (within atol) would publish a VALID CPR of -1. The PRD gives no closed list of reason codes, and the story notes keep SC_NEGATIVE open for the real-data tolerance decision. No code change.
+- Commits: none for code; only the bookkeeping commit chore(ralph): resolve review findings for t2-02.
+- Checks: uv run pytest pipeline/tests/test_polarimetry_stokes.py -> 120 passed, exit 0; uv run mypy pipeline/src pipeline/tests -> no issues in 6 source files, exit 0; make check -> ruff check, ruff format --check, mypy (7 source files) pass, exit 0.
+- Docs used: none (no library interface was touched).
+- Learnings: a reviewer may restate an accepted rebuttal as a new low finding with resolution null. It still needs a resolution, and a rebuttal is the right action. `jq .` reproduces review files byte for byte, so a jq rewrite of only the resolution field leaves the rest untouched.
+---

@@ -90,7 +90,11 @@
       "claim": "SC_NEGATIVE is a reason code outside the PRD's named list. I accept the author's rebuttal because it is conservative, documented and tested.",
       "evidence": "It prevents a negative CPR from being published as VALID. The author flagged it for review when the real-data Stokes tolerance is decided.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect, and the reviewer accepts the round-1 rebuttal in the finding itself. PRD 7 Validity rules: \"Numerator and denominator must be finite and supported\" and no clipping or epsilon is allowed, so a negative SC accepted within the Stokes tolerance (S1 < S4 by at most atol + rtol*|S1|) cannot yield a VALID CPR and cannot be clipped to a valid zero. Without the rule, S1 = 0 and S4 = 5e-13 would publish a VALID CPR of -1. The PRD lists no closed set of reason codes; InvalidReason.SC_NEGATIVE is documented at polarimetry.py:125-127 and :787-788 and tested at test_polarimetry_stokes.py:332 and :340. The story notes already flag it for review with the open real-data Stokes tolerance (PRD 7: real-data tolerances come from the product). No code change."
+      }
     }
   ]
 }
