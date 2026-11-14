@@ -702,6 +702,15 @@ def test_a_malformed_fetch_metadata_is_a_clear_error(fetched: Path) -> None:
         pilot.record("pgda78", root=fetched, sources=sources_for())
 
 
+@pytest.mark.parametrize("content", [b"[]", b'{"files": [{}]}', b"not json"])
+def test_a_fetch_metadata_of_the_wrong_shape_is_a_clear_error(
+    fetched: Path, content: bytes
+) -> None:
+    (fetched / "data/raw/pgda78/fetch.json").write_bytes(content)
+    with pytest.raises(pilot.PilotError, match=re.escape("fetch pgda78")):
+        pilot.check("pgda78", root=fetched, sources=sources_for())
+
+
 # --- sources.json -------------------------------------------------------------------------------
 
 
