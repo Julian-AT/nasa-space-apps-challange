@@ -25,6 +25,7 @@ import {
   assertPortablePattern,
   assertSupported,
   checkModules,
+  conditionSource,
   dereference,
   generateModule,
   writeModules,
@@ -117,15 +118,31 @@ interface GeneratorCase {
   readonly value: Json;
 }
 
+interface ConditionCase {
+  readonly name: string;
+  readonly holds: boolean;
+  readonly value: JsonObject;
+}
+
 interface GeneratorGroup {
   readonly name: string;
   readonly schema: JsonObject;
   readonly cases: readonly GeneratorCase[];
+  // Verdicts of the `if` schema alone on objects, so that an absent `if` property is observable
+  // although every object requires all of its properties.
+  readonly conditionCases?: readonly ConditionCase[];
 }
 
 /** Synthetic schemas and documents whose verdicts the Python tests check with Draft 2020-12. */
 function readGeneratorCases(): GeneratorGroup[] {
   return JSON.parse(readFileSync(GENERATOR_CASES_FILE, 'utf8')) as GeneratorGroup[];
+}
+
+/** Evaluate a generated `if` condition, a JavaScript test over the parsed object `value`. */
+function compileCondition(source: string): (value: JsonObject) => unknown {
+  // The source is the generator's output for a committed fixture, never outside input.
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval
+  return new Function('value', `return ${source};`) as (value: JsonObject) => unknown;
 }
 
 /** Evaluate a generated zod expression, which is plain JavaScript over `z`. */
@@ -237,7 +254,11 @@ describe('if/then and not translation', () => {
   const groups = readGeneratorCases();
 
   it('reads the synthetic schemas', () => {
-    expect(groups.map((g) => g.name)).toEqual(['conditional', 'conditional-list']);
+    expect(groups.map((g) => g.name)).toEqual([
+      'conditional',
+      'conditional-two-keys',
+      'conditional-list',
+    ]);
     expect(groups.flatMap((g) => g.cases).length).toBeGreaterThanOrEqual(20);
   });
 
@@ -252,6 +273,41 @@ describe('if/then and not translation', () => {
         }
       },
     );
+  });
+
+  // Every object requires all of its properties, so a document without an `if` property is
+  // rejected before the refinement runs. These cases test the condition the refinement uses on
+  // objects directly: an absent property must make it false, as `required` does in Draft 2020-12.
+  const conditions = groups.flatMap((g) =>
+    g.conditionCases === undefined ? [] : [[g.name, g, g.conditionCases] as const],
+  );
+
+  it('has condition cases for every top-level if', () => {
+    expect(conditions.map(([name]) => name)).toEqual(['conditional', 'conditional-two-keys']);
+    expect(groups.filter((g) => g.schema['if'] !== undefined).map((g) => g.name)).toEqual(
+      conditions.map(([name]) => name),
+    );
+  });
+
+  describe.each(conditions)('%s condition', (_group, group, cases) => {
+    it('is the condition of the generated refinement', () => {
+      const source = conditionSource(group.schema['if']);
+      expect(zodExpression(group.schema)).toContain(`if (${source}) {`);
+    });
+
+    it.each(cases.map((c) => [c.name, c] as const))(
+      '%s gets its Draft 2020-12 verdict',
+      (_name, c) => {
+        expect(compileCondition(conditionSource(group.schema['if']))(c.value)).toBe(c.holds);
+      },
+    );
+  });
+
+  it('refuses an if condition assertSupported would refuse', () => {
+    expect(() => conditionSource({ properties: { status: { enum: ['DONE'] } } })).toThrow(
+      SchemaError,
+    );
+    expect(() => conditionSource({ required: ['status'] })).toThrow(SchemaError);
   });
 
   it('translates the conditional without the converter fallback z.any()', () => {

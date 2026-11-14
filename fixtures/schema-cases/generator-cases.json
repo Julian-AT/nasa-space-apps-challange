@@ -309,6 +309,262 @@
         "valid": false,
         "value": null
       }
+    ],
+    "conditionCases": [
+      {
+        "name": "done",
+        "holds": true,
+        "value": {
+          "status": "DONE"
+        }
+      },
+      {
+        "name": "done-with-the-other-properties",
+        "holds": true,
+        "value": {
+          "status": "DONE",
+          "label": null,
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "status-absent",
+        "holds": false,
+        "value": {}
+      },
+      {
+        "name": "status-absent-with-the-other-properties",
+        "holds": false,
+        "value": {
+          "label": null,
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "open",
+        "holds": false,
+        "value": {
+          "status": "OPEN"
+        }
+      },
+      {
+        "name": "status-null",
+        "holds": false,
+        "value": {
+          "status": null
+        }
+      },
+      {
+        "name": "status-lowercase",
+        "holds": false,
+        "value": {
+          "status": "done"
+        }
+      },
+      {
+        "name": "status-trailing-space",
+        "holds": false,
+        "value": {
+          "status": "DONE "
+        }
+      },
+      {
+        "name": "status-number",
+        "holds": false,
+        "value": {
+          "status": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "conditional-two-keys",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "ConditionalTwoKeys",
+      "description": "Synthetic: when status is DONE and kind is A, label must be a string.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "DONE",
+            "OPEN"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B"
+          ]
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "kind",
+        "label"
+      ],
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "status": {
+            "const": "DONE"
+          },
+          "kind": {
+            "const": "A"
+          }
+        },
+        "required": [
+          "status",
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "label": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "name": "done-a-label",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "kind": "A",
+          "label": "a"
+        }
+      },
+      {
+        "name": "done-a-label-null",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "kind": "A",
+          "label": null
+        }
+      },
+      {
+        "name": "done-b-label-null",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "kind": "B",
+          "label": null
+        }
+      },
+      {
+        "name": "open-a-label-null",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "kind": "A",
+          "label": null
+        }
+      },
+      {
+        "name": "open-b-label-null",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "kind": "B",
+          "label": null
+        }
+      },
+      {
+        "name": "kind-absent-label-null",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": null
+        }
+      },
+      {
+        "name": "status-absent-label-null",
+        "valid": false,
+        "value": {
+          "kind": "A",
+          "label": null
+        }
+      }
+    ],
+    "conditionCases": [
+      {
+        "name": "done-a",
+        "holds": true,
+        "value": {
+          "status": "DONE",
+          "kind": "A"
+        }
+      },
+      {
+        "name": "done-a-with-label-null",
+        "holds": true,
+        "value": {
+          "status": "DONE",
+          "kind": "A",
+          "label": null
+        }
+      },
+      {
+        "name": "kind-absent",
+        "holds": false,
+        "value": {
+          "status": "DONE"
+        }
+      },
+      {
+        "name": "status-absent",
+        "holds": false,
+        "value": {
+          "kind": "A"
+        }
+      },
+      {
+        "name": "both-absent",
+        "holds": false,
+        "value": {}
+      },
+      {
+        "name": "done-b",
+        "holds": false,
+        "value": {
+          "status": "DONE",
+          "kind": "B"
+        }
+      },
+      {
+        "name": "open-a",
+        "holds": false,
+        "value": {
+          "status": "OPEN",
+          "kind": "A"
+        }
+      },
+      {
+        "name": "kind-null",
+        "holds": false,
+        "value": {
+          "status": "DONE",
+          "kind": null
+        }
+      }
     ]
   },
   {

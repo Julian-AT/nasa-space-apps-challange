@@ -612,13 +612,26 @@ def generator_case_params() -> list[Any]:
     ]
 
 
+def condition_case_params() -> list[Any]:
+    return [
+        pytest.param(
+            group["schema"]["if"], case["value"], case["holds"], id=f"{group['name']}/{case['name']}"
+        )
+        for group in load_generator_cases()
+        for case in group.get("conditionCases", [])
+    ]
+
+
 def test_generator_cases_are_well_formed() -> None:
     groups = load_generator_cases()
     group_names = [group["name"] for group in groups]
     assert len(group_names) == len(set(group_names))
     assert not set(group_names) & {name.lower() for name in SCHEMA_FILES}
     for group in groups:
-        assert list(group) == ["name", "schema", "cases"]
+        assert list(group) in (
+            ["name", "schema", "cases"],
+            ["name", "schema", "cases", "conditionCases"],
+        )
         Draft202012Validator.check_schema(group["schema"])
         names = [case["name"] for case in group["cases"]]
         assert len(names) == len(set(names)), group["name"]
@@ -631,11 +644,41 @@ def test_generator_cases_are_well_formed() -> None:
     assert "else" not in conditional
 
 
+def test_every_top_level_condition_has_condition_cases_with_an_absent_property() -> None:
+    # Every object here requires all of its properties, so a document without an `if` property
+    # is rejected whatever the condition does. The condition cases test the `if` schema alone,
+    # on objects as the zod refinement sees them, so an absent property has an observable verdict.
+    groups = [group for group in load_generator_cases() if "if" in group["schema"]]
+    assert [group["name"] for group in groups] == ["conditional", "conditional-two-keys"]
+    for group in groups:
+        assert "conditionCases" in group, group["name"]
+        condition = group["schema"]["if"]
+        cases = group["conditionCases"]
+        names = [case["name"] for case in cases]
+        assert len(names) == len(set(names)), group["name"]
+        assert {case["holds"] for case in cases} == {True, False}, group["name"]
+        for case in cases:
+            assert list(case) == ["name", "holds", "value"]
+            assert re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", case["name"]), case["name"]
+            assert isinstance(case["value"], dict), case["name"]
+        for key in condition["required"]:
+            absent = [case for case in cases if key not in case["value"]]
+            assert absent, f"{group['name']}: no condition case without {key}"
+            assert all(case["holds"] is False for case in absent)
+
+
 @pytest.mark.parametrize(("schema", "value", "valid"), generator_case_params())
 def test_generator_cases_get_their_verdict_from_json_schema(
     schema: dict[str, Any], value: Any, valid: bool
 ) -> None:
     assert EcmaValidator(schema).is_valid(value) is valid
+
+
+@pytest.mark.parametrize(("condition", "value", "holds"), condition_case_params())
+def test_condition_cases_get_their_verdict_from_the_if_schema(
+    condition: dict[str, Any], value: dict[str, Any], holds: bool
+) -> None:
+    assert EcmaValidator(condition).is_valid(value) is holds
 
 
 # --- ProductRecord parity (PRD 8.12) ------------------------------------------------------------
