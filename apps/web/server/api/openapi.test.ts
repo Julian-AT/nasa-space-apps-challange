@@ -203,9 +203,9 @@ describe('the document info', () => {
   });
 
   it('has no numbers in its text', async () => {
-    const info = (await documentOf()).info as Json;
+    const info = (await documentOf()).info as Record<string, string | undefined>;
     for (const key of ['title', 'summary', 'description']) {
-      expect(String(info[key] ?? ''), key).not.toMatch(/\d/);
+      expect(info[key] ?? '', key).not.toMatch(/\d/);
     }
   });
 });

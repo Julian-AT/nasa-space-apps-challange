@@ -16,7 +16,7 @@
 // request, kept, and cached per deploy with a strong ETag of its bytes (./cache.ts).
 import { createRoute, type RouteHandler, z } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
-import type { Context, Handler } from 'hono';
+import { type Handler, Hono } from 'hono';
 
 import {
   cacheControl,
@@ -49,18 +49,25 @@ const PAGE_TITLE = 'Terraluna API reference';
 /** The relative document URL: OPENAPI_PATH next to DOCS_PATH, under the same base path. */
 const DOCUMENT_URL = OPENAPI_PATH.replace(/^\//, '');
 
-const scalar = Scalar({
-  url: DOCUMENT_URL,
-  pageTitle: PAGE_TITLE,
-  // Given a cdn, the integration loads its single-file build with one <script src> (no module
-  // chunks from the CDN at run time).
-  cdn: SCALAR_SCRIPT,
-  withDefaultFonts: false,
-  telemetry: false,
-  agent: { disabled: true },
-  mcp: { disabled: true },
-  showDeveloperTools: 'never',
-});
+/**
+ * A private app that only renders the page with the Scalar middleware, so the page never depends
+ * on the request that first asks for it. It is never mounted.
+ */
+const renderer = new Hono().get(
+  '/',
+  Scalar({
+    url: DOCUMENT_URL,
+    pageTitle: PAGE_TITLE,
+    // Given a cdn, the integration loads its single-file build with one <script src> (no module
+    // chunks from the CDN at run time).
+    cdn: SCALAR_SCRIPT,
+    withDefaultFonts: false,
+    telemetry: false,
+    agent: { disabled: true },
+    mcp: { disabled: true },
+    showDeveloperTools: 'never',
+  }),
+);
 
 export const docsRoute = createRoute({
   method: 'get',
@@ -88,10 +95,10 @@ export const docsRoute = createRoute({
 });
 
 /** The page as the Scalar integration renders it. */
-async function renderPage(c: Context): Promise<string> {
-  const response = await scalar(c, () => Promise.resolve());
-  if (!(response instanceof Response) || !response.ok) {
-    throw new Error('the Scalar integration rendered no page');
+async function renderPage(): Promise<string> {
+  const response = await renderer.request('/');
+  if (!response.ok) {
+    throw new Error(`the Scalar integration rendered no page (status ${String(response.status)})`);
   }
   return response.text();
 }
@@ -104,7 +111,7 @@ export function docsHandler(): RouteHandler<typeof docsRoute> {
   let served: { body: string; headers: Record<string, string> } | undefined;
   return async (c) => {
     if (served === undefined) {
-      const body = await renderPage(c);
+      const body = await renderPage();
       served = {
         body,
         headers: { 'Content-Type': 'text/html; charset=UTF-8', ...deployCacheHeaders(body) },
