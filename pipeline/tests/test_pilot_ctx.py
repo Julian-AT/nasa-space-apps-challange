@@ -196,6 +196,26 @@ def write_cog(path: Path) -> npt.NDArray[np.float32]:
     return array
 
 
+def write_small_cog(path: Path) -> bytes:
+    """A 32 x 32 COG of a few kB: smaller than one 8192-byte range block."""
+    array = np.full((32, 32), -2500.0, dtype=np.float32)
+    with rasterio.open(
+        path,
+        "w",
+        driver="COG",
+        width=32,
+        height=32,
+        count=1,
+        dtype="float32",
+        crs=MARS_EQC_WKT,
+        transform=from_origin(4_563_975.0, 1_082_444.0, 20.0, 20.0),
+        nodata=NODATA,
+        compress="deflate",
+    ) as dst:
+        dst.write(array, 1)
+    return path.read_bytes()
+
+
 def item(base: str, item_id: str, *, qa: bool = True) -> dict[str, Any]:
     folder = f"{base}/assets/{item_id}"
     assets: dict[str, Any] = {
@@ -396,8 +416,7 @@ class Stub:
             jezero_basis_url=f"{self.base}/docs/tutorials/mosaic_json/",
             arcadia_basis_url=f"{self.base}/Feature/348",
             page_limit=LIMIT,
-            range_block_bytes=8192,
-            **fields,
+            **{"range_block_bytes": 8192, **fields},
         )
 
 
@@ -593,6 +612,27 @@ def test_a_refused_connection_fails_naming_the_url(
     error = capsys.readouterr().err
     assert f"{base}/api/collections/{COLLECTION}" in error
     assert "could not connect" in error
+
+
+@pytest.mark.parametrize("case", ["block_larger_than_the_cog", "cog_smaller_than_a_block"])
+def test_a_range_read_that_would_take_the_whole_cog_fails_naming_the_url(
+    tmp_path: Path, stub: Stub, capsys: pytest.CaptureFixture[str], case: str
+) -> None:
+    fields: dict[str, Any] = {}
+    if case == "block_larger_than_the_cog":
+        fields["range_block_bytes"] = len(stub.state.cog)
+    else:
+        stub.state.cog = write_small_cog(tmp_path / "small_dtm.tif")
+        assert len(stub.state.cog) < 8192
+    root = tmp_path / "repo"
+    root.mkdir()
+    source = stub.source(**fields)
+    assert pilot.main(["fetch", "ctx"], root=root, sources={"ctx": source}, now=Clock()) == 1
+    error = capsys.readouterr().err
+    assert f"{stub.base}/assets/{FIRST_JEZERO}/{FIRST_JEZERO}_dtm.tif" in error
+    assert "whole" in error
+    assert not (root / "data/raw/ctx/fetch.json").exists()
+    assert not list((root / "data/raw/ctx").glob("*.ranges"))
 
 
 def test_a_failed_fetch_keeps_an_earlier_complete_fetch(
@@ -969,6 +1009,29 @@ def test_record_refuses_changed_raw_bytes(
     qa.write_text(QA_TEXT.replace("12.6913", "1.6913"))
     assert run("record", root, stub) == 1
     assert "does not match the size and sha256" in capsys.readouterr().err
+
+
+def test_record_refuses_window_ranges_that_hold_the_whole_cog(
+    recorded: tuple[Path, Stub], capsys: pytest.CaptureFixture[str]
+) -> None:
+    # A fetch.json whose window entry holds every byte of the COG is not a window read, even
+    # when its sizes and sha256 agree; record derives that from the stored ranges.
+    root, stub = recorded
+    before = (root / "outputs/pilot/ctx_dtm.json").read_bytes()
+    path = root / "data/raw/ctx/fetch.json"
+    fetched = fetch_json(root)
+    (entry,) = [e for e in fetched["files"] if e["role"] == "dtm_window"]
+    cog = stub.state.cog
+    (root / "data/raw/ctx" / entry["file_name"]).write_bytes(cog)
+    entry["ranges"] = [[0, len(cog) - 1]]
+    entry["bytes_received"] = len(cog)
+    entry["sha256"] = hashlib.sha256(cog).hexdigest()
+    path.write_text(json.dumps(fetched))
+    assert run("record", root, stub) == 1
+    error = capsys.readouterr().err
+    assert "whole" in error
+    assert "run: python -m terraluna_pipeline.pilot fetch ctx" in error
+    assert (root / "outputs/pilot/ctx_dtm.json").read_bytes() == before
 
 
 def test_record_refuses_a_page_chain_that_does_not_link_up(

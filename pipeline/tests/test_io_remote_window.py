@@ -351,6 +351,38 @@ def test_max_bytes_stops_the_read_before_the_request_that_would_reach_it(
     assert len(remote.state.requests) == 1
 
 
+@pytest.mark.parametrize("extra", [0, 1, 50_000])
+def test_a_first_request_that_returns_the_whole_file_is_refused(
+    remote: Remote, extra: int
+) -> None:
+    # A file no larger than one block arrives whole with the first request: not a window read.
+    size = remote.path.stat().st_size
+    with pytest.raises(RangeReadError, match="whole") as info:
+        read_remote_geotiff_window(remote.url, lambda w, h: WINDOW, block_bytes=size + extra)
+    assert remote.url in str(info.value)
+    assert f"{size}-byte" in str(info.value)
+    assert len(remote.state.requests) == 1
+
+
+def test_a_request_that_would_complete_the_file_is_not_sent(remote: Remote) -> None:
+    # Two blocks: the header is in the first, the bottom-right tile in the second, so reading
+    # that tile would hold every byte of the file.
+    size = remote.path.stat().st_size
+    half = -(-size // 2)
+    corner = Window(SIZE - 64, SIZE - 64, 64, 64)
+    with pytest.raises(RangeReadError, match="whole") as info:
+        read_remote_geotiff_window(remote.url, lambda w, h: corner, block_bytes=half)
+    assert remote.url in str(info.value)
+    assert len(remote.state.requests) == 1
+    assert remote.state.served == half < size
+
+
+def test_a_window_read_never_holds_the_whole_file(remote: Remote) -> None:
+    result = read_window(remote)
+    assert not result.ranges.covers_whole_file
+    assert len(result.ranges.data) < result.ranges.size
+
+
 def test_a_signed_url_is_refused_before_any_request(remote: Remote) -> None:
     with pytest.raises(ValueError, match="signature"):
         read_remote_geotiff_window(
@@ -402,6 +434,23 @@ def test_byte_ranges_read_within_a_range_and_at_the_end() -> None:
     assert held.read(100, 5) == b""
     assert held.read(150, 1) == b""
     assert held.read(10, 0) == b""
+
+
+@pytest.mark.parametrize(
+    ("ranges", "whole"),
+    [
+        (((0, 99),), True),
+        (((0, 98),), False),
+        (((1, 99),), False),
+        (((0, 49), (51, 99)), False),
+        (((40, 59),), False),
+    ],
+)
+def test_byte_ranges_state_whether_they_hold_the_whole_file(
+    ranges: tuple[tuple[int, int], ...], whole: bool
+) -> None:
+    held = make(ranges, bytes(sum(last - first + 1 for first, last in ranges)))
+    assert held.covers_whole_file is whole
 
 
 def test_byte_ranges_clip_to_the_file_size() -> None:
