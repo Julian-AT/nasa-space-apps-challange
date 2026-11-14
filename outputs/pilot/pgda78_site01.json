@@ -1,0 +1,726 @@
+{
+  "dem_valid_fraction": 1.0,
+  "description": "PGDA product 78 Site01 as fetched and decoded by the T1 pilot (PRD 5 pilot step 2). Observations only: the shipping mode and the G0 status are a human checkpoint (PRD 23.6) and are not recorded here.",
+  "documents": [
+    {
+      "bytes_received": 1829,
+      "content_type": "application/octet-stream",
+      "file_name": "README",
+      "http_status": 200,
+      "last_modified": "Tue, 07 Dec 2021 14:28:07 GMT",
+      "local_path": "data/raw/pgda78/README",
+      "retrieved_at": "2026-11-14T19:39:28Z",
+      "role": "readme",
+      "sha256": "e985a2337c9de1cd665b0ddad8b7f1fac88d65c96d1e47d1b975a91c8e53e7bd",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/README"
+    },
+    {
+      "bytes_received": 46224,
+      "content_type": "text/html; charset=UTF-8",
+      "file_name": "LOLA_5mpp_index.html",
+      "http_status": 200,
+      "last_modified": "Fri, 03 Dec 2021 22:13:15 GMT",
+      "local_path": "data/raw/pgda78/LOLA_5mpp_index.html",
+      "retrieved_at": "2026-11-14T19:39:29Z",
+      "role": "data_index",
+      "sha256": "81145b24487b5d179b8f645bf451042965cc2f88186ed7be644a9379de0a2ead",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/"
+    },
+    {
+      "bytes_received": 317341,
+      "content_type": "text/html; charset=utf-8",
+      "file_name": "products_78.html",
+      "http_status": 200,
+      "last_modified": null,
+      "local_path": "data/raw/pgda78/products_78.html",
+      "retrieved_at": "2026-11-14T19:39:30Z",
+      "role": "product_page",
+      "sha256": "46d07b37c38c30013e0c71bd61b24e22a9a44d657654328974552e671f376416",
+      "url": "https://pgda.gsfc.nasa.gov/products/78"
+    }
+  ],
+  "effective_support": {
+    "count_file": "Site01_final_adj_5mpp_ldec.tif",
+    "count_histogram": {
+      "0": 9267796,
+      "1": 922315,
+      "2": 48129,
+      "3": 1696,
+      "4": 63,
+      "5": 1
+    },
+    "count_invalid_fraction": 0.0,
+    "count_invalid_pixels": 0,
+    "definition": "over pixels valid in the height map: observed = count map >= 1 LOLA return, interpolated = count 0 (README: 'with interpolation filling empty pix'), count_invalid = the count map pixel is invalid by quality.validity_mask",
+    "dem_valid_pixels": 10240000,
+    "grid_matches_height": true,
+    "height_file": "Site01_final_adj_5mpp_surf.tif",
+    "interpolated_fraction": 0.905058203125,
+    "interpolated_pixels": 9267796,
+    "observed_fraction": 0.094941796875,
+    "observed_pixels": 972204
+  },
+  "field_notes": {
+    "acquisition_time": "unknown for the GeoTIFFs: the LOLA acquisition times are in the point cloud (.xyzi RDR IDs), which the pilot does not read; null for the ROI archive",
+    "crs_and_frame": "the CRS WKT as read from each file; the frame is quoted from the README (frame_stated_by_provider), because the files name none",
+    "effective_resolution": "unknown: neither the files nor the README state one; the count map gives the effective support instead (effective_support)",
+    "frequency_or_wavelength, transmit_receive_convention, calibration_type, incidence_source": "null: these describe radar observations; PGDA78 is terrain",
+    "nodata": "as declared by the file; 'NaN' is the JSON spelling of a NaN nodata value",
+    "roi_archive": "native_grid, effective_resolution and qa_definition are null for vector outlines",
+    "version": "unknown: the README and the product 78 page state no version"
+  },
+  "files": [
+    {
+      "area_or_point": "Area",
+      "band_count": 1,
+      "bytes": 40980810,
+      "content_type": "image/tiff",
+      "crs_datum": "unknown",
+      "crs_linear_units": "metre",
+      "crs_spheroid": {
+        "inverse_flattening": 0.0,
+        "name": "unnamed",
+        "semi_major_axis_m": 1737400.0
+      },
+      "crs_wkt": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+      "dtype": "float32",
+      "etag": "W/\"271514a-17285c7fa58\"",
+      "extent_m": {
+        "bottom": -20000.0,
+        "left": -19000.0,
+        "right": -3000.0,
+        "top": -4000.0
+      },
+      "file_name": "Site01_final_adj_5mpp_surf.tif",
+      "final_url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_surf.tif",
+      "frame_named_in_file": null,
+      "grid_matches_height": true,
+      "height": 3200,
+      "http_status": 200,
+      "last_modified": "Fri, 05 Jun 2020 18:39:35 GMT",
+      "listed_by": [
+        "data_index",
+        "product_page"
+      ],
+      "local_path": "data/raw/pgda78/Site01_final_adj_5mpp_surf.tif",
+      "nodata": "NaN",
+      "offset": 0.0,
+      "pixel_size_m": {
+        "x": 5.0,
+        "y": 5.0
+      },
+      "product_id": "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif",
+      "readme_description": "surface height Z (meters) with interpolation filling empty pix",
+      "retrieved_at": "2026-11-14T19:40:41Z",
+      "role": "height",
+      "scale": 1.0,
+      "sha256": "3ba7b97cb00a2bcf21189c3aeb535f65afc21207154ab9f0d43c5bdc1f7e747e",
+      "transform": [
+        5.0,
+        0.0,
+        -19000.0,
+        0.0,
+        -5.0,
+        -4000.0
+      ],
+      "units": "meters",
+      "units_in_file": null,
+      "units_source": "README: '*_surf.tif : surface height Z (meters) with interpolation filling empty pix'",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_surf.tif",
+      "valid": {
+        "invalid_by_reason": {
+          "isis_saturation": 0,
+          "nodata": 0,
+          "non_finite": 0,
+          "outside_support": 0
+        },
+        "mask": "quality.validity_mask with the nodata value the file declares",
+        "total_pixels": 10240000,
+        "valid_fraction": 1.0,
+        "valid_pixels": 10240000
+      },
+      "valid_max": 1959.4962158203125,
+      "valid_min": -523.1834106445312,
+      "width": 3200
+    },
+    {
+      "area_or_point": "Area",
+      "band_count": 1,
+      "bytes": 40980744,
+      "content_type": "image/tiff",
+      "crs_datum": "unknown",
+      "crs_linear_units": "metre",
+      "crs_spheroid": {
+        "inverse_flattening": 0.0,
+        "name": "unnamed",
+        "semi_major_axis_m": 1737400.0
+      },
+      "crs_wkt": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+      "dtype": "float32",
+      "etag": "W/\"2715108-17285c811c8\"",
+      "extent_m": {
+        "bottom": -20000.0,
+        "left": -19000.0,
+        "right": -3000.0,
+        "top": -4000.0
+      },
+      "file_name": "Site01_final_adj_5mpp_ldec.tif",
+      "final_url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_ldec.tif",
+      "frame_named_in_file": null,
+      "grid_matches_height": true,
+      "height": 3200,
+      "http_status": 200,
+      "last_modified": "Fri, 05 Jun 2020 18:39:41 GMT",
+      "listed_by": [
+        "data_index",
+        "product_page"
+      ],
+      "local_path": "data/raw/pgda78/Site01_final_adj_5mpp_ldec.tif",
+      "nodata": "NaN",
+      "offset": 0.0,
+      "pixel_size_m": {
+        "x": 5.0,
+        "y": 5.0
+      },
+      "product_id": "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+      "readme_description": "LDEC map, number of LOLA returns in each pixel",
+      "retrieved_at": "2026-11-14T19:41:55Z",
+      "role": "lola_return_count",
+      "scale": 1.0,
+      "sha256": "16d6ed21020ad48fa71d94e7437492acf5bf04118f52bcd292f57f22ead4cd23",
+      "transform": [
+        5.0,
+        0.0,
+        -19000.0,
+        0.0,
+        -5.0,
+        -4000.0
+      ],
+      "units": "number of LOLA returns in each pixel",
+      "units_in_file": null,
+      "units_source": "README: '*_ldec.tif : LDEC map, number of LOLA returns in each pixel'",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_ldec.tif",
+      "valid": {
+        "invalid_by_reason": {
+          "isis_saturation": 0,
+          "nodata": 0,
+          "non_finite": 0,
+          "outside_support": 0
+        },
+        "mask": "quality.validity_mask with the nodata value the file declares",
+        "total_pixels": 10240000,
+        "valid_fraction": 1.0,
+        "valid_pixels": 10240000
+      },
+      "valid_max": 5.0,
+      "valid_min": 0.0,
+      "width": 3200
+    },
+    {
+      "area_or_point": "Area",
+      "band_count": 1,
+      "bytes": 40980776,
+      "content_type": "image/tiff",
+      "crs_datum": "unknown",
+      "crs_linear_units": "metre",
+      "crs_spheroid": {
+        "inverse_flattening": 0.0,
+        "name": "unnamed",
+        "semi_major_axis_m": 1737400.0
+      },
+      "crs_wkt": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+      "dtype": "float32",
+      "etag": "W/\"2715128-17295f7cea8\"",
+      "extent_m": {
+        "bottom": -20000.0,
+        "left": -19000.0,
+        "right": -3000.0,
+        "top": -4000.0
+      },
+      "file_name": "Site01_final_adj_5mpp_slp.tif",
+      "final_url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_slp.tif",
+      "frame_named_in_file": null,
+      "grid_matches_height": true,
+      "height": 3200,
+      "http_status": 200,
+      "last_modified": "Mon, 08 Jun 2020 22:05:45 GMT",
+      "listed_by": [
+        "data_index",
+        "product_page"
+      ],
+      "local_path": "data/raw/pgda78/Site01_final_adj_5mpp_slp.tif",
+      "nodata": "NaN",
+      "offset": 0.0,
+      "pixel_size_m": {
+        "x": 5.0,
+        "y": 5.0
+      },
+      "product_id": "PGDA78/Site01/Site01_final_adj_5mpp_slp.tif",
+      "readme_description": "Slope (degrees)",
+      "retrieved_at": "2026-11-14T19:42:45Z",
+      "role": "slope",
+      "scale": 1.0,
+      "sha256": "3a90035a4946b4a04b7332c52f0b2b1cff71648bd8c105e14d8a7e15c6bcfe8e",
+      "transform": [
+        5.0,
+        0.0,
+        -19000.0,
+        0.0,
+        -5.0,
+        -4000.0
+      ],
+      "units": "degrees",
+      "units_in_file": null,
+      "units_source": "README: '*_slp.tif : Slope (degrees)'",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_slp.tif",
+      "valid": {
+        "invalid_by_reason": {
+          "isis_saturation": 0,
+          "nodata": 0,
+          "non_finite": 0,
+          "outside_support": 0
+        },
+        "mask": "quality.validity_mask with the nodata value the file declares",
+        "total_pixels": 10240000,
+        "valid_fraction": 1.0,
+        "valid_pixels": 10240000
+      },
+      "valid_max": 64.58820343017578,
+      "valid_min": 0.0,
+      "width": 3200
+    },
+    {
+      "area_or_point": "Area",
+      "band_count": 1,
+      "bytes": 40980810,
+      "content_type": "image/tiff",
+      "crs_datum": "unknown",
+      "crs_linear_units": "metre",
+      "crs_spheroid": {
+        "inverse_flattening": 0.0,
+        "name": "unnamed",
+        "semi_major_axis_m": 1737400.0
+      },
+      "crs_wkt": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+      "dtype": "float32",
+      "etag": "W/\"271514a-17285c82d20\"",
+      "extent_m": {
+        "bottom": -20000.0,
+        "left": -19000.0,
+        "right": -3000.0,
+        "top": -4000.0
+      },
+      "file_name": "Site01_final_adj_5mpp_toterr.tif",
+      "final_url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_toterr.tif",
+      "frame_named_in_file": null,
+      "grid_matches_height": true,
+      "height": 3200,
+      "http_status": 200,
+      "last_modified": "Fri, 05 Jun 2020 18:39:48 GMT",
+      "listed_by": [
+        "data_index",
+        "product_page"
+      ],
+      "local_path": "data/raw/pgda78/Site01_final_adj_5mpp_toterr.tif",
+      "nodata": "NaN",
+      "offset": 0.0,
+      "pixel_size_m": {
+        "x": 5.0,
+        "y": 5.0
+      },
+      "product_id": "PGDA78/Site01/Site01_final_adj_5mpp_toterr.tif",
+      "readme_description": "Total Z uncertainty in meters (formally, the RMS error)",
+      "retrieved_at": "2026-11-14T19:43:50Z",
+      "role": "height_rms_error",
+      "scale": 1.0,
+      "sha256": "cf2cf52f52d2aa51e60d058010d10b0ebfb1d3e920f5a2b9a46eb6c51054ab1c",
+      "transform": [
+        5.0,
+        0.0,
+        -19000.0,
+        0.0,
+        -5.0,
+        -4000.0
+      ],
+      "units": "meters",
+      "units_in_file": null,
+      "units_source": "README: '*_toterr.tif : Total Z uncertainty in meters (formally, the RMS error)'",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_toterr.tif",
+      "valid": {
+        "invalid_by_reason": {
+          "isis_saturation": 0,
+          "nodata": 0,
+          "non_finite": 0,
+          "outside_support": 0
+        },
+        "mask": "quality.validity_mask with the nodata value the file declares",
+        "total_pixels": 10240000,
+        "valid_fraction": 1.0,
+        "valid_pixels": 10240000
+      },
+      "valid_max": 5.582818508148193,
+      "valid_min": 0.061578184366226196,
+      "width": 3200
+    },
+    {
+      "area_or_point": "Area",
+      "band_count": 1,
+      "bytes": 40980810,
+      "content_type": "image/tiff",
+      "crs_datum": "unknown",
+      "crs_linear_units": "metre",
+      "crs_spheroid": {
+        "inverse_flattening": 0.0,
+        "name": "unnamed",
+        "semi_major_axis_m": 1737400.0
+      },
+      "crs_wkt": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+      "dtype": "float32",
+      "etag": "W/\"271514a-17285c84878\"",
+      "extent_m": {
+        "bottom": -20000.0,
+        "left": -19000.0,
+        "right": -3000.0,
+        "top": -4000.0
+      },
+      "file_name": "Site01_final_adj_5mpp_slperr.tif",
+      "final_url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_slperr.tif",
+      "frame_named_in_file": null,
+      "grid_matches_height": true,
+      "height": 3200,
+      "http_status": 200,
+      "last_modified": "Fri, 05 Jun 2020 18:39:55 GMT",
+      "listed_by": [
+        "data_index",
+        "product_page"
+      ],
+      "local_path": "data/raw/pgda78/Site01_final_adj_5mpp_slperr.tif",
+      "nodata": "NaN",
+      "offset": 0.0,
+      "pixel_size_m": {
+        "x": 5.0,
+        "y": 5.0
+      },
+      "product_id": "PGDA78/Site01/Site01_final_adj_5mpp_slperr.tif",
+      "readme_description": "Slope uncertainty in degrees (formally, the RMS error)",
+      "retrieved_at": "2026-11-14T19:44:50Z",
+      "role": "slope_rms_error",
+      "scale": 1.0,
+      "sha256": "52bc3b239f61605e6bb98bab6d6b17acd22389c59e57336862157f2fbd643a33",
+      "transform": [
+        5.0,
+        0.0,
+        -19000.0,
+        0.0,
+        -5.0,
+        -4000.0
+      ],
+      "units": "degrees",
+      "units_in_file": null,
+      "units_source": "README: '*_slperr.tif : Slope uncertainty in degrees (formally, the RMS error)'",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj_5mpp_slperr.tif",
+      "valid": {
+        "invalid_by_reason": {
+          "isis_saturation": 0,
+          "nodata": 0,
+          "non_finite": 0,
+          "outside_support": 0
+        },
+        "mask": "quality.validity_mask with the nodata value the file declares",
+        "total_pixels": 10240000,
+        "valid_fraction": 1.0,
+        "valid_pixels": 10240000
+      },
+      "valid_max": 21.51097869873047,
+      "valid_min": 0.6137070655822754,
+      "width": 3200
+    }
+  ],
+  "frame_stated_by_provider": {
+    "note": "the GeoTIFFs name no frame; see files[].frame_named_in_file",
+    "source": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/README",
+    "text": "MOON_ME reference frame of ephemeris DE421"
+  },
+  "listed_not_fetched": [
+    {
+      "file_name": "Site01_final_adj.xyzi",
+      "listed_by": [
+        "data_index",
+        "product_page"
+      ],
+      "reason": "not needed for the pilot record (PRD 5 pilot step 2)",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_final_adj.xyzi"
+    }
+  ],
+  "preview": {
+    "bytes": 80833,
+    "grey_scale": {
+      "black_m": -523.1834106445312,
+      "levels": 254,
+      "white_m": 1959.4962158203125
+    },
+    "height": 640,
+    "invalid_colour_rgb": [
+      0,
+      0,
+      160
+    ],
+    "path": "outputs/pilot/pgda78_site01_preview.png",
+    "roi_outline_colour_rgb": [
+      255,
+      64,
+      0
+    ],
+    "roi_outlines": true,
+    "sampling": "every 5th row and column of the decoded height array, from row 0 and column 0; no averaging or resampling",
+    "sha256": "14fbda66fbc3f9457d7131dccc2831e168e41ac524d8791fa46acbe8757e1e74",
+    "source_file": "Site01_final_adj_5mpp_surf.tif",
+    "step": 5,
+    "width": 640
+  },
+  "product": "PGDA78/Site01",
+  "record": "pgda78_site01",
+  "retrieval": {
+    "command": "python -m terraluna_pipeline.pilot fetch pgda78",
+    "fetch_metadata": "data/raw/pgda78/fetch.json",
+    "first_retrieved_at": "2026-11-14T19:39:28Z",
+    "last_retrieved_at": "2026-11-14T19:44:51Z"
+  },
+  "roi": {
+    "archive": {
+      "bytes": 2934,
+      "file_name": "Site01_ROIs.tgz",
+      "local_path": "data/raw/pgda78/Site01_ROIs.tgz",
+      "readme_description": "archive containing shapefiles (for GIS)",
+      "retrieved_at": "2026-11-14T19:44:51Z",
+      "sha256": "40b961417a344ce0274aecbab522e171a22f658507d82e8fb4d7bc97526ffc4f",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/Site01/Site01_ROIs.tgz"
+    },
+    "member_note": "read in memory; nothing is extracted and links are not followed",
+    "members": [
+      {
+        "link_target": null,
+        "name": "Site01_ROIs.dbf",
+        "size": 441,
+        "type": "file"
+      },
+      {
+        "link_target": "Site01_final_adj_5mpp_01_regionProps_avgillGT070.gmt",
+        "name": "Site01_ROIs.gmt",
+        "size": 0,
+        "type": "symlink"
+      },
+      {
+        "link_target": null,
+        "name": "Site01_ROIs.prj",
+        "size": 352,
+        "type": "file"
+      },
+      {
+        "link_target": null,
+        "name": "Site01_ROIs.shp",
+        "size": 10204,
+        "type": "file"
+      },
+      {
+        "link_target": null,
+        "name": "Site01_ROIs.shx",
+        "size": 156,
+        "type": "file"
+      }
+    ],
+    "outlines_drawn": true,
+    "outlines_not_drawn_reason": null,
+    "reason": null,
+    "shapefiles": [
+      {
+        "bbox_m": [
+          -11657.5,
+          -12637.5,
+          -10167.5,
+          -11492.5
+        ],
+        "components": [
+          ".dbf",
+          ".prj",
+          ".shp",
+          ".shx"
+        ],
+        "crs_comparison": "the .prj and the height map WKT texts differ in wording but both resolve to the same PROJ parameters (+proj=stere +lat_0=-90 +lat_ts=-90 +lon_0=0 +x_0=0 +y_0=0 +R=1737400 +units=m +no_defs=True)",
+        "crs_matches_height": true,
+        "fields": [
+          "X",
+          "Y"
+        ],
+        "inside_height_extent": true,
+        "name": "Site01_ROIs",
+        "prj_wkt": "PROJCS[\"unknown\",GEOGCS[\"GCS_unknown\",DATUM[\"D_unknown\",SPHEROID[\"unknown\",1737400.0,0.0]],PRIMEM[\"Reference meridian\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Stereographic_South_Pole\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",0.0],PARAMETER[\"Standard_Parallel_1\",-90.0],UNIT[\"Meter\",1.0]]",
+        "shape_count": 7,
+        "shape_type": "POLYGON",
+        "shapes": [
+          {
+            "bbox_m": [
+              -11657.5,
+              -12517.5,
+              -11522.5,
+              -12407.5
+            ],
+            "index": 0,
+            "parts": 1,
+            "points": 74,
+            "record": {
+              "X": -11582.5,
+              "Y": -12462.5
+            },
+            "shape_type": "POLYGON"
+          },
+          {
+            "bbox_m": [
+              -11537.5,
+              -12637.5,
+              -11447.5,
+              -12477.5
+            ],
+            "index": 1,
+            "parts": 1,
+            "points": 81,
+            "record": {
+              "X": -11487.5,
+              "Y": -12557.5
+            },
+            "shape_type": "POLYGON"
+          },
+          {
+            "bbox_m": [
+              -11392.5,
+              -12542.5,
+              -11297.5,
+              -12467.5
+            ],
+            "index": 2,
+            "parts": 1,
+            "points": 54,
+            "record": {
+              "X": -11352.5,
+              "Y": -12502.5
+            },
+            "shape_type": "POLYGON"
+          },
+          {
+            "bbox_m": [
+              -11372.5,
+              -12267.5,
+              -11212.5,
+              -12052.5
+            ],
+            "index": 3,
+            "parts": 1,
+            "points": 111,
+            "record": {
+              "X": -11287.5,
+              "Y": -12167.5
+            },
+            "shape_type": "POLYGON"
+          },
+          {
+            "bbox_m": [
+              -11177.5,
+              -12052.5,
+              -11002.5,
+              -11857.5
+            ],
+            "index": 4,
+            "parts": 1,
+            "points": 118,
+            "record": {
+              "X": -11102.5,
+              "Y": -11942.5
+            },
+            "shape_type": "POLYGON"
+          },
+          {
+            "bbox_m": [
+              -10887.5,
+              -11787.5,
+              -10727.5,
+              -11682.5
+            ],
+            "index": 5,
+            "parts": 1,
+            "points": 87,
+            "record": {
+              "X": -10802.5,
+              "Y": -11737.5
+            },
+            "shape_type": "POLYGON"
+          },
+          {
+            "bbox_m": [
+              -10277.5,
+              -11607.5,
+              -10167.5,
+              -11492.5
+            ],
+            "index": 6,
+            "parts": 1,
+            "points": 82,
+            "record": {
+              "X": -10227.5,
+              "Y": -11552.5
+            },
+            "shape_type": "POLYGON"
+          }
+        ]
+      }
+    ],
+    "status": "read"
+  },
+  "site": {
+    "id": "Site01",
+    "name": "Connecting ridge",
+    "name_source": "https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/README"
+  },
+  "source": "pgda78",
+  "subfolder_files_not_fetched": {
+    "count": 100,
+    "folders": [
+      "Clones/"
+    ]
+  },
+  "tool_versions": {
+    "gdal": "3.12.2",
+    "numpy": "2.5.4",
+    "pillow": "13.0.0",
+    "pydantic": "2.14.3",
+    "pyshp": "3.1.8",
+    "python": "3.12.13",
+    "rasterio": "1.5.2",
+    "terraluna-pipeline": "0.1.0"
+  },
+  "verification": {
+    "PGDA78/Site01/Site01_ROIs.tgz": {
+      "basis": "downloaded and every shapefile read; outlines drawn on the preview",
+      "status": "PARTIAL"
+    },
+    "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif": {
+      "basis": "downloaded, decoded and masked with quality.validity_mask; not plotted, so the PRD 5 entry rule is not complete",
+      "status": "PARTIAL"
+    },
+    "PGDA78/Site01/Site01_final_adj_5mpp_slp.tif": {
+      "basis": "downloaded, decoded and masked with quality.validity_mask; not plotted, so the PRD 5 entry rule is not complete",
+      "status": "PARTIAL"
+    },
+    "PGDA78/Site01/Site01_final_adj_5mpp_slperr.tif": {
+      "basis": "downloaded, decoded and masked with quality.validity_mask; not plotted, so the PRD 5 entry rule is not complete",
+      "status": "PARTIAL"
+    },
+    "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif": {
+      "basis": "downloaded, decoded, masked with quality.validity_mask and plotted in the preview PNG, as the PRD 5 entry rule requires",
+      "status": "VERIFIED"
+    },
+    "PGDA78/Site01/Site01_final_adj_5mpp_toterr.tif": {
+      "basis": "downloaded, decoded and masked with quality.validity_mask; not plotted, so the PRD 5 entry rule is not complete",
+      "status": "PARTIAL"
+    }
+  }
+}
