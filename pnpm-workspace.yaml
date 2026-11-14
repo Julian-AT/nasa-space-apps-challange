@@ -1,0 +1,7 @@
+# pnpm workspace (PRD 8.2, 8.3). Project-level pnpm settings live here, not in .npmrc.
+packages:
+  - packages/*
+  - apps/*
+
+# PRD 8.2 pins exact versions; `pnpm add` writes them without a range.
+saveExact: true

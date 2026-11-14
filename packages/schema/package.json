@@ -1,0 +1,30 @@
+{
+  "name": "@terraluna/schema",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Release bundle contracts: JSON Schema generated from the Python records and zod generated from that JSON Schema (PRD 8.3, 8.4, D23).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./json/*.schema.json": "./json/*.schema.json"
+  },
+  "scripts": {
+    "generate": "node scripts/generate-zod.ts write json src/generated",
+    "generate-check": "node scripts/generate-zod.ts check json src/generated",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "eslint": "9.39.5",
+    "json-schema-to-zod": "2.8.1",
+    "prettier": "3.10.1",
+    "typescript": "6.0.3",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  }
+}
