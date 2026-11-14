@@ -20,7 +20,12 @@ import { ALL_GATES_NOT_RUN, gate, manifestFor, toBytes, WEB_DIR } from './helper
 import { classesOf, elements, isClientModule, type MarkupElement, only, textOf } from './markup.ts';
 import { compile } from './tailwind.ts';
 
-const state = vi.hoisted(() => ({ pathname: '/' as string | null, bundle: null as unknown }));
+interface TestState {
+  pathname: string | null;
+  bundle: Bundle | null;
+}
+
+const state: TestState = vi.hoisted((): TestState => ({ pathname: '/', bundle: null }));
 
 vi.mock('next/navigation', () => ({ usePathname: () => state.pathname }));
 
@@ -177,7 +182,9 @@ describe('skip link', () => {
       const names = classes.filter((name) => rule.selector.startsWith(`.${name.replace(/:/g, '\\:')}`));
       if (names.length === 0) return;
       const target = rule.selector.endsWith(':focus') ? focused : rest;
-      rule.walkDecls((decl) => target.set(decl.prop, decl.value));
+      rule.walkDecls((decl) => {
+        target.set(decl.prop, decl.value);
+      });
     });
     expect(rest.get('clip-path')).toBe('inset(50%)');
     expect(rest.get('position')).toBe('absolute');
