@@ -66,3 +66,4 @@ Decisions the PRD reserves for people (PRD 23.6). They were resolved by the team
 | ORC-02 | T15-05 unknown-id status | Accepted: 404 where the manifest rules an id out; 501 where only a schema-less file could resolve it, until t15b-api. |
 | ORC-03 | T7-03 page check and navigation | Accepted: the page check is narrowed to <main>, and site-header.tsx is the single client component, for aria-current. |
 | LIC-ALL | Licences in general | Team, 2026-11-14: a private, non-commercial hackathon project. Accept every licence default, and the orchestrator may download all data. |
+| GH-01 | GitHub Actions cannot start jobs on the private repository: an account billing or spending limit blocks them. | Team, 2026-11-14: ignore GitHub CI until the repository is made public at the end, before submission. Until then the local gates and the `make` targets run on ralph/integration before every merge are the quality gate. Draft PR #1 stays open, and its failed run is expected. |
