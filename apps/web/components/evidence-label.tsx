@@ -5,10 +5,9 @@
 // The label is visible text and its meaning is the badge's accessible description, so neither
 // depends on colour. The meaning also stays in the reading order (visually hidden unless shown),
 // because screen readers rarely announce a description on non-interactive text. Each label also
-// has its own edge and fill, so a greyscale screenshot still
-// tells them apart: Observed is filled with a solid edge, Derived has a solid edge, Predicted a
-// dashed one, Assumed a dotted one, and Unavailable a light fill with a double edge. None is red,
-// which is reserved for the mock banner.
+// has its own edge and fill, so a greyscale screenshot still tells them apart: Observed is filled
+// with a solid edge, Derived has a solid edge, Predicted a dashed one, Assumed a dotted one, and
+// Unavailable a light fill with a double edge. None is red, which is reserved for the mock banner.
 import { useId } from 'react';
 
 import { Badge } from '@/components/ui/badge';
