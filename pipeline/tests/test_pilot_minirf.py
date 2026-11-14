@@ -658,6 +658,14 @@ def test_record_writes_the_mosaic_record_and_two_product_records(fetched: Path) 
     assert "2379.99968158 <GHz>" in str(image.frequency_or_wavelength)
     assert image.transmit_receive_convention == "unknown"
     assert "not recoverable" in str(image.incidence_source)
+    assert str(image.crs_and_frame).endswith(
+        "the data set catalog states 'The mosaics are produced from Level 1 products which are "
+        "oriented in reference to the Moon Principle Axis (PA) coordinate system, as realized "
+        "using NASA's SPICE products (Frames Kernel).'"
+    )
+    assert str(image.frequency_or_wavelength).endswith(
+        "the instrument catalog states 'Mini-RF operated in S-band (2.38 GHz)'"
+    )
 
 
 def test_record_is_reproducible_and_check_matches(fetched: Path) -> None:
@@ -850,11 +858,12 @@ def test_handedness_look_direction_and_incidence_are_stated(fetched: Path) -> No
     look = record["look_direction"]
     assert "combined East and West-looking" in look["label_text"]
     assert look["mixed"] is True
+    assert look["single_look_mosaics_covering_site01"] == [f"{CPR_EAST}.lbl"]
     incidence = record["incidence"]
     assert "per-pixel incidence is not recoverable from the mosaic" in incidence["statement"]
     frequency = record["frequency"]
     assert frequency["label_raw"] == "2379.99968158 <GHz>"
-    assert "S-band (2.38 GHz)" in frequency["instrument_catalog_text"]
+    assert frequency["instrument_catalog_text"] == "Mini-RF operated in S-band (2.38 GHz)"
 
 
 # --- Stokes observation (AC5) -------------------------------------------------------------------
