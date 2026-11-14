@@ -221,7 +221,7 @@ describe('assertSupported', () => {
     ['a non-portable pattern', { type: 'string', pattern: '^\\d+$' }],
   ])('refuses %s', (_label, schema) => {
     expect(() => {
-      assertSupported(schema as Json);
+      assertSupported(schema);
     }).toThrow(SchemaError);
   });
 
@@ -283,7 +283,9 @@ describe('command line', () => {
   it('check fails and shows the difference when a module was edited', () => {
     const { json, out } = copyPackage();
     const target = join(out, 'gate-record.ts');
-    const edited = readFileSync(target, 'utf8').replace('"NOT_APPLICABLE"', '"NOT_APPLICABLE_X"');
+    const original = readFileSync(target, 'utf8');
+    const edited = original.replace("'NOT_APPLICABLE'", "'NOT_APPLICABLE_X'");
+    expect(edited).not.toBe(original);
     writeFileSync(target, edited);
     const result = run('check', json, out);
     expect(result.status).toBe(1);
@@ -295,7 +297,10 @@ describe('command line', () => {
   it('check fails when the JSON Schema changed but the module was not regenerated', () => {
     const { json, out } = copyPackage();
     const target = join(json, 'gate-record.schema.json');
-    writeFileSync(target, readFileSync(target, 'utf8').replace('"G6"', '"G7"'));
+    const original = readFileSync(target, 'utf8');
+    const edited = original.replace('"G6"', '"G7"');
+    expect(edited).not.toBe(original);
+    writeFileSync(target, edited);
     const result = run('check', json, out);
     expect(result.status).toBe(1);
     expect(result.stdout).toContain('gate-record.ts: differs from the generated module');
