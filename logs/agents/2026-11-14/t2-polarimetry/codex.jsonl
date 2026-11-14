@@ -1,2 +1,4 @@
 {"ts":"2026-11-14T17:39:06Z","agent":"codex","story":"T2-01","event":"review","round":1,"model":"gpt-6.1-sol","status":"COMPLETED","verdict":"FAIL","findings":1}
 {"ts":"2026-11-14T17:40:55Z","agent":"codex2","story":"T2-01","event":"review","round":1,"model":"gpt-6.1-sol","status":"COMPLETED","verdict":"FAIL","findings":1}
+{"ts":"2026-11-14T17:48:36Z","agent":"codex","story":"T2-01","event":"review","round":2,"model":"gpt-6.1-sol","status":"COMPLETED","verdict":"NOT_RUN","findings":0}
+{"ts":"2026-11-14T17:49:56Z","agent":"codex2","story":"T2-01","event":"review","round":2,"model":"gpt-6.1-sol","status":"COMPLETED","verdict":"FAIL","findings":1}

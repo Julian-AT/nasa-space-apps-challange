@@ -8,3 +8,11 @@
 {"ts":"2026-11-14T17:35:48Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"git log --format=%h\\ %s 0ddfd2d..0710d1e"}
 {"ts":"2026-11-14T17:35:48Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T17:35:48Z","agent":"verifier","story":"T2-01","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":2}
+{"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_polarimetry_decode.py"}
+{"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"uv run mypy pipeline/src pipeline/tests"}
+{"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"git diff --stat 0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef 73ffc221722979eb17fb815d28735a2f3c0c0f11 -- . :!scripts/ralph :!reviews :!logs"}
+{"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Bash","input":"git diff 0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef 73ffc221722979eb17fb815d28735a2f3c0c0f11 -- pipeline/pyproject.toml uv.lock"}
+{"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"Read","input":"/Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/t2-polarimetry/pipeline/src/terraluna_pipeline/polarimetry.py"}
+{"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T17:46:19Z","agent":"verifier","story":"T2-01","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":0}

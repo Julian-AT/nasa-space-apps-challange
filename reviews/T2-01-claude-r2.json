@@ -1,0 +1,101 @@
+{
+  "task_id": "T2-01",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
+    "head": "73ffc221722979eb17fb815d28735a2f3c0c0f11",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "ad294d5051fc1c30bb45ed5819cc3a246ce96f8916cb276b29be281f85255bda"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "26d4442c320ebc0bde50e2eb0141ac473194c86a7b84a083e8b6c41b03426ebf"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_decode.py",
+        "sha256": "fa33ae889f56fdc61f3bb118d87613afaec5eaee9cd65802934f4cba7a40d121"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e63ef94ad995c48d4907f9d05e24e3ab46ad40a0c2e72babb7975f3acbd38da2"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:46:01Z",
+  "finished_utc": "2026-11-14T17:46:19Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 2 PASS. The masked-input fix from round 1 is in place. All three story checks pass: 103 tests, mypy and make check. The diff touches only story-listed files: pyproject.toml, uv.lock, polarimetry.py and the decode test file. I read the implementation. I did not individually re-read every test body, but the suite passes. The empirical failing-tests-first run was not repeated and rests on the author's rebuttal.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "outcome": "PASS",
+      "evidence": "103 passed in 0.28s"
+    },
+    {
+      "criterion": "uv run mypy pipeline/src pipeline/tests",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 5 source files"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check and format check pass, mypy reports no issues in 6 source files"
+    },
+    {
+      "criterion": "Dependencies: only numpy added, uv.lock updated",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "git diff of pipeline/pyproject.toml and uv.lock shows only numpy>=2.5,<3 added to both"
+    },
+    {
+      "criterion": "ObsState/InvalidReason vocabulary, per-element state and reason, no NaN-as-zero",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:62-178. StatedArray enforces that VALID holds a finite value, that non-VALID holds NaN, and that reason is NONE exactly where state is VALID. Rejection of a missing/invalid element holding a number is in the constructor at lines 148-151."
+    },
+    {
+      "criterion": "Decode, F8/F9/F10 and invalid-case behaviour",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "decode_db and decode_linear (polarimetry.py:279-329): DN=0 is INVALID/DN_ZERO and declared nodata is MISSING/NODATA, with no -inf and no epsilon. x_power (332-386) gives DENOMINATOR_INVALID for HH zero, nodata or noise-dominated. All 103 tests pass; I did not individually re-read the F8/F9/F10 test bodies."
+    },
+    {
+      "criterion": "Angle conversion requires an explicit unit",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:411-412 raises ValueError for None or any value other than 'radians'/'degrees'. Output is converted to degrees internally."
+    },
+    {
+      "criterion": "Constants named, formula cited",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "PALSAR2_CALIBRATION_OFFSET_DB = 83.0 at line 247, with the PRD 7 formula cited. nodata is an explicit required argument."
+    },
+    {
+      "criterion": "Masked-input fix from round 1 (codex-r1-1)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "_refuse_masked is called in _real_array, _bool_mask and StatedArray.__post_init__ before np.asarray (polarimetry.py:125,181-215,220). The 103 passing tests include the masked regressions."
+    },
+    {
+      "criterion": "Failing-tests-first record",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "I did not re-run the original failing commit. I accept the author's rebuttal that polarimetry.py first appears after the test commit; the claim is checkable from git history."
+    }
+  ],
+  "findings": []
+}

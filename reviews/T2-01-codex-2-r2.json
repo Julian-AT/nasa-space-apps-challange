@@ -1,0 +1,134 @@
+{
+  "task_id": "T2-01",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
+    "head": "73ffc221722979eb17fb815d28735a2f3c0c0f11",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "ad294d5051fc1c30bb45ed5819cc3a246ce96f8916cb276b29be281f85255bda"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "26d4442c320ebc0bde50e2eb0141ac473194c86a7b84a083e8b6c41b03426ebf"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_decode.py",
+        "sha256": "fa33ae889f56fdc61f3bb118d87613afaec5eaee9cd65802934f4cba7a40d121"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e63ef94ad995c48d4907f9d05e24e3ab46ad40a0c2e72babb7975f3acbd38da2"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:46:01Z",
+  "finished_utc": "2026-11-14T17:49:56Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "F8–F10 formulas match the PRD, but nested sequences can still bypass the masked-input fix and publish excluded pixels as VALID. Required checks were not run, as instructed for the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "AC1: Add only numpy, update uv.lock, and retain strict mypy success.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/pyproject.toml:8 adds only numpy; uv.lock:433 and :440 add its dependency references. pyproject.toml:33 retains strict=true. Mypy success requires execution, prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC2: Three observation states, machine-readable reasons, and per-element values/state/reason preserving unavailable observations.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "polarimetry.py:47 defines exactly MISSING, INVALID and VALID; :62 defines string reasons; :145 enforces result invariants. However, the conversion-based guard at :197 can lose nested masks before classification, publishing excluded pixels as VALID/NONE."
+    },
+    {
+      "criterion": "AC3: F8–F10 tests use the specified float64 tolerances and were run failing before implementation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:35 defines the required tolerances; :198, :205, :331 and :439 assert the correct F8–F10 results. Independently derived: 20*log10(100)-83=-43; 10000*10^-8.3=5.011872336272722e-5; (100/1000)^2=0.01; (pi/3)*180/pi=60. Historical execution cannot be verified without relying on author reports or rerunning checks, which is prohibited."
+    },
+    {
+      "criterion": "AC4: Failing tests first for zero/nodata, unavailable denominators, no epsilon, and power-before-averaging.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:263 fixes zero as INVALID, :270 fixes declared nodata as MISSING, :348–375 checks denominator exclusions and no epsilon, and :229–257 checks amplitude squaring and averaging order. polarimetry.py:269–275 and :378–385 implement those cases. Their execution and historical failing runs were not observed; checks are prohibited."
+    },
+    {
+      "criterion": "AC5: Explicit radians/degrees declaration, rejection of unknown units and None, and internal degrees.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:401–417 explicitly validates the unit and converts radians to degrees without magnitude inference. test_polarimetry_decode.py:450–470 exercises differing declarations, magnitude independence, unknown units and None."
+    },
+    {
+      "criterion": "AC6: Hypothesis properties establish positive-DN monotonicity and dB/linear agreement.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_polarimetry_decode.py:591–610 generates positive integer DNs, asserts strictly increasing decoded power, and checks both conversion identities using rtol=1e-10 and atol=1e-12. Property execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC7: Nodata and calibration offset are explicit constants or arguments, with the PRD formula cited.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:247 names the 83 dB offset; :282 and :309 require explicit nodata arguments. Formula docstrings at :285 and :312 cite PRD 7 and correctly distinguish amplitude DN from linear power."
+    },
+    {
+      "criterion": "Required focused pytest check.",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_decode.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user prohibits checks because dependency synchronization and test caches require writes in the read-only sandbox."
+    },
+    {
+      "criterion": "Required mypy check.",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user prohibits checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository check.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user prohibits checks in the read-only sandbox. Makefile:22–25 invokes ruff checking, format checking and mypy."
+    },
+    {
+      "criterion": "Round-one masked-input fixes: codex-r1-1 and codex2-r1-1.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Direct MaskedArray rejection at polarimetry.py:187 addresses the original example. The fallback at :197 remains vulnerable to deeper nesting; test_polarimetry_decode.py:574 covers only one enclosing list."
+    },
+    {
+      "criterion": "Round-one calibration rebuttal: claude-r1-1.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "PRD.md:403–408 specifies a common calibration and x_power=(DN_HV/DN_HH)^2. Dividing equally calibrated powers cancels the offset. polarimetry.py:385 implements that ratio, while :370–381 applies explicit channel noise flags."
+    },
+    {
+      "criterion": "Round-one failing-tests-first rebuttal: claude-r1-2.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Observed git tree 670def0 contains the test importing polarimetry but no polarimetry.py; c77bbbb adds masked regressions before the implementation fix in its child 6a0aa160. This supports tests-before-implementation ordering, but does not establish that the claimed failing commands were actually run. Rerunning them is prohibited."
+    },
+    {
+      "criterion": "Story scope, production mocks, and kickoff configuration.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The scoped diff changes only the four permitted files: pipeline/pyproject.toml, polarimetry.py, test_polarimetry_decode.py and uv.lock. No production mock path is introduced. config/run.yaml:1–7, :33–35 and :61–64 retain unresolved choices as null."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:197",
+      "claim": "Nested sequences still silently discard validity masks and can publish excluded pixels as VALID. Inspect sequence members recursively before NumPy coercion and add deeper-nesting regression tests.",
+      "evidence": "Static trace, not executed: with m=np.ma.array([100.0,300.0], mask=[False,True]), decode_linear([[m]], nodata=None) reaches the probe at line 197. The installed locked NumPy implementation (.venv/lib/python3.12/site-packages/numpy/ma/core.py:2940–2948) reconstructs masks only from immediate children using np.asanyarray; converting the child [m] drops m's mask, so the probe sees nomask. Line 212 then produces a plain numeric array; lines 267–275 classify both positive values VALID, and line 328 publishes finite power for the masked 300 with reason NONE. The same helper serves angle and noise inputs. test_polarimetry_decode.py:574–579 tests [m], not [[m]]. This leaves the previous finding incompletely fixed and violates PRD.md:415 and :421.",
+      "id": "codex2-r2-1",
+      "resolution": null
+    }
+  ]
+}
