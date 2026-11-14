@@ -96,7 +96,11 @@
       "claim": "On the 90 m grid with the configured lags (270, 360, 540, 720, 1080 m) both diagonals are unsupported, so the isotropic summary rests on the two axes only.",
       "evidence": "This follows from the documented rule: 270 m would need k=2.12 diagonal cells. test_configured_lags_are_not_on_the_diagonal_grid_at_90_m asserts it. The story notes surface it as human decision (1); the PRD 6.3 text and the T3-05 consumer should be settled before relying on the isotropic value.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect; this is the behaviour acceptance criterion 5 asks for. The criterion has the implementation choose a documented rule (an offset in whole cells whose length equals the lag within a stated tolerance, otherwise unsupported with diagonal_lag_not_on_grid), record it in the docstring, surface it to a human in notes, and assert it at 270 m and 360 m on the 90 m grid. terrain.py:18-28 documents the rule and states this exact consequence. test_configured_lags_are_not_on_the_diagonal_grid_at_90_m (test_terrain_structure.py:347) asserts it. Story notes decision (1) gives the consequence and three alternatives for a human: add diagonal lags k*127.28 m to terrain.lags_m, accept the nearest offset and record its true length, or interpolate. The progress log has a PRD 6.3 wording proposal. PRD 6.3 says diagonals are sampled explicitly and per-direction values are kept. It does not say a lag in metres may be approximated by a different offset, and PRD 7 allows no other resampling, so treating a diagonal as unsupported rather than mislabelling its lag keeps 'missing evidence is never zero' (CLAUDE.md). Settling the rule before T3-05 relies on the isotropic value is already recorded as a human decision. It does not block this story, and changing terrain.lags_m in config/run.yaml is outside its files."
+      }
     },
     {
       "severity": "low",
@@ -104,7 +108,11 @@
       "claim": "The module-level filterwarnings('error') applies to all tests in the file, so a numpy RuntimeWarning in the tests fails them. This is intended and not a defect.",
       "evidence": "pytestmark at line 58; all 82 tests passed with it active.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The finding itself says this is intended and not a defect. pytestmark = pytest.mark.filterwarnings('error') (test_terrain_structure.py:58) is deliberate, as in the earlier T3 test files (progress log Codebase Patterns). It turns numpy RuntimeWarnings (divide by zero, invalid value, overflow) into failures, so a hidden NaN or overflow path in structure_function cannot pass silently. All 82 tests pass with it active. Nothing to change."
+      }
     }
   ]
 }

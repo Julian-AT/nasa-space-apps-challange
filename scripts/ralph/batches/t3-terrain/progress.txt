@@ -203,3 +203,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes (T3-04; PRD.md is read-only for the loop)
 - PRD 6.3, Terrain observables: state how a lag in metres maps to a diagonal. Recommended: "A lag is sampled in a direction only along whole-cell offsets whose length equals the lag (to PRD 7 arithmetic tolerance). Otherwise it is unsupported there, so at 90 m the diagonals are unsupported at the configured lags unless diagonal lags (k·127.28 m) are added." Also state the isotropic rule: "the isotropic value is sqrt of the mean of nu² over the supported directions, each weighted equally". If it should be configurable, add `terrain.isotropic_rule: direction_mean` to PRD 8.13 and config/run.yaml. Both are recorded in the T3-04 story notes as decisions (1) and (2).
 ---
+
+## 2026-11-14T22:16Z · T3-04 · resolve
+- Done: round 1 had two findings, both low and both from the Claude verifier (verdict PASS). claude-r1-1 is rebutted: diagonals are unsupported at every configured lag on the 90 m grid because acceptance criterion 5's documented whole-cell rule requires it. The docstring states it (terrain.py:18-28), test_configured_lags_are_not_on_the_diagonal_grid_at_90_m asserts it, and story notes decision (1) gives it to a human with three alternatives. claude-r1-2 is rebutted: the file-wide filterwarnings("error") is intended, as the finding itself says. Codex and Codex (second pass) reported no findings (NOT_RUN, read-only sandbox). No code changed. I set only the two resolutions (jq, with the rest of the file proved unchanged against HEAD), appended a round-1 line to the story notes and set review.state to resolved.
+- Commits: the resolve commit only (review file, story list, progress log).
+- Checks: `uv run pytest pipeline/tests/test_terrain_structure.py` exit 0 (82 passed); `make check` exit 0 (ruff check, ruff format --check, mypy strict on 12 files).
+- Docs used: none (no library or code change).
+- Learnings: when a reviewer flags a consequence that a criterion requires and the notes already put to a human, rebut it by citing the criterion, the docstring line, the asserting test and the notes decision number. Escalate only if the story cannot pass without the decision.
+---
