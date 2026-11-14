@@ -40,7 +40,7 @@ def expected_run_id(config_bytes: bytes, products: list[tuple[str, str | None]])
     """The CONTRACTS c.4 definition, written out independently of provenance.py."""
     document = {
         "config_sha256": hashlib.sha256(config_bytes).hexdigest(),
-        "products": sorted([list(product) for product in products], key=lambda pair: pair[0]),
+        "products": [[pid, checksum] for pid, checksum in sorted(products, key=lambda p: p[0])],
     }
     text = json.dumps(document, sort_keys=True, indent=2, ensure_ascii=False, allow_nan=False)
     return "sha256:" + hashlib.sha256((text + "\n").encode("utf-8")).hexdigest()

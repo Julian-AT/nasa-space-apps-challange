@@ -88,9 +88,10 @@ def prd_record_fields(record: str) -> list[str]:
 
 def prd_evidence_labels() -> list[str]:
     """The labels of the PRD 3 evidence-label table, in order."""
-    rows = prd_section("### Evidence labels").splitlines()
-    labels = [m.group(1) for row in rows if (m := re.match(r"^\| ([A-Z][a-z]+) \|", row))]
-    return labels
+    lines = prd_section("### Evidence labels").splitlines()
+    separator = next(i for i, line in enumerate(lines) if line.startswith("| ---"))
+    rows = [line for line in lines[separator + 1 :] if line.startswith("|")]
+    return [row.split("|")[1].strip() for row in rows]
 
 
 def literal_values(annotation: object) -> list[object]:
@@ -1039,7 +1040,7 @@ def test_a_fingerprint_without_its_part_fails(kind: str) -> None:
     ],
 )
 def test_fingerprint_rejects_invalid_values(field: str, value: object) -> None:
-    assert_rejected(FingerprintRecord, fingerprint(**{field: value}))
+    assert_rejected(FingerprintRecord, {**fingerprint(), field: value})
 
 
 # --- WindowEntry and Windows --------------------------------------------------------------------
