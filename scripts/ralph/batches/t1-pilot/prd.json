@@ -135,17 +135,17 @@
       "priority": 3,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 1,
+        "state": "reviewed",
+        "round": 2,
         "base": "d29b39401856a7b32b2a0a91d6d04a8dc665cfb5",
-        "head": "1d7d3c442e33e8326f4d305c7ca383f3bc45ed35",
+        "head": "fcb894ac580b0f70296e2f5568780ed3537da2a4",
         "files": [
-          "reviews/T1-03-claude.json",
-          "reviews/T1-03-codex.json"
+          "reviews/T1-03-claude-r2.json",
+          "reviews/T1-03-codex-r2.json"
         ],
         "digests": {
-          "reviews/T1-03-claude.json": "ee660ec5a787836e6cf0592060234710a230a00eaa53787905a6eadd07afbc10",
-          "reviews/T1-03-codex.json": "ec48cc45af04abdb89917d77a7346fa8d7cbc942c2ada1c430fa45fcf8c4d2e9"
+          "reviews/T1-03-claude-r2.json": "2fa3b7917d97f80a5b966fb78d0f8689df4cd13c0ba02ada01cc69cc6e71f39d",
+          "reviews/T1-03-codex-r2.json": "4845de2678a402187c6fb98fa9b5db5f7230ac2404a1c40c601d0309f5f750ef"
         }
       },
       "notes": "Reviewer findings applied: offline gate with fetch/record/check split, required preview PNG, upsert. Engineering choice: Pillow and pyshp are the candidate dependencies, picked by the author and added in this story."

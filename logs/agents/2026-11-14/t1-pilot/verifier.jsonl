@@ -47,3 +47,14 @@
 {"ts":"2026-11-14T19:47:31Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"Bash","input":"git check-ignore data/raw/pgda78/fetch.json"}
 {"ts":"2026-11-14T19:47:31Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-14T19:47:31Z","agent":"verifier","story":"T1-03","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":2}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests"}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"Bash","input":"uv run python -m terraluna_pipeline.pilot check pgda78"}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"Bash","input":"git diff --stat d29b39401856a7b32b2a0a91d6d04a8dc665cfb5 fcb894ac580b0f70296e2f5568780ed3537da2a4 -- . ':!scripts/ralph' ':!reviews' ':!logs'"}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"Bash","input":"git ls-files data outputs"}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"Bash","input":"git rev-parse HEAD"}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"Grep","input":"first"}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"Grep","input":"socket|network|offline"}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-14T20:11:46Z","agent":"verifier","story":"T1-03","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":1}
