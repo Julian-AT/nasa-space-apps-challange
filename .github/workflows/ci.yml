@@ -1,8 +1,8 @@
 # Terraluna CI, the T0 jobs of PRD 8.9 and 12. Each job runs the Makefile targets that a local
-# build runs. Python comes from .python-version (uv finds it), Node from .node-version and pnpm
-# from the packageManager field in package.json. The setup targets install from the lockfiles
-# frozen: `uv sync --locked` and `pnpm install --frozen-lockfile`. Every action is pinned to a
-# full commit SHA, with its release tag in a comment.
+# build runs. Python comes from .python-version (uv finds it; see env below), Node from
+# .node-version and pnpm from the packageManager field in package.json. The setup targets install
+# from the lockfiles frozen: `uv sync --locked` and `pnpm install --frozen-lockfile`. Every action
+# is pinned to a full commit SHA, with its release tag in a comment.
 name: ci
 
 on:
@@ -12,6 +12,13 @@ on:
 
 permissions:
   contents: read
+
+# uv uses only its own managed Python builds, never the runner image's system Python (by default
+# it prefers an installed system 3.12 to a download). With uv pinned below, the 3.12 request in
+# .python-version then always resolves to the same python-build-standalone download: cpython
+# 3.12.12+20260114 for uv 0.9.26. The ts and commitlint jobs do not run uv.
+env:
+  UV_MANAGED_PYTHON: "1"
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
