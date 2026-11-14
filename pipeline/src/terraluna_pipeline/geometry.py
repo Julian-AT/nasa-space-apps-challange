@@ -1097,12 +1097,13 @@ def bilinear_resample(
 ) -> ResampledGrid:
     """Interpolate ``source`` bilinearly at fractional pixel coordinates (PRD 7).
 
-    ``source`` is a 2-D raster of real numbers indexed ``[row, column]``, at least 2 x 2.
-    ``column`` and ``row`` are fractional indices of pixel centres ((0, 0) is the centre of the
-    top-left pixel) and broadcast together. ``nodata`` is the product's declared sentinel, or
-    None if it declares none; it must be given either way. A source pixel is missing if it is
-    NaN, infinite or equal to the sentinel (compared in float64, as GDAL reports nodata), so NaN
-    and a declared sentinel behave identically. Zero is data.
+    ``source`` is a 2-D raster of real numbers indexed ``[row, column]``, at least 2 x 2, or a
+    numpy masked array of one (as rasterio's ``read(masked=True)`` returns). ``column`` and
+    ``row`` are fractional indices of pixel centres ((0, 0) is the centre of the top-left pixel)
+    and broadcast together. ``nodata`` is the product's declared sentinel, or None if it declares
+    none; it must be given either way. A source pixel is missing if it is masked, NaN, infinite
+    or equal to the sentinel (compared in float64, as GDAL reports nodata), so a masked pixel,
+    NaN and a declared sentinel behave identically, whatever value a mask hides. Zero is data.
 
     A point is inside when 0 <= column <= ncols - 1 and 0 <= row <= nrows - 1. Its four
     neighbours are columns i and i + 1 and rows j and j + 1, with i = min(floor(column),
@@ -1119,6 +1120,11 @@ def bilinear_resample(
     Bilinear interpolation reproduces a plane in pixel coordinates exactly in real arithmetic.
     It is meant for continuous fields such as elevation, not for class rasters.
     """
+    masked: BoolArray | None = None
+    if np.ma.isMaskedArray(source):
+        # np.asarray would drop the mask and pass the data under it off as observations.
+        masked = np.ma.getmaskarray(source)
+        source = np.ma.getdata(source)
     grid = np.asarray(source)
     if grid.ndim != 2:
         raise ResampleError(f"source must be a 2-D raster, got {grid.ndim} dimensions")
@@ -1132,6 +1138,8 @@ def bilinear_resample(
     good = np.isfinite(z)
     if sentinel is not None:
         good &= z != sentinel
+    if masked is not None:
+        good &= ~masked
     z = np.where(good, z, np.nan)
     try:
         u, v = np.broadcast_arrays(
@@ -1175,7 +1183,8 @@ def resample_window(
     Each pixel centre of ``grid`` goes through the inverse spherical AEQD about (``lat0_rad``,
     ``lon0_rad``) on the D29 sphere of ``body`` (:func:`body_radius_m`), then into the source's
     pixel space by ``lookup``, and is interpolated by :func:`bilinear_resample` with the
-    declared ``nodata``. The result is indexed ``[row, column]`` like :meth:`WindowGrid.mesh_m`.
+    declared ``nodata``; if ``source`` is a masked array, its masked pixels are missing too. The
+    result is indexed ``[row, column]`` like :meth:`WindowGrid.mesh_m`.
     """
     radius = body_radius_m(body)
     x, y = grid.mesh_m()
