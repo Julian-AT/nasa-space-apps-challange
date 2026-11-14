@@ -20,6 +20,11 @@ Units and conventions used throughout:
   floor for any float64 (latitude, longitude) pair. Round trips therefore use the D29 pixel
   centres, which are the points where the resampler evaluates the inverse. Tiny offsets, down
   to subnormal ones, also get a round trip at the centre (0, 0), where float64 resolves them.
+- Continuous offsets anywhere in the 5 km window, including tiny and near-axis ones, are
+  checked one direction at a time against exact references, at the same PRD 7 tolerances
+  (rtol 1e-10, atol 1e-12): the inverse (latitude, longitude) in radians, and the forward of
+  float64 points in the window in metres, each against the exact image of the same float64
+  input. Neither check passes through a float64 rounding of the other direction.
 - Distances from the window centre are checked against rho to 1e-9 relative (PRD 7 Tests).
 
 The reference formulas here are written independently of the implementation: the grid with
@@ -811,6 +816,153 @@ def test_tiny_offsets_round_trip_at_the_origin_centre(body: str) -> None:
     x = np.array([5e-324, -1e-300, 1e-12, 0.0, -1e-9, 3e-6])
     y = np.array([0.0, 1e-300, -1e-12, 5e-324, 1e-9, -7e-7])
     assert_grid_round_trip(x, y, lat0=0.0, lon0=0.0, radius=radius, exact=True)
+
+
+# ---------------------------------------------------------------------------------------------
+# Continuous offsets, one direction at a time, against the exact references
+
+
+# Offsets (x, y) anywhere in the 5 km window. The float strategy also draws zeros of both signs,
+# subnormal and tiny components, so offsets near an axis and near the centre are included.
+WINDOW_OFFSETS = st.lists(
+    st.tuples(st.floats(-HALF_WINDOW_M, HALF_WINDOW_M), st.floats(-HALF_WINDOW_M, HALF_WINDOW_M)),
+    min_size=1,
+    max_size=16,
+)
+
+
+# Offsets in windows centred within 3.6 km of a pole, near an axis, from the random search behind
+# POLE_WINDOW_FORWARD_CASES.
+POLE_WINDOW_CENTRE = ("mars", 1.570710853615426, -0.8427156657011828)
+POLE_WINDOW_OFFSETS = [
+    (-2398.5830825075955, -1.8012333257273263e-06),
+    (2498.24057541666, -2.290330149218011e-11),
+    (-8.340917595628587e-13, -2489.1373815315906),
+    (-4.78632402549149e-13, 2365.8677597764836),
+    (9.929872235192163e-13, 2302.5886777845335),
+]
+
+
+def stepped_points(
+    steps: list[tuple[float, float]], lat0: float, lon0: float, radius: float
+) -> tuple[Array, Array]:
+    """Float64 points stepped from the centre by (north, east) metres, built without the inverse.
+
+    Each step moves along the coordinate lines: the latitude by north / radius, clipped to
+    [-pi/2, pi/2], and the longitude by east / radius, wrapped into [-pi, pi].
+    """
+    north = np.array([step[0] for step in steps])
+    east = np.array([step[1] for step in steps])
+    lat = np.clip(lat0 + north / radius, -HALF_PI, HALF_PI)
+    lon = lon0 + east / radius
+    lon = np.where(lon > PI, lon - 2 * PI, np.where(lon < -PI, lon + 2 * PI, lon))
+    return lat, lon
+
+
+@settings(max_examples=400, deadline=None)
+@given(
+    body=st.sampled_from(BODIES),
+    lat0=st.floats(-HALF_PI, HALF_PI),
+    lon0=st.floats(-PI, PI, exclude_max=True),
+    offsets=WINDOW_OFFSETS,
+)
+@example(body="moon", lat0=-HALF_PI, lon0=-PI, offsets=EDGE_OFFSETS)
+@example(body="earth", lat0=HALF_PI, lon0=0.0, offsets=EDGE_OFFSETS)
+@example(body="earth", lat0=0.0, lon0=-PI, offsets=EDGE_OFFSETS)
+@example(body="earth", lat0=0.0, lon0=math.nextafter(PI, 0.0), offsets=EDGE_OFFSETS)
+@example(body="mars", lat0=math.radians(89.99), lon0=2.0, offsets=EDGE_OFFSETS)
+@example(body="earth", lat0=1.0233922226196999, lon0=-2.3583296722334133, offsets=EDGE_OFFSETS)
+@example(body="moon", lat0=1e-300, lon0=-1e-300, offsets=EDGE_OFFSETS)
+@example(
+    body=POLE_WINDOW_CENTRE[0],
+    lat0=POLE_WINDOW_CENTRE[1],
+    lon0=POLE_WINDOW_CENTRE[2],
+    offsets=POLE_WINDOW_OFFSETS,
+)
+def test_inverse_matches_the_exact_inverse_at_continuous_offsets(
+    body: str, lat0: float, lon0: float, offsets: list[tuple[float, float]]
+) -> None:
+    """The inverse alone, at random centres and continuous offsets anywhere in the window.
+
+    The module's (latitude, longitude) must match the exact inverse of the same float64 offset
+    to PRD 7 tolerances in radians, as values and as differences from the centre, with the
+    longitude compared on the same meridian (:func:`assert_angles_close`).
+    """
+    radius = BODY_RADII_M[body]
+    x = np.array([offset[0] for offset in offsets])
+    y = np.array([offset[1] for offset in offsets])
+    lat, lon = aeqd_inverse(x, y, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
+    assert lat.dtype == lon.dtype == np.float64
+    assert np.all((lon >= -PI) & (lon < PI))
+    assert np.all(np.abs(lat) <= HALF_PI)
+
+    lat_ref, lon_ref, dlat_ref, dlon_ref = exact_inverse(x, y, lat0, lon0, radius)
+    np.testing.assert_allclose(lat, lat_ref, rtol=RTOL, atol=ATOL)
+    assert_angles_close(lon, lon_ref)
+    np.testing.assert_allclose(lat - lat0, dlat_ref, rtol=RTOL, atol=ATOL)
+    assert_angles_close(lon - lon0, dlon_ref)
+
+
+@settings(max_examples=400, deadline=None)
+@given(
+    body=st.sampled_from(BODIES),
+    lat0=st.floats(-HALF_PI, HALF_PI),
+    lon0=st.floats(-PI, PI, exclude_max=True),
+    offsets=WINDOW_OFFSETS,
+    steps=WINDOW_OFFSETS,
+)
+@example(body="moon", lat0=-HALF_PI, lon0=-PI, offsets=EDGE_OFFSETS, steps=EDGE_OFFSETS)
+@example(body="earth", lat0=HALF_PI, lon0=0.0, offsets=EDGE_OFFSETS, steps=EDGE_OFFSETS)
+@example(body="earth", lat0=0.0, lon0=-PI, offsets=EDGE_OFFSETS, steps=EDGE_OFFSETS)
+@example(
+    body="earth",
+    lat0=0.0,
+    lon0=math.nextafter(PI, 0.0),
+    offsets=EDGE_OFFSETS,
+    steps=EDGE_OFFSETS,
+)
+@example(body="mars", lat0=math.radians(89.99), lon0=2.0, offsets=EDGE_OFFSETS, steps=EDGE_OFFSETS)
+@example(
+    body="earth",
+    lat0=1.0233922226196999,
+    lon0=-2.3583296722334133,
+    offsets=EDGE_OFFSETS,
+    steps=EDGE_OFFSETS,
+)
+@example(body="moon", lat0=1e-300, lon0=-1e-300, offsets=EDGE_OFFSETS, steps=EDGE_OFFSETS)
+@example(
+    body=POLE_WINDOW_CENTRE[0],
+    lat0=POLE_WINDOW_CENTRE[1],
+    lon0=POLE_WINDOW_CENTRE[2],
+    offsets=POLE_WINDOW_OFFSETS,
+    steps=EDGE_OFFSETS,
+)
+def test_forward_matches_the_exact_forward_at_continuous_offsets(
+    body: str,
+    lat0: float,
+    lon0: float,
+    offsets: list[tuple[float, float]],
+    steps: list[tuple[float, float]],
+) -> None:
+    """The forward alone, at float64 points anywhere in the window around random centres.
+
+    The points are the module inverse of continuous offsets, which are the float64 points the
+    forward meets after the inverse, and points stepped from the centre without the inverse
+    (:func:`stepped_points`). The module's (x, y) must match the exact forward of the same
+    float64 point to PRD 7 tolerances in plain metres.
+    """
+    radius = BODY_RADII_M[body]
+    x = np.array([offset[0] for offset in offsets])
+    y = np.array([offset[1] for offset in offsets])
+    lat_inv, lon_inv = aeqd_inverse(x, y, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
+    lat_step, lon_step = stepped_points(steps, lat0, lon0, radius)
+    lat = np.concatenate([lat_inv, lat_step])
+    lon = np.concatenate([lon_inv, lon_step])
+
+    x_out, y_out = aeqd_forward(lat, lon, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
+    assert x_out.dtype == y_out.dtype == np.float64
+    x_ref, y_ref = exact_forward(lat, lon, lat0, lon0, radius)
+    assert_metres_close(x_out, y_out, x_ref, y_ref)
 
 
 # ---------------------------------------------------------------------------------------------
