@@ -508,12 +508,16 @@ name = "terraluna-pipeline"
 version = "0.1.0"
 source = { editable = "pipeline" }
 dependencies = [
+    { name = "affine" },
+    { name = "numpy" },
     { name = "pydantic" },
     { name = "rasterio" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "affine", specifier = ">=3.0,<4" },
+    { name = "numpy", specifier = ">=2.5,<3" },
     { name = "pydantic", specifier = ">=2.14,<3" },
     { name = "rasterio", specifier = ">=1.5,<2" },
 ]
