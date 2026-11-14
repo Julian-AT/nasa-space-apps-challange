@@ -173,7 +173,10 @@ describe('skip link', () => {
     expect(link.attributes.get('href')).toBe('#main');
   });
 
-  it('is hidden until focused, then shown on the page background', async () => {
+  // Focused, it takes its own row on the page background instead of covering the red mock
+  // banner, so the 2px focus outline (offset 2px) is drawn on --background, where the theme
+  // test checks its contrast.
+  it('is hidden until focused, then shown in the page flow on the page background', async () => {
     const classes = classesOf(only(links(renderToStaticMarkup(<SkipLink />)), 'the skip link'));
     const { root } = await compile(classes);
     const rest = new Map<string, string>();
@@ -189,7 +192,9 @@ describe('skip link', () => {
     expect(rest.get('clip-path')).toBe('inset(50%)');
     expect(rest.get('position')).toBe('absolute');
     expect(focused.get('clip-path')).toBe('none');
-    expect(focused.get('position')).toBe('fixed');
+    expect(focused.get('position')).toBe('static');
+    expect(focused.get('display')).toBe('inline-block');
+    expect(focused.get('margin')).toBe('calc(var(--spacing) * 2)');
     expect(focused.get('width')).toBe('auto');
     expect(focused.get('background-color')).toBe('var(--background)');
     expect(classes.filter((name) => /(^|:)(outline-|ring-0)/.test(name))).toEqual([]);
