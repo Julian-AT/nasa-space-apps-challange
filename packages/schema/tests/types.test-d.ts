@@ -9,6 +9,10 @@ import type {
   BundleManifestSchema,
   GateRecord,
   GateRecordSchema,
+  ProductRecord,
+  ProductRecordSchema,
+  Sources,
+  SourcesSchema,
   Validation,
   ValidationSchema,
 } from '../src/index.ts';
@@ -40,7 +44,34 @@ expectTypeOf<GateRecord>().toEqualTypeOf<{
 
 expectTypeOf<Validation>().toEqualTypeOf<GateRecord[]>();
 
+// The VERIFIED condition (PRD 8.12) is a refinement, so it does not narrow the inferred type.
+expectTypeOf<ProductRecord>().toEqualTypeOf<{
+  product_id: string;
+  provider: string;
+  version: string;
+  source_url: string | null;
+  local_path: string | null;
+  checksum: string | null;
+  body: 'moon' | 'mars' | 'earth';
+  acquisition_time: string | null;
+  frequency_or_wavelength: string | null;
+  transmit_receive_convention: string | null;
+  units: string;
+  calibration_type: string | null;
+  native_grid: string | null;
+  effective_resolution: string | null;
+  crs_and_frame: string;
+  incidence_source: string | null;
+  qa_definition: string | null;
+  license_or_attribution: string;
+  verification_status: 'NOT_CHECKED' | 'VERIFIED' | 'PARTIAL' | 'BLOCKED' | 'FAILED';
+}>();
+
+expectTypeOf<Sources>().toEqualTypeOf<ProductRecord[]>();
+
 // Parsing transforms nothing, so a schema's input type is its output type.
 expectTypeOf<z.input<typeof BundleManifestSchema>>().toEqualTypeOf<BundleManifest>();
 expectTypeOf<z.input<typeof GateRecordSchema>>().toEqualTypeOf<GateRecord>();
 expectTypeOf<z.input<typeof ValidationSchema>>().toEqualTypeOf<Validation>();
+expectTypeOf<z.input<typeof ProductRecordSchema>>().toEqualTypeOf<ProductRecord>();
+expectTypeOf<z.input<typeof SourcesSchema>>().toEqualTypeOf<Sources>();

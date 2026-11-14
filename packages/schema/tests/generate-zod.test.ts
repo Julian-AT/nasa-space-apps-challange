@@ -16,6 +16,7 @@ import { join } from 'node:path';
 
 import { jsonSchemaToZod } from 'json-schema-to-zod';
 import { afterEach, describe, expect, it } from 'vitest';
+import { z } from 'zod';
 
 import {
   CONTRACTS,
@@ -27,8 +28,16 @@ import {
   dereference,
   generateModule,
   writeModules,
+  zodExpression,
 } from '../scripts/generate-zod.ts';
-import { GENERATED_DIR, GENERATOR_SCRIPT, JSON_DIR, PACKAGE_DIR } from './paths.ts';
+import {
+  GENERATED_DIR,
+  GENERATOR_CASES_FILE,
+  GENERATOR_SCRIPT,
+  JSON_DIR,
+  PACKAGE_DIR,
+  SCHEMA_PY,
+} from './paths.ts';
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 type JsonObject = Record<string, Json>;
@@ -87,6 +96,60 @@ function object(properties: JsonObject, extra: JsonObject = {}): JsonObject {
   };
 }
 
+// An object whose `then` applies when `status` is DONE, as ProductRecord's does when
+// verification_status is VERIFIED.
+const IF_DONE: JsonObject = { properties: { status: { const: 'DONE' } }, required: ['status'] };
+const THEN_LABEL: JsonObject = { properties: { label: STRING } };
+
+function conditional(extra: JsonObject = {}): JsonObject {
+  return object(
+    {
+      status: { type: 'string', enum: ['DONE', 'OPEN'] },
+      label: { anyOf: [STRING, { type: 'null' }] },
+    },
+    { if: IF_DONE, then: THEN_LABEL, ...extra },
+  );
+}
+
+interface GeneratorCase {
+  readonly name: string;
+  readonly valid: boolean;
+  readonly value: Json;
+}
+
+interface GeneratorGroup {
+  readonly name: string;
+  readonly schema: JsonObject;
+  readonly cases: readonly GeneratorCase[];
+}
+
+/** Synthetic schemas and documents whose verdicts the Python tests check with Draft 2020-12. */
+function readGeneratorCases(): GeneratorGroup[] {
+  return JSON.parse(readFileSync(GENERATOR_CASES_FILE, 'utf8')) as GeneratorGroup[];
+}
+
+/** Evaluate a generated zod expression, which is plain JavaScript over `z`. */
+function compile(expression: string): z.ZodType {
+  // The expression is the generator's output for a committed fixture, never outside input.
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval
+  const factory = new Function('z', `return ${expression};`) as (zod: typeof z) => z.ZodType;
+  return factory(z);
+}
+
+/** The CONTRACTS of schema.py as [name, file name] pairs, read from its source. */
+function pythonContracts(): string[][] {
+  const text = readFileSync(SCHEMA_PY, 'utf8');
+  const block = /^CONTRACTS: tuple\[Contract, \.\.\.\] = \(\n([\s\S]*?)^\)/m.exec(text)?.[1];
+  if (block === undefined) {
+    throw new Error(`no CONTRACTS tuple in ${SCHEMA_PY}`);
+  }
+  const entries = [...block.matchAll(/Contract\(\s*"([A-Za-z]+)",\s*"([a-z-]+\.schema\.json)"/g)];
+  if (entries.length !== (block.match(/Contract\(/g) ?? []).length) {
+    throw new Error(`a CONTRACTS entry in ${SCHEMA_PY} is not Contract("<Name>", "<file>", ...)`);
+  }
+  return entries.map((match) => [match[1] ?? '', match[2] ?? '']);
+}
+
 describe('contracts', () => {
   it('cover every committed JSON Schema', () => {
     expect(CONTRACTS.map((c) => c.json).sort()).toEqual(visible(JSON_DIR));
@@ -96,11 +159,28 @@ describe('contracts', () => {
     expect(CONTRACTS.map((c) => c.module).sort()).toEqual(visible(GENERATED_DIR));
   });
 
+  it('mirror the CONTRACTS of schema.py in names, file names and order', () => {
+    expect(pythonContracts().length).toBeGreaterThanOrEqual(5);
+    expect(CONTRACTS.map((c) => [c.typeName, c.json])).toEqual(pythonContracts());
+  });
+
+  it('name each module after its JSON Schema', () => {
+    for (const contract of CONTRACTS) {
+      expect(contract.module).toBe(contract.json.replace(/\.schema\.json$/, '.ts'));
+    }
+  });
+
   it('name the zod schema <Type>Schema and the inferred type <Type>', () => {
     for (const contract of CONTRACTS) {
       expect(contract.schemaName).toBe(`${contract.typeName}Schema`);
     }
-    expect(CONTRACTS.map((c) => c.typeName)).toEqual(['BundleManifest', 'GateRecord', 'Validation']);
+    expect(CONTRACTS.map((c) => c.typeName)).toEqual([
+      'BundleManifest',
+      'GateRecord',
+      'Validation',
+      'ProductRecord',
+      'Sources',
+    ]);
   });
 });
 
@@ -145,6 +225,78 @@ describe('committed modules', () => {
       const text = readFileSync(join(JSON_DIR, contract.json), 'utf8');
       expect(await generateModule(contract, text)).toBe(await generateModule(contract, text));
     }
+  });
+
+  // z.any() is the converter's fallback for a schema it does not understand; it accepts anything.
+  it.each(CONTRACTS.map((c) => [c.module] as const))('%s never falls back to z.any()', (module) => {
+    expect(readFileSync(join(GENERATED_DIR, module), 'utf8')).not.toContain('z.any(');
+  });
+});
+
+describe('if/then and not translation', () => {
+  const groups = readGeneratorCases();
+
+  it('reads the synthetic schemas', () => {
+    expect(groups.map((g) => g.name)).toEqual(['conditional', 'conditional-list']);
+    expect(groups.flatMap((g) => g.cases).length).toBeGreaterThanOrEqual(20);
+  });
+
+  describe.each(groups.map((g) => [g.name, g] as const))('%s', (_group, group) => {
+    it.each(group.cases.map((c) => [c.name, c] as const))(
+      '%s gets its Draft 2020-12 verdict from zod',
+      (_name, c) => {
+        const result = compile(zodExpression(group.schema)).safeParse(c.value);
+        expect(result.success, JSON.stringify(result.error?.issues)).toBe(c.valid);
+        if (result.success) {
+          expect(result.data).toStrictEqual(c.value);
+        }
+      },
+    );
+  });
+
+  it('translates the conditional without the converter fallback z.any()', () => {
+    for (const group of groups) {
+      expect(zodExpression(group.schema)).not.toContain('z.any(');
+    }
+  });
+
+  it.each([
+    ['else', conditional({ else: THEN_LABEL })],
+    ['oneOf', conditional({ then: { properties: { label: { oneOf: [STRING] } } } })],
+    ['a format in the then branch', conditional({ then: { properties: { label: { type: 'string', format: 'uri' } } } })],
+    ['allOf next to not', { type: 'string', not: { pattern: 'a' }, allOf: [STRING] }],
+  ])('throws on %s instead of ignoring it', async (_label, schema) => {
+    expect(() => zodExpression(schema)).toThrow(SchemaError);
+    const contract = CONTRACTS[0];
+    if (contract === undefined) {
+      throw new Error('no contracts');
+    }
+    await expect(generateModule(contract, JSON.stringify(schema))).rejects.toThrow(SchemaError);
+  });
+
+  it('names the keyword it refuses', () => {
+    expect(() => zodExpression(conditional({ else: THEN_LABEL }))).toThrow(
+      '/: unsupported keyword "else" for type "object"',
+    );
+  });
+
+  // Why the generator translates these keywords itself: the pinned converter would weaken both.
+  it('documents that the pinned converter drops if/then without else', () => {
+    const source = jsonSchemaToZod(
+      conditional({ then: { properties: { label: { not: { pattern: '^[Xx]+$' } } } } }),
+      { module: 'none', zodVersion: 4 },
+    );
+    expect(source).not.toContain('refine');
+    expect(source).not.toContain('[Xx]');
+  });
+
+  it('documents that the pinned converter turns a schema with not into z.any()', () => {
+    const source = jsonSchemaToZod(
+      { type: 'string', pattern: '^[a-z]+$', not: { pattern: 'bad' } },
+      { module: 'none', zodVersion: 4 },
+    );
+    expect(source).toContain('z.any()');
+    expect(source).not.toContain('^[a-z]+$');
   });
 });
 
@@ -233,6 +385,65 @@ describe('assertSupported', () => {
     ['a const with minLength', { type: 'string', const: '', minLength: 1 }],
     ['a const with a pattern', { type: 'string', const: 'A', pattern: '^[a-z]$' }],
     ['an enum with a const', { type: 'string', enum: ['A', 'B'], const: 'C' }],
+    ['a schema with neither type, anyOf nor not', { title: 'Nothing' }],
+    // if/then: only a string-const condition on required properties of the same object, and a
+    // then branch that constrains properties of that object.
+    ['else next to if and then', conditional({ else: THEN_LABEL })],
+    ['if without then', object({ status: STRING }, { if: IF_DONE })],
+    ['then without if', object({ label: STRING }, { then: THEN_LABEL })],
+    ['if and then on an array', { type: 'array', items: STRING, if: IF_DONE, then: THEN_LABEL }],
+    ['if and then on a string', { type: 'string', if: IF_DONE, then: THEN_LABEL }],
+    ['an if that is not an object', conditional({ if: true })],
+    ['an if with a type', conditional({ if: { ...IF_DONE, type: 'object' } })],
+    ['an if without required', conditional({ if: { properties: { status: { const: 'DONE' } } } })],
+    ['an if with no condition', conditional({ if: { properties: {}, required: [] } })],
+    [
+      'an if whose required differs from its properties',
+      conditional({ if: { ...IF_DONE, required: ['status', 'label'] } }),
+    ],
+    [
+      'an if condition that is not a const',
+      conditional({ if: { properties: { status: { enum: ['DONE'] } }, required: ['status'] } }),
+    ],
+    [
+      'an if const that is not a string',
+      conditional({ if: { properties: { status: { const: 1 } }, required: ['status'] } }),
+    ],
+    [
+      'an if const next to another keyword',
+      conditional({
+        if: { properties: { status: { const: 'DONE', type: 'string' } }, required: ['status'] },
+      }),
+    ],
+    [
+      'an if on a property the object does not have',
+      conditional({ if: { properties: { missing: { const: 'DONE' } }, required: ['missing'] } }),
+    ],
+    ['a then that is not an object', conditional({ then: true })],
+    ['a then without properties', conditional({ then: {} })],
+    ['a then with required', conditional({ then: { ...THEN_LABEL, required: ['label'] } })],
+    ['a then with a type', conditional({ then: { ...THEN_LABEL, type: 'object' } })],
+    ['a then with an empty properties map', conditional({ then: { properties: {} } })],
+    [
+      'a then property the object does not have',
+      conditional({ then: { properties: { missing: STRING } } }),
+    ],
+    [
+      'a then property with an unsupported keyword',
+      conditional({ then: { properties: { label: { type: 'string', format: 'uri' } } } }),
+    ],
+    ['oneOf in a then property', conditional({ then: { properties: { label: { oneOf: [STRING] } } } })],
+    // not: only a negated portable pattern, which JSON Schema searches for.
+    ['not that is not an object', { type: 'string', not: true }],
+    ['not without a pattern', { not: { type: 'string' } }],
+    ['not with a keyword besides pattern', { type: 'string', not: { pattern: 'a', minLength: 1 } }],
+    ['not with a non-portable pattern', { not: { pattern: '^\\d$' } }],
+    ['not with a pattern that is not a string', { not: { pattern: 1 } }],
+    ['not next to an enum', { type: 'string', enum: ['a', 'b'], not: { pattern: 'a' } }],
+    ['not next to a const', { type: 'string', const: 'a', not: { pattern: 'a' } }],
+    ['not next to anyOf', { anyOf: [STRING], not: { pattern: 'a' } }],
+    ['not under an integer', { type: 'integer', not: { pattern: 'a' } }],
+    ['not under an object', object({ a: STRING }, { not: { pattern: 'a' } })],
   ])('refuses %s', (_label, schema) => {
     expect(() => {
       assertSupported(schema);
@@ -255,6 +466,37 @@ describe('assertSupported', () => {
       assertSupported({ type: 'string', enum: ['A', 'B'], title: 'Mode' });
       assertSupported({ type: 'string', const: 'A', description: 'Fixed' });
     }).not.toThrow();
+  });
+
+  it.each([
+    ['if/then with a string-const condition', conditional()],
+    [
+      'a then branch with a negated pattern',
+      conditional({ then: { properties: { label: { not: { pattern: '^[Xx]+$' } } } } }),
+    ],
+    [
+      'an if on two properties',
+      conditional({
+        if: {
+          properties: { status: { const: 'DONE' }, label: { const: 'x' } },
+          required: ['status', 'label'],
+        },
+      }),
+    ],
+    ['a string with a pattern and a negated pattern', { type: 'string', pattern: '^[a-z]+$', not: { pattern: 'bad' } }],
+    ['a negated pattern alone', { not: { pattern: '^[Uu][Nn]$' } }],
+    ['a negated pattern with annotations', { not: { pattern: 'bad' }, title: 'Not bad' }],
+    ['a nullable negated pattern', { anyOf: [{ type: 'string', not: { pattern: 'bad' } }, { type: 'null' }] }],
+  ])('accepts %s', (_label, schema) => {
+    expect(() => {
+      assertSupported(schema);
+    }).not.toThrow();
+  });
+
+  it('checks the then branch with the same rules, naming its pointer', () => {
+    expect(() => {
+      assertSupported(conditional({ then: { properties: { label: { type: 'string', format: 'uri' } } } }));
+    }).toThrow('/then/properties/label: unsupported keyword "format"');
   });
 
   it('names the JSON pointer of the refused keyword', () => {
