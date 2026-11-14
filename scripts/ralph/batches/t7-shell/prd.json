@@ -136,7 +136,9 @@
         "apps/web/components/skip-link.tsx",
         "apps/web/eslint.config.mjs",
         "apps/web/package.json",
+        "apps/web/scripts/page-check.ts",
         "apps/web/tests/*",
+        "apps/web/tests/page-check.test.ts",
         "apps/web/vitest.config.ts",
         "pnpm-lock.yaml"
       ],
@@ -146,7 +148,8 @@
         "Navigation links, as plain next/link: Home, Moon (/explore/moon), Mars (/explore/mars), Earth (/explore/earth), Model (/model), Methods (/methods), Data (/data). Routes that do not exist yet may 404 until later stories; no link to /api/docs, /paper, /probe or /compare (not built here).",
         "Navigation is keyboard-operable in DOM order with a visible focus ring and aria-current on the active route.",
         "The Mode C and Mode B wording rules from PRD 3 and 4 apply: no banner text implies a radar match or analog result. / keeps its three T0 required texts and adds only a short factual line saying the pages show records from the bundle; it states no numbers, targets or claims.",
-        "The layout reads the bundle at build time only (static rendering); / remains statically rendered. make web-smoke still passes with its existing assertions."
+        "The layout reads the bundle at build time only (static rendering); / remains statically rendered. make web-smoke still passes with its existing assertions.",
+        "make web-smoke still passes after this story. apps/web/scripts/page-check.ts is updated test-first (apps/web/tests/page-check.test.ts) so that its \"only these texts\" assertion applies to the <main> element (the title plus the factual line), while the mock banner text, the shipping-mode line and the footer bundle version are each still asserted exactly as T0-05 requires, wherever they sit in the layout. No other check in page-check.ts is weakened, and the mock-in-production guard is untouched (orchestrator decision)."
       ],
       "checks": [
         "make check",
@@ -160,12 +163,13 @@
       "review": {
         "state": "pending",
         "round": 0,
-        "base": null,
+        "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
         "head": null,
         "files": [],
-        "digests": {}
+        "digests": {},
+        "bounces": 0
       },
-      "notes": "Name the T0-05 bundle loader module path here once found. T15 owns extending bundle:pull and the loader (apps/web/lib/bundle*, apps/web/scripts/*); T7 does not touch them."
+      "notes": "Name the T0-05 bundle loader module path here once found. T15 owns extending bundle:pull and the loader (apps/web/lib/bundle*, apps/web/scripts/*); T7 does not touch them.\nAuthor 2026-11-14T20:25Z: BLOCKED, cannot be done inside files. The T0-05 bundle loader is apps/web/lib/bundle.ts (loadBundle; shellText in apps/web/lib/shell.ts builds the banner, mode and footer strings). The conflict: make web-smoke runs pageProblems in apps/web/scripts/page-check.ts, which requires the visible text of <body> on / to equal exactly \"<mock banner> <shipping-mode line> Terraluna <footer>\". The skip link, navigation, the factual line on / and the schema version in the footer, all required by the acceptance criteria, each fail it (checked by running pageProblems on such a page). The criterion \"make web-smoke still passes with its existing assertions\" therefore contradicts the others, and apps/web/scripts/* belongs to T15, so T7 may not edit it. Human decision needed: either add apps/web/scripts/page-check.ts to this story's files (coordinated with T15) and let the \"only these texts\" assertion apply to <main> (title plus the factual line) while banners and footer stay checked as now, or have T15 make that change first.\nralph orchestrator 2026-11-14T21:20:34Z: decision on the contradiction recorded above. T7-03 may edit apps/web/scripts/page-check.ts and apps/web/tests/page-check.test.ts, narrowing the exact-text assertion to <main> while keeping the banner, mode-line and footer assertions exact. t15-api owns the other files in apps/web/scripts/ (bundle-pull) and never edits page-check.ts, so the orchestrator resolves any merge overlap. Continue T7-03 with this criterion."
     },
     {
       "id": "T7-04",
