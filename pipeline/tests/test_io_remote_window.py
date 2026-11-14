@@ -352,9 +352,7 @@ def test_max_bytes_stops_the_read_before_the_request_that_would_reach_it(
 
 
 @pytest.mark.parametrize("extra", [0, 1, 50_000])
-def test_a_first_request_that_returns_the_whole_file_is_refused(
-    remote: Remote, extra: int
-) -> None:
+def test_a_first_request_that_returns_the_whole_file_is_refused(remote: Remote, extra: int) -> None:
     # A file no larger than one block arrives whole with the first request: not a window read.
     size = remote.path.stat().st_size
     with pytest.raises(RangeReadError, match="whole") as info:
