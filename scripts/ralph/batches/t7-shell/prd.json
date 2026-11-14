@@ -162,7 +162,7 @@
       "priority": 3,
       "passes": false,
       "review": {
-        "state": "reviewed",
+        "state": "resolved",
         "round": 1,
         "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
         "head": "ba7f010903802712005d1287c9fe6fc1f4ba5a14",

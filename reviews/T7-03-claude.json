@@ -154,7 +154,11 @@
       "claim": "The initial-JS measurement (177,190 B gzip -9) rests on the author's notes only; I did not reproduce it.",
       "evidence": "The raw sizes of the six scripts on / sum to 578,302 B. The gzip total was not reproducible under the review's permission rules.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect, and now reproduced. After make web-build at 1301e9d, the six <script src> files of apps/web/.next/server/app/index.html measure 48,186 + 71,595 + 3,936 + 6,629 + 39,390 + 7,454 = 177,190 B at gzip -9. That is the figure in the story notes: +3,216 B over the T0 baseline of 173,974 B and within PRD 8.10's 250 kB. The command is the bash loop under Codebase Patterns in progress.txt. page_client-reference-manifest.js lists 9 client modules for /, and the only one outside next is [project]/apps/web/components/site-header.tsx. The round-2 fix changes only scripts/page-check.ts and tests, which are not in the client bundle."
+      }
     },
     {
       "severity": "low",
@@ -162,7 +166,11 @@
       "claim": "Next's default 404 page, shown for the routes that do not exist yet, is dark in dark-mode browsers inside this layout. No link is marked current there.",
       "evidence": "This is already recorded in the author's progress notes as a proposed follow-up (an app/not-found.tsx in a later story). The criteria allow these routes to 404.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Outside this story, and the criteria allow it. AC3 says 'Routes that do not exist yet may 404 until later stories'. T7-04, T7-05 and T7-06 build /methods, /data, /explore/* and /model. A themed app/not-found.tsx is in no T7-03 files pattern, and adding it would bounce the story. It is recorded under 'Proposed instruction changes' in the 21:40Z T7-03 progress entry for the orchestrator. Nothing on the page becomes unreadable. Next's unlayered 404 rule sets body to #fff on #000 in dark mode, which the navigation and footer inherit (21:1). The banners and the focused skip link set their own token colours. The --ring outline #1d4ed8 is 3.13:1 on #000, above WCAG 1.4.11's 3:1 (tests/contrast.ts). No aria-current on a 404 is correct: aria-current='page' marks the link to the page being shown, and a not-found page is none of the seven destinations."
+      }
     }
   ]
 }

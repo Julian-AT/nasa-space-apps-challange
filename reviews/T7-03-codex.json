@@ -154,7 +154,11 @@
       "claim": "Preserve exact protected-text validation when moving the whole-page equality check into main. The remaining substring checks allow incorrect bundle versions and malformed shipping-mode lines, violating criterion 7.",
       "evidence": "By inspection, replacing 'Bundle version: v1' with 'Bundle version: v10' in REAL_PAGE at apps/web/tests/page-check.test.ts:32-34 produces no problem: page-check.ts:72 accepts the expected version as a prefix, and lines 82-85 validate only main. Similarly, 'Shipping mode: BA' contains the expected 'Shipping mode: B' and still has one mode occurrence. The previous whole-body equality rejected both. Add negative cases for these mutations and validate complete protected values while allowing the approved mode title and schema suffix.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "1301e9dbd4b25e20862053d43342d0c432cf4fd2",
+        "reason": "Confirmed: after the check was narrowed to <main>, the banner, mode and footer checks were substring checks. Failing tests first (bf47795): v10 for v1, mock-01 for mock-0, mode BA for B, mode B without its PRD 4 title, the mode A title on a mode B bundle, a title while no mode is chosen, words after the G0 status, words added to the mock banner, and a missing or wrong schema version or extra footer words. All 12 failed against ba7f010. The fix (1301e9d) checks each protected text as a whole text run of the rendered markup. The mock banner must equal MOCK_BANNER. The mode banner must equal the shipping-mode line from shellText, plus ' — ' and the PRD 4 title for a chosen mode (PRD4_TITLES, which the new test compares with PRD.md through tests/prd.ts). The <footer> text must equal 'Bundle version: <v> · Schema <schema_version>'. The 'Mock bundle' check for real bundles, the once-only 'Shipping mode:' count, the single-<main> equality and the mock-in-production guard in lib/bundle.ts are unchanged. site-layout.test.tsx now renders RootLayout around Home for a mock bundle and a mode B bundle, and pageProblems returns [] for both, so the check matches the real layout. make web-smoke passes on the built page."
+      }
     }
   ]
 }
