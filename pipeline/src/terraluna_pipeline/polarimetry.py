@@ -1,4 +1,4 @@
-"""Numerical polarimetry: decoding, angle conversion and validity states (PRD 6.2, 7, 8.11).
+"""Numerical polarimetry: decoding, angles, Stokes conversion and validity (PRD 6.2, 7, 8.11).
 
 This module is the numerical contract of PRD section 7. Every function works elementwise on
 float64 arrays and returns a :class:`StatedArray`: the values together with a per-element
@@ -17,8 +17,9 @@ Conventions that hold for every function here:
   other elements are unaffected: a result that overflows, or a positive power below the
   smallest normal float64 (underflowed to zero, or a subnormal without full precision). No
   other numerical range is imposed.
-- Product validity and noise flags enter only through explicit arguments, such as ``nodata``
-  and the noise flags of :func:`x_power` (PRD 7: keep the product's flags). Array arguments
+- Product validity and noise flags enter only through explicit arguments, such as ``nodata``,
+  the noise flags of :func:`x_power` and ``product_masked`` of :func:`circular_from_stokes`
+  (PRD 7: keep the product's flags). Array arguments
   are plain numpy arrays (memory-mapped ones included), scalars, or lists and tuples of them
   nested to any depth, all matched by exact type. A numpy masked array is refused with
   TypeError wherever it appears, because converting it to an array drops its mask and a masked
@@ -39,15 +40,21 @@ import numpy as np
 import numpy.typing as npt
 
 __all__ = [
+    "ARITHMETIC_TOLERANCE",
     "INTERNAL_ANGLE_UNIT",
+    "MINIRF_SIS_CONVENTION",
     "PALSAR2_CALIBRATION_OFFSET_DB",
     "REASON_DTYPE",
     "STATE_DTYPE",
     "AngleUnit",
+    "CircularPowers",
     "InvalidReason",
     "ObsState",
     "StatedArray",
+    "StokesConvention",
+    "Tolerance",
     "angle_to_degrees",
+    "circular_from_stokes",
     "decode_db",
     "decode_linear",
     "x_power",
@@ -100,6 +107,24 @@ class InvalidReason(StrEnum):
     FLOAT64_OUT_OF_RANGE = "FLOAT64_OUT_OF_RANGE"
     """The input is valid, but float64 cannot hold the result (state ``INVALID``): it overflows,
     or a positive power falls below the smallest normal float64. Not a physical threshold."""
+
+    PRODUCT_MASKED = "PRODUCT_MASKED"
+    """The product's own validity or noise flag excludes the element (state ``MISSING``)."""
+
+    STOKES_S1_LT_ABS_S4 = "STOKES_S1_LT_ABS_S4"
+    """Stokes ``S1 < |S4|`` beyond the tolerance, so no circular powers exist (``INVALID``)."""
+
+    STOKES_NONPHYSICAL = "STOKES_NONPHYSICAL"
+    """With all four Stokes parameters, ``S1**2 < S2**2 + S3**2 + S4**2`` beyond the tolerance
+    (state ``INVALID``)."""
+
+    OC_NONPOSITIVE = "OC_NONPOSITIVE"
+    """The opposite-sense power OC is zero or negative, so CPR = SC/OC is unavailable
+    (state ``INVALID``). No epsilon is added (PRD 7)."""
+
+    SC_NEGATIVE = "SC_NEGATIVE"
+    """SC is below zero, accepted within the Stokes tolerance and reported as computed, but no
+    ratio is formed from a negative power and none is clipped to zero (state ``INVALID``)."""
 
 
 STATE_DTYPE: Final = np.dtype(np.uint8)
@@ -202,6 +227,28 @@ class _Classifier:
             if positive:
                 out_of_range |= result < _SMALLEST_NORMAL
         self.mark(out_of_range, ObsState.INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE)
+
+    def mark_below_normal(
+        self, result: npt.NDArray[np.float64], *, nonzero: npt.NDArray[np.bool_]
+    ) -> None:
+        """Mark elements whose exact result is nonzero but below the smallest normal float64.
+
+        ``nonzero`` says, from the inputs and not from ``result``, where the exact result is not
+        zero. There a float64 ``result`` of magnitude below the smallest normal float64 has
+        underflowed to zero or lost precision as a subnormal, so the element is ``INVALID`` with
+        ``FLOAT64_OUT_OF_RANGE``. An exact zero stays a valid zero. Only elements that are still
+        ``VALID`` are marked.
+        """
+        with np.errstate(invalid="ignore"):
+            below = nonzero & (np.abs(result) < _SMALLEST_NORMAL)
+        self.mark(below, ObsState.INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE)
+
+    def copy(self) -> _Classifier:
+        """Return an independent classifier with the same states and reasons so far."""
+        other = _Classifier(self.state.shape)
+        other.state[...] = self.state
+        other.reason[...] = self.reason
+        return other
 
     def finish(self, value: npt.NDArray[np.float64]) -> StatedArray:
         """Blank every element that is not VALID and freeze the result."""
@@ -541,3 +588,248 @@ def angle_to_degrees(angle: npt.ArrayLike, *, unit: AngleUnit) -> StatedArray:
         out = np.degrees(values) if unit == "radians" else values.copy()
     classifier.mark_out_of_range(out, positive=False)
     return classifier.finish(out)
+
+
+# --- Tolerances (PRD 7, Tolerances) ----------------------------------------------------------
+
+
+def _check_tolerance_part(name: str, value: object) -> float:
+    if isinstance(value, bool) or not isinstance(value, int | float | np.integer | np.floating):
+        raise TypeError(f"{name} must be a real number, got {value!r}")
+    number = float(value)
+    if not (math.isfinite(number) and number >= 0.0):
+        raise ValueError(f"{name} must be finite and not negative, got {value!r}")
+    return number
+
+
+@dataclass(frozen=True, slots=True)
+class Tolerance:
+    """A comparison tolerance: ``a`` may exceed ``b`` by at most ``atol + rtol * |b|``.
+
+    ``rtol`` (relative, dimensionless) and ``atol`` (absolute, in the units of the compared
+    quantity) are finite and not negative. They are stored as float.
+    """
+
+    rtol: float
+    atol: float
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "rtol", _check_tolerance_part("rtol", self.rtol))
+        object.__setattr__(self, "atol", _check_tolerance_part("atol", self.atol))
+
+
+ARITHMETIC_TOLERANCE: Final = Tolerance(rtol=1e-10, atol=1e-12)
+"""The PRD 7 arithmetic tolerance for normalized float64 fixtures (``rtol = 1e-10``,
+``atol = 1e-12``). It is not an instrument accuracy: real-data tolerances come from the product,
+its calibration and the reference-reproduction conditions (PRD 7), and are not yet decided."""
+
+
+# --- Mini-RF Stokes parameters to circular powers (PRD 6.2, 7; F1-F5) ------------------------
+
+StokesConvention = Literal["MINIRF_SIS_S4_EQ_OC_MINUS_SC"]
+"""Stokes sign conventions this module knows. Only the Mini-RF SIS convention is declared."""
+
+MINIRF_SIS_CONVENTION: Final[StokesConvention] = "MINIRF_SIS_S4_EQ_OC_MINUS_SC"
+"""The Mini-RF data product SIS convention, ``S4 = OC - SC`` (PRD 6.2), so that
+``SC = (S1 - S4) / 2`` and ``OC = (S1 + S4) / 2``. Ordinary lunar terrain with CPR below 1 then
+has ``S4 > 0``."""
+
+_STOKES_CONVENTIONS: Final[tuple[str, ...]] = (MINIRF_SIS_CONVENTION,)
+
+
+def _check_stokes_convention(convention: object) -> None:
+    if type(convention) is not str or convention not in _STOKES_CONVENTIONS:
+        raise ValueError(
+            f"Stokes convention must be declared as one of {_STOKES_CONVENTIONS}, got "
+            f"{convention!r}; an undeclared sign convention is refused, never guessed"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class CircularPowers:
+    """Same-sense power SC, opposite-sense power OC and CPR = SC/OC, each with its own states.
+
+    ``sc``, ``oc`` and ``cpr`` have the same shape. SC and OC are linear powers in the units the
+    product's label defines for its Stokes parameters; CPR is a dimensionless linear ratio, not
+    the share of total echo, which is ``CPR / (1 + CPR)`` (PRD 6.2). A ``VALID`` CPR needs a
+    ``VALID`` SC and a ``VALID``, positive OC. ``convention`` is the declared Stokes convention
+    and ``tolerance`` the one the Stokes validity rules used.
+    """
+
+    sc: StatedArray
+    oc: StatedArray
+    cpr: StatedArray
+    convention: StokesConvention
+    tolerance: Tolerance
+
+    def __post_init__(self) -> None:
+        for name in ("sc", "oc", "cpr"):
+            if type(getattr(self, name)) is not StatedArray:
+                raise TypeError(f"{name} must be a StatedArray")
+        if not self.sc.value.shape == self.oc.value.shape == self.cpr.value.shape:
+            raise ValueError(
+                "sc, oc and cpr must have the same shape, got "
+                f"{self.sc.value.shape}, {self.oc.value.shape} and {self.cpr.value.shape}"
+            )
+        _check_stokes_convention(self.convention)
+        if type(self.tolerance) is not Tolerance:
+            raise TypeError(f"tolerance must be a Tolerance, got {self.tolerance!r}")
+        cpr_valid = np.equal(self.cpr.state, ObsState.VALID)
+        powers_valid = np.equal(self.sc.state, ObsState.VALID) & np.equal(
+            self.oc.state, ObsState.VALID
+        )
+        with np.errstate(invalid="ignore"):
+            oc_positive = self.oc.value > 0.0
+        if np.any(cpr_valid & ~(powers_valid & oc_positive)):
+            raise ValueError("a VALID CPR needs a VALID SC and a VALID, positive OC")
+
+
+def _stokes_array(
+    name: str, values: npt.ArrayLike, shape: tuple[int, ...] | None
+) -> npt.NDArray[np.float64]:
+    array = _real_array(name, values).astype(np.float64)
+    if shape is not None and array.shape != shape:
+        raise ValueError(f"{name} must have the shape of s1, {shape}, got {array.shape}")
+    return array
+
+
+def circular_from_stokes(
+    s1: npt.ArrayLike,
+    s4: npt.ArrayLike,
+    *,
+    s2: npt.ArrayLike | None,
+    s3: npt.ArrayLike | None,
+    convention: StokesConvention,
+    product_masked: npt.ArrayLike,
+    tolerance: Tolerance = ARITHMETIC_TOLERANCE,
+) -> CircularPowers:
+    """Convert Mini-RF Stokes parameters to SC, OC and CPR (PRD 6.2, 7; F1-F5).
+
+    Under the declared SIS convention ``S4 = OC - SC`` (:data:`MINIRF_SIS_CONVENTION`)::
+
+        SC  = (S1 - S4) / 2
+        OC  = (S1 + S4) / 2
+        CPR = SC / OC
+
+    The factor 2 cancels in CPR but not in absolute powers: SC and OC follow the SIS definition
+    above, and the label of the selected product defines what its Stokes powers are (PRD 6.2).
+    A product whose label states another power definition or sign convention needs its own
+    declared convention, which this module does not yet have. ``convention`` is required;
+    anything other than :data:`MINIRF_SIS_CONVENTION`, ``None`` included, raises ValueError and
+    nothing is returned. SC and OC are computed as ``S1/2 - S4/2`` and ``S1/2 + S4/2``, the same
+    quantities, so no intermediate sum overflows float64. CPR is SC/OC, not the share of total
+    echo, which is ``CPR / (1 + CPR)``; a valid high CPR is never truncated (PRD 7).
+
+    ``s1`` and ``s4`` are real arrays of the same shape, in the product's linear power units.
+    ``s2`` and ``s3`` are the other two Stokes parameters, given together with that shape, or
+    both as ``None`` where the product has no such fields; they must be given explicitly, so a
+    product with all four cannot skip the full test by omission. ``product_masked`` is a boolean
+    array that broadcasts to the shape and is True where the product's own validity or noise
+    flag excludes the pixel, or where a configured SNR rule does (PRD 7: any added SNR rule is
+    written in config); no SNR rule is applied here. ``tolerance`` is the Stokes validity
+    tolerance. It defaults to :data:`ARITHMETIC_TOLERANCE`, the PRD 7 arithmetic tolerance; a
+    real-data Stokes tolerance is an open decision (PRD 7: it comes from the product).
+
+    Rules shared by SC, OC and CPR, in order (the first match wins):
+
+    1. ``product_masked``: ``MISSING``, ``PRODUCT_MASKED``.
+    2. Any given Stokes parameter is NaN or infinite: ``INVALID``, ``NONFINITE``.
+    3. ``|S4| - S1 > atol + rtol * |S1|``, that is S1 >= |S4| fails beyond the tolerance:
+       ``INVALID``, ``STOKES_S1_LT_ABS_S4``.
+    4. With S2 and S3: ``sqrt(S2**2 + S3**2 + S4**2) - S1 > atol + rtol * |S1|``, which is
+       S1**2 >= S2**2 + S3**2 + S4**2 for S1 >= 0 with the tolerance in the units of S1 as in
+       rule 3, evaluated on halved inputs so no square overflows: ``INVALID``,
+       ``STOKES_NONPHYSICAL``.
+
+    Then SC and OC each: ``INVALID`` with ``FLOAT64_OUT_OF_RANGE`` where the exact power is not
+    zero but its float64 magnitude is below the smallest normal float64. An exact zero is a
+    valid zero (F1), and the sums cannot overflow. Within the tolerance S4 may exceed S1 or fall
+    below -S1 slightly; SC or OC is then negative by at most half the tolerance and is reported
+    as computed, never clipped or repaired (PRD 7).
+
+    Then CPR, after the shared rules:
+
+    5. ``S1 + S4 <= 0`` (decided exactly from the inputs as ``S1 <= -S4``): ``INVALID``,
+       ``OC_NONPOSITIVE``. No epsilon is added to a zero or near-zero OC (PRD 7, F5), so a
+       small positive OC gives the large CPR it implies.
+    6. ``S1 < S4``, a negative SC accepted within the tolerance: ``INVALID``, ``SC_NEGATIVE``.
+       A ratio of a negative power is not a CPR, and it is not clipped to a valid zero.
+    7. SC or OC is out of float64 range (above): ``INVALID``, ``FLOAT64_OUT_OF_RANGE``.
+    8. A CPR float64 cannot hold: ``INVALID``, ``FLOAT64_OUT_OF_RANGE``. For in-range SC and OC
+       this does not occur, since CPR is then 0 or within about ``2**+-55``; it is kept as a
+       guard so every pixel still ends with a state.
+
+    Missing, invalid and valid low CPR stay distinct (PRD 7): a pixel that is not ``VALID``
+    holds NaN with its state and reason, never 0.0. Units: SC and OC in the linear power units
+    of the Stokes parameters; CPR dimensionless.
+    """
+    _check_stokes_convention(convention)
+    if type(tolerance) is not Tolerance:
+        raise TypeError(f"tolerance must be a Tolerance, got {tolerance!r}")
+    if (s2 is None) != (s3 is None):
+        raise ValueError("s2 and s3 must be given together, or both as None")
+
+    s1_values = _stokes_array("s1", s1, None)
+    shape = s1_values.shape
+    s4_values = _stokes_array("s4", s4, shape)
+    others = (
+        None
+        if s2 is None or s3 is None
+        else (_stokes_array("s2", s2, shape), _stokes_array("s3", s3, shape))
+    )
+    masked = _bool_mask("product_masked", product_masked, shape)
+
+    base = _Classifier(shape)
+    base.mark(masked, ObsState.MISSING, InvalidReason.PRODUCT_MASKED)
+    finite = np.isfinite(s1_values) & np.isfinite(s4_values)
+    if others is not None:
+        finite &= np.isfinite(others[0]) & np.isfinite(others[1])
+    base.mark(~finite, ObsState.INVALID, InvalidReason.NONFINITE)
+    with np.errstate(over="ignore", invalid="ignore", under="ignore"):
+        allowed = tolerance.atol + tolerance.rtol * np.abs(s1_values)
+        # |S4| - S1 overflows only to +inf, far beyond any tolerance; it never wraps to -inf.
+        excess = np.abs(s4_values) - s1_values
+        base.mark(excess > allowed, ObsState.INVALID, InvalidReason.STOKES_S1_LT_ABS_S4)
+        if others is not None:
+            half_norm = np.hypot(np.hypot(0.5 * others[0], 0.5 * others[1]), 0.5 * s4_values)
+            half_excess = half_norm - 0.5 * s1_values
+            base.mark(
+                half_excess > 0.5 * allowed, ObsState.INVALID, InvalidReason.STOKES_NONPHYSICAL
+            )
+
+    valid = base.valid
+    half_s1 = np.full(shape, np.nan)
+    half_s4 = np.full(shape, np.nan)
+    with np.errstate(under="ignore"):
+        half_s1[valid] = 0.5 * s1_values[valid]
+        half_s4[valid] = 0.5 * s4_values[valid]
+    sc = half_s1 - half_s4
+    oc = half_s1 + half_s4
+
+    sc_classifier = base.copy()
+    sc_classifier.mark_below_normal(sc, nonzero=s1_values != s4_values)
+    oc_classifier = base.copy()
+    oc_classifier.mark_below_normal(oc, nonzero=s1_values != -s4_values)
+
+    cpr_classifier = base.copy()
+    cpr_classifier.mark(s1_values <= -s4_values, ObsState.INVALID, InvalidReason.OC_NONPOSITIVE)
+    cpr_classifier.mark(s1_values < s4_values, ObsState.INVALID, InvalidReason.SC_NEGATIVE)
+    cpr_classifier.mark(
+        ~(sc_classifier.valid & oc_classifier.valid),
+        ObsState.INVALID,
+        InvalidReason.FLOAT64_OUT_OF_RANGE,
+    )
+    cpr = np.full(shape, np.nan)
+    ratio = cpr_classifier.valid
+    with np.errstate(over="ignore", under="ignore"):
+        cpr[ratio] = sc[ratio] / oc[ratio]
+    cpr_classifier.mark_out_of_range(cpr, positive=False)
+    cpr_classifier.mark_below_normal(cpr, nonzero=s1_values != s4_values)
+
+    return CircularPowers(
+        sc=sc_classifier.finish(sc),
+        oc=oc_classifier.finish(oc),
+        cpr=cpr_classifier.finish(cpr),
+        convention=convention,
+        tolerance=tolerance,
+    )

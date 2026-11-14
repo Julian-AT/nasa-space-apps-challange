@@ -595,7 +595,11 @@ def test_record_refuses_mismatched_shapes_and_unknown_conventions() -> None:
         )
     with pytest.raises(ValueError):
         CircularPowers(
-            sc=one, oc=one, cpr=one, convention="S4 = SC - OC", tolerance=ARITHMETIC_TOLERANCE
+            sc=one,
+            oc=one,
+            cpr=one,
+            convention="S4 = SC - OC",  # type: ignore[arg-type]
+            tolerance=ARITHMETIC_TOLERANCE,
         )
 
 
