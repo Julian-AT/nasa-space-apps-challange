@@ -132,7 +132,8 @@ def rough_field(size: int, seed: int = 20261115) -> Array:
     rows, cols = np.mgrid[0:size, 0:size].astype(np.float64)
     noise = rng.normal(0.0, 7.5, size=(size, size))
     walk = np.cumsum(np.cumsum(rng.normal(0.0, 1.0, size=(size, size)), axis=0), axis=1)
-    return 1200.0 + 0.8 * cols - 0.3 * rows + noise + walk
+    field: Array = 1200.0 + 0.8 * cols - 0.3 * rows + noise + walk
+    return field
 
 
 def size_of(
@@ -205,6 +206,13 @@ def test_quarter_window_uses_the_nominal_5000_m_width() -> None:
     reasons = {item.lag_m: item.reason for item in result.lags}
     assert reasons[1170.0] is None
     assert reasons[1260.0] == "exceeds_quarter_window"
+
+
+def test_lag_failing_both_rules_reports_the_three_cell_rule_first() -> None:
+    # In a 1000 m window, 180 m is both under three cells and over a quarter window (250 m).
+    config = with_config(lags_m=(180.0,))
+    result = run(rough_field(size_of(config, width_m=1000.0)), config=config, width_m=1000.0)
+    assert [item.reason for item in result.lags] == ["below_min_lag_cells"]
 
 
 def test_window_too_small_for_any_lag_keeps_no_lag_and_no_h() -> None:
@@ -480,6 +488,33 @@ def test_h_fit_rejects_bad_gate_settings(min_lags: Any, factor: Any) -> None:
         hurst_fit(lags, (1.0,) * 5, min_lags_for_H=min_lags, min_lag_span_factor=factor)
 
 
+@pytest.mark.parametrize("rule", ["direction_mean", "pooled_pairs"])
+def test_fingerprint_h_is_the_fit_on_the_isotropic_summary(rule: str) -> None:
+    x, y = mesh()
+    values = rough_field(55, seed=5)
+    valid = np.ones((55, 55), dtype=np.bool_)
+    valid[10:20, 10:16] = False
+    residuals, _ = exact_plane_residuals(values, valid, x, y)
+    result = run(values, valid, rule=rule)
+    for policy, surface in (("none", values), ("plane", residuals)):
+        reference = structure_function(
+            surface,
+            valid=valid,
+            spacing_m=90.0,
+            lags_m=CONFIG.lags_m,
+            isotropic_rule=rule,  # type: ignore[arg-type]
+        )
+        nu = [item.nu_m for item in reference.isotropic]
+        assert all(value is not None for value in nu)
+        slope, intercept = np.polyfit(np.log(CONFIG.lags_m), np.log(np.array(nu, dtype=float)), 1)
+        hurst = result.variants[policy].hurst  # type: ignore[index]
+        assert hurst.H is not None and hurst.log_intercept is not None
+        assert close(hurst.H, float(slope))
+        assert close(hurst.log_intercept, float(intercept))
+        assert hurst.nu_m == tuple(nu)
+        assert hurst.lags_m == CONFIG.lags_m
+
+
 # --- Zero nu, planes and the two variants -----------------------------------------------------
 
 
@@ -533,6 +568,7 @@ def test_plane_removal_ignores_nodata_cells(filler: float) -> None:
     assert texture.plane.cell_count == 55 * 55 - 56
     assert texture.nu_m == (0.0,) * 5
     assert texture.hurst.reason == "nu_zero"
+    assert texture.surface_m is not None
     assert np.all(np.isnan(texture.surface_m[~valid]))
 
 
@@ -546,8 +582,9 @@ def exact_plane_residuals(
     cells = [(r, c) for r in range(values.shape[0]) for c in range(values.shape[1]) if valid[r, c]]
     rows = [(Fraction(1), Fraction(float(x[r, c])), Fraction(float(y[r, c]))) for r, c in cells]
     zs = [Fraction(float(values[r, c])) for r, c in cells]
-    matrix = [[sum(p[i] * p[j] for p in rows) for j in range(3)] for i in range(3)]
-    rhs = [sum(p[i] * z for p, z in zip(rows, zs, strict=True)) for i in range(3)]
+    zero = Fraction(0)
+    matrix = [[sum((p[i] * p[j] for p in rows), zero) for j in range(3)] for i in range(3)]
+    rhs = [sum((p[i] * z for p, z in zip(rows, zs, strict=True)), zero) for i in range(3)]
     # Gaussian elimination with exact arithmetic.
     aug = [[*matrix[i], rhs[i]] for i in range(3)]
     for col in range(3):
@@ -787,11 +824,12 @@ def test_output_carries_grid_detrend_settings_and_per_direction_values() -> None
         assert variant.structure is not None
         assert variant.structure.isotropic_rule == "pooled_pairs"
         assert tuple(variant.directional_nu_m) == DIRECTIONS
-        for direction in ("x", "y"):
-            assert all(nu is not None and nu > 0.0 for nu in variant.directional_nu_m[direction])
+        assert DIRECTIONS[:2] == ("x", "y")
+        for axis in DIRECTIONS[:2]:
+            assert all(nu is not None and nu > 0.0 for nu in variant.directional_nu_m[axis])
         # The diagonals are off the 90 m grid at every configured lag: None, never 0.
-        for direction in ("diagonal_ne", "diagonal_nw"):
-            assert variant.directional_nu_m[direction] == (None,) * 5
+        for diagonal in DIRECTIONS[2:]:
+            assert variant.directional_nu_m[diagonal] == (None,) * 5
         assert variant.labels == ("Derived",) * 5
         assert variant.hurst.label == "Derived"
 
