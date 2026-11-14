@@ -2,7 +2,6 @@
 // 8.10, D35): one high-contrast light theme that meets WCAG 2.2 AA text contrast, a visible focus
 // ring, a red reserved for the mock banner, and no webfont, image or dark theme.
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 
 import tailwindcss from '@tailwindcss/postcss';
 import postcss, { type Root } from 'postcss';
@@ -10,30 +9,11 @@ import { describe, expect, it } from 'vitest';
 
 import { contrastRatio, isRed, parseHex } from './contrast.ts';
 import { WEB_DIR } from './helpers.ts';
-
-const GLOBALS = join(WEB_DIR, 'app', 'globals.css');
+import { GLOBALS, token } from './tokens.ts';
 
 /** WCAG 2.2 SC 1.4.3 (AA) for text, SC 1.4.11 for focus indicators and component borders. */
 const AA_TEXT = 4.5;
 const AA_NON_TEXT = 3;
-
-/** The custom properties of the top-level :root rule, in source order. */
-function rootTokens(): Map<string, string> {
-  const tokens = new Map<string, string>();
-  for (const node of postcss.parse(readFileSync(GLOBALS, 'utf8')).nodes) {
-    if (node.type !== 'rule' || node.selector !== ':root') continue;
-    node.walkDecls((decl) => {
-      if (decl.prop.startsWith('--')) tokens.set(decl.prop.slice(2), decl.value);
-    });
-  }
-  return tokens;
-}
-
-function token(name: string): string {
-  const value = rootTokens().get(name);
-  if (value === undefined) throw new Error(`app/globals.css :root defines no --${name}`);
-  return value;
-}
 
 /** Compiles app/globals.css as next build does, plus the given candidate classes. */
 async function compile(candidates: readonly string[]): Promise<{ css: string; root: Root }> {
