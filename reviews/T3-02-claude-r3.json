@@ -92,7 +92,11 @@
       "claim": "The latitude is evaluated as phi0 + atan2(sin dphi, cos dphi), not the literal asin(S). @terraluna/core (T10) must use the same evaluation for parity (PRD 8.8).",
       "evidence": "Previously accepted as claude-r1-1 and claude-r2-1. The deviation is documented in the geometry.py docstring and tested against the asin form at PRD tolerances. This is a note for a human decision at T10, not a defect here.",
       "id": "claude-r3-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect in T3-02, as the finding itself says. The increment form equals the PRD asin to PRD 7 tolerances (test_inverse_matches_the_prd_expressions, rtol 1e-10, atol 1e-12 rad), and the literal asin fails PRD 7's own round-trip and distance tolerances near the poles: at +-89.9 deg it was 1.6e-7 to 3.9e-7 m off a 40-digit reference, and a literal-asin mutant failed 105 of 498 tests (round 1). The parity requirement for @terraluna/core is recorded for a human as decision (2) in the story notes, in the aeqd_inverse docstring and as a PRD 7 wording proposal in the progress log. T10 owns the TypeScript mirror (PRD 8.8); nothing in this story can remove the need."
+      }
     },
     {
       "severity": "low",
@@ -100,7 +104,11 @@
       "claim": "The forward uses double-double arithmetic, Taylor series near poles and branch thresholds. This is complex, and T10 would have to reproduce it for numerical parity.",
       "evidence": "The tests cover the behaviour against a 40-digit reference, including explicit near-pole cases. This is a maintainability and parity note only.",
       "id": "claude-r3-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "A maintainability and parity note, not a defect, as the finding says. The double-double products, polar series and branch thresholds are what lets the forward meet PRD 7 in metres in windows within 3.6 km of a pole: without them seven pinned cases used 1.00 to 1.28 of the allowance (test_forward_near_an_axis_in_a_pole_window), and every branch is checked against the 40-digit reference, including the explicit pole scans. D29 production evaluates only the inverse; the forward is the round-trip reference. Whether T10 needs a forward held to the same metre tolerance, and so this evaluation, is decision (5) in the story notes, with a PRD 7 / 8.8 wording proposal in the progress log. Round 3 adds the true-period longitude turn (codex2-r3-1) to that note."
+      }
     }
   ]
 }
