@@ -35,6 +35,9 @@ from terraluna_pipeline.io import (
     DownloadError,
     FetchedFile,
     FileTooLargeError,
+    RangeNotSupportedError,
+    RangeReadError,
+    RangeResponse,
 )
 from terraluna_pipeline.schema import ProductRecord, SourcesFile
 
@@ -154,8 +157,14 @@ def counts() -> npt.NDArray[np.float32]:
 
 
 def geotiff_bytes(
-    array: npt.NDArray[Any], *, crs: str = STEREO, width: int = WIDTH, tmp: Path
+    array: npt.NDArray[Any],
+    *,
+    crs: str = STEREO,
+    width: int = WIDTH,
+    tmp: Path,
+    **creation: Any,
 ) -> bytes:
+    """A GeoTIFF of ``array``; ``creation`` passes GTiff creation options such as blockysize."""
     path = tmp / "scratch.tif"
     with (
         warnings.catch_warnings(),
@@ -170,6 +179,7 @@ def geotiff_bytes(
             crs=crs,
             transform=TRANSFORM,
             nodata=float("nan"),
+            **creation,
         ) as dst,
     ):
         dst.write(array, 1)
@@ -281,12 +291,71 @@ def fixed_clock() -> datetime:
     return FIXED
 
 
-def sources_for() -> dict[str, pilot.Source]:
-    return {"pgda78": pilot.Pgda78Source(base_url=BASE)}
+class MockRangeFetcher:
+    """Stands in for io.fetch_range: serves byte ranges of the bodies and records every call."""
+
+    def __init__(self, served: dict[str, bytes], *, fail: dict[str, Exception] | None = None):
+        self.served = served
+        self.fail = fail or {}
+        self.calls: list[tuple[str, int, int]] = []
+        self.bytes_served: dict[str, int] = {}
+
+    def __call__(self, url: str, first: int, last: int) -> RangeResponse:
+        self.calls.append((url, first, last))
+        if url in self.fail:
+            raise self.fail[url]
+        if url not in self.served:
+            raise RangeReadError(f"{url}: HTTP 404 Not Found for bytes={first}-{last}")
+        data = self.served[url]
+        end = min(last, len(data) - 1)
+        body = data[first : end + 1]
+        self.bytes_served[url] = self.bytes_served.get(url, 0) + len(body)
+        return RangeResponse(
+            url=url,
+            final_url=url,
+            requested_first=first,
+            requested_last=last,
+            status=206,
+            content_range=f"bytes {first}-{end}/{len(data)}",
+            first_byte=first,
+            last_byte=end,
+            total_size=len(data),
+            bytes_received=len(body),
+            data=body,
+            content_type="image/tiff",
+            last_modified="Fri, 05 Jun 2020 18:39:35 GMT",
+            etag='W/"synthetic"',
+        )
 
 
-def do_fetch(root: Path, downloader: MockDownloader) -> None:
-    pilot.fetch("pgda78", root=root, sources=sources_for(), download=downloader, now=fixed_clock)
+WINDOW_PIXELS = 16
+BLOCK_BYTES = 512
+WINDOW = {"col_off": (WIDTH - 16) // 2, "row_off": (HEIGHT - 16) // 2, "width": 16, "height": 16}
+"""The centred window of WINDOW_PIXELS on the synthetic 40 x 30 grid: columns 12-27, rows 7-22."""
+
+
+def sources_for(**fields: Any) -> dict[str, pilot.Source]:
+    return {"pgda78": pilot.Pgda78Source(base_url=BASE, **fields)}
+
+
+def windowed_sources() -> dict[str, pilot.Source]:
+    return sources_for(window_pixels=WINDOW_PIXELS, range_block_bytes=BLOCK_BYTES)
+
+
+def do_fetch(
+    root: Path,
+    downloader: MockDownloader,
+    read_range: MockRangeFetcher | None = None,
+    sources: dict[str, pilot.Source] | None = None,
+) -> None:
+    pilot.fetch(
+        "pgda78",
+        root=root,
+        sources=sources or sources_for(),
+        download=downloader,
+        read_range=read_range or MockRangeFetcher({}),
+        now=fixed_clock,
+    )
 
 
 @pytest.fixture
@@ -416,15 +485,179 @@ def test_fetch_failure_keeps_an_earlier_complete_fetch_usable(
     assert pilot.check("pgda78", root=fetched, sources=sources_for()) == []
 
 
-def test_fetch_refuses_a_file_over_the_whole_file_limit(tmp_path: Path) -> None:
+# --- Files at or over the whole-file limit ------------------------------------------------------
+
+
+def too_large(*names: str) -> dict[str, Exception]:
+    return {
+        SITE_URL + name: FileTooLargeError(f"{SITE_URL + name}: the file is over the limit")
+        for name in names
+    }
+
+
+def striped_site(tmp_path: Path) -> dict[str, bytes]:
+    """The synthetic site with one-row strips, so a window needs only some of each file."""
+    return site(
+        tmp_path,
+        **{
+            SURF: geotiff_bytes(heights(), tmp=tmp_path, blockysize=1),
+            LDEC: geotiff_bytes(counts(), tmp=tmp_path, blockysize=1),
+            SLP: geotiff_bytes(np.full((HEIGHT, WIDTH), 12.5, np.float32), tmp=tmp_path),
+            TOTERR: geotiff_bytes(np.full((HEIGHT, WIDTH), 0.4, np.float32), tmp=tmp_path),
+            SLPERR: geotiff_bytes(np.full((HEIGHT, WIDTH), 1.5, np.float32), tmp=tmp_path),
+        },
+    )
+
+
+def window_of(array: npt.NDArray[Any]) -> npt.NDArray[Any]:
+    rows = slice(WINDOW["row_off"], WINDOW["row_off"] + WINDOW["height"])
+    cols = slice(WINDOW["col_off"], WINDOW["col_off"] + WINDOW["width"])
+    return array[rows, cols]
+
+
+@pytest.mark.parametrize("windowed", [(SURF,), GEOTIFFS], ids=["height-only", "every-geotiff"])
+def test_a_geotiff_over_the_limit_is_read_by_window_and_never_downloaded(
+    tmp_path: Path, windowed: tuple[str, ...]
+) -> None:
     root = tmp_path / "repo"
     root.mkdir()
-    downloader = MockDownloader(
-        site(tmp_path), fail={SITE_URL + SURF: FileTooLargeError(f"{SITE_URL + SURF}: too big")}
+    served = striped_site(tmp_path)
+    downloader = MockDownloader(served, fail=too_large(*windowed))
+    ranges = MockRangeFetcher(served)
+    do_fetch(root, downloader, ranges, windowed_sources())
+    raw = root / "data/raw/pgda78"
+    assert {url for url, _, _ in ranges.calls} == {SITE_URL + name for name in windowed}
+    assert ranges.bytes_served[SITE_URL + SURF] < len(served[SITE_URL + SURF])
+    metadata = json.loads((raw / "fetch.json").read_bytes())
+    by_role = {item["role"]: item for item in metadata["files"]}
+    entry = by_role["height"]
+    assert entry["read"] == "window"
+    assert entry["provider_file_name"] == SURF
+    assert entry["file_name"] == SURF + ".ranges"
+    assert not (raw / SURF).exists()
+    cache = (raw / entry["file_name"]).read_bytes()
+    assert entry["bytes_received"] == len(cache) == ranges.bytes_served[SITE_URL + SURF]
+    assert entry["sha256"] == hashlib.sha256(cache).hexdigest()
+    assert entry["remote_bytes"] == len(served[SITE_URL + SURF])
+    assert entry["http_status"] == 206
+    assert entry["window"] == WINDOW
+    assert entry["range_requests"] == sum(1 for url, _, _ in ranges.calls if url == SITE_URL + SURF)
+    assert "over the limit" in entry["whole_file_refused"]
+    for first, last in entry["ranges"]:
+        assert 0 <= first <= last < len(served[SITE_URL + SURF])
+
+    pilot.record("pgda78", root=root, sources=windowed_sources())
+    record = pilot_json(root)
+    assert record["decoded_window"] == WINDOW
+    surf = file_entry(record, SURF)
+    assert surf["read"] == "window"
+    assert surf["bytes"] == len(served[SITE_URL + SURF])
+    assert surf["sha256"] == "unknown"
+    assert surf["local_path"] == f"data/raw/pgda78/{SURF}.ranges"
+    assert surf["range_read"]["local_sha256"] == hashlib.sha256(cache).hexdigest()
+    assert surf["range_read"]["bytes_received"] == len(cache)
+    assert surf["decoded_window"]["width"] == WINDOW["width"]
+    assert (surf["width"], surf["height"]) == (WIDTH, HEIGHT)
+    assert surf["extent_m"]["left"] == LEFT
+    window_dem = window_of(heights())
+    assert surf["valid"]["total_pixels"] == window_dem.size
+    assert surf["valid"]["valid_pixels"] == int(np.sum(~np.isnan(window_dem)))
+    for name in set(GEOTIFFS) - set(windowed):
+        whole = file_entry(record, name)
+        assert whole["read"] == "whole"
+        assert whole["range_read"] is None
+        assert whole["decoded_window"] == surf["decoded_window"]
+        assert whole["valid"]["total_pixels"] == window_dem.size
+    support = record["effective_support"]
+    count = window_of(counts())
+    valid = ~np.isnan(window_dem) & ~np.isnan(count)
+    assert support["observed_pixels"] == int(np.sum(valid & (count >= 1)))
+    assert support["interpolated_pixels"] == int(np.sum(valid & (count == 0)))
+    preview = record["preview"]
+    assert (preview["width"], preview["height"], preview["step"]) == (16, 16, 1)
+    pixels = np.asarray(Image.open(root / "outputs/pilot/pgda78_site01_preview.png"))
+    low, high = float(np.nanmin(window_dem)), float(np.nanmax(window_dem))
+    assert preview["grey_scale"]["black_m"] == low
+    roi = pixels == pilot.ROI_INDEX
+    finite = ~np.isnan(window_dem) & ~roi
+    assert np.array_equal(pixels[finite], pilot.grey_index(window_dem, low, high)[finite])
+    assert roi.any()
+    by_id = {r.product_id: r for r in sources(root)}
+    height = by_id[f"PGDA78/Site01/{SURF}"]
+    assert height.local_path == f"data/raw/pgda78/{SURF}.ranges"
+    assert height.checksum == hashlib.sha256(cache).hexdigest()
+    assert height.verification_status == "VERIFIED"
+    assert "checksum" in record["field_notes"]
+    assert pilot.check("pgda78", root=root, sources=windowed_sources()) == []
+    first = snapshot(root / "outputs")
+    pilot.record("pgda78", root=root, sources=windowed_sources())
+    assert snapshot(root / "outputs") == first
+
+
+def test_a_whole_read_records_no_window(recorded: Path) -> None:
+    record = pilot_json(recorded)
+    assert record["decoded_window"] is None
+    for name in GEOTIFFS:
+        entry = file_entry(record, name)
+        assert entry["read"] == "whole"
+        assert entry["range_read"] is None
+        assert entry["decoded_window"] is None
+    assert "checksum" not in record["field_notes"]
+
+
+def test_a_tampered_range_cache_is_refused(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    served = striped_site(tmp_path)
+    do_fetch(
+        root,
+        MockDownloader(served, fail=too_large(SURF)),
+        MockRangeFetcher(served),
+        windowed_sources(),
     )
-    with pytest.raises(FileTooLargeError):
-        do_fetch(root, downloader)
+    cache = root / "data/raw/pgda78" / (SURF + ".ranges")
+    cache.write_bytes(cache.read_bytes()[:-1] + b"\x00")
+    with pytest.raises(pilot.PilotError, match=re.escape("fetch.json")):
+        pilot.record("pgda78", root=root, sources=windowed_sources())
+
+
+def test_a_failed_windowed_read_fails_fetch_naming_the_url(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    served = striped_site(tmp_path)
+    refused = RangeNotSupportedError(f"{SITE_URL + SURF}: the server ignored the Range header")
+    code = pilot.main(
+        ["fetch", "pgda78"],
+        root=root,
+        sources=windowed_sources(),
+        download=MockDownloader(served, fail=too_large(SURF)),
+        read_range=MockRangeFetcher(served, fail={SITE_URL + SURF: refused}),
+        now=fixed_clock,
+    )
+    assert code != 0
+    assert SITE_URL + SURF in capsys.readouterr().err
     assert not (root / "data/raw/pgda78/fetch.json").exists()
+
+
+def test_an_roi_archive_over_the_limit_is_recorded_as_not_fetched(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    root.mkdir()
+    served = site(tmp_path)
+    ranges = MockRangeFetcher(served)
+    do_fetch(root, MockDownloader(served, fail=too_large(ROIS)), ranges)
+    assert ranges.calls == []
+    assert not (root / "data/raw/pgda78" / ROIS).exists()
+    pilot.record("pgda78", root=root, sources=sources_for())
+    roi = pilot_json(root)["roi"]
+    assert roi["status"] == "not_fetched"
+    assert "over the limit" in roi["reason"]
+    assert "cannot be read by window" in roi["reason"]
+    assert roi["archive"]["url"] == SITE_URL + ROIS
+    assert roi["outlines_drawn"] is False
+    assert roi["outlines_not_drawn_reason"] == roi["reason"]
+    assert f"PGDA78/Site01/{ROIS}" not in {r.product_id for r in sources(root)}
 
 
 def test_fetch_fails_when_the_listing_lacks_a_required_product(tmp_path: Path) -> None:
