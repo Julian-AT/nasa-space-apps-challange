@@ -254,6 +254,15 @@ def aeqd_forward(
     cos d) with k' = c / sin c, and c from atan2 rather than acos, which loses precision for
     short distances. The centre maps to (0, 0) exactly.
 
+    Evaluation: N and U are computed from the latitude difference, with hav = 2 sin^2(d / 2)
+    = 1 - cos d, as N = sin(phi - phi0) + sin phi0 cos phi hav and U = cos(phi - phi0) -
+    cos phi0 cos phi hav. These equal the expressions above in real arithmetic. Written
+    directly, N subtracts two order-one products. On the Earth sphere their rounding moved y by
+    4e-10 m against the exact reference, 254 times the PRD 7 allowance (1e-12 m + 1e-10 * |y|)
+    at y = 6 mm, and it added up to 0.29 of the allowance at the 25 m grid offsets. phi - phi0
+    is exact in float64 when the two are within a factor of two (Sterbenz), so on a window
+    every rounding here scales a small quantity.
+
     ``lat_rad`` must lie in [-pi/2, pi/2] and ``lon_rad`` in [-pi, pi]; the centre as for
     :func:`aeqd_inverse`. When |d| > pi it is brought into [-pi, pi] as
     (lam - pi) - (lam0 + pi) or (lam + pi) - (lam0 - pi), whose parts are exact near the
@@ -274,13 +283,13 @@ def aeqd_forward(
     d = np.where(d < -_PI, (lon + _PI) - (lon0 - _PI), d)
     sin_lat0 = math.sin(lat0)
     cos_lat0 = math.cos(lat0)
-    sin_lat = np.sin(lat)
     cos_lat = np.cos(lat)
-    cos_d = np.cos(d)
+    dlat = lat - lat0
+    hav = 2.0 * np.sin(d / 2.0) ** 2
 
     east = cos_lat * np.sin(d)
-    north = cos_lat0 * sin_lat - sin_lat0 * cos_lat * cos_d
-    up = sin_lat0 * sin_lat + cos_lat0 * cos_lat * cos_d
+    north = np.sin(dlat) + sin_lat0 * cos_lat * hav
+    up = np.cos(dlat) - cos_lat0 * cos_lat * hav
     horizontal = np.hypot(east, north)
     at_centre = horizontal == 0.0
     c = np.arctan2(horizontal, up)
