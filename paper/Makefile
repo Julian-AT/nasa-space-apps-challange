@@ -15,11 +15,14 @@ TECTONIC_BUNDLE ?= https://relay.fullyjustified.net/default_bundle_v33.tar
 UV_RUN = $(UV) run --frozen
 # -P keeps scripts/ off sys.path, so scripts/numbers.py cannot shadow the numbers module.
 PYTHON = $(UV_RUN) python -P
+# Modules of the scripts package that import each other run from paper/ with -m; PYTHONPATH=. finds
+# the package, since -P adds neither the working directory nor scripts/ to sys.path.
+PYTHON_MODULE = PYTHONPATH=. $(PYTHON) -m
 NUMBERS_ARGS = $(if $(BUNDLE_VERSION),--bundle ../release/$(BUNDLE_VERSION))
 
-.PHONY: all numbers numbers-check test check pdf
+.PHONY: all numbers numbers-check lint overlap test check pdf
 
-all: numbers test pdf
+all: numbers lint overlap test pdf
 
 numbers:
 	$(PYTHON) scripts/numbers.py $(NUMBERS_ARGS) --out generated/numbers.tex
@@ -35,6 +38,14 @@ numbers-check:
 		echo "numbers-check: generated/numbers.tex drifted; run make -C paper numbers" >&2; \
 		exit 1; \
 	fi
+
+# PRD 22.6 check 2: the prose rules, on every .tex file except figures/styles.tex.
+lint:
+	$(PYTHON_MODULE) scripts.lint_prose
+
+# PRD 22.6 check 4: no run of 12 or more words shared with an abstract in the reference record.
+overlap:
+	$(PYTHON_MODULE) scripts.overlap_check
 
 test:
 	$(UV_RUN) pytest scripts
