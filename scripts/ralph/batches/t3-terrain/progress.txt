@@ -180,3 +180,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes (T3-03 round 2, amends the round-1 nodata wording; PRD.md is read-only for the loop)
 - PRD 7, "Window resampler (D29)", Interpolation: "A float sentinel is rounded from float64 to the band type, to nearest with ties to even. A value less than half an ulp beyond the type's largest finite value is held as that value, so float32 −3.4028235e38 matches −3.4028234663852886e38. A finite sentinel that rounds to infinity, or a nonzero one that rounds to zero, is an error." `@terraluna/core` (T10) needs the same: Math.fround for float32 bands, with an explicit infinity and zero check after it.
 ---
+
+## 2026-11-14T21:58Z · T3-03 · resolve
+- Done: round 3 had no findings. The Claude verifier gave PASS. Codex and Codex (second pass) gave NOT_RUN because their sandbox is read-only, and found no defects on inspection. All three confirmed the round-1 and round-2 fixes and rebuttals. No code changed and the review files are untouched. Set review.state to resolved and added a round-3 line to the story notes.
+- Commits: the resolve commit only (story list, progress log).
+- Checks: `uv run pytest pipeline/tests/test_geometry_resample.py` exit 0 (275 passed in 7.7 s); `make check` exit 0 (ruff check, ruff format --check, mypy strict on 10 files).
+- Docs used: none (no library or code change).
+- Learnings: a round with an empty findings list still needs a resolve iteration: run the checks again, set the state and commit the bookkeeping. There are no review-file edits to make.
+---
