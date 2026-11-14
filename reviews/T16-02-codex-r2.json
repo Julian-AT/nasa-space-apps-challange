@@ -160,7 +160,11 @@
       "claim": "The TikZ repair inserts word boundaries into ordinary grouped prose, allowing both mandatory prose guards to be bypassed.",
       "evidence": "Static trace, not executed: _prose unconditionally replaces every '}{' boundary with a space. Consequently, \\emph{{seam}{less}} extracts as 'seam less' and escapes banned_word_hits. Against the existing test abstract, 'We measure the roughness of \\emph{{lu}{nar}} and martian terrain at baselines from' renders the same 12 words but extracts 'lu nar', breaking overlap detection at overlap_check.py:118. Preserve ordinary TeX group adjacency and handle TikZ argument separation with appropriate context; add regression assertions for both consumers.",
       "id": "codex-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "2d9f03fba058b5b65bb50b07cdb9fa6190a03314",
+        "reason": "Fixed in 2d9f03f, with failing tests first in b4fdff0. Pass 2 no longer reads every }{ as a word break. _CodeScanner.argument_breaks() marks a break only between two arguments of one command. argument_count() gives the count: one for formatting commands, accents and begin/end; none for declarations such as \\bf, \\small and \\item; for key commands, their keys plus the text arguments listed in TEXT_ARGUMENTS_AFTER_KEYS (\\textcolor 2, \\multirow 3); every following group for an unknown command, whose definition is not known. Before each argument the scan skips what TeX skips (space_end, read in the source) and optional [..] arguments. Ordinary groups now join as TeX prints them: \\emph{{seam}{less}}, {seam}{less}, \\emph{sea}{mless}, {\\bf pivo}{tal} and \\bf{seam}{less} read as one word. The round 1 TikZ cases still split: \\textcolor{pivotal}{x}, \\textcolor[rgb]{1,0,0}{pivotal}, \\newterm{a}{b}. New regressions for both consumers: test_tex_prose.py (13 plain and 4 kept-TikZ cases), test_lint_prose.py (banned-word in prose and TikZ, and important-to-note with \\emph{{impor}{tant}}), and test_overlap_check.py (your example, \\emph{{lu}{nar}}, and {lu}{nar} within 12 abstract words). 23 of them failed before the fix. All five story checks pass, with 609 tests."
+      }
     }
   ]
 }
