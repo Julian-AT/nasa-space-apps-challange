@@ -1,10 +1,11 @@
 // What make web-smoke asserts about the HTML of / (PRD 8.4, 8.6): the red mock banner exactly when
-// the bundle is mock, the shipping-mode banner once, the bundle and schema versions in the footer,
-// each as the whole text of its element (and of a banner's own container and every live region
-// around it) wherever the layout puts it, and one <main> that shows only the title and HOME_LINE,
-// so no numbers, targets or claims.
-// The layout's skip link and navigation sit outside <main>. Only the rendered markup counts:
-// <script> elements, which hold the RSC payload, are removed first.
+// the bundle is mock, the shipping-mode banner once, the bundle and schema versions in the one
+// footer, each as the whole text of its element (and of a banner's own container and every live
+// region around it) wherever the layout puts it, and one <main> that shows only the title and
+// HOME_LINE, so no numbers, targets or claims.
+// The only other text outside <main> is the layout's skip link and navigation labels
+// (LAYOUT_LABELS). Only the rendered markup counts: <script> elements, which hold the RSC
+// payload, are removed first.
 import type { Bundle } from '../lib/bundle.ts';
 import { shellText, SITE_TITLE } from '../lib/shell.ts';
 
@@ -21,6 +22,26 @@ export const PRD4_TITLES: Readonly<Record<NonNullable<Bundle['manifest']['shippi
   B: 'Terrain analog candidates for Connecting Ridge, with radar context',
   C: 'Terrain analog pilot for Connecting Ridge; radar comparison not completed',
 };
+
+/**
+ * The layout's fixed labels, the only other text allowed outside <main>: the skip link
+ * (components/skip-link.tsx), then the primary navigation (components/site-header.tsx). This is
+ * the check's own copy; tests/site-layout.test.tsx compares it with the components. Each label
+ * must be the whole own text of its block, as each link sits in an li of its own.
+ */
+export const LAYOUT_LABELS: readonly string[] = [
+  'Skip to content',
+  'Home',
+  'Moon',
+  'Mars',
+  'Earth',
+  'Model',
+  'Methods',
+  'Data',
+];
+
+/** Elements whose text the check compares as a whole, or never shows (<head>). */
+const COMPARED_ELEMENTS: ReadonlySet<string> = new Set(['head', 'main', 'footer']);
 
 const SHIPPING_MODE = 'Shipping mode:';
 const MOCK_MARKER = 'Mock bundle';
@@ -203,16 +224,45 @@ function bannerParts(holder: Block): Extent[] {
   return [container, ...holder.regions.filter((region) => region !== container)];
 }
 
+interface BannerCheck {
+  readonly problem: string | null;
+  /** The banner's parts, whose text this check accounts for. */
+  readonly parts: readonly Extent[];
+}
+
 /**
  * A banner is held by the block whose own text holds its first words (the marker). The banner's
  * container and every live region around it (bannerParts) must each read the banner and nothing
  * else, inline and nested elements included.
  */
-function bannerProblem(blocks: readonly Block[], marker: string, banner: string, name: string): string | null {
+function checkBanner(blocks: readonly Block[], marker: string, banner: string, name: string): BannerCheck {
   const holders = blocks.filter((block) => block.own.includes(marker));
-  if (holders.length === 0) return `the ${name} "${banner}" is missing`;
-  const wrong = holders.flatMap(bannerParts).find((block) => block.full !== banner);
-  return wrong === undefined ? null : `the ${name} must read "${banner}", but reads "${wrong.full}"`;
+  if (holders.length === 0) return { problem: `the ${name} "${banner}" is missing`, parts: [] };
+  const parts = holders.flatMap(bannerParts);
+  const wrong = parts.find((block) => block.full !== banner);
+  const problem = wrong === undefined ? null : `the ${name} must read "${banner}", but reads "${wrong.full}"`;
+  return { problem, parts };
+}
+
+/**
+ * The text outside the elements whose text the check compares as a whole: every block's own text,
+ * unless the block is in <head>, <main>, a footer or a banner part, or sits in a live region that
+ * is a banner part. Each of these texts must be a layout label.
+ */
+function strayTexts(blocks: readonly Block[], banners: readonly Extent[]): string[] {
+  const compared = new Set<Extent>(banners);
+  for (const block of blocks) {
+    if (COMPARED_ELEMENTS.has(block.name)) compared.add(block);
+  }
+  const isCompared = (block: Block): boolean => {
+    for (let at: Block | undefined = block; at !== undefined; at = at.parent) {
+      if (compared.has(at)) return true;
+    }
+    return block.regions.some((region) => compared.has(region));
+  };
+  return blocks
+    .filter((block) => block.own !== '' && !isCompared(block) && !LAYOUT_LABELS.includes(block.own))
+    .map((block) => block.own);
 }
 
 function occurrences(text: string, part: string): number {
@@ -228,22 +278,26 @@ function modeBanner(bundle: Bundle, shippingMode: string): string {
 // Each protected text must be whole: a mock banner, mode banner or footer that only starts with
 // the expected text (bundle version v10 for v1, mode BA for B), or that has words added inside its
 // element or in a container of the banner's own, fails, as it failed the T0-05 check of the whole
-// page. Text outside <main> other than these is the layout's chrome and is not checked.
+// page. Any other text outside <main> must be one of the layout's labels (LAYOUT_LABELS), so a
+// claim beside a banner, in the header or between <main> and the footer fails too.
 export function pageProblems(html: string, bundle: Bundle): string[] {
   const expected = shellText(bundle);
   const markup = renderedMarkup(html);
   const text = visibleText(html);
   const blocks = blockTree(markup);
   const problems: string[] = [];
+  const banners: Extent[] = [];
   if (expected.mockBanner !== null) {
-    const problem = bannerProblem(blocks, MOCK_MARKER, expected.mockBanner, 'mock banner');
-    if (problem !== null) problems.push(problem);
+    const mock = checkBanner(blocks, MOCK_MARKER, expected.mockBanner, 'mock banner');
+    if (mock.problem !== null) problems.push(mock.problem);
+    banners.push(...mock.parts);
   } else if (text.includes(MOCK_MARKER)) {
     problems.push('a mock banner is shown, but the bundle is not mock');
   }
   const banner = modeBanner(bundle, expected.shippingMode);
-  const modeProblem = bannerProblem(blocks, SHIPPING_MODE, banner, 'shipping-mode banner');
-  if (modeProblem !== null) problems.push(modeProblem);
+  const mode = checkBanner(blocks, SHIPPING_MODE, banner, 'shipping-mode banner');
+  if (mode.problem !== null) problems.push(mode.problem);
+  banners.push(...mode.parts);
   const modeLines = occurrences(text, SHIPPING_MODE);
   if (modeLines > 1) {
     problems.push(`"${SHIPPING_MODE}" appears ${String(modeLines)} times; the page must state its mode once`);
@@ -270,6 +324,9 @@ export function pageProblems(html: string, bundle: Bundle): string[] {
     if (shown !== allowed) {
       problems.push(`<main> must show only "${allowed}", but shows "${shown}"`);
     }
+  }
+  for (const stray of strayTexts(blocks, banners)) {
+    problems.push(`text outside <main> must be a banner, the footer or a layout label, but "${stray}" is none of these`);
   }
   return problems;
 }
