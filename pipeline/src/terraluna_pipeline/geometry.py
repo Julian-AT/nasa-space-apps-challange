@@ -1,9 +1,15 @@
-"""Body spheres for the D29 window resampler (PRD 7, "Window resampler (D29)").
+"""The D29 window resampler (PRD 7, "Window resampler (D29)").
 
 Terrain windows are resampled on a sphere per body, in float64. The radii below are the only
 radii the resampler uses; ``@terraluna/core`` mirrors them for the browser probe (PRD 8.8).
 Terrain distances derived from them are metres on the body sphere and are kept apart from radar
 and model distances (PRD 6.5, 8.11).
+
+:func:`resample_window` takes each pixel centre of a :class:`WindowGrid` through the inverse
+spherical AEQD (:func:`aeqd_inverse`), into a source raster's pixel space by one of three
+closed-form lookups (:class:`GeographicLookup`, :class:`PolarStereographicLookup`,
+:class:`EquirectangularLookup`), and interpolates it bilinearly on the four neighbouring source
+pixels (:func:`bilinear_resample`). Missing data stays NaN beside an explicit boolean mask.
 """
 
 from __future__ import annotations
@@ -1012,3 +1018,159 @@ def _tan_half(angle_hi: FloatArray, angle_lo: FloatArray) -> FloatArray:
     t = np.tan(angle_hi / 2.0)
     tangent: FloatArray = t + (angle_lo / 2.0) * (1.0 + t * t)
     return tangent
+
+
+# ---------------------------------------------------------------------------------------------
+# Bilinear interpolation (PRD 7, "Window resampler (D29)": interpolation)
+
+
+class ResampleError(ValueError):
+    """Raised for a source raster, pixel coordinates or nodata value the resampler cannot use."""
+
+
+@dataclass(frozen=True, eq=False)
+class ResampledGrid:
+    """A resampled grid: float64 ``values`` with explicit boolean masks beside them.
+
+    ``inside`` marks points that lie in the closed rectangle of source pixel centres. ``valid``
+    marks points that are inside and whose four neighbouring source pixels all hold data. Where
+    ``valid`` is False the value is NaN: missing data is never represented as 0. The arrays are
+    read-only and share one shape, indexed like the pixel coordinates (``[row, column]`` for a
+    window grid).
+    """
+
+    values: FloatArray
+    valid: BoolArray
+    inside: BoolArray
+
+    def __post_init__(self) -> None:
+        values = np.asarray(self.values)
+        valid = np.asarray(self.valid)
+        inside = np.asarray(self.inside)
+        if values.dtype != np.float64:
+            raise ResampleError(f"values must be float64, got {values.dtype}")
+        if valid.dtype != np.bool_ or inside.dtype != np.bool_:
+            raise ResampleError("valid and inside must be boolean arrays")
+        if not values.shape == valid.shape == inside.shape:
+            raise ResampleError("values, valid and inside must share one shape")
+        if np.any(valid & ~inside):
+            raise ResampleError("a valid point must lie inside the source")
+        if not np.all(np.isfinite(values[valid])):
+            raise ResampleError("valid values must be finite")
+        if not np.all(np.isnan(values[~valid])):
+            raise ResampleError("values that are not valid must be NaN")
+        object.__setattr__(self, "values", _read_only(values))
+        object.__setattr__(self, "valid", _read_only_mask(valid))
+        object.__setattr__(self, "inside", _read_only_mask(inside))
+
+
+def bilinear_resample(
+    source: npt.ArrayLike,
+    column: npt.ArrayLike,
+    row: npt.ArrayLike,
+    *,
+    nodata: float | None,
+) -> ResampledGrid:
+    """Interpolate ``source`` bilinearly at fractional pixel coordinates (PRD 7).
+
+    ``source`` is a 2-D raster of real numbers indexed ``[row, column]``, at least 2 x 2.
+    ``column`` and ``row`` are fractional indices of pixel centres ((0, 0) is the centre of the
+    top-left pixel) and broadcast together. ``nodata`` is the product's declared sentinel, or
+    None if it declares none; it must be given either way. A source pixel is missing if it is
+    NaN, infinite or equal to the sentinel (compared in float64, as GDAL reports nodata), so NaN
+    and a declared sentinel behave identically. Zero is data.
+
+    A point is inside when 0 <= column <= ncols - 1 and 0 <= row <= nrows - 1. Its four
+    neighbours are columns i and i + 1 and rows j and j + 1, with i = min(floor(column),
+    ncols - 2) and j = min(floor(row), nrows - 2); on the last centre the weight of the far
+    neighbour is 1. The output is nodata when the point is outside or any of the four is missing,
+    whatever its weight. Outside is never zero-filled. Nothing else enters: no cubic kernel and
+    no averaging (PRD 7). With p = column - i and q = row - j, valid points get, evaluated in
+    this order for parity with ``@terraluna/core`` (PRD 8.8)::
+
+        top = (1 - p) z[j, i] + p z[j, i + 1]
+        bottom = (1 - p) z[j + 1, i] + p z[j + 1, i + 1]
+        value = (1 - q) top + q bottom
+
+    Bilinear interpolation reproduces a plane in pixel coordinates exactly in real arithmetic.
+    It is meant for continuous fields such as elevation, not for class rasters.
+    """
+    grid = np.asarray(source)
+    if grid.ndim != 2:
+        raise ResampleError(f"source must be a 2-D raster, got {grid.ndim} dimensions")
+    if grid.dtype.kind not in "iuf":
+        raise ResampleError(f"source must hold integers or floats, got {grid.dtype}")
+    rows, cols = grid.shape
+    if rows < 2 or cols < 2:
+        raise ResampleError(f"source must have at least 2 rows and 2 columns, got {grid.shape}")
+    sentinel = _nodata_value(nodata)
+    z = grid.astype(np.float64)
+    good = np.isfinite(z)
+    if sentinel is not None:
+        good &= z != sentinel
+    z = np.where(good, z, np.nan)
+    try:
+        u, v = np.broadcast_arrays(
+            np.asarray(column, dtype=np.float64), np.asarray(row, dtype=np.float64)
+        )
+    except ValueError as error:
+        raise ResampleError(f"column and row do not broadcast: {error}") from None
+    if not (np.all(np.isfinite(u)) and np.all(np.isfinite(v))):
+        raise ResampleError("pixel coordinates must be finite")
+    inside = (u >= 0.0) & (u <= cols - 1) & (v >= 0.0) & (v <= rows - 1)
+    u_in = np.where(inside, u, 0.0)
+    v_in = np.where(inside, v, 0.0)
+    i = np.minimum(np.floor(u_in), cols - 2).astype(np.intp)
+    j = np.minimum(np.floor(v_in), rows - 2).astype(np.intp)
+    p = u_in - i
+    q = v_in - j
+    neighbours = good[j, i] & good[j, i + 1] & good[j + 1, i] & good[j + 1, i + 1]
+    valid = inside & neighbours
+    top = (1.0 - p) * z[j, i] + p * z[j, i + 1]
+    bottom = (1.0 - p) * z[j + 1, i] + p * z[j + 1, i + 1]
+    value = (1.0 - q) * top + q * bottom
+    return ResampledGrid(
+        values=_float_array(np.where(valid, value, np.nan)),
+        valid=np.asarray(valid, dtype=np.bool_),
+        inside=np.asarray(inside, dtype=np.bool_),
+    )
+
+
+def resample_window(
+    source: npt.ArrayLike,
+    lookup: SourceLookup,
+    *,
+    grid: WindowGrid,
+    body: str,
+    lat0_rad: float,
+    lon0_rad: float,
+    nodata: float | None,
+) -> ResampledGrid:
+    """Resample a source raster onto a D29 window grid (PRD 7, "Window resampler (D29)").
+
+    Each pixel centre of ``grid`` goes through the inverse spherical AEQD about (``lat0_rad``,
+    ``lon0_rad``) on the D29 sphere of ``body`` (:func:`body_radius_m`), then into the source's
+    pixel space by ``lookup``, and is interpolated by :func:`bilinear_resample` with the
+    declared ``nodata``. The result is indexed ``[row, column]`` like :meth:`WindowGrid.mesh_m`.
+    """
+    radius = body_radius_m(body)
+    x, y = grid.mesh_m()
+    lat, lon = aeqd_inverse(x, y, lat0_rad=lat0_rad, lon0_rad=lon0_rad, radius_m=radius)
+    column, row = lookup.to_pixel(lat, lon)
+    return bilinear_resample(source, column, row, nodata=nodata)
+
+
+def _nodata_value(nodata: object) -> float | None:
+    if nodata is None:
+        return None
+    if isinstance(nodata, bool | np.bool_) or not isinstance(
+        nodata, int | float | np.integer | np.floating
+    ):
+        raise ResampleError(f"nodata must be a real number or None, got {nodata!r}")
+    return float(nodata)
+
+
+def _read_only_mask(values: BoolArray) -> BoolArray:
+    frozen = np.array(values, dtype=np.bool_, copy=True)
+    frozen.flags.writeable = False
+    return frozen
