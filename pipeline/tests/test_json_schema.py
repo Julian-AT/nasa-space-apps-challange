@@ -652,7 +652,13 @@ def test_every_top_level_condition_has_condition_cases_with_an_absent_property()
     # is rejected whatever the condition does. The condition cases test the `if` schema alone,
     # on objects as the zod refinement sees them, so an absent property has an observable verdict.
     groups = [group for group in load_generator_cases() if "if" in group["schema"]]
-    assert [group["name"] for group in groups] == ["conditional", "conditional-two-keys"]
+    assert [group["name"] for group in groups] == [
+        "conditional",
+        "conditional-two-keys",
+        "conditional-else",
+        "conditional-null",
+        "conditional-integer",
+    ]
     for group in groups:
         assert "conditionCases" in group, group["name"]
         condition = group["schema"]["if"]

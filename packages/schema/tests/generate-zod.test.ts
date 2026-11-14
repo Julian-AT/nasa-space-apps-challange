@@ -112,6 +112,14 @@ function conditional(extra: JsonObject = {}): JsonObject {
   );
 }
 
+// A map object: any keys, each holding a string.
+function MAP(extra: JsonObject = {}): JsonObject {
+  return { type: 'object', additionalProperties: STRING, ...extra };
+}
+
+// One allOf element of a record object: a conditional with the same if/then as `conditional`.
+const CONDITIONAL_ELEMENT: JsonObject = { if: IF_DONE, then: THEN_LABEL };
+
 interface GeneratorCase {
   readonly name: string;
   readonly valid: boolean;
@@ -281,6 +289,14 @@ describe('if/then and not translation', () => {
       'conditional',
       'conditional-two-keys',
       'conditional-list',
+      'number-bounds',
+      'boolean-const',
+      'array-length',
+      'map-keys',
+      'conditional-else',
+      'conditional-null',
+      'conditional-integer',
+      'conditional-all-of',
     ]);
     expect(groups.flatMap((g) => g.cases).length).toBeGreaterThanOrEqual(20);
   });
@@ -306,7 +322,13 @@ describe('if/then and not translation', () => {
   );
 
   it('has condition cases for every top-level if', () => {
-    expect(conditions.map(([name]) => name)).toEqual(['conditional', 'conditional-two-keys']);
+    expect(conditions.map(([name]) => name)).toEqual([
+      'conditional',
+      'conditional-two-keys',
+      'conditional-else',
+      'conditional-null',
+      'conditional-integer',
+    ]);
     expect(groups.filter((g) => g.schema['if'] !== undefined).map((g) => g.name)).toEqual(
       conditions.map(([name]) => name),
     );
@@ -326,6 +348,58 @@ describe('if/then and not translation', () => {
     );
   });
 
+  // A record object may also carry a non-empty allOf of conditionals; each is its own refinement.
+  describe('allOf conditionals', () => {
+    const group = groups.find((g) => g.name === 'conditional-all-of');
+    const elements = ((group?.schema['allOf'] ?? []) as JsonObject[]).map((element) => element);
+
+    it('has at least three conditionals and no top-level if', () => {
+      expect(group?.schema['if']).toBeUndefined();
+      expect(elements.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('tests a string const, a null and, in at least one, an else', () => {
+      const tests = elements.flatMap((e) =>
+        Object.values(((e['if'] as JsonObject)['properties'] ?? {}) as JsonObject),
+      );
+      expect(tests.some((t) => typeof (t as JsonObject)['const'] === 'string')).toBe(true);
+      expect(tests.some((t) => (t as JsonObject)['type'] === 'null')).toBe(true);
+      expect(elements.some((e) => e['else'] !== undefined)).toBe(true);
+      expect(elements.some((e) => e['else'] === undefined)).toBe(true);
+    });
+
+    it('contains the condition source of every element in its generated refinement', () => {
+      if (group === undefined) {
+        throw new Error('no conditional-all-of group');
+      }
+      const expression = zodExpression(group.schema);
+      for (const element of elements) {
+        expect(expression).toContain(`if (${conditionSource(element['if'])}) {`);
+      }
+    });
+  });
+
+  it('tests an integer const with === and a null with === null, guarded by Object.hasOwn', () => {
+    expect(conditionSource({ properties: { n: { const: 0 } }, required: ['n'] })).toBe(
+      'Object.hasOwn(value, "n") && value["n"] === 0',
+    );
+    expect(conditionSource({ properties: { n: { const: -7 } }, required: ['n'] })).toBe(
+      'Object.hasOwn(value, "n") && value["n"] === -7',
+    );
+    expect(conditionSource({ properties: { a: { type: 'null' } }, required: ['a'] })).toBe(
+      'Object.hasOwn(value, "a") && value["a"] === null',
+    );
+  });
+
+  it('refuses an if test that is neither a string const, an integer const nor a null', () => {
+    expect(() => conditionSource({ properties: { n: { const: 1.5 } }, required: ['n'] })).toThrow(
+      SchemaError,
+    );
+    expect(() => conditionSource({ properties: { n: { type: 'string' } }, required: ['n'] })).toThrow(
+      SchemaError,
+    );
+  });
+
   it('refuses an if condition assertSupported would refuse', () => {
     expect(() => conditionSource({ properties: { status: { enum: ['DONE'] } } })).toThrow(
       SchemaError,
@@ -340,7 +414,7 @@ describe('if/then and not translation', () => {
   });
 
   it.each([
-    ['else', conditional({ else: THEN_LABEL })],
+    ['dependentSchemas', conditional({ dependentSchemas: { status: {} } })],
     ['oneOf', conditional({ then: { properties: { label: { oneOf: [STRING] } } } })],
     ['a format in the then branch', conditional({ then: { properties: { label: { type: 'string', format: 'uri' } } } })],
     ['allOf next to not', { type: 'string', not: { pattern: 'a' }, allOf: [STRING] }],
@@ -354,8 +428,8 @@ describe('if/then and not translation', () => {
   });
 
   it('names the keyword it refuses', () => {
-    expect(() => zodExpression(conditional({ else: THEN_LABEL }))).toThrow(
-      '/: unsupported keyword "else" for type "object"',
+    expect(() => zodExpression(conditional({ dependentSchemas: { status: {} } }))).toThrow(
+      '/: unsupported keyword "dependentSchemas" for type "object"',
     );
   });
 
@@ -392,6 +466,95 @@ describe('if/then and not translation', () => {
     );
   });
 
+  // A failing `else` property keeps its reason in the same shape, when the `if` schema fails.
+  const ELSE_FAILED = 'Invalid input: must match the "else" schema when the "if" schema fails';
+
+  it('reports why each else property fails', () => {
+    const group = groups.find((g) => g.name === 'conditional-else');
+    const value = group?.cases.find((c) => c.name === 'open-label-string-and-code-x')?.value;
+    if (group === undefined || value === undefined) {
+      throw new Error('no conditional-else case open-label-string-and-code-x');
+    }
+    const result = compile(zodExpression(group.schema)).safeParse(value);
+    expect(result.error?.issues.map((issue) => [issue.path, issue.code, issue.message])).toEqual([
+      [['label'], 'custom', `${ELSE_FAILED}: Invalid input: expected null, received string`],
+      [['code'], 'custom', `${ELSE_FAILED}: Invalid input: must not match the "not" pattern`],
+    ]);
+  });
+
+  it('does not apply else when the if schema holds, nor then when it fails', () => {
+    const group = groups.find((g) => g.name === 'conditional-else');
+    if (group === undefined) {
+      throw new Error('no conditional-else group');
+    }
+    const schema = compile(zodExpression(group.schema));
+    const done = schema.safeParse({ status: 'DONE', label: null, code: 'c1' });
+    expect(done.error?.issues.map((issue) => issue.message)).toEqual([
+      `${THEN_FAILED}: Invalid input: expected string, received null`,
+    ]);
+    const open = schema.safeParse({ status: 'OPEN', label: 'a', code: 'c1' });
+    expect(open.error?.issues.map((issue) => issue.message)).toEqual([
+      `${ELSE_FAILED}: Invalid input: expected null, received string`,
+    ]);
+  });
+
+  it('applies a top-level conditional and an allOf conditional together', () => {
+    const schema = compile(
+      zodExpression(
+        object(
+          {
+            status: { type: 'string', enum: ['DONE', 'OPEN'] },
+            label: { anyOf: [STRING, { type: 'null' }] },
+            note: { anyOf: [STRING, { type: 'null' }] },
+          },
+          {
+            if: IF_DONE,
+            then: THEN_LABEL,
+            allOf: [
+              {
+                if: { properties: { label: { type: 'null' } }, required: ['label'] },
+                then: { properties: { note: STRING } },
+                else: { properties: { note: { type: 'null' } } },
+              },
+            ],
+          },
+        ),
+      ),
+    );
+    expect(schema.safeParse({ status: 'OPEN', label: null, note: 'n' }).success).toBe(true);
+    expect(schema.safeParse({ status: 'OPEN', label: null, note: null }).success).toBe(false);
+    expect(schema.safeParse({ status: 'OPEN', label: 'a', note: null }).success).toBe(true);
+    expect(schema.safeParse({ status: 'OPEN', label: 'a', note: 'n' }).success).toBe(false);
+    expect(schema.safeParse({ status: 'DONE', label: null, note: 'n' }).success).toBe(false);
+    expect(schema.safeParse({ status: 'DONE', label: 'a', note: null }).success).toBe(true);
+  });
+
+  describe('map translation', () => {
+    const map = (extra: JsonObject): JsonObject => ({
+      type: 'object',
+      additionalProperties: STRING,
+      ...extra,
+    });
+
+    it.each([
+      ['no propertyNames', map({}), 'z.record(z.string(), z.string())'],
+      ['propertyNames minLength 1', map({ propertyNames: { minLength: 1 } }), 'z.record(z.string().min(1), z.string())'],
+      [
+        'a propertyNames enum',
+        map({ propertyNames: { enum: ['a', 'b'] } }),
+        'z.partialRecord(z.enum(["a","b"]), z.string())',
+      ],
+    ])('translates %s', (_label, schema, expected) => {
+      expect(zodExpression(schema)).toBe(expected);
+    });
+
+    it('keeps the description of a map', () => {
+      expect(zodExpression(map({ description: 'Keyed.' }))).toBe(
+        'z.record(z.string(), z.string()).describe("Keyed.")',
+      );
+    });
+  });
+
   // Why the generator translates these keywords itself: the pinned converter would weaken both.
   it('documents that the pinned converter drops if/then without else', () => {
     const source = jsonSchemaToZod(
@@ -400,6 +563,19 @@ describe('if/then and not translation', () => {
     );
     expect(source).not.toContain('refine');
     expect(source).not.toContain('[Xx]');
+  });
+
+  it('documents that the pinned converter drops propertyNames from a map', () => {
+    const source = jsonSchemaToZod(
+      { type: 'object', additionalProperties: STRING, propertyNames: { minLength: 1 } },
+      { module: 'none', zodVersion: 4 },
+    );
+    expect(source).toBe('z.record(z.string(), z.string())');
+    const enumerated = jsonSchemaToZod(
+      { type: 'object', additionalProperties: STRING, propertyNames: { enum: ['a'] } },
+      { module: 'none', zodVersion: 4 },
+    );
+    expect(enumerated).toBe('z.record(z.string(), z.string())');
   });
 
   it('documents that the pinned converter turns a schema with not into z.any()', () => {
@@ -452,6 +628,24 @@ describe('dereference', () => {
     }).not.toThrow();
   });
 
+  it('inlines a $ref under additionalProperties', () => {
+    const value = object({ spread: { type: 'number' } });
+    const resolved = dereference({
+      $defs: { Family: value },
+      type: 'object',
+      additionalProperties: { $ref: '#/$defs/Family' },
+    });
+    expect(resolved).toEqual({ type: 'object', additionalProperties: value });
+  });
+
+  it('keeps additionalProperties: false and true as data', () => {
+    expect(dereference(object({ a: STRING }))).toEqual(object({ a: STRING }));
+    expect(dereference({ type: 'object', additionalProperties: true })).toEqual({
+      type: 'object',
+      additionalProperties: true,
+    });
+  });
+
   it('refuses a recursive reference', () => {
     expect(() =>
       dereference({
@@ -473,11 +667,56 @@ describe('assertSupported', () => {
     ['a format', { type: 'string', format: 'date-time' }],
     ['oneOf', { oneOf: [STRING, { type: 'null' }] }],
     ['allOf', { allOf: [STRING] }],
+    ['allOf on a string', { type: 'string', allOf: [CONDITIONAL_ELEMENT] }],
+    ['allOf on an array', { type: 'array', items: STRING, allOf: [CONDITIONAL_ELEMENT] }],
+    ['allOf holding a plain schema', conditional({ allOf: [STRING] })],
+    ['allOf holding a plain object schema', conditional({ allOf: [object({ a: STRING })] })],
+    ['an empty allOf', conditional({ allOf: [] })],
+    ['an allOf that is not an array', conditional({ allOf: CONDITIONAL_ELEMENT })],
+    ['an allOf element that is not an object', conditional({ allOf: [true] })],
+    ['an allOf element with a keyword besides if, then and else', conditional({ allOf: [{ ...CONDITIONAL_ELEMENT, type: 'object' }] })],
+    ['an allOf element with if only', conditional({ allOf: [{ if: IF_DONE }] })],
+    ['an allOf element with else but no then', conditional({ allOf: [{ if: IF_DONE, else: THEN_LABEL }] })],
+    ['an allOf element whose then names a missing property', conditional({ allOf: [{ if: IF_DONE, then: { properties: { missing: STRING } } }] })],
+    ['a nested allOf in an allOf element', conditional({ allOf: [{ allOf: [CONDITIONAL_ELEMENT] }] })],
     ['a default', { type: 'string', default: 'x' }],
     ['maxLength', { type: 'string', maxLength: 3 }],
     ['minLength above 1, which zod counts in UTF-16 code units', { type: 'string', minLength: 2 }],
     ['exclusiveMinimum', { type: 'integer', exclusiveMinimum: 0 }],
-    ['the number type', { type: 'number' }],
+    ['exclusiveMaximum on a number', { type: 'number', exclusiveMaximum: 1 }],
+    ['multipleOf on a number', { type: 'number', multipleOf: 0.5 }],
+    ['an enum on a number', { type: 'number', enum: [1, 2] }],
+    ['a const on a number', { type: 'number', const: 1 }],
+    ['a number minimum that is a string', { type: 'number', minimum: '0' }],
+    ['a number maximum that is a boolean', { type: 'number', maximum: true }],
+    ['exclusiveMinimum that is a string', { type: 'number', exclusiveMinimum: '0' }],
+    ['a boolean const that is a string', { type: 'boolean', const: 'true' }],
+    ['a boolean const that is a number', { type: 'boolean', const: 1 }],
+    ['a boolean enum', { type: 'boolean', enum: [true] }],
+    ['a negative minItems', { type: 'array', items: STRING, minItems: -1 }],
+    ['a fractional minItems', { type: 'array', items: STRING, minItems: 1.5 }],
+    ['a negative maxItems', { type: 'array', items: STRING, maxItems: -1 }],
+    ['a fractional maxItems', { type: 'array', items: STRING, maxItems: 2.5 }],
+    ['an unsafe maxItems', { type: 'array', items: STRING, maxItems: 2 ** 53 }],
+    ['a string minItems', { type: 'array', items: STRING, minItems: '1' }],
+    ['uniqueItems', { type: 'array', items: STRING, uniqueItems: true }],
+    ['prefixItems', { type: 'array', items: STRING, prefixItems: [STRING] }],
+    ['a map with propertyNames minLength 2', MAP({ propertyNames: { minLength: 2 } })],
+    ['a map with propertyNames minLength 0', MAP({ propertyNames: { minLength: 0 } })],
+    ['a map with a propertyNames pattern', MAP({ propertyNames: { pattern: '^[a-z]+$' } })],
+    ['a map with an empty propertyNames enum', MAP({ propertyNames: { enum: [] } })],
+    ['a map with a non-string propertyNames enum', MAP({ propertyNames: { enum: ['a', 1] } })],
+    ['a map with propertyNames of two keywords', MAP({ propertyNames: { minLength: 1, enum: ['a'] } })],
+    ['a map with propertyNames that is not an object', MAP({ propertyNames: true })],
+    ['a map with an empty propertyNames', MAP({ propertyNames: {} })],
+    ['a map with unsupported value schema', MAP({ additionalProperties: { type: 'string', format: 'uri' } })],
+    ['a map with additionalProperties true', MAP({ additionalProperties: true })],
+    ['a map with properties', MAP({ properties: { a: STRING } })],
+    ['a map with required', MAP({ required: ['a'] })],
+    ['a map with if and then', MAP({ if: IF_DONE, then: THEN_LABEL })],
+    ['a map with allOf', MAP({ allOf: [CONDITIONAL_ELEMENT] })],
+    ['propertyNames on a record object', object({ a: STRING }, { propertyNames: { minLength: 1 } })],
+    ['propertyNames on a string', { type: 'string', propertyNames: { minLength: 1 } }],
     ['a list of types', { type: ['string', 'null'] }],
     ['an unknown type', { type: 'date' }],
     ['a non-string enum', { enum: ['A', 1] }],
@@ -500,7 +739,24 @@ describe('assertSupported', () => {
     ['a schema with neither type, anyOf nor not', { title: 'Nothing' }],
     // if/then: only a string-const condition on required properties of the same object, and a
     // then branch that constrains properties of that object.
-    ['else next to if and then', conditional({ else: THEN_LABEL })],
+    ['dependentSchemas next to if and then', conditional({ dependentSchemas: { status: {} } })],
+    ['else without then', object({ label: STRING }, { if: IF_DONE, else: THEN_LABEL })],
+    ['else without if', object({ label: STRING }, { else: THEN_LABEL })],
+    ['an else that is not an object', conditional({ else: true })],
+    ['an else without properties', conditional({ else: {} })],
+    ['an else with an empty properties map', conditional({ else: { properties: {} } })],
+    ['an else with required', conditional({ else: { ...THEN_LABEL, required: ['label'] } })],
+    ['an else with a type', conditional({ else: { ...THEN_LABEL, type: 'object' } })],
+    ['an else property the object does not have', conditional({ else: { properties: { missing: STRING } } })],
+    ['an else property with an unsupported keyword', conditional({ else: { properties: { label: { type: 'string', format: 'uri' } } } })],
+    ['a $ref inside then', conditional({ then: { properties: { label: { $ref: '#/$defs/Label' } } } })],
+    ['a $ref inside else', conditional({ else: { properties: { label: { $ref: '#/$defs/Label' } } } })],
+    ['an if test of a fractional const', conditional({ if: { properties: { status: { const: 1.5 } }, required: ['status'] } })],
+    ['an if test of an unsafe integer const', conditional({ if: { properties: { status: { const: 2 ** 53 } }, required: ['status'] } })],
+    ['an if test of a boolean const', conditional({ if: { properties: { status: { const: true } }, required: ['status'] } })],
+    ['an if test of a null const', conditional({ if: { properties: { status: { const: null } }, required: ['status'] } })],
+    ['an if test of type string', conditional({ if: { properties: { status: { type: 'string' } }, required: ['status'] } })],
+    ['an if test of type null with another keyword', conditional({ if: { properties: { status: { type: 'null', const: 'x' } }, required: ['status'] } })],
     ['if without then', object({ status: STRING }, { if: IF_DONE })],
     ['then without if', object({ label: STRING }, { then: THEN_LABEL })],
     ['if and then on an array', { type: 'array', items: STRING, if: IF_DONE, then: THEN_LABEL }],
@@ -518,8 +774,8 @@ describe('assertSupported', () => {
       conditional({ if: { properties: { status: { enum: ['DONE'] } }, required: ['status'] } }),
     ],
     [
-      'an if const that is not a string',
-      conditional({ if: { properties: { status: { const: 1 } }, required: ['status'] } }),
+      'an if const that is not a string, an integer or null',
+      conditional({ if: { properties: { status: { const: ['DONE'] } }, required: ['status'] } }),
     ],
     [
       'an if const next to another keyword',
@@ -597,6 +853,32 @@ describe('assertSupported', () => {
     ],
     ['a string with a pattern and a negated pattern', { type: 'string', pattern: '^[a-z]+$', not: { pattern: 'bad' } }],
     ['a negated pattern alone', { not: { pattern: '^[Uu][Nn]$' } }],
+    ['a number', { type: 'number' }],
+    ['a number with all three bounds', { type: 'number', minimum: 0, maximum: 1, exclusiveMinimum: 0 }],
+    ['a number with a fractional and a negative bound', { type: 'number', minimum: -90.5, maximum: 1e3, title: 'Lat', description: 'Degrees.' }],
+    ['a boolean const false', { type: 'boolean', const: false }],
+    ['a boolean const true with annotations', { type: 'boolean', const: true, title: 'On', description: 'Fixed.' }],
+    ['an array with minItems and maxItems', { type: 'array', items: STRING, minItems: 1, maxItems: 3 }],
+    ['an array with minItems 0', { type: 'array', items: STRING, minItems: 0 }],
+    ['an array with maxItems 0', { type: 'array', items: { type: 'number' }, maxItems: 0 }],
+    ['a map', MAP()],
+    ['a map with annotations', MAP({ title: 'Map', description: 'Keyed.' })],
+    ['a map with non-empty keys', MAP({ propertyNames: { minLength: 1 } })],
+    ['a map with enumerated keys', MAP({ propertyNames: { enum: ['a', 'b'] } })],
+    ['a map of nullable numbers', MAP({ additionalProperties: { anyOf: [{ type: 'number', minimum: 0 }, { type: 'null' }] } })],
+    ['a map of records', MAP({ additionalProperties: object({ a: STRING }) })],
+    ['a map of maps', MAP({ additionalProperties: MAP({ propertyNames: { minLength: 1 } }) })],
+    ['a map inside a record', object({ m: MAP({ propertyNames: { enum: ['a'] } }) })],
+    ['an if/then/else with a string const', conditional({ else: THEN_LABEL })],
+    ['an if on an integer const', conditional({ if: { properties: { status: { const: 0 } }, required: ['status'] } })],
+    ['an if on a negative integer const', conditional({ if: { properties: { status: { const: -3 } }, required: ['status'] } })],
+    ['an if on a null test', conditional({ if: { properties: { label: { type: 'null' } }, required: ['label'] } })],
+    ['an if mixing a string const and a null test', conditional({ if: { properties: { status: { const: 'DONE' }, label: { type: 'null' } }, required: ['status', 'label'] }, else: THEN_LABEL })],
+    ['an else with a negated pattern', conditional({ else: { properties: { label: { not: { pattern: 'x' } } } } })],
+    ['an else with several properties', conditional({ else: { properties: { label: { type: 'null' }, status: { type: 'string', const: 'OPEN' } } } })],
+    ['an allOf of one conditional', object({ status: STRING, label: STRING }, { allOf: [CONDITIONAL_ELEMENT] })],
+    ['an allOf of conditionals with and without else', conditional({ allOf: [CONDITIONAL_ELEMENT, { ...CONDITIONAL_ELEMENT, else: THEN_LABEL }, { if: { properties: { label: { type: 'null' } }, required: ['label'] }, then: { properties: { status: { type: 'string', const: 'OPEN' } } } }] })],
+    ['a top-level conditional and an allOf', conditional({ allOf: [CONDITIONAL_ELEMENT] })],
     ['a negated pattern with annotations', { not: { pattern: 'bad' }, title: 'Not bad' }],
     ['a nullable negated pattern', { anyOf: [{ type: 'string', not: { pattern: 'bad' } }, { type: 'null' }] }],
   ])('accepts %s', (_label, schema) => {
@@ -609,6 +891,15 @@ describe('assertSupported', () => {
     expect(() => {
       assertSupported(conditional({ then: { properties: { label: { type: 'string', format: 'uri' } } } }));
     }).toThrow('/then/properties/label: unsupported keyword "format"');
+  });
+
+  it('names the JSON pointer of a refused else or allOf property', () => {
+    expect(() => {
+      assertSupported(conditional({ else: { properties: { label: { type: 'string', format: 'uri' } } } }));
+    }).toThrow('/else/properties/label: unsupported keyword "format"');
+    expect(() => {
+      assertSupported(conditional({ allOf: [{ if: IF_DONE, then: { properties: { label: { type: 'string', format: 'uri' } } } }] }));
+    }).toThrow('/allOf/0/then/properties/label: unsupported keyword "format"');
   });
 
   it('names the JSON pointer of the refused keyword', () => {
