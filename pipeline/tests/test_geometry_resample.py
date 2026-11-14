@@ -247,12 +247,18 @@ def polar_unproject_mp(lookup: PolarStereographicLookup, easting: Any, northing:
     return -phi, reduce_angle(lam0 + mpmath.atan2(easting, northing))
 
 
+# Digits that hold any float64 offset next to pi exactly: the smallest subnormal is 5e-324, so
+# pi - 5e-324 needs about 330 digits to land on the correct side of a branch cut.
+CUT_DIGITS = 400
+
+
 def equirectangular_project_mp(lookup: EquirectangularLookup, phi: Any, lam: Any) -> Pair:
-    radius = mp(lookup.radius_m)
-    dlam = reduce_angle(lam - mp_radians(lookup.center_longitude_deg))
-    easting = radius * mpmath.cos(mp_radians(lookup.standard_parallel_deg)) * dlam
-    northing = radius * (phi - mp_radians(lookup.latitude_of_origin_deg))
-    return easting, northing
+    with mpmath.workdps(CUT_DIGITS):
+        radius = mp(lookup.radius_m)
+        dlam = reduce_angle(lam - mp_radians(lookup.center_longitude_deg))
+        easting = radius * mpmath.cos(mp_radians(lookup.standard_parallel_deg)) * dlam
+        northing = radius * (phi - mp_radians(lookup.latitude_of_origin_deg))
+        return easting, northing
 
 
 def equirectangular_unproject_mp(
