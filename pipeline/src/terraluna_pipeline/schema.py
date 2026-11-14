@@ -32,12 +32,14 @@ import sys
 import tempfile
 from collections.abc import Sequence
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 from typing import Annotated, Any, Literal, Self
 
 from pydantic import (
     AfterValidator,
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     Field,
     Strict,
@@ -358,6 +360,585 @@ SourcesFile = Annotated[
     Field(title="Sources", description="sources.json: the ProductRecords (PRD 8.4, 8.12)."),
 ]
 """sources.json: an array of ProductRecords."""
+
+
+# --- Science records I: common types (CONTRACTS a.2; PRD 3, 8.4) --------------------------------
+#
+# Cross-field rules are written twice: as a pydantic validator and as JSON Schema conditionals in
+# ``allOf`` (``_when``), which the zod generator translates. Three rules compare values inside a
+# document, which JSON Schema cannot express, so only pydantic checks them: a Distribution's
+# values are sorted and counted by ``n``, a WindowPolygon's rings are closed, and a WindowEntry's
+# ``terrain`` and ``radar`` slots hold fingerprints of that kind. Every bundle file is written
+# through these models, so the web never receives a record that breaks them.
+
+EvidenceLabel = Literal["Observed", "Derived", "Predicted", "Assumed", "Unavailable"]
+"""The evidence label every displayed or exported quantity carries (PRD 3)."""
+
+Family = Literal["terrain_relief", "terrain_texture", "radar_cpr", "model_embedding"]
+"""The distance families, which are never combined into one score (D07)."""
+
+REASON_CODE_PATTERN = r"^[a-z][a-z0-9_]*$"
+
+ReasonCode = Annotated[str, Field(pattern=REASON_CODE_PATTERN)]
+"""A snake_case reason. Each owning module defines its codes as a StrEnum (CONTRACTS a.5)."""
+
+RunId = Annotated[str, Field(pattern=r"^sha256:[0-9a-f]{64}$")]
+"""``sha256:`` and 64 lowercase hex characters, as provenance.run_id returns (PRD 8.4, 8.13)."""
+
+RepoPath = Annotated[str, Field(pattern=rf"^{_SEGMENT}(/{_SEGMENT})*$")]
+"""A relative POSIX path in the repository, with the BundlePath segment rules."""
+
+WindowId = Annotated[str, Field(pattern=r"^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$")]
+"""A window id: the body, then lower-case letters, digits and hyphens (CONTRACTS a.2)."""
+
+IsoDate = Annotated[str, Field(pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$")]
+"""A calendar date in the form ``YYYY-MM-DD``."""
+
+Float = Annotated[float, Field(allow_inf_nan=False)]
+"""A finite number. pydantic would otherwise accept NaN and infinities, which JSON cannot hold."""
+
+NonNegative = Annotated[float, Field(ge=0, allow_inf_nan=False)]
+"""A distance, a nu value or another quantity that cannot be negative. 0 is a real zero."""
+
+Positive = Annotated[float, Field(gt=0, allow_inf_nan=False)]
+"""A size or spacing in metres, or a factor; 0 would stand for a missing value."""
+
+Fraction = Annotated[float, Field(ge=0, le=1, allow_inf_nan=False)]
+"""A fraction from 0 to 1."""
+
+Percentile = Annotated[float, Field(ge=0, le=100, allow_inf_nan=False)]
+"""A percentile from 0 to 100."""
+
+Count = Annotated[int, Field(ge=0, le=JS_MAX_SAFE_INTEGER)]
+"""A count, within JavaScript's safe integers."""
+
+PositiveCount = Annotated[int, Field(ge=1, le=JS_MAX_SAFE_INTEGER)]
+"""A count of at least one."""
+
+ObservableName = NonEmptyStr
+"""The key of a per-observable or per-field map."""
+
+_NULL: dict[str, Any] = {"type": "null"}
+_NUMBER: dict[str, Any] = {"type": "number"}
+_STRING: dict[str, Any] = {"type": "string"}
+
+
+def _const(value: str) -> dict[str, Any]:
+    return {"type": "string", "const": value}
+
+
+def _when(
+    condition: dict[str, dict[str, Any]],
+    then: dict[str, dict[str, Any]],
+    otherwise: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """A JSON Schema conditional: when every ``condition`` property is present and matches its
+    test (``{"const": ...}`` or ``{"type": "null"}``), each ``then`` property must match its
+    schema, and otherwise each ``otherwise`` property."""
+    rule: dict[str, Any] = {
+        "if": {"properties": condition, "required": list(condition)},
+        "then": {"properties": then},
+    }
+    if otherwise is not None:
+        rule["else"] = {"properties": otherwise}
+    return rule
+
+
+def _exactly_one_null(value: object, reason: object) -> bool:
+    return (value is None) != (reason is None)
+
+
+_STATISTICS = ("min", "median", "p05", "p95", "max")
+
+
+class Distribution(Record):
+    """Block values of one observable in one window, sorted ascending, and their order
+    statistics. ``n`` counts the values; the five statistics are null exactly when n is 0."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when(
+                    {"n": {"const": 0}},
+                    {
+                        "values": {"type": "array", "items": _NUMBER, "maxItems": 0},
+                        **dict.fromkeys(_STATISTICS, _NULL),
+                    },
+                    {
+                        "values": {"type": "array", "items": _NUMBER, "minItems": 1},
+                        **dict.fromkeys(_STATISTICS, _NUMBER),
+                    },
+                )
+            ]
+        }
+    )
+
+    n: Count
+    values: list[Float]
+    min: Float | None
+    median: Float | None
+    p05: Float | None
+    p95: Float | None
+    max: Float | None
+
+    @model_validator(mode="after")
+    def _statistics_follow_the_values(self) -> Self:
+        if self.n != len(self.values):
+            raise ValueError(f"n is {self.n} but there are {len(self.values)} values")
+        if any(a > b for a, b in pairwise(self.values)):
+            raise ValueError("values must be sorted ascending")
+        missing = [name for name in _STATISTICS if getattr(self, name) is None]
+        if self.n == 0 and len(missing) != len(_STATISTICS):
+            raise ValueError("an empty distribution has null order statistics")
+        if self.n > 0 and missing:
+            raise ValueError(f"a distribution of {self.n} values needs {', '.join(missing)}")
+        return self
+
+
+# --- WindowRecord (CONTRACTS a.4; PRD 5, 6.1, 7 D29, 8.12) --------------------------------------
+
+Frame = Literal["utm", "polar_stereographic", "equirectangular", "aeqd_sphere"]
+
+Position = Annotated[list[Float], Field(min_length=2, max_length=2)]
+"""Two coordinates. A list, not a tuple: strict pydantic would refuse a Python list for a tuple."""
+
+Ring = Annotated[list[Position], Field(min_length=4)]
+"""A closed ring: four or more positions, the last equal to the first (RFC 7946 3.1.6)."""
+
+
+class WindowPolygon(Record):
+    """A window outline in its frame's metres and in degrees (WGS84 for Earth, planetocentric
+    for the Moon and Mars). ``crs`` is read from the product, never assumed."""
+
+    frame: Frame
+    crs: NonEmptyStr
+    epsg: Annotated[int, Field(ge=1, le=JS_MAX_SAFE_INTEGER)] | None
+    utm_zone: NonEmptyStr | None
+    ring_m: Ring
+    ring_lonlat: Ring
+
+    @model_validator(mode="after")
+    def _rings_are_closed(self) -> Self:
+        for name in ("ring_m", "ring_lonlat"):
+            ring = getattr(self, name)
+            if ring[0] != ring[-1]:
+                raise ValueError(f"{name} is not closed: its last position must equal its first")
+        return self
+
+
+class EnvironmentFlags(Record):
+    """Environment records of a window (PRD 5) and its permanent shadow (PRD 6.1).
+
+    A flag that applies but was not checked is ``"unknown"``; on the Moon and Mars the Earth
+    flags are null. A null permanent_shadow_fraction carries a reason in the WindowRecord's
+    evidence_status_by_field.
+    """
+
+    search_region_id: NonEmptyStr | None
+    scene_ids: list[NonEmptyStr]
+    acquisition_dates: list[IsoDate]
+    snow_or_freeze: NonEmptyStr | None
+    moisture_state: NonEmptyStr | None
+    surface_change_since_acquisition: NonEmptyStr | None
+    permanent_shadow_fraction: Fraction | None
+    surface_model_note: NonEmptyStr | None
+
+
+class ObservedInterpolatedQuality(Record):
+    """How much of the window's DEM was observed rather than interpolated (PGDA78 count map)."""
+
+    observed_fraction: Fraction | None
+    interpolated_fraction: Fraction | None
+    source: NonEmptyStr | None
+    reason: ReasonCode | None
+
+
+class WindowRecord(Record):
+    """One analysis window (PRD 8.12). UTM zone and EPSG live in ``polygon``; search region,
+    scenes and environment live in ``environment_flags``."""
+
+    window_id: WindowId
+    body: Body
+    polygon: WindowPolygon
+    area_m2: Positive
+    analysis_grid_m: Positive
+    product_ids: list[NonEmptyStr]
+    valid_fraction_by_observable: dict[ObservableName, Fraction | None]
+    observed_interpolated_quality: ObservedInterpolatedQuality
+    environment_flags: EnvironmentFlags
+    evidence_status_by_field: dict[ObservableName, EvidenceLabel]
+
+
+# --- FingerprintRecord (CONTRACTS a.4; PRD 6.2, 6.3) --------------------------------------------
+# Values are copied from T3 terrain fingerprints and T2 block statistics, never derived again.
+
+
+class UnsupportedLag(Record):
+    """A lag that is not supported in this window, with the reason."""
+
+    lag_m: Positive
+    reason: ReasonCode
+
+
+class TerrainVariant(Record):
+    """nu over the window's lags for one variant: relief (raw) or texture (plane removed).
+
+    ``nu_m`` keys are lags in metres as T3 writes them. Exactly one of ``hurst`` and
+    ``hurst_reason`` is null. ``tilt`` holds the fitted plane coefficients (texture only).
+    """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when({"hurst": _NULL}, {"hurst_reason": _STRING}, {"hurst_reason": _NULL}),
+            ]
+        }
+    )
+
+    detrend: Literal["none", "plane"]
+    supported_lags_m: list[Positive]
+    unsupported_lags: list[UnsupportedLag]
+    nu_m: dict[ObservableName, NonNegative | None]
+    nu_by_direction_m: dict[ObservableName, dict[ObservableName, NonNegative | None]]
+    hurst: Float | None
+    hurst_reason: ReasonCode | None
+    tilt: list[Float] | None
+
+    @model_validator(mode="after")
+    def _hurst_or_its_reason(self) -> Self:
+        if not _exactly_one_null(self.hurst, self.hurst_reason):
+            raise ValueError("exactly one of hurst and hurst_reason must be null")
+        return self
+
+
+class TerrainFingerprint(Record):
+    """Terrain observables of a window on the analysis grid (PRD 6.3, D29 resampler)."""
+
+    analysis_grid_m: Positive
+    coarsening_factor: Positive | None
+    resampler: Literal["aeqd_sphere"]
+    valid_fraction: Fraction
+    relief: TerrainVariant
+    texture: TerrainVariant
+
+
+class IncidenceRange(Record):
+    """The incidence angles of the radar product over the window, in degrees."""
+
+    min: Float
+    max: Float
+
+
+def _refuse_non_bool(value: object) -> object:
+    # pydantic matches Literal[False] by equality, so 0 and 0.0 would pass; JSON Schema's const
+    # and zod's literal accept only the boolean.
+    if not isinstance(value, bool):
+        raise ValueError("must be the boolean false")
+    return value
+
+
+NotIndependent = Annotated[Literal[False], BeforeValidator(_refuse_non_bool)]
+"""Always false: radar blocks within a window are not independent samples (PRD 6.2)."""
+
+
+class RadarFingerprint(Record):
+    """Radar block statistics of one product over a window (PRD 6.2). Blocks are never
+    independent samples, and CPR is aggregated as a ratio of mean powers."""
+
+    product_id: NonEmptyStr
+    band: NonEmptyStr
+    frequency_or_wavelength: NonEmptyStr
+    convention: NonEmptyStr | None
+    support_m: Positive
+    aggregation: Literal["ratio_of_mean_powers"]
+    blocks_independent: NotIndependent
+    n_blocks: Count
+    n_valid: Count
+    valid_fraction: Fraction
+    cpr_ratio_of_mean_powers: Distribution | None
+    cpr_mean_of_pixelwise_ratios: Distribution | None
+    sc: Distribution | None
+    oc: Distribution | None
+    total_power: Distribution | None
+    incidence_deg: IncidenceRange | None
+    handedness_ratio: Distribution | None
+    reason: ReasonCode | None
+
+
+FingerprintKind = Literal["terrain", "radar"]
+
+
+class FingerprintRecord(Record):
+    """The terrain or radar fingerprint of a window: ``terrain`` is set exactly when kind is
+    terrain and ``radar`` exactly when kind is radar."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when({"kind": {"const": "terrain"}}, {"radar": _NULL}),
+                _when({"kind": {"const": "radar"}}, {"terrain": _NULL}),
+                _when({"terrain": _NULL}, {"kind": _const("radar")}),
+                _when({"radar": _NULL}, {"kind": _const("terrain")}),
+            ]
+        }
+    )
+
+    window_id: WindowId
+    body: Body
+    kind: FingerprintKind
+    product_ids: list[NonEmptyStr]
+    evidence_label: EvidenceLabel
+    input_hash: Sha256
+    run_id: RunId
+    terrain: TerrainFingerprint | None
+    radar: RadarFingerprint | None
+
+    @model_validator(mode="after")
+    def _kind_names_the_part(self) -> Self:
+        if (self.terrain is not None) != (self.kind == "terrain") or (self.radar is not None) != (
+            self.kind == "radar"
+        ):
+            raise ValueError(f"a {self.kind} fingerprint sets {self.kind} and nothing else")
+        return self
+
+
+WindowStatus = Literal["eligible", "rejected", "unknown"]
+
+GridIndex = Annotated[list[Count], Field(min_length=2, max_length=2)]
+
+
+class WindowEntry(Record):
+    """One row of windows/{body}.json: a window, its fingerprints and its eligibility. A
+    rejected or unknown window lists its reasons in order; an eligible one lists none."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when(
+                    {"status": {"const": "eligible"}},
+                    {"reasons": {"type": "array", "items": _STRING, "maxItems": 0}},
+                    {"reasons": {"type": "array", "items": _STRING, "minItems": 1}},
+                )
+            ]
+        }
+    )
+
+    window: WindowRecord
+    terrain: FingerprintRecord | None
+    radar: list[FingerprintRecord]
+    status: WindowStatus
+    reasons: list[ReasonCode]
+    grid_index: GridIndex | None
+    card_id: NonEmptyStr | None
+
+    @model_validator(mode="after")
+    def _reasons_and_slots(self) -> Self:
+        if (self.status == "eligible") != (self.reasons == []):
+            raise ValueError("an eligible window has no reasons; any other status has some")
+        if self.terrain is not None and self.terrain.kind != "terrain":
+            raise ValueError("the terrain slot holds a terrain fingerprint")
+        if any(item.kind != "radar" for item in self.radar):
+            raise ValueError("the radar slot holds radar fingerprints only")
+        return self
+
+
+WindowsFile = Annotated[
+    list[WindowEntry],
+    Strict(),
+    Field(title="Windows", description="windows/{body}.json: the WindowEntries (PRD 8.4)."),
+]
+"""windows/{body}.json: an array of WindowEntries."""
+
+
+# --- ComparisonRecord (CONTRACTS a.4; PRD 6.5, 6.6, 8.12; D07) -----------------------------------
+
+
+class ReferenceSpread(Record):
+    """The spread of distances within the target reference set (PRD 6.5 step 5)."""
+
+    min: NonNegative
+    median: NonNegative
+    max: NonNegative
+    n: PositiveCount
+
+
+_DISTANCE_RULES: list[Any] = [
+    _when(
+        {"status": {"const": "available"}},
+        {"value": _NUMBER, "reason": _NULL},
+        {"value": _NULL, "reason": _STRING},
+    ),
+    _when(
+        {"reference_spread": _NULL},
+        {"reference_spread_reason": _STRING, "tied": _NULL},
+        {"reference_spread_reason": _NULL},
+    ),
+    _when(
+        {"background_percentile": _NULL},
+        {"background_percentile_reason": _STRING},
+        {"background_percentile_reason": _NULL},
+    ),
+]
+
+
+class DistanceEntry(Record):
+    """One family's distance between a target and an Earth window (PRD 6.5).
+
+    ``value`` is set exactly when status is available, and ``reason`` exactly when it is not.
+    A value of 0 is a real zero (identical fingerprints) and never stands for missing. Exactly
+    one of each spread and percentile pair is null, and ``tied`` is null without a spread.
+    """
+
+    model_config = ConfigDict(json_schema_extra={"allOf": _DISTANCE_RULES})
+
+    value: NonNegative | None
+    unit: NonEmptyStr
+    evidence_label: EvidenceLabel
+    status: Literal["available", "unavailable", "not_comparable"]
+    reason: ReasonCode | None
+    reference_spread: ReferenceSpread | None
+    reference_spread_reason: ReasonCode | None
+    background_percentile: Percentile | None
+    background_percentile_reason: ReasonCode | None
+    tied: bool | None
+    tie_group: NonEmptyStr | None
+    tie_reason: ReasonCode | None
+
+    @model_validator(mode="after")
+    def _missing_is_null_with_a_reason(self) -> Self:
+        if (self.value is not None) != (self.status == "available"):
+            raise ValueError("value is set exactly when status is available")
+        if (self.reason is None) != (self.status == "available"):
+            raise ValueError("reason is null exactly when status is available")
+        if not _exactly_one_null(self.reference_spread, self.reference_spread_reason):
+            raise ValueError("exactly one of reference_spread and its reason must be null")
+        if not _exactly_one_null(self.background_percentile, self.background_percentile_reason):
+            raise ValueError("exactly one of background_percentile and its reason must be null")
+        if self.reference_spread is None and self.tied is not None:
+            raise ValueError("tied is null when no reference spread was supplied")
+        return self
+
+
+class ModelEmbeddingDistanceEntry(DistanceEntry):
+    """The model_embedding distance: a value is a model prediction, so it is labelled
+    Predicted."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                *_DISTANCE_RULES,
+                _when({"status": {"const": "available"}}, {"evidence_label": _const("Predicted")}),
+            ]
+        }
+    )
+
+    @model_validator(mode="after")
+    def _a_value_is_predicted(self) -> Self:
+        if self.value is not None and self.evidence_label != "Predicted":
+            raise ValueError("a model_embedding distance with a value is labelled Predicted")
+        return self
+
+
+class DistancesByFamily(Record):
+    """The four family distances, every key always present (D07: never combined). Indexing by
+    family name reads it like the ``dict[Family, DistanceEntry]`` of CONTRACTS a.4."""
+
+    terrain_relief: DistanceEntry
+    terrain_texture: DistanceEntry
+    radar_cpr: DistanceEntry
+    model_embedding: ModelEmbeddingDistanceEntry
+
+    def __getitem__(self, family: Family) -> DistanceEntry:
+        if family not in type(self).model_fields:
+            raise KeyError(family)
+        entry: DistanceEntry = getattr(self, family)
+        return entry
+
+
+class FamilySpread(Record):
+    """The spread of one family's values across clones or within the window."""
+
+    spread_min: Float | None
+    spread_median: Float | None
+    spread_max: Float | None
+    n: Count | None
+
+
+class Scenario(Record):
+    """One named scenario run (PRD 6.6). It carries no probability or weight."""
+
+    name: NonEmptyStr
+    change: NonEmptyStr
+    values_by_family: dict[Family, Float | None]
+    rank_by_family: dict[Family, Count | None]
+
+
+class RankFrequency(Record):
+    """How often a rank held across runs: a frequency, never the probability that a site is a
+    valid analog (PRD 6.6)."""
+
+    frequency: Fraction
+    count: Count
+    n: PositiveCount
+
+
+class UncertaintyComponent(Record):
+    """One uncertainty category of PRD 6.6. Families stay separate; ``scenarios`` is used by
+    scenario_sensitivity only."""
+
+    status: Literal["available", "unavailable"]
+    evidence_label: EvidenceLabel
+    reason: ReasonCode | None
+    note: NonEmptyStr | None
+    by_family: dict[Family, FamilySpread] | None
+    n_requested: Count | None
+    n_used: Count | None
+    scenarios: list[Scenario] | None
+    rank_frequency: dict[Family, RankFrequency] | None
+
+
+class UncertaintyComponents(Record):
+    """The four uncertainty categories of PRD 6.6, kept separate and never combined."""
+
+    heterogeneity: UncertaintyComponent
+    measurement_error: UncertaintyComponent
+    statistical_prediction_error: UncertaintyComponent
+    scenario_sensitivity: UncertaintyComponent
+
+
+class ExcludedObservable(Record):
+    """An observable left out of the comparison, with every reason (PRD 6.5 step 1)."""
+
+    observable: NonEmptyStr
+    reasons: Annotated[list[ReasonCode], Field(min_length=1)]
+
+
+class ComparisonRecord(Record):
+    """A target window compared with one Earth window (PRD 8.12). Shortlist membership lives on
+    the TargetRecord, and there is no score or combined distance (D07)."""
+
+    target_window_id: WindowId
+    earth_window_id: WindowId
+    shipping_mode: ShippingMode | None
+    comparable_observables: list[NonEmptyStr]
+    excluded_observables_and_reasons: list[ExcludedObservable]
+    distances_by_family: DistancesByFamily
+    uncertainty_components: UncertaintyComponents
+    sort_rule: NonEmptyStr | None
+    claim_limits: list[NonEmptyStr]
+    source_ids: list[NonEmptyStr]
+    run_id: RunId
+
+
+ComparisonsFile = Annotated[
+    list[ComparisonRecord],
+    Strict(),
+    Field(
+        title="Comparisons",
+        description="comparisons/{target_id}.json: the ComparisonRecords (PRD 8.4).",
+    ),
+]
+"""comparisons/{target_id}.json: an array of ComparisonRecords."""
 
 
 # --- JSON Schema generation (PRD 8.3, 8.9) ------------------------------------------------------
