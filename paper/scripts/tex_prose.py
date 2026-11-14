@@ -134,8 +134,9 @@ VERBATIM_ARGUMENT = frozenset({"url", "href"})
 # (\hyper@normalise), so either one there would become the URL. \href reads its { first.
 SAME_LINE_ARGUMENT = frozenset({"url"})
 # What ends a file name after \input when no brace follows it, outside double quotes. TeX ends it
-# at a space or a line break; a comment, a brace or a control sequence ends it here too.
-FILE_NAME_END = frozenset(" \t\n%{}\\")
+# at a space or a line break; a brace or a control sequence ends it here too. A comment does not:
+# TeX drops it with its line break and reads on from the next line.
+FILE_NAME_END = frozenset(" \t\n{}\\")
 
 # Environments whose own arguments, after \begin{name}, are layout rather than prose.
 ENVIRONMENT_ARGUMENTS: dict[str, int] = {
@@ -639,7 +640,10 @@ class _CodeScanner:
 
         LaTeX's \\input looks past spaces for a brace (\\@ifnextchar) and reads a {group} as the
         name. Without one, TeX's \\input primitive reads the name up to the first space or line
-        break; XeTeX lets double quotes hold spaces in it, as in \\input "a b.tex".
+        break; XeTeX lets double quotes hold spaces in it, as in \\input "a b.tex". A comment
+        inside the name goes with its line break, and the name goes on after the indent of the
+        next line, so \\input a/%, a line break and b.tex reads a/b.tex. A blank line there is
+        \\par, which ends it.
         """
         text = self.text
         i = self.space_end(i)
@@ -647,10 +651,18 @@ class _CodeScanner:
             return self.group_end(i, verbatim=False)
         end = i
         quoted = False
-        while end < len(text) and (quoted or text[end] not in FILE_NAME_END):
-            if text[end] == "\n":
+        while end < len(text):
+            char = text[end]
+            if char == "%":
+                end = self.comment(end)
+                if end < len(text):
+                    end = _blanks_end(text, end + 1)
+                continue
+            if quoted and char == "\n":
                 raise self.error(start, 'unclosed " in the file name of \\input')
-            if text[end] == '"':
+            if not quoted and char in FILE_NAME_END:
+                break
+            if char == '"':
                 quoted = not quoted
             end += 1
         if quoted:
