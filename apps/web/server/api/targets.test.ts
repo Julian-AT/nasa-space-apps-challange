@@ -423,7 +423,7 @@ describe('GET /api/v1/targets/{id} in the OpenAPI document', () => {
     }).paths?.['/api/v1/targets/{id}']?.get;
 
   it('documents the id path parameter with its pattern and length limit', () => {
-    const parameters = (operation()?.parameters ?? []) as Record<string, unknown>[];
+    const parameters = operation()?.parameters ?? [];
     expect(parameters).toHaveLength(1);
     expect(parameters[0]).toMatchObject({
       name: 'id',
