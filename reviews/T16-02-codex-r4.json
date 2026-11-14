@@ -1,0 +1,184 @@
+{
+  "task_id": "T16-02",
+  "round": 4,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "4d42e30bb6390560de34d905a70effd99f28a5c7",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "092cc3e750fc669814216db555594a94f2e937cfb9de4ffbf2f3fe6f42e62b55"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "1602b41792066a92142fd26b4aa62342ed175a4f30820a65a9c310dc06eadb9e"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "7cd72ec12b7a312768921ec8f6ec9ea2d819a8acff87f42fcd809d12e68d5905"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "229959cf5e585541b71a1abd77cd48cdd8a5cdb1b3a8c6e1574459f4085e8b25"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "24aa0f246b04d5cd884991f02292ac9da685c0770b5500c70aca0a9ad312cf66"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "e48bb7651242e08c96f9aea661cec1326b259fc04cc0c41314ac08c8aa70d1c8"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:17:50Z",
+  "finished_utc": "2026-11-14T21:25:40Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found four contract violations affecting extraction, overlap detection, robust exceptions and bold enforcement. All five execution checks were intentionally not run.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX extraction preserves source lines and removes the required non-prose constructs.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Both consumers use extract(), but tex_prose.py:611 leaves skipped whitespace before kept text arguments, :626 stops unbraced filenames at comments, and :820 can assign words to the wrong source line."
+    },
+    {
+      "criterion": "AC2: Linter checks all required files, formats findings and fails without rule-disabling options.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "tex_prose.py:360-366 recursively selects .tex files except figures/styles.tex. lint_prose.py:115-116 formats findings; :246-270 exposes only --root and returns 1 for findings."
+    },
+    {
+      "criterion": "AC3: All six prose rules, including TikZ handling and line-local robust exceptions.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Whitespace before kept arguments can hide banned words; delayed newlines can apply a robust exception from another source line; escaped environment spellings can suppress bold findings. See findings."
+    },
+    {
+      "criterion": "AC4: Normalized abstract overlap, fixed 12-token threshold, maximal reporting and record validation.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "overlap_check.py:35,72-111,138-170 implements the threshold, normalization, runs and record validation. However, extraction at tex_prose.py:611 and :626 can split or contaminate a shared 12-word passage before comparison."
+    },
+    {
+      "criterion": "AC5: Initialize reference-verification.json as an empty references object.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1-3 contains exactly {\"references\": {}}."
+    },
+    {
+      "criterion": "AC6: Required tests were written and run failing before implementation; inputs remain strings or temporary files.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Read all three test files: required examples have direct assertions and temporary inputs. The fbf3c38 tree contains these tests without the implementation modules. Historical failing execution and current test results cannot be established from reading; checks were prohibited in this read-only sandbox."
+    },
+    {
+      "criterion": "AC7: Build targets, required ordering, passing manuscript and README commands.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5,25,43-51 establishes serial numbers/lint/overlap/test/pdf targets. paper/README.md:17-26 documents both commands. Manuscript and build execution were prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Previous Codex round 1 and round 2 fixes.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection confirms comment-aware argument scanning at tex_prose.py:646-662, retained TikZ arguments at :544-547, and context-dependent group breaks at :664-694. Corresponding extraction and consumer regression assertions are present."
+    },
+    {
+      "criterion": "Previous Codex round 3 fixes.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The reported formatting-command whitespace and simple unbraced-input examples are addressed. Related valid forms remain broken: whitespace before kept text arguments and comments continuing unbraced filenames. The newline repair also introduces incorrect source-line attribution."
+    },
+    {
+      "criterion": "Previous Claude rebuttals and story scope.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "scripts/ralph/prompt.md:21 permits story-list/progress changes and :36 permits resolution records. Listed implementation commits touch only scoped paper files. lint_prose.py:104 bounds the broader bf match; tex_prose.py:334-344,679-693 explicitly handles unknown command arity. These rebuttals reveal no additional criterion failure."
+    },
+    {
+      "criterion": "Required check: static analysis and formatting.",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: prose lint.",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: abstract overlap.",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: paper tests.",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; pytest can write caches and temporary files."
+    },
+    {
+      "criterion": "Required check: complete paper build.",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks; this build writes generated files, logs and the PDF."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:611",
+      "claim": "Whitespace before a kept text argument still allows both mandatory prose guards to be bypassed.",
+      "evidence": "Static trace, not executed: key_arguments_end() stops after the removed key arguments. Consequently, seam\\href{https://x.org/} {less} extracts as 'seam less', although TeX skips the space while reading the text argument and prints seamless. Likewise, 'We measure the roughness of lu\\href{https://x.org/} {nar} and martian terrain at baselines from' loses the existing abstract's 12-word match. The same gap affects textcolor. Consume skipped whitespace before supported kept text arguments and add regressions for both consumers.",
+      "id": "codex-r4-1",
+      "resolution": null
+    },
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:626",
+      "claim": "A comment continuing an unbraced input filename leaks the remainder into prose and can hide overlap.",
+      "evidence": "Static trace, not executed: FILE_NAME_END includes % at :137, so '\\input generated/% note\\nnumbers.tex ' masks only '\\input generated/'. The main scan removes the comment but leaves numbers.tex as prose. TeX ignores that comment and continues reading the filename generated/numbers.tex. Inserting this input between words six and seven of the test passage adds 'numbers tex' tokens and hides the shared run. Continue filename scanning through comments and add extraction and overlap regressions.",
+      "id": "codex-r4-2",
+      "resolution": null
+    },
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:820",
+      "claim": "Delayed newlines can apply a robust exception from a different source line.",
+      "evidence": "Static trace, not executed: 'Text.% lint-allow robust: unrelated\\nrobust' becomes 'Text.robust\\n'. unprinted_line_break() holds the newline after punctuation, and write() flushes it only on whitespace. banned_word_hits() therefore assigns robust to line 1 and accepts its comment, although robust starts on source line 2 without an exception. Preserve token source locations across punctuation and add line-local allowance regressions.",
+      "id": "codex-r4-3",
+      "resolution": null
+    },
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/lint_prose.py:191",
+      "claim": "Escaped environment spellings can create a false table exemption that suppresses actual bold prose.",
+      "evidence": "Static trace, not executed: in 'Text\\\\begin{tabular}{l} \\textbf{x} \\\\end{tabular}', the doubled backslashes are line-break commands, so no tabular environment exists. However, environment_boundary() at tex_prose.py:354 matches the second backslash of each pair. tabular_spans() creates an exemption covering the real textbf command, and bold_hits() suppresses it. Match actual scanned control sequences and add an escaped-environment regression.",
+      "id": "codex-r4-4",
+      "resolution": null
+    }
+  ]
+}
