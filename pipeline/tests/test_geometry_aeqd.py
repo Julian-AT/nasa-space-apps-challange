@@ -650,6 +650,35 @@ def test_forward_matches_the_exact_reference(body: str, lat0_deg: float, lon0: f
     assert_metres_close(x, y, x_ref, y_ref)
 
 
+# Float64 points in windows centred within 3.6 km of a pole, with one window coordinate near
+# zero, where the forward used more than the PRD 7 allowance in metres against the exact
+# forward of the same point. Found by random search over 1.6 million such points, made with
+# the inverse from offsets near an axis. In the first three, y is near 0 and the north
+# component cancelled two terms the size of the distance to the pole (about 2.3 km), each
+# rounded in float64 (1.01 to 1.28 of the allowance). In the last four, x is near 0 on the far
+# side of the pole, where the longitude difference is near pi and its float64 rounding moved x
+# (1.00 to 1.14).
+POLE_WINDOW_FORWARD_CASES = (
+    ("mars", 1.570710853615426, -0.8427156657011828, 1.5700849164604616, -2.293074961503627),
+    ("mars", 1.570750837979072, 0.3324403830824384, 1.5700593207005185, 1.8414763809954393),
+    ("earth", 1.5707906137131071, 2.3674157549596337, 1.5704538732734863, -2.3616567934097894),
+    ("mars", -1.5707848499783608, 1.0701547618635285, -1.5700748830794446, -2.071437891726265),
+    ("mars", 1.5707878527140378, -1.5230723398079535, 1.5701081767882408, 1.6185203137818398),
+    ("earth", 1.5707544735957888, -1.806008123688206, 1.570449753057113, 1.3355845299015874),
+    ("moon", 1.57070528617204, 0.9340656968768715, 1.5695620602473925, -2.207526956712922),
+)
+
+
+@pytest.mark.parametrize(("body", "lat0", "lon0", "lat", "lon"), POLE_WINDOW_FORWARD_CASES)
+def test_forward_near_an_axis_in_a_pole_window(
+    body: str, lat0: float, lon0: float, lat: float, lon: float
+) -> None:
+    radius = BODY_RADII_M[body]
+    x, y = aeqd_forward(lat, lon, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
+    x_ref, y_ref = exact_forward(np.array(lat), np.array(lon), lat0, lon0, radius)
+    assert_metres_close(x, y, x_ref, y_ref)
+
+
 def test_forward_returns_the_origin_at_the_centre() -> None:
     for body in BODIES:
         for lat0 in (*POLES_RAD, -0.3, 0.0, 1.2):
