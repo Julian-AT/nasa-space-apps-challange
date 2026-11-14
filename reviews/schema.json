@@ -1,0 +1,47 @@
+{
+  "type": "object",
+  "description": "A reviewer's final answer (PRD 23.3-23.5). scripts/ralph/review.sh adds task, reviewer, inputs, timestamps, finding ids and empty resolutions around it.",
+  "additionalProperties": false,
+  "required": ["verdict", "summary", "checks", "findings"],
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "NOT_RUN"],
+      "description": "PASS only if every acceptance criterion passed on evidence and no finding is blocker or high."
+    },
+    "summary": {"type": "string"},
+    "checks": {
+      "type": "array",
+      "description": "One entry per acceptance criterion and per check command.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion", "command", "outcome", "evidence"],
+        "properties": {
+          "criterion": {"type": "string"},
+          "command": {"type": ["string", "null"], "description": "Command run, or null if judged by reading."},
+          "outcome": {"type": "string", "enum": ["PASS", "FAIL", "NOT_RUN"]},
+          "evidence": {"type": "string", "description": "Output excerpt or file:line. For NOT_RUN, the concrete reason."}
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "location", "claim", "evidence"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["blocker", "high", "medium", "low"],
+            "description": "blocker: a criterion fails or a scientific or safety rule is broken. high: likely defect, or a required behaviour is untested. medium: fix before merge. low: optional."
+          },
+          "location": {"type": "string", "description": "path:line, or a command."},
+          "claim": {"type": "string"},
+          "evidence": {"type": "string"}
+        }
+      }
+    }
+  }
+}
