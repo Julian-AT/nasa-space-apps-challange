@@ -2,9 +2,10 @@
 
 ``python -m terraluna_pipeline.polarimetry record-g1 --junit <path> --out <path>`` reads
 pytest's own junit report and writes one :class:`GateRecord` for G1. The required tests are
-listed in ``fixtures/polarimetry/g1_required_tests.json``: every F1-F10 fixture test, the
-convention and invalid-data tests of T2-01 to T2-03 (PRD 9: "conventions labelled;
-invalid-data behaviour tested") and the T2-07 real-scene oracle check.
+listed in ``fixtures/polarimetry/g1_required_tests.json``: every F1-F10 fixture test, every
+test of T2-01 to T2-03, grouped per story as convention tests, invalid-data tests and the
+other tests (PRD 9: "conventions labelled; invalid-data behaviour tested"), and the T2-07
+real-scene oracle check.
 
 Status rules fixed by these tests (also in the polarimetry module docstring of the recorder):
 
@@ -70,10 +71,15 @@ def unique(ids: Iterable[str]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(ids))
 
 
+STORY_GROUPS = ("conventions", "invalid_data", "other")
 NO_SCENE_IDS = unique(
     [nodeid for ids in REQUIRED.fixtures.values() for nodeid in ids]
-    + [nodeid for ids in REQUIRED.conventions.values() for nodeid in ids]
-    + [nodeid for ids in REQUIRED.invalid_data.values() for nodeid in ids]
+    + [
+        nodeid
+        for group in STORY_GROUPS
+        for ids in getattr(REQUIRED, group).values()
+        for nodeid in ids
+    ]
 )
 """Every required test except the real-scene check: they run on synthetic inputs."""
 REAL_SCENE_IDS = tuple(REQUIRED.real_scene_check)
@@ -241,12 +247,11 @@ def test_command_reads_the_list_in_fixtures() -> None:
 
 def test_required_list_names_every_fixture_and_the_convention_and_invalid_data_stories() -> None:
     assert set(REQUIRED.fixtures) == set(FIXTURES)
-    assert set(REQUIRED.conventions) == set(STORIES)
-    assert set(REQUIRED.invalid_data) == set(STORIES)
+    for group in STORY_GROUPS:
+        assert set(getattr(REQUIRED, group)) == set(STORIES)
     groups = [
         *REQUIRED.fixtures.values(),
-        *REQUIRED.conventions.values(),
-        *REQUIRED.invalid_data.values(),
+        *(ids for group in STORY_GROUPS for ids in getattr(REQUIRED, group).values()),
     ]
     for ids in groups:
         assert ids
@@ -289,18 +294,36 @@ def test_listed_fixture_tests_follow_the_naming_rule() -> None:
             assert fixture in covered_fixtures(nodeid.partition("::")[2]), nodeid
 
 
-@pytest.mark.parametrize("group", ["conventions", "invalid_data"])
-def test_convention_and_invalid_data_tests_come_from_their_story_files(group: str) -> None:
+@pytest.mark.parametrize("group", STORY_GROUPS)
+def test_story_group_tests_come_from_their_story_files(group: str) -> None:
     for story, ids in getattr(REQUIRED, group).items():
         for nodeid in ids:
             assert nodeid.partition("::")[0] == STORY_FILES[story], nodeid
             assert not covered_fixtures(nodeid.partition("::")[2]), nodeid
 
 
-def test_convention_and_invalid_data_groups_do_not_overlap() -> None:
-    conventions = {nodeid for ids in REQUIRED.conventions.values() for nodeid in ids}
-    invalid_data = {nodeid for ids in REQUIRED.invalid_data.values() for nodeid in ids}
-    assert not conventions & invalid_data
+def test_story_groups_do_not_overlap() -> None:
+    seen: set[str] = set()
+    for group in STORY_GROUPS:
+        ids = {nodeid for ids in getattr(REQUIRED, group).values() for nodeid in ids}
+        assert not seen & ids, group
+        seen |= ids
+
+
+@pytest.mark.parametrize("story", STORIES)
+def test_every_test_of_stories_1_to_3_is_required(story: str) -> None:
+    """Each test function of a story file is in its story's groups or a fixture group."""
+    path = STORY_FILES[story]
+    fixture_ids = {nodeid for ids in REQUIRED.fixtures.values() for nodeid in ids}
+    listed = {nodeid for group in STORY_GROUPS for nodeid in getattr(REQUIRED, group)[story]}
+    functions = module_functions(REPO_ROOT / path)
+    assert len(functions) >= 40
+    for function in functions:
+        nodeid = f"{path}::{function}"
+        assert nodeid in (fixture_ids if covered_fixtures(function) else listed), nodeid
+    tree = ast.parse((REPO_ROOT / path).read_text(encoding="utf-8"))
+    classes = [node.name for node in tree.body if isinstance(node, ast.ClassDef)]
+    assert not [name for name in classes if name.startswith("Test")]
 
 
 def test_real_scene_check_is_the_story_7_oracle_test() -> None:
@@ -330,6 +353,10 @@ def required_list_variant(tmp_path: Path, change: str) -> Path:
         del data["invalid_data"]["T2-03"]
     elif change == "missing_convention_story":
         del data["conventions"]["T2-01"]
+    elif change == "missing_other_story":
+        del data["other"]["T2-02"]
+    elif change == "no_other":
+        del data["other"]
     elif change == "no_conventions":
         del data["conventions"]
     elif change == "no_real_scene_check":
@@ -370,6 +397,8 @@ def required_list_variant(tmp_path: Path, change: str) -> Path:
         "duplicate_id",
         "missing_story",
         "missing_convention_story",
+        "missing_other_story",
+        "no_other",
         "no_conventions",
         "no_real_scene_check",
         "unknown_key",
@@ -568,6 +597,7 @@ def test_scope_names_the_prd_9_g1_evidence(tmp_path: Path) -> None:
     for phrase in [
         "F1-F10",
         "independent basis transformation",
+        "every test of T2-01 to T2-03",
         "convention",
         "invalid-data",
         "fixtures/polarimetry/g1_required_tests.json",
@@ -586,7 +616,9 @@ def test_failed_real_scene_check_gives_fail(tmp_path: Path) -> None:
 
 
 def test_a_failing_unlisted_test_in_a_g1_module_gives_fail(tmp_path: Path) -> None:
-    unlisted = "pipeline/tests/test_polarimetry_stokes.py::test_sc_and_oc_split_the_total_power"
+    unlisted = (
+        "pipeline/tests/test_polarimetry_derive.py::test_input_kinds_are_named_string_constants"
+    )
     assert unlisted not in ALL_REQUIRED_IDS
     cases = [*all_passed().items(), (unlisted + "[case]", "failed")]
     code, record = record_from(tmp_path, cases)
@@ -594,7 +626,7 @@ def test_a_failing_unlisted_test_in_a_g1_module_gives_fail(tmp_path: Path) -> No
     assert record.status == "FAIL"
     assert result_of(record)["failed"] == []
     assert result_of(record)["other_failed"] == [
-        "pipeline.tests.test_polarimetry_stokes::test_sc_and_oc_split_the_total_power[case]"
+        "pipeline.tests.test_polarimetry_derive::test_input_kinds_are_named_string_constants[case]"
     ]
 
 
@@ -703,8 +735,8 @@ def test_result_holds_counts_per_fixture_and_per_story(tmp_path: Path) -> None:
     code, record = record_from(tmp_path, cases)
     result = result_of(written(code, record))
     assert list(result["fixtures"]) == list(FIXTURES)
-    assert list(result["conventions"]) == list(STORIES)
-    assert list(result["invalid_data"]) == list(STORIES)
+    for group in STORY_GROUPS:
+        assert list(result[group]) == list(STORIES)
     for fixture in FIXTURES:
         counts = result["fixtures"][fixture]
         assert counts["tests"] == len(REQUIRED.fixtures[fixture])
@@ -720,9 +752,9 @@ def test_result_holds_counts_per_fixture_and_per_story(tmp_path: Path) -> None:
         "cases": sum(len(listed_cases(test)) for test in REQUIRED.fixtures["F1"][1:]),
     }
     assert result["fixtures"]["F2"]["passed"] == 3
-    for story in STORIES:
-        assert result["conventions"][story]["passed"] == len(REQUIRED.conventions[story])
-        assert result["invalid_data"][story]["passed"] == len(REQUIRED.invalid_data[story])
+    for group in STORY_GROUPS:
+        for story in STORIES:
+            assert result[group][story]["passed"] == len(getattr(REQUIRED, group)[story])
     assert result["real_scene_check"]["absent"] == len(REAL_SCENE_IDS)
 
 
@@ -915,9 +947,17 @@ def pytest_configure(config):
 '''
 
 
+RUN_TARGETS = (
+    *STORY_FILES.values(),
+    *(nodeid for nodeid in NO_SCENE_IDS if nodeid.partition("::")[0] not in STORY_FILES.values()),
+)
+"""The story files whole (so pytest's collection shows any unlisted test) and the other
+listed tests by id."""
+
+
 def run_pytest(junit: Path, *, plugin_dir: Path | None = None) -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
-    args = [sys.executable, "-m", "pytest", *NO_SCENE_IDS, f"--junitxml={junit}"]
+    args = [sys.executable, "-m", "pytest", *RUN_TARGETS, f"--junitxml={junit}"]
     args += ["-q", "-p", "no:cacheprovider"]
     if plugin_dir is not None:
         env["PYTHONPATH"] = os.pathsep.join(
@@ -974,7 +1014,7 @@ def test_real_run_of_the_required_tests_is_partial_without_the_real_scene_check(
         counts = result["fixtures"][fixture]
         assert counts["passed"] == counts["tests"] == len(REQUIRED.fixtures[fixture])
         assert counts["cases"] >= counts["tests"]
-    for group in ("conventions", "invalid_data"):
+    for group in STORY_GROUPS:
         for story in STORIES:
             counts = result[group][story]
             assert counts["passed"] == counts["tests"] == len(getattr(REQUIRED, group)[story])
@@ -998,6 +1038,23 @@ def test_listed_cases_are_the_cases_pytest_reports(real_run: tuple[int, Path]) -
         ]
         expected = [address(case)[1] for case in listed_cases(nodeid)]
         assert sorted(names) == sorted(expected), nodeid
+
+
+def test_real_run_of_the_story_files_holds_only_listed_cases(real_run: tuple[int, Path]) -> None:
+    """pytest's own collection of the whole story files finds no test the list leaves out."""
+    _, junit = real_run
+    listed = {
+        (address(nodeid)[0], name)
+        for nodeid in NO_SCENE_IDS
+        for name in REQUIRED.junit_names(nodeid)
+    }
+    story_modules = {address(path)[0] for path in STORY_FILES.values()}
+    seen = 0
+    for case in ET.fromstring(junit.read_bytes()).iter("testcase"):
+        if case.get("classname") in story_modules:
+            seen += 1
+            assert (case.get("classname"), case.get("name")) in listed, case.get("name")
+    assert seen >= 3 * 40
 
 
 def test_deliberately_failing_run_records_fail_and_its_exit_code_is_not_hidden(
@@ -1106,14 +1163,12 @@ def test_committed_record_follows_the_rules_from_its_own_result() -> None:
     assert result["required_tests_sha256"] == hashlib.sha256(REQUIRED_PATH.read_bytes()).hexdigest()
     groups = [
         *(result["fixtures"][fixture] for fixture in FIXTURES),
-        *(result["conventions"][story] for story in STORIES),
-        *(result["invalid_data"][story] for story in STORIES),
+        *(result[group][story] for group in STORY_GROUPS for story in STORIES),
         result["real_scene_check"],
     ]
     expected_tests = [
         *(len(REQUIRED.fixtures[fixture]) for fixture in FIXTURES),
-        *(len(REQUIRED.conventions[story]) for story in STORIES),
-        *(len(REQUIRED.invalid_data[story]) for story in STORIES),
+        *(len(getattr(REQUIRED, group)[story]) for group in STORY_GROUPS for story in STORIES),
         len(REAL_SCENE_IDS),
     ]
     assert [group["tests"] for group in groups] == expected_tests
