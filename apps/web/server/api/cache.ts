@@ -19,12 +19,19 @@
 // The mock bundle keeps bundle_version mock-0 while its fixture changes between commits, so a
 // client may hold an older mock across preview deploys. Mock bundles are placeholders and are
 // never served on production.
+//
+// /openapi.json and /docs (T15-06) are per deploy too, but they never read the bundle: the code of
+// a deploy fixes their bytes. Their ETag is therefore a strong hash of those bytes (contentETag),
+// which changes only when a deploy changes the document or the page.
+import { createHash } from 'node:crypto';
+
 import { BundleManifestSchema } from '@terraluna/schema';
 import { etag } from 'hono/etag';
 
 /**
- * per deploy: /manifest. The manifest names the bundle a deploy serves, and clients read it to
- * find a new bundle_version, so it stays fresh for one minute only.
+ * per deploy: /manifest, /openapi.json and /docs. The manifest names the bundle a deploy serves,
+ * and clients read it to find a new bundle_version; the document and the reference change with the
+ * code of a deploy. So they stay fresh for one minute only.
  */
 export const PER_DEPLOY_MAX_AGE = 60;
 
@@ -52,26 +59,55 @@ export function bundleETag(bundleVersion: string): string {
   return `W/"${bundleVersion}"`;
 }
 
+/** The Cache-Control value of a policy: `public, max-age=N, immutable`. */
+export function cacheControl(policy: CachePolicy): string {
+  return `public, max-age=${String(MAX_AGE[policy])}, immutable`;
+}
+
 /** Cache-Control and ETag for a response read from the bundle with this bundle_version. */
 export function bundleCacheHeaders(
   policy: CachePolicy,
   bundleVersion: string,
 ): { 'Cache-Control': string; ETag: string } {
-  return {
-    'Cache-Control': `public, max-age=${String(MAX_AGE[policy])}, immutable`,
-    ETag: bundleETag(bundleVersion),
-  };
+  return { 'Cache-Control': cacheControl(policy), ETag: bundleETag(bundleVersion) };
+}
+
+/**
+ * The strong ETag of a body: the base64url SHA-256 of its UTF-8 bytes, quoted. Strong (RFC 9110
+ * 8.8.1), because it names these exact bytes; base64url uses only characters an entity tag allows.
+ */
+export function contentETag(body: string): string {
+  return `"${createHash('sha256').update(body, 'utf8').digest('base64url')}"`;
+}
+
+/** Cache-Control and ETag for a body that a deploy fixes and the bundle never changes. */
+export function deployCacheHeaders(body: string): { 'Cache-Control': string; ETag: string } {
+  return { 'Cache-Control': cacheControl('per-deploy'), ETag: contentETag(body) };
 }
 
 /** The Cache-Control and ETag headers of a 200, for the OpenAPI document. */
 export function bundleCacheResponseHeaders(policy: CachePolicy) {
   return {
     'Cache-Control': {
-      description: `public, max-age=${String(MAX_AGE[policy])}, immutable (${policy.replace('-', ' ')}).`,
+      description: `${cacheControl(policy)} (${policy.replace('-', ' ')}).`,
       schema: { type: 'string' as const },
     },
     ETag: {
       description: 'W/"<bundle_version>": the same for everything read from one bundle.',
+      schema: { type: 'string' as const },
+    },
+  };
+}
+
+/** The Cache-Control and ETag headers of a 200 fixed by the deploy, for the OpenAPI document. */
+export function deployCacheResponseHeaders() {
+  return {
+    'Cache-Control': {
+      description: `${cacheControl('per-deploy')} (per deploy).`,
+      schema: { type: 'string' as const },
+    },
+    ETag: {
+      description: 'A strong hash of the body, which only a new deploy changes.',
       schema: { type: 'string' as const },
     },
   };
