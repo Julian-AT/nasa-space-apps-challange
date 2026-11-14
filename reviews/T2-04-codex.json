@@ -96,7 +96,11 @@
       "claim": "Signed power summation can change CPR availability when pixels are permuted, violating AC6.",
       "evidence": "Aggregation deliberately includes negative powers accepted within conversion tolerance. With a=2^-43 and b=2^-100, Stokes pairs (S1,S4)=(2a,0),(0,2a),(0,2b),(1,1) all pass the default tolerance and produce valid SC powers [a,-a,-b,0]. Ordinary float64 summation preserves -b in that order but loses it for [a,-b,-a,0]. The strict sign check at :1995 therefore publishes INVALID/SC_NEGATIVE for one ordering and VALID zero for the other. The permutation test's strategy at pipeline/tests/test_polarimetry_derive.py:936–939 generates only nonnegative powers, so it misses this case. Use cancellation-safe summation and cover accepted signed powers in the permutation property.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "5d57ddc4da880b7f0bf3da61562ffc40783b45e2",
+        "reason": "Reproduced: with a = 2**-43 and b = 2**-100, the Stokes pairs (2a,0), (0,2a), (0,2b), (1,1) in the first row of a 4x4 block gave the ratio of mean powers SC_NEGATIVE in 8 of the 24 pixel orders and a VALID 0 in the other 16 (the float64 sum kept or lost the -b residual). Block sums are now exact Python ints counting 2**-1074 (_exact_sums), the SC_NEGATIVE and OC_NONPOSITIVE rules test the signs of the exact sums, and each statistic is rounded once (exact sum over count; exact SC sum over exact OC sum). Tests in 3ab5090033e2c66218fa36237e4ed3e446a14e68, run failing first (22 failed, 119 passed): all 24 orders of this case (mean SC exactly -2**-102, SC_NEGATIVE in every order); a permutation property over signed powers accepted within the tolerance that compares state, reason and every bit of every statistic; a property that means and sign decisions follow exact Fraction sums; and a cancellation at 2**1000 that the old per-block scaling also lost. After the fix: 141 passed; the properties pass over hypothesis seeds 1-40."
+      }
     }
   ]
 }

@@ -96,7 +96,11 @@
       "claim": "The ordinary floating-point sum is not cancellation-safe for signed powers accepted within tolerance, so permuting a block can change its primary statistic's availability.",
       "evidence": "Static IEEE-754 counterexample: let p=2**-44 and q=2**-100. Put Stokes pairs (0,2p), (0,-2p), and (2q,0) in the first three cells of a 4x4 block, masking the other 13. The validity comparison at :879 accepts all three; their SC values are (-p,p,q) and OC values (p,-p,q). Both exact sums are q, so the ratio of mean powers is 1. In the order (-p,q,p), the scaled SC reduction groups (-0.5+2**-57)+0.5, losing the residual; OC likewise rounds to zero. The code then labels the ratio OC_NONPOSITIVE at :1994 instead of returning 1. The permutation test at pipeline/tests/test_polarimetry_derive.py:936 generates only S1>=1e-3 and |S4|<=S1, excluding this supported signed-power case. Use a cancellation-safe reduction and add this regression. No reproduction command was run, per the review restriction.",
       "id": "codex2-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "5d57ddc4da880b7f0bf3da61562ffc40783b45e2",
+        "reason": "Same defect as codex-r1-1, fixed by the same commit. Reproduced: with p = 2**-44 and q = 2**-100, the Stokes pairs (0,2p), (0,-2p), (2q,0) in a 4x4 block (the other 13 pixels masked) gave OC_NONPOSITIVE instead of a ratio of 1 in 4 of the 6 pixel orders. With exact integer block sums (_exact_sums) both sums are exactly q, so mean SC and mean OC are q/3 and the ratio of mean powers is exactly 1.0 and VALID in all 6 orders (regression test in 3ab5090033e2c66218fa36237e4ed3e446a14e68, parametrized over every order). The permutation property now also draws pixels with S4 = +-S1 +- an offset below atol, so powers negative within the tolerance and exact cancellations occur, and it asserts bitwise-identical statistics."
+      }
     }
   ]
 }

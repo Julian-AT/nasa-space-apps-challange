@@ -90,7 +90,11 @@
       "claim": "The commit range also changes scripts/ralph files (prd.json, progress.txt) outside the story's files list.",
       "evidence": "git diff --stat shows prd.json and progress.txt changed. These are orchestrator bookkeeping and were excluded from the review diff. No finding against the implementation.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The two changed paths outside the story's files are this batch's story list (scripts/ralph/batches/t2-polarimetry/prd.json) and progress log (progress.txt). The Ralph author instructions permit exactly these beside the story's files (section 2: 'Change only paths that match the story's files patterns, plus the story list and the progress log'), and the loop's scope check leaves them out: outside_paths in scripts/ralph/ralph.sh diffs with WORK_SPEC=(':!scripts/ralph' ':!reviews' ':!logs') (line 49). The finding itself says it is no finding against the implementation, and both codex scope checks with the same exclusions list only polarimetry.py and test_polarimetry_derive.py. No change needed."
+      }
     }
   ]
 }
