@@ -3,3 +3,5 @@
 export { BundleManifestSchema, type BundleManifest } from './generated/bundle-manifest.ts';
 export { GateRecordSchema, type GateRecord } from './generated/gate-record.ts';
 export { ValidationSchema, type Validation } from './generated/validation.ts';
+export { ProductRecordSchema, type ProductRecord } from './generated/product-record.ts';
+export { SourcesSchema, type Sources } from './generated/sources.ts';
