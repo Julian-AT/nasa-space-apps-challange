@@ -154,7 +154,11 @@
       "claim": "Unconditional optional-argument parsing deletes printed prose after commands without optional arguments, bypassing both guards.",
       "evidence": "Static trace, not executed: key_arguments_end() invokes optional_arguments_end() for label. That helper consumes [seamless], then mandatory_argument_end() consumes {}, and command() blanks the entire construct. However, \\label has one undelimited argument and no optional form ([LaTeX kernel source](https://raw.githubusercontent.com/latex3/latex2e/main/base/ltxref.dtx)); in \\label[seamless]{}, its argument is the single '[' token and 'seamless]' prints as prose. The linter therefore misses seamless. Likewise, 'We measure the roughness of \\label[lunar]{} and martian terrain at baselines from' renders the test abstract's first 12 tokens but extracts only 11, hiding the overlap. Consume optional arguments only at positions and counts supported by each command, and add extraction and consumer regressions.",
       "id": "codex-r8-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "9647950cac6bb23d5beb45466f209443bb1fc266",
+        "reason": "Reproduced: \\label[seamless]{} gave the prose \"a  b\" and \\label[lunar]{} dropped lunar, as did \\nocite[x]{y} and \\eqref [x]{y}. In bundle v33 \\label, \\ref, \\eqref and \\nocite read no option (latex.ltx 10837-10850, 13310; amsmath.sty 1134), so TeX reads the [ as the key and prints the rest. 9647950 bounds options per command and position: KEY_OPTIONS (\\documentclass, \\usepackage, \\RequirePackage, \\bibitem, \\includegraphics with two, \\href, \\definecolor, \\color, \\textcolor, \\multirow), two for the \\cite family (natbib \\NAT@citetp) except \\citenum and \\citetext, ENVIRONMENT_ARGUMENTS per layout argument, one placement for floats, and TEXT_OPTIONS (\\newcommand two, \\multirow one). Tests in c6eefdd: 10 extraction cases, 2 lint and 2 overlap cases (including the reviewer's roughness-of-lunar run) failed first; 15 guards for options the commands do read passed before and after. All five checks pass (863 tests)."
+      }
     }
   ]
 }
