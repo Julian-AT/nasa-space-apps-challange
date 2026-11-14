@@ -113,6 +113,12 @@ class ObsState(IntEnum):
     - ``VALID``: a usable value. Zero and low values are valid values, not missing ones.
 
     No state is encoded as 0, so a zero-filled state array is never mistaken for a legal one.
+
+    "Unavailable" (the PRD 3 evidence label, and "unavailable" in PRD 6.2 and 7) is not a fourth
+    state. A derived value is unavailable wherever its state is not ``VALID``: ``MISSING`` where
+    no observation exists, ``INVALID`` where the observation exists but a rule leaves the value
+    unsupported, such as CPR with OC = 0 (fixture F5, ``OC_NONPOSITIVE``) or chi with m = 0
+    (``M_ZERO``). Its value is NaN and its :class:`InvalidReason` says why; it is never 0.
     """
 
     MISSING = 1
@@ -206,7 +212,8 @@ class InvalidReason(StrEnum):
 
     M_ZERO = "M_ZERO"
     """The degree of polarization m is exactly 0 (S2 = S3 = S4 = 0), so the ellipticity chi is
-    undefined (state ``INVALID``). m itself is a valid 0; no epsilon is added."""
+    undefined and unavailable (state ``INVALID``, value NaN). m itself is a valid 0; no epsilon
+    is added."""
 
 
 STATE_DTYPE: Final = np.dtype(np.uint8)
