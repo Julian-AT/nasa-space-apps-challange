@@ -13,14 +13,18 @@ Units and conventions used throughout:
   exact value and use mpmath's pi, with no reduction by 2 * math.pi.
 - Round trips use PRD 7 Tolerances (rtol 1e-10, atol 1e-12) on the window coordinates in plain
   metres, with no normalisation: inverse then forward must give back each of x and y to within
-  1e-12 m + 1e-10 * |value|. On the 5 km, 90 m grid the smallest offsets are 25 m (pixel
-  (27, 27) sits at x = -25 m, y = 25 m), where that is 2.5e-9 m.
+  1e-12 m + 1e-10 * |value|. On the 5 km, 90 m analysis grid the smallest offsets are 25 m
+  (pixel (27, 27) sits at x = -25 m, y = 25 m), where that is 2.5e-9 m; on the 64 x 78.125 m
+  encoder grid they are 39.0625 m.
 - Float64 puts a floor under this. A returned longitude near +-pi is resolved only to half an
   ulp of math.pi, 2.2e-16 rad, which is 1.4e-9 m on the Earth sphere, 0.56 of the allowance at
   25 m. Closer than about 14 m to the centre or to an axis, the allowance falls below that
-  floor for any float64 (latitude, longitude) pair. Round trips therefore use the D29 pixel
-  centres, which are the points where the resampler evaluates the inverse. Tiny offsets, down
-  to subnormal ones, also get a round trip at the centre (0, 0), where float64 resolves them.
+  floor for any float64 (latitude, longitude) pair. Round trips therefore use the pixel
+  centres of the two D29 grids, the analysis grid and the encoder grid, which are the points
+  where the resampler evaluates the inverse. Grids at other random widths and spacings are
+  checked against the PRD formula; their pixel centres are continuous offsets, covered below.
+  Tiny offsets, down to subnormal ones, also get a round trip at the centre (0, 0), where
+  float64 resolves them.
 - Continuous offsets anywhere in the 5 km window, including tiny and near-axis ones, are
   checked one direction at a time against exact references, at the same PRD 7 tolerances
   (rtol 1e-10, atol 1e-12): the inverse (latitude, longitude) in radians, and the forward of
@@ -51,7 +55,7 @@ from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from terraluna_pipeline import geometry
-from terraluna_pipeline.config import load_terrain_config
+from terraluna_pipeline.config import load_run_config, load_terrain_config
 from terraluna_pipeline.geometry import (
     BODY_RADII_M,
     AeqdDomainError,
@@ -83,16 +87,44 @@ WINDOW_M = TERRAIN.window_m
 GRID_M = TERRAIN.analysis_grid_m
 GRID_SIZE = window_grid(WINDOW_M, GRID_M).size
 
+
+def encoder_grid() -> WindowGrid:
+    """The encoder input grid, which D29 also resamples (PRD 8.8 item 3; PRD 13 preprocessing).
+
+    ``ml.input_px`` pixels at ``ml.input_m_per_px`` from the run config: 64 at 78.125 m, a
+    5000 m window with no uncovered strip.
+    """
+    run = load_run_config()
+    pixels = run.value("ml.input_px")
+    spacing = run.value("ml.input_m_per_px")
+    assert isinstance(pixels, int)
+    assert isinstance(spacing, float)
+    return window_grid(pixels * spacing, spacing)
+
+
+# The D29 grids the PRD resamples onto: the analysis grid for fingerprints and the encoder grid.
+D29_GRIDS: dict[str, WindowGrid] = {
+    "analysis": window_grid(WINDOW_M, GRID_M),
+    "encoder": encoder_grid(),
+}
+
 # Significant digits of the exact references. Float64 carries about 16.
 REFERENCE_DIGITS = 40
 with mpmath.workdps(REFERENCE_DIGITS):
     # The true 2 pi minus the float64 2 * math.pi, about 2.449e-16 rad, rounded once.
     TWO_PI_RESIDUAL = float(2 * mpmath.pi - 2 * mpmath.mpf(PI))
 # Grid rows and columns checked against the exact reference: both edges, their neighbours, two
-# interior lines and the three lines through the centre pixel, where the offsets are smallest
-# (25 m) and the absolute tolerance binds. The full 55 x 55 grid is checked against the module
-# forward; the exact reference costs about 0.1 ms per point, so it gets these 81 points.
-REFERENCE_LINES = (0, 1, 13, 26, 27, 28, 41, 53, 54)
+# interior lines and the three lines through the middle, where the offsets are smallest (25 m
+# on the analysis grid, 39.0625 m on the encoder grid) and the absolute tolerance binds. The
+# full grid is checked against the module forward; the exact reference costs about 0.1 ms per
+# point, so it gets these 81 points. On the 55-pixel analysis grid the lines are
+# (0, 1, 13, 26, 27, 28, 41, 53, 54).
+
+
+def reference_lines(size: int) -> tuple[int, ...]:
+    middle = size // 2
+    return (0, 1, size // 4, middle - 1, middle, middle + 1, 3 * size // 4, size - 2, size - 1)
+
 
 # The exact references must agree with each other far below the 1e-12 m allowance. At 40
 # digits each carries rounding of about radius * 1e-40, under 1e-33 m; 1e-25 m leaves room for
@@ -325,10 +357,14 @@ def story_grid() -> tuple[Array, Array]:
     return window_grid(WINDOW_M, GRID_M).mesh_m()
 
 
-def reference_grid() -> tuple[Array, Array]:
-    """The grid points on ``REFERENCE_LINES`` (rows and columns), for the exact reference."""
-    x, y = story_grid()
-    lines = np.array(REFERENCE_LINES)
+def reference_grid(grid: WindowGrid | None = None) -> tuple[Array, Array]:
+    """The points on :func:`reference_lines` (rows and columns), for the exact reference.
+
+    The grid defaults to the analysis grid.
+    """
+    grid = D29_GRIDS["analysis"] if grid is None else grid
+    x, y = grid.mesh_m()
+    lines = np.array(reference_lines(grid.size))
     return x[np.ix_(lines, lines)], y[np.ix_(lines, lines)]
 
 
@@ -396,6 +432,55 @@ def test_grid_count_and_ends(
     assert (grid.y_m[0], grid.y_m[-1]) == (-first, -last)
     np.testing.assert_array_equal(grid.x_m, np.array(xs))
     np.testing.assert_array_equal(grid.y_m, np.array(ys))
+
+
+def test_encoder_grid_matches_hand_computed_centres_for_64_by_78_125() -> None:
+    grid = D29_GRIDS["encoder"]
+    xs, ys = hand_grid(5000.0, 78.125)
+    # 64 * 78.125 = 5000 exactly, so no strip is left uncovered.
+    assert (grid.width_m, grid.spacing_m, grid.size) == (5000.0, 78.125, 64)
+    assert grid.uncovered_m == 0.0
+    np.testing.assert_array_equal(grid.x_m, np.array(xs))
+    np.testing.assert_array_equal(grid.y_m, np.array(ys))
+    # Hand-computed: (0.5 * 78.125) - 2500 = -2460.9375 and (63.5 * 78.125) - 2500 = 2460.9375.
+    # With an even count no pixel sits on the centre: (31.5 * 78.125) - 2500 = -39.0625.
+    assert (grid.x_m[0], grid.x_m[63]) == (-2460.9375, 2460.9375)
+    assert (grid.y_m[0], grid.y_m[63]) == (2460.9375, -2460.9375)
+    assert (grid.x_m[31], grid.x_m[32]) == (-39.0625, 39.0625)
+    assert (grid.y_m[31], grid.y_m[32]) == (39.0625, -39.0625)
+
+
+@settings(max_examples=400, deadline=None)
+@given(width=st.floats(1.0, 5000.0), spacing=st.floats(1.0, 5000.0))
+@example(width=5000.0, spacing=90.0)
+@example(width=5000.0, spacing=78.125)
+@example(width=270.0, spacing=90.0)
+@example(width=math.nextafter(270.0, 0.0), spacing=90.0)
+@example(width=5000.0, spacing=5000.0)
+@example(width=1.0, spacing=math.nextafter(1.0, 2.0))
+def test_grid_property_at_random_widths_and_spacings(width: float, spacing: float) -> None:
+    """Random window widths up to 5000 m and spacings: the grid is the PRD formula's.
+
+    The pixel count is the largest n with n * spacing <= width, every cell lies inside the
+    window, and a spacing wider than the window has no grid.
+    """
+    if spacing > width:
+        with pytest.raises(WindowGridError):
+            window_grid(width, spacing)
+        return
+    grid = window_grid(width, spacing)
+    xs, ys = hand_grid(width, spacing)
+    assert grid.size == len(xs) >= 1
+    assert grid.size * spacing <= width < (grid.size + 1) * spacing
+    assert grid.uncovered_m == width - grid.size * spacing
+    np.testing.assert_array_equal(grid.x_m, np.array(xs))
+    np.testing.assert_array_equal(grid.y_m, np.array(ys))
+    x, y = grid.mesh_m()
+    assert x.shape == y.shape == (grid.size, grid.size)
+    assert np.all(np.diff(grid.x_m) > 0.0)
+    assert np.all(np.diff(grid.y_m) < 0.0)
+    assert np.all(np.abs(grid.x_m) <= width / 2)
+    assert np.all(np.abs(grid.y_m) <= width / 2)
 
 
 def test_grid_cells_lie_inside_the_window_anchored_at_the_top_left() -> None:
@@ -584,26 +669,34 @@ def test_inverse_matches_the_prd_expressions(body: str, lat0_deg: float, lon0: f
 # Round trips: inverse, then forward
 
 
+@pytest.mark.parametrize("grid_name", D29_GRIDS)
 @pytest.mark.parametrize("body", BODIES)
 @pytest.mark.parametrize("lat0_deg", STORY_LATITUDES_DEG)
 @pytest.mark.parametrize("lon0", CENTRE_LONGITUDES_RAD)
-def test_round_trip_on_the_window_grid(body: str, lat0_deg: float, lon0: float) -> None:
+def test_round_trip_on_the_window_grid(
+    grid_name: str, body: str, lat0_deg: float, lon0: float
+) -> None:
+    grid = D29_GRIDS[grid_name]
     radius = BODY_RADII_M[body]
     lat0 = math.radians(lat0_deg)
-    x, y = story_grid()
+    x, y = grid.mesh_m()
     assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=False)
-    x, y = reference_grid()
+    x, y = reference_grid(grid)
     assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=True)
 
 
+@pytest.mark.parametrize("grid_name", D29_GRIDS)
 @pytest.mark.parametrize("body", BODIES)
 @pytest.mark.parametrize("lat0", POLES_RAD)
 @pytest.mark.parametrize("lon0", [-PI, 0.0, 2.0])
-def test_round_trip_on_a_pole_centred_window(body: str, lat0: float, lon0: float) -> None:
+def test_round_trip_on_a_pole_centred_window(
+    grid_name: str, body: str, lat0: float, lon0: float
+) -> None:
+    grid = D29_GRIDS[grid_name]
     radius = BODY_RADII_M[body]
-    x, y = story_grid()
+    x, y = grid.mesh_m()
     assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=False)
-    x, y = reference_grid()
+    x, y = reference_grid(grid)
     assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=True)
 
 
@@ -861,11 +954,12 @@ def test_a_window_on_the_antimeridian_wraps_west_points_to_the_east_end() -> Non
 # Property test
 
 
-PIXELS = st.lists(
-    st.tuples(st.integers(0, GRID_SIZE - 1), st.integers(0, GRID_SIZE - 1)),
-    min_size=1,
-    max_size=16,
-)
+@st.composite
+def d29_pixels(draw: st.DrawFn) -> tuple[str, list[tuple[int, int]]]:
+    """One of the D29 grids and 1 to 16 (row, column) pixels on it."""
+    name = draw(st.sampled_from(sorted(D29_GRIDS)))
+    index = st.integers(0, D29_GRIDS[name].size - 1)
+    return name, draw(st.lists(st.tuples(index, index), min_size=1, max_size=16))
 
 
 @settings(max_examples=400, deadline=None)
@@ -873,31 +967,59 @@ PIXELS = st.lists(
     body=st.sampled_from(BODIES),
     lat0=st.floats(-HALF_PI, HALF_PI),
     lon0=st.floats(-PI, PI, exclude_max=True),
-    pixels=PIXELS,
+    grid_pixels=d29_pixels(),
 )
-@example(body="moon", lat0=-HALF_PI, lon0=-PI, pixels=[(0, 0), (27, 27), (54, 54), (0, 54)])
-@example(body="earth", lat0=0.0, lon0=-PI, pixels=[(27, 27), (27, 0), (0, 27), (54, 28)])
-@example(body="earth", lat0=HALF_PI, lon0=0.0, pixels=[(27, 27), (26, 28), (0, 54)])
 @example(
-    body="mars", lat0=math.radians(89.99), lon0=math.nextafter(PI, 0.0), pixels=[(27, 28), (0, 0)]
+    body="moon",
+    lat0=-HALF_PI,
+    lon0=-PI,
+    grid_pixels=("analysis", [(0, 0), (27, 27), (54, 54), (0, 54)]),
+)
+@example(
+    body="earth",
+    lat0=0.0,
+    lon0=-PI,
+    grid_pixels=("analysis", [(27, 27), (27, 0), (0, 27), (54, 28)]),
+)
+@example(body="earth", lat0=HALF_PI, lon0=0.0, grid_pixels=("analysis", [(27, 27), (26, 28)]))
+@example(
+    body="mars",
+    lat0=math.radians(89.99),
+    lon0=math.nextafter(PI, 0.0),
+    grid_pixels=("analysis", [(27, 28), (0, 0)]),
 )
 @example(
     body="earth",
     lat0=ANTIMERIDIAN_ROUND_TRIP_CENTRES[0][0],
     lon0=ANTIMERIDIAN_ROUND_TRIP_CENTRES[0][1],
-    pixels=[(27, 27), (1, 27), (54, 27)],
+    grid_pixels=("analysis", [(27, 27), (1, 27), (54, 27)]),
+)
+@example(
+    body="earth",
+    lat0=0.0,
+    lon0=-PI,
+    grid_pixels=("encoder", [(31, 31), (32, 32), (31, 32), (0, 63), (63, 0)]),
+)
+@example(
+    body="moon",
+    lat0=HALF_PI,
+    lon0=math.nextafter(PI, 0.0),
+    grid_pixels=("encoder", [(31, 32), (32, 31), (0, 0), (63, 63)]),
 )
 def test_round_trip_property(
-    body: str, lat0: float, lon0: float, pixels: list[tuple[int, int]]
+    body: str, lat0: float, lon0: float, grid_pixels: tuple[str, list[tuple[int, int]]]
 ) -> None:
-    """Random centres anywhere on the sphere, random pixel centres of the 5 km window.
+    """Random centres anywhere on the sphere, random pixel centres of the D29 grids.
 
-    Each pixel is (row, column) on the configured D29 grid. Longitudes come back in [-pi, pi)
-    and latitudes in [-pi/2, pi/2], and the window coordinates survive inverse then forward,
-    through both the module and the exact reference, to PRD 7 tolerances in plain metres.
+    Each pixel is (row, column) on one of the grids D29 resamples onto: the 5 km analysis grid
+    (``terrain`` in the run config) or the 64 x 78.125 m encoder grid (``ml``). Longitudes come
+    back in [-pi, pi) and latitudes in [-pi/2, pi/2], and the window coordinates survive
+    inverse then forward, through both the module and the exact reference, to PRD 7 tolerances
+    in plain metres.
     """
+    name, pixels = grid_pixels
     radius = BODY_RADII_M[body]
-    grid = window_grid(WINDOW_M, GRID_M)
+    grid = D29_GRIDS[name]
     x = np.array([grid.x_m[column] for _, column in pixels])
     y = np.array([grid.y_m[row] for row, _ in pixels])
     lat, lon = aeqd_inverse(x, y, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
