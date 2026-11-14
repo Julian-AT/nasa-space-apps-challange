@@ -98,12 +98,18 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "e095c98aa2ecc163c802024636022447c10e7a01",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "74bb51ceee89cd92006fc7d0a313bd7451fea63d",
+        "files": [
+          "reviews/T7-02-claude.json",
+          "reviews/T7-02-codex.json"
+        ],
+        "digests": {
+          "reviews/T7-02-claude.json": "12bfeb06d90d7f1a4c3fd7cc51ef518ea34edd2fdbdd6db368093e923b8fc2d9",
+          "reviews/T7-02-codex.json": "af7832025c09717f144da7f652cd4e9a727f601644de8f680ea2fa495d0ffb08"
+        }
       },
       "notes": "Checks run the story's own test file by filter so a test file that Vitest does not collect fails loudly instead of passing unseen."
     },
