@@ -2844,10 +2844,14 @@ def lunar_s4_sign_check(
 # 1. FAIL: a required test failed or errored in any of its cases (a strict XPASS is a failure
 #    in pytest's report), or any other test in a module that holds a required test failed,
 #    collection errors of that module included.
-# 2. NOT_RUN: no required test passed; every one is absent from the report or skipped.
-# 3. PARTIAL: some required tests passed, none failed, but at least one is absent or skipped
-#    (an xfail is reported as skipped).
-# 4. PASS: every required test passed in every case.
+# 2. NOT_RUN: no required test passed in full; every one is absent, skipped or incomplete.
+# 3. PARTIAL: some required tests passed, none failed, but at least one is absent, skipped (an
+#    xfail is reported as skipped) or incomplete (one of its listed cases is absent).
+# 4. PASS: every required test passed in every one of its listed cases.
+#
+# A parametrized function's cases are listed in ``parametrized_cases``; every other function
+# is expected as one testcase without parameters. A duplicate of one case never stands in for
+# another, and cases beyond the listed ones decide nothing unless they fail.
 #
 # The real-scene polsartools check of T2-07 is a required test, so G1 is not PASS before it has
 # passed on a real scene (PRD 12 adds it to T2); the scope states whether it was included.
@@ -2866,12 +2870,14 @@ G1_FAILURE_ACTION: Final = "No quantitative CPR output until fixed; terrain work
 
 _G1_FIXTURE_IDS: Final = tuple(f"F{n}" for n in range(1, 11))
 _G1_STORIES: Final = ("T2-01", "T2-02", "T2-03")
-_G1_COUNT_KEYS: Final = ("tests", "passed", "failed", "skipped", "absent", "cases")
+_G1_COUNT_KEYS: Final = ("tests", "passed", "failed", "skipped", "incomplete", "absent", "cases")
 
 _RequiredTestId = Annotated[
     str, Field(pattern=r"^pipeline/tests/test_polarimetry[a-z0-9_]*\.py::test_[A-Za-z0-9_]+$")
 ]
 _RequiredTestList = Annotated[tuple[_RequiredTestId, ...], Field(min_length=1)]
+_CaseId = Annotated[str, Field(pattern=r"^[^\r\n]*$")]
+_CaseList = Annotated[tuple[_CaseId, ...], Field(min_length=1)]
 
 
 class G1InputError(ValueError):
@@ -2888,6 +2894,9 @@ class G1RequiredTests(BaseModel):
     T2-01 to T2-03, the tests that conventions are declared and labelled and the invalid-data
     tests (PRD 9 G1: "conventions labelled; invalid-data behaviour tested").
     ``real_scene_check`` is the T2-07 oracle check on a real UAVSAR scene.
+    ``parametrized_cases`` maps each listed function that pytest parametrizes to its case ids
+    (the text between the brackets of a node id, possibly empty), so that every case counts;
+    every other listed function is one testcase without parameters.
     """
 
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True, regex_engine="rust-regex")
@@ -2897,6 +2906,7 @@ class G1RequiredTests(BaseModel):
     conventions: dict[str, _RequiredTestList]
     invalid_data: dict[str, _RequiredTestList]
     real_scene_check: _RequiredTestList
+    parametrized_cases: dict[_RequiredTestId, _CaseList]
 
     @model_validator(mode="after")
     def _check_groups(self) -> Self:
@@ -2909,6 +2919,14 @@ class G1RequiredTests(BaseModel):
         for ids in [*groups, self.real_scene_check]:
             if len(set(ids)) != len(ids):
                 raise ValueError(f"a test is listed twice in one group: {ids}")
+        listed = set(self.all_ids())
+        for nodeid, cases in self.parametrized_cases.items():
+            if nodeid not in listed:
+                raise ValueError(f"parametrized_cases names a test that is not listed: {nodeid}")
+            if len(set(cases)) != len(cases):
+                raise ValueError(f"a case of {nodeid} is listed twice")
+            if any("::" in case for case in cases):
+                raise ValueError(f"a case of {nodeid} holds '::', which pytest's junit splits")
         return self
 
     def all_ids(self) -> tuple[str, ...]:
@@ -2917,6 +2935,12 @@ class G1RequiredTests(BaseModel):
         ids += [nodeid for group in self.conventions.values() for nodeid in group]
         ids += [nodeid for group in self.invalid_data.values() for nodeid in group]
         return tuple(dict.fromkeys([*ids, *self.real_scene_check]))
+
+    def junit_names(self, nodeid: str) -> tuple[str, ...]:
+        """The junit testcase names a listed function must have: one per listed case."""
+        function = nodeid.partition("::")[2]
+        cases = self.parametrized_cases.get(nodeid)
+        return (function,) if cases is None else tuple(f"{function}[{case}]" for case in cases)
 
 
 def _read_input(path: Path, what: str) -> bytes:
@@ -2942,7 +2966,7 @@ def load_g1_required_tests(
 
 
 _JunitOutcome = Literal["passed", "failed", "skipped"]
-_G1Outcome = Literal["passed", "failed", "skipped", "absent"]
+_G1Outcome = Literal["passed", "failed", "skipped", "incomplete", "absent"]
 
 
 @dataclass(frozen=True)
@@ -3031,12 +3055,19 @@ def _junit_address(nodeid: str) -> tuple[str, str]:
 
 def _required_outcomes(
     required: G1RequiredTests, cases: list[_JunitCase]
-) -> tuple[dict[str, tuple[_G1Outcome, int]], list[str]]:
-    """Each required test's outcome and number of cases, and other failures in its modules."""
+) -> tuple[dict[str, tuple[_G1Outcome, int]], list[str], list[str]]:
+    """Each required test's outcome and number of cases, the listed cases absent from the
+    tests that were reported, and other failures in the modules of the required tests.
+
+    A test is absent when none of its cases is reported, failed when any reported case
+    failed, skipped when any was skipped, incomplete when a listed case is absent, and passed
+    otherwise.
+    """
     by_class: dict[str, list[int]] = {}
     for index, case in enumerate(cases):
         by_class.setdefault(case.classname, []).append(index)
     outcomes: dict[str, tuple[_G1Outcome, int]] = {}
+    absent_cases: list[str] = []
     matched: set[int] = set()
     for nodeid in required.all_ids():
         module, function = _junit_address(nodeid)
@@ -3047,6 +3078,8 @@ def _required_outcomes(
         ]
         matched.update(own)
         found = {cases[index].outcome for index in own}
+        reported = {cases[index].name for index in own}
+        missing = [name for name in required.junit_names(nodeid) if name not in reported]
         outcome: _G1Outcome
         if not own:
             outcome = "absent"
@@ -3054,9 +3087,14 @@ def _required_outcomes(
             outcome = "failed"
         elif "skipped" in found:
             outcome = "skipped"
+        elif missing:
+            outcome = "incomplete"
         else:
             outcome = "passed"
         outcomes[nodeid] = (outcome, len(own))
+        if own:
+            path = nodeid.partition("::")[0]
+            absent_cases += [f"{path}::{name}" for name in missing]
     modules = {_junit_address(nodeid)[0] for nodeid in required.all_ids()}
     other_failed = sorted(
         case.label()
@@ -3069,7 +3107,7 @@ def _required_outcomes(
             or (case.classname == "" and case.name in modules)
         )
     )
-    return outcomes, other_failed
+    return outcomes, absent_cases, other_failed
 
 
 def _g1_counts(
@@ -3108,6 +3146,8 @@ def _real_scene_phrase(counts: Mapping[str, int]) -> str:
         parts.append(f"{counts['absent']} of {n} absent from the junit report")
     if counts["skipped"]:
         parts.append(f"{counts['skipped']} of {n} skipped")
+    if counts["incomplete"]:
+        parts.append(f"{counts['incomplete']} of {n} missing a listed case")
     return f"not included ({', '.join(parts)})"
 
 
@@ -3151,7 +3191,8 @@ def record_g1(
     ``junit`` is pytest's own report (``uv run pytest --junitxml=<path>``), outside the
     repository or under ``fixtures/polarimetry/``. The required tests come from
     :data:`G1_REQUIRED_TESTS_PATH`; the status follows the rules above this function, so a
-    required test that is absent, failed, skipped or xfailed never gives PASS. ``command`` is
+    required test that is absent, failed, skipped, xfailed or missing a listed case never gives
+    PASS. ``command`` is
     the command line to record and ``run_id`` stays null unless given.
 
     The record holds ``gate_id`` G1, the status, ``evidence_path`` (the junit report), the
@@ -3159,9 +3200,10 @@ def record_g1(
     action unless PASS, else null) and ``result``. GateRecord's ``result`` is a string, so it
     holds a JSON object: the command, the SHA-256 of the report and of the required list, the
     report timestamps, the counts per fixture, per story (conventions and invalid data) and for
-    the real-scene check (tests, passed, failed, skipped, absent and junit cases), and the ids
-    that failed, were skipped or were absent, plus other failing tests in the same modules
-    (``other_failed``, as junit ``classname::name``).
+    the real-scene check (tests, passed, failed, skipped, incomplete, absent and junit cases),
+    the ids that failed, were skipped, were incomplete or were absent, the listed cases absent
+    from tests that were reported (``absent_cases``, as node ids with parameters), and other
+    failing tests in the same modules (``other_failed``, as junit ``classname::name``).
 
     Raises :class:`G1InputError`, writing nothing, if an input cannot be read or trusted, and
     OSError if ``out`` cannot be written.
@@ -3181,7 +3223,7 @@ def record_g1(
     required = _parse_required(required_bytes, G1_REQUIRED_TESTS_PATH)
     junit_bytes = _read_input(junit_path, "junit report")
     cases, timestamps = _parse_junit(junit_bytes, junit_path)
-    outcomes, other_failed = _required_outcomes(required, cases)
+    outcomes, absent_cases, other_failed = _required_outcomes(required, cases)
     real_scene = _g1_counts(required.real_scene_check, outcomes)
 
     def ids_with(outcome: _G1Outcome) -> list[str]:
@@ -3203,7 +3245,9 @@ def record_g1(
         "real_scene_check": real_scene,
         "failed": ids_with("failed"),
         "skipped": ids_with("skipped"),
+        "incomplete": ids_with("incomplete"),
         "absent": ids_with("absent"),
+        "absent_cases": absent_cases,
         "other_failed": other_failed,
     }
     status = _g1_status(outcomes, other_failed)

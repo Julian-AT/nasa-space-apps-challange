@@ -1,5 +1,5 @@
 {
-  "description": "Tests that G1 (PRD 9, conversion correctness) requires, as pytest node ids of test functions; every parametrized case of a listed function counts. fixtures: every test named test_F<n>_ or test_F<a>_to_F<b>_ (PRD 7 fixtures F1-F10), listed under each fixture it covers. conventions: the tests of stories T2-01 (calibration offset, angle units), T2-02 (Stokes convention) and T2-03 (covariance ordering, handedness, declarations) that the conventions are declared and labelled. invalid_data: the invalid-data tests of stories T2-01 (decoding, x_power, angles, masked inputs), T2-02 (Stokes) and T2-03 (covariance). real_scene_check: the T2-07 polsartools oracle check on one real UAVSAR scene (PRD 12); G1 is not PASS until it has passed. Read by 'python -m terraluna_pipeline.polarimetry record-g1'.",
+  "description": "Tests that G1 (PRD 9, conversion correctness) requires, as pytest node ids of test functions; every parametrized case of a listed function counts. fixtures: every test named test_F<n>_ or test_F<a>_to_F<b>_ (PRD 7 fixtures F1-F10), listed under each fixture it covers. conventions: the tests of stories T2-01 (calibration offset, angle units), T2-02 (Stokes convention) and T2-03 (covariance ordering, handedness, declarations) that the conventions are declared and labelled. invalid_data: the invalid-data tests of stories T2-01 (decoding, x_power, angles, masked inputs), T2-02 (Stokes) and T2-03 (covariance). real_scene_check: the T2-07 polsartools oracle check on one real UAVSAR scene (PRD 12); G1 is not PASS until it has passed. parametrized_cases: the case ids (between the brackets of the node id) of every listed test that pytest parametrizes, in collection order; every other listed test is one case without parameters. Read by 'python -m terraluna_pipeline.polarimetry record-g1'.",
   "fixtures": {
     "F1": [
       "pipeline/tests/test_polarimetry_stokes.py::test_F1_minirf_zero_cpr_is_valid_not_missing",
@@ -167,5 +167,399 @@
   },
   "real_scene_check": [
     "pipeline/tests/test_polarimetry_oracle.py::test_real_scene_matches_polsartools"
-  ]
+  ],
+  "parametrized_cases": {
+    "pipeline/tests/test_polarimetry_covariance.py::test_F6_full_covariance_handedness": [
+      "HH_HV_VV",
+      "HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_derive.py::test_F6_derive_circular_full_covariance_handedness": [
+      "HH_HV_VV",
+      "HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_mchi.py::test_F6_hybrid_stokes_reproduce_story_3_sc_ll_and_oc": [
+      "HH_HV_VV",
+      "HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_mchi.py::test_F6_opposite_ellipticity_gives_sc_opp": [
+      "HH_HV_VV",
+      "HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_mchi.py::test_F6_matches_the_jones_oracle": [
+      "HH_HV_VV--45.0",
+      "HH_HV_VV-45.0",
+      "HH_SQRT2HV_VV--45.0",
+      "HH_SQRT2HV_VV-45.0"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_F7_fixtures_are_hermitian_psd_with_the_prd_eigenvalues": [
+      "C=0.9",
+      "C=0.1"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_F7_matches_both_oracles": [
+      "0.9",
+      "0.1"
+    ],
+    "pipeline/tests/test_polarimetry_derive.py::test_F7_derive_circular_two_channel_data_cannot_determine_cpr": [
+      "HH_HV_VV",
+      "HH_SQRT2HV_VV"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_declarations_are_required_keyword_arguments": [
+      "ordering",
+      "convention",
+      "product_masked"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_zero_dn_is_invalid_and_never_minus_infinity": [
+      "decode_db",
+      "decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_declared_nodata_is_missing": [
+      "decode_db",
+      "decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_nonfinite_dn_is_invalid": [
+      "nan-decode_db",
+      "nan-decode_linear",
+      "inf-decode_db",
+      "inf-decode_linear",
+      "-inf-decode_db",
+      "-inf-decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_negative_dn_is_invalid": [
+      "decode_db",
+      "decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_decode_rejects_non_real_input": [
+      "dn0",
+      "dn1",
+      "dn2",
+      "dn3"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_x_power_invalid_numerator": [
+      "0-False-2",
+      "65535-False-1",
+      "100-True-2"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_undeclared_or_unknown_angle_unit_raises": [
+      "None",
+      "",
+      "rad",
+      "deg",
+      "Radians",
+      "DEGREES",
+      "gradians"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_dn_whose_power_is_out_of_float64_range_is_invalid": [
+      "power-overflows-decode_db",
+      "power-overflows-decode_linear",
+      "largest-float64-decode_db",
+      "largest-float64-decode_linear",
+      "power-subnormal-decode_db",
+      "power-subnormal-decode_linear",
+      "power-underflows-to-zero-decode_db",
+      "power-underflows-to-zero-decode_linear",
+      "smallest-subnormal-dn-decode_db",
+      "smallest-subnormal-dn-decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_out_of_range_dn_fails_only_its_own_element": [
+      "decode_db",
+      "decode_linear"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_x_power_out_of_float64_range_is_invalid": [
+      "ratio-overflows",
+      "square-overflows",
+      "ratio-underflows-to-zero",
+      "square-subnormal"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_input_is_refused": [
+      "decode_db:dn",
+      "decode_linear:dn",
+      "x_power:dn_hh",
+      "x_power:dn_hv",
+      "x_power:hh_noise_dominated",
+      "x_power:hv_noise_dominated",
+      "angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_input_is_refused_even_with_nothing_masked": [
+      "decode_db:dn",
+      "decode_linear:dn",
+      "x_power:dn_hh",
+      "x_power:dn_hv",
+      "x_power:hh_noise_dominated",
+      "x_power:hv_noise_dominated",
+      "angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_array_inside_a_sequence_is_refused": [
+      "decode_db:dn",
+      "decode_linear:dn",
+      "x_power:dn_hh",
+      "x_power:dn_hv",
+      "x_power:hh_noise_dominated",
+      "x_power:hv_noise_dominated",
+      "angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_constant_is_refused": [
+      "decode_db:dn",
+      "decode_linear:dn",
+      "x_power:dn_hh",
+      "x_power:dn_hv",
+      "x_power:hh_noise_dominated",
+      "x_power:hv_noise_dominated",
+      "angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_masked_array_nested_at_any_depth_is_refused": [
+      "list-2-decode_db:dn",
+      "list-2-decode_linear:dn",
+      "list-2-x_power:dn_hh",
+      "list-2-x_power:dn_hv",
+      "list-2-x_power:hh_noise_dominated",
+      "list-2-x_power:hv_noise_dominated",
+      "list-2-angle_to_degrees:angle",
+      "list-3-decode_db:dn",
+      "list-3-decode_linear:dn",
+      "list-3-x_power:dn_hh",
+      "list-3-x_power:dn_hv",
+      "list-3-x_power:hh_noise_dominated",
+      "list-3-x_power:hv_noise_dominated",
+      "list-3-angle_to_degrees:angle",
+      "tuple-2-decode_db:dn",
+      "tuple-2-decode_linear:dn",
+      "tuple-2-x_power:dn_hh",
+      "tuple-2-x_power:dn_hv",
+      "tuple-2-x_power:hh_noise_dominated",
+      "tuple-2-x_power:hv_noise_dominated",
+      "tuple-2-angle_to_degrees:angle",
+      "tuple-3-decode_db:dn",
+      "tuple-3-decode_linear:dn",
+      "tuple-3-x_power:dn_hh",
+      "tuple-3-x_power:dn_hv",
+      "tuple-3-x_power:hh_noise_dominated",
+      "tuple-3-x_power:hv_noise_dominated",
+      "tuple-3-angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_decode.py::test_containers_that_could_hide_a_mask_are_refused": [
+      "True-custom sequence-decode_db:dn",
+      "True-custom sequence-decode_linear:dn",
+      "True-custom sequence-x_power:dn_hh",
+      "True-custom sequence-x_power:dn_hv",
+      "True-custom sequence-x_power:hh_noise_dominated",
+      "True-custom sequence-x_power:hv_noise_dominated",
+      "True-custom sequence-angle_to_degrees:angle",
+      "True-array-like-decode_db:dn",
+      "True-array-like-decode_linear:dn",
+      "True-array-like-x_power:dn_hh",
+      "True-array-like-x_power:dn_hv",
+      "True-array-like-x_power:hh_noise_dominated",
+      "True-array-like-x_power:hv_noise_dominated",
+      "True-array-like-angle_to_degrees:angle",
+      "True-array-like in a list-decode_db:dn",
+      "True-array-like in a list-decode_linear:dn",
+      "True-array-like in a list-x_power:dn_hh",
+      "True-array-like in a list-x_power:dn_hv",
+      "True-array-like in a list-x_power:hh_noise_dominated",
+      "True-array-like in a list-x_power:hv_noise_dominated",
+      "True-array-like in a list-angle_to_degrees:angle",
+      "True-ndarray subclass-decode_db:dn",
+      "True-ndarray subclass-decode_linear:dn",
+      "True-ndarray subclass-x_power:dn_hh",
+      "True-ndarray subclass-x_power:dn_hv",
+      "True-ndarray subclass-x_power:hh_noise_dominated",
+      "True-ndarray subclass-x_power:hv_noise_dominated",
+      "True-ndarray subclass-angle_to_degrees:angle",
+      "True-list subclass with __array__-decode_db:dn",
+      "True-list subclass with __array__-decode_linear:dn",
+      "True-list subclass with __array__-x_power:dn_hh",
+      "True-list subclass with __array__-x_power:dn_hv",
+      "True-list subclass with __array__-x_power:hh_noise_dominated",
+      "True-list subclass with __array__-x_power:hv_noise_dominated",
+      "True-list subclass with __array__-angle_to_degrees:angle",
+      "True-tuple subclass with __array__-decode_db:dn",
+      "True-tuple subclass with __array__-decode_linear:dn",
+      "True-tuple subclass with __array__-x_power:dn_hh",
+      "True-tuple subclass with __array__-x_power:dn_hv",
+      "True-tuple subclass with __array__-x_power:hh_noise_dominated",
+      "True-tuple subclass with __array__-x_power:hv_noise_dominated",
+      "True-tuple subclass with __array__-angle_to_degrees:angle",
+      "True-list subclass-decode_db:dn",
+      "True-list subclass-decode_linear:dn",
+      "True-list subclass-x_power:dn_hh",
+      "True-list subclass-x_power:dn_hv",
+      "True-list subclass-x_power:hh_noise_dominated",
+      "True-list subclass-x_power:hv_noise_dominated",
+      "True-list subclass-angle_to_degrees:angle",
+      "False-custom sequence-decode_db:dn",
+      "False-custom sequence-decode_linear:dn",
+      "False-custom sequence-x_power:dn_hh",
+      "False-custom sequence-x_power:dn_hv",
+      "False-custom sequence-x_power:hh_noise_dominated",
+      "False-custom sequence-x_power:hv_noise_dominated",
+      "False-custom sequence-angle_to_degrees:angle",
+      "False-array-like-decode_db:dn",
+      "False-array-like-decode_linear:dn",
+      "False-array-like-x_power:dn_hh",
+      "False-array-like-x_power:dn_hv",
+      "False-array-like-x_power:hh_noise_dominated",
+      "False-array-like-x_power:hv_noise_dominated",
+      "False-array-like-angle_to_degrees:angle",
+      "False-array-like in a list-decode_db:dn",
+      "False-array-like in a list-decode_linear:dn",
+      "False-array-like in a list-x_power:dn_hh",
+      "False-array-like in a list-x_power:dn_hv",
+      "False-array-like in a list-x_power:hh_noise_dominated",
+      "False-array-like in a list-x_power:hv_noise_dominated",
+      "False-array-like in a list-angle_to_degrees:angle",
+      "False-ndarray subclass-decode_db:dn",
+      "False-ndarray subclass-decode_linear:dn",
+      "False-ndarray subclass-x_power:dn_hh",
+      "False-ndarray subclass-x_power:dn_hv",
+      "False-ndarray subclass-x_power:hh_noise_dominated",
+      "False-ndarray subclass-x_power:hv_noise_dominated",
+      "False-ndarray subclass-angle_to_degrees:angle",
+      "False-list subclass with __array__-decode_db:dn",
+      "False-list subclass with __array__-decode_linear:dn",
+      "False-list subclass with __array__-x_power:dn_hh",
+      "False-list subclass with __array__-x_power:dn_hv",
+      "False-list subclass with __array__-x_power:hh_noise_dominated",
+      "False-list subclass with __array__-x_power:hv_noise_dominated",
+      "False-list subclass with __array__-angle_to_degrees:angle",
+      "False-tuple subclass with __array__-decode_db:dn",
+      "False-tuple subclass with __array__-decode_linear:dn",
+      "False-tuple subclass with __array__-x_power:dn_hh",
+      "False-tuple subclass with __array__-x_power:dn_hv",
+      "False-tuple subclass with __array__-x_power:hh_noise_dominated",
+      "False-tuple subclass with __array__-x_power:hv_noise_dominated",
+      "False-tuple subclass with __array__-angle_to_degrees:angle",
+      "False-list subclass-decode_db:dn",
+      "False-list subclass-decode_linear:dn",
+      "False-list subclass-x_power:dn_hh",
+      "False-list subclass-x_power:dn_hv",
+      "False-list subclass-x_power:hh_noise_dominated",
+      "False-list subclass-x_power:hv_noise_dominated",
+      "False-list subclass-angle_to_degrees:angle"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_undeclared_or_unknown_convention_raises": [
+      "None",
+      "",
+      "S4 = SC - OC",
+      "MINIRF_SIS_S4_SC_MINUS_OC",
+      "minirf_sis",
+      "SIS"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_squared_excess_beyond_the_tolerance_is_nonphysical": [
+      "7.5e-11",
+      "8e-11"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_nonfinite_input_is_invalid": [
+      "s1-nan",
+      "s1-inf",
+      "s1--inf",
+      "s4-nan",
+      "s4-inf",
+      "s4--inf",
+      "s2-nan",
+      "s2-inf",
+      "s2--inf",
+      "s3-nan",
+      "s3-inf",
+      "s3--inf"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_product_mask_wins_over_every_other_rule": [
+      "nan-0.0",
+      "1.0-2.0",
+      "2.0--2.0"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_non_real_stokes_are_refused": [
+      "s10",
+      "s11",
+      "s12",
+      "s13"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_masked_input_is_refused": [
+      "s1",
+      "s4",
+      "s2",
+      "s3",
+      "product_masked"
+    ],
+    "pipeline/tests/test_polarimetry_stokes.py::test_masked_array_nested_in_a_list_is_refused": [
+      "s1",
+      "s4",
+      "s2",
+      "s3",
+      "product_masked"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_unknown_or_missing_convention_raises_and_returns_nothing": [
+      "None",
+      "",
+      "LL",
+      "SC_LL",
+      "LR",
+      "neish_sc_ll_tx_1_minus_i",
+      "NEISH_SC_LL_TX_1_MINUS_I ",
+      "NEISH_SC_LR_TX_1_PLUS_I",
+      "1"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_unknown_or_missing_ordering_raises_and_returns_nothing": [
+      "None",
+      "",
+      "HH_VV_HV",
+      "hh_hv_vv",
+      "lexicographic",
+      "0"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_nonphysical_covariance_is_invalid_with_its_cause": [
+      "off-diagonal",
+      "imaginary-diagonal",
+      "negative-eigenvalue",
+      "negative-diagonal"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_nonfinite_covariance_is_invalid": [
+      "position0-real-nan",
+      "position0-real-inf",
+      "position0-real--inf",
+      "position0-imag-nan",
+      "position0-imag-inf",
+      "position0-imag--inf",
+      "position1-real-nan",
+      "position1-real-inf",
+      "position1-real--inf",
+      "position1-imag-nan",
+      "position1-imag-inf",
+      "position1-imag--inf",
+      "position2-real-nan",
+      "position2-real-inf",
+      "position2-real--inf",
+      "position2-imag-nan",
+      "position2-imag-inf",
+      "position2-imag--inf",
+      "position3-real-nan",
+      "position3-real-inf",
+      "position3-real--inf",
+      "position3-imag-nan",
+      "position3-imag-inf",
+      "position3-imag--inf",
+      "position4-real-nan",
+      "position4-real-inf",
+      "position4-real--inf",
+      "position4-imag-nan",
+      "position4-imag-inf",
+      "position4-imag--inf",
+      "position5-real-nan",
+      "position5-real-inf",
+      "position5-real--inf",
+      "position5-imag-nan",
+      "position5-imag-inf",
+      "position5-imag--inf"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_non_numeric_covariances_are_refused": [
+      "bool",
+      "str",
+      "object"
+    ],
+    "pipeline/tests/test_polarimetry_covariance.py::test_parts_float64_cannot_hold_at_one_scale_publish_nothing": [
+      "cancelling-powers-HH_HV_VV",
+      "cancelling-powers-HH_SQRT2HV_VV",
+      "tiny-handedness-term-HH_HV_VV",
+      "tiny-handedness-term-HH_SQRT2HV_VV"
+    ]
+  }
 }
