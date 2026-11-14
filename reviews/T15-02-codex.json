@@ -1,0 +1,139 @@
+{
+  "task_id": "T15-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "a350d4aa5289bf1ac4c592f14b03c75fa9264282",
+    "head": "43809707c863589f506dc2361b06088cccec7d6b",
+    "files": [
+      {
+        "path": "apps/web/package.json",
+        "sha256": "9d67b1410b289d140d066073d5d23bd784231f9d805510d0003fc2cc04048791"
+      },
+      {
+        "path": "apps/web/server/api/app.test.ts",
+        "sha256": "93eda04461f16363dcd6480326aa65cfa685df614c35392a536df58b03840f49"
+      },
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "80adb7fd60a97dcea07ba4d0d13b4d1d5ba2f91ff96a4545098f884381b5c4a7"
+      },
+      {
+        "path": "apps/web/server/api/health.test.ts",
+        "sha256": "ad20cfc556c712c2a82c23cb450357239e6c72a41c228a8f30e9ac73e87e64b6"
+      },
+      {
+        "path": "apps/web/server/api/health.ts",
+        "sha256": "8ab784d4f818cecd7ee86f96a2a0274636f91e3ccf83d5457b36141b007607ad"
+      },
+      {
+        "path": "apps/web/server/api/problem.ts",
+        "sha256": "40cac5482481db73b826d5fa3b799fe19afac9a98e6bae02f5f577726f49f4dd"
+      },
+      {
+        "path": "apps/web/server/api/tsconfig.json",
+        "sha256": "6181cdc55c61857bc9770921ef9e23cb76a22de910d6d7eeb831f7ae44d46875"
+      },
+      {
+        "path": "apps/web/vitest.config.ts",
+        "sha256": "f73df93c69f7e8187307456819a569dfacb1729ad62393f360234ad77988de01"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "2f4f0e32a750b72f0472ede08f51fc18d9ed26ffdf29dd77eda1ab4b8ef2a9e5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:48:25Z",
+  "finished_utc": "2026-11-14T19:51:30Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static review found no concrete implementation defects or changes outside the allowed paths. Required execution checks, documentation-fetch provenance, and tests failing before implementation could not be verified.",
+  "checks": [
+    {
+      "criterion": "Required dependencies added only to apps/web/package.json, resolved from current documentation, locked, and existing dependencies preserved.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/package.json:18-25 and pnpm-lock.yaml:194-241 contain the required pinned dependencies; existing dependency versions are preserved. Prior Context7 or official-documentation retrieval cannot be established from the reviewed source."
+    },
+    {
+      "criterion": "Required test and typecheck scripts exist, with necessary changes recorded in notes.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Both scripts existed in the base revision. apps/web/package.json:14-15 retains vitest run and extends typecheck to cover server/api/tsconfig.json. The extension is recorded in scripts/ralph/batches/t15-api/prd.json:111."
+    },
+    {
+      "criterion": "Colocated app.request() tests use no Next or network, were seen failing before implementation, and cannot pass with no tests collected.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/server/api/app.test.ts:43-46 and health.test.ts:28-36 exercise app.request() with injected fixture readers; imports contain no Next or network client. apps/web/vitest.config.ts:8 includes server tests. Test-first failure and collection behavior were not executed or independently observed."
+    },
+    {
+      "criterion": "API uses only the shared injectable loader; missing or invalid files produce typed errors and 500 problems without defaults.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "app.ts:14-20 imports the existing loader; app.ts:105-133 injects it and maps errors. bundle.ts:200-218 and 255-274 raise typed file errors. app.test.ts:175-239 covers missing, invalid, changed, and production mock bundles. Runtime verification was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Shared problem+json handling covers 404, documented validation status, and unexpected 500 errors without stacks.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "problem.ts:61-77 constructs all five required fields. app.ts:53-55 and 113-130 handle not-found, validation, and unexpected errors; problem.ts:15 selects 400. app.test.ts:50-81, 121-172, and 242-285 contain behavioral assertions. Tests were not executed under the read-only restriction."
+    },
+    {
+      "criterion": "Health returns manifest versions with no-store using a schema derived from @terraluna/schema and fixture equality tests.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "health.ts:13-18 derives manifest fields from BundleManifestSchema; health.ts:45-53 reads and returns them with no-store. health.test.ts:16-42 compares the response with fixture manifest values and checks caching. Tests were not executed under the read-only restriction."
+    },
+    {
+      "criterion": "Only GET and HEAD are served; write methods on every path return 405 problem+json with Allow.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "app.ts:39-50 implements the method guard, registered globally at line 123. app.test.ts:85-118 covers write methods on known, unknown, and outside-base paths; health.test.ts:62-67 checks HEAD. Tests were not executed under the read-only restriction."
+    },
+    {
+      "criterion": "Full web test suite",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: tests create temporary files and caches prohibited by the read-only sandbox."
+    },
+    {
+      "criterion": "Focused API route tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: route tests create temporary files and test tooling may write caches."
+    },
+    {
+      "criterion": "Web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: the script invokes next typegen, which writes generated files."
+    },
+    {
+      "criterion": "Repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: uv, lint, Turborepo, and type-generation steps can write environment or cache files."
+    },
+    {
+      "criterion": "Repository tests",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run as instructed: Python and TypeScript tests and their runners require writable temporary or cache locations."
+    },
+    {
+      "criterion": "Diff whitespace validation",
+      "command": "git diff --check a350d4aa5289bf1ac4c592f14b03c75fa9264282 43809707c863589f506dc2361b06088cccec7d6b -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Exited 0 with no whitespace diagnostics; Git emitted sandbox-related cache warnings."
+    }
+  ],
+  "findings": []
+}

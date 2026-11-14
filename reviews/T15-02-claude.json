@@ -1,0 +1,144 @@
+{
+  "task_id": "T15-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "a350d4aa5289bf1ac4c592f14b03c75fa9264282",
+    "head": "43809707c863589f506dc2361b06088cccec7d6b",
+    "files": [
+      {
+        "path": "apps/web/package.json",
+        "sha256": "9d67b1410b289d140d066073d5d23bd784231f9d805510d0003fc2cc04048791"
+      },
+      {
+        "path": "apps/web/server/api/app.test.ts",
+        "sha256": "93eda04461f16363dcd6480326aa65cfa685df614c35392a536df58b03840f49"
+      },
+      {
+        "path": "apps/web/server/api/app.ts",
+        "sha256": "80adb7fd60a97dcea07ba4d0d13b4d1d5ba2f91ff96a4545098f884381b5c4a7"
+      },
+      {
+        "path": "apps/web/server/api/health.test.ts",
+        "sha256": "ad20cfc556c712c2a82c23cb450357239e6c72a41c228a8f30e9ac73e87e64b6"
+      },
+      {
+        "path": "apps/web/server/api/health.ts",
+        "sha256": "8ab784d4f818cecd7ee86f96a2a0274636f91e3ccf83d5457b36141b007607ad"
+      },
+      {
+        "path": "apps/web/server/api/problem.ts",
+        "sha256": "40cac5482481db73b826d5fa3b799fe19afac9a98e6bae02f5f577726f49f4dd"
+      },
+      {
+        "path": "apps/web/server/api/tsconfig.json",
+        "sha256": "6181cdc55c61857bc9770921ef9e23cb76a22de910d6d7eeb831f7ae44d46875"
+      },
+      {
+        "path": "apps/web/vitest.config.ts",
+        "sha256": "f73df93c69f7e8187307456819a569dfacb1729ad62393f360234ad77988de01"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "2f4f0e32a750b72f0472ede08f51fc18d9ed26ffdf29dd77eda1ab4b8ef2a9e5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:48:25Z",
+  "finished_utc": "2026-11-14T19:48:54Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T15-02 at 43809707 meets every acceptance criterion. All five listed checks pass. The tests exercise the stated behaviour: 404, 400 validation, 500 with no stack trace, 405 with an Allow header, and health values equal to the mock manifest. The loader is imported and the reader is injectable. Changes stay within the story's files list. I found two low-severity issues. I did not verify that the tests were written and seen failing first (that step was not inspected). I also did not check which dependency entries in pnpm-lock.yaml T7 may own.",
+  "checks": [
+    {
+      "criterion": "Dependencies (hono 4, @hono/zod-openapi, zod 4, @scalar/hono-api-reference) added to apps/web/package.json only and pinned in pnpm-lock.yaml",
+      "command": "git diff a350d4aa 43809707 -- apps/web/package.json",
+      "outcome": "PASS",
+      "evidence": "hono 4.13.18, @hono/zod-openapi 1.6.3, zod 4.6.7 and @scalar/hono-api-reference 0.12.20 added to apps/web/package.json. pnpm-lock.yaml is in the diff stat. I did not inspect the lockfile entries."
+    },
+    {
+      "criterion": "Test and typecheck scripts exist (add only those two entries)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The scripts already existed. The typecheck script was extended with '&& tsc --noEmit -p server/api'. The criterion only covers adding missing entries, so the extension is a minor deviation, noted as a low finding."
+    },
+    {
+      "criterion": "Route tests beside the app, app.request(), no Next or network; collected by vitest run server/api",
+      "command": "pnpm --filter @terraluna/web exec vitest run server/api",
+      "outcome": "PASS",
+      "evidence": "2 files, 45 tests passed. app.test.ts and health.test.ts call app.request() and import no Next. vitest.config.ts includes 'server/**/*.test.ts'. The tests-first ordering was not verified."
+    },
+    {
+      "criterion": "Bundle read only through the T15-01 loader, injectable reader, typed error becomes a 500 problem, no default substituted",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "app.ts:14-20 and :106 import and call loadBundle from lib/bundle.ts. The reader option is injectable. Tests in app.test.ts:175-240 cover a missing manifest, a missing validation.json, an invalid manifest, a changed file and the production mock guard. Each gives a 500 problem."
+    },
+    {
+      "criterion": "Shared handler returns problem+json with type/title/status/detail/instance for 404, 400 validation and 500 with no stack",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "problem.ts:61-78. VALIDATION_STATUS is 400, with the reason documented in the code (problem.ts:11-15). Tests: app.test.ts:50-83, 121-173 and 242-286."
+    },
+    {
+      "criterion": "GET /health returns status, bundle_version and schema_version from the manifest with Cache-Control: no-store; the schema is built from @terraluna/schema",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "health.ts:13 uses BundleManifestSchema.pick. health.test.ts:28-43 compares the response to the fixtures/mock-bundle/manifest.json JSON and checks no-store. Line 87-88 asserts the shape fields are identical to BundleManifestSchema's."
+    },
+    {
+      "criterion": "Only GET and HEAD routed; POST/PUT/PATCH/DELETE return 405 problem+json with an Allow header",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "app.ts:39-51 guard on the root. app.test.ts:85-118 covers POST, PUT, PATCH, DELETE, OPTIONS and unknown methods on 3 paths, each with an Allow header, and asserts the reader is not called."
+    },
+    {
+      "criterion": "pnpm --filter @terraluna/web test",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "PASS",
+      "evidence": "8 files, 207 tests passed"
+    },
+    {
+      "criterion": "pnpm --filter @terraluna/web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "PASS",
+      "evidence": "next typegen, tsc --noEmit and tsc --noEmit -p server/api all exit 0"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy and turbo lint/typecheck passed (turbo results came from cache)"
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed. Turbo ran web (207) and schema (157) tests, replayed from cache. The schema package log paths pointed at the t7-shell worktree."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/package.json:14",
+      "claim": "The existing typecheck script was modified, but the criterion only permits adding missing test/typecheck entries.",
+      "evidence": "The diff changes 'next typegen && tsc --noEmit' to append '&& tsc --noEmit -p server/api'. I did not check whether the story notes record this.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/package.json",
+      "claim": "@scalar/hono-api-reference is added but not imported anywhere in the change.",
+      "evidence": "The criterion lists it explicitly, so this is compliant. It is unused code surface until docs routes exist.",
+      "id": "claude-r1-2",
+      "resolution": null
+    }
+  ]
+}

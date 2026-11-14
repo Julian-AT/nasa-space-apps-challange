@@ -101,12 +101,18 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "a350d4aa5289bf1ac4c592f14b03c75fa9264282",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "43809707c863589f506dc2361b06088cccec7d6b",
+        "files": [
+          "reviews/T15-02-claude.json",
+          "reviews/T15-02-codex.json"
+        ],
+        "digests": {
+          "reviews/T15-02-claude.json": "facb55b9363b9a9a32c07ccd56da7d4f17aaf5e34bb0fee472c412ad84da7a5b",
+          "reviews/T15-02-codex.json": "5cb5010725ce03a77f9ad5592973a125cacf7c43a859773961a969059eb1b35b"
+        }
       },
       "notes": "Review finding applied: wrap the T0-05/T15-01 loader instead of a second reader. Author (T15-02): (1) Scripts: package.json already had test and typecheck. apps/web/tsconfig.json (not in this story's files) leaves out server/, so server/api/tsconfig.json extends it and the typecheck script now also runs `tsc --noEmit -p server/api`; typed linting finds that tsconfig as the closest one (without it eslint fails with \"not found by the project service\"). If a human adds \"server\" to apps/web/tsconfig.json include, the nested tsconfig and the extra tsc call can go. (2) Validation status: 400, not 422 (VALIDATION_STATUS in server/api/problem.ts): GET and HEAD carry no content for 422 to describe. (3) No loader accessor was added: the API calls loadBundle() through an injectable BundleReader (createApi({ reader, log }) in server/api/app.ts). (4) A MockBundleError from the loader is a 500 problem for now; T15-07 makes it 503. (5) `vitest run server/api` exits 1 when no test file matches (checked with a filter that matches nothing), so the check cannot pass vacuously. (6) problem+json uses type about:blank with the status phrase as title (RFC 9457 4.2.1) and instance = the percent-encoded request path."
     },
