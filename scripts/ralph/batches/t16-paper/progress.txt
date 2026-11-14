@@ -62,3 +62,15 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap (54fc7a5 or later; 6cd7120 checked) into ralph/t16-paper. This is still the only thing blocking T16-01.
 ---
+
+## 2026-11-14T18:01Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper since iteration 2 (merge base with ralph/t0-bootstrap is still 3073be6), so terraluna_pipeline.export and fixtures/mock-bundle are still missing. ralph/t0-bootstrap moved from 6cd7120 to 8bb1ae9, which only adds the T0-03 failing tests (pipeline/tests/test_json_schema.py, a one-line change in test_schema.py) and fixtures/schema-cases/. export.py and fixtures/mock-bundle are unchanged since 54fc7a5, and the branch does not touch paper/. Re-ran the scratch-copy simulation at the new tip and updated the T16-01 notes. The scratch copy is deleted.
+- Commits: chore(ralph): record that t16-01 still passes against t0-bootstrap at 8bb1ae9
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Checks on the simulated merge (HEAD plus pipeline/, fixtures/, Makefile, pyproject.toml and uv.lock from ralph/t0-bootstrap at 8bb1ae9; not this branch): `uv sync --locked` exit 0; check PASS (mypy --strict, 6 files); numbers-check PASS; test PASS (179 passed); make -C paper PASS (check_log.py: main.log clean).
+- Docs used: none new.
+- Learnings: the T0-03 failing tests on ralph/t0-bootstrap do not affect paper/, because make -C paper test collects only paper/scripts/. A merge of the current tip would still leave the root pipeline tests red until T0-03 passes, so a human may prefer to merge 54fc7a5 (T0-02 passed) instead.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, either at 54fc7a5 (T0-02 passed, pipeline tests green) or at a later tip once T0-03 passes. This is still the only thing blocking T16-01; repeated author iterations cannot unblock it.
+---
