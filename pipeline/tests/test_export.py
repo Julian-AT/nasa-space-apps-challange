@@ -401,8 +401,15 @@ def test_missing_manifest_is_reported(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     "raw",
-    [b"{", b"", b'{"mock": NaN}', b'{"mock": true, "mock": false}', b"\xff\xfe{}"],
-    ids=["truncated", "empty", "nan", "duplicate-key", "not-utf-8"],
+    [
+        b"{",
+        b"",
+        b'{"mock": NaN}',
+        b'{"mock": true, "mock": false}',
+        b"\xff\xfe{}",
+        b"[" * 100_000 + b"]" * 100_000,
+    ],
+    ids=["truncated", "empty", "nan", "duplicate-key", "not-utf-8", "too-deeply-nested"],
 )
 def test_unparseable_manifest_is_reported(tmp_path: Path, raw: bytes) -> None:
     bundle = make_bundle(tmp_path)
@@ -583,8 +590,11 @@ def test_validation_json_must_be_an_array(tmp_path: Path) -> None:
     ]
 
 
-def test_validation_json_must_be_json(tmp_path: Path) -> None:
-    bundle = make_bundle(tmp_path, files({"validation.json": b"[NaN]"}))
+@pytest.mark.parametrize(
+    "raw", [b"[NaN]", b"[" * 100_000 + b"]" * 100_000], ids=["nan", "too-deeply-nested"]
+)
+def test_validation_json_must_be_json(tmp_path: Path, raw: bytes) -> None:
+    bundle = make_bundle(tmp_path, files({"validation.json": raw}))
     assert codes(validate_bundle(bundle, production=False)) == [
         ("validation_invalid_json", "validation.json")
     ]
@@ -738,6 +748,15 @@ def test_mock_bundle_replace_refuses_a_bundle_not_marked_mock(
     with pytest.raises(FileExistsError, match="mock"):
         write_mock_bundle(out, replace=True)
     assert disk_files(out) == {"manifest.json": manifest}
+
+
+def test_mock_bundle_replace_refuses_a_directory_without_a_manifest(tmp_path: Path) -> None:
+    out = tmp_path / "bundle"
+    out.mkdir()
+    (out / "validation.json").write_bytes(b"[]\n")
+    with pytest.raises(FileExistsError, match="mock"):
+        write_mock_bundle(out, replace=True)
+    assert disk_files(out) == {"validation.json": b"[]\n"}
 
 
 def test_mock_bundle_replace_refuses_a_file(tmp_path: Path) -> None:
