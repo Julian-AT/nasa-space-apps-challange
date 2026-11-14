@@ -1,0 +1,96 @@
+{
+  "task_id": "T2-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "42da1c6ec1ce7d59e432c2c9ec0f7051143d3074",
+    "head": "3a27267fffcaf2084bad3fa2a0104913c7941481",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "1a04c2b11f75370b9f468b93e9254412a33a49d073cf41f297a8dcc0b4f6a66d"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_derive.py",
+        "sha256": "b8ffbf87954e01310b25b431a40c7b191e18acf5429dee43e538a871e0d7fb77"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:03:48Z",
+  "finished_utc": "2026-11-14T20:04:17Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T2-04 passes. All three story checks succeed: 108 tests pass, mypy is clean, and make check is clean (ruff and mypy). The change touches only polarimetry.py and test_polarimetry_derive.py, both in the story's files list. derive_circular wraps the existing Stokes and covariance conversions. The block aggregation sums linear powers per block before taking ratios. It returns both statistics under separate names, keeps per-block counts, and reports no value for blocks with no valid pixels. I did not run a failing-first check; the diff shows the tests commit (fe188e2) before the implementation (fd70837), which is consistent with it.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests/test_polarimetry_derive.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_derive.py",
+      "outcome": "PASS",
+      "evidence": "108 passed in 1.84s"
+    },
+    {
+      "criterion": "uv run mypy pipeline/src pipeline/tests",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 11 source files"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed, mypy: no issues found in 12 source files"
+    },
+    {
+      "criterion": "AC1: derive_circular interface, per-pixel state and reason, unknown kind or convention raises, F1-F7 equal story 2/3 results",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:1520-1581 derive_circular delegates to circular_from_stokes and circular_from_covariance; tests at test_polarimetry_derive.py:303-330 (raises), 453-512 (F1-F7, including an array equality test against circular_from_stokes at line 487). The returned records carry state and reason arrays."
+    },
+    {
+      "criterion": "AC2: ratio of mean powers vs mean of pixelwise ratios, separately named, differing case",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_two_pixels_give_different_named_statistics (line 536, expects 2/3) and test_full_block_hand_computed_statistics (line 564); fields ratio_of_mean_powers and mean_of_pixelwise_ratios in BlockAggregates (polarimetry.py:1727-1728), primary_statistic is ratio_of_mean_powers."
+    },
+    {
+      "criterion": "AC3: exclusion and counts, zero-valid block gives no value, OC<=0 handling documented",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "BlockSupport holds n_valid, n_missing, n_invalid_by_reason and valid_fraction (polarimetry.py:1649-1697). _no_valid_pixels returns MISSING or INVALID with reason BLOCK_NO_VALID_PIXELS and a NaN value. Tests at lines 580-660. The aggregate_blocks docstring documents that a zero-OC pixel's SC and OC enter the power means but not the pixelwise-CPR mean."
+    },
+    {
+      "criterion": "AC4: dB cannot be aggregated, display-only dB helper, amplitude never averaged as power",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "DecibelArray and to_db_for_display (polarimetry.py:1588-1628); aggregate_blocks raises TypeError for any type other than the two linear-power records (line 1955). Tests at lines 826-895."
+    },
+    {
+      "criterion": "AC5: block size as an argument, block origin returned, blocks_independent False",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The block_size argument is required and not hard-coded (polarimetry.py:1899-1903, block_origin at 1972-1977). BlockAggregates rejects blocks_independent=True (1738). Tests at lines 688-770."
+    },
+    {
+      "criterion": "AC6: Hypothesis permutation and scaling properties",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "@given tests at test_polarimetry_derive.py:955 (permutation), 981 (common-factor scaling), 998 and 1039 (power-of-two scaling and exact oracle); all in the 108 passing tests."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t2-polarimetry/prd.json",
+      "claim": "The commit range also changes scripts/ralph files (prd.json, progress.txt) outside the story's files list.",
+      "evidence": "git diff --stat shows prd.json and progress.txt changed. These are orchestrator bookkeeping and were excluded from the review diff. No finding against the implementation.",
+      "id": "claude-r1-1",
+      "resolution": null
+    }
+  ]
+}
