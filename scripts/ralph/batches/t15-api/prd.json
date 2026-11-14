@@ -264,7 +264,7 @@
       "priority": 5,
       "passes": false,
       "review": {
-        "state": "resolved",
+        "state": "requested",
         "round": 2,
         "base": "aba5ce10102a42f41e1efb7aaba802817ce8320c",
         "head": "6e6a46a515f2d9c8b0b9199548b15698a31701b2",
