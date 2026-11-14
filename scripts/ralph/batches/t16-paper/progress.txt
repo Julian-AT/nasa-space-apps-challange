@@ -658,3 +658,14 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 4a873c9 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
 ---
+
+## 2026-11-14T18:55Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. ralph/t0-bootstrap is unchanged at 4a873c9 and main at 8e3e5a9, so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifty-eight author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 4a873c9 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
