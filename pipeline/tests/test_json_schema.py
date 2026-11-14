@@ -615,7 +615,10 @@ def generator_case_params() -> list[Any]:
 def condition_case_params() -> list[Any]:
     return [
         pytest.param(
-            group["schema"]["if"], case["value"], case["holds"], id=f"{group['name']}/{case['name']}"
+            group["schema"]["if"],
+            case["value"],
+            case["holds"],
+            id=f"{group['name']}/{case['name']}",
         )
         for group in load_generator_cases()
         for case in group.get("conditionCases", [])
