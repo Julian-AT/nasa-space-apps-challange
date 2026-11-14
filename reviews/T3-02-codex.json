@@ -84,7 +84,11 @@
       "claim": "The shared helper weakens the story’s round-trip absolute tolerance by comparing x/W and y/W instead of the recovered metre coordinates.",
       "evidence": "With W=5000 from config/run.yaml:21, these assertions permit absolute error of 5e-9 m rather than the contracted 1e-12 m. For example, a 1e-9 m error at an expected zero would pass this helper. Both the specified-latitude tests and Hypothesis test use it. Restore the contracted comparisons or obtain an explicit contract amendment before accepting the normalized tolerance.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "1ae554b47869b04b96ce4c5e5d2486b68f3e1067",
+        "reason": "Fixed. assert_window_round_trip (x/W, y/W) is removed. assert_metres_close applies rtol 1e-10 and atol 1e-12 to the recovered x and y in metres, as criterion 3 states (1ae554b). The independent forward is still the 3-D vector form, now evaluated at 40 digits with mpmath (dev dependency in 003630d), because a float64 reference has rounding of its own at the size of the allowance. It checks 81 points per case: the edges, interior lines and the lines through the centre pixel with the 25 m offsets. The module forward checks the full 55 x 55 grid. The Hypothesis test draws random centres and random D29 pixel centres, checked in metres. Continuous offsets closer than about 14 m to the centre cannot meet atol 1e-12 m with any float64 (lat, lon): near +-pi a longitude resolves only to 2.2e-16 rad, 1.4e-9 m on Earth. They keep a finiteness test everywhere and a metre round trip at the (0, 0) centre. The metre check exposed real failures, fixed test-first. 2c6e7b9 records six Earth centres at |lat0| near 1.02 rad that broke the allowance at y = 25 m by up to 12%; one fails the exact reference from the inverse alone (2.526e-9 m against 2.501e-9 m). It also records forward cases at millimetre y, up to 254 times the allowance; that run had 22 failed, 473 passed. f8538d5 evaluates the inverse latitude as an increment from the centre; its range clip is pinned by ce5b1ce. 795230c evaluates the forward N without cancellation. After the fixes the worst use of the allowance is 0.31 over 600,000 Earth centres at |lat0| 1.0 to 1.07 rad, and 0.57 over 20,000 random centres on the full grid. The 0.57 is the longitude floor at the equator next to the antimeridian. A 20,000-example run of the property test passed. Checks: uv run pytest pipeline/tests/test_geometry_aeqd.py, 498 passed; make check exit 0."
+      }
     }
   ]
 }

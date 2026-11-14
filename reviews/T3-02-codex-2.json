@@ -84,7 +84,11 @@
       "claim": "The story's explicit round-trip tolerance on metre-valued (x,y) is untested.",
       "evidence": "The helper compares x/W and y/W with atol=1e-12. With W=5000, this permits |error| <= 1e-10*|coordinate| + 5e-9 metres, whereas criterion 3 specifies +1e-12. At a 25 m grid coordinate, the allowances are 7.5e-9 m versus 2.501e-9 m. Every grid round-trip assertion uses this helper, including the independent forward reference. Add the direct metre-coordinate assertion or obtain an explicit contract amendment authorizing this normalization; comments and notes do not establish that amendment.",
       "id": "codex2-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "1ae554b47869b04b96ce4c5e5d2486b68f3e1067",
+        "reason": "Fixed: the direct metre-coordinate assertion is in place (1ae554b). The module forward (full 55 x 55 grid) and a 40-digit mpmath reference forward (81 points per case) must give back x and y with rtol 1e-10, atol 1e-12 in metres. At a 25 m coordinate that allows 2.501e-9 m, as computed in the finding. No normalisation remains anywhere in the file. The Hypothesis test uses random centres and random D29 pixel centres in metres, for the float64 reason given under codex-r1-1. The metre check exposed real failures, which were fixed test-first: 2c6e7b9 (failing cases, 22 failed), f8538d5 (inverse latitude as an increment, range guard tested in ce5b1ce) and 795230c (forward N without cancellation). The worst use is now 0.31 over 600,000 Earth centres where it had been up to 1.12, and 0.57 overall, at the longitude floor. Checks: 498 passed; make check exit 0."
+      }
     }
   ]
 }

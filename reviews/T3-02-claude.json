@@ -84,7 +84,11 @@
       "claim": "The latitude is computed as atan2(S, hypot(N, M)) rather than the PRD's literal asin(S). The two are equal in real arithmetic. The story criterion says 'asin'.",
       "evidence": "The docstring (:162-171) documents the deviation. It reports that the literal asin form is 1.6e-7 to 3.9e-7 m off near ±89.9 degrees and fails the PRD 7 tolerances. test_inverse_matches_the_prd_expressions compares against the asin form. @terraluna/core must use the same form for parity (PRD 8.8).",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The evaluation is as described, but it is not a defect. PRD 7 fixes the value phi = asin(S), and the inverse returns that value: test_inverse_matches_the_prd_expressions compares the latitude with np.arcsin of the PRD argument at rtol 1e-10, atol 1e-12 rad for all three bodies, the five story latitudes and five centre longitudes. The literal evaluation cannot meet PRD 7's own tolerances. asin amplifies the rounding of S by 1/cos(phi); against 40-digit mpmath it gave 1.6e-7 to 3.9e-7 m at +-89.9 deg (Moon to Earth). A mutation run with the literal asin put back (scratch copy, not committed) fails 105 of 498 tests in test_geometry_aeqd.py. This round also moved the evaluation from atan2(S, hypot(N, M)) to phi0 + atan2(sin(phi - phi0), cos(phi - phi0)), built from small increments of S and M (f8538d5). The metre round trip of codex-r1-1 showed that the atan2(S, H) form itself broke the allowance (1.01 at y = 25 m on Earth, against 0.28 now). The criterion's other parts are used as written: rho, c = rho/R and the atan2 longitude. The parity concern (PRD 8.8) is recorded for a human in story notes decision (2) and in an updated PRD 7 wording proposal under Proposed instruction changes in the progress log, so that @terraluna/core (T10) evaluates the same way."
+      }
     },
     {
       "severity": "low",
@@ -92,7 +96,11 @@
       "claim": "The round trip checks rtol 1e-10 and atol 1e-12 on coordinates normalised by the window width, not on raw metres. This is a reading of the criterion.",
       "evidence": "The module docstring (:9-11) explains that an atol of 1e-12 m cannot be met in plain metres. PRD 7 Tolerances says the tolerances apply to normalised float64 values.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "1ae554b47869b04b96ce4c5e5d2486b68f3e1067",
+        "reason": "Same issue as codex-r1-1 and codex2-r1-1, so no reading of the criterion is needed any more. The round trips apply rtol 1e-10, atol 1e-12 to the recovered x and y in plain metres, with no normalisation by W (1ae554b). The stricter check exposed real failures, fixed test-first: 2c6e7b9 adds six Earth centres where inverse then forward broke the metre allowance (up to 1.12 of it at y = 25 m) and forward cases at millimetre y. f8538d5 (inverse latitude as an increment, with the range guard tested in ce5b1ce) and 795230c (forward N without cancellation) make them pass. Details and measurements are under codex-r1-1."
+      }
     }
   ]
 }
