@@ -1,0 +1,110 @@
+{
+  "task_id": "T0-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "54fc7a50da7a3815dc3ba19dc0267c9e98a4d14a",
+    "head": "9acf9cccdac9f552aef34c03f982c0269d59b758",
+    "files": [
+      {
+        "path": "Makefile",
+        "sha256": "7efd5d1321e809f1044eaf889b2da00ea3623b4fbddbd2ad1ff31d96b5857e07"
+      },
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "1312abf11683f0fad0dacfd51867ca003494cef31f5bfccaa3e7e532ea1daafa"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "fc7a4c5fd31dc089ab931bcb28ec83b2c5978ca6163bcade9e28df84b9a9bbc3"
+      },
+      {
+        "path": "packages/schema/json/bundle-manifest.schema.json",
+        "sha256": "00da70546a2dd52b18c07d32ad252962d2cf50ac4f41d3e34f4145f82c385fcf"
+      },
+      {
+        "path": "packages/schema/json/gate-record.schema.json",
+        "sha256": "4c13ca418452822bf06fa67eed5187dc17e4713c48d38772082f96df779adab2"
+      },
+      {
+        "path": "packages/schema/json/validation.schema.json",
+        "sha256": "20085ce63a02e09f26a2ce6acacdcc434be8a24e628e772d2c82ccc7da17ad12"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "2bff00f4d5b0cabc525215a3d09f12b4e1b50e92909a2f4b5459aa6deaeb7293"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "49dc7a65da22afff7fa9984738a6ea3e7bcad582786de35a61ff0052d82f6b80"
+      },
+      {
+        "path": "pipeline/tests/test_schema.py",
+        "sha256": "c9bb0f57815ae49d443fae4c81d7875f8381f83c92f8b0339f1763d674278bf8"
+      },
+      {
+        "path": "pyproject.toml",
+        "sha256": "cee58c83cf47bbaf5e4befa71b8e03ef191ee8902af6861c5340720af1b09cbc"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "e487289bc895470035c644a50fc585cf3c51716f708d97f77ad855f5a187d483"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:03:37Z",
+  "finished_utc": "2026-11-14T18:05:58Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Reviewed all 11 changed files against the story and binding requirements. No actionable defects or out-of-scope changes found by inspection. Required runtime verification remains NOT_RUN under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "AC1: make schema generates the three schemas as deterministic JSON Schema 2020-12.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Makefile:36 invokes the generator. schema.py:167 defines all three outputs; :179 adds the dialect; :193 serializes to UTF-8 bytes. validation.schema.json:107 references GateRecord array items. test_json_schema.py:224 compares output across three process hash seeds. Generation and determinism were not executed because filesystem writes are prohibited."
+    },
+    {
+      "criterion": "AC2: make schema-check regenerates temporarily and fails with a diff when committed content differs.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Makefile:40 invokes check. schema.py:226 regenerates in TemporaryDirectory; :243 compares bytes and builds unified diffs; :282 prints differences and returns 1. test_json_schema.py:282 mutates a copied schema and asserts failure plus removed/added lines. Execution requires prohibited temporary writes."
+    },
+    {
+      "criterion": "AC3: Shared cases have the required structure, schema names and minimum examples.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "fixtures/schema-cases/cases.json contains the real-shaped manifest (:3), mock manifest (:34), missing mock (:57), unknown field (:87), bad SHA-256 (:183), null gate result (:1211), bad gate status (:1239), missing gate status (:1267), and Validation cases (:1364). Entries use name, schema, valid and value with the specified schema names."
+    },
+    {
+      "criterion": "AC4: Tests precede implementation and verify case verdicts, mock files and extra-field drift using dev-only jsonschema.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "File history places tests in 8bb1ae9/2f478c9 before implementation in e955d54. test_json_schema.py:446 and :451 assert every case verdict; :456 validates both mock files; :254 asserts extra-field drift. pyproject.toml:7 lists jsonschema only in the dev group; pipeline/pyproject.toml:8 excludes it from runtime dependencies. Actual verdicts and test results require execution, prohibited here."
+    },
+    {
+      "criterion": "Required check: make schema-check",
+      "command": "make schema-check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not invoked as instructed: regeneration writes a temporary directory, which the read-only sandbox prohibits."
+    },
+    {
+      "criterion": "Required check: make check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not invoked as instructed: uv and the configured linters/type checker may write environment or cache files, prohibited by the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: make test",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not invoked as instructed: pytest and these tests write caches, temporary schemas and mutated copies, prohibited by the read-only sandbox."
+    }
+  ],
+  "findings": []
+}
