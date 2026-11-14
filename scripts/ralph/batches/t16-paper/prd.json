@@ -67,7 +67,7 @@
         "files": [],
         "digests": {}
       },
-      "notes": "Blocked on T0-02 (author iteration, 2026-11-14): terraluna_pipeline.export (write_bundle, validate_bundle) and fixtures/mock-bundle are not on ralph/t16-paper. Only T0-01 has passed on this branch, while the batch assumes T0 has passed. All T16-01 files are committed. make -C paper numbers-check passes. check (mypy import-not-found), test and the default target fail only on that missing module. A human needs to merge the finished T0 work into ralph/t16-paper. The next iteration then reruns the four checks and requests review if they pass."
+      "notes": "Blocked on merging T0-02 (author iteration 2, 2026-11-14): terraluna_pipeline.export and fixtures/mock-bundle are still not on ralph/t16-paper. T0-02 has passed on ralph/t0-bootstrap (54fc7a5, \"chore(ralph): mark t0-02 as passed\"), and its write_bundle/validate_bundle API matches what paper/scripts uses. On a scratch copy of HEAD with pipeline/, fixtures/ and the root Makefile taken from ralph/t0-bootstrap (no pyproject.toml or uv.lock change), all four checks exit 0: check, numbers-check, test (179 passed) and make -C paper (clean main.log). On this branch check, test and the default target still fail only on import-not-found terraluna_pipeline.export. A human needs to merge ralph/t0-bootstrap into ralph/t16-paper; the next iteration then reruns the checks and requests review without changing paper/."
     },
     {
       "id": "T16-02",

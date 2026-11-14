@@ -23,6 +23,7 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - make -C paper runs pytest with the repository root as rootdir, so the root pyproject's pytest options (--strict-config, -ra) apply. ruff and mypy use paper/ruff.toml and paper/mypy.ini, passed explicitly.
 - Tectonic 0.17.0 caches in ~/Library/Caches/TectonicProject.Tectonic and reruns TeX by itself when aux/out files change. It exits 0 on undefined citations and on BibTeX errors. TeX log lines wrap at 79 characters, so match the opening words of a message. A \bibliography with no \cite gives "I found no \citation commands---while reading file main.aux" and "(There was 1 error message)" in main.blg.
 - zsh traps: `for c in "make -C paper x"; do $c; done` does not word-split (exit 127); use `sh -c "$c"`. `echo ===` fails (`==` expansion); use `echo ---`.
+- To test against another branch's unmerged work without merging or switching: `git archive HEAD | tar -x -C $tmp`, then `git archive <branch> <paths> | tar -x -C $tmp`, then `uv sync --locked` and the checks inside $tmp. The uv cache makes the sync fast and offline; Tectonic's cache is shared.
 ---
 
 ## 2026-11-14T17:56Z · T16-01 · implement
@@ -36,4 +37,16 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Root README, build section (human to apply; outside this story's files): "Paper: `make -C paper` builds `paper/main.pdf`; it needs Tectonic 0.17.0 (`brew install tectonic`) and network access on the first build. See paper/README.md."
 - Batch setup: merge the passed T0 work (at least T0-02: terraluna_pipeline.export and fixtures/mock-bundle) into ralph/t16-paper before the next iteration, as the batch description assumes.
+---
+
+## 2026-11-14T17:58Z · T16-01 · implement
+- Done: No paper/ change; the story is still blocked and stays `pending`. ralph/t16-paper still lacks terraluna_pipeline.export and fixtures/mock-bundle. T0-02 has since passed on ralph/t0-bootstrap (54fc7a5). Its write_bundle(out_dir, files, manifest_fields) and validate_bundle(dir, *, production) -> list[BundleError] (str gives "path: code: message") match what numbers.py and test_numbers.py use. Built a scratch copy in /tmp: HEAD from git archive, with pipeline/, fixtures/ and the root Makefile taken from ralph/t0-bootstrap. T0 changed no pyproject.toml or uv.lock since the merge base 3073be6. All four checks passed there. Updated the T16-01 notes; the scratch copy is deleted.
+- Commits: chore(ralph): record that t16-01 passes its checks once t0-02 is merged
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21; ruff passes). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Checks on the simulated merge (not this branch): check PASS (ruff, ruff format, mypy --strict on 6 files); numbers-check PASS; test PASS (179 passed); make -C paper PASS (Tectonic 0.17.0, main.pdf written, check_log.py reports main.log clean).
+- Docs used: none new. The export API was read from ralph/t0-bootstrap:pipeline/src/terraluna_pipeline/export.py with git show.
+- Learnings: once ralph/t0-bootstrap is merged, the next iteration only needs to rerun the four checks and request review. Codebase Patterns now records the scratch-copy method.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap (through 54fc7a5, T0-02 passed) into ralph/t16-paper. This is the only thing blocking T16-01.
 ---
