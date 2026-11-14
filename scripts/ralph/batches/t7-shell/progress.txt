@@ -57,6 +57,7 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Vitest 5's default reporter hides console.log from passing tests. For scratch output, write to a file under /tmp from a temporary test, then move the test out.
 - A temporary route (app/zz-*/page.tsx, moved to /tmp afterwards, never committed) plus `make web-build` shows a server component rendering under the real RSC renderer. The page's `<script src>` count and `page_client-reference-manifest.js` show that no client code was added. `agent-browser open/screenshot/eval` against `next start` gives screenshots, and `document.documentElement.style.filter="grayscale(1)"` gives a greyscale one.
 - tests/tailwind.ts has compile(candidates) and declarations(root, selector), shared by theme.test.ts and the component tests.
+- make web-smoke's pageProblems (apps/web/scripts/page-check.ts, owned by T15) requires the visible text of `<body>` on / to equal exactly "<mock banner> <shipping-mode line> Terraluna <footer>", in that order. Any other text on /, including layout chrome such as a skip link or navigation, fails it. `node <file>.ts` placed inside apps/web (so @terraluna/schema resolves) can call pageProblems on hand-written HTML to test a layout before building.
 ---
 
 ## 2026-11-14T19:37Z · T7-01 · implement
@@ -103,4 +104,97 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 
 ### Proposed instruction changes
 - turbo.json (no T7 story owns it): add "$TURBO_ROOT$/PRD.md" to the `test` task inputs, next to "$TURBO_ROOT$/fixtures/**", so a PRD-only edit to section 3 reruns apps/web/components/evidence-label.test.tsx under make test (review finding codex-r1-1). Until then, run `TURBO_FORCE=true make test` after editing PRD section 3.
+---
+
+## 2026-11-14T20:25Z · T7-03 · implement
+- Done: nothing implemented, because the story is blocked: it cannot be done inside its files. I found the T0-05 bundle loader, apps/web/lib/bundle.ts (loadBundle). apps/web/lib/shell.ts (shellText) builds the mock banner, shipping-mode and footer strings. Neither is in this story's files, and both stay untouched. make web-smoke calls pageProblems in apps/web/scripts/page-check.ts, which requires the visible text of `<body>` on / to equal exactly "Mock bundle — placeholder data, not results Shipping mode: not chosen (G0 NOT_RUN) Terraluna Bundle version: mock-0". The acceptance criteria require the root layout to add, on every route including /, a skip link, the header navigation (Home, Moon, Mars, Earth, Model, Methods, Data) and the schema version in the footer, and / to add a short factual line. Each of these fails that equality. So "make web-smoke still passes with its existing assertions" contradicts the other criteria. apps/web/scripts/* belongs to T15 (story notes: "T7 does not touch them") and is not in T7-03's files. Hiding the text from the check, for example with CSS-generated content or by leaving / without the chrome, would weaken the check or break "on every route", so I did neither. I added a blocker note to the story's notes and left review.state at pending. The uncommitted review.base that ralph.sh wrote is kept.
+- Evidence: a scratch script (/tmp/zz-t703-probe.ts, run with node from apps/web and then moved out; nothing committed) ran pageProblems against the mock bundle. A T0-style page gives []. A page with a skip link, two nav links, the factual line and "· Schema 1.0.0" in the footer gives: the page must show only "Mock bundle — placeholder data, not results Shipping mode: not chosen (G0 NOT_RUN) Terraluna Bundle version: mock-0", but shows "Skip to content Mock bundle — … Home Moon Terraluna These pages show records from the release bundle. Bundle version: mock-0 · Schema 1.0.0". `git log --all -- apps/web/scripts/page-check.ts` shows only the two T0-05 commits, so no other branch (T15 included) has changed it yet.
+- Commits: none. This entry and the note are left uncommitted on purpose: on this tooling the loop counts an iteration with no commit and no state change as idle, and after RALPH_MAX_IDLE such iterations it calls a human, which is what this blocker needs. A commit here would make the loop retry the same blocked story.
+- Checks: not run. Nothing changed in the story's files, so no check could pass on new work.
+- Docs used: none. No library or CLI interface was used.
+- Learnings: see the new Codebase Patterns entry on pageProblems. Later T7 stories that change what / shows (T7-06 and T7-07, through the layout) hit the same assertion.
+
+### Proposed instruction changes
+- T7-03 needs a human decision (a story `files` and acceptance-criteria change, which authors may not make). Option 1: add apps/web/scripts/page-check.ts to T7-03's `files`, coordinated with T15, which owns apps/web/scripts/*. Then replace the criterion "make web-smoke still passes with its existing assertions" with: "web-smoke keeps its mock-banner, shipping-mode and footer assertions; its 'only these texts' assertion applies to `<main>` on / (the title and the factual line), so it still rejects numbers, targets and claims there". tests/page-check.test.ts is already covered by apps/web/tests/*. Option 2: T15 makes the same page-check.ts change first and it is merged into ralph/t7-shell; then T7-03 runs unchanged. Either way, the footer can keep "Bundle version: <bundle_version>", because pageProblems checks the footer with `includes`, so adding the schema version after it is compatible.
+---
+
+## 2026-11-14T20:45Z · T7-03 · implement
+- Done: nothing implemented. Re-checked the blocker recorded at 20:25Z, and it still holds. apps/web/scripts/page-check.ts (pageProblems, lines 58 to 63) still requires the visible text of `<body>` on / to equal exactly the mock banner, the shipping-mode line, "Terraluna" and the footer. `git log --all -- apps/web/scripts/page-check.ts` still shows only the two T0-05 commits (4a873c9, 4a61be9), so no branch, T15 (ralph/t15-api) included, has relaxed it. The story notes and the 20:25Z entry already give the reason and the two ways to unblock it. They are unchanged, and review.state stays pending.
+- Tooling note for the human: ralph/integration has 3dc1c63 "feat(ralph): let authors mark a story as blocked" (review.state=blocked stops the loop at once). This worktree's scripts/ralph/prompt.md and ralph.sh predate it, so this loop can only reach a human through RALPH_MAX_IDLE idle iterations. Merging the tooling into ralph/t7-shell, or stopping this loop, avoids the remaining idle waits.
+- Commits: none, on purpose, so that the loop counts this iteration as idle (see the 20:25Z entry).
+- Checks: not run. Nothing changed in the story's files.
+- Docs used: none.
+- Learnings: none new.
+---
+
+## 2026-11-14T20:21Z · T7-03 · implement
+- Done: nothing implemented. Checked the blocker a third time, and it still holds. apps/web/scripts/page-check.ts is identical on ralph/t7-shell, ralph/t15-api and ralph/integration (`git diff --quiet`), and `git log --all` still lists only the two T0-05 commits for it. So on /, the visible text of `<body>` must still be exactly the mock banner, the shipping-mode line, "Terraluna" and the footer, which rules out the skip link, navigation and factual line the criteria require. This worktree still lacks 3dc1c63 (blocked state); ralph.sh line 299 sends any unknown review.state to a human, but section 2 of the prompt says to leave the state as it is, so it stays pending. Story notes are unchanged.
+- Commits: none, on purpose, so that ralph.sh counts this iteration as idle and reaches a human after RALPH_MAX_IDLE (see the earlier T7-03 entries).
+- Checks: not run. Nothing changed in the story's files.
+- Docs used: none.
+- Learnings: the times in the two earlier T7-03 entries (20:25Z, 20:45Z) are later than `date -u` at this check, so they were estimates. Take entry times from `date -u`.
+---
+
+## 2026-11-14T20:25Z · T7-03 · implement
+- Done: nothing implemented; fourth check of the blocker, which still holds. apps/web/scripts/page-check.ts is still identical on ralph/t7-shell, ralph/t15-api and ralph/integration, and `git log --all` lists only 4a873c9 and 4a61be9 (T0-05) for it. main has no apps/web yet, so it does not help. pageProblems (lines 57 to 63) still requires the visible `<body>` text on / to equal exactly the mock banner, the shipping-mode line, "Terraluna" and the footer. scripts/ralph/ralph.sh and prompt.md here still have no blocked state, and ralph.sh lines 286 to 293 count an iteration as idle only when HEAD and review.state are both unchanged. Story notes unchanged; review.state stays pending.
+- Commits: none, on purpose (idle iteration, see the 20:25Z entry above).
+- Checks: not run; nothing changed in the story's files.
+- Docs used: none.
+- Learnings: the blocker note in prd.json and these entries exist only in the working tree. Restoring or cleaning the tree before a human reads them would lose them, so commit them first (`chore(ralph): record t7-03 blocker`) when the loop is stopped.
+---
+
+## 2026-11-14T20:30Z · T7-03 · implement
+- Done: nothing implemented. This is the fifth check of the blocker, and it still holds. apps/web/scripts/page-check.ts is identical on ralph/t7-shell, ralph/t15-api and ralph/integration. `git log --all` lists only the T0-05 commits 4a873c9 and 4a61be9 for it, and main has only the initial commit. pageProblems, through visibleText (lines 27 to 35, which strip only scripts, styles and comments) and the equality check (lines 57 to 63), still requires the visible `<body>` text on / to be exactly the mock banner, the shipping-mode line, "Terraluna" and the footer. The branch heads match the last check: ralph/tooling and ralph/integration still end at 3dc1c63 and 5126d0e, and ralph/t15-api at aba5ce1. Story notes are unchanged and review.state stays pending.
+- Commits: none, on purpose, so that ralph.sh counts this iteration as idle (see the first 20:25Z entry).
+- Checks: not run. Nothing changed in the story's files.
+- Docs used: none.
+- Learnings: none new. To unblock, a human picks one of the two options under "Proposed instruction changes" in the first 20:25Z T7-03 entry, then commits these uncommitted Ralph files (`chore(ralph): record t7-03 blocker`).
+---
+
+## 2026-11-14T20:36Z · T7-03 · implement
+- Done: nothing implemented. Sixth check of the blocker, and it still holds. Two branch heads have moved since the last check: ralph/t15-api is now at 323a0b3 (T15-05 route tests) and ralph/integration at ed1f261 (python config). Neither touches apps/web/scripts/page-check.ts. It is identical on ralph/t7-shell, ralph/t15-api and ralph/integration, and `git log --all` still lists only 4a873c9 and 4a61be9 (T0-05) for it. pageProblems, at lines 57 to 63, still requires the visible `<body>` text on / to be exactly the mock banner, the shipping-mode line, "Terraluna" and the footer. The skip link, navigation and factual line required by the criteria are therefore still ruled out. Story notes are unchanged and review.state stays pending.
+- Commits: none, on purpose, so that ralph.sh (lines 286 to 293) counts this iteration as idle and calls a human after RALPH_MAX_IDLE (see the first 20:25Z entry).
+- Checks: not run. Nothing changed in the story's files.
+- Docs used: none.
+- Learnings: none new. The two ways to unblock are under "Proposed instruction changes" in the first 20:25Z T7-03 entry. Commit these uncommitted Ralph files (`chore(ralph): record t7-03 blocker`) before anyone cleans the tree.
+---
+
+## 2026-11-14T20:43Z · T7-03 · implement
+- Done: nothing implemented. Seventh check of the blocker, and it still holds. ralph/t15-api moved to c51a7a6 (a merge of ralph/tooling), but apps/web/scripts/page-check.ts is still identical on ralph/t7-shell, ralph/t15-api and ralph/integration (`git diff --quiet`), and `git log --all` still lists only 4a873c9 and 4a61be9 (T0-05) for it. pageProblems (lines 57 to 63) still requires the visible `<body>` text on / to be exactly the mock banner, the shipping-mode line, "Terraluna" and the footer. That rules out the skip link, navigation and factual line the criteria require. Story notes are unchanged and review.state stays pending.
+- Commits: none, on purpose, so that ralph.sh counts this iteration as idle (lines 291 to 292; RALPH_MAX_IDLE defaults to 10) and calls a human (see the first 20:25Z entry).
+- Checks: not run. Nothing changed in the story's files.
+- Docs used: none.
+- Learnings: none new. The two ways to unblock are under "Proposed instruction changes" in the first 20:25Z T7-03 entry. Commit these uncommitted Ralph files (`chore(ralph): record t7-03 blocker`) before anyone cleans the tree.
+---
+
+## 2026-11-14T20:50Z · T7-03 · implement
+- Done: nothing implemented. Eighth check of the blocker, and it still holds. ralph/t15-api moved to 1fa9d47 (T15-05 reviews). Its diff touches apps/web/scripts/bundle-pull.ts and apps/web/lib, but not apps/web/scripts/page-check.ts, which is still identical on ralph/t7-shell, ralph/t15-api and ralph/integration (ed1f261). ralph/tooling (3dc1c63) has no apps/web at all. `git log --all` still lists only 4a873c9 and 4a61be9 (T0-05) for page-check.ts. pageProblems (lines 57 to 63) still requires the visible `<body>` text on / to be exactly the mock banner, the shipping-mode line, "Terraluna" and the footer. That rules out the skip link, navigation and factual line the criteria require. scripts/ralph/ralph.sh and prompt.md here still have no blocked state. Story notes are unchanged and review.state stays pending.
+- Commits: none, on purpose, so that ralph.sh counts this iteration as idle and calls a human (see the first 20:25Z entry).
+- Checks: not run. Nothing changed in the story's files.
+- Docs used: none.
+- Learnings: none new. The two ways to unblock are under "Proposed instruction changes" in the first 20:25Z T7-03 entry. Commit these uncommitted Ralph files (`chore(ralph): record t7-03 blocker`) before anyone cleans the tree.
+---
+
+## 2026-11-14T20:59Z · T7-03 · implement
+- Done: nothing implemented. Ninth check of the blocker, and it still holds. apps/web/scripts/page-check.ts is still identical on ralph/t7-shell (ceeae12), ralph/t15-api (now 6e6a46a) and ralph/integration (ed1f261), and `git log --all` still lists only 4a873c9 and 4a61be9 (T0-05) for it. pageProblems (lines 57 to 63) still requires the visible `<body>` text on / to be exactly the mock banner, the shipping-mode line, "Terraluna" and the footer. That rules out the skip link, navigation and factual line the criteria require. ralph/tooling moved to 151ee09 (gating stories on merged predecessors), but this worktree's scripts/ralph still has no blocked state. Story notes are unchanged and review.state stays pending.
+- Commits: none, on purpose, so that ralph.sh counts this iteration as idle and calls a human (see the first 20:25Z entry).
+- Checks: not run. Nothing changed in the story's files.
+- Docs used: none.
+- Learnings: none new. The two ways to unblock are under "Proposed instruction changes" in the first 20:25Z T7-03 entry. Commit these uncommitted Ralph files (`chore(ralph): record t7-03 blocker`) before anyone cleans the tree.
+---
+
+## 2026-11-14T21:09Z · T7-03 · implement
+- Done: nothing implemented. Tenth check of the blocker, and it still holds. apps/web/scripts/page-check.ts is still identical on ralph/t7-shell (ceeae12), ralph/t15-api (now 4a3b279) and ralph/integration (ed1f261). ralph/tooling (151ee09) differs only because it has no apps/web. `git log --all` still lists only 4a873c9 and 4a61be9 (T0-05) for the file. pageProblems (lines 57 to 63) still requires the visible `<body>` text on / to be exactly the mock banner, the shipping-mode line, "Terraluna" and the footer. That rules out the skip link, navigation and factual line the criteria require. The story notes have no new `ralph` lines. They are unchanged, and review.state stays pending.
+- Commits: none, on purpose, so that ralph.sh counts this iteration as idle and calls a human (see the first 20:25Z entry).
+- Checks: not run. Nothing changed in the story's files.
+- Docs used: none.
+- Learnings: none new. The two ways to unblock are under "Proposed instruction changes" in the first 20:25Z T7-03 entry. Commit these uncommitted Ralph files (`chore(ralph): record t7-03 blocker`) before anyone cleans the tree.
+---
+
+## 2026-11-14T21:19Z · T7-03 · implement
+- Done: nothing implemented. Eleventh check of the blocker, and it still holds. ralph/t15-api moved to 019d7dd and ralph/integration to 007a357, but apps/web/scripts/page-check.ts is still identical on ralph/t7-shell (ceeae12), ralph/t15-api and ralph/integration (`git diff --quiet`). `git log --all` still lists only 4a873c9 and 4a61be9 (T0-05) for it. pageProblems (lines 57 to 63) still requires the visible `<body>` text on / to be exactly the mock banner, the shipping-mode line, "Terraluna" and the footer, which rules out the skip link, navigation and factual line the criteria require. The story notes have no new `ralph` lines. They are unchanged, and review.state stays pending.
+- Commits: none, on purpose, so that ralph.sh counts this iteration as idle and calls a human (see the first 20:25Z entry).
+- Checks: not run. Nothing changed in the story's files.
+- Docs used: none.
+- Learnings: none new. The two ways to unblock are under "Proposed instruction changes" in the first 20:25Z T7-03 entry. Commit these uncommitted Ralph files (`chore(ralph): record t7-03 blocker`) before anyone cleans the tree.
 ---
