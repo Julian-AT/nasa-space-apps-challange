@@ -188,7 +188,8 @@ describe('the production mock refusal in the document (T15-07)', () => {
   /** A request URL for each documented path, with valid parameters (the ids are test-only). */
   const SAMPLE_URLS: Readonly<Record<string, string>> = {
     '/api/v1/targets/{id}': '/api/v1/targets/test-only-target',
-    '/api/v1/targets/{id}/matches': '/api/v1/targets/test-only-target/matches?body=earth&family=terrain',
+    '/api/v1/targets/{id}/matches':
+      '/api/v1/targets/test-only-target/matches?body=earth&family=terrain',
     '/api/v1/windows/{id}': '/api/v1/windows/test-only-window',
     '/api/v1/compare': '/api/v1/compare?a=test-only-a&b=test-only-b',
   };
@@ -207,7 +208,11 @@ describe('the production mock refusal in the document (T15-07)', () => {
 
   it('answers 503 exactly where the document lists it, for a mock bundle on production', async () => {
     const document = await documentOf();
-    expect(operations(document).map(([path]) => path).sort()).toEqual([...ROUTED_PATHS].sort());
+    expect(
+      operations(document)
+        .map(([path]) => path)
+        .sort(),
+    ).toEqual([...ROUTED_PATHS].sort());
     const production = createApi({
       reader: mockReader,
       env: { VERCEL_ENV: 'production' },
