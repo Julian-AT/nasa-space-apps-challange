@@ -137,6 +137,31 @@ def test_key_command_arguments_are_removed(command: str) -> None:
     assert words(f"before {command} after") == ["before", "after"]
 
 
+# LaTeX's \input looks past spaces for a brace. Without one, TeX's \input primitive reads the file
+# name up to the first space or line break, and XeTeX lets double quotes hold spaces in it.
+@pytest.mark.parametrize(
+    "command",
+    [
+        "\\input generated/numbers.tex",
+        "\\input generated/numbers",
+        "\\input  generated/numbers.tex\n",
+        "\\input\n  generated/numbers.tex",
+        "\\input % the generated numbers\n generated/numbers.tex",
+        '\\input "generated/number file.tex"',
+        '\\input generated/"number file".tex',
+    ],
+)
+def test_unbraced_input_file_name_is_removed(command: str) -> None:
+    assert words(f"before {command} after") == ["before", "after"]
+
+
+@pytest.mark.parametrize("text", ['\\input "generated/numbers.tex', '\\input "a\nb"', "\\input}"])
+def test_malformed_input_file_name_raises(text: str) -> None:
+    with pytest.raises(TexSyntaxError) as raised:
+        extract(f"ok\n{text}")
+    assert raised.value.line == 2
+
+
 # --- Comments and line breaks before an argument -----------------------------------------------
 # TeX skips spaces, comments and single line breaks between a command and its argument, and stops
 # at a blank line, which it reads as \par.
@@ -195,6 +220,7 @@ def test_math_environment_end_after_a_comment_closes_it() -> None:
         "\\begin\n\n{itemize}",
         "\\end%\n\n{itemize}",
         "\\begin{tabular}%\n\n{l}",
+        "\\input\n\ngenerated/numbers.tex",
     ],
 )
 def test_a_blank_line_before_an_argument_raises(text: str) -> None:
@@ -343,6 +369,85 @@ def test_kept_tikz_groups_join_unless_they_are_arguments_of_one_command(
 ) -> None:
     text = f"\\begin{{tikzpicture}}\n{tikz}\n\\end{{tikzpicture}}"
     assert words(text, keep_tikz=True) == expected
+
+
+# --- What TeX skips inside a word --------------------------------------------------------------
+# After a control word TeX skips spaces, comments and one line break; an accent skips them before
+# its letter. A comment takes its line break and the indent of the next line with it. A blank line
+# is \par and still breaks a word.
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("seam\\emph {less}", ["seamless"]),
+        ("seam\\emph\t {less} text", ["seamless", "text"]),
+        ("seam\\emph\n{less}", ["seamless"]),
+        ("seam\\emph\n   {less}", ["seamless"]),
+        ("seam\\emph % note\n{less}", ["seamless"]),
+        ("seam\\emph\n% note\n  {less}", ["seamless"]),
+        ("lu\\textit {nar} and", ["lunar", "and"]),
+        ("seam{\\bf less}", ["seamless"]),
+        ("seam{\\itshape\nless}", ["seamless"]),
+        ("seam{\\small less}", ["seamless"]),
+        ("Ko\\v\nci", ["Koci"]),
+        ("caf\\'\ne", ["cafe"]),
+        ("caf\\' % note\n e", ["cafe"]),
+        ("Gro\\ss\ne", ["Grosse"]),
+    ],
+)
+def test_space_after_a_control_word_prints_nothing(text: str, expected: list[str]) -> None:
+    assert words(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("seam{\\bf\n\nless}", ["seam", "less"]),
+        ("seam\\emph%\n\n{less}", ["seam", "less"]),
+        ("seam\\quad less", ["seam", "less"]),
+        ("seam\\newline less", ["seam", "less"]),
+        ("seam\\MoonRecall less", ["seam", "less"]),
+        ("seam \\emph{less}", ["seam", "less"]),
+    ],
+)
+def test_a_blank_line_and_commands_that_print_space_or_unknown_text_break_words(
+    text: str, expected: list[str]
+) -> None:
+    assert words(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("sea%\nmless", ["seamless"]),
+        ("sea% note\n   mless", ["seamless"]),
+        ("sea%\n%\nmless", ["seamless"]),
+        ("sea %\nmless", ["sea", "mless"]),
+        ("sea%\n\nmless", ["sea", "mless"]),
+    ],
+)
+def test_a_comment_takes_its_line_break_with_it(text: str, expected: list[str]) -> None:
+    assert words(text) == expected
+
+
+def test_kept_tikz_comment_takes_its_line_break_with_it() -> None:
+    text = "\\begin{tikzpicture}\n\\node {sea%\nmless};\n\\end{tikzpicture}"
+    assert words(text, keep_tikz=True) == ["seamless;"]
+
+
+def test_a_word_joined_across_a_line_break_is_written_on_its_first_line() -> None:
+    text = "seam\\emph\n{less} more\nnext %\nlast sea%\nmless.\nend"
+    source = extract(text)
+    assert source.prose.count("\n") == text.count("\n")
+    assert [line.split() for line in source.prose.split("\n")] == [
+        ["seamless"],
+        ["more"],
+        ["next"],
+        ["last", "seamless."],
+        [],
+        ["end"],
+    ]
 
 
 @pytest.mark.parametrize(

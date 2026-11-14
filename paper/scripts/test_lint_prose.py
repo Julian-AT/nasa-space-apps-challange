@@ -123,6 +123,11 @@ def test_banned_words_are_the_list_of_prd_22_6() -> None:
         "{seam}{less}",
         "\\emph{sea}{mless}",
         "{\\bf pivo}{tal}",
+        "seam\\emph {less}",
+        "seam\\emph\n{less}",
+        "seam\\emph % note\n{less}",
+        "seam{\\itshape less}",
+        "sea%\nmless",
         "It delves into",
         "We leveraged it",
         "showcasing results",
@@ -159,6 +164,8 @@ def test_banned_word_rule_fails(text: str) -> None:
         "\\cite{robust2020}",
         "\\label{sec:seamless}",
         "$robust$",
+        "\\input figures/seamless-map.tex",
+        "\\input figures/seamless-map\nText.",
     ],
 )
 def test_banned_word_rule_passes(text: str) -> None:
@@ -230,6 +237,9 @@ def test_allow_comment_covers_only_robust_on_its_line() -> None:
         "it is % a comment\nimportant to note",
         "it\n\nis important to note",
         "it is \\emph{{impor}{tant}} to note",
+        "it is impor\\emph {tant} to note",
+        "it is impor\\textit\n{tant} to note",
+        "it is impor%\ntant to note",
     ],
 )
 def test_important_to_note_rule_fails(text: str) -> None:

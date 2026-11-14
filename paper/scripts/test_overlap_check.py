@@ -130,6 +130,18 @@ def twelve_with(change: str) -> str:
         return " ".join(w[:5]) + " \\emph{{" + w[5][:2] + "}{" + w[5][2:] + "}} " + " ".join(w[6:])
     if change == "adjacent groups":
         return " ".join(w[:5]) + " {" + w[5][:2] + "}{" + w[5][2:] + "} " + " ".join(w[6:])
+    if change == "space after a command":
+        return " ".join(w[:5]) + " " + w[5][:2] + "\\emph {" + w[5][2:] + "} " + " ".join(w[6:])
+    if change == "line break after a command":
+        return " ".join(w[:5]) + " " + w[5][:2] + "\\emph\n{" + w[5][2:] + "} " + " ".join(w[6:])
+    if change == "declaration inside a word":
+        return " ".join(w[:5]) + " " + w[5][:2] + "{\\itshape " + w[5][2:] + "} " + " ".join(w[6:])
+    if change == "comment inside a word":
+        return " ".join(w[:5]) + " " + w[5][:2] + "% a note\n" + w[5][2:] + " " + " ".join(w[6:])
+    if change == "unbraced input":
+        return " ".join(w[:6]) + " \\input generated/numbers.tex " + " ".join(w[6:])
+    if change == "unbraced input at a line end":
+        return " ".join(w[:6]) + " \\input generated/numbers.tex\n" + " ".join(w[6:])
     raise AssertionError(change)
 
 
@@ -148,6 +160,12 @@ def twelve_with(change: str) -> str:
         "comment before a reference",
         "grouped word",
         "adjacent groups",
+        "space after a command",
+        "line break after a command",
+        "declaration inside a word",
+        "comment inside a word",
+        "unbraced input",
+        "unbraced input at a line end",
     ],
 )
 def test_changes_do_not_hide_a_run(change: str) -> None:
