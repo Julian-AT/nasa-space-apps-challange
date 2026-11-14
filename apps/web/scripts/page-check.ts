@@ -1,9 +1,15 @@
 // What make web-smoke asserts about the HTML of / (PRD 8.4, 8.6): the red mock banner exactly when
-// the bundle is mock, the shipping-mode line, the bundle version in the footer, and no other text
-// than these and the title, so no numbers, targets or claims. Only the rendered markup counts:
-// <script> elements, which hold the RSC payload, are removed first.
+// the bundle is mock, the shipping-mode line once, the bundle version in the footer, wherever the
+// layout puts them, and one <main> that shows only the title and HOME_LINE, so no numbers,
+// targets or claims. The layout's skip link and navigation sit outside <main>. Only the rendered
+// markup counts: <script> elements, which hold the RSC payload, are removed first.
 import type { Bundle } from '../lib/bundle.ts';
 import { shellText, SITE_TITLE } from '../lib/shell.ts';
+
+/** The one line / shows under its title (app/page.tsx): no numbers, targets or claims. */
+export const HOME_LINE = 'These pages show records from the bundle named in the footer.';
+
+const SHIPPING_MODE = 'Shipping mode:';
 
 const ENTITIES: Readonly<Record<string, string>> = {
   amp: '&',
@@ -26,12 +32,20 @@ function decodeEntities(text: string): string {
 
 /** The text a reader sees: no scripts, styles or comments; tags become spaces. */
 export function visibleText(html: string): string {
-  const markup = html
+  const markup = renderedMarkup(html).replace(/<[^>]*>/g, ' ');
+  return decodeEntities(markup).replace(/\s+/g, ' ').trim();
+}
+
+/** The markup without scripts, styles and comments, which a reader never sees. */
+function renderedMarkup(html: string): string {
+  return html
     .replace(/<script\b[\s\S]*?<\/script\s*>/gi, ' ')
     .replace(/<style\b[\s\S]*?<\/style\s*>/gi, ' ')
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<[^>]*>/g, ' ');
-  return decodeEntities(markup).replace(/\s+/g, ' ').trim();
+    .replace(/<!--[\s\S]*?-->/g, '');
+}
+
+function occurrences(text: string, part: string): number {
+  return text.split(part).length - 1;
 }
 
 export function pageProblems(html: string, bundle: Bundle): string[] {
@@ -48,18 +62,28 @@ export function pageProblems(html: string, bundle: Bundle): string[] {
   if (!text.includes(expected.shippingMode)) {
     problems.push(`the shipping-mode line "${expected.shippingMode}" is missing`);
   }
+  const modeLines = occurrences(text, SHIPPING_MODE);
+  if (modeLines > 1) {
+    problems.push(`"${SHIPPING_MODE}" appears ${String(modeLines)} times; the page must state its mode once`);
+  }
   const footers = [...html.matchAll(/<footer\b[^>]*>([\s\S]*?)<\/footer\s*>/gi)];
   if (footers.length === 0) {
     problems.push('the page has no <footer>');
   } else if (!footers.some((match) => visibleText(match[1] ?? '').includes(expected.footer))) {
     problems.push(`the footer does not show "${expected.footer}"`);
   }
-  const body = /<body\b[^>]*>([\s\S]*)<\/body\s*>/i.exec(html)?.[1] ?? html;
-  const allowed = [expected.mockBanner, expected.shippingMode, SITE_TITLE, expected.footer]
-    .filter((line) => line !== null)
-    .join(' ');
-  if (visibleText(body) !== allowed) {
-    problems.push(`the page must show only "${allowed}", but shows "${visibleText(body)}"`);
+  const markup = renderedMarkup(html);
+  const opened = markup.match(/<main(?=[\s/>])/gi)?.length ?? 0;
+  const mains = [...markup.matchAll(/<main(?=[\s/>])[^>]*>([\s\S]*?)<\/main\s*>/gi)];
+  const [main] = mains;
+  if (opened !== 1 || mains.length !== 1 || main === undefined) {
+    problems.push(`the page must have exactly one <main>, but has ${String(opened)}`);
+  } else {
+    const allowed = `${SITE_TITLE} ${HOME_LINE}`;
+    const shown = visibleText(main[1] ?? '');
+    if (shown !== allowed) {
+      problems.push(`<main> must show only "${allowed}", but shows "${shown}"`);
+    }
   }
   return problems;
 }
