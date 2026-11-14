@@ -2401,8 +2401,6 @@ class MinirfSource:
         records: list[ProductRecord] = []
         verification: dict[str, dict[str, str]] = {}
         for layer in layers:
-            if layer.file_name not in read_rows and layer.file_name != self.cpr_label_name:
-                continue
             fields = self._record_fields(layer, raw_dir, docs, read=layer.file_name in read_rows)
             label_local = f"data/raw/{self.name}/{layer.file_name}"
             label_record = ProductRecord.model_validate(
@@ -3381,6 +3379,12 @@ class MinirfSource:
             "checksum": (
                 "for the image, the ProductRecord checksum and local_path are those of the image "
                 "rows read by range (range_read), not of the whole file, which was not downloaded"
+            ),
+            "product_records": (
+                "every mosaic label downloaded has a ProductRecord, because each is read to "
+                "establish the layers (mosaic_layers, stokes_observation); its fields are those "
+                "its own label states. Only the images whose window rows were read have an "
+                "image record"
             ),
             "pixel_convention": (
                 "the window uses DSMAP.CAT's conversion (projection.conversion). GDAL's PDS driver "
