@@ -84,7 +84,11 @@
       "claim": "A pixel with S1 < S4 inside the tolerance gets CPR INVALID with SC_NEGATIVE. The story does not list this reason.",
       "evidence": "The behaviour is documented, tested (test_negative_sc_within_tolerance_never_gives_a_negative_cpr) and conservative: no negative CPR and no clipping. It is an extra reason code beyond the PRD list, worth noting for the PRD's reason vocabulary.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect, so no change. The acceptance criteria name the reasons the fixtures and rules must give (F4, F5, NONFINITE, PRODUCT_MASKED, STOKES_NONPHYSICAL); they do not close the vocabulary, and InvalidReason is meant to grow with each rule. SC_NEGATIVE follows PRD 7 Validity rules: the numerator must be finite and supported, and missing, invalid and valid low CPR stay distinct. Within the tolerance a negative SC is possible: S1=0, S4=5e-13 would otherwise publish a VALID CPR of -1. Clipping it to a valid zero would be the silent repair PRD 7 and F5 rule out ('not clipped or regularized'). The behaviour is documented and tested, as the finding says. The story notes and the progress log already list SC_NEGATIVE to revisit with the open real-data Stokes tolerance decision (PRD 7), so the reason vocabulary gets a human look when that tolerance is set."
+      }
     }
   ]
 }

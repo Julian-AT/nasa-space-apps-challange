@@ -90,7 +90,11 @@
       "claim": "The full-Stokes check weakens the specified squared-inequality tolerance for normalized inputs, allowing measurements that should be STOKES_NONPHYSICAL to publish valid CPR.",
       "evidence": "PRD.md:420 and acceptance criterion 3 require S1² >= S2²+S3²+S4² within the stated tolerance. By inspection, S1=1, S2=1+8e-11, S3=S4=0 exceeds the squared bound by approximately 1.6e-10, above atol+rtol*S1²=1.01e-10. The implemented norm excess is only approximately 8e-11, so the branch accepts it and subsequently publishes CPR=1 as VALID. Tests at test_polarimetry_stokes.py:425–428 use cases that do not distinguish these tolerance policies. Preserve the squared-inequality tolerance in the overflow-safe calculation and add this boundary regression.",
       "id": "codex2-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "3c0c34f6273e91b163cd46dbde50e5bac3c4f18d",
+        "reason": "Same defect as codex-r1-1, fixed in the same commit 3c0c34f (failing tests first in 3321851). Reproduced: S1=1, S2=1+8e-11 was VALID. Rule 4 now applies atol + rtol*S1^2 to the squared inequality on inputs scaled by one exact power of two, so no square overflows. test_squared_excess_beyond_the_tolerance_is_nonphysical[8e-11] is the requested boundary regression; the 1e200 and 1e-200 tests and the exact-arithmetic property cover overflow and underflow."
+      }
     }
   ]
 }

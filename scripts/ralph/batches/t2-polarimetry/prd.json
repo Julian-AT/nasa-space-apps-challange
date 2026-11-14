@@ -92,7 +92,7 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "reviewed",
+        "state": "resolved",
         "round": 1,
         "base": "178e0a292a416903466fa30da513acfd9ce96233",
         "head": "1f02b9f3d06297de407840d8fec0fbf18d1fe3ae",
@@ -107,7 +107,7 @@
           "reviews/T2-02-codex-2.json": "c83af11db15957da953f6ddca90ee9e450402c6b12e2d8f89f4a14e45bc6bb37"
         }
       },
-      "notes": "Open decision (PRD 7: real-data tolerances come from the product): no real-data Stokes validity tolerance is set. circular_from_stokes takes a named Tolerance argument that defaults to ARITHMETIC_TOLERANCE, the PRD 7 arithmetic tolerance (rtol 1e-10, atol 1e-12), and the tests use it. Revisit with that decision: a negative SC accepted within the tolerance is reported as computed and makes CPR unavailable (SC_NEGATIVE) instead of being clipped.",
+      "notes": "Open decision (PRD 7: real-data tolerances come from the product): no real-data Stokes validity tolerance is set. circular_from_stokes takes a named Tolerance argument that defaults to ARITHMETIC_TOLERANCE, the PRD 7 arithmetic tolerance (rtol 1e-10, atol 1e-12), and the tests use it. Revisit with that decision: a negative SC accepted within the tolerance is reported as computed and makes CPR unavailable (SC_NEGATIVE) instead of being clipped. The same Tolerance applies to the squared full-Stokes bound (S2^2 + S3^2 + S4^2 - S1^2 <= atol + rtol * S1^2), so there atol is in squared power units; a real-data tolerance decision has to set it for both rules.",
       "codexPasses": 2
     },
     {

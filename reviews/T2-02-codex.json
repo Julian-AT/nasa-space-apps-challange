@@ -96,7 +96,11 @@
       "claim": "Applying the unchanged tolerance after taking the square root weakens the required full-Stokes physicality bound and can publish a nonphysical measurement as VALID.",
       "evidence": "By inspection, S1=1, S2=1+7.5e-11, S3=S4=0 passes lines 797–800: the norm excess is approximately 7.5e-11, below atol+rtol*S1=1.01e-10. But the squared excess required by AC3 is approximately 1.5e-10, exceeding the same tolerance, so it should yield STOKES_NONPHYSICAL rather than CPR=1 with VALID state. The boundary tests at pipeline/tests/test_polarimetry_stokes.py:425 do not distinguish these rules. Preserve the tolerance on the squared inequality using overflow-safe arithmetic and add a distinguishing boundary test.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "3c0c34f6273e91b163cd46dbde50e5bac3c4f18d",
+        "reason": "Fixed in 3c0c34f with failing tests first in 3321851 (9 failed, 111 passed before the fix). Reproduced: S1=1, S2=1+7.5e-11, S3=S4=0 was VALID with CPR 1. Rule 4 now tests S2^2+S3^2+S4^2-S1^2 > atol + rtol*S1^2, the same Tolerance applied to the squared inequality (PRD 7 Validity rules; story AC3), so atol is in squared power units there; the docstring says so. Overflow safety: each pixel's four parameters are scaled by one exact power of two (np.frexp/np.ldexp) so the largest lies in [0.5, 1), and atol by its square. Regression tests: 7.5e-11 and 8e-11 are STOKES_NONPHYSICAL for S2, S3 and S4 positions, 4e-11 is VALID, the same at 1e200 (squares overflow) and 1e-200 with atol=0 (squares underflow), an atol-only case pinning squared units, and two hypothesis properties: an exact Fraction oracle over the whole finite float64 range and a scale-free 0.5x/1.5x rtol boundary at magnitudes 1e-300 to 1e301 (clean over 60 seeds)."
+      }
     }
   ]
 }
