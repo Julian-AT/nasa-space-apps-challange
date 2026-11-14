@@ -94,7 +94,11 @@
       "claim": "The criterion text says sin(2chi) is UNAVAILABLE with reason M_ZERO. The code uses INVALID with reason M_ZERO; no UNAVAILABLE state exists in PRD.md or the pipeline.",
       "evidence": "Grep for UNAVAILABLE finds nothing; ObsState has only MISSING, INVALID and VALID (lines 108-120). The behaviour is consistent: no value is published and the reason is M_ZERO. Documenting the mapping would be optional.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "7b09c0fbc4b59e57fd95bd0611328c44307b8b8e",
+        "reason": "Fixed as documentation, with no behaviour change. Chi at m = 0 was already published as no value (NaN) with reason M_ZERO, never 0. That follows F5, whose 'ratio unavailable' is INVALID/OC_NONPOSITIVE (PRD 7). PRD 3 'Unavailable' is an evidence label, not a fourth state: PRD 7 keeps three states distinct (missing, invalid, valid). The ObsState and M_ZERO docstrings now say that a value is unavailable wherever its state is not VALID, with NaN and a reason: MISSING where no observation exists, INVALID where a rule leaves the value unsupported. Checks rerun: 173 passed; mypy and make check clean."
+      }
     },
     {
       "severity": "low",
@@ -102,7 +106,11 @@
       "claim": "lunar_s4_sign_check adds INCONCLUSIVE and NO_VALID_PIXELS verdicts beyond the pass/SIGN_SUSPECT the criterion names.",
       "evidence": "Both are defined in SignCheckVerdict, lines 2665-2669, and neither counts as a pass. They add no threshold and are not a strict violation.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "No change needed: the criterion is met and nothing is weakened. AC5 asks for a verdict field that gives a pass state for 95 percent of pixels at CPR 0.5 and SIGN_SUSPECT with S4 negated (test_polarimetry_mchi.py:1077 and :1088), with 'most' meaning more than half and no other threshold. INCONCLUSIVE and NO_VALID_PIXELS use only those strict-majority counts (_sign_verdict; tests at :1117, :1133, :1165). They cover the inputs where neither majority holds, such as a 50/50 split or CPR exactly 1, and the case with no usable pixel. Without them those inputs would have to report PASS or SIGN_SUSPECT on evidence that supports neither. PRD 8.12 says an untested gate is never a pass, and missing values are never zero. Neither verdict lets a comparison proceed, and story note (6) records the addition."
+      }
     }
   ]
 }
