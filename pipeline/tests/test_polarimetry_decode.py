@@ -737,6 +737,29 @@ def test_containers_that_could_hide_a_mask_are_refused(
         call_with(argument, wrapper(dn), wrapper(flag))  # type: ignore[arg-type]
 
 
+@pytest.mark.parametrize("argument", ARRAY_ARGUMENTS)
+def test_object_array_holding_a_masked_array_is_refused(argument: str) -> None:
+    # The walk accepts a plain ndarray without looking inside it; an object array could hold a
+    # masked array, so every entry point must refuse the object dtype itself.
+    dn = np.empty(1, dtype=object)
+    dn[0] = np.ma.array([100.0, 300.0], mask=[False, True])
+    flag = np.empty(1, dtype=object)
+    flag[0] = np.ma.array([False, False], mask=[False, True])
+    with pytest.raises(TypeError, match="object"):
+        call_with(argument, dn, flag)
+
+
+def test_stated_array_refuses_an_object_array_holding_a_masked_array() -> None:
+    value = np.empty(1, dtype=object)
+    value[0] = np.ma.array([1.0], mask=[True])
+    with pytest.raises(TypeError, match="object"):
+        StatedArray(
+            value=value,
+            state=np.array([VALID], dtype=STATE_DTYPE),
+            reason=np.array([InvalidReason.NONE], dtype=REASON_DTYPE),
+        )
+
+
 @pytest.mark.parametrize("container", CONTAINERS)
 def test_plain_values_nested_in_lists_and_tuples_are_accepted(container: Container) -> None:
     # Guards the refusals above: nesting alone is not refused.
