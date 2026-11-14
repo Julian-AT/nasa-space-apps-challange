@@ -56,8 +56,8 @@ VERBATIM_ENVIRONMENTS = frozenset(
 TIKZ_ENVIRONMENT = "tikzpicture"
 
 # Commands whose leading mandatory arguments are keys, labels, paths, URLs or settings rather than
-# prose, with the number of such arguments. Optional [..] arguments before each are removed too.
-# A \newcommand keeps its body, which is text wherever the macro is used.
+# prose, with the number of such arguments. The optional [..] arguments in KEY_OPTIONS are removed
+# too. A \newcommand keeps its body, which is text wherever the macro is used.
 KEY_COMMANDS: dict[str, int] = {
     "ref": 1,
     "eqref": 1,
@@ -100,6 +100,28 @@ KEY_COMMANDS: dict[str, int] = {
 }
 # The \cite family: \cite, \citet, \citep, \citealp, \Citet, \citeauthor, \citeyearpar and so on.
 CITE_COMMAND = re.compile(r"[Cc]ite[A-Za-z]*")
+# The optional [..] arguments each key command reads before each of its keys, one count per key,
+# as the pinned bundle (v33) defines them: \@fileswithoptions (latex.ltx) for the class and the
+# packages, \@lbibitem (latex.ltx), \Gin@ii (graphics.sty), \href[1][] (hyperref.sty),
+# \definecolor, \@undeclaredcolor and \textcolor (xcolor.sty) and [vpos]{nrows}[bigstruts]{width}
+# of \multirow (multirow.sty). Any other key command reads none, so a [ after it is its argument,
+# as TeX reads any one token: \label[seamless]{} sets the label [ and prints seamless].
+KEY_OPTIONS: dict[str, tuple[int, ...]] = {
+    "documentclass": (1,),
+    "usepackage": (1,),
+    "RequirePackage": (1,),
+    "bibitem": (1,),
+    "includegraphics": (2,),
+    "href": (1,),
+    "definecolor": (1, 1, 0),
+    "color": (1,),
+    "textcolor": (1,),
+    "multirow": (1, 1),
+}
+# natbib's citations read up to two options before the key (\NAT@citetp, natbib.sty), as \cite
+# and any other \cite family name do here. \citenum and \citetext read none.
+CITE_OPTIONS = 2
+CITE_WITHOUT_OPTIONS = frozenset({"citenum", "citetext"})
 # The key commands with a starred form, which read a * with \@ifstar, as the pinned bundle (v33)
 # defines them: \newcommand, \renewcommand and \providecommand (latex.ltx, \@star@or@long),
 # \vspace and \hspace (latex.ltx), \ref, \pageref, \autoref and \nameref (hyperref.sty),
@@ -175,19 +197,24 @@ SAME_LINE_ARGUMENT = frozenset({"url"})
 # TeX drops it with its line break and reads on from the next line.
 FILE_NAME_END = frozenset(" \t\n{}\\")
 
-# Environments whose own arguments, after \begin{name}, are layout rather than prose.
-ENVIRONMENT_ARGUMENTS: dict[str, int] = {
-    "tabular": 1,
-    "tabular*": 2,
-    "tabularx": 2,
-    "tabulary": 2,
-    "array": 1,
-    "longtable": 1,
-    "minipage": 1,
-    "multicols": 1,
-    "wrapfigure": 2,
-    "thebibliography": 1,
+# Environments whose own arguments, after \begin{name}, are layout rather than prose, with the
+# optional [..] arguments each reads before each of them (bundle v33): [pos]{cols} of tabular and
+# array (\@tabarray, latex.ltx) and longtable, {width}[pos]{cols} of tabular*, tabularx and
+# tabulary, [pos][height][inner]{width} of minipage (latex.ltx) and [lines]{place}[overhang]{width}
+# of wrapfigure (wrapfig.sty). multicols prints the [heading] after its {columns}, so it stays.
+ENVIRONMENT_ARGUMENTS: dict[str, tuple[int, ...]] = {
+    "tabular": (1,),
+    "tabular*": (0, 1),
+    "tabularx": (0, 1),
+    "tabulary": (0, 1),
+    "array": (1,),
+    "longtable": (1,),
+    "minipage": (3,),
+    "multicols": (0,),
+    "wrapfigure": (1, 1),
+    "thebibliography": (0,),
 }
+# Floats read one optional placement, as in \begin{figure}[t] (\@float, latex.ltx).
 FLOAT_ENVIRONMENTS = frozenset({"figure", "figure*", "table", "table*"})
 
 # Formatting commands that print their argument as it is.
@@ -275,10 +302,16 @@ TEXT_ARGUMENTS_AFTER_KEYS: dict[str, int] = {
     "multicolumn": 1,
     "multirow": 1,
 }
-# Of those, the commands that take optional settings before a text argument: the argument count
-# and default of \newcommand{\x}[1][a]{...} and the [vmove] of \multirow. The others read a [ there
+# Of those, the commands that read optional settings before a text argument, with the most they
+# read: the argument count and default of \newcommand{\x}[1][a]{...} (\@newcommand and \@xargdef,
+# latex.ltx) and the [vmove] of \multirow (\@@multirow, multirow.sty). The others read a [ there
 # as their text, as \href and \textcolor do.
-OPTIONS_BEFORE_TEXT = frozenset({"newcommand", "renewcommand", "providecommand", "multirow"})
+TEXT_OPTIONS: dict[str, int] = {
+    "newcommand": 2,
+    "renewcommand": 2,
+    "providecommand": 2,
+    "multirow": 1,
+}
 
 # The one-letter accent commands, \v{c} and the like, and the accent control symbols, \'e and the
 # like.
@@ -425,6 +458,13 @@ def _letter_at(text: str, start: int) -> tuple[str, int] | None:
     if special is not None:
         return SPECIAL_LETTERS[special[1]], special.end()
     return None
+
+
+def key_options(name: str) -> tuple[int, ...]:
+    """The optional arguments the key command name reads before each of its keys."""
+    if CITE_COMMAND.fullmatch(name):
+        return (0,) if name in CITE_WITHOUT_OPTIONS else (CITE_OPTIONS,)
+    return KEY_OPTIONS.get(name, (0,) * KEY_COMMANDS[name])
 
 
 def argument_count(name: str) -> int | None:
@@ -665,9 +705,9 @@ class _CodeScanner:
     def environment_arguments_end(self, start: int, i: int, name: str) -> int:
         """Index past the layout arguments after \\begin{name}, such as table columns."""
         if name in FLOAT_ENVIRONMENTS:
-            return self.optional_arguments_end(i)
-        for _ in range(ENVIRONMENT_ARGUMENTS.get(name, 0)):
-            i = self.optional_arguments_end(i)
+            return self.optional_arguments_end(i, 1)
+        for options in ENVIRONMENT_ARGUMENTS.get(name, ()):
+            i = self.optional_arguments_end(i, options)
             i = self.mandatory_argument_end(start, i, f"begin{{{name}}}", verbatim=False)
         return i
 
@@ -706,14 +746,13 @@ class _CodeScanner:
     def key_arguments_end(self, start: int, i: int, name: str) -> int:
         if name == "input":
             return self.input_argument_end(start, i)
-        count = 1 if CITE_COMMAND.fullmatch(name) else KEY_COMMANDS[name]
         if name in STARRED_KEY_COMMANDS:
             i = self.star_end(i)
-        for index in range(count):
+        for index, options in enumerate(key_options(name)):
             if index == 0 and name in SAME_LINE_ARGUMENT:
                 i = self.same_line_argument_start(start, i, name)
             else:
-                i = self.optional_arguments_end(i)
+                i = self.optional_arguments_end(i, options)
             i = self.mandatory_argument_end(
                 start, i, name, verbatim=index == 0 and name in VERBATIM_ARGUMENT
             )
@@ -735,13 +774,13 @@ class _CodeScanner:
         r"""Blank and drop the gap before each text argument after the keys, which end at text[i].
 
         TeX skips spaces, comments and one line break before an undelimited argument, and the
-        options of OPTIONS_BEFORE_TEXT are settings, so seam\href{url} {less} and
+        options of TEXT_OPTIONS are settings, so seam\href{url} {less} and
         seam\textcolor{red}, a line break and {less} print seamless. A blank line, which TeX reads
         as \par, or a } keeps the gap. The text arguments themselves stay for the main scan.
         """
         text = self.text
         for _ in range(TEXT_ARGUMENTS_AFTER_KEYS.get(name, 0)):
-            j = self.optional_arguments_end(i) if name in OPTIONS_BEFORE_TEXT else i
+            j = self.optional_arguments_end(i, TEXT_OPTIONS.get(name, 0))
             j = self.space_end(j)
             if j >= len(text) or text[j] in "\n}":
                 return
@@ -859,13 +898,18 @@ class _CodeScanner:
                 offsets.update(range(match.end(), self.space_end(match.end())))
         return frozenset(offsets | self.unprinted_offsets)
 
-    def optional_arguments_end(self, i: int) -> int:
+    def optional_arguments_end(self, i: int, limit: int) -> int:
+        """Index past at most limit optional [..] arguments from text[i].
+
+        LaTeX looks for each with \\@ifnextchar, which skips spaces (space_end).
+        """
         text = self.text
-        while True:
+        for _ in range(limit):
             j = self.space_end(i)
             if not text.startswith("[", j):
                 return i
             i = self.bracket_end(j)
+        return i
 
     def bracket_end(self, start: int) -> int:
         text = self.text
