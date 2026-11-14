@@ -152,7 +152,11 @@
       "claim": "AC2 literally says 'Bundle <bundle_version>', but the footer reads 'Bundle version: <v> · Schema <v>'.",
       "evidence": "web-smoke asserts 'bundle version mock-0' from T0-05's shellText. The wording follows the documented orchestrator decision and smoke compatibility, so it is a literal-reading difference only.",
       "id": "claude-r3-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The footer wording was fixed by the orchestrator decision of 2026-11-14T21:24:28Z in this story's notes: the footer keeps T0-05's 'Bundle version: <bundle_version>' (shellText in lib/shell.ts, which page-check and make web-smoke assert and T7-03 does not own) and appends ' · Schema <schema_version>'. The reviewer agrees that this follows the decision, and the same point was rebutted as claude-r2-1. No change is needed."
+      }
     },
     {
       "severity": "low",
@@ -160,7 +164,11 @@
       "claim": "The gzip -9 initial-JS measurement of 177,190 B was not independently reproduced in this round.",
       "evidence": "The command needs a shell loop, which the review permission rules forbid. The build output shows / as static, and site-header.tsx is the only 'use client' file in the story's files.",
       "id": "claude-r3-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Reproduced after the codex-r3-1 fix with make web-build, then gzip -9 of each <script src> in apps/web/.next/server/app/index.html: 48,186 + 71,595 + 3,936 + 6,629 + 39,390 + 7,454 = 177,190 B over 6 scripts. That is +3,216 B over the T0 baseline of 173,974 B and within PRD 8.10's 250 kB, matching the story notes. __RSC_MANIFEST['/page'].clientModules has 9 entries, and the only one outside next is components/site-header.tsx, which is the only file in app/ or components/ with 'use client'. next build lists / and /_not-found as static (○). The fix changed only scripts/page-check.ts, which is not shipped to the browser."
+      }
     }
   ]
 }

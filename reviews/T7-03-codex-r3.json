@@ -158,7 +158,11 @@
       "claim": "Validate the complete banner container when its marker occupies a nested block. Criterion 7 and codex-r2-1 remain partially unresolved.",
       "evidence": "By inspection, replace MOCK_PAGE's mock paragraph with '<div role=\"status\"><p>Mock bundle — placeholder data, not results</p><span> yet</span></div>'. The inner p has the exact expected own/full text; the enclosing status div has own text 'yet', so line 119 excludes it. bannerProblem returns null and the unchanged mode, main and footer checks also accept the fixture, despite the status banner containing additional words. Tests at tests/page-check.test.ts:123-172 cover nested suffixes but never place the expected marker inside a child block. Preserve the banner container's identity and compare its full text, with a regression case for this valid nested markup.",
       "id": "codex-r3-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "f3f8647",
+        "reason": "page-check.ts now builds a tree of block elements (blockTree). A banner covers its container, reached by walking out from the block that holds the marker while each parent holds no other block with text, and its nearest ARIA live region (role status, alert, log, marquee or timer, or aria-live polite or assertive). Each must read exactly the banner. The reviewer's case, <div role=\"status\"><p>Mock bundle — placeholder data, not results</p><span> yet</span></div>, now fails, and the same markup without the span passes. The tests from d4264cf failed first (9 failed, 41 passed against d332793), then 50 passed. They cover words in a span, words before the paragraph, a second paragraph in a status or aria-live region, a wrapper around the status paragraph, words two wrappers out and the mode banner equivalents. A mutation check shows that each half is needed: dropping the live-region part fails 3 tests and dropping the container walk fails 4. The header, which groups both banners and the navigation, stays layout chrome, so the real layout still passes (tests/site-layout.test.tsx runs pageProblems on RootLayout; make web-smoke exit 0)."
+      }
     }
   ]
 }
