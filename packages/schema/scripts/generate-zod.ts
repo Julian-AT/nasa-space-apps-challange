@@ -565,6 +565,27 @@ function translateNegatedPattern(node: JsonObject, refs: Refs): string {
 }
 
 /**
+ * The JavaScript test, over the parsed object `value`, of an `if` that assertConditional accepts:
+ * every `if` property is present, as `required` demands, and equal to its constant. An absent
+ * property makes it false, as in Draft 2020-12.
+ */
+export function conditionSource(condition: Json | undefined, pointer = ''): string {
+  const tested = isObject(condition) ? condition['properties'] : undefined;
+  const refused = new SchemaError(`${at(pointer)}: "if" was not checked by assertSupported`);
+  if (!isObject(tested) || Object.keys(tested).length === 0) {
+    throw refused;
+  }
+  const terms = Object.entries(tested).map(([key, test]) => {
+    const constant = isObject(test) ? test['const'] : undefined;
+    if (typeof constant !== 'string') {
+      throw refused;
+    }
+    return `Object.hasOwn(value, ${literal(key)}) && value[${literal(key)}] === ${literal(constant)}`;
+  });
+  return terms.join(' && ');
+}
+
+/**
  * An object with `if`/`then`, as Draft 2020-12 evaluates it: when every `if` property is present
  * and equal to its constant, every `then` property that is present must match its schema.
  *
@@ -573,18 +594,11 @@ function translateNegatedPattern(node: JsonObject, refs: Refs): string {
  */
 function translateConditional(node: JsonObject, refs: Refs): string {
   const { if: condition, then: consequence, description, ...rest } = node;
-  const tested = isObject(condition) ? condition['properties'] : undefined;
   const constrained = isObject(consequence) ? consequence['properties'] : undefined;
-  if (!isObject(tested) || !isObject(constrained)) {
-    return notChecked(refs, 'if');
+  if (!isObject(constrained)) {
+    return notChecked(refs, 'then');
   }
-  const holds = Object.entries(tested).map(([key, test]) => {
-    const constant = isObject(test) ? test['const'] : undefined;
-    if (typeof constant !== 'string') {
-      return notChecked(refs, 'if');
-    }
-    return `Object.hasOwn(value, ${literal(key)}) && value[${literal(key)}] === ${literal(constant)}`;
-  });
+  const holds = conditionSource(condition, `/${refs.path.join('/')}`);
   const message = literal('Invalid input: must match the "then" schema when the "if" schema holds');
   const checks = Object.entries(constrained).map(([key, schema]) => {
     if (!isObject(schema)) {
@@ -600,7 +614,7 @@ function translateConditional(node: JsonObject, refs: Refs): string {
   });
   const base = parseSchema(rest, refs, true);
   return withDescription(
-    `${base}.superRefine((value, ctx) => {\nif (${holds.join(' && ')}) {\n${checks.join('\n')}\n}\n})`,
+    `${base}.superRefine((value, ctx) => {\nif (${holds}) {\n${checks.join('\n')}\n}\n})`,
     description,
   );
 }
