@@ -637,6 +637,28 @@ def test_round_trip_where_order_one_rounding_exceeded_the_allowance(
     assert_grid_round_trip(x_lines, y_lines, lat0=lat0, lon0=lon0, radius=radius, exact=True)
 
 
+# Earth centres just east of -pi, where the grid column at x = -25 m lies across the
+# antimeridian. An inverse that turned the longitude by 2 * math.pi instead of the true 2 pi
+# broke the metre allowance there against the true-sphere exact forward, in 168 of 400 random
+# such centres (up to 1.19 of it). These three used 1.19, 1.14 and 1.19.
+ANTIMERIDIAN_ROUND_TRIP_CENTRES = (
+    (-0.011837329784017126, -3.1415899962182103),
+    (0.04040611687057235, -3.14159228984276),
+    (0.046406515416638275, -3.1415893941058504),
+)
+
+
+@pytest.mark.parametrize(("lat0", "lon0"), ANTIMERIDIAN_ROUND_TRIP_CENTRES)
+def test_round_trip_in_windows_across_the_antimeridian(lat0: float, lon0: float) -> None:
+    radius = BODY_RADII_M["earth"]
+    x, y = story_grid()
+    assert_grid_round_trip(x, y, lat0=lat0, lon0=lon0, radius=radius, exact=False)
+    middle = GRID_SIZE // 2
+    assert_grid_round_trip(
+        x[:, middle], y[:, middle], lat0=lat0, lon0=lon0, radius=radius, exact=True
+    )
+
+
 @pytest.mark.parametrize("body", BODIES)
 @pytest.mark.parametrize("lat0_deg", STORY_LATITUDES_DEG)
 @pytest.mark.parametrize("lon0", [0.65449846949787, -PI])
@@ -858,6 +880,12 @@ PIXELS = st.lists(
 @example(body="earth", lat0=HALF_PI, lon0=0.0, pixels=[(27, 27), (26, 28), (0, 54)])
 @example(
     body="mars", lat0=math.radians(89.99), lon0=math.nextafter(PI, 0.0), pixels=[(27, 28), (0, 0)]
+)
+@example(
+    body="earth",
+    lat0=ANTIMERIDIAN_ROUND_TRIP_CENTRES[0][0],
+    lon0=ANTIMERIDIAN_ROUND_TRIP_CENTRES[0][1],
+    pixels=[(27, 27), (1, 27), (54, 27)],
 )
 def test_round_trip_property(
     body: str, lat0: float, lon0: float, pixels: list[tuple[int, int]]
