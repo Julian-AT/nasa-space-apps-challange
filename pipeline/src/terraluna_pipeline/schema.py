@@ -9,6 +9,8 @@ Rules that hold for every record (PRD 8.12):
 - Every field is required and has no default. A value that may be absent is typed ``X | None``
   and must still be present, as ``null``.
 - Missing values are ``null``, never ``0`` or an empty string. Strings are therefore non-empty.
+  A ProductRecord also writes ``"unknown"`` for a field that applies to the product but was not
+  established from it, and keeps ``null`` for a field that does not apply.
 - Validation is strict: ``"true"`` is not a bool and ``1.0`` is not a byte count.
 
 The JSON Schemas (2020-12) in packages/schema/json/ are generated from these models and
