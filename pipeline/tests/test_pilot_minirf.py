@@ -656,7 +656,7 @@ def test_fetch_stops_and_records_when_the_server_ignores_range(
     record = mosaic_json(tmp_path)
     assert record["range_read"]["status"] == "range_not_supported"
     assert record["cpr_statistics"]["status"] == "not_computed"
-    assert [r.product_id for r in sources(tmp_path)] == [f"MINIRF/LROMRF_0005/{CPR}.lbl"]
+    assert [r.product_id for r in sources(tmp_path)] == label_ids()
     assert run(tmp_path, "check", "minirf") == 0
 
 
@@ -698,8 +698,9 @@ def test_without_the_site01_extent_the_record_is_partial_with_the_reason(tmp_pat
     assert SITE_RECORD in record["window"]["reason"]
     assert "T1-03" in record["window"]["reason"]
     assert record["range_read"]["status"] == "not_requested"
-    (label,) = sources(tmp_path)
-    assert label.verification_status == "PARTIAL"
+    records = sources(tmp_path)
+    assert [r.product_id for r in records] == label_ids()
+    assert all(r.verification_status == "PARTIAL" for r in records)
     assert run(tmp_path, "check", "minirf") == 0
 
 
@@ -713,7 +714,12 @@ def test_the_volume_link_must_be_on_the_landing_page(tmp_path: Path) -> None:
 # --- record and check ---------------------------------------------------------------------------
 
 
-def test_record_writes_the_mosaic_record_and_two_product_records(fetched: Path) -> None:
+def label_ids(found: dict[str, bytes] | None = None) -> list[str]:
+    """The ProductRecord ids of every mosaic label a fetch downloads."""
+    return sorted(f"MINIRF/LROMRF_0005/{name}.lbl" for name in (found or labels()))
+
+
+def test_record_writes_the_mosaic_record_and_its_product_records(fetched: Path) -> None:
     record = mosaic_json(fetched)
     assert record["record"] == "minirf_mosaic"
     assert record["data_set_id"] == "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0"
@@ -725,19 +731,17 @@ def test_record_writes_the_mosaic_record_and_two_product_records(fetched: Path) 
     assert record["data"]["remote_bytes"] == FILE_BYTES
     assert record["data"]["size_matches_label"] is True
 
-    records = sources(fetched)
-    assert [r.product_id for r in records] == [
-        f"MINIRF/LROMRF_0005/{CPR}.img",
-        f"MINIRF/LROMRF_0005/{CPR}.lbl",
-    ]
-    image, label = records
+    records = {r.product_id: r for r in sources(fetched)}
+    assert list(records) == sorted([*label_ids(), f"MINIRF/LROMRF_0005/{CPR}.img"])
+    image = records[f"MINIRF/LROMRF_0005/{CPR}.img"]
+    label = records[f"MINIRF/LROMRF_0005/{CPR}.lbl"]
     assert label.local_path == f"{RAW}/{CPR}.lbl"
     assert label.checksum == hashlib.sha256((fetched / RAW / f"{CPR}.lbl").read_bytes()).hexdigest()
     assert image.local_path == f"{RAW}/{CPR}.img.rows"
     rows = (fetched / RAW / f"{CPR}.img.rows").read_bytes()
     assert image.checksum == hashlib.sha256(rows).hexdigest()
     assert image.source_url == CPR_IMG_URL and label.source_url == CPR_LBL_URL
-    for item in records:
+    for item in records.values():
         assert item.body == "moon"
         assert item.verification_status == "PARTIAL"
     assert "2379.99968158 <GHz>" in str(image.frequency_or_wavelength)
@@ -750,6 +754,35 @@ def test_record_writes_the_mosaic_record_and_two_product_records(fetched: Path) 
     )
     assert str(image.frequency_or_wavelength).endswith(
         "the instrument catalog states 'Mini-RF operated in S-band (2.38 GHz)'"
+    )
+
+
+def test_every_downloaded_mosaic_label_gets_a_product_record(fetched: Path) -> None:
+    records = {r.product_id: r for r in sources(fetched)}
+    verification = mosaic_json(fetched)["verification"]
+    assert set(verification) == set(records)
+    for name in labels():
+        record = records[f"MINIRF/LROMRF_0005/{name}.lbl"]
+        local = fetched / RAW / f"{name}.lbl"
+        assert record.local_path == f"{RAW}/{name}.lbl"
+        assert record.checksum == hashlib.sha256(local.read_bytes()).hexdigest()
+        assert record.source_url == MOSAICS + f"{name}.lbl"
+        assert record.verification_status == "PARTIAL"
+        assert verification[record.product_id]["status"] == "PARTIAL"
+    # Each record states its own label, not the CPR mosaic's.
+    north = records[f"MINIRF/LROMRF_0005/{CPR_NORTH}.lbl"]
+    assert "+lat_0=90" in str(north.crs_and_frame)
+    east = records[f"MINIRF/LROMRF_0005/{CPR_EAST}.lbl"]
+    assert "20691 x 20691" in str(east.native_grid) and "512.0 <pix/deg>" in str(east.native_grid)
+    assert "East- and West-looking" not in str(east.incidence_source)
+    s1 = records[f"MINIRF/LROMRF_0005/{S1}.lbl"]
+    assert s1.units == "unknown"
+    assert "SC / OS" in str(records[f"MINIRF/LROMRF_0005/{CPR}.lbl"].units)
+    # Labels whose image was not read say so; nothing of them was masked.
+    assert "the image was not read" in str(s1.qa_definition)
+    assert "its image was not read" in verification[s1.product_id]["basis"]
+    assert "masked by quality.validity_mask" in str(
+        records[f"MINIRF/LROMRF_0005/{CPR}.lbl"].qa_definition
     )
 
 
