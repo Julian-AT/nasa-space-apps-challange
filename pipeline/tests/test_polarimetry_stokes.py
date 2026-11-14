@@ -144,7 +144,7 @@ def test_F3_valid_cpr_above_the_old_bound_is_not_truncated() -> None:
 
 def test_F4_invalid_stokes_pair_publishes_no_ratio() -> None:
     result = convert(1.0, 2.0)
-    for field in (result.sc, result.oc, result.cpr):
+    for field in (result.total, result.sc, result.oc, result.cpr):
         assert_unavailable(field, INVALID, InvalidReason.STOKES_S1_LT_ABS_S4)
 
 
@@ -153,6 +153,35 @@ def test_F5_zero_opposite_sense_power_leaves_cpr_unavailable() -> None:
     assert_value(result.sc, 2.0)
     assert_value(result.oc, 0.0)
     # Not clipped, not regularized: no finite or huge CPR, only the state and the reason.
+    assert_unavailable(result.cpr, INVALID, InvalidReason.OC_NONPOSITIVE)
+
+
+# --- Total power beside CPR (PRD 6.2: SC, OC and total power are kept) ------------------------
+
+
+@pytest.mark.parametrize(
+    ("s1", "s4"), [(2.0, 2.0), (2.0, 0.0), (4.0, -2.0), (2.0, -2.0)], ids=["F1", "F2", "F3", "F5"]
+)
+def test_total_power_is_s1_and_kept_beside_cpr(s1: float, s4: float) -> None:
+    result = convert(s1, s4)
+    assert_value(result.total, s1)
+    np.testing.assert_allclose(result.sc.value + result.oc.value, s1, rtol=RTOL, atol=ATOL)
+
+
+def test_total_power_is_kept_where_cpr_is_unavailable() -> None:
+    result = convert(2.0, -2.0)  # F5: OC = 0
+    assert result.cpr.state == INVALID
+    assert_value(result.total, 2.0)
+
+
+def test_total_power_below_the_smallest_normal_float64_is_out_of_range() -> None:
+    result = convert(1e-310, 0.0)
+    assert_unavailable(result.total, INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE)
+
+
+def test_zero_total_power_is_a_valid_zero() -> None:
+    result = convert(0.0, 0.0)
+    assert_value(result.total, 0.0)
     assert_unavailable(result.cpr, INVALID, InvalidReason.OC_NONPOSITIVE)
 
 
@@ -312,7 +341,7 @@ def test_negative_sc_within_tolerance_never_gives_a_negative_cpr() -> None:
 
 def test_s4_above_s1_beyond_tolerance_is_invalid() -> None:
     result = convert(1.0, 1.0 + 1e-9)
-    for field in (result.sc, result.oc, result.cpr):
+    for field in (result.total, result.sc, result.oc, result.cpr):
         assert_unavailable(field, INVALID, InvalidReason.STOKES_S1_LT_ABS_S4)
 
 
@@ -326,7 +355,7 @@ def test_s4_below_minus_s1_within_tolerance_gives_nonpositive_oc() -> None:
 
 def test_s4_below_minus_s1_beyond_tolerance_is_invalid() -> None:
     result = convert(1.0, -(1.0 + 1e-9))
-    for field in (result.sc, result.oc, result.cpr):
+    for field in (result.total, result.sc, result.oc, result.cpr):
         assert_unavailable(field, INVALID, InvalidReason.STOKES_S1_LT_ABS_S4)
 
 
@@ -382,7 +411,7 @@ def test_tolerance_argument_must_be_a_tolerance() -> None:
 def test_full_stokes_beyond_the_polarization_bound_is_nonphysical() -> None:
     # S1^2 = 1 < S2^2 + S3^2 + S4^2 = 1.28.
     result = convert(1.0, 0.0, s2=0.8, s3=0.8)
-    for field in (result.sc, result.oc, result.cpr):
+    for field in (result.total, result.sc, result.oc, result.cpr):
         assert_unavailable(field, INVALID, InvalidReason.STOKES_NONPHYSICAL)
 
 
@@ -437,20 +466,20 @@ def test_s2_and_s3_must_be_declared_explicitly() -> None:
 def test_nonfinite_input_is_invalid(value: float, position: str) -> None:
     stokes: dict[str, float] = {"s1": 2.0, "s4": 0.0, "s2": 0.0, "s3": 0.0, position: value}
     result = convert(stokes["s1"], stokes["s4"], s2=stokes["s2"], s3=stokes["s3"])
-    for field in (result.sc, result.oc, result.cpr):
+    for field in (result.total, result.sc, result.oc, result.cpr):
         assert_unavailable(field, INVALID, InvalidReason.NONFINITE)
 
 
 def test_product_masked_pixel_is_missing() -> None:
     result = convert(2.0, 0.0, masked=True)
-    for field in (result.sc, result.oc, result.cpr):
+    for field in (result.total, result.sc, result.oc, result.cpr):
         assert_unavailable(field, MISSING, InvalidReason.PRODUCT_MASKED)
 
 
 @pytest.mark.parametrize(("s1", "s4"), [(math.nan, 0.0), (1.0, 2.0), (2.0, -2.0)])
 def test_product_mask_wins_over_every_other_rule(s1: float, s4: float) -> None:
     result = convert(s1, s4, masked=True)
-    for field in (result.sc, result.oc, result.cpr):
+    for field in (result.total, result.sc, result.oc, result.cpr):
         assert_unavailable(field, MISSING, InvalidReason.PRODUCT_MASKED)
 
 
@@ -501,7 +530,7 @@ ARRAY_MASK = np.array([[False, False, False], [False, False, True]])
 
 def test_array_mixing_fixtures_nan_and_mask() -> None:
     result = convert(ARRAY_S1, ARRAY_S4, masked=ARRAY_MASK)
-    for field in (result.sc, result.oc, result.cpr):
+    for field in (result.total, result.sc, result.oc, result.cpr):
         assert field.value.shape == (2, 3)
         assert field.state.shape == (2, 3)
         assert field.reason.shape == (2, 3)
@@ -529,6 +558,10 @@ def test_array_mixing_fixtures_nan_and_mask() -> None:
     assert result.sc.state.tolist() == [[VALID, VALID, INVALID], [VALID, INVALID, MISSING]]
     assert np.array_equal(result.sc.state, result.oc.state)
     assert np.array_equal(result.sc.reason, result.oc.reason)
+    assert np.array_equal(result.total.state, result.sc.state)
+    np.testing.assert_allclose(
+        result.total.value, [[2.0, 4.0, nan], [2.0, nan, nan]], rtol=RTOL, atol=ATOL
+    )
     # Invalid and missing pixels never hold 0.0 in CPR.
     not_valid = result.cpr.state != VALID
     assert not np.any(result.cpr.value[not_valid] == 0.0)
@@ -574,7 +607,12 @@ def test_record_refuses_a_valid_cpr_without_valid_powers() -> None:
     bad = stated(math.nan, INVALID, InvalidReason.NONFINITE)
     with pytest.raises(ValueError):
         CircularPowers(
-            sc=bad, oc=ok, cpr=ok, convention=MINIRF_SIS_CONVENTION, tolerance=ARITHMETIC_TOLERANCE
+            total=ok,
+            sc=bad,
+            oc=ok,
+            cpr=ok,
+            convention=MINIRF_SIS_CONVENTION,
+            tolerance=ARITHMETIC_TOLERANCE,
         )
 
 
@@ -587,6 +625,16 @@ def test_record_refuses_mismatched_shapes_and_unknown_conventions() -> None:
     )
     with pytest.raises(ValueError):
         CircularPowers(
+            total=two,
+            sc=one,
+            oc=one,
+            cpr=one,
+            convention=MINIRF_SIS_CONVENTION,
+            tolerance=ARITHMETIC_TOLERANCE,
+        )
+    with pytest.raises(ValueError):
+        CircularPowers(
+            total=one,
             sc=one,
             oc=two,
             cpr=one,
@@ -595,6 +643,7 @@ def test_record_refuses_mismatched_shapes_and_unknown_conventions() -> None:
         )
     with pytest.raises(ValueError):
         CircularPowers(
+            total=one,
             sc=one,
             oc=one,
             cpr=one,
@@ -667,6 +716,8 @@ def test_sc_and_oc_split_the_total_power(pairs: list[tuple[float, float]]) -> No
     assert np.all(result.sc.value >= 0.0)
     assert np.all(result.oc.value >= 0.0)
     np.testing.assert_allclose(result.sc.value + result.oc.value, s1, rtol=RTOL, atol=ATOL)
+    assert np.all(result.total.state == VALID)
+    assert np.array_equal(result.total.value, s1)
 
     oc_positive = result.oc.value > 0.0
     assert np.array_equal(result.cpr.state == VALID, oc_positive)
@@ -685,7 +736,7 @@ def test_any_finite_stokes_pair_gives_a_published_state(pairs: list[tuple[float,
     s1 = np.array([p[0] for p in pairs])
     s4 = np.array([p[1] for p in pairs])
     result = convert(s1, s4)
-    for field in (result.sc, result.oc, result.cpr):
+    for field in (result.total, result.sc, result.oc, result.cpr):
         valid = field.state == VALID
         assert np.all(np.isfinite(field.value[valid]))
         assert np.all(np.isnan(field.value[~valid]))
