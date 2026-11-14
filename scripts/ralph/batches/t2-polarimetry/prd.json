@@ -92,14 +92,14 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "178e0a292a416903466fa30da513acfd9ce96233",
         "head": null,
         "files": [],
         "digests": {}
       },
-      "notes": "",
+      "notes": "Open decision (PRD 7: real-data tolerances come from the product): no real-data Stokes validity tolerance is set. circular_from_stokes takes a named Tolerance argument that defaults to ARITHMETIC_TOLERANCE, the PRD 7 arithmetic tolerance (rtol 1e-10, atol 1e-12), and the tests use it. Revisit with that decision: a negative SC accepted within the tolerance is reported as computed and makes CPR unavailable (SC_NEGATIVE) instead of being clipped.",
       "codexPasses": 2
     },
     {
