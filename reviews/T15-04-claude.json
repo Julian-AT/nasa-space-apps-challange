@@ -98,7 +98,11 @@
       "claim": "The replayed schema test log shows a path under the t7-shell worktree, so that result was a cache hit, not a run in this worktree.",
       "evidence": "The log line reads '/nasa-space-apps-challange-worktrees/t7-shell/packages/schema'. The schema package is outside T15-04's diff, so this does not affect the verdict.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect in T15-04, and nothing in the story files can change it. Turborepo 2.8 and later (2.11.11 here) shares the local cache with the main worktree when cacheDir is unset in a git worktree (Turborepo configuration docs, cacheDir: \"When unset in a Git worktree, Turborepo shares the cache with the main worktree\"). turbo.json sets no cacheDir, and git rev-parse --git-common-dir points at the main checkout, whose .turbo/cache holds the entries. The cache key is a content hash of the task inputs, so the replayed log keeps the path of the worktree that first produced the hash, here t7-shell. The replay was for identical inputs: git diff 707ebfe..HEAD -- packages/schema turbo.json Makefile is empty. A forced run in this worktree (TURBO_FORCE=true make test, exit 0) printed \"@terraluna/schema:test: cache bypass, force executing d72a482f31b69df6\", which is the same hash as the cached entry, ran vitest in .../t15-api/packages/schema and passed 3 files and 157 tests. The same run passed pytest (404) and web (12 files, 294 tests). turbo.json and the Makefile are outside this story's files. Whether to set an explicit cacheDir per worktree is a tooling choice, not something T15-04 needs."
+      }
     }
   ]
 }
