@@ -1,0 +1,98 @@
+{
+  "task_id": "T3-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "b1191ababde57c06ee6abe47ae3071d99b3557b2",
+    "head": "ebc973bbee57a2c6f8908fd6c0a71746ab3f7751",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "b5c5df4adcbc17940511dbbdbd948cab92565e4a35d891f88bc854509d32f454"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_resample.py",
+        "sha256": "eaa7d4690ffef9b07bf0f16b25a49f20485ca5175a8674f9f0cf5ed64eeab377"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:17:01Z",
+  "finished_utc": "2026-11-14T21:17:24Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T3-03 passes. The story's own checks both pass, and the test names and tolerance usage I inspected match every acceptance criterion. The first-failing-test criterion rests on the recorded notes; I did not reproduce it. Two process points are below. The scope was changed, and one tolerance scope is a decision for a human.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "command": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "outcome": "PASS",
+      "evidence": "162 passed in 4.95s"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed, mypy reported no issues in 10 source files"
+    },
+    {
+      "criterion": "Failing tests recorded first",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Commit 63bc9ea added the tests alone, before the implementation in 2b0a044. The notes in prd.json record the ImportError at collection. I did not re-run that commit, so this rests on the commit order and the notes."
+    },
+    {
+      "criterion": "Three lookup forms with forward and inverse tests against independent formulas, explicit parameters, and a missing parameter raises",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_geometry_resample.py:397-479 (no defaults, a missing or None parameter raises). Lines 581-1005 hold the geographic, polar and equirectangular project and unproject tests against exact references."
+    },
+    {
+      "criterion": "Bilinear on four neighbours only, nodata if any neighbour is nodata or the point is outside, no cubic or averaging",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Tests at lines 1104-1198: explicit four-neighbour loop, output depends only on the four neighbours, outside is nodata and never zero, zero-weight nodata still masks."
+    },
+    {
+      "criterion": "Plane test with rtol 1e-10, atol 1e-12 and a stated curvature residual",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Lines 1427 and 1662-1690. The small-extent test uses the PRD tolerance alone, with the curvature bound under atol/2. The D29-extent test states a derived allowance on top of it rather than loosening the tolerance."
+    },
+    {
+      "criterion": "Nodata tests: footprint-exact masking, all-nodata source, NaN and sentinel behave identically",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Tests at lines 1198, 1225, 1238, 1260 and 1514."
+    },
+    {
+      "criterion": "Explicit boolean valid mask beside float64 output; missing is never 0",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Tests at lines 1271 and 1288 (float64 output, boolean mask, NaN where missing, mask consistency); line 1248 confirms zero is valid data."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t3-terrain/prd.json, scripts/ralph/batches/t3-terrain/progress.txt",
+      "claim": "The story's commit range also touches two orchestration files outside the story's files list.",
+      "evidence": "git diff --stat over the range lists both files. The prd.json change only sets review.state to requested, sets the base hash and adds the notes. These are the orchestrator's normal bookkeeping, not product code. The reviewed scope, geometry.py and test_geometry_resample.py, is within the story's files.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "prd.json notes, decision (2)",
+      "claim": "to_pixel and from_pixel are checked bitwise against their steps instead of at atol 1e-12 pixels. The notes flag this as a human decision.",
+      "evidence": "The notes justify it by the half-ulp of the float64 projected coordinate, up to 1.5e-12 pixels for a polar raster. Each step is still checked at PRD 7 tolerance against the mpmath reference. Not a threshold weakening I could demonstrate, but a human should confirm the scope.",
+      "id": "claude-r1-2",
+      "resolution": null
+    }
+  ]
+}
