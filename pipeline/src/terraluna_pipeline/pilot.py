@@ -4373,6 +4373,12 @@ class CtxSource:
         provider_name = _provider_name(entry)
         path = raw_dir / entry["file_name"]
         ranges = self._ranges(path, entry)
+        if ranges.covers_whole_file:
+            raise PilotError(
+                f"the byte ranges in data/raw/{self.name}/{path.name} hold all {ranges.size} "
+                f"bytes of {href}, so it was downloaded whole, not read by window; run: "
+                f"{COMMAND} fetch {self.name}"
+            )
         header = read_geotiff_header(path, ranges=ranges)
         w = entry["window"]
         window = Window(w["col_off"], w["row_off"], w["width"], w["height"])
@@ -4468,7 +4474,7 @@ class CtxSource:
                 "local_path": record.local_path,
                 "local_sha256": record.checksum,
                 "retrieved_at": entry["retrieved_at"],
-                "whole_file_downloaded": False,
+                "whole_file_downloaded": ranges.covers_whole_file,
                 "sha256_note": (
                     "the whole file was not downloaded, so its SHA-256 is unknown; local_sha256 "
                     "is that of the byte ranges held in local_path (COG header and window tiles)"

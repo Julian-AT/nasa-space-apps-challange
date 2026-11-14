@@ -947,6 +947,11 @@ class ByteRanges:
         object.__setattr__(self, "_starts", tuple(first for first, _ in self.ranges))
         object.__setattr__(self, "_offsets", tuple(offsets))
 
+    @property
+    def covers_whole_file(self) -> bool:
+        """Whether every byte of the file is held, so the file was in effect downloaded whole."""
+        return len(self.data) == self.size
+
     def read(self, offset: int, length: int) -> bytes:
         """The bytes ``[offset, offset + length)`` clipped to the file size, like a file read.
 
@@ -1133,6 +1138,14 @@ class _BlockCache:
                 f"{self.bytes_received + expected}, at or over the limit of {self._max_bytes}; a "
                 "windowed read never downloads the file whole"
             )
+        if self.size is not None:
+            new_blocks = min(last_block, self._block_count() - 1) - first_block + 1
+            if len(self.blocks) + new_blocks >= self._block_count():
+                raise RangeReadError(
+                    f"{self.url}: reading bytes {first}-{first + expected - 1} would hold every "
+                    f"byte of the {self.size}-byte file; a windowed read never downloads the "
+                    "file whole"
+                )
         response = self._fetch(self.url, first, last)
         self.requests += 1
         self.bytes_received += response.bytes_received
@@ -1173,6 +1186,18 @@ class _BlockCache:
             if start > end:
                 break
             self.blocks[index] = response.data[start - first : start - first + self._block]
+        if len(self.blocks) >= self._block_count():
+            # Only the first request can get here: before it the size is unknown, and every later
+            # request that would complete the file is refused before it is sent.
+            raise RangeReadError(
+                f"{self.url}: the first range request (bytes {first}-{last}) returned the whole "
+                f"{self.size}-byte file, which is no larger than one {self._block}-byte block; a "
+                "windowed read never downloads the file whole"
+            )
+
+    def _block_count(self) -> int:
+        assert self.size is not None
+        return -(-self.size // self._block)
 
     def read(self, offset: int, length: int) -> bytes:
         if self.size is None:
@@ -1273,8 +1298,11 @@ def read_remote_geotiff_window(
     blocks is one ``fetch(url, first, last)`` call, the first being block 0, whose Content-Range
     must state the file size. Every response must state the same size, and the same ETag and
     Last-Modified as the first, or the read fails with RangeReadError ("the file changed while it
-    was read"). A request that would bring the bytes received to ``max_bytes`` is not sent, so a
-    windowed read never downloads the file whole. Errors from ``fetch`` propagate unchanged.
+    was read"). A request that would bring the bytes received to ``max_bytes``, or that would hold
+    every byte of the file, is not sent, and a first response that already holds the whole file
+    (one no larger than ``block_bytes``) is refused, so a windowed read never downloads the file
+    whole: every RemoteWindow's ``ranges.covers_whole_file`` is False. Each of these raises
+    RangeReadError naming the URL. Errors from ``fetch`` propagate unchanged.
 
     The window is then decoded again from the fetched bytes alone (``ByteRanges``); any difference
     in values, dtype, nodata, CRS or transform raises RangeReadError. Raises ValueError, before
