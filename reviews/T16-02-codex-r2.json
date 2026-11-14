@@ -1,0 +1,166 @@
+{
+  "task_id": "T16-02",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "b9ce38cc3b8c35886a5c8c22f1efecd0bae4d483",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "092cc3e750fc669814216db555594a94f2e937cfb9de4ffbf2f3fe6f42e62b55"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "1602b41792066a92142fd26b4aa62342ed175a4f30820a65a9c310dc06eadb9e"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "91379a729378b1e8568383e7a5dd60a77cbe38e5b916aa508eef7242056843a5"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "47f8ddfea838c0f1e7ed4477c59c209bbbd518901af32fa1f118bfc681a88a76"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "9927dc0b274a6232c6203659d862266fc2a074131e97e970fd99a0ad7488ae90"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "f49306b27b602bd4f8c1e6bae310008c43c9f7d3b37f386852b665990d6a76f1"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:35:11Z",
+  "finished_utc": "2026-11-14T20:41:02Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "One blocker: the TikZ fix introduces spaces into ordinary grouped prose, allowing banned words and copied 12-word passages to escape detection. The original round 1 cases are addressed by inspection. All five checks remain NOT_RUN as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX-to-prose extraction preserves prose and source lines.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Both consumers use tex_prose.extract, but paper/scripts/tex_prose.py:560 inserts a space at every adjacent group boundary. For example, \\emph{{seam}{less}} becomes 'seam less' although its prose is 'seamless'."
+    },
+    {
+      "criterion": "AC2: Linter scans the required files, reports findings and fails without rule-disable options.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: paper/scripts/tex_prose.py:226 recursively selects .tex files and excludes only figures/styles.tex. paper/scripts/lint_prose.py:115 formats findings; :246 exposes only --root; :261 prints findings and returns 1 when any exist."
+    },
+    {
+      "criterion": "AC3: All six prose rules enforce the specified behavior.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "paper/scripts/lint_prose.py:157 matches banned words against extracted prose. The space introduced at paper/scripts/tex_prose.py:560 lets \\emph{{seam}{less}} evade the seamless rule and can similarly split words within the forbidden phrase."
+    },
+    {
+      "criterion": "AC4: Normalized abstract-overlap detection rejects every shared run of at least 12 tokens.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "paper/scripts/overlap_check.py:118 tokenizes the altered extraction. Against the abstract in test_overlap_check.py:25, 'We measure the roughness of \\emph{{lu}{nar}} and martian terrain at baselines from' splits lunar into two tokens and hides the otherwise shared 12-word run."
+    },
+    {
+      "criterion": "AC5: Reference-verification record is initialized with an empty references object.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1 contains exactly {\"references\": {}}."
+    },
+    {
+      "criterion": "AC6: Required tests were written and run failing before implementation, and cover the listed cases using strings or temporary files.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The required cases have substantive assertions in test_lint_prose.py and test_overlap_check.py, and the fbf3c38 tree contains those tests before their imported implementation modules exist. Historical failing execution was not independently observed; test execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC7: Build targets and documentation are integrated, and the current manuscript passes both checks.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5 disables parallel execution; :25 orders numbers, lint, overlap, test and pdf; :43 and :47 invoke both scripts. paper/README.md:22 and :25 document the commands. Current manuscript passes were not executed because the sandbox is read-only and the user prohibited checks."
+    },
+    {
+      "criterion": "Required static-analysis check.",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "Read-only sandbox; the user explicitly prohibited running checks that may write caches or environment files."
+    },
+    {
+      "criterion": "Required prose-lint check.",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "Read-only sandbox; the user explicitly prohibited running the checks."
+    },
+    {
+      "criterion": "Required abstract-overlap check.",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "Read-only sandbox; the user explicitly prohibited running the checks."
+    },
+    {
+      "criterion": "Required test-suite check.",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "Read-only sandbox; tests write temporary files and caches, and the user explicitly prohibited execution."
+    },
+    {
+      "criterion": "Required complete paper build.",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "Read-only sandbox; this build writes generated files, logs and PDF output, and the user explicitly prohibited execution."
+    },
+    {
+      "criterion": "Previous codex-r1-1: Comments between commands and arguments.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: tex_prose.py:477 skips and records comments while locating arguments; :531 uses that scanner. Regression assertions cover extraction at test_tex_prose.py:145, lint at test_lint_prose.py:405 and overlap at test_overlap_check.py:123."
+    },
+    {
+      "criterion": "Previous codex-r1-2: Raw TikZ arguments reach the word rules.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: tex_prose.py:402 preserves TikZ contents while blanking comments; lint_prose.py:216 supplies that extraction to both word rules. test_tex_prose.py:252 and test_lint_prose.py:359 assert command-argument and math cases. The separate grouping regression is reported below."
+    },
+    {
+      "criterion": "Previous claude-r1-1: Bookkeeping-path rebuttal.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The listed implementation commits touch only the nine scoped product files. scripts/ralph/prompt.md:21 permits the batch story list and progress log; :36 permits review-resolution bookkeeping."
+    },
+    {
+      "criterion": "Previous claude-r1-2: Bare bold-command rebuttal.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "lint_prose.py:104 recognizes bounded bold commands, and :205 excludes tabular spans. Rejecting a bare \\bf declaration is consistent with the prohibition on bold prose; the rebuttal does not weaken that rule."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:560",
+      "claim": "The TikZ repair inserts word boundaries into ordinary grouped prose, allowing both mandatory prose guards to be bypassed.",
+      "evidence": "Static trace, not executed: _prose unconditionally replaces every '}{' boundary with a space. Consequently, \\emph{{seam}{less}} extracts as 'seam less' and escapes banned_word_hits. Against the existing test abstract, 'We measure the roughness of \\emph{{lu}{nar}} and martian terrain at baselines from' renders the same 12 words but extracts 'lu nar', breaking overlap detection at overlap_check.py:118. Preserve ordinary TeX group adjacency and handle TikZ argument separation with appropriate context; add regression assertions for both consumers.",
+      "id": "codex-r2-1",
+      "resolution": null
+    }
+  ]
+}

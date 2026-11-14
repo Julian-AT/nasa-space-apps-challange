@@ -110,17 +110,17 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 1,
+        "state": "reviewed",
+        "round": 2,
         "base": "8669311087c958051d5711f70db9885b879e458e",
-        "head": "6e93964cfa41c229facffabc7ef0054c957171b8",
+        "head": "b9ce38cc3b8c35886a5c8c22f1efecd0bae4d483",
         "files": [
-          "reviews/T16-02-claude.json",
-          "reviews/T16-02-codex.json"
+          "reviews/T16-02-claude-r2.json",
+          "reviews/T16-02-codex-r2.json"
         ],
         "digests": {
-          "reviews/T16-02-claude.json": "7b36286d24f4d1380eddbd227e164451b964104d3d97d7b0a17e0a9294028a89",
-          "reviews/T16-02-codex.json": "10aa1cfcc90cdbf6630074e838dd84f01d0b6c63ca2a76e78d2f8c5616668076"
+          "reviews/T16-02-claude-r2.json": "127a3b03dd9aae32ceca6dbd85d05703c2051784931272af9039fdedad40170f",
+          "reviews/T16-02-codex-r2.json": "697c8ed711a36f73ed8c94971a66abccec74f49facda0f3cf512987efa751c44"
         }
       },
       "notes": ""
