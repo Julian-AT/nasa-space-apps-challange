@@ -7,7 +7,9 @@ requires-python = "==3.12.*"
 dependencies = [
     "affine>=3.0,<4",
     "numpy>=2.5,<3",
+    "pillow>=13.0,<14",
     "pydantic>=2.14,<3",
+    "pyshp>=3.1,<4",
     "rasterio>=1.5,<2",
 ]
 
