@@ -1,0 +1,113 @@
+{
+  "task_id": "T0-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "0d57a25f869d71257c5c0e1b1c0dabc539dc0356",
+    "head": "b8d6b132c42d7e6e9d31e9f58bf82271f991ad4b",
+    "files": [
+      {
+        "path": "Makefile",
+        "sha256": "8e955470a94cc4cc75b6411fd945746eaa380dcfd365a031d6b7adf50a1488fe"
+      },
+      {
+        "path": "fixtures/mock-bundle/manifest.json",
+        "sha256": "3769f649aac7876bed183dc9ef81ae3c789f90900258f8b256110cb441c67c4b"
+      },
+      {
+        "path": "fixtures/mock-bundle/validation.json",
+        "sha256": "d49244039d7045d1ed46ac4322f9ca49fbc30e01d7e050e6967955417c44df77"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/export.py",
+        "sha256": "a82435790ba7705ba8f24af298f954c6610f2ec1362ff748577a8b3312ee4d49"
+      },
+      {
+        "path": "pipeline/tests/test_export.py",
+        "sha256": "c95d83786200d4bcebd52f2c0f35ad8125b688ada4114a76a2ee77041f31e9ba"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:46:11Z",
+  "finished_utc": "2026-11-14T17:46:31Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T0-02 meets every acceptance criterion on the evidence I saw. make check, make test (254 passed) and make mock-bundle-check all exit 0. The diff touches only Makefile, fixtures/mock-bundle/*, export.py and test_export.py, all within the story's file list. I found no blockers or high findings. I did not run the CLI by hand with a failing bundle or inspect the full test bodies, and I did not review schema.py, which the diff leaves unchanged.",
+  "checks": [
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check, ruff format --check and mypy all passed (exit 0)."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "254 passed in 0.48s."
+    },
+    {
+      "criterion": "make mock-bundle-check",
+      "command": "make mock-bundle-check",
+      "outcome": "PASS",
+      "evidence": "Printed 'mock bundle matches the generator and is valid: fixtures/mock-bundle'."
+    },
+    {
+      "criterion": "write_bundle and validate_bundle API with coded, pathed errors",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "export.py:271 write_bundle(out_dir, files, manifest_fields); export.py:433 validate_bundle(bundle_dir, *, production); BundleError has code and path (export.py:75-84)."
+    },
+    {
+      "criterion": "write_bundle manifest listing and deterministic JSON",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "export.py:177-183 uses sort_keys and indent=2 plus a trailing newline; export.py:248-254 lists every file except manifest.json with sha256 and bytes. Test test_writing_twice_gives_identical_bytes exists."
+    },
+    {
+      "criterion": "validate_bundle checks, with SI budgets and production checks",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "export.py:336-453 covers unlisted, missing, sha and bytes mismatches, gate records, mock and shipping_mode. BUDGETS (export.py:125-141) match PRD 8.4 lines 562-573 with KB=1000 and MB=1000*KB."
+    },
+    {
+      "criterion": "CLI validate <dir> [--production] prints every error and exits 1 if any, else 0",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "export.py:577-628 prints each problem and returns 1; a CLI test exists. I judged this by reading and by the passing mock-bundle-check CLI run, not by running validate on a bad bundle."
+    },
+    {
+      "criterion": "make mock-bundle regenerates the mock bundle with the required fields and nothing else",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "fixtures/mock-bundle/manifest.json: mock true, bundle_version mock-0, run_id/git_sha/shipping_mode/model null, targets [], fixed created_utc 1970-01-01T00:00:00Z, schema_version 1.0.0, and only validation.json listed. export.py:479-492 builds one NOT_RUN record per gate, with the other fields None."
+    },
+    {
+      "criterion": "make mock-bundle-check compares a temporary regeneration with the committed copy",
+      "command": "make mock-bundle-check",
+      "outcome": "PASS",
+      "evidence": "export.py:543-571 regenerates into a temporary directory and diffs; the command exited 0."
+    },
+    {
+      "criterion": "Required tests exist, including the 51,200-byte targets.json and the committed mock bundle under production=False and production=True",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_export.py:287-325 (unlisted, missing, sha, bytes), :462-468 (51,200 bytes), :570 (invalid gate record), :629 (shipping_mode), :658-662 (committed mock bundle both modes). A mock-on-production test is by name not found in my grep. test_export.py:662 covers production failure of the mock bundle, so the behaviour is likely covered."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/tests/test_export.py:629",
+      "claim": "A dedicated mock-on-production test was not found by name in my grep.",
+      "evidence": "Only the shipping_mode test matched my pattern. test_committed_mock_bundle_fails_on_production at :662 exercises mock=true under production, but a separate test on a temporary bundle is the one the criterion asks for. I did not read the full test file to confirm it is missing.",
+      "id": "claude-r1-1",
+      "resolution": null
+    }
+  ]
+}
