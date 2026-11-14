@@ -223,14 +223,24 @@ def _check_metadata(metadata: ProductMetadata) -> None:
         raise ValueError("metadata must state the body (moon, mars or earth)")
 
 
+_DATA_DIRECTORIES = ("data/raw/", "data/interim/", "data/processed/")
+_RUN_FROM_ROOT = (
+    "local_path is recorded relative to the repository root, so run from it or pass root"
+)
+
+
 def _local_path(path: Path, root: Path) -> str:
     resolved, base = Path(path).resolve(), Path(root).resolve()
     try:
-        return resolved.relative_to(base).as_posix()
+        relative = resolved.relative_to(base).as_posix()
     except ValueError:
+        raise ValueError(f"{path} is not under root {base}; {_RUN_FROM_ROOT}") from None
+    if not relative.startswith(_DATA_DIRECTORIES):
         raise ValueError(
-            f"{path} is not under root {root}; local_path is recorded relative to the root"
-        ) from None
+            f"{path} is not under data/raw, data/interim or data/processed of root {base}; "
+            f"{_RUN_FROM_ROOT}"
+        )
+    return relative
 
 
 def _units(metadata: ProductMetadata, bands: Sequence[RasterWindow]) -> str:
@@ -265,17 +275,21 @@ def read_product(
     local_files: Sequence[Path],
     metadata: ProductMetadata,
     *,
-    root: Path,
+    root: Path | None = None,
     window: Window | None = None,
 ) -> tuple[tuple[RasterWindow, ...], ProductRecord]:
     """Read every band of one GeoTIFF and describe it with a ProductRecord (PRD 8.11).
 
     A ProductRecord has one ``local_path`` and one ``checksum``, so ``local_files`` holds exactly
     one file; a product made of several files gets one record per file. ``local_path`` is the
-    file's path relative to ``root`` (the repository root). The checksum, CRS and native grid
-    come from the file. Units come from the metadata or, failing that, from units the file
-    declares for every band; otherwise they are "unknown". Metadata units that contradict the
-    file are refused.
+    file's path relative to ``root``, the repository root, which defaults to the working
+    directory: the Makefile and ``uv run python -m terraluna_pipeline...`` run from the root. A
+    file not under ``data/raw``, ``data/interim`` or ``data/processed`` of the root is refused, so
+    a run from another directory fails instead of recording a wrong path.
+
+    The checksum, CRS and native grid come from the file. Units come from the metadata or,
+    failing that, from units the file declares for every band; otherwise they are "unknown".
+    Metadata units that contradict the file are refused.
 
     The record is PARTIAL: this function decodes the file but does not mask or plot it, which the
     PRD 5 entry rule also requires before a product is VERIFIED.
@@ -288,7 +302,7 @@ def read_product(
         )
     _check_metadata(metadata)
     path = Path(files[0])
-    local_path = _local_path(path, root)
+    local_path = _local_path(path, Path.cwd() if root is None else root)
     bands = tuple(
         read_geotiff_window(path, window, band=band) for band in range(1, _band_count(path) + 1)
     )
