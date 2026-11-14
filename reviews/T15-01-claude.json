@@ -112,7 +112,11 @@
       "claim": "The accessors for the schema-gap files return raw bytes, not typed records. That matches the no-substitute-schema rule, but the API will have to parse these files itself once schemas exist.",
       "evidence": "The SchemaGapFile type exposes only a Uint8Array. A follow-up that adds schemas should replace these accessors.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "AC3 requires this: files with no @terraluna/schema schema (sources, targets, comparisons, windows top-N) are \"copied after the checksum check only\", and \"no hand-written substitute schema is added\". PRD 8.5 says request and response schemas come from @terraluna/schema, and D23 says they are generated from the Python models. Parsing these files into typed records in apps/web would need exactly the substitute schema AC3 forbids. SchemaGapFile (lib/bundle.ts:96) keeps verified bytes and a present/not_present status so the API can still tell \"not listed\" apart from empty. The four gaps are recorded in the story notes, item (2), for a human decision. Once schema.py defines these records and make schema generates the zod modules, the story that adds them replaces these accessors. Nothing to change in T15-01."
+      }
     },
     {
       "severity": "low",
@@ -120,7 +124,11 @@
       "claim": "A pull does not delete files left in data/ by an earlier pull. They are never read, because loadBundle only reads files the manifest lists, but they stay on disk.",
       "evidence": "The pullBundle doc comment says an earlier pull's file that the manifest no longer lists is left in place.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Leaving these files in place is intended, and they are never read. AC2 asks only that an unlisted file is not copied. pullBundle writes manifest.json last (lib/bundle.ts:410), and loadBundle reads only the paths the current manifest lists (readBundle -> pulledEntries, lib/bundle.ts:288-357), so a leftover file cannot be served. Test 32f520b pins this: after a full release pull and then a mock pull into the same directory, the release files are still on disk, yet sourcesFile, targetsFile, comparisonFile and windowsTopNFile all read not_present, and pulledPaths is [manifest.json, validation.json]. apps/web/data/ is git-ignored, so a Vercel build starts from a clean checkout. Deleting files under an outDir passed in by the caller would add a destructive step that no criterion asks for, and CLAUDE.md forbids destructive changes to data artifacts without authorization. Story notes item (4) records this choice."
+      }
     }
   ]
 }
