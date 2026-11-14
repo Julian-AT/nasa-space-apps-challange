@@ -1200,11 +1200,15 @@ def circular_from_covariance(
     the product's own validity or noise flag, or a configured SNR rule, excludes the pixel
     (PRD 7). ``tolerance`` is the Hermitian and positive-semidefinite tolerance. It defaults to
     :data:`ARITHMETIC_TOLERANCE`, the PRD 7 arithmetic tolerance; a real-data tolerance is an
-    open decision (PRD 7: it comes from the product). For each pixel the allowance is
-    ``atol + rtol * s``, where ``s`` is the largest element magnitude ``max |C_ij|`` of the
-    matrix as given (for a PSD matrix, its largest diagonal power). The relative part is taken
-    at the matrix's scale because rounding in a covariance and in its eigenvalues scales with
-    the matrix norm, not with each element. ``atol`` is in the power units of the covariance.
+    open decision (PRD 7: it comes from the product). The rules below run on the covariance in
+    the (HH, sqrt2 HV, VV) ordering, ``C'``, whatever ordering was declared, so the same
+    covariance gets the same outcome in either ordering. ``C'`` is unitarily similar to the
+    circular covariance ``U C' U^H``, so its eigenvalues are those of the circular covariance.
+    For each pixel the allowance is ``atol + rtol * s``, where ``s = max |C'_ij|`` is the
+    largest element magnitude of ``C'`` (for a PSD matrix, its largest diagonal power). The
+    relative part is taken at the matrix's scale because rounding in a covariance and in its
+    eigenvalues scales with the matrix norm, not with each element. ``atol`` is in the power
+    units of the covariance.
 
     Each matrix is first scaled by one exact power of two (its largest real or imaginary part
     into [0.5, 1)); the rules and the transformation run on the scaled matrix and the powers are
@@ -1216,16 +1220,16 @@ def circular_from_covariance(
 
     1. ``product_masked``: ``MISSING``, ``PRODUCT_MASKED``.
     2. Any element has a NaN or infinite real or imaginary part: ``INVALID``, ``COV_NONFINITE``.
-    3. ``max |C_ij - conj(C_ji)| > allowance``, an off-diagonal mismatch or an imaginary
+    3. ``max |C'_ij - conj(C'_ji)| > allowance``, an off-diagonal mismatch or an imaginary
        diagonal beyond the tolerance: ``INVALID``, ``COV_NOT_HERMITIAN``.
-    4. A diagonal power below ``-allowance``: ``INVALID``, ``COV_NEGATIVE_DIAGONAL``.
-    5. The smallest eigenvalue below ``-allowance``: ``INVALID``, ``COV_NOT_PSD``.
+    4. A diagonal power of ``C'`` below ``-allowance``: ``INVALID``, ``COV_NEGATIVE_DIAGONAL``.
+    5. The smallest eigenvalue of ``C'`` below ``-allowance``: ``INVALID``, ``COV_NOT_PSD``.
 
     A materially nonphysical covariance is flagged with its cause and nothing is published for
     it; the input is not repaired and no eigenvalue is clipped (PRD 7). A matrix inside the
-    tolerance is not altered either. Its eigenvalues and powers are evaluated on its Hermitian
-    part ``(C + C^H) / 2``, which is ``C`` for a Hermitian input; for a power this is exactly
-    the real part of the quadratic form ``u C u^H`` that defines it. A power that is negative
+    tolerance is not altered either. Its eigenvalues and powers are evaluated on the Hermitian
+    part ``(C' + C'^H) / 2``, which is ``C'`` for a Hermitian input; for a power this is exactly
+    the real part of the quadratic form ``u C' u^H`` that defines it. A power that is negative
     within the tolerance is reported as computed, never clipped to zero.
 
     Then total, SC, OC, base_SC and the handedness term each: ``INVALID`` with
@@ -1269,15 +1273,18 @@ def circular_from_covariance(
     finite_matrices = np.where(finite[..., np.newaxis, np.newaxis], matrices, 0.0)
 
     scaled, exponent = _scale_by_power_of_two(finite_matrices)
-    adjoint = np.conj(np.swapaxes(scaled, -1, -2))
     with np.errstate(over="ignore", under="ignore", invalid="ignore"):
-        largest = np.abs(scaled).max(axis=(-2, -1))
+        # The rules and the transformation run on the (HH, sqrt2 HV, VV) form at the matrix's
+        # scale, so neither depends on the declared ordering.
+        normalized = scaled * _TO_SQRT2_ORDERING[ordering]
+        adjoint = np.conj(np.swapaxes(normalized, -1, -2))
+        largest = np.abs(normalized).max(axis=(-2, -1))
         allowance = np.ldexp(tolerance.atol, -exponent) + tolerance.rtol * largest
-        mismatch = np.abs(scaled - adjoint).max(axis=(-2, -1))
+        mismatch = np.abs(normalized - adjoint).max(axis=(-2, -1))
         base.mark(
             np.asarray(mismatch > allowance), ObsState.INVALID, InvalidReason.COV_NOT_HERMITIAN
         )
-        hermitian = 0.5 * (scaled + adjoint)
+        hermitian = 0.5 * (normalized + adjoint)
         diagonal = np.diagonal(hermitian, axis1=-2, axis2=-1).real
         base.mark(
             np.asarray(diagonal.min(axis=-1) < -allowance),
@@ -1292,8 +1299,7 @@ def circular_from_covariance(
         )
 
         # The basis transformation, at the matrix's scale.
-        normalized = hermitian * _TO_SQRT2_ORDERING[ordering]
-        circular = CIRCULAR_BASIS @ normalized @ CIRCULAR_BASIS.conj().T
+        circular = CIRCULAR_BASIS @ hermitian @ CIRCULAR_BASIS.conj().T
         diagonal_powers = np.diagonal(circular, axis1=-2, axis2=-1).real
         sc_ll = diagonal_powers[..., 0]
         oc = 0.5 * diagonal_powers[..., 1]
