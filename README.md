@@ -32,7 +32,7 @@ make web-dev            # Next.js dev server on the pulled bundle
 actionlint .github/workflows/ci.yml
 ```
 
-[CI](.github/workflows/ci.yml) runs the jobs `py` (`make setup-py check-py test-py`), `ts` (`make setup-ts check-ts test-ts`), `schema` (`make schema-check mock-bundle-check`) and `commitlint` (the pull request's commits) on pull requests and on pushes to `main`. CI has not run on GitHub yet, and the Vercel preview has not been deployed yet. [apps/web/README.md](apps/web/README.md) explains how the web app selects its bundle.
+[CI](.github/workflows/ci.yml) runs the jobs `py` (`make setup-py check-py test-py`), `ts` (`make setup-ts check-ts test-ts`), `schema` (`make schema-check mock-bundle-check`) and `commitlint` (the pull request's commits) on pull requests and on pushes to `main`. CI has not run on GitHub yet. [apps/web/README.md](apps/web/README.md) explains how the web app selects its bundle and how the Vercel preview is deployed.
 
 ## Optional references
 
