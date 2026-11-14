@@ -12,6 +12,7 @@ from __future__ import annotations
 import dataclasses
 import inspect
 import math
+from fractions import Fraction
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -908,6 +909,162 @@ def test_exact_zero_powers_stay_valid_zeros_at_any_magnitude() -> None:
         result = convert(plane)
         assert result.sc.state == VALID
         assert result.sc.value == 0.0
+
+
+# --- Mixed magnitudes: no part lost to rounding or to the scaling -----------------------------
+
+
+def handedness_beside_large_powers() -> npt.NDArray[np.complex128]:
+    """Im D + Im E = 1 beside powers near 2**60 (codex2-r1-1).
+
+    base_SC = (A + B) / 4 + V = 1.5 * 2**60, so SC_LL = base_SC - 1 and SC_opp = base_SC + 1
+    round to the same float64 and their difference is 0. Eigenvalues 2**60 - 1, 2**60 and
+    2**60 + 1.
+    """
+    large = 2.0**60
+    covariance = matrix(large, large, large, 0.0, 1j, 0.0)
+    assert_hermitian_psd(covariance)
+    return covariance
+
+
+@pytest.mark.parametrize("ordering", [RAW, SQRT2])
+@pytest.mark.parametrize("convention", [LL, OPP])
+def test_handedness_term_is_not_lost_beside_large_powers(ordering: str, convention: str) -> None:
+    covariance = handedness_beside_large_powers()
+    if ordering == SQRT2:
+        covariance = to_sqrt2_ordering(covariance)
+    result = convert(covariance, convention=convention, ordering=ordering)
+    assert_value(result.handedness_term, 1.0)
+    assert result.handedness_ratio.state == VALID
+    np.testing.assert_allclose(
+        result.handedness_ratio.value, 2.0 / (3.0 * 2.0**60), rtol=RTOL, atol=0.0
+    )
+
+
+MANTISSA = st.floats(min_value=1.0, max_value=2.0)
+"""A float64 mantissa in [1, 2], scaled by an explicit power of two."""
+
+OFF_DIAGONAL_PART = st.one_of(
+    st.just(0.0),
+    st.floats(min_value=0.5, max_value=1.0),
+    st.floats(min_value=-1.0, max_value=-0.5),
+)
+"""An off-diagonal real or imaginary part before scaling: zero, or of magnitude [0.5, 1]."""
+
+
+@settings(deadline=None)
+@given(
+    st.integers(min_value=-500, max_value=500),
+    st.integers(min_value=2, max_value=500),
+    st.tuples(MANTISSA, MANTISSA, MANTISSA),
+    st.tuples(*(st.builds(complex, OFF_DIAGONAL_PART, OFF_DIAGONAL_PART) for _ in range(3))),
+)
+def test_handedness_term_is_accurate_relative_to_its_own_parts(
+    exponent: int,
+    gap: int,
+    diagonal: tuple[float, float, float],
+    off_diagonal: tuple[complex, complex, complex],
+) -> None:
+    """Diagonal powers in [1, 2] * 2**exponent and off-diagonal parts at most 2**(exponent - gap)
+    make a diagonally dominant, so Hermitian PSD, matrix. Im D + Im E can be far below the
+    rounding of the powers, so the term has to match it relative to |Im D| + |Im E|, from an
+    exact rational oracle, in both orderings. A zero term must be exactly zero."""
+    a, v, b = (math.ldexp(x, exponent) for x in diagonal)
+    c, d, e = (
+        complex(math.ldexp(z.real, exponent - gap), math.ldexp(z.imag, exponent - gap))
+        for z in off_diagonal
+    )
+    covariance = matrix(a, b, v, c, d, e)
+    assert_hermitian_psd(covariance)
+    exact_term = Fraction(d.imag) + Fraction(e.imag)
+    exact_base = (Fraction(a) + Fraction(b) - 2 * Fraction(c.real)) / 4 + Fraction(v)
+    bound = Fraction(RTOL) * (abs(Fraction(d.imag)) + abs(Fraction(e.imag)))
+    for ordering, given_covariance in ((RAW, covariance), (SQRT2, to_sqrt2_ordering(covariance))):
+        result = convert(given_covariance, ordering=ordering)
+        assert result.handedness_term.state == VALID
+        assert abs(Fraction(float(result.handedness_term.value)) - exact_term) <= bound
+        assert result.handedness_ratio.state == VALID
+        ratio = Fraction(float(result.handedness_ratio.value))
+        assert abs(ratio - exact_term / exact_base) <= bound / exact_base
+
+
+def cancelling_powers(large: float, small: float) -> npt.NDArray[np.complex128]:
+    """A = B = C = large and V = small, from the declared scatterers (sqrt(large), 0,
+    sqrt(large)) and (0, sqrt(small), 0), so Hermitian PSD by construction (PRD 7).
+
+    The large parts cancel exactly in SC, so SC_LL = SC_opp = base_SC = small, OC = large and
+    CPR = small / large at any magnitudes. ``large`` and ``small`` are even powers of two here,
+    so the scatterers and the covariance are exact.
+    """
+    root_large, root_small = math.sqrt(large), math.sqrt(small)
+    assert root_large**2 == large
+    assert root_small**2 == small
+    covariance = jones_oracle.covariance_of([(root_large, 0.0, root_large), (0.0, root_small, 0.0)])
+    np.testing.assert_array_equal(covariance, matrix(large, large, small, large, 0.0, 0.0))
+    return covariance
+
+
+@pytest.mark.parametrize("ordering", [RAW, SQRT2])
+@pytest.mark.parametrize(
+    "covariance",
+    [
+        # codex2-r1-2: SC = V = 2**-1000 beside A = B = C = 2**1000.
+        cancelling_powers(2.0**1000, 2.0**-1000),
+        # Im D = 2**-1060 beside powers of 1; the eigenvalues are 1 and 1 -/+ 2**-1060.
+        matrix(1.0, 1.0, 1.0, 0.0, complex(0.0, 2.0**-1060), 0.0),
+    ],
+    ids=["cancelling-powers", "tiny-handedness-term"],
+)
+def test_parts_float64_cannot_hold_at_one_scale_publish_nothing(
+    covariance: npt.NDArray[np.complex128], ordering: str
+) -> None:
+    """Parts more than float64's range apart cannot all be carried at the matrix's scale.
+    Nothing is published for them, rather than a lost part showing up as a VALID zero."""
+    np.testing.assert_array_equal(covariance, covariance.conj().T)
+    if ordering == SQRT2:
+        covariance = to_sqrt2_ordering(covariance)
+    for convention in (LL, OPP):
+        result = convert(covariance, ordering=ordering, convention=convention)
+        assert_nothing_published(result, INVALID, InvalidReason.FLOAT64_OUT_OF_RANGE)
+
+
+@settings(deadline=None)
+@given(
+    st.integers(min_value=-500, max_value=500),
+    st.integers(min_value=-500, max_value=500),
+)
+def test_cancelling_powers_are_published_right_or_not_at_all(
+    large_half_exponent: int, small_half_exponent: int
+) -> None:
+    """A = B = C = 2**(2 i) and V = 2**(2 j), so SC = base_SC = V, OC = A, CPR = V / A and the
+    handedness term is 0 at any magnitudes. Each output is either VALID and right to the PRD 7
+    rtol, or INVALID with FLOAT64_OUT_OF_RANGE; a lost V is never a VALID zero (codex2-r1-2).
+    Where A and V are at most 2**1000 apart, every output is VALID."""
+    large = math.ldexp(1.0, 2 * large_half_exponent)
+    small = math.ldexp(1.0, 2 * small_half_exponent)
+    covariance = cancelling_powers(large, small)
+    exact = {
+        "sc": Fraction(small),
+        "base_sc": Fraction(small),
+        "oc": Fraction(large),
+        "total": Fraction(small) + Fraction(large),
+        "cpr": Fraction(small) / Fraction(large),
+        "handedness_term": Fraction(0),
+        "handedness_ratio": Fraction(0),
+    }
+    within_range = abs(2 * (small_half_exponent - large_half_exponent)) <= 1000
+    for ordering, given_covariance in ((RAW, covariance), (SQRT2, to_sqrt2_ordering(covariance))):
+        for convention in (LL, OPP):
+            result = convert(given_covariance, ordering=ordering, convention=convention)
+            for name in ALL_FIELDS:
+                field = getattr(result, name)
+                if field.state == VALID:
+                    error = abs(Fraction(float(field.value)) - exact[name])
+                    assert error <= Fraction(RTOL) * exact[name], name
+                else:
+                    assert not within_range, name
+                    assert field.state == INVALID
+                    assert field.reason == InvalidReason.FLOAT64_OUT_OF_RANGE, name
 
 
 # --- Properties against both oracles ---------------------------------------------------------
