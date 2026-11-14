@@ -1122,8 +1122,8 @@ def test_verified_units_verdicts_agree(units: str) -> None:
 # Every cross-field rule that JSON Schema can express is written as an allOf conditional next to
 # its pydantic validator. These tests try every combination of the fields each rule reads and
 # require the same verdict from pydantic and from the committed JSON Schema. The rules that
-# compare values inside a document (sorted values, n == len(values), closed rings, slot kinds)
-# are pydantic-only and stay out of these combinations.
+# compare values inside a document (sorted values, n == len(values), closed rings, slot kinds,
+# incidence min <= max) are pydantic-only and stay out of these combinations.
 
 
 def definition_accepts(name: str, definition: str, value: Any) -> bool:
@@ -1288,8 +1288,9 @@ def test_distance_entry_definition_alone_follows_the_same_rules() -> None:
             },
         ),
         ("window-record-moon", ("polygon", "ring_m", 4), [2500, 2500]),
+        ("fingerprint-radar", ("radar", "incidence_deg"), {"min": 48.25, "max": 35.5}),
     ],
-    ids=["values-unsorted", "n-not-the-count", "ring-not-closed"],
+    ids=["values-unsorted", "n-not-the-count", "ring-not-closed", "incidence-min-above-max"],
 )
 def test_rules_inside_a_document_are_checked_by_pydantic_only(
     name: str, path: tuple[Any, ...], value: Any

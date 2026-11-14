@@ -991,6 +991,16 @@ def test_radar_fingerprint_rejects_invalid_values(field: str, value: object) -> 
     assert_rejected(RadarFingerprint, radar_fingerprint(**{field: value}))
 
 
+def test_an_incidence_range_runs_from_min_to_max() -> None:
+    assert_rejected(IncidenceRange, incidence_range(min=48.25, max=35.5))
+    assert_rejected(RadarFingerprint, radar_fingerprint(incidence_deg={"min": 48.25, "max": 35.5}))
+
+
+def test_an_incidence_range_may_hold_one_angle() -> None:
+    parsed = assert_accepted(IncidenceRange, incidence_range(min=41.5, max=41.5))
+    assert parsed.min == parsed.max == 41.5
+
+
 def test_a_radar_fingerprint_without_valid_blocks_keeps_empty_distributions() -> None:
     assert_accepted(
         RadarFingerprint,
