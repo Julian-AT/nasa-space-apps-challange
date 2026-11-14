@@ -1,0 +1,45 @@
+# Virtual uv workspace root (PRD 8.2, 8.3). The root is not a package; the
+# members below are. One lockfile, uv.lock, pins every Python dependency.
+
+[tool.uv.workspace]
+members = ["pipeline", "ml"]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.170",
+    "mypy>=2.4",
+    "pytest>=9.2",
+    "ruff>=0.17",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["pipeline/src", "ml/src", "pipeline/tests"]
+include = [
+    "pipeline/src/**/*.py",
+    "ml/src/**/*.py",
+    "pipeline/tests/**/*.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["pipeline/src", "ml/src", "pipeline/tests"]
+mypy_path = ["pipeline/src", "ml/src"]
+explicit_package_bases = true
+plugins = ["pydantic.mypy"]
+warn_unreachable = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+[tool.pytest.ini_options]
+testpaths = ["pipeline/tests"]
+addopts = ["--strict-markers", "--strict-config", "-ra"]
+xfail_strict = true

@@ -1,0 +1,14 @@
+[project]
+name = "terraluna-pipeline"
+version = "0.1.0"
+description = "Terraluna offline pipeline: product records, fingerprints, comparisons and the release bundle."
+license = "Apache-2.0"
+requires-python = "==3.12.*"
+dependencies = [
+    "pydantic>=2.14,<3",
+    "rasterio>=1.5,<2",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"

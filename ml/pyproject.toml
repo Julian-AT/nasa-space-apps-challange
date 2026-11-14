@@ -1,0 +1,11 @@
+[project]
+name = "terraluna-ml"
+version = "0.1.0"
+description = "Terraluna encoder: dataset, training, evaluation and ONNX export (experimental until G5)."
+license = "Apache-2.0"
+requires-python = "==3.12.*"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"
