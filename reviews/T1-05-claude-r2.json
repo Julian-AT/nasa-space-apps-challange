@@ -94,7 +94,11 @@
       "claim": "The round-1 fixes were not inspected directly in this round.",
       "evidence": "I ran only the three story checks and the diff stat. I did not open the code, tests or record to confirm the two round-1 blocker fixes (whole-COG range refusal, signed-URL guards) or the author's rebuttals of the low findings. The tests pass, but I did not confirm they assert the fixed behaviour.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect in T1-05: the finding states only that this reviewer did not read the round-1 fixes, and names no wrong behaviour. Verified directly at review head 34968fc (io.py, pilot.py and both test files have the same sha256 at HEAD). codex-r1-1: io.py ByteRanges.covers_whole_file (line 951) derives coverage from the held bytes; read_remote_geotiff_window refuses a request that would complete the file before sending it (io.py 1141-1148) and a first response that holds the whole file (1189-1195), both as RangeReadError naming the URL; pilot.py 4441-4446 refuses stored ranges that hold the whole COG and 4542 derives whole_file_downloaded from them. codex-r1-2: pilot.py 3810 (fetch) and 3981 (record) call _refuse_signed_assets on every asset href of the chosen item, and expected_outputs runs _refuse_credential_urls over every JSON output (pilot.py 433-466). The tests assert the fixed behaviour: test_io_remote_window.py 355-381 and test_pilot_ctx.py 633-669 and 1058-1161 check the exit code, the URL or item and the JSON path in the error, that no secret appears, that no asset request is sent and that no output is written or changed. Run against the pre-fix sources (git archive of f935eb6 and fcdc05a, imported through PYTHONPATH), 13 codex-r1-1 tests and 8 codex-r1-2 tests fail. The 1 that passes is the negative control test_a_signed_href_on_an_item_not_chosen_does_not_stop_the_fetch. The Codex round-2 review (reviews/T1-05-codex-r2.json) inspected the same lines and marks both fixes and all three rebuttals PASS. At HEAD, uv run pytest pipeline/tests gives 1340 passed and 2 xfailed, pilot check ctx and make check exit 0."
+      }
     }
   ]
 }
