@@ -172,6 +172,61 @@ describe('pageProblems', () => {
     expect(pageProblems(html, shown).join('\n')).toMatch(/shipping-mode banner/);
   });
 
+  // A banner may sit in a container of its own, such as a status region around its paragraph. The
+  // container is part of the banner, so words added inside it fail too (codex-r3-1).
+  const MOCK_TEXT = 'Mock bundle — placeholder data, not results';
+
+  it.each([
+    { name: 'a status region around its paragraph', banner: `<div role="status"><p>${MOCK_TEXT}</p></div>` },
+    { name: 'a wrapper around the status paragraph', banner: `<div class="bg-mock"><p role="status">${MOCK_TEXT}</p></div>` },
+    { name: 'its text split by a nested block', banner: `<div role="status"><p>Mock bundle</p><span> — placeholder data, not results</span></div>` },
+  ])('accepts a mock banner nested in a container of its own ($name)', ({ banner }) => {
+    expect(pageProblems(MOCK_PAGE.replace(MOCK_P, banner), MOCK)).toStrictEqual([]);
+  });
+
+  it.each([
+    { name: 'words in a span after its paragraph', banner: `<div role="status"><p>${MOCK_TEXT}</p><span> yet</span></div>` },
+    { name: 'words before its paragraph', banner: `<div role="status">Radar match passed. <p>${MOCK_TEXT}</p></div>` },
+    { name: 'a second paragraph in its status region', banner: `<div role="status"><p>${MOCK_TEXT}</p><p>Radar match passed</p></div>` },
+    {
+      name: 'a second paragraph in an aria-live region',
+      banner: `<div aria-live="polite"><p>${MOCK_TEXT}</p><p>Radar match passed</p></div>`,
+    },
+    {
+      name: 'words in a wrapper around the status paragraph',
+      banner: `<div class="bg-mock"><p role="status">${MOCK_TEXT}</p><span> yet</span></div>`,
+    },
+    {
+      name: 'words two wrappers out',
+      banner: `<section><div role="status"><p>${MOCK_TEXT}</p></div> except the radar match</section>`,
+    },
+  ])('reports a mock banner with words added inside its container ($name)', ({ banner }) => {
+    expect(pageProblems(MOCK_PAGE.replace(MOCK_P, banner), MOCK).join('\n')).toMatch(/mock banner/);
+  });
+
+  it.each([
+    { name: 'words in a span after its paragraph', banner: `<div><p>${MODE_B}</p><span>; radar match passed</span></div>` },
+    {
+      name: 'a second paragraph in its status region',
+      banner: `<div role="status"><p>${MODE_B}</p><p>Radar match passed</p></div>`,
+    },
+  ])('reports a shipping-mode banner with words added inside its container ($name)', ({ banner }) => {
+    const html = REAL_PAGE.replace(`<p>${MODE_B}</p>`, banner);
+    expect(pageProblems(html, REAL).join('\n')).toMatch(/shipping-mode banner/);
+  });
+
+  it('accepts a shipping-mode banner nested in a container of its own', () => {
+    const html = REAL_PAGE.replace(`<p>${MODE_B}</p>`, `<div><div><p>${MODE_B}</p></div></div>`);
+    expect(pageProblems(html, REAL)).toStrictEqual([]);
+  });
+
+  // A block that holds several blocks with text, as the header holds both banners and the
+  // navigation, groups them and is part of neither banner. Its own text is layout chrome.
+  it('accepts a container that groups the banners with other chrome', () => {
+    const html = MOCK_PAGE.replace('<nav aria-label="Primary">', '<a href="/">Terraluna home</a><nav aria-label="Primary">');
+    expect(pageProblems(html, MOCK)).toStrictEqual([]);
+  });
+
   it('reports a footer with words added in a child element', () => {
     const html = MOCK_PAGE.replace('1.0.0</footer>', '1.0.0<span> (latest)</span></footer>');
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/footer/);
