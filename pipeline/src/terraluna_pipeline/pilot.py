@@ -34,12 +34,12 @@ import math
 import os
 import platform
 import re
-import struct
 import sys
 import tarfile
 import tempfile
 import urllib.parse
 import warnings
+import zlib
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -571,13 +571,25 @@ class _RoiLayer:
     drawable: bool
 
 
+@dataclass(frozen=True)
+class _RoiArchive:
+    members: list[dict[str, Any]]
+    layers: list[_RoiLayer]
+    error: str | None
+    """Why the archive could not be read, or None when it was read."""
+
+
 _POLYGON_TYPES: Final = frozenset({"POLYGON", "POLYGONZ", "POLYGONM"})
 
 
 def _read_roi_archive(
     path: Path, height_crs: str | None, extent: Mapping[str, float]
-) -> tuple[list[dict[str, Any]], list[_RoiLayer]]:
-    """List the archive's members and read every shapefile in it, without extracting to disk."""
+) -> _RoiArchive:
+    """List the archive's members and read every shapefile in it, without extracting to disk.
+
+    An archive that cannot be read is reported in ``error`` instead of stopping the record, so
+    the record can say why the outlines are missing (T1-03 AC3).
+    """
     members: list[dict[str, Any]] = []
     contents: dict[str, bytes] = {}
     total = 0
@@ -606,45 +618,45 @@ def _read_roi_archive(
                 if member.isfile():
                     total += member.size
                     if total > _ROI_ARCHIVE_MAX_BYTES:
-                        raise PilotError(
-                            f"{path} unpacks to more than {_ROI_ARCHIVE_MAX_BYTES} bytes"
+                        return _RoiArchive(
+                            [],
+                            [],
+                            f"{path.name} unpacks to more than {_ROI_ARCHIVE_MAX_BYTES} bytes, "
+                            "so it was not read",
                         )
                     stream = archive.extractfile(member)
                     if stream is not None:
                         contents[member.name] = stream.read()
-    except (tarfile.TarError, OSError, EOFError) as error:
-        raise PilotError(f"{path} is not a readable gzip tar archive: {error}") from error
+    except (tarfile.TarError, OSError, EOFError, zlib.error) as error:
+        return _RoiArchive([], [], f"{path.name} is not a readable gzip tar archive: {error}")
     members.sort(key=lambda item: str(item["name"]))
     layers: list[_RoiLayer] = []
     for shp_name in sorted(name for name in contents if name.lower().endswith(".shp")):
         stem = shp_name[: -len(".shp")]
         parts = {ext: contents.get(stem + ext) for ext in (".shp", ".shx", ".dbf", ".prj")}
         layers.append(_read_layer(stem, parts, height_crs, extent))
-    return members, layers
+    return _RoiArchive(members, layers, None)
 
 
-def _read_layer(
-    stem: str,
-    parts: Mapping[str, bytes | None],
-    height_crs: str | None,
-    extent: Mapping[str, float],
-) -> _RoiLayer:
-    readers = {
-        key.lstrip("."): stdio.BytesIO(data)
-        for key, data in parts.items()
-        if data is not None and key != ".prj"
-    }
-    try:
-        with shapefile.Reader(**readers) as reader:
-            fields = [field.name for field in reader.fields if field.name != "DeletionFlag"]
-            shapes = reader.shapes()
-            records = reader.records() if "dbf" in readers else [None] * len(shapes)
-            layer_type = str(reader.shapeTypeName)
-            layer_bbox = [float(value) for value in reader.bbox]
-    except (shapefile.ShapefileException, OSError, ValueError, struct.error) as error:
-        raise PilotError(f"the shapefile {stem}.shp cannot be read: {error}") from error
+@dataclass(frozen=True)
+class _Shapes:
+    shape_type: str
+    bbox: list[float]
+    fields: list[str]
+    summaries: list[dict[str, Any]]
+    rings: list[list[tuple[float, float]]]
+    inside: bool
+
+
+def _read_shapes(readers: Mapping[str, stdio.BytesIO], extent: Mapping[str, float]) -> _Shapes:
+    with shapefile.Reader(**readers) as reader:
+        fields = [field.name for field in reader.fields if field.name != "DeletionFlag"]
+        shapes = reader.shapes()
+        records = reader.records() if "dbf" in readers else [None] * len(shapes)
+        layer_type = str(reader.shapeTypeName)
+        layer_bbox = [float(value) for value in reader.bbox]
     rings: list[list[tuple[float, float]]] = []
-    shape_summaries: list[dict[str, Any]] = []
+    summaries: list[dict[str, Any]] = []
     inside = True
     for index, (shape, row) in enumerate(zip(shapes, records, strict=True)):
         points = [(float(x), float(y)) for x, y, *_ in shape.points]
@@ -655,7 +667,7 @@ def _read_layer(
             extent["left"] <= x <= extent["right"] and extent["bottom"] <= y <= extent["top"]
             for x, y in points
         )
-        shape_summaries.append(
+        summaries.append(
             {
                 "index": index,
                 "shape_type": str(shape.shapeTypeName),
@@ -665,24 +677,71 @@ def _read_layer(
                 "record": None if row is None else _shape_record(row.as_dict()),
             }
         )
-    prj = parts.get(".prj")
-    prj_wkt = None if prj is None else prj.decode("utf-8", errors="strict").strip()
-    crs_matches, comparison = _compare_crs(prj_wkt, height_crs)
+    return _Shapes(layer_type, layer_bbox, fields, summaries, rings, inside)
+
+
+def _read_layer(
+    stem: str,
+    parts: Mapping[str, bytes | None],
+    height_crs: str | None,
+    extent: Mapping[str, float],
+) -> _RoiLayer:
+    """Read one shapefile; one that cannot be read is summarised with the error, not raised."""
+    readers = {
+        key.lstrip("."): stdio.BytesIO(data)
+        for key, data in parts.items()
+        if data is not None and key != ".prj"
+    }
+    error: str | None = None
+    read: _Shapes | None = None
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        try:
+            read = _read_shapes(readers, extent)
+        # A damaged shapefile can fail inside pyshp in many ways (its own exceptions,
+        # struct.error, ValueError, IndexError, ...); each one becomes the recorded reason.
+        except Exception as failure:
+            error = (
+                f"the shapefile {stem}.shp cannot be read with pyshp "
+                f"{importlib.metadata.version('pyshp')}: {type(failure).__name__}: {failure}"
+            )
+    read_warnings = list(dict.fromkeys(str(warning.message) for warning in caught))
+    prj_wkt, crs_matches, comparison = _layer_crs(parts.get(".prj"), height_crs)
     summary = {
         "name": stem,
         "components": sorted(ext for ext, data in parts.items() if data is not None),
-        "shape_type": layer_type,
-        "shape_count": len(shapes),
-        "bbox_m": layer_bbox,
-        "fields": fields,
+        "readable": read is not None,
+        "read_error": error,
+        "read_warnings": read_warnings,
+        "shape_type": None if read is None else read.shape_type,
+        "shape_count": None if read is None else len(read.summaries),
+        "bbox_m": None if read is None else read.bbox,
+        "fields": None if read is None else read.fields,
         "prj_wkt": prj_wkt,
         "crs_matches_height": crs_matches,
         "crs_comparison": comparison,
-        "inside_height_extent": inside,
-        "shapes": shape_summaries,
+        "inside_height_extent": None if read is None else read.inside,
+        "shapes": [] if read is None else read.summaries,
     }
-    drawable = bool(crs_matches) and inside and layer_type in _POLYGON_TYPES and bool(rings)
-    return _RoiLayer(summary=summary, rings=rings, drawable=drawable)
+    drawable = (
+        read is not None
+        and crs_matches is True
+        and read.inside
+        and read.shape_type in _POLYGON_TYPES
+        and bool(read.rings)
+    )
+    return _RoiLayer(summary=summary, rings=[] if read is None else read.rings, drawable=drawable)
+
+
+def _layer_crs(prj: bytes | None, height_crs: str | None) -> tuple[str | None, bool | None, str]:
+    """The .prj text, whether it matches the height map CRS, and how that was decided."""
+    if prj is None:
+        return None, *_compare_crs(None, height_crs)
+    try:
+        prj_wkt = prj.decode("utf-8").strip()
+    except UnicodeDecodeError as error:
+        return None, None, f"the .prj is not UTF-8 text ({error}), so its CRS cannot be read"
+    return prj_wkt, *_compare_crs(prj_wkt, height_crs)
 
 
 def _compare_crs(prj_wkt: str | None, height_crs: str | None) -> tuple[bool | None, str]:
@@ -994,14 +1053,22 @@ class Pgda78Source:
             }
         if roi_record is not None:
             records.append(roi_record)
+            if roi["status"] == "unreadable":
+                parts = [f"downloaded; not read: {roi['reason']}"]
+            else:
+                every = all(layer["readable"] for layer in roi["shapefiles"])
+                parts = [
+                    "downloaded and every shapefile read"
+                    if every
+                    else "downloaded; not every shapefile could be read"
+                ]
+                if roi["outlines_drawn"]:
+                    parts.append("outlines drawn on the preview")
+                if roi["outlines_not_drawn_reason"] is not None:
+                    parts.append(f"outlines not drawn: {roi['outlines_not_drawn_reason']}")
             verification[roi_record.product_id] = {
                 "status": roi_record.verification_status,
-                "basis": (
-                    "downloaded and every shapefile read; outlines drawn on the preview"
-                    if roi["outlines_drawn"]
-                    else "downloaded and every shapefile read; outlines not drawn: "
-                    + str(roi["outlines_not_drawn_reason"])
-                ),
+                "basis": "; ".join(parts),
             }
 
         frame = _FRAME.search(readme_text)
@@ -1306,31 +1373,38 @@ class Pgda78Source:
                 None,
             )
         path = raw_dir / str(entry["file_name"])
-        members, layers = _read_roi_archive(path, height.band.crs, extent)
+        archive = _read_roi_archive(path, height.band.crs, extent)
+        layers = archive.layers
         drawn = any(layer.drawable for layer in layers)
-        if drawn:
-            not_drawn = None
+        reasons = []
+        for layer in layers:
+            if layer.drawable:
+                continue
+            summary = layer.summary
+            if not summary["readable"]:
+                reasons.append(
+                    f"{summary['name']}: {summary['read_error']}; its outlines are missing"
+                )
+            elif summary["prj_wkt"] is None:
+                reasons.append(
+                    f"{summary['name']}: {summary['crs_comparison']}; outlines are never placed "
+                    "by assuming a CRS"
+                )
+            elif summary["crs_matches_height"] is not True:
+                reasons.append(
+                    f"{summary['name']}: its CRS differs from the height map CRS "
+                    f"({summary['crs_comparison']}); outlines are not reprojected"
+                )
+            elif not summary["inside_height_extent"]:
+                reasons.append(f"{summary['name']}: coordinates outside the height map")
+            else:
+                reasons.append(f"{summary['name']}: not a polygon layer")
+        if archive.error is not None:
+            not_drawn: str | None = archive.error
         elif not layers:
             not_drawn = "the archive holds no shapefile"
         else:
-            reasons = []
-            for layer in layers:
-                summary = layer.summary
-                if summary["prj_wkt"] is None:
-                    reasons.append(
-                        f"{summary['name']}: no .prj states its CRS, and outlines are never "
-                        "placed by assuming one"
-                    )
-                elif summary["crs_matches_height"] is not True:
-                    reasons.append(
-                        f"{summary['name']}: its CRS differs from the height map CRS "
-                        f"({summary['crs_comparison']}); outlines are not reprojected"
-                    )
-                elif not summary["inside_height_extent"]:
-                    reasons.append(f"{summary['name']}: coordinates outside the height map")
-                else:
-                    reasons.append(f"{summary['name']}: not a polygon layer")
-            not_drawn = "; ".join(reasons)
+            not_drawn = "; ".join(reasons) or None
         prj_texts = [layer.summary["prj_wkt"] for layer in layers if layer.summary["prj_wkt"]]
         linear = None
         if len(prj_texts) == 1:
@@ -1362,12 +1436,13 @@ class Pgda78Source:
                 "incidence_source": None,
                 "qa_definition": None,
                 "license_or_attribution": attribution,
-                "verification_status": "PARTIAL",
+                # FAILED: the archive was downloaded, but reading it did not succeed (schema.py).
+                "verification_status": "PARTIAL" if archive.error is None else "FAILED",
             }
         )
         roi = {
-            "status": "read",
-            "reason": None,
+            "status": "read" if archive.error is None else "unreadable",
+            "reason": archive.error,
             "archive": {
                 "file_name": entry["file_name"],
                 "url": entry["url"],
@@ -1377,7 +1452,7 @@ class Pgda78Source:
                 "retrieved_at": entry["retrieved_at"],
                 "readme_description": readme.get(_ROI_SUFFIX),
             },
-            "members": members,
+            "members": archive.members,
             "member_note": "read in memory; nothing is extracted and links are not followed",
             "shapefiles": [layer.summary for layer in layers],
             "outlines_drawn": drawn,
