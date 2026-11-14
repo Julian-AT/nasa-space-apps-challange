@@ -23,6 +23,7 @@ import pytest
 import rasterio  # type: ignore[import-untyped]
 from affine import Affine
 from pydantic import ValidationError
+from rasterio.control import GroundControlPoint  # type: ignore[import-untyped]
 from rasterio.crs import CRS  # type: ignore[import-untyped]
 from rasterio.errors import NotGeoreferencedWarning  # type: ignore[import-untyped]
 from rasterio.transform import from_origin  # type: ignore[import-untyped]
@@ -150,6 +151,14 @@ def write_geotiff(
     return path
 
 
+def crs_as_stored(path: Path) -> str:
+    """The CRS the GeoTIFF stores, read directly with rasterio: the oracle for "as read"."""
+    with rasterio.open(path) as src:
+        wkt = src.crs.to_wkt()
+    assert isinstance(wkt, str)
+    return wkt
+
+
 def dem(tmp_path: Path, **kwargs: Any) -> Path:
     kwargs.setdefault("transform", from_origin(X0, Y0, PIXEL, PIXEL))
     target = tmp_path / "data" / "raw" / "synthetic" / "dem.tif"
@@ -168,8 +177,9 @@ def test_windowed_read_returns_shape_values_crs_transform_and_nodata(tmp_path: P
     assert window.array.dtype == np.float32
     np.testing.assert_array_equal(window.array, grid()[3:8, 2:6])
     assert window.nodata == -9999.0
-    assert window.crs == CRS.from_string(MOON_POLAR_STEREO).to_wkt()
+    assert window.crs == crs_as_stored(path)
     assert "1737400" in window.crs
+    assert 'PARAMETER["latitude_of_origin",-90]' in window.crs
     assert window.transform == Affine(PIXEL, 0.0, X0 + 2 * PIXEL, 0.0, -PIXEL, Y0 - 3 * PIXEL)
     assert (window.transform.c, window.transform.f) == (-11990.0, 7985.0)
     assert (window.col_off, window.row_off) == (2, 3)
@@ -206,6 +216,22 @@ def test_missing_crs_and_geotransform_are_none_not_assumed(tmp_path: Path) -> No
     path = write_geotiff(tmp_path / "bare.tif", grid(), crs=None, transform=None)
     window = read_geotiff_window(path, Window(1, 1, 2, 2))
     assert window.crs is None
+    assert window.transform is None
+    assert window.raster_transform is None
+
+
+def test_control_points_without_a_geotransform_give_no_transform(tmp_path: Path) -> None:
+    path = write_geotiff(tmp_path / "gcps.tif", grid(), crs=None, transform=None)
+    points = [
+        GroundControlPoint(row=0, col=0, x=X0, y=Y0),
+        GroundControlPoint(row=0, col=WIDTH, x=X0 + WIDTH * PIXEL, y=Y0),
+        GroundControlPoint(row=HEIGHT, col=0, x=X0, y=Y0 - HEIGHT * PIXEL),
+    ]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", NotGeoreferencedWarning)
+        with rasterio.open(path, "r+") as dst:
+            dst.gcps = (points, CRS.from_string(MOON_POLAR_STEREO))
+    window = read_geotiff_window(path, Window(0, 0, 2, 2))
     assert window.transform is None
     assert window.raster_transform is None
 
@@ -296,7 +322,7 @@ def test_read_product_fills_the_record_from_the_file(tmp_path: Path) -> None:
     assert record.product_id == "synthetic-dem"
     assert record.checksum == hashlib.sha256(path.read_bytes()).hexdigest()
     assert record.local_path == "data/raw/synthetic/dem.tif"
-    assert record.crs_and_frame == CRS.from_string(MOON_POLAR_STEREO).to_wkt()
+    assert record.crs_and_frame == crs_as_stored(path)
     assert record.native_grid is not None
     assert f"width={WIDTH} height={HEIGHT}" in record.native_grid
     assert "-12000.0" in record.native_grid
@@ -382,10 +408,10 @@ def test_a_file_without_crs_records_unknown_crs(tmp_path: Path) -> None:
 
 
 def test_body_is_required(tmp_path: Path) -> None:
-    value = metadata()
+    value: dict[str, Any] = dict(metadata())
     del value["body"]
     with pytest.raises(ValueError, match="body"):
-        read_product("synthetic-dem", [dem(tmp_path)], value, root=tmp_path)
+        read_product("synthetic-dem", [dem(tmp_path)], value, root=tmp_path)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -498,7 +524,7 @@ def server() -> Iterator[tuple[str, ServerState]]:
     state = ServerState()
     handler = type("Handler", (RangeHandler,), {"state": state})
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
-    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread = threading.Thread(target=httpd.serve_forever, args=(0.01,), daemon=True)
     thread.start()
     try:
         yield f"http://127.0.0.1:{httpd.server_address[1]}/payload.bin", state
