@@ -130,7 +130,11 @@
       "claim": "cn is the only class-merge helper, and it comes from the less common `cn` package rather than clsx and tailwind-merge.",
       "evidence": "apps/web/node_modules/cn/package.json lists repository github.com/shadcn-ui/cn, MIT, and the comment cites shadcn 4.x. This is a pinned exact version and is acceptable. Optionally confirm that dependency choice at merge.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "This is the dependency shadcn/ui itself ships for the chosen style. The registry item https://ui.shadcn.com/r/styles/radix-nova/utils.json (fetched 2026-11-14) lists dependencies [\"cn\"], and its lib/utils.ts is exactly `export { cn } from \"cn\"`, which apps/web/lib/utils.ts reproduces. The package is published from github.com/shadcn-ui/cn (MIT; apps/web/node_modules/cn/package.json), describes itself as a drop-in replacement for clsx and tailwind-merge, and is pinned at 0.5.2. tests/ui.test.tsx checks the behaviour the components rely on: falsy values are dropped and the later Tailwind class wins (px-2 then px-4 gives px-4). Swapping in clsx and tailwind-merge would diverge from the registry that components.json points at. The finding itself rates the choice acceptable, so no change is needed."
+      }
     },
     {
       "severity": "low",
@@ -138,7 +142,11 @@
       "claim": "Two Button/Badge classes (`disabled:opacity-50` and the 80%-opacity hover) could fall below AA contrast when shown. Disabled controls are exempt from WCAG contrast, and the hover state is not covered by a contrast test I saw.",
       "evidence": "button.tsx:16 and :20 (`hover:bg-primary/80`). Nothing renders these components yet, so there is no current impact.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "c7fa0502d89c58a6fedd85ee644729b5e96531c6",
+        "reason": "Hover and expanded states are now covered by a contrast test that derives colours from the variant classes, not a hand-kept list. tests/variant-colours.ts reads each Button and Badge variant at rest, under hover:, [a]:hover: and aria-expanded:, and in every combination of those states. Translucent fills such as hover:bg-primary/80 are composited in sRGB over each page surface (background, secondary, muted, accent) with the new composite() in tests/contrast.ts. Each case must reach 4.5:1. The 80% primary hover measures 9.19:1 on --background, 9.48:1 on --secondary/--muted and 9.92:1 on --accent, so no component class needed to change. A class the model cannot judge (opacity outside disabled:, arbitrary or non-token colours, gradients) throws instead of being skipped. Changing the Button hover to bg-primary/30 made the test fail at 1.88:1 (checked, then reverted). The disabled:opacity-50 part needs no change: WCAG 2.2 SC 1.4.3 sets no contrast requirement for text in an inactive user interface component, so the disabled state is skipped explicitly. Failing tests first in 2f5ee6b."
+      }
     }
   ]
 }
