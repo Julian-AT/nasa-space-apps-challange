@@ -5,7 +5,7 @@ import { join } from 'node:path';
 
 import { expect, vi } from 'vitest';
 
-import { loadBundle } from '../../lib/bundle.ts';
+import { type BundleEnv, loadBundle } from '../../lib/bundle.ts';
 import {
   ALL_GATES_NOT_RUN,
   type FileSet,
@@ -82,10 +82,14 @@ export function releaseBundleReader({
   return releaseReader(dir);
 }
 
-/** An app that never logs to the test output; `log` records what the API would log. */
-export function quietApi(reader: BundleReader = mockReader) {
+/**
+ * An app that never logs to the test output; `log` records what the API would log. Its
+ * environment is `env`, not process.env, so VERCEL_ENV in the shell that runs the tests changes
+ * nothing; the production mock guard has its own tests.
+ */
+export function quietApi(reader: BundleReader = mockReader, env: BundleEnv = {}) {
   const log = vi.fn<(error: unknown) => void>();
-  return { api: createApi({ reader, log }), log };
+  return { api: createApi({ reader, log, env }), log };
 }
 
 /** A file of the committed mock bundle as plain JSON, without the loader or any schema. */

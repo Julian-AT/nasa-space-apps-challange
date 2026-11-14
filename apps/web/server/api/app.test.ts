@@ -7,10 +7,18 @@ import { join } from 'node:path';
 import { createRoute, z } from '@hono/zod-openapi';
 import { describe, expect, it, vi } from 'vitest';
 
-import { BundleError, BundleFileError, loadBundle, MockBundleError } from '../../lib/bundle.ts';
+import {
+  assertDeployable,
+  BundleError,
+  type BundleEnv,
+  BundleFileError,
+  loadBundle,
+  MockBundleError,
+} from '../../lib/bundle.ts';
 import { MOCK_DIR, tempDir } from '../../tests/helpers.ts';
 import { API_BASE_PATH, type BundleReader, createApi } from './app.ts';
 import { PROBLEM_MEDIA_TYPE, ProblemSchema, VALIDATION_STATUS } from './problem.ts';
+import { RELEASE_VERSION, releaseBundleReader } from './test-support.ts';
 
 const PROBLEM_KEYS = ['detail', 'instance', 'status', 'title', 'type'];
 
@@ -218,12 +226,12 @@ describe('bundle errors', () => {
     expect(problem.detail).toContain('validation.json');
   });
 
-  it('refuses the mock bundle on production through the loader guard, serving nothing', async () => {
+  it('refuses the mock bundle on production through the loader guard with a 503, serving nothing', async () => {
     const { api, log } = quietApi(() =>
       loadBundle({ dataDir: MOCK_DIR, env: { VERCEL_ENV: 'production' } }),
     );
     const response = await api.request('/api/v1/health');
-    const problem = await expectProblem(response, 500, 'Internal Server Error');
+    const problem = await expectProblem(response, 503, 'Service Unavailable');
     expect(problem.detail).not.toContain('mock-0');
     expect(log.mock.calls[0]?.[0]).toBeInstanceOf(MockBundleError);
   });
@@ -282,5 +290,93 @@ describe('unexpected errors', () => {
     } finally {
       spy.mockRestore();
     }
+  });
+});
+
+describe('the production mock guard (T15-07)', () => {
+  /** What assertDeployable, the loader's guard, makes of the manifest under env. */
+  function guardOutcome(reader: BundleReader, env: BundleEnv): number {
+    try {
+      assertDeployable(reader().manifest, env);
+      return 200;
+    } catch (error) {
+      if (error instanceof MockBundleError) return 503;
+      if (error instanceof BundleError) return 500;
+      throw error;
+    }
+  }
+
+  const ENVS: readonly BundleEnv[] = [
+    {},
+    { VERCEL_ENV: '' },
+    { VERCEL_ENV: 'development' },
+    { VERCEL_ENV: 'preview' },
+    { VERCEL_ENV: 'production' },
+    // Not a Vercel environment: the loader refuses it for a mock rather than guessing.
+    { VERCEL_ENV: 'prod' },
+  ];
+
+  it('answers exactly as the imported assertDeployable decides, for mock and release bundles', async () => {
+    const readers: readonly [string, BundleReader][] = [
+      ['mock', mockReader],
+      ['release', releaseBundleReader()],
+    ];
+    const seen = new Set<number>();
+    for (const [name, reader] of readers) {
+      for (const env of ENVS) {
+        const expected = guardOutcome(reader, env);
+        seen.add(expected);
+        const api = createApi({ reader, env, log: () => undefined });
+        const response = await api.request('/api/v1/health');
+        expect(response.status, `${name} ${JSON.stringify(env)}`).toBe(expected);
+      }
+    }
+    // The table covers serving, the refusal and an unknown VERCEL_ENV.
+    expect([...seen].sort()).toEqual([200, 500, 503]);
+  });
+
+  it('refuses a mock that an injected reader returns, on every route that reads the bundle', async () => {
+    const log = vi.fn<(error: unknown) => void>();
+    const api = createApi({ reader: mockReader, env: { VERCEL_ENV: 'production' }, log });
+    const paths = ['/api/v1/health', '/api/v1/manifest', '/api/v1/gates', '/api/v1/targets'];
+    for (const path of paths) {
+      const response = await api.request(path);
+      const text = await response.clone().text();
+      const problem = await expectProblem(response, 503, 'Service Unavailable');
+      expect(problem.instance).toBe(path);
+      expect(response.headers.get('etag')).toBeNull();
+      expect(text).not.toContain('mock-0');
+    }
+    expect(log).toHaveBeenCalledTimes(paths.length);
+    for (const [error] of log.mock.calls) expect(error).toBeInstanceOf(MockBundleError);
+  });
+
+  it('serves a release bundle on production', async () => {
+    const api = createApi({ reader: releaseBundleReader(), env: { VERCEL_ENV: 'production' } });
+    const response = await api.request('/api/v1/health');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ bundle_version: RELEASE_VERSION });
+  });
+
+  it('reads VERCEL_ENV from process.env on each request by default', async () => {
+    const log = vi.fn<(error: unknown) => void>();
+    const api = createApi({ reader: mockReader, log });
+    try {
+      vi.stubEnv('VERCEL_ENV', 'production');
+      await expectProblem(await api.request('/api/v1/health'), 503, 'Service Unavailable');
+      vi.stubEnv('VERCEL_ENV', 'preview');
+      expect((await api.request('/api/v1/health')).status).toBe(200);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+    expect(log).toHaveBeenCalledOnce();
+  });
+
+  it('does not read the bundle for an expected problem before the guard, so 405 stays 405', async () => {
+    const reader = vi.fn<BundleReader>(mockReader);
+    const api = createApi({ reader, env: { VERCEL_ENV: 'production' }, log: () => undefined });
+    const response = await api.request('/api/v1/health', { method: 'DELETE' });
+    await expectProblem(response, 405, 'Method Not Allowed');
+    expect(reader).not.toHaveBeenCalled();
   });
 });

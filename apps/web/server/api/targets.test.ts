@@ -433,10 +433,10 @@ describe('GET /api/v1/targets/{id} in the OpenAPI document', () => {
     });
   });
 
-  it('documents 400, 404, 501 and 500 as problems and no 200', () => {
+  it('documents 400, 404, 500, 501 and 503 as problems and no 200', () => {
     const responses = operation()?.responses ?? {};
-    expect(Object.keys(responses).sort()).toEqual(['400', '404', '500', '501']);
-    for (const status of ['400', '404', '500', '501']) {
+    expect(Object.keys(responses).sort()).toEqual(['400', '404', '500', '501', '503']);
+    for (const status of ['400', '404', '500', '501', '503']) {
       expect(responses[status]).toMatchObject({
         content: {
           'application/problem+json': { schema: { $ref: '#/components/schemas/Problem' } },

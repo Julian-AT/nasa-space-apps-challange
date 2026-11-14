@@ -372,10 +372,10 @@ describe('the unavailable-data routes in the OpenAPI document', () => {
   };
 
   const ROUTES: readonly [string, string[]][] = [
-    ['/api/v1/targets/{id}/matches', ['400', '404', '500', '501']],
-    ['/api/v1/windows/{id}', ['400', '404', '500', '501']],
-    ['/api/v1/compare', ['400', '404', '500', '501']],
-    ['/api/v1/model', ['404', '500', '501']],
+    ['/api/v1/targets/{id}/matches', ['400', '404', '500', '501', '503']],
+    ['/api/v1/windows/{id}', ['400', '404', '500', '501', '503']],
+    ['/api/v1/compare', ['400', '404', '500', '501', '503']],
+    ['/api/v1/model', ['404', '500', '501', '503']],
   ];
 
   for (const [path, statuses] of ROUTES) {

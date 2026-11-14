@@ -12,7 +12,7 @@ import { PER_DEPLOY_MAX_AGE } from './cache.ts';
 import { DOCS_ALIAS_PATH } from './docs.ts';
 import { API_VERSION, openApiHandler, openApiRoute } from './openapi.ts';
 import { PROBLEM_MEDIA_TYPE, problemResponse } from './problem.ts';
-import { expectProblem, quietApi, releaseBundleReader } from './test-support.ts';
+import { expectProblem, mockReader, quietApi, releaseBundleReader } from './test-support.ts';
 
 const PATH = '/api/v1/openapi.json';
 
@@ -178,6 +178,48 @@ describe('GET /api/v1/openapi.json', () => {
     expect(Object.keys(docs).sort()).toEqual(['200', '304', '500']);
     expect(docs['200']?.content).toHaveProperty(['text/html', 'schema']);
     expect(docs['200']?.headers).toHaveProperty(['Cache-Control', 'description']);
+  });
+});
+
+describe('the production mock refusal in the document (T15-07)', () => {
+  /** The routed paths that never read the bundle: fixed per deploy. */
+  const DEPLOY_ONLY = ['/api/v1/openapi.json', '/api/v1/docs'];
+
+  /** A request URL for each documented path, with valid parameters (the ids are test-only). */
+  const SAMPLE_URLS: Readonly<Record<string, string>> = {
+    '/api/v1/targets/{id}': '/api/v1/targets/test-only-target',
+    '/api/v1/targets/{id}/matches': '/api/v1/targets/test-only-target/matches?body=earth&family=terrain',
+    '/api/v1/windows/{id}': '/api/v1/windows/test-only-window',
+    '/api/v1/compare': '/api/v1/compare?a=test-only-a&b=test-only-b',
+  };
+
+  it('documents a 503 problem on every operation that reads the bundle, and only there', async () => {
+    for (const [path, , operation] of operations(await documentOf())) {
+      const responses = operation.responses as Record<string, Json>;
+      if (DEPLOY_ONLY.includes(path)) expect(responses, path).not.toHaveProperty('503');
+      else
+        expect(responses['503'], path).toMatchObject({
+          description: expect.stringMatching(/mock/) as unknown,
+          content: { [PROBLEM_MEDIA_TYPE]: { schema: { $ref: '#/components/schemas/Problem' } } },
+        });
+    }
+  });
+
+  it('answers 503 exactly where the document lists it, for a mock bundle on production', async () => {
+    const document = await documentOf();
+    expect(operations(document).map(([path]) => path).sort()).toEqual([...ROUTED_PATHS].sort());
+    const production = createApi({
+      reader: mockReader,
+      env: { VERCEL_ENV: 'production' },
+      log: () => undefined,
+    });
+    for (const [path, , operation] of operations(document)) {
+      const response = await production.request(SAMPLE_URLS[path] ?? path);
+      const documented = Object.hasOwn(operation.responses as Json, '503');
+      expect(response.status === 503, `${path} answered ${String(response.status)}`).toBe(
+        documented,
+      );
+    }
   });
 });
 
