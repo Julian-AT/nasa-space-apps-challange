@@ -1,0 +1,160 @@
+{
+  "task_id": "T7-03",
+  "round": 5,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "c01467a693a241d06e50a3d69a873dfe7f870c7e",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "e59732f5b504bd1886defe75f945178f53e38eb63418a4ade3efba9bbfcf31c3"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "53f16081d2830fc860413763dbf57f0c506a53cd63414f979ca141f73225dcb0"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "cdd6f6b93e81a81c84dc7b11025030199d9042203538260ec271c9a3475a712f"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "d2b96f8ef179a404afd0e4b7ce17fef6cf8baa189303aa76d1b7cc2177144a0b"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "2b702bb4bc621461944df0d8eb7a7e4148795f89d7248accb7ac67ef9d88518b"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T23:38:05Z",
+  "finished_utc": "2026-11-14T23:38:46Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T7-03 round 5 passes. All five story checks exit 0. The code I read matches each criterion. The earlier codex blockers on banner and live-region checking (codex-r1-1 to codex-r4-1) stay fixed: page-check.ts's blockTree and bannerParts check the container and every live region around each banner. The only deviation is the footer wording, a literal-reading difference already rebutted, and the gzip initial-JS figure rests on the author's notes. I did not check the story's commit hashes or any input hashes. I reviewed the working tree at HEAD c01467a. I am Claude Sonnet 5.5 (claude-sonnet-5-5), reviewing with Claude Code. Report time is 2026-11-15.",
+  "checks": [
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff and mypy pass; turbo lint and typecheck report 4 successful tasks (replayed from the turbo cache)."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed; web vitest 282 passed in 11 files, including page-check.test.ts (63 tests) and site-layout.test.tsx (32); schema 157 passed. The turbo results were replayed from the cache."
+    },
+    {
+      "criterion": "Mode banner vitest",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "PASS",
+      "evidence": "1 file, 14 tests passed."
+    },
+    {
+      "criterion": "make web-build",
+      "command": "make web-build",
+      "outcome": "PASS",
+      "evidence": "next build succeeds. Route (app) lists / and /_not-found as ○ (Static)."
+    },
+    {
+      "criterion": "make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "PASS",
+      "evidence": "Output: 'GET / (prerendered) shows the mock banner, \"Shipping mode: not chosen (G0 NOT_RUN)\" and bundle version mock-0 in the footer'."
+    },
+    {
+      "criterion": "AC1: mode banner and mock banner wording",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "mode-banner.tsx:10-21 holds the PRD 4 titles and the 'line — title' format. The 14 tests in mode-banner.test.tsx pass."
+    },
+    {
+      "criterion": "AC2: layout renders skip link, mock banner, mode banner, header navigation, main and footer on every route",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "layout.tsx:28-38 renders them in order. The footer reads 'Bundle version: <v> · Schema <v>', which differs only literally from AC2's 'Bundle <bundle_version>'. It follows the recorded orchestrator decision, so I treat it as a rebutted low point (claude-r2-1 to claude-r4-1)."
+    },
+    {
+      "criterion": "AC3 and AC4: navigation links and aria-current",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "site-header.tsx:11-19 lists the seven links as plain next/link. aria-current is set at line 32. There are no links to /api/docs, /paper, /probe or /compare."
+    },
+    {
+      "criterion": "AC5: Mode B and C wording, and / keeps its T0 texts plus one factual line",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page-check.ts:12 sets HOME_LINE to the factual line and :262 requires <main> to read exactly the title plus that line."
+    },
+    {
+      "criterion": "AC6 and AC7: static rendering, page-check updated test-first, mock guard untouched",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The build shows / as static. The page-check tests pass. page-check.ts checks the mock banner, mode banner and footer as exact whole texts. The mock-in-production guard is in lib/bundle.ts, which this story did not change."
+    },
+    {
+      "criterion": "AC8: only client component is site-header.tsx, JS within budget",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "site-header.tsx has 'use client'; layout.tsx has no 'use client'. The 177,190 B gzip -9 figure from the author's notes (+3,216 B over the 173,974 B baseline, under 250 kB) is not independently reproduced, because the loop needed to measure it is not permitted."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/components/site-footer.tsx:9",
+      "claim": "AC2 reads 'Bundle <bundle_version>', but the footer reads 'Bundle version: <v> · Schema <v>'.",
+      "evidence": "web-smoke asserts 'bundle version mock-0' from T0-05's shellText, and the author cites a recorded orchestrator decision. This is a literal-reading difference only, previously rebutted as claude-r2-1, claude-r3-1 and claude-r4-1.",
+      "id": "claude-r5-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/.next/server/app/index.html",
+      "claim": "The gzip -9 initial-JS figure of 177,190 B was not independently measured.",
+      "evidence": "The measurement needs a shell loop, which the review permissions forbid. The build shows / as static and site-header.tsx is the only 'use client' file in the layout code I read.",
+      "id": "claude-r5-2",
+      "resolution": null
+    }
+  ]
+}

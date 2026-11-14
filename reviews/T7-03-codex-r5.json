@@ -1,0 +1,190 @@
+{
+  "task_id": "T7-03",
+  "round": 5,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "c01467a693a241d06e50a3d69a873dfe7f870c7e",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "e59732f5b504bd1886defe75f945178f53e38eb63418a4ade3efba9bbfcf31c3"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "53f16081d2830fc860413763dbf57f0c506a53cd63414f979ca141f73225dcb0"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "cdd6f6b93e81a81c84dc7b11025030199d9042203538260ec271c9a3475a712f"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "d2b96f8ef179a404afd0e4b7ce17fef6cf8baa189303aa76d1b7cc2177144a0b"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "2b702bb4bc621461944df0d8eb7a7e4148795f89d7248accb7ac67ef9d88518b"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T23:38:05Z",
+  "finished_utc": "2026-11-14T23:42:35Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "AC7 still has two exact-text validation gaps. The original round 1–4 reproductions are addressed. Required checks and the gzip measurement were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests first; exact mode titles, G0 status or absence, and conditional mock wording.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Test content in 642bedb precedes the banner implementation. apps/web/components/mode-banner.test.tsx:56 checks PRD wording, statuses and absent G0; mode-banner.tsx:10 supplies verbatim titles; lib/shell.ts:15 preserves missing G0 as 'not recorded' and conditions the mock text on manifest.mock."
+    },
+    {
+      "criterion": "AC2: Shared layout contains the skip link, banners, navigation, main and versioned footer.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/app/layout.tsx:23 renders all required elements around children. mock-banner.tsx:12 supplies status semantics and mock colours; globals.css:30 defines red. site-footer.tsx:9 matches the authorized 'Bundle version: <v> · Schema <v>' wording recorded in scripts/ralph/batches/t7-shell/prd.json:179."
+    },
+    {
+      "criterion": "AC3: Seven plain next/link destinations in the required order, without prohibited destinations.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/site-header.tsx:8 imports next/link; lines 11–18 define exactly the seven required destinations, rendered in array order at line 26."
+    },
+    {
+      "criterion": "AC4: Keyboard-operable navigation, visible focus ring and active-route aria-current.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "By reading: apps/web/components/site-header.tsx:26 renders ordinary links without tab-order overrides and sets aria-current through pathname equality. globals.css:67 supplies a 2px focus-visible outline. tests/site-layout.test.tsx:121 exercises each active destination and line 140 checks native link structure."
+    },
+    {
+      "criterion": "AC5: Mode B/C wording stays within PRD claims; home adds only the factual bundle line.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/mode-banner.tsx:10 matches PRD.md:168–170, including Mode C's incomplete-radar statement. apps/web/app/page.tsx:13 contains only the title and factual bundle line; the three T0 texts remain supplied by layout components."
+    },
+    {
+      "criterion": "AC6: Bundle loading and home rendering are static; existing web-smoke assertions pass.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Source uses loadBundle in apps/web/app/layout.tsx:24 and dynamic='error' in app/page.tsx:8. Static build output and a passing smoke run require execution, prohibited by this read-only review."
+    },
+    {
+      "criterion": "AC7: Test-first main-only equality preserves exact banner/footer checks and the production mock guard.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Main equality is scoped correctly at apps/web/scripts/page-check.ts:256. However, bannerParts at line 197 overlooks a non-live banner wrapper containing two paragraphs, and footers.some at line 253 accepts conflicting footer versions. Both weaken the previous whole-body protection. The production mock guard is unchanged."
+    },
+    {
+      "criterion": "AC8: Only site-header is client code; static rendering and measured initial JavaScript remain within budget.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Source inspection finds only apps/web/components/site-header.tsx:1 declaring 'use client'; it imports no bundle or provider. Notes record 177,190 B versus 173,974 B, but these figures and all prior gzip rebuttals remain independently unverified because build and measurement execution were prohibited."
+    },
+    {
+      "criterion": "Required check: make check.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox; this target invokes tooling that can write generated files or caches."
+    },
+    {
+      "criterion": "Required check: make test.",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox, including test caches."
+    },
+    {
+      "criterion": "Required check: focused mode-banner Vitest suite.",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox, including test caches."
+    },
+    {
+      "criterion": "Required check: make web-build.",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; Makefile:92 pulls bundle files and writes build artifacts."
+    },
+    {
+      "criterion": "Required check: make web-smoke.",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; Makefile:97 depends on web-build before starting the smoke server."
+    },
+    {
+      "criterion": "Prior Codex rounds 1–4: verify the original reported reproductions are addressed.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "By reading: complete-text comparisons reject the original prefix and nested-suffix cases. blockTree records enclosing live regions at apps/web/scripts/page-check.ts:156, and bannerParts checks them at line 201. Regression fixtures appear in tests/page-check.test.ts:75, 123, 187 and 209. This does not close the additional gaps reported below."
+    },
+    {
+      "criterion": "Prior Claude rebuttals concerning footer wording and permitted 404 routes.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The authorized footer wording in scripts/ralph/batches/t7-shell/prd.json:179 matches site-footer.tsx:9. AC3 explicitly permits unbuilt destinations to 404. Neither previously raised point establishes an in-scope defect."
+    },
+    {
+      "criterion": "Scope, unchanged loader and scientific guards.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The enumerated story commits touch only permitted implementation paths. The diff for apps/web/lib/bundle.ts, lib/shell.ts and config/run.yaml is empty. lib/bundle.ts:235 loads the pulled manifest and validation, repeating assertDeployable; config/run.yaml retains unresolved kickoff values as null."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "apps/web/scripts/page-check.ts:197",
+      "claim": "Preserve complete banner-container validation when a non-live red wrapper contains multiple paragraphs. AC7 remains incomplete.",
+      "evidence": "By inspection, replace MOCK_P in tests/page-check.test.ts with '<div class=\"bg-mock\"><p role=\"status\">Mock bundle — placeholder data, not results</p><p>Radar match passed</p></div>'. The wrapper has two text-bearing children, so soleTextChild stops the container walk at the first p. That p records only its own status region, and its text is exact; the unchanged mode, main and footer checks also accept the fixture. The red banner visibly contains an additional claim. Existing tests cover this bg-mock wrapper with a sibling span, but second-paragraph cases give the outer wrapper live-region semantics. Preserve the banner container's identity and add this regression.",
+      "id": "codex-r5-1",
+      "resolution": null
+    },
+    {
+      "severity": "blocker",
+      "location": "apps/web/scripts/page-check.ts:253",
+      "claim": "Reject conflicting footer versions instead of accepting any one correct footer. AC7's protected-value validation is still weakened.",
+      "evidence": "By inspection, REAL_PAGE.replace('</footer>', '</footer><footer>Bundle version: v10 · Schema 1.0.0</footer>') is accepted for bundle v1: footers.some succeeds on the original footer, while main equality and banner checks ignore the contradictory footer. T0-05's whole-body equality rejected this additional protected text. Validate an unambiguous footer/version and add a negative case containing both correct and incorrect footer versions.",
+      "id": "codex-r5-2",
+      "resolution": null
+    }
+  ]
+}
