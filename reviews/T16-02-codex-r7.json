@@ -142,7 +142,11 @@
       "claim": "Unconditional star parsing on unstarred key commands deletes prose and bypasses the linter and overlap check.",
       "evidence": "Static trace, not executed: key_arguments_end() calls star_end() for label, although label takes one ordinary argument without a starred variant ([LaTeX kernel definition](https://raw.githubusercontent.com/latex3/latex2e/develop/base/ltxref.dtx)). Thus seam\\label *less uses * as the actual label argument and renders seamless. The scanner instead consumes * as a variant marker, then consumes l as the argument; UNPRINTED_KEY_COMMANDS drops both, leaving seamess and no banned-word finding. Likewise, 'We measure the roughness of lu\\label *nar and martian terrain at baselines from' renders the existing test abstract's first 12 words but extracts luar instead of lunar, hiding the overlap. Restrict star parsing to commands that support starred variants and add extraction and consumer regressions for literal-star arguments of unstarred commands.",
       "id": "codex-r7-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "ef84417386ec519f06c54d8d380716dcb88a2469",
+        "reason": "key_arguments_end now reads a star only for STARRED_KEY_COMMANDS, the key commands that the pinned bundle v33 defines with \\@ifstar (checked in latex.ltx, hyperref.sty, nameref.sty, graphics.sty, cleveref.sty and natbib.sty), and for \\\\. Every other command reads a * as its argument, as TeX does, so seam\\label *less reads seamless (banned-word finding) and lu\\label *nar reads lunar (the 12-word run is found). Failing tests first in a21a617: extraction cases for \\label, \\nocite, \\eqref, \\citeyear and \\citenum, a lint case and an overlap case. All five checks pass (833 tests)."
+      }
     }
   ]
 }
