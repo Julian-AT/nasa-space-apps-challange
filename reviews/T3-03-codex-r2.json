@@ -90,7 +90,11 @@
       "claim": "Check representability after storage-type rounding: the current guard rejects finite rounded sentinels and breaks NaN/sentinel equivalence.",
       "evidence": "By inspection, bilinear_resample(np.full((2, 2), 65505.0, dtype=np.float16), [0.5], [0.5], nodata=65505.0) raises because 65505 exceeds float16's maximum 65504, although the source conversion rounds to finite 65504. Likewise, float32 -3.4028235e38 rounds to finite -3.4028234663852886e38 but is rejected. Convert under controlled overflow handling, reject conversions that become nonfinite, and add boundary equivalence tests.",
       "id": "codex-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "6afd4dc64ea43c2e2b8d357428749fd166445844",
+        "reason": "Confirmed at 6ea0485: the guard compared the float64 sentinel with finfo(dtype).max before rounding, so float16 65505.0 and float32 -3.4028235e38 raised ResampleError, although the band stores them as its largest finite value. 444e84d adds test_a_sentinel_near_the_largest_float_is_held_as_the_source_type_rounds_it: a 2 x 4 source holding the rounded sentinel, its neighbour toward zero and data must equal the NaN source bitwise. The 8 cases less than half an ulp beyond the largest value (float16 65505.0, int 65505, -65519.0 and nextafter(65520, 0); float32 +-3.4028235e38 and +-nextafter(2**128 - 2**103, 0)) failed. The overflow ties (float16 +-65520, float32 +-(2**128 - 2**103), int 2**128) were added to the raises test. 6afd4dc rounds to nearest, ties to even, in the source type under np.errstate(over/under=\"ignore\") and raises only when the rounded value is infinite, so no cast warning escapes. After the fix: 250 passed. A scratch mutant without the errstate fails the 8 overflow cases with RuntimeWarning, and a scratch scan of 180,200 float16/float32 values around both ends against Python struct packing (correctly rounded, independent of numpy) has 0 mismatches. The underflow counterpart, a nonzero sentinel that rounds to zero and would make every zero pixel missing, now raises too (tests ecade74, fix 075fd3e). Checks: uv run pytest pipeline/tests/test_geometry_resample.py exit 0 (275 passed); make check exit 0."
+      }
     }
   ]
 }

@@ -72,7 +72,11 @@
       "claim": "The float-range guard only covers sources up to 8 bytes. A float32 sentinel just under finfo.max may round to infinity on casting and possibly emit an overflow warning.",
       "evidence": "Seen by reading only. I did not run an edge-case probe, and the test run showed no failure.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The claim does not hold, and the code it points at is gone. (1) A sentinel at or just under finfo.max cannot round to infinity: rounding to nearest is monotone and the largest finite value is representable. The at-or-under cases of test_a_sentinel_near_the_largest_float_is_held_as_the_source_type_rounds_it (float16 65504.0, 65503.99999999999 and 65472.0; float32 max, nextafter(max, 0) and the next lower float32; float64 +-max and nextafter(max, 0)) passed against the 6ea0485 code in the 444e84d run. That module runs with filterwarnings(\"error\"), so no overflow warning was emitted. (2) The itemsize <= 8 gate was correct: every float64 is exact in a wider float, and float(np.finfo(np.longdouble).max) overflows where longdouble is wider than float64. The real boundary defect was codex-r2-1 (finite values beyond the largest one were rejected). Its fix 6afd4dc removed the guard and rounds under np.errstate for every width, raising ResampleError only when the result is infinite. Overflow ties from float16 +-65520 and float32 +-(2**128 - 2**103) pin that no cast warning escapes, and a scratch mutant without the errstate fails 8 of them with RuntimeWarning."
+      }
     }
   ]
 }
