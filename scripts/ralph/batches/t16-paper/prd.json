@@ -58,9 +58,9 @@
         "make -C paper"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "resolved",
+        "state": "passed",
         "round": 2,
         "base": "85f55c1057c5f9c3009fd43d7f5fb99687297690",
         "head": "ca0375d7e7aff3790ea6de1f4821d907d56b9fd8",
