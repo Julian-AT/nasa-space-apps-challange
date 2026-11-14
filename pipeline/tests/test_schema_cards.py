@@ -1094,7 +1094,7 @@ def test_zoom_levels_run_from_min_to_max_with_one_pixel_size_each() -> None:
     assert assert_accepted(TileLayer, one).zoom_min == 2
 
 
-def zooms_one_to_two(tile: list[object]) -> dict[str, Any]:
+def zooms_one_to_two(tile: list[Any]) -> dict[str, Any]:
     return tile_layer(zoom_min=1, metres_per_pixel_by_zoom=[10.0, 5.0], omitted_tiles=[tile])
 
 
