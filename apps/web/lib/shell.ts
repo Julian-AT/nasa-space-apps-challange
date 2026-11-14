@@ -3,6 +3,7 @@
 // one string, so React renders it as one text node.
 import type { Bundle } from './bundle.ts';
 
+export const SITE_TITLE = 'Terraluna';
 export const MOCK_BANNER = 'Mock bundle — placeholder data, not results';
 
 export interface ShellText {

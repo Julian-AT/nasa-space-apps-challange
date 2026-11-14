@@ -1,8 +1,9 @@
 // What make web-smoke asserts about the HTML of / (PRD 8.4, 8.6): the red mock banner exactly when
-// the bundle is mock, the shipping-mode line, and the bundle version in the footer. Only the
-// rendered markup counts: <script> elements, which hold the RSC payload, are removed first.
+// the bundle is mock, the shipping-mode line, the bundle version in the footer, and no other text
+// than these and the title, so no numbers, targets or claims. Only the rendered markup counts:
+// <script> elements, which hold the RSC payload, are removed first.
 import type { Bundle } from '../lib/bundle.ts';
-import { shellText } from '../lib/shell.ts';
+import { shellText, SITE_TITLE } from '../lib/shell.ts';
 
 const ENTITIES: Readonly<Record<string, string>> = {
   amp: '&',
@@ -52,6 +53,13 @@ export function pageProblems(html: string, bundle: Bundle): string[] {
     problems.push('the page has no <footer>');
   } else if (!footers.some((match) => visibleText(match[1] ?? '').includes(expected.footer))) {
     problems.push(`the footer does not show "${expected.footer}"`);
+  }
+  const body = /<body\b[^>]*>([\s\S]*)<\/body\s*>/i.exec(html)?.[1] ?? html;
+  const allowed = [expected.mockBanner, expected.shippingMode, SITE_TITLE, expected.footer]
+    .filter((line) => line !== null)
+    .join(' ');
+  if (visibleText(body) !== allowed) {
+    problems.push(`the page must show only "${allowed}", but shows "${visibleText(body)}"`);
   }
   return problems;
 }
