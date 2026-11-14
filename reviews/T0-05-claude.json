@@ -187,7 +187,11 @@
       "claim": "The `/.vscode/` ignore rule is not needed by this story, but it is harmless.",
       "evidence": "The diff for .gitignore adds `/.vscode/`, which has nothing to do with T0-05. It is allowed because .gitignore is in the story's files list.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The rule is needed for this story to reach review at all. ralph.sh dirty() is `git status --porcelain`, which lists untracked files, and an untracked .vscode/settings.json (a personal editor setting created at 19:44 local by someone else, not by this story) made the loop return T0-05 before review: prd.json notes \"ralph 2026-11-14T19:04:04Z: uncommitted changes were left\". CLAUDE.md says to preserve other workers' changes, so the file could be neither committed nor deleted. .gitignore is in the story's files, and commit a16bb75 ignores /.vscode/, which keeps the file in place (`git check-ignore -v .vscode/settings.json` prints \".gitignore:3:/.vscode/\") and the tree clean. The finding itself agrees the change is allowed and harmless. No change."
+      }
     },
     {
       "severity": "low",
@@ -195,7 +199,11 @@
       "claim": "An unknown VERCEL_ENV value, such as 'prod', makes the build fail instead of being treated as unset.",
       "evidence": "The code throws for any VERCEL_ENV other than production, preview, development or unset, and tests/bundle.test.ts:64 covers this. This is stricter than the story requires, but it fails safe.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "This is the intended fail-safe behaviour, as the finding itself notes. The guard exists so a mock bundle can never build for production (story criterion 3; PRD 8.4: the mock bundle \"uses the same schemas with mock: true; the UI shows a red banner for it and CI refuses it on production\"; PRD 8.9: production is pinned to BUNDLE_VERSION). Vercel sets VERCEL_ENV only to production, preview or development, so any other value is an operator typo. Treating \"prod\" or \" production\" as unset would build the mock for a deployment meant to be production, the exact failure the criterion forbids, while refusing it costs one clear error message naming the allowed values (lib/bundle.ts:49-58). tests/bundle.test.ts:64 pins this for \"prod\", \"Production\" and \" production\". No change."
+      }
     }
   ]
 }
