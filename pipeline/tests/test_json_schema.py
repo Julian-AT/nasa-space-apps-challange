@@ -633,6 +633,27 @@ PRODUCT_RECORD_CASES: list[tuple[str, dict[str, Any], bool]] = [
     ("url-expires", product_record(source_url="https://example.org/a?Expires=1"), False),
     ("url-fragment-token", product_record(source_url="https://example.org/a#id_token=x"), False),
     ("url-userinfo", product_record(source_url="https://user:pw@example.org/a"), False),
+    ("url-encoded-token-name", product_record(source_url="https://example.org/a?%74oken=x"), False),
+    (
+        "url-encoded-token-equals",
+        product_record(source_url="https://example.org/a?token%3Dx"),
+        False,
+    ),
+    (
+        "url-encoded-fragment-token",
+        product_record(source_url="https://example.org/a#id_t%6Fken=x"),
+        False,
+    ),
+    (
+        "url-encoded-reserved-in-query",
+        product_record(source_url="https://example.org/a?q=a%2Fb%20c%3D"),
+        True,
+    ),
+    (
+        "url-encoded-unreserved-in-path",
+        product_record(source_url="https://example.org/%7Euser/a%2Db.tif"),
+        True,
+    ),
     ("verified-unknown-units", product_record(units="unknown"), False),
     ("verified-unknown-units-capitalised", product_record(units="Unknown"), False),
     ("verified-no-checksum", product_record(checksum=None), False),
@@ -664,7 +685,9 @@ _URL_CHARACTERS = (
 
 @given(
     suffix=st.text(alphabet=_URL_CHARACTERS + " \n\u00e9", max_size=24),
-    token=st.sampled_from(["", "Signature=", "TOKEN=", "access_key", "Expires=", "sig=", "@"]),
+    token=st.sampled_from(
+        ["", "Signature=", "TOKEN=", "access_key", "Expires=", "sig=", "@", "%74oken=", "token%3D"]
+    ),
     tail=st.text(alphabet=_URL_CHARACTERS, max_size=8),
 )
 def test_source_url_verdicts_agree(suffix: str, token: str, tail: str) -> None:
@@ -677,6 +700,24 @@ def test_source_url_verdicts_agree(suffix: str, token: str, tail: str) -> None:
         assert pydantic_accepts("ProductRecord", value) is json_schema_accepts(
             "ProductRecord", value
         ), url
+
+
+def test_percent_encoded_byte_verdicts_agree() -> None:
+    """pydantic and the JSON Schema agree on every percent-encoded byte in each part of a URL."""
+    disagree = []
+    for byte in range(256):
+        for code in {f"{byte:02X}", f"{byte:02x}"}:
+            for url in (
+                f"https://example.org/a.tif?q=a%{code}b",
+                f"https://example.org/a.tif#a%{code}b",
+                f"https://example.org/a%{code}b.tif",
+            ):
+                value = product_record(source_url=url)
+                if pydantic_accepts("ProductRecord", value) is not json_schema_accepts(
+                    "ProductRecord", value
+                ):
+                    disagree.append(url)
+    assert disagree == []
 
 
 @given(units=st.text(alphabet="unkowUNKOW \n\u212a", min_size=1, max_size=9))

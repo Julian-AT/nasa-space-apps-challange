@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import json
 import re
+import string
 import typing
+import urllib.parse
 from pathlib import Path
 from typing import Any
 
@@ -339,6 +341,8 @@ PUBLIC_URLS = [
     "https://stac.astrogeology.usgs.gov/api/collections/mro_ctx_controlled_usgs_dtms",
     "https://example.org/data?page=2&limit=100#section-3",
     "https://example.org/path/with@sign/file.tif",
+    "https://example.org/search?q=a%2Fb%20c%3D%26#part%23two",
+    "https://example.org/%7Euser/a%2Db.tif",
 ]
 
 SIGNED_URLS = [
@@ -362,6 +366,14 @@ SIGNED_URLS = [
     "https://user:password@example.org/a.tif",
     "https://user@example.org/a.tif",
     "https://:password@example.org/a.tif",
+    "https://example.org/a.tif?%74oken=abc",
+    "https://example.org/a.tif?%54%4F%4B%45%4E=abc",
+    "https://example.org/a.tif?access%5Fkey=abc",
+    "https://bucket.s3.amazonaws.com/a.tif?X-Amz-Signatur%65=abc",
+    "https://d111111abcdef8.cloudfront.net/a.tif?Key%2dPair-Id=K1",
+    "https://example.org/a.tif?token%3Dabc",
+    "https://example.org/a.tif?Signature%3dabc",
+    "https://example.org/a.tif#access_t%6Fken=abc",
 ]
 
 MALFORMED_URLS = [
@@ -419,6 +431,55 @@ def test_any_case_of_a_signed_parameter_is_rejected(
     url = f"https://example.org/a.tif{separator}{prefix}{cased}{equals}x"
     assert has_url_credentials(url)
     assert_rejected(product(source_url=url), ("source_url",))
+
+
+UNRESERVED = string.ascii_letters + string.digits + "-._~"
+"""RFC 3986 2.3 unreserved characters. Percent-encoding one never changes a URL's meaning, so it
+could only hide a parameter name from the credential check."""
+
+
+def _percent_encode(text: str, how: list[str]) -> str:
+    """Percent-encode the characters of ``text`` chosen by ``how`` (keep, upper or lower hex)."""
+    out = []
+    for character, choice in zip(text, how, strict=False):
+        code = f"{ord(character):02X}"
+        out.append({"keep": character, "upper": f"%{code}", "lower": f"%{code.lower()}"}[choice])
+    return "".join(out) + text[len(how) :]
+
+
+@given(
+    token=st.sampled_from(SIGNED_URL_TOKENS),
+    flips=st.lists(st.booleans(), min_size=32, max_size=32),
+    how=st.lists(st.sampled_from(["keep", "upper", "lower"]), min_size=32, max_size=32),
+    prefix=_PARAM,
+    separator=st.sampled_from(["?", "?a=1&", "#", "?a=1#b&"]),
+)
+def test_percent_encoding_a_signed_parameter_does_not_hide_it(
+    token: str, flips: list[bool], how: list[str], prefix: str, separator: str
+) -> None:
+    cased = "".join(c.upper() if flip else c.lower() for c, flip in zip(token, flips, strict=False))
+    equals = "" if cased.endswith("=") else "="
+    url = f"https://example.org/a.tif{separator}{prefix}{_percent_encode(cased, how)}{equals}x"
+    assert cased.lower() in urllib.parse.unquote(url).lower()
+    assert has_url_credentials(url), url
+    assert_rejected(product(source_url=url), ("source_url",))
+
+
+def test_percent_encoded_unreserved_characters_are_refused_in_query_and_fragment_only() -> None:
+    """Every byte, in both hex cases, against RFC 3986 2.3: refused iff unreserved, and only after
+    ``?`` or ``#``; percent-encoding in the path is unaffected."""
+    wrong = []
+    for byte in range(256):
+        for code in {f"{byte:02X}", f"{byte:02x}"}:
+            unreserved = chr(byte) in UNRESERVED
+            for url, refused in (
+                (f"https://example.org/a.tif?q=a%{code}b", unreserved),
+                (f"https://example.org/a.tif#a%{code}b", unreserved),
+                (f"https://example.org/a%{code}b.tif", False),
+            ):
+                if has_url_credentials(url) is not refused:
+                    wrong.append(url)
+    assert wrong == []
 
 
 # --- sources.json -------------------------------------------------------------------------------

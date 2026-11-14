@@ -627,10 +627,13 @@ def test_redirect_to_a_signed_url_is_refused_before_it_is_followed(
     assert [request["path"] for request in state.requests] == ["/payload.bin"]
 
 
-def test_signed_url_is_refused_before_any_request(server: tuple[str, ServerState]) -> None:
+@pytest.mark.parametrize("query", ["?X-Amz-Signature=abc", "?%74oken=abc", "?token%3Dabc"])
+def test_signed_url_is_refused_before_any_request(
+    server: tuple[str, ServerState], query: str
+) -> None:
     url, state = server
     with pytest.raises(ValueError, match="credentials or a signature"):
-        fetch_range(url + "?X-Amz-Signature=abc", 0, 9)
+        fetch_range(url + query, 0, 9)
     assert state.requests == []
 
 
