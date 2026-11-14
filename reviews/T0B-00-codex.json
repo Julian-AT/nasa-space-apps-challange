@@ -1,0 +1,166 @@
+{
+  "task_id": "T0B-00",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "6fbfd479ecf7833aff8339b65902af41a8271a60",
+    "head": "47b67c33e18317b579d9b72134bcc83f727a01f2",
+    "files": [
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "61f7d8550476932ecbaa20c6b7d27f2cd77c024b5c26c487cce90b31eaa20ef0"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "6c4179f5ceb986df0b158dc52101299f09ecd7ec43c81aa1b0c72f28b91d02b5"
+      },
+      {
+        "path": "fixtures/schema-cases/generator-cases.json",
+        "sha256": "495d2a213909705784676432e3c906ce30f0285aeeac01d357d4ad73e117e91b"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "6fc5186d73b211ddf3ec06c34c43226a2df5c1c6992c4e9e36be3aac67b1e5dc"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "93f65a5fc3db044451a6d0336cd4ad89ffdf7b73663d4cddfe8cb640b04afc0b"
+      },
+      {
+        "path": "packages/schema/src/generated/product-record.ts",
+        "sha256": "9289591f680dc5921ef28beccb4d461be43f3a7e443245e485a5e0692053cd49"
+      },
+      {
+        "path": "packages/schema/src/generated/sources.ts",
+        "sha256": "e7214c3d67416ccb57ee5310fe5bd3649180b20a16d9bd75ee27da941a27b5a6"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "4cfda2070148bd85edfcb21f9dc2bcd3c92ae923aa74606aabb15818072c1f74"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "3ecd8fac797e42d22ac32b53cb854157f3deeb70b7e13e32b5534dd81287e84b"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "eabd3359b2cdee93a548399520e4c0df428e49f651d43d8a93155c266fcb96c4"
+      },
+      {
+        "path": "packages/schema/tests/paths.ts",
+        "sha256": "458ff2ca54c0125e5dae7287bfda94f95fe003afa38fa379ab88365e0f30e21c"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "09e529fb5201bd368b6a885c695c87f9db7d55492f0145737df31826c7ad65db"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "7277e969e8d54418d0c07b8331f116a9a74afdab66fed80de820591851e285ea"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:16:45Z",
+  "finished_utc": "2026-11-14T21:22:14Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "The required absent-condition behavior is not exercised independently of ordinary required-field rejection. The new contract-mirroring test also reads a file missing from Turbo's cache inputs. Runtime checks were not run in the read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "AC1: Record the failing baseline before changes and preserve failing tests.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "scripts/ralph/batches/t0b-contracts/prd.json:52 contains baseline details. The scoped diff preserves existing assertions, but historical execution counts and recording order cannot be independently established without relying on the author's notes. Baseline checks were not rerun because execution was prohibited."
+    },
+    {
+      "criterion": "AC2: Tests first, synthetic conditional parity including an absent condition field, unsupported-keyword rejection, shared cases, and removal of strict xfails.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "fixtures/schema-cases/generator-cases.json:40 requires status in the outer object; both absent-status cases at lines 192 and 201 expect rejection. packages/schema/tests/generate-zod.test.ts:248 checks only success, so those cases cannot establish that then remains inactive. Unsupported-keyword tests exist at generate-zod.test.ts:263; pipeline/tests/test_json_schema.py:390 removes the xfail and tests all five schemas plainly. Historical failing runs were not independently verified."
+    },
+    {
+      "criterion": "AC3: Required ProductRecord and Sources shared cases receive matching pydantic, JSON Schema, and zod verdicts.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "fixtures/schema-cases/cases.json:1497 through :2467 contains the requested variants, including the trailing-newline case at :1757. All cases feed pydantic and JSON Schema assertions at pipeline/tests/test_json_schema.py:520 and :525, and zod at packages/schema/tests/cases.test.ts:125. Evaluator agreement was not executed because checks were prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC4: Mirror CONTRACTS, faithfully translate conditionals, export schemas and types, regenerate without manual edits, and reject unsupported keywords.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "CONTRACTS entries exist at packages/schema/scripts/generate-zod.ts:55; comparison against Python is at packages/schema/tests/generate-zod.test.ts:162. Translation is at generate-zod.ts:553 and :574, and exports at packages/schema/src/index.ts:6. Both generated modules contain refinements and inferred types. Regeneration and output drift require execution, prohibited in this sandbox."
+    },
+    {
+      "criterion": "AC5: Leave schema.py and generated JSON Schemas byte-identical when using the preferred translation route.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "git ls-tree at both supplied endpoints returned identical blob IDs for schema.py and all five JSON Schemas. In particular: schema.py fca9abc12d19e0d75c91db9dadc8c409dfc4030b; product-record.schema.json c3bc1c68eed2357bff474306e1603f3209e0de87; sources.schema.json 34cf932c244e53583123ceb03d7697ee61bcdf3f."
+    },
+    {
+      "criterion": "AC6: All final checks pass and two Codex passes run.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "No final checks were run because the user prohibited execution in the read-only sandbox. scripts/ralph/batches/t0b-contracts/prd.json:53 configures codexPasses as 2; this review is round 1 and does not establish completion of both passes."
+    },
+    {
+      "criterion": "Check command: focused Python schema tests.",
+      "command": "uv run pytest pipeline/tests/test_json_schema.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because the read-only sandbox prevents dependency and test-cache writes."
+    },
+    {
+      "criterion": "Check command: schema Vitest suite.",
+      "command": "pnpm --filter @terraluna/schema test",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because the read-only sandbox prevents test-cache and temporary-file writes."
+    },
+    {
+      "criterion": "Check command: schema drift.",
+      "command": "make schema-check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; this target also generates temporary schema files."
+    },
+    {
+      "criterion": "Check command: lint and type checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Check command: complete test suites.",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because test suites and Turbo write caches and temporary files."
+    },
+    {
+      "criterion": "Check command: web build.",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; this target writes bundle copies and build artifacts."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "fixtures/schema-cases/generator-cases.json:192",
+      "claim": "The absent-condition fixtures do not exercise AC2's requirement that a missing condition field leaves then inactive.",
+      "evidence": "The outer required list at :40 includes status. Both absent-status cases at :192 and :201 therefore fail regardless of conditional behavior. The Vitest assertion at packages/schema/tests/generate-zod.test.ts:249 observes only overall success. Add a test with an independently observable inactive consequence, or directly test the condition evaluator.",
+      "id": "codex-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "medium",
+      "location": "packages/schema/tests/generate-zod.test.ts:141",
+      "claim": "Declare schema.py as a Turbo test input so cached runs cannot skip the new contract-mirroring assertion after that dependency changes.",
+      "evidence": "pythonContracts() now reads pipeline/src/terraluna_pipeline/schema.py, but turbo.json:25 hashes only package defaults and root fixtures for test tasks. A schema.py-only change leaves the schema task's cache key unchanged, allowing make test-ts to reuse an earlier result instead of checking the changed CONTRACTS.",
+      "id": "codex-r1-2",
+      "resolution": null
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "task_id": "T0B-00",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "6fbfd479ecf7833aff8339b65902af41a8271a60",
+    "head": "47b67c33e18317b579d9b72134bcc83f727a01f2",
+    "files": [
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "61f7d8550476932ecbaa20c6b7d27f2cd77c024b5c26c487cce90b31eaa20ef0"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "6c4179f5ceb986df0b158dc52101299f09ecd7ec43c81aa1b0c72f28b91d02b5"
+      },
+      {
+        "path": "fixtures/schema-cases/generator-cases.json",
+        "sha256": "495d2a213909705784676432e3c906ce30f0285aeeac01d357d4ad73e117e91b"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "6fc5186d73b211ddf3ec06c34c43226a2df5c1c6992c4e9e36be3aac67b1e5dc"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "93f65a5fc3db044451a6d0336cd4ad89ffdf7b73663d4cddfe8cb640b04afc0b"
+      },
+      {
+        "path": "packages/schema/src/generated/product-record.ts",
+        "sha256": "9289591f680dc5921ef28beccb4d461be43f3a7e443245e485a5e0692053cd49"
+      },
+      {
+        "path": "packages/schema/src/generated/sources.ts",
+        "sha256": "e7214c3d67416ccb57ee5310fe5bd3649180b20a16d9bd75ee27da941a27b5a6"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "4cfda2070148bd85edfcb21f9dc2bcd3c92ae923aa74606aabb15818072c1f74"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "3ecd8fac797e42d22ac32b53cb854157f3deeb70b7e13e32b5534dd81287e84b"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "eabd3359b2cdee93a548399520e4c0df428e49f651d43d8a93155c266fcb96c4"
+      },
+      {
+        "path": "packages/schema/tests/paths.ts",
+        "sha256": "458ff2ca54c0125e5dae7287bfda94f95fe003afa38fa379ab88365e0f30e21c"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "09e529fb5201bd368b6a885c695c87f9db7d55492f0145737df31826c7ad65db"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "7277e969e8d54418d0c07b8331f116a9a74afdab66fed80de820591851e285ea"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:16:45Z",
+  "finished_utc": "2026-11-14T21:17:31Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "I found no blocker or high finding for T0B-00 in round 1. All six story checks passed when I ran them. schema.py and the generated JSON Schemas are unchanged. The generator translates if/then and not, and still throws on else and oneOf. The shared ProductRecord and Sources cases are in place, and the xfail and WITHOUT_SHARED_CASES are removed. Commit hash, input hashes and model/tool identity are in the review envelope. I did not rerun the pre-change baseline, so that criterion rests on the progress notes.",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_json_schema.py",
+      "command": "uv run pytest pipeline/tests/test_json_schema.py",
+      "outcome": "PASS",
+      "evidence": "302 passed in 1.00s"
+    },
+    {
+      "criterion": "Check: pnpm --filter @terraluna/schema test (nine formerly failing tests green)",
+      "command": "pnpm --filter @terraluna/schema test",
+      "outcome": "PASS",
+      "evidence": "3 files passed, 297 tests passed"
+    },
+    {
+      "criterion": "Check: make schema-check (no drift)",
+      "command": "make schema-check",
+      "outcome": "PASS",
+      "evidence": "Both lines reported matches: JSON Schemas match schema.py, and zod schemas match packages/schema/json."
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff and format clean, mypy clean, turbo lint and typecheck 4 of 4 successful. The turbo tasks were cache hits."
+    },
+    {
+      "criterion": "Check: make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 972 passed, web 80 passed, schema 297 passed. The turbo tasks were cache hits, so I did not independently rerun the TypeScript tests there. The direct pnpm run above did run them."
+    },
+    {
+      "criterion": "Check: make web-build",
+      "command": "make web-build",
+      "outcome": "PASS",
+      "evidence": "The next build compiled and generated the static routes / and /_not-found."
+    },
+    {
+      "criterion": "Baseline recorded in notes before changes (9 failures, make schema-check, 'unsupported keyword \"if\"')",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The progress.txt entry for T0B-00 records 9 failed | 148 passed, 2 problems from make schema-check, the generator error text, and 2 strict xfails. I did not rerun the pre-change base. The 94-failed run before implementation is also recorded there."
+    },
+    {
+      "criterion": "Failing tests first: generator if/then tests, shared cases and removal of the xfail and WITHOUT_SHARED_CASES",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The test commits 5348cdc and 17faa25 precede the implementation commit f265b19. The pytest diff removes the xfail and WITHOUT_SHARED_CASES, and test_every_schema_has_accepted_and_rejected_cases is now a plain parametrize over SCHEMA_FILES. generate-zod.test.ts has else and oneOf throw cases (lines 264-279)."
+    },
+    {
+      "criterion": "Shared cases cover the required ProductRecord and Sources verdicts for pydantic, the JSON Schema oracle and zod",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "jq of cases.json lists the 30 ProductRecord and 7 Sources cases. They cover VERIFIED valid; non-VERIFIED with null path and checksum valid; unknown units with a non-VERIFIED status valid; VERIFIED with null local_path, null checksum, and unknown, Unknown and UNKNOWN units invalid; extra field; missing field; checksum of 63 characters; uppercase checksum; empty string; Sources empty, one record, one invalid entry, and object. The trailing-newline case 'unknown\\n' is valid, and the progress notes say all three evaluators agree."
+    },
+    {
+      "criterion": "generate-zod.ts: CONTRACTS mirrors schema.py, if/then translated, generated modules and exports include ProductRecord and Sources, unsupported keywords still raise",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "generate-zod.ts:36-67 lists five contracts. A test at generate-zod.test.ts:162 compares them with schema.py. translateConditional is at generate-zod.ts:574 and assertConditional at :266. product-record.ts and sources.ts are generated and exported from index.ts. make schema-check shows no drift."
+    },
+    {
+      "criterion": "schema.py and the generated JSON Schemas untouched",
+      "command": "git diff 6fbfd47..47b67c3 -- pipeline/src packages/schema/json",
+      "outcome": "PASS",
+      "evidence": "The diff is empty."
+    },
+    {
+      "criterion": "Scope: files changed stay within the story's files list",
+      "command": "git diff --stat",
+      "outcome": "PASS",
+      "evidence": "Every changed path is under packages/schema, fixtures/schema-cases or pipeline/tests. The only other changes are the orchestrator-owned prd.json and progress.txt."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "packages/schema/scripts/generate-zod.ts:589",
+      "claim": "The then-branch is applied per property by safeParse inside superRefine, with only a generic issue message. The verdicts are equivalent, but the zod error detail from the nested schema is lost.",
+      "evidence": "Lines 589-600: ctx.addIssue uses a fixed message and discards the nested issues. Accept/reject parity is tested through the shared and generator cases, so this is diagnostics only.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "packages/schema/README.md",
+      "claim": "The README does not mention the trailing-newline case ('unknown' followed by a newline), which is valid on all three evaluators. It may sit in fixtures/schema-cases/README.md instead, but I did not confirm that.",
+      "evidence": "A search of packages/schema/README.md for 'newline' found no match.",
+      "id": "claude-r1-2",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t0b-contracts/progress.txt",
+      "claim": "The implementer proposes that the turbo test task hash schema.py, because a cache hit can be stale for the contract-mirror test. This is a risk outside the story's files.",
+      "evidence": "The progress.txt Learnings entry. The turbo-cached runs of make check and make test above did not rerun the tests, so the orchestrator may want to force a rerun at merge.",
+      "id": "claude-r1-3",
+      "resolution": null
+    }
+  ]
+}
