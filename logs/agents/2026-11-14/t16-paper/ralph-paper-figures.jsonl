@@ -2634,3 +2634,13 @@
 {"ts":"2026-11-14T22:26:09Z","agent":"ralph-paper-figures","story":"T16-02","event":"tool_use","tool":"Bash","input":"grep -n 'Only those (and' scripts/ralph/batches/t16-paper/progress.txt | cut -c1-80; grep -o 'Only those (and [^)]*)' scripts/ralph/batches/t16-paper/progress.txt"}
 {"ts":"2026-11-14T22:26:09Z","agent":"ralph-paper-figures","story":"T16-02","event":"tool_result","is_error":false}
 {"ts":"2026-11-14T22:26:09Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":43,"total_cost_usd":1.7381118000000002,"permission_denials":0}
+{"ts":"2026-11-14T22:30:49Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:31:52Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:33:54Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:36:57Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:40:59Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:46:01Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:52:03Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T22:59:04Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T23:07:06Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
+{"ts":"2026-11-14T23:16:08Z","agent":"ralph-paper-figures","story":"T16-02","event":"result","subtype":"success","num_turns":1,"total_cost_usd":0,"permission_denials":0}
