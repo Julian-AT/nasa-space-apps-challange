@@ -61,4 +61,4 @@ ml:
 web:
   bundle_version: null
   asset_base: null
-  cop30_mode: null
+  cop30_mode: proxy  # G0-03: headless Chrome on the preview origin could not read either COG (no CORS headers); see outputs/g0/web-evidence.json

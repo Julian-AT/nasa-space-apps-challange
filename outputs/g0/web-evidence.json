@@ -1,0 +1,336 @@
+{
+  "browser": {
+    "network_capture": "Chrome DevTools Protocol Network events (requestWillBeSentExtraInfo, responseReceivedExtraInfo, loadingFailed) on the preview page target; fetch() run in the page context with Runtime.evaluate",
+    "product": "Chrome/156.0.8078.80",
+    "revision": "@fb096c0011f9d50f0a264a9376420cdea9c421e3",
+    "tool": "agent-browser 0.41.0 (CDP), headless",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36"
+  },
+  "cors_tests": [
+    {
+      "access_control_allow_origin": null,
+      "access_control_expose_headers": null,
+      "browser_allowed": false,
+      "bytes_readable": false,
+      "cdp_loading_failed": {
+        "canceled": false,
+        "corsErrorStatus": {
+          "corsError": "MissingAllowOriginHeader",
+          "failedParameter": ""
+        },
+        "errorText": "net::ERR_FAILED",
+        "type": "Fetch"
+      },
+      "content_range_on_wire": "bytes 0-16383/19059689",
+      "content_range_readable": false,
+      "diagnostic_curl": {
+        "get_with_origin_and_range": {
+          "access_control_allow_origin": null,
+          "status": 206
+        },
+        "label": "diagnostic server-side curl, not counted as the browser result",
+        "preflight_options": {
+          "body_message": "CORSResponse: CORS is not enabled for this bucket.",
+          "request_headers": {
+            "Access-Control-Request-Headers": "range",
+            "Access-Control-Request-Method": "GET",
+            "Origin": "https://terraluna-54w2hfz9z-julianats-projects.vercel.app"
+          },
+          "status": 403
+        }
+      },
+      "fetch_call": {
+        "cache": "no-store",
+        "headers": {
+          "Range": "bytes=0-16383"
+        },
+        "method": "GET",
+        "mode": "cors"
+      },
+      "fetch_result": {
+        "content_range_readable_by_js": null,
+        "error": "TypeError: Failed to fetch",
+        "status_visible_to_js": null
+      },
+      "name": "copernicus_glo30",
+      "page_origin": "https://terraluna-54w2hfz9z-julianats-projects.vercel.app",
+      "preflight_sent": false,
+      "provider_verification": {
+        "bucket_listing": "https://copernicus-dem-30m.s3.amazonaws.com/?list-type=2&prefix=Copernicus_DSM_COG_10_N64_00_W017_00_DEM/",
+        "object": {
+          "etag": "1905a35c9588b63fef3213f45bc02cb1",
+          "key": "Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+          "last_modified": "2022-05-09T14:41:24.000Z",
+          "size_bytes": 19059689
+        },
+        "registry": "https://registry.opendata.aws/copernicus-dem/ (datasets/copernicus-dem.yaml: GLO-30 Public, arn:aws:s3:::copernicus-dem-30m, eu-central-1)",
+        "tile_extent": "64-65 N, 17-16 W (1 degree tile named by its south-west corner); contains Holuhraun"
+      },
+      "request_headers_on_wire": {
+        "Accept": "*/*",
+        "Accept-Encoding": "identity",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Host": "copernicus-dem-30m.s3.amazonaws.com",
+        "Origin": "https://terraluna-54w2hfz9z-julianats-projects.vercel.app",
+        "Pragma": "no-cache",
+        "Range": "bytes=0-16383",
+        "Referer": "https://terraluna-54w2hfz9z-julianats-projects.vercel.app/",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "cross-site",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "response_headers_on_wire": {
+        "Accept-Ranges": "bytes",
+        "Content-Length": "16384",
+        "Content-Range": "bytes 0-16383/19059689",
+        "Content-Type": "image/tiff",
+        "Date": "Sat, 14 Nov 2026 21:42:27 GMT",
+        "ETag": "\"1905a35c9588b63fef3213f45bc02cb1\"",
+        "Last-Modified": "Mon, 09 May 2022 14:41:24 GMT",
+        "Server": "AmazonS3",
+        "x-amz-id-2": "iumpnkHHjorr16DjAuHGL9sg9hO8ZBB1WvQ8PeyT3a8CXMUotPS3igTfDXWDQ4NwGq25vSGI7N9tftnm+rMtZORgEh3Iwg/r",
+        "x-amz-request-id": "A4D3JVC2HBPK8M32",
+        "x-amz-version-id": "null"
+      },
+      "response_status_on_wire": 206,
+      "started_at_utc": "2026-11-14T21:42:25.995Z",
+      "supplementary_get_without_range": {
+        "access_control_allow_origin": null,
+        "browser_allowed": false,
+        "cdp_loading_failed": {
+          "canceled": false,
+          "corsErrorStatus": {
+            "corsError": "MissingAllowOriginHeader",
+            "failedParameter": ""
+          },
+          "errorText": "net::ERR_FAILED",
+          "type": "Fetch"
+        },
+        "error": "TypeError: Failed to fetch",
+        "purpose": "a request without Range, to show whether the bucket sends Access-Control-Allow-Origin at all",
+        "response_status_on_wire": 200
+      },
+      "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "verdict": "proxy"
+    },
+    {
+      "access_control_allow_origin": null,
+      "access_control_expose_headers": null,
+      "browser_allowed": false,
+      "bytes_readable": false,
+      "cdp_loading_failed": {
+        "canceled": false,
+        "corsErrorStatus": {
+          "corsError": "MissingAllowOriginHeader",
+          "failedParameter": ""
+        },
+        "errorText": "net::ERR_FAILED",
+        "type": "Fetch"
+      },
+      "content_range_on_wire": "bytes 0-16383/38079044",
+      "content_range_readable": false,
+      "diagnostic_curl": {
+        "get_with_origin_and_range": {
+          "access_control_allow_origin": null,
+          "status": 206
+        },
+        "label": "diagnostic server-side curl, not counted as the browser result",
+        "preflight_options": {
+          "body_message": "CORSResponse: CORS is not enabled for this bucket.",
+          "request_headers": {
+            "Access-Control-Request-Headers": "range",
+            "Access-Control-Request-Method": "GET",
+            "Origin": "https://terraluna-54w2hfz9z-julianats-projects.vercel.app"
+          },
+          "status": 403
+        }
+      },
+      "fetch_call": {
+        "cache": "no-store",
+        "headers": {
+          "Range": "bytes=0-16383"
+        },
+        "method": "GET",
+        "mode": "cors"
+      },
+      "fetch_result": {
+        "content_range_readable_by_js": null,
+        "error": "TypeError: Failed to fetch",
+        "status_visible_to_js": null
+      },
+      "name": "esa_worldcover",
+      "page_origin": "https://terraluna-54w2hfz9z-julianats-projects.vercel.app",
+      "preflight_sent": false,
+      "provider_verification": {
+        "bucket_listing": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/?list-type=2&prefix=v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018",
+        "note": "No v200/2021 object has the prefix ...N64W018 (KeyCount 0); N63W018 is the tile covering N64W018.",
+        "object": {
+          "etag": "042d6956a4963f356b4b6dddb0316e80-5",
+          "key": "v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif",
+          "last_modified": "2022-10-26T13:03:03.000Z",
+          "size_bytes": 38079044
+        },
+        "registry": "https://registry.opendata.aws/esa-worldcover-vito/ (datasets/esa-worldcover-vito.yaml: arn:aws:s3:::esa-worldcover, eu-central-1)",
+        "tile_extent": "63-66 N, 18-15 W (3 degree tile named by its south-west corner); contains Holuhraun"
+      },
+      "request_headers_on_wire": {
+        "Accept": "*/*",
+        "Accept-Encoding": "identity",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Host": "esa-worldcover.s3.eu-central-1.amazonaws.com",
+        "Origin": "https://terraluna-54w2hfz9z-julianats-projects.vercel.app",
+        "Pragma": "no-cache",
+        "Range": "bytes=0-16383",
+        "Referer": "https://terraluna-54w2hfz9z-julianats-projects.vercel.app/",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "cross-site",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not:A-Brand\";v=\"8\", \"Chromium\";v=\"156\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"macOS\""
+      },
+      "response_headers_on_wire": {
+        "Accept-Ranges": "bytes",
+        "Content-Length": "16384",
+        "Content-Range": "bytes 0-16383/38079044",
+        "Content-Type": "binary/octet-stream",
+        "Date": "Sat, 14 Nov 2026 21:42:30 GMT",
+        "ETag": "\"042d6956a4963f356b4b6dddb0316e80-5\"",
+        "Last-Modified": "Wed, 26 Oct 2022 13:03:03 GMT",
+        "Server": "AmazonS3",
+        "x-amz-id-2": "fvrjUoZetWRrKzKW8rw8AZq0cJM4q1l6aEXk/oqGiIKNDtW8+vCugWYzTEWSCP90aoQlaUcehaLyylwT+8Wbf4Srng4JBZw+",
+        "x-amz-request-id": "DJZKWYSJJS1YC8KR",
+        "x-amz-server-side-encryption": "AES256"
+      },
+      "response_status_on_wire": 206,
+      "started_at_utc": "2026-11-14T21:42:29.347Z",
+      "supplementary_get_without_range": {
+        "access_control_allow_origin": null,
+        "browser_allowed": false,
+        "cdp_loading_failed": {
+          "canceled": false,
+          "corsErrorStatus": {
+            "corsError": "MissingAllowOriginHeader",
+            "failedParameter": ""
+          },
+          "errorText": "net::ERR_FAILED",
+          "type": "Fetch"
+        },
+        "error": "TypeError: Failed to fetch",
+        "purpose": "a request without Range, to show whether the bucket sends Access-Control-Allow-Origin at all",
+        "response_status_on_wire": 200
+      },
+      "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif",
+      "verdict": "proxy"
+    }
+  ],
+  "implications": {
+    "cop30_mode": "proxy",
+    "worldcover_live_check": "proxy"
+  },
+  "kind": "G0 web evidence: mock bundle on a Vercel preview, and browser-origin CORS for Copernicus GLO-30 and ESA WorldCover COGs",
+  "other_deployments": [
+    {
+      "deployment_id": "dpl_36AYEYTRHoncYZk9zX2DVt2ub2t4",
+      "environment": "production",
+      "git_commit_sha": "9dcac3d6ef6929ac77c05f612b7ff79c0b4a4076",
+      "git_dirty": true,
+      "note": "First deployment of the new project; Vercel always makes the first deployment production, even with --target=preview. bundle:pull refused the mock (\"refusing mock bundle mock-0: its manifest has mock=true and VERCEL_ENV=production\"), so the build failed and nothing was served.",
+      "ready_state": "ERROR",
+      "url": "https://terraluna-9pm7ccztc-julianats-projects.vercel.app"
+    },
+    {
+      "deployment_id": "dpl_89vyXTQ1kfVpK3y6E7nCnNRXnS4e",
+      "environment": "preview",
+      "git_dirty": true,
+      "note": "Preview of the same config before it was committed; superseded by dpl_4aA273Jqwwab3pcSCwTcjsy6VLkq.",
+      "ready_state": "READY",
+      "url": "https://terraluna-isdql32jo-julianats-projects.vercel.app"
+    }
+  ],
+  "preview": {
+    "build": {
+      "BUNDLE_VERSION": "unset",
+      "VERCEL_ENV": "preview",
+      "build": "export NEXT_TELEMETRY_DISABLED=1 && pnpm run bundle:pull && pnpm run build",
+      "bundle_pull_log": "bundle:pull: copied manifest.json and validation.json from fixtures/mock-bundle (bundle_version mock-0, mock) to /vercel/path0/apps/web/data",
+      "install": "pnpm install --frozen-lockfile (pnpm v12.16.1 from package.json#packageManager)",
+      "next": "Next.js 16.4.6 (Turbopack); / prerendered as static content"
+    },
+    "created_at_utc": "2026-11-14T21:39:04.201Z",
+    "deployment_id": "dpl_4aA273Jqwwab3pcSCwTcjsy6VLkq",
+    "environment": "preview",
+    "git_branch": "ralph/integration",
+    "git_commit_sha": "b1585ec26d4d1a983be15790946d41afa323e1b6",
+    "git_dirty": false,
+    "inspector_url": "https://vercel.com/julianats-projects/terraluna/4aA273Jqwwab3pcSCwTcjsy6VLkq",
+    "protection": "Vercel Authentication (Standard Protection) on previews; unauthenticated GET / returns 302. Checks used the project Protection Bypass for Automation secret (generated by `vercel curl`); the secret is not recorded.",
+    "ready_at_utc": "2026-11-14T21:39:22.848Z",
+    "ready_state": "READY",
+    "url": "https://terraluna-54w2hfz9z-julianats-projects.vercel.app"
+  },
+  "recorded_at_utc": "2026-11-14T21:43:42+00:00",
+  "root_checks": {
+    "checks": [
+      {
+        "check": "red mock banner \"Mock bundle — placeholder data, not results\"",
+        "pass": true
+      },
+      {
+        "check": "shipping-mode line \"Shipping mode: not chosen (G0 NOT_RUN)\"",
+        "pass": true
+      },
+      {
+        "check": "bundle version in footer \"Bundle version: mock-0\"",
+        "pass": true
+      },
+      {
+        "check": "apps/web/scripts/page-check.ts pageProblems (the make web-smoke assertions) against the mock bundle",
+        "pass": true,
+        "problems": []
+      }
+    ],
+    "footer_markup": "<footer style=\"margin:0;padding:0.5rem 1rem\">Bundle version: mock-0</footer>",
+    "header_markup": "<header><p style=\"margin:0;padding:0.75rem 1rem;background:#b91c1c;color:#ffffff;font-weight:700\">Mock bundle — placeholder data, not results</p><p style=\"margin:0;padding:0.5rem 1rem\">Shipping mode: not chosen (G0 NOT_RUN)</p></header>",
+    "html_bytes": 5626,
+    "html_sha256": "2d9b86639676693efb08f071020fd23d8a3c1fa7d1512fd9a4d53cb6468b0da4",
+    "method": "curl -H x-vercel-protection-bypass GET https://terraluna-54w2hfz9z-julianats-projects.vercel.app/",
+    "rendered_in_headless_browser": {
+      "banner_text": "Mock bundle — placeholder data, not results",
+      "footer_text": "Bundle version: mock-0"
+    },
+    "response_headers": {
+      "content-type": "text/html; charset=utf-8",
+      "date": "Sat, 14 Nov 2026 21:39:54 GMT",
+      "x-matched-path": "/",
+      "x-nextjs-prerender": "1",
+      "x-robots-tag": "noindex",
+      "x-vercel-cache": "PRERENDER"
+    },
+    "status": 200,
+    "visible_text": "Terraluna Mock bundle — placeholder data, not results Shipping mode: not chosen (G0 NOT_RUN) Terraluna Bundle version: mock-0"
+  },
+  "vercel_project": {
+    "config_in_repo": [
+      "apps/web/vercel.json",
+      ".vercelignore"
+    ],
+    "framework": "nextjs",
+    "git_connected": false,
+    "id": "prj_wro0H4iubxgQDDISvRzxldprof1Z",
+    "name": "terraluna",
+    "node_version": "22.x",
+    "root_directory": "apps/web",
+    "source_files_outside_root_directory": true,
+    "team": "julianats-projects"
+  }
+}
