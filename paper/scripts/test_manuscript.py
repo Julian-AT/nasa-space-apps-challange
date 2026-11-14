@@ -517,6 +517,40 @@ def test_includegraphics_rule(path: str, allowed: bool) -> None:
     assert (disallowed_graphics(text) == []) is allowed
 
 
+# graphicx also has a starred form and an old form with two optional bounding-box arguments. A
+# command whose path cannot be read, such as a macro instead of a braced path, must fail.
+@pytest.mark.parametrize(
+    ("text", "allowed"),
+    [
+        ("\\includegraphics{figures/generated/map.pdf}", True),
+        ("\\includegraphics*{figures/generated/map.pdf}", True),
+        ("\\includegraphics*[viewport=0 0 10 10,clip]{figures/generated/map.pdf}", True),
+        ("\\includegraphics [width=\\linewidth]\n  {figures/generated/map.pdf}", True),
+        ("\\includegraphics[0,0][10,10]{figures/generated/map.pdf}", True),
+        ("\\includegraphicsfoo{../other.pdf}", True),
+        ("\\includegraphics*{../external.pdf}", False),
+        ("\\includegraphics * [clip] {figures/map.pdf}", False),
+        ("\\includegraphics*[0,0][10,10]{figures/generated/map.png}", False),
+        ("\\includegraphics[a][b][c]{figures/generated/map.pdf}", False),
+        ("\\includegraphics\\figurepath", False),
+        ("\\includegraphics{\\figurepath}", False),
+        ("\\includegraphics{{figures/generated/map}.pdf}", False),
+    ],
+)
+def test_includegraphics_forms(text: str, allowed: bool) -> None:
+    assert (disallowed_graphics(text) == []) is allowed
+
+
+def test_every_disallowed_includegraphics_is_reported() -> None:
+    text = (
+        "\\includegraphics{figures/generated/a.pdf}\n"
+        "\\includegraphics*{b.pdf}\n"
+        "% \\includegraphics*{commented.pdf}\n"
+        "\\includegraphics\\c\n"
+    )
+    assert disallowed_graphics(text) == ["b.pdf", "\\includegraphics\\c"]
+
+
 def test_raster_image_rule_finds_every_raster_suffix(tmp_path: Path) -> None:
     for suffix in sorted(RASTER_SUFFIXES):
         (tmp_path / "nested").mkdir(exist_ok=True)
