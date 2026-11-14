@@ -367,6 +367,14 @@ describe('LabelledValue', () => {
     ['a minus sign', '−'],
     ['NaN', Number.NaN],
     ['infinity', Number.POSITIVE_INFINITY],
+    ['the text N/A', 'N/A'],
+    ['the text NA', ' na '],
+    ['the text NaN', 'NaN'],
+    ['the text null', 'null'],
+    ['the text undefined', 'undefined'],
+    ['the text none', 'None'],
+    ['the text unknown', 'unknown'],
+    ['a question mark', '?'],
   ] as const)('refuses %s as a value, because missing evidence is labelled Unavailable', (_, value) => {
     expect(() =>
       render(<LabelledValue label="Observed" value={value} unit="test-unit" source="test-source" />),
