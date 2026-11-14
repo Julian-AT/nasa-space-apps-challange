@@ -5,7 +5,9 @@ root. Network and computation are separate:
 
 - ``fetch`` is the only command that uses the network. It writes only to ``data/raw/<source>/``
   (git-ignored): the provider's files and pages, plus ``fetch.json`` with the retrieval time,
-  URLs, HTTP status and byte counts. Files are staged in a hidden directory there and moved into
+  URLs, HTTP status and byte counts. A file at or over the 200 MB whole-file limit is never
+  downloaded: a GeoTIFF is read by window through HTTP range requests, and only the byte
+  ranges read are stored (``<file>.ranges``), so ``record`` can decode the window offline. Files are staged in a hidden directory there and moved into
   place only when every download succeeded, so a failed fetch leaves an earlier one intact.
   ``fetch.json`` is written last; without it the raw data counts as missing.
 - ``record`` reads only ``data/raw/<source>/`` and writes the committed outputs: its
@@ -55,16 +57,26 @@ from affine import Affine
 from PIL import Image, ImageDraw
 from pydantic import TypeAdapter
 from rasterio.crs import CRS  # type: ignore[import-untyped]
+from rasterio.windows import Window  # type: ignore[import-untyped]
 
 from terraluna_pipeline.export import canonical_json
 from terraluna_pipeline.io import (
+    RANGE_BLOCK_BYTES,
     WHOLE_FILE_LIMIT_BYTES,
+    ByteRanges,
     DownloadError,
     FetchedFile,
+    FileTooLargeError,
     ProductMetadata,
+    RangeFetcher,
+    RangeReadError,
     RasterWindow,
+    RemoteWindow,
     fetch_file,
+    fetch_range,
+    read_geotiff_tags,
     read_product,
+    read_remote_geotiff_window,
     sha256_file,
 )
 from terraluna_pipeline.quality import InvalidReason, ValidityMask, valid_fraction, validity_mask
@@ -74,6 +86,11 @@ RAW_DIR: Final = Path("data/raw")
 SOURCES_PATH: Final = "outputs/sources.json"
 FETCH_METADATA: Final = "fetch.json"
 COMMAND: Final = "python -m terraluna_pipeline.pilot"
+RANGE_WINDOW_PIXELS: Final = 1024
+"""The side, in pixels, of the centred window read by range from a file over the whole-file limit.
+
+At PGDA78's 5 m spacing this is 5.12 km, about the 5 km window of PRD 6.1.
+"""
 
 
 class PilotError(RuntimeError):
@@ -109,12 +126,18 @@ class Build:
 
 
 class Source(Protocol):
-    """One pilot source: a network fetch into its raw directory and an offline build."""
+    """One pilot source: a network fetch into its raw directory and an offline build.
+
+    ``download`` fetches a whole file below the whole-file limit (``io.fetch_file``) and
+    ``read_range`` sends one HTTP range request (``io.fetch_range``), for windowed reads.
+    """
 
     @property
     def name(self) -> str: ...
 
-    def fetch(self, raw_dir: Path, download: Downloader, now: Clock) -> None: ...
+    def fetch(
+        self, raw_dir: Path, download: Downloader, read_range: RangeFetcher, now: Clock
+    ) -> None: ...
 
     def build(self, raw_dir: Path, root: Path) -> Build: ...
 
@@ -183,6 +206,51 @@ def _fetch_entry(fetched: FetchedFile, retrieved_at: datetime, **extra: Any) -> 
         "sha256": fetched.sha256,
         "retrieved_at": utc_timestamp(retrieved_at),
     }
+
+
+_RANGES_SUFFIX: Final = ".ranges"
+"""The local file holding the byte ranges of a file read by window, named after that file."""
+
+
+def _window_entry(
+    remote: RemoteWindow, local_name: str, retrieved_at: datetime, **extra: Any
+) -> dict[str, Any]:
+    """The fetch.json entry of a GeoTIFF read by window: its byte ranges are in ``local_name``."""
+    col_off, row_off, width, height = remote.window
+    return {
+        **extra,
+        "read": "window",
+        "file_name": local_name,
+        "url": remote.url,
+        "final_url": remote.final_url,
+        "http_status": remote.status,
+        "content_type": remote.content_type,
+        "remote_bytes": remote.ranges.size,
+        "bytes_received": remote.bytes_received,
+        "range_requests": remote.requests,
+        "ranges": [[first, last] for first, last in remote.ranges.ranges],
+        "window": {"col_off": col_off, "row_off": row_off, "width": width, "height": height},
+        "raster_width": remote.raster_width,
+        "raster_height": remote.raster_height,
+        "last_modified": remote.last_modified,
+        "etag": remote.etag,
+        "sha256": hashlib.sha256(remote.ranges.data).hexdigest(),
+        "retrieved_at": utc_timestamp(retrieved_at),
+    }
+
+
+def _is_window_read(entry: Mapping[str, Any]) -> bool:
+    """Whether a fetch.json file entry was read by window; a whole download has no ``read``."""
+    read = entry.get("read")
+    if read not in (None, "window"):
+        raise PilotError(f"fetch.json lists {entry.get('file_name')!r} with read {read!r}")
+    return read == "window"
+
+
+def _provider_name(entry: Mapping[str, Any]) -> str:
+    """The file name on the provider's server (a window read stores it under another name)."""
+    name = entry["provider_file_name"] if _is_window_read(entry) else entry["file_name"]
+    return _safe_file_name(str(name), FETCH_METADATA)
 
 
 def _load_fetch(raw_dir: Path, name: str) -> dict[str, Any]:
@@ -294,12 +362,18 @@ def fetch(
     root: Path | None = None,
     sources: Mapping[str, Source] | None = None,
     download: Downloader | None = None,
+    read_range: RangeFetcher | None = None,
     now: Clock | None = None,
 ) -> None:
     """Download ``name``'s files into data/raw/<name>/; the only command using the network."""
     source = _source(name, sources)
     raw_dir = _raw_dir(Path.cwd() if root is None else root, name)
-    source.fetch(raw_dir, fetch_file if download is None else download, now or utc_now)
+    source.fetch(
+        raw_dir,
+        fetch_file if download is None else download,
+        fetch_range if read_range is None else read_range,
+        now or utc_now,
+    )
 
 
 def expected_outputs(
@@ -376,6 +450,7 @@ def main(
     root: Path | None = None,
     sources: Mapping[str, Source] | None = None,
     download: Downloader | None = None,
+    read_range: RangeFetcher | None = None,
     now: Clock | None = None,
 ) -> int:
     registry = SOURCES if sources is None else sources
@@ -393,7 +468,14 @@ def main(
     command, name = str(args.command), str(args.source)
     try:
         if command == "fetch":
-            fetch(name, root=root, sources=registry, download=download, now=now)
+            fetch(
+                name,
+                root=root,
+                sources=registry,
+                download=download,
+                read_range=read_range,
+                now=now,
+            )
             print(f"{name}: fetched into data/raw/{name}/")
         elif command == "record":
             changed = record(name, root=root, sources=registry)
@@ -413,7 +495,7 @@ def main(
                 )
                 return 1
             print(f"{name}: committed outputs match data/raw/{name}/")
-    except (PilotError, DownloadError, OSError, ValueError) as error:
+    except (PilotError, DownloadError, RangeReadError, OSError, ValueError) as error:
         print(f"{command} {name}: {error}", file=sys.stderr)
         return 1
     return 0
@@ -824,12 +906,20 @@ class Pgda78Source:
 
     The file list comes from the provider's pages: the README at data/LOLA_5mpp/ defines what
     each file-name suffix holds, and the data index and the product 78 page link the Site01
-    files. Only the height, count, slope and error GeoTIFFs and the ROI archive are fetched,
-    whole and only below the 200 MB limit; never the clones, the point cloud or the 87S mosaic.
+    files. Only the height, count, slope and error GeoTIFFs and the ROI archive are fetched;
+    never the clones, the point cloud or the 87S mosaic. A file is downloaded whole only below
+    ``whole_file_limit_bytes`` (200 MB). A GeoTIFF at or over it is read by window instead: the
+    centred ``window_pixels`` square, through HTTP range requests in ``range_block_bytes``
+    blocks, and only the byte ranges read are stored. Every GeoTIFF is then decoded on that same
+    window, so the record describes the window. An ROI archive over the limit is not fetched,
+    because a gzip tar cannot be read by window; the record says so.
     """
 
     base_url: str = "https://pgda.gsfc.nasa.gov/"
     site: str = "Site01"
+    whole_file_limit_bytes: int = WHOLE_FILE_LIMIT_BYTES
+    window_pixels: int = RANGE_WINDOW_PIXELS
+    range_block_bytes: int = RANGE_BLOCK_BYTES
 
     @property
     def name(self) -> str:
@@ -893,13 +983,15 @@ class Pgda78Source:
             links[name] = url
         return links, deeper
 
-    def fetch(self, raw_dir: Path, download: Downloader, now: Clock) -> None:
+    def fetch(
+        self, raw_dir: Path, download: Downloader, read_range: RangeFetcher, now: Clock
+    ) -> None:
         raw_dir.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=raw_dir, prefix=".fetch-") as staging_name:
             staging = Path(staging_name)
             documents = []
             for role, url, file_name in self._documents():
-                fetched = download(url, staging / file_name, max_bytes=WHOLE_FILE_LIMIT_BYTES)
+                fetched = download(url, staging / file_name, max_bytes=self.whole_file_limit_bytes)
                 documents.append(_fetch_entry(fetched, now(), role=role))
             readme = _parse_readme(_decode(staging / "README"))
             missing = [role.suffix for role in _GEOTIFF_ROLES if role.suffix not in readme]
@@ -936,25 +1028,57 @@ class Pgda78Source:
                 raise PilotError(f"expected at most one {self.site} ROI archive, found {rois}")
             selected += [("roi_shapefiles", name, _GZIP_MAGIC) for name in rois]
             files = []
+            roi_not_fetched: dict[str, Any] | None = None
             for role, name, magic in selected:
-                fetched = download(
-                    listed[name]["url"],
-                    staging / name,
-                    max_bytes=WHOLE_FILE_LIMIT_BYTES,
-                    magic=magic,
-                )
-                files.append(
-                    _fetch_entry(fetched, now(), role=role, listed_by=listed[name]["listed_by"])
-                )
+                url, listed_by = listed[name]["url"], listed[name]["listed_by"]
+                try:
+                    fetched = download(
+                        url, staging / name, max_bytes=self.whole_file_limit_bytes, magic=magic
+                    )
+                except FileTooLargeError as refused:
+                    if role == "roi_shapefiles":
+                        roi_not_fetched = {
+                            "file_name": name,
+                            "url": url,
+                            "listed_by": listed_by,
+                            "reason": (
+                                f"{refused}; a gzip tar archive cannot be read by window, so it "
+                                "was not fetched and the ROI outlines are missing"
+                            ),
+                        }
+                        continue
+                    remote = read_remote_geotiff_window(
+                        url,
+                        self._centre_window,
+                        fetch=read_range,
+                        block_bytes=self.range_block_bytes,
+                        max_bytes=self.whole_file_limit_bytes,
+                    )
+                    local_name = f"{name}{_RANGES_SUFFIX}"
+                    (staging / local_name).write_bytes(remote.ranges.data)
+                    files.append(
+                        _window_entry(
+                            remote,
+                            local_name,
+                            now(),
+                            role=role,
+                            listed_by=listed_by,
+                            provider_file_name=name,
+                            whole_file_refused=str(refused),
+                        )
+                    )
+                    continue
+                files.append(_fetch_entry(fetched, now(), role=role, listed_by=listed_by))
             chosen = {name for _, name, _ in selected}
             metadata = {
                 "source": self.name,
                 "product": self.product,
                 "command": f"{COMMAND} fetch {self.name}",
-                "whole_file_limit_bytes": WHOLE_FILE_LIMIT_BYTES,
+                "whole_file_limit_bytes": self.whole_file_limit_bytes,
                 "documents": documents,
                 "files": files,
                 "roi_archive_listed": bool(rois),
+                "roi_archive_not_fetched": roi_not_fetched,
                 "listed_not_fetched": [
                     {
                         "file_name": name,
@@ -973,6 +1097,11 @@ class Pgda78Source:
             for entry in [*documents, *files]:
                 os.replace(staging / entry["file_name"], raw_dir / entry["file_name"])
             _write_atomically(raw_dir / FETCH_METADATA, canonical_json(metadata))
+
+    def _centre_window(self, width: int, height: int) -> Window:
+        """The centred ``window_pixels`` square (smaller only where the raster is smaller)."""
+        side_x, side_y = min(self.window_pixels, width), min(self.window_pixels, height)
+        return Window((width - side_x) // 2, (height - side_y) // 2, side_x, side_y)
 
     # -- build --
 
@@ -999,7 +1128,8 @@ class Pgda78Source:
                 f"run: {COMMAND} fetch {self.name}"
             )
         attribution = self._attribution(product_text, readme_text)
-        names = {role.key: files[role.key]["file_name"] for role in _GEOTIFF_ROLES}
+        names = {role.key: _provider_name(files[role.key]) for role in _GEOTIFF_ROLES}
+        window = self._decoded_window(files)
 
         decoded: dict[str, _Decoded] = {}
         entries: list[dict[str, Any]] = []
@@ -1007,18 +1137,30 @@ class Pgda78Source:
             fetch_entry = files[role.key]
             description = readme[role.suffix]
             units = role.units if role.units_phrase in description else UNKNOWN
-            item = self._decode(raw_dir, root, role, fetch_entry, units, attribution, names, readme)
+            item = self._decode(
+                raw_dir, root, role, fetch_entry, units, attribution, names, readme, window
+            )
             decoded[role.key] = item
-            entries.append(self._file_entry(role, fetch_entry, description, units, item))
+            entries.append(self._file_entry(role, fetch_entry, description, units, item, window))
 
         height = decoded["height"]
-        transform, _, extent = _grid(height.band, raw_dir / names["height"])
+        _, _, extent = _grid(height.band, raw_dir / names["height"])
+        # The decoded array's own transform: the window's, or the raster's for a whole read.
+        transform = height.band.transform
+        assert transform is not None, "_grid refuses a file without a geotransform"
         for entry, role in zip(entries, _GEOTIFF_ROLES, strict=True):
             entry["grid_matches_height"] = _same_grid(decoded[role.key].band, height.band)
         support = self._effective_support(height, decoded["lola_return_count"], names)
 
         roi, layers, roi_record = self._roi(
-            raw_dir, root, files, height, extent, attribution, readme
+            raw_dir,
+            root,
+            files,
+            height,
+            extent,
+            attribution,
+            readme,
+            fetched.get("roi_archive_not_fetched"),
         )
         heights = height.band.array[height.mask.valid]
         low, high = float(np.min(heights)), float(np.max(heights))
@@ -1030,19 +1172,25 @@ class Pgda78Source:
         verification: dict[str, dict[str, str]] = {}
         for role in _GEOTIFF_ROLES:
             item = decoded[role.key]
+            how = (
+                f"read by window through HTTP range requests (the centred window "
+                f"{window['width']} x {window['height']} pixels; the file is not downloaded)"
+                if _is_window_read(files[role.key]) and window is not None
+                else "downloaded"
+            )
             if role.key == "height" and item.record.units != UNKNOWN:
                 record = ProductRecord.model_validate(
                     {**item.record.model_dump(), "verification_status": "VERIFIED"}
                 )
                 records[_GEOTIFF_ROLES.index(role)] = record
                 basis = (
-                    "downloaded, decoded, masked with quality.validity_mask and plotted in the "
+                    f"{how}, decoded, masked with quality.validity_mask and plotted in the "
                     "preview PNG, as the PRD 5 entry rule requires"
                 )
             else:
                 record = item.record
                 basis = (
-                    "downloaded, decoded and masked with quality.validity_mask; not plotted, so "
+                    f"{how}, decoded and masked with quality.validity_mask; not plotted, so "
                     "the PRD 5 entry rule is not complete"
                     if role.key != "height"
                     else "the README states no units for the height map"
@@ -1120,12 +1268,13 @@ class Pgda78Source:
             "files": entries,
             "listed_not_fetched": fetched["listed_not_fetched"],
             "subfolder_files_not_fetched": fetched["subfolder_files_not_fetched"],
+            "decoded_window": window,
             "dem_valid_fraction": entries[0]["valid"]["valid_fraction"],
             "effective_support": support,
             "roi": roi,
             "preview": preview,
             "verification": verification,
-            "field_notes": self._field_notes(),
+            "field_notes": self._field_notes(windowed=window is not None),
             "tool_versions": tool_versions(),
         }
         files_out = {
@@ -1202,18 +1351,22 @@ class Pgda78Source:
         attribution: str,
         names: Mapping[str, str],
         readme: Mapping[str, str],
+        window: Mapping[str, int] | None,
     ) -> _Decoded:
         path = raw_dir / str(fetch_entry["file_name"])
         metadata = self._metadata(role, str(fetch_entry["url"]), units, attribution, names, readme)
+        ranges = self._ranges(path, fetch_entry) if _is_window_read(fetch_entry) else None
         bands, record = read_product(
-            f"{self.product}/{fetch_entry['file_name']}", [path], metadata, root=root
+            f"{self.product}/{_provider_name(fetch_entry)}",
+            [path],
+            metadata,
+            root=root,
+            window=None if window is None else Window(**window),
+            ranges=ranges,
         )
         if len(bands) != 1:
-            raise PilotError(f"{path} has {len(bands)} bands; the README describes one map")
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", rasterio.errors.NotGeoreferencedWarning)
-            with rasterio.open(path) as src:
-                tags = {str(k): str(v) for k, v in src.tags().items()}
+            raise PilotError(f"{path.name} has {len(bands)} bands; the README describes one map")
+        tags = read_geotiff_tags(path, ranges=ranges)
         band = bands[0]
         return _Decoded(
             band=band,
@@ -1222,6 +1375,41 @@ class Pgda78Source:
             tags=tags,
         )
 
+    def _ranges(self, path: Path, entry: Mapping[str, Any]) -> ByteRanges:
+        """The byte ranges a window read stored in ``path``, as fetch.json describes them."""
+        try:
+            return ByteRanges(
+                name=_provider_name(entry),
+                size=int(entry["remote_bytes"]),
+                ranges=tuple((int(first), int(last)) for first, last in entry["ranges"]),
+                data=path.read_bytes(),
+            )
+        except ValueError as error:
+            raise PilotError(
+                f"data/raw/{self.name}/{FETCH_METADATA} describes the byte ranges in {path.name} "
+                f"wrongly ({error}); run: {COMMAND} fetch {self.name}"
+            ) from error
+
+    def _decoded_window(self, files: Mapping[str, Mapping[str, Any]]) -> dict[str, int] | None:
+        """The window every GeoTIFF is decoded on: None, or the one the window reads share."""
+        windows = [
+            files[role.key]["window"] for role in _GEOTIFF_ROLES if _is_window_read(files[role.key])
+        ]
+        if not windows:
+            return None
+        keys = {"col_off", "row_off", "width", "height"}
+        if any(
+            not isinstance(window, dict)
+            or set(window) != keys
+            or not all(type(value) is int for value in window.values())
+            for window in windows
+        ) or any(window != windows[0] for window in windows):
+            raise PilotError(
+                f"the GeoTIFFs read by window in data/raw/{self.name}/{FETCH_METADATA} do not "
+                f"share one window; run: {COMMAND} fetch {self.name}"
+            )
+        return {key: int(windows[0][key]) for key in ("col_off", "row_off", "width", "height")}
+
     def _file_entry(
         self,
         role: _Role,
@@ -1229,10 +1417,39 @@ class Pgda78Source:
         description: str,
         units: str,
         item: _Decoded,
+        window: Mapping[str, int] | None,
     ) -> dict[str, Any]:
         band = item.band
-        path_name = str(fetch_entry["file_name"])
+        path_name = _provider_name(fetch_entry)
+        windowed = _is_window_read(fetch_entry)
         _, pixel, extent = _grid(band, Path(path_name))
+        decoded_window = None
+        if window is not None:
+            t = band.transform
+            assert t is not None, "_grid refuses a file without a geotransform"
+            decoded_window = {
+                **window,
+                "extent_m": {
+                    "left": float(t.c),
+                    "top": float(t.f),
+                    "right": float(t.c + t.a * window["width"]),
+                    "bottom": float(t.f + t.e * window["height"]),
+                },
+            }
+        range_read = None
+        if windowed:
+            range_read = {
+                "local_path": item.record.local_path,
+                "bytes_received": fetch_entry["bytes_received"],
+                "local_sha256": item.record.checksum,
+                "range_requests": fetch_entry["range_requests"],
+                "range_count": len(fetch_entry["ranges"]),
+                "whole_file_refused": fetch_entry["whole_file_refused"],
+                "sha256_note": (
+                    "the whole file was not downloaded, so its SHA-256 is unknown; local_sha256 "
+                    "is that of the byte ranges held in local_path"
+                ),
+            }
         fraction = valid_fraction(item.mask)
         counts = item.mask.reason_counts()
         values = band.array[item.mask.valid]
@@ -1250,8 +1467,11 @@ class Pgda78Source:
             "final_url": fetch_entry["final_url"],
             "listed_by": fetch_entry["listed_by"],
             "local_path": item.record.local_path,
-            "bytes": fetch_entry["bytes_received"],
-            "sha256": item.record.checksum,
+            "read": "window" if windowed else "whole",
+            "range_read": range_read,
+            "decoded_window": decoded_window,
+            "bytes": fetch_entry["remote_bytes"] if windowed else fetch_entry["bytes_received"],
+            "sha256": UNKNOWN if windowed else item.record.checksum,
             "http_status": fetch_entry["http_status"],
             "content_type": fetch_entry["content_type"],
             "last_modified": fetch_entry["last_modified"],
@@ -1352,8 +1572,28 @@ class Pgda78Source:
         extent: Mapping[str, float],
         attribution: str,
         readme: Mapping[str, str],
+        not_fetched: Mapping[str, Any] | None,
     ) -> tuple[dict[str, Any], list[_RoiLayer], ProductRecord | None]:
         entry = files.get("roi_shapefiles")
+        if entry is None and not_fetched is not None:
+            reason = str(not_fetched["reason"])
+            return (
+                {
+                    "status": "not_fetched",
+                    "reason": reason,
+                    "archive": {
+                        "file_name": not_fetched["file_name"],
+                        "url": not_fetched["url"],
+                        "listed_by": not_fetched["listed_by"],
+                    },
+                    "members": [],
+                    "shapefiles": [],
+                    "outlines_drawn": False,
+                    "outlines_not_drawn_reason": reason,
+                },
+                [],
+                None,
+            )
         if entry is None:
             reason = (
                 f"no {self.site} *{_ROI_SUFFIX} archive is linked from {self.index_url} or "
@@ -1460,8 +1700,13 @@ class Pgda78Source:
         }
         return roi, layers, record
 
-    def _field_notes(self) -> dict[str, str]:
-        return {
+    def _field_notes(self, *, windowed: bool) -> dict[str, str]:
+        notes = {
+            "decoded_window": (
+                "null when every GeoTIFF was decoded whole. Otherwise a file was at or over the "
+                "whole-file limit and was read by window: every GeoTIFF is decoded on that "
+                "centred window, and every count, fraction and the preview describe it only"
+            ),
             "version": "unknown: the README and the product 78 page state no version",
             "acquisition_time": (
                 "unknown for the GeoTIFFs: the LOLA acquisition times are in the point cloud "
@@ -1482,6 +1727,12 @@ class Pgda78Source:
                 "native_grid, effective_resolution and qa_definition are null for vector outlines"
             ),
         }
+        if windowed:
+            notes["checksum"] = (
+                "for a GeoTIFF read by window, the ProductRecord checksum and local_path are "
+                "those of the stored byte ranges (files[].range_read), not of the whole file"
+            )
+        return notes
 
 
 SOURCES: Mapping[str, Source] = {"pgda78": Pgda78Source()}

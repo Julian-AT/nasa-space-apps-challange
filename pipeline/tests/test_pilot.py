@@ -616,7 +616,8 @@ def test_a_tampered_range_cache_is_refused(tmp_path: Path) -> None:
         windowed_sources(),
     )
     cache = root / "data/raw/pgda78" / (SURF + ".ranges")
-    cache.write_bytes(cache.read_bytes()[:-1] + b"\x00")
+    data = cache.read_bytes()
+    cache.write_bytes(data[:-1] + bytes([data[-1] ^ 0xFF]))
     with pytest.raises(pilot.PilotError, match=re.escape("fetch.json")):
         pilot.record("pgda78", root=root, sources=windowed_sources())
 
