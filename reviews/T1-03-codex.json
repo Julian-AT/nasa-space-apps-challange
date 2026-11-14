@@ -1,0 +1,126 @@
+{
+  "task_id": "T1-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "d29b39401856a7b32b2a0a91d6d04a8dc665cfb5",
+    "head": "1d7d3c442e33e8326f4d305c7ca383f3bc45ed35",
+    "files": [
+      {
+        "path": "outputs/pilot/pgda78_site01.json",
+        "sha256": "da87029ef9f89b462b511015a966684a3936783aec94da5ad0a574972cc56217"
+      },
+      {
+        "path": "outputs/pilot/pgda78_site01_preview.png",
+        "sha256": "14fbda66fbc3f9457d7131dccc2831e168e41ac524d8791fa46acbe8757e1e74"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "0257788fcc33ec393c2f01b1dea9015f887e71bbbe9961eb313e4a2044a3c503"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "d683fbe3ba9a56410352e00a15e1d074c2ec014a928375db54df3145f98e65c9"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "cf1e841a6c5e740a8aadb53d9dd5bbbd5fa1a5113955caf51dfdfc3adc13e1c4"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "fe6b874b2389588daf04cb63da60dc4f4b580b43ee4b6ce9de0f99f9403d81bf"
+      },
+      {
+        "path": "pipeline/tests/test_io_fetch_file.py",
+        "sha256": "03e7ff8d12e224999d6ecda06c9f4c89888be68d54872484e80ce07010a07558"
+      },
+      {
+        "path": "pipeline/tests/test_pilot.py",
+        "sha256": "36ca549b7cbe8464e1a956494a416d1acf92cd2550ff810e963520ed6130a15f"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "8a9310efabedc9284f7d5d5d5a1d939097b3cedd8d6207ea53ccc1adbae01479"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:46:54Z",
+  "finished_utc": "2026-11-14T19:50:33Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Two required behaviors are missing: windowed range reads for large files and recording a reason when ROI shapefiles cannot be decoded. Requested checks were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: CLI separation, deterministic offline record/check, mismatch detection, missing-data guidance, and behavioral tests.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Implementation inspected at pipeline/src/terraluna_pipeline/pilot.py:282–419. Tests cover deterministic bytes, unchanged files, and refused network access at pipeline/tests/test_pilot.py:683–687, 763–804, and 813–827. Runtime behavior was not verified because execution was prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC2: Discover Site01 products from provider documentation, limit whole-file downloads, use windowed range reads for larger files, and exclude the 87S mosaic.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pipeline/src/terraluna_pipeline/pilot.py:837–889 discovers and selects Site01 files but sends every selected file through the whole-file downloader. pipeline/src/terraluna_pipeline/io.py:593–594 rejects files at or above 200,000,000 bytes; there is no range-read fallback. pipeline/tests/test_pilot.py:411–419 explicitly expects rejection."
+    },
+    {
+      "criterion": "AC3: Real-file pilot metadata, decoded validity and support fractions, retrieval provenance, tool versions, preview, and ROI handling.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The committed JSON contains the requested metadata and support counts; the PNG was visually inspected. Pillow and pyshp are declared and locked. However, pipeline/src/terraluna_pipeline/pilot.py:644–645 raises on shapefile decoding failures, and the call at line 1309 has no fallback that records missing outlines and a reason. Real numerical results and byte-for-byte regeneration were not executed."
+    },
+    {
+      "criterion": "AC4: Schema-validated, sorted ProductRecords with deterministic upserts and truthful fetch-failure handling.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Schema validation, replacement, and sorting are implemented at pipeline/src/terraluna_pipeline/pilot.py:241–265. Six Site01 records are present in outputs/sources.json. Tests exercise fetch failures and upserts at pipeline/tests/test_pilot.py:377–408 and 720–757. Execution and runtime schema validation were prohibited."
+    },
+    {
+      "criterion": "AC5: Only small files committed; no GeoTIFF or tgz committed; preview at most 200 KB; data/raw ignored.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The scoped diff contains nine files, all within the story's allowed paths, with no GeoTIFF or tgz additions. git ls-tree reports the preview as 80,833 bytes, pilot JSON as 25,301 bytes, and sources.json as 9,943 bytes; data/ has no tracked entries. .gitignore contains /data/."
+    },
+    {
+      "criterion": "Required pipeline test suite.",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run: the user explicitly prohibited checks in the read-only sandbox, where dependency and test-cache writes can fail."
+    },
+    {
+      "criterion": "Required real-data pilot consistency check.",
+      "command": "uv run python -m terraluna_pipeline.pilot check pgda78",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run: the user explicitly prohibited checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not run: the user explicitly prohibited checks in the read-only sandbox, where tool-cache writes can fail."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/pilot.py:881",
+      "claim": "Large Site01 files abort fetch instead of using the required windowed range-read path.",
+      "evidence": "Every selected product calls download with max_bytes=WHOLE_FILE_LIMIT_BYTES. io.py:593–594 and 617–618 raise FileTooLargeError, which propagates to a nonzero CLI exit without attempting range reads. test_pilot.py:411–419 enshrines this rejection. AC2 requires larger files to be read by windowed range read.",
+      "id": "codex-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/pilot.py:644",
+      "claim": "An unreadable ROI shapefile prevents the entire record from being produced instead of recording missing outlines and their reason.",
+      "evidence": "_read_layer converts reader failures into PilotError at lines 644–645. _roi calls it through _read_roi_archive at line 1309 without recovery, so expected_outputs fails before record writes the DEM metadata or preview. Existing ROI tests cover absent archives, missing projection files, and differing CRSs, but no decoding failure. AC3 explicitly requires the record to explain unavailable outlines.",
+      "id": "codex-r1-2",
+      "resolution": null
+    }
+  ]
+}

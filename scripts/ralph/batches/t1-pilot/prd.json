@@ -135,12 +135,18 @@
       "priority": 3,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "d29b39401856a7b32b2a0a91d6d04a8dc665cfb5",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "1d7d3c442e33e8326f4d305c7ca383f3bc45ed35",
+        "files": [
+          "reviews/T1-03-claude.json",
+          "reviews/T1-03-codex.json"
+        ],
+        "digests": {
+          "reviews/T1-03-claude.json": "ee660ec5a787836e6cf0592060234710a230a00eaa53787905a6eadd07afbc10",
+          "reviews/T1-03-codex.json": "ec48cc45af04abdb89917d77a7346fa8d7cbc942c2ada1c430fa45fcf8c4d2e9"
+        }
       },
       "notes": "Reviewer findings applied: offline gate with fetch/record/check split, required preview PNG, upsert. Engineering choice: Pillow and pyshp are the candidate dependencies, picked by the author and added in this story."
     },
