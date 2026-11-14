@@ -1,4 +1,4 @@
-"""Numerical polarimetry: decoding, angles, Stokes conversion and validity (PRD 6.2, 7, 8.11).
+"""Numerical polarimetry: decoding, angles, circular powers, block statistics (PRD 6.2, 7, 8.11).
 
 This module is the numerical contract of PRD section 7. Every function works elementwise on
 float64 arrays, or per pixel on one 3x3 complex covariance per pixel, and returns
@@ -12,6 +12,9 @@ Conventions that hold for every function here:
 - An element that is not ``VALID`` holds NaN in ``value``, and its meaning is carried only by
   ``state`` and ``reason``. NaN never stands for zero, and 0.0 never stands for missing.
 - Analytical quantities are in linear power; dB is for display and summaries only (PRD 6.2).
+  dB values come only from :func:`to_db_for_display`, tagged as :class:`DecibelArray`, which no
+  analysis function accepts. Block statistics aggregate linear powers first and derive ratios
+  afterwards (:func:`aggregate_blocks`).
 - Nothing is repaired, clipped or regularized: no epsilon is added to a denominator (PRD 7).
 - Work is in float64 (PRD 8.8), and inputs must be finite and supported (PRD 7). An element
   whose result float64 cannot hold is ``INVALID`` with reason ``FLOAT64_OUT_OF_RANGE``, and the
@@ -19,23 +22,26 @@ Conventions that hold for every function here:
   smallest normal float64 (underflowed to zero, or a subnormal without full precision). No
   other numerical range is imposed.
 - Product validity and noise flags enter only through explicit arguments, such as ``nodata``,
-  the noise flags of :func:`x_power` and ``product_masked`` of :func:`circular_from_stokes`
-  and :func:`circular_from_covariance` (PRD 7: keep the product's flags). Array arguments
-  are plain numpy arrays (memory-mapped ones included), scalars, or lists and tuples of them
-  nested to any depth, all matched by exact type. A numpy masked array is refused with
-  TypeError wherever it appears, because converting it to an array drops its mask and a masked
-  element would be read as an observation. Any other type is refused as well, whether it
-  converts through ``__array__``, is a custom sequence, a subclass of list, tuple or a scalar
-  type, or a third-party ndarray subclass, since its conversion can drop a mask in the same
-  way; the caller converts it and passes its mask as a flag.
+  the noise flags of :func:`x_power`, ``product_masked`` of :func:`circular_from_stokes`
+  and :func:`circular_from_covariance`, and ``validity_mask`` of :func:`derive_circular`
+  (PRD 7: keep the product's flags). Array arguments are plain numpy arrays (memory-mapped
+  ones included), scalars, or lists and tuples of them nested to any depth, all matched by
+  exact type. A numpy masked array is refused with TypeError wherever it appears, because
+  converting it to an array drops its mask and a masked element would be read as an
+  observation. Any other type is refused as well, whether it converts through ``__array__``,
+  is a custom sequence, a subclass of list, tuple or a scalar type, or a third-party ndarray
+  subclass, since its conversion can drop a mask in the same way; the caller converts it and
+  passes its mask as a flag.
 """
 
 from __future__ import annotations
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import IntEnum, StrEnum
-from typing import Any, Final, Literal
+from types import MappingProxyType
+from typing import Any, Final, Literal, cast, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -45,28 +51,40 @@ __all__ = [
     "CIRCULAR_BASIS",
     "COVARIANCE_HH_HV_VV",
     "COVARIANCE_HH_SQRT2HV_VV",
+    "COVARIANCE_INPUT",
     "INTERNAL_ANGLE_UNIT",
     "MINIRF_SIS_CONVENTION",
     "NEISH_SC_LL_CONVENTION",
     "OPPOSITE_SC_CONVENTION",
     "PALSAR2_CALIBRATION_OFFSET_DB",
+    "PRIMARY_RADAR_STATISTIC",
     "REASON_DTYPE",
     "STATE_DTYPE",
+    "STOKES_INPUT",
     "AngleUnit",
+    "BlockAggregates",
+    "BlockSupport",
     "CircularPowers",
     "CovarianceCircularPowers",
+    "CovarianceInput",
     "CovarianceOrdering",
+    "DecibelArray",
     "HandednessConvention",
+    "InputKind",
     "InvalidReason",
     "ObsState",
     "StatedArray",
     "StokesConvention",
+    "StokesInput",
     "Tolerance",
+    "aggregate_blocks",
     "angle_to_degrees",
     "circular_from_covariance",
     "circular_from_stokes",
     "decode_db",
     "decode_linear",
+    "derive_circular",
+    "to_db_for_display",
     "x_power",
 ]
 
@@ -156,6 +174,15 @@ class InvalidReason(StrEnum):
     BASE_SC_NONPOSITIVE = "BASE_SC_NONPOSITIVE"
     """base_SC is zero or negative, so the handedness ratio ``(Im D + Im E) / base_SC`` is
     unavailable (state ``INVALID``). No epsilon is added."""
+
+    BLOCK_NO_VALID_PIXELS = "BLOCK_NO_VALID_PIXELS"
+    """A block has no pixel that a block statistic may use, so the statistic is unavailable.
+    The state is ``MISSING`` where every pixel of the block is missing and ``INVALID``
+    otherwise; the block's support record counts the pixels by state and reason."""
+
+    DB_OF_NONPOSITIVE = "DB_OF_NONPOSITIVE"
+    """A zero or negative linear value has no finite dB value, so none is shown (state
+    ``INVALID``). The linear value itself may be valid; only its display in dB is not."""
 
 
 STATE_DTYPE: Final = np.dtype(np.uint8)
@@ -1400,4 +1427,618 @@ def circular_from_covariance(
         convention=convention,
         ordering=ordering,
         tolerance=tolerance,
+    )
+
+
+# --- derive_circular: one interface for Stokes and covariance input (PRD 8.11) ---------------
+
+InputKind = Literal["STOKES", "COVARIANCE"]
+"""Input kinds :func:`derive_circular` accepts; none is assumed."""
+
+STOKES_INPUT: Final[Literal["STOKES"]] = "STOKES"
+"""Stokes parameters (:class:`StokesInput`), converted by :func:`circular_from_stokes`."""
+
+COVARIANCE_INPUT: Final[Literal["COVARIANCE"]] = "COVARIANCE"
+"""A real or complex 3x3 covariance per pixel (:class:`CovarianceInput`), converted by
+:func:`circular_from_covariance`."""
+
+_INPUT_KINDS: Final[tuple[str, ...]] = (STOKES_INPUT, COVARIANCE_INPUT)
+
+
+@dataclass(frozen=True, slots=True)
+class StokesInput:
+    """Stokes parameters for :func:`derive_circular`, in the product's linear power units.
+
+    ``s1`` and ``s4`` are real arrays of one shape. ``s2`` and ``s3`` are given together with
+    that shape, or both as ``None`` where the product has no such fields; all four must be
+    stated, so a product with all four cannot skip the full Stokes test by omission. The arrays
+    are read and checked when :func:`derive_circular` runs (:func:`circular_from_stokes`).
+    """
+
+    s1: npt.ArrayLike
+    s4: npt.ArrayLike
+    s2: npt.ArrayLike | None
+    s3: npt.ArrayLike | None
+
+
+@dataclass(frozen=True, slots=True)
+class CovarianceInput:
+    """A covariance for :func:`derive_circular`: one 3x3 matrix per pixel, shape ``(..., 3, 3)``.
+
+    ``ordering`` declares the scattering-vector ordering the matrices are stored in,
+    :data:`COVARIANCE_HH_HV_VV` (as UAVSAR stores it) or :data:`COVARIANCE_HH_SQRT2HV_VV`;
+    anything else raises ValueError here. The matrices are read and checked when
+    :func:`derive_circular` runs (:func:`circular_from_covariance`).
+    """
+
+    covariance: npt.ArrayLike
+    ordering: CovarianceOrdering
+
+    def __post_init__(self) -> None:
+        _check_ordering(self.ordering)
+
+
+def _validity_flags(validity_mask: npt.ArrayLike) -> npt.NDArray[np.bool_]:
+    """Return the product's validity mask as a boolean array, or raise TypeError.
+
+    Masked arrays and inputs whose conversion could drop a mask are refused
+    (:func:`_require_plain`), and so is any dtype other than bool: an integer or float mask has
+    no declared polarity.
+    """
+    _require_plain("validity_mask", validity_mask)
+    flags = np.asarray(validity_mask)
+    if flags.dtype != np.bool_:
+        raise TypeError(
+            f"validity_mask must be a boolean array, True where the product marks a pixel "
+            f"valid, got {flags.dtype}"
+        )
+    return flags
+
+
+@overload
+def derive_circular(
+    input_kind: Literal["STOKES"],
+    data: StokesInput,
+    convention: StokesConvention,
+    validity_mask: npt.ArrayLike,
+    *,
+    tolerance: Tolerance = ...,
+) -> CircularPowers: ...
+
+
+@overload
+def derive_circular(
+    input_kind: Literal["COVARIANCE"],
+    data: CovarianceInput,
+    convention: HandednessConvention,
+    validity_mask: npt.ArrayLike,
+    *,
+    tolerance: Tolerance = ...,
+) -> CovarianceCircularPowers: ...
+
+
+def derive_circular(
+    input_kind: InputKind,
+    data: StokesInput | CovarianceInput,
+    convention: StokesConvention | HandednessConvention,
+    validity_mask: npt.ArrayLike,
+    *,
+    tolerance: Tolerance = ARITHMETIC_TOLERANCE,
+) -> CircularPowers | CovarianceCircularPowers:
+    """Derive SC, OC and CPR in linear units from Stokes or covariance input (PRD 8.11).
+
+    One interface for both radar inputs; it wraps the conversions and adds no rule of its own:
+
+    - :data:`STOKES_INPUT` with a :class:`StokesInput` and a Stokes convention
+      (:data:`MINIRF_SIS_CONVENTION`) runs :func:`circular_from_stokes` and returns its
+      :class:`CircularPowers`;
+    - :data:`COVARIANCE_INPUT` with a :class:`CovarianceInput` (real or complex covariance in a
+      declared ordering) and a handedness convention (:data:`NEISH_SC_LL_CONVENTION` or
+      :data:`OPPOSITE_SC_CONVENTION`) runs :func:`circular_from_covariance` and returns its
+      :class:`CovarianceCircularPowers`, with ``handedness_verified`` False (PRD 6.2).
+
+    ``input_kind``, ``data``, ``convention`` and ``validity_mask`` are required. An unknown input
+    kind, or an undeclared convention or one of the other input's family, raises ValueError and
+    nothing is returned; data of the wrong type for the declared kind raises TypeError.
+
+    ``validity_mask`` is the product's validity and noise flags as one boolean array that
+    broadcasts to the pixel shape: True where the product marks the pixel as a usable
+    observation, False where its flags, or a configured SNR rule, exclude it (PRD 7: keep the
+    product's flags; any added SNR rule is written in config). An excluded pixel is ``MISSING``
+    with reason ``PRODUCT_MASKED`` in every output. A mask of any other dtype raises TypeError,
+    so a mask of unstated polarity is never guessed. ``tolerance`` is passed to the conversion.
+
+    Results: total power, SC and OC in the linear power units of the input, and CPR = SC/OC, a
+    dimensionless linear ratio, each a :class:`StatedArray` whose ``state`` and ``reason``
+    arrays give the per-pixel observation state and invalid reason. No dB value is produced.
+    """
+    _check_declared("input kind", input_kind, _INPUT_KINDS)
+    product_masked = ~_validity_flags(validity_mask)
+    if input_kind == STOKES_INPUT:
+        if type(data) is not StokesInput:
+            raise TypeError(
+                f"input kind {STOKES_INPUT!r} takes a StokesInput, got {type(data).__name__}"
+            )
+        return circular_from_stokes(
+            data.s1,
+            data.s4,
+            s2=data.s2,
+            s3=data.s3,
+            convention=cast(StokesConvention, convention),
+            product_masked=product_masked,
+            tolerance=tolerance,
+        )
+    if type(data) is not CovarianceInput:
+        raise TypeError(
+            f"input kind {COVARIANCE_INPUT!r} takes a CovarianceInput, got {type(data).__name__}"
+        )
+    return circular_from_covariance(
+        data.covariance,
+        ordering=data.ordering,
+        convention=cast(HandednessConvention, convention),
+        product_masked=product_masked,
+        tolerance=tolerance,
+    )
+
+
+# --- dB for display only (PRD 6.2, Aggregation) ----------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class DecibelArray:
+    """Values in dB, tagged for display and summaries only (PRD 6.2).
+
+    ``db`` holds ``10 * log10`` of linear powers or power ratios, with their states and reasons.
+    No analysis function accepts a DecibelArray: :func:`aggregate_blocks` and the conversions
+    take linear power, and the records that hold powers accept only :class:`StatedArray`
+    fields, so dB values cannot enter an analysis by mistake. Made by :func:`to_db_for_display`.
+    """
+
+    db: StatedArray
+
+    def __post_init__(self) -> None:
+        if type(self.db) is not StatedArray:
+            raise TypeError(f"db must be a StatedArray, got {type(self.db).__name__}")
+
+
+def to_db_for_display(values: StatedArray) -> DecibelArray:
+    """dB summary helper, for display only: ``10 * log10`` of a linear power or power ratio.
+
+    ``values`` is a :class:`StatedArray` of linear powers (SC, OC, total power) or of a ratio of
+    powers (CPR, a block statistic). Analysis stays in linear power (PRD 6.2); the result is a
+    :class:`DecibelArray`, which no analysis function accepts. Amplitudes are not powers and
+    are not passed here. States and reasons of elements that are not ``VALID`` are kept. A
+    ``VALID`` value of zero or below has no finite dB value and is ``INVALID`` with reason
+    ``DB_OF_NONPOSITIVE`` in the dB array, never -inf; the linear value stays valid. Units: dB.
+    """
+    if type(values) is not StatedArray:
+        raise TypeError(
+            f"to_db_for_display takes a StatedArray of linear values, got {type(values).__name__}"
+        )
+    classifier = _Classifier(values.value.shape)
+    classifier.state[...] = values.state
+    classifier.reason[...] = values.reason
+    with np.errstate(invalid="ignore"):
+        classifier.mark(
+            np.asarray(values.value <= 0.0), ObsState.INVALID, InvalidReason.DB_OF_NONPOSITIVE
+        )
+    out = np.full(values.value.shape, np.nan)
+    shown = classifier.valid
+    out[shown] = 10.0 * np.log10(values.value[shown])
+    return DecibelArray(db=classifier.finish(out))
+
+
+# --- Block statistics (PRD 6.2, Aggregation) -------------------------------------------------
+
+PRIMARY_RADAR_STATISTIC: Final = "ratio_of_mean_powers"
+"""The primary radar statistic per common-support block: the ratio of mean powers (PRD 6.2)."""
+
+
+def _frozen_counts(name: str, values: object) -> npt.NDArray[np.int64]:
+    _require_plain(name, values)
+    array = np.array(values, copy=True)
+    if array.dtype != np.int64:
+        raise TypeError(f"{name} must be an int64 array, got {array.dtype}")
+    if np.any(array < 0):
+        raise ValueError(f"{name} must not be negative")
+    array.setflags(write=False)
+    return array
+
+
+@dataclass(frozen=True, slots=True)
+class BlockSupport:
+    """The pixels behind one block statistic, counted per block (PRD 6.2: support recorded).
+
+    ``n_pixels`` is the number of pixels in every block. As arrays over the block grid:
+    ``n_valid``, the pixels the statistic used; ``n_missing``, missing pixels;
+    ``n_invalid_by_reason``, invalid pixels per reason code, a read-only mapping that holds the
+    reasons occurring among the input's invalid pixels; and ``valid_fraction``,
+    ``n_valid / n_pixels``. Every pixel of a block is counted once, so ``n_valid + n_missing``
+    plus the invalid counts is ``n_pixels``. Missing and invalid pixels are excluded from the
+    statistic and counted here, never entered as zero. No minimum valid fraction is imposed;
+    the PRD sets none, so the fraction is reported for the consumer to judge.
+    """
+
+    n_pixels: int
+    n_valid: npt.NDArray[np.int64]
+    n_missing: npt.NDArray[np.int64]
+    n_invalid_by_reason: Mapping[InvalidReason, npt.NDArray[np.int64]]
+    valid_fraction: npt.NDArray[np.float64]
+
+    def __post_init__(self) -> None:
+        if type(self.n_pixels) is not int or self.n_pixels < 1:
+            raise ValueError(f"n_pixels must be a positive int, got {self.n_pixels!r}")
+        n_valid = _frozen_counts("n_valid", self.n_valid)
+        n_missing = _frozen_counts("n_missing", self.n_missing)
+        if n_missing.shape != n_valid.shape:
+            raise ValueError("n_valid and n_missing must have the same shape")
+        if not isinstance(self.n_invalid_by_reason, Mapping):
+            raise TypeError("n_invalid_by_reason must be a mapping of reason codes to counts")
+        by_reason: dict[InvalidReason, npt.NDArray[np.int64]] = {}
+        for reason, count in self.n_invalid_by_reason.items():
+            if type(reason) is not InvalidReason or reason is InvalidReason.NONE:
+                raise ValueError(f"n_invalid_by_reason needs InvalidReason codes, got {reason!r}")
+            counts = _frozen_counts(f"n_invalid_by_reason[{reason}]", count)
+            if counts.shape != n_valid.shape:
+                raise ValueError(f"counts for {reason} must have the shape of n_valid")
+            by_reason[reason] = counts
+        total = n_valid + n_missing
+        for counts in by_reason.values():
+            total = total + counts
+        if np.any(total != self.n_pixels):
+            raise ValueError("every pixel of a block must be counted exactly once")
+        fraction = np.array(self.valid_fraction, dtype=np.float64, copy=True)
+        if not np.array_equal(fraction, n_valid / self.n_pixels):
+            raise ValueError("valid_fraction must be n_valid / n_pixels")
+        fraction.setflags(write=False)
+        object.__setattr__(self, "n_valid", n_valid)
+        object.__setattr__(self, "n_missing", n_missing)
+        object.__setattr__(self, "n_invalid_by_reason", MappingProxyType(by_reason))
+        object.__setattr__(self, "valid_fraction", fraction)
+
+
+@dataclass(frozen=True, slots=True)
+class BlockAggregates:
+    """Block statistics of linear SC, OC and CPR over a pixel grid (PRD 6.2, Aggregation).
+
+    The pixel grid is tiled from its first pixel into whole blocks of ``block_size``, ``(rows,
+    cols)`` pixels; ``block_origin[i, j]`` is the (row, col) of the first pixel of block
+    ``(i, j)``, as int64. Each statistic is a :class:`StatedArray` over the block grid:
+
+    - ``mean_sc`` and ``mean_oc``: the mean linear SC and OC over the block's power support,
+      the pixels whose SC and OC are both ``VALID`` (``power_support``), in the power units of
+      the input;
+    - ``ratio_of_mean_powers``: ``mean_sc / mean_oc``, dimensionless, the primary radar
+      statistic (:data:`PRIMARY_RADAR_STATISTIC`, also in ``primary_statistic``);
+    - ``mean_of_pixelwise_ratios``: the mean of the ``VALID`` pixelwise CPR values
+      (``ratio_support``), dimensionless, reported as a separate, named statistic.
+
+    ``blocks_independent`` is False and cannot be set otherwise: neighbouring blocks share
+    looks and terrain and are not independent samples (PRD 6.2). ``input_kind`` and
+    ``convention`` are the declarations of the circular record. ``handedness_verified`` is the
+    covariance record's flag, False until handedness and basis are verified on both sides
+    (PRD 6.2), and None for Stokes input, which is the Mini-RF product's own convention.
+    """
+
+    block_size: tuple[int, int]
+    block_origin: npt.NDArray[np.int64]
+    mean_sc: StatedArray
+    mean_oc: StatedArray
+    ratio_of_mean_powers: StatedArray
+    mean_of_pixelwise_ratios: StatedArray
+    power_support: BlockSupport
+    ratio_support: BlockSupport
+    input_kind: InputKind
+    convention: StokesConvention | HandednessConvention
+    handedness_verified: bool | None
+    blocks_independent: bool = False
+    primary_statistic: str = PRIMARY_RADAR_STATISTIC
+
+    def __post_init__(self) -> None:
+        if self.blocks_independent is not False:
+            raise ValueError(
+                "blocks_independent must be False: blocks are not independent samples (PRD 6.2)"
+            )
+        if self.primary_statistic != PRIMARY_RADAR_STATISTIC:
+            raise ValueError(f"primary_statistic must be {PRIMARY_RADAR_STATISTIC!r}")
+        rows, cols = _block_shape(self.block_size)
+        statistics = (
+            "mean_sc",
+            "mean_oc",
+            "ratio_of_mean_powers",
+            "mean_of_pixelwise_ratios",
+        )
+        for name in statistics:
+            if type(getattr(self, name)) is not StatedArray:
+                raise TypeError(f"{name} must be a StatedArray")
+        grid = self.mean_sc.value.shape
+        if len(grid) != 2 or any(getattr(self, name).value.shape != grid for name in statistics):
+            raise ValueError("every statistic must have the shape of one two-dimensional grid")
+        for name in ("power_support", "ratio_support"):
+            support = getattr(self, name)
+            if type(support) is not BlockSupport:
+                raise TypeError(f"{name} must be a BlockSupport")
+            if support.n_pixels != rows * cols or support.n_valid.shape != grid:
+                raise ValueError(f"{name} must count the pixels of each block of the grid")
+        origin = _frozen_counts("block_origin", self.block_origin)
+        if origin.shape != (*grid, 2):
+            raise ValueError(f"block_origin must have shape {(*grid, 2)}, got {origin.shape}")
+        object.__setattr__(self, "block_size", (rows, cols))
+        object.__setattr__(self, "block_origin", origin)
+        _check_declared("input kind", self.input_kind, _INPUT_KINDS)
+        if self.input_kind == STOKES_INPUT:
+            _check_stokes_convention(self.convention)
+            if self.handedness_verified is not None:
+                raise ValueError("handedness_verified is None for Stokes input")
+        else:
+            _check_handedness_convention(self.convention)
+            if type(self.handedness_verified) is not bool:
+                raise TypeError("handedness_verified must be a bool for covariance input")
+
+        power_used = self.power_support.n_valid > 0
+        ratio_used = self.ratio_support.n_valid > 0
+        for name in ("mean_sc", "mean_oc", "ratio_of_mean_powers"):
+            if np.any(_is_valid(getattr(self, name)) & ~power_used):
+                raise ValueError(f"a VALID {name} needs a block with a valid pixel")
+        if np.any(_is_valid(self.mean_of_pixelwise_ratios) & ~ratio_used):
+            raise ValueError("a VALID mean_of_pixelwise_ratios needs a block with a valid CPR")
+        with np.errstate(invalid="ignore"):
+            sc_usable = _is_valid(self.mean_sc) & (self.mean_sc.value >= 0.0)
+            oc_usable = _is_valid(self.mean_oc) & (self.mean_oc.value > 0.0)
+        if np.any(_is_valid(self.ratio_of_mean_powers) & ~(sc_usable & oc_usable)):
+            raise ValueError(
+                "a VALID ratio_of_mean_powers needs a VALID, non-negative mean_sc and a VALID, "
+                "positive mean_oc"
+            )
+
+
+def _block_shape(block_size: object) -> tuple[int, int]:
+    """Return ``block_size`` as ``(rows, cols)`` in pixels, or raise TypeError or ValueError."""
+    if type(block_size) is int:
+        size = (block_size, block_size)
+    elif (
+        type(block_size) is tuple
+        and len(block_size) == 2
+        and all(type(n) is int for n in block_size)
+    ):
+        size = (int(block_size[0]), int(block_size[1]))
+    else:
+        raise TypeError(
+            "block_size must be a positive int or a (rows, cols) pair of positive ints, in "
+            f"pixels, got {block_size!r}"
+        )
+    if size[0] < 1 or size[1] < 1:
+        raise ValueError(f"block_size must be positive in both directions, got {block_size!r}")
+    return size
+
+
+def _to_blocks(array: npt.NDArray[Any], rows: int, cols: int) -> npt.NDArray[Any]:
+    """``(R, C)`` to ``(R // rows, C // cols, rows * cols)``: each block's pixels in one axis."""
+    grid_rows, grid_cols = array.shape[0] // rows, array.shape[1] // cols
+    blocks: npt.NDArray[Any] = (
+        array.reshape(grid_rows, rows, grid_cols, cols)
+        .swapaxes(1, 2)
+        .reshape(grid_rows, grid_cols, rows * cols)
+    )
+    return blocks
+
+
+def _support(
+    state: npt.NDArray[np.uint8], reason: npt.NDArray[np.str_], n_pixels: int
+) -> BlockSupport:
+    """Count each block's pixels by state, and its invalid pixels by reason."""
+    valid = state == ObsState.VALID
+    invalid = state == ObsState.INVALID
+    codes = sorted(set(np.unique(reason[invalid]).tolist()))
+    n_valid = np.asarray(np.sum(valid, axis=-1, dtype=np.int64))
+    return BlockSupport(
+        n_pixels=n_pixels,
+        n_valid=n_valid,
+        n_missing=np.asarray(np.sum(state == ObsState.MISSING, axis=-1, dtype=np.int64)),
+        n_invalid_by_reason={
+            InvalidReason(code): np.asarray(
+                np.sum(invalid & (reason == code), axis=-1, dtype=np.int64)
+            )
+            for code in codes
+        },
+        valid_fraction=n_valid / n_pixels,
+    )
+
+
+def _no_valid_pixels(support: BlockSupport) -> _Classifier:
+    """The first rule of every block statistic: a block with no usable pixel has no value."""
+    classifier = _Classifier(support.n_valid.shape)
+    empty = support.n_valid == 0
+    all_missing = support.n_missing == support.n_pixels
+    classifier.mark(empty & all_missing, ObsState.MISSING, InvalidReason.BLOCK_NO_VALID_PIXELS)
+    classifier.mark(empty, ObsState.INVALID, InvalidReason.BLOCK_NO_VALID_PIXELS)
+    return classifier
+
+
+def _scaled_sums(
+    values: npt.NDArray[np.float64], used: npt.NDArray[np.bool_]
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.int32]]:
+    """Per block, the sum of the used values at the block's own scale, and that scale.
+
+    Each block's used values are multiplied by one exact power of two, ``2**-e``, that brings
+    their largest magnitude into [0.5, 1); the sum is then at most the pixel count and cannot
+    overflow. The true sum is ``ldexp(sum, e)``. A value below float64 resolution at that scale
+    is below the resolution of the sum as well, so the scaling loses nothing the sum keeps.
+    """
+    chosen = np.where(used, values, 0.0)
+    largest = np.max(np.abs(chosen), axis=-1)
+    _, exponent = np.frexp(largest)
+    exponent = np.asarray(exponent)
+    with np.errstate(under="ignore"):
+        scaled = np.ldexp(chosen, -exponent[..., np.newaxis])
+    return np.asarray(np.sum(scaled, axis=-1), dtype=np.float64), exponent
+
+
+def _block_mean(
+    base: _Classifier,
+    scaled_sum: npt.NDArray[np.float64],
+    exponent: npt.NDArray[np.int32],
+    count: npt.NDArray[np.int64],
+) -> tuple[_Classifier, npt.NDArray[np.float64]]:
+    """The mean ``ldexp(scaled_sum / count, e)`` where ``base`` is valid, with range rules.
+
+    A mean float64 cannot hold is ``INVALID`` with ``FLOAT64_OUT_OF_RANGE``: one that rounds
+    past the largest float64, or one that is not zero but below the smallest normal float64.
+    A zero mean of zero powers is a valid zero.
+    """
+    classifier = base.copy()
+    mean = np.full(scaled_sum.shape, np.nan)
+    use = classifier.valid
+    with np.errstate(over="ignore", under="ignore"):
+        mean[use] = np.ldexp(scaled_sum[use] / count[use], exponent[use])
+    classifier.mark_out_of_range(mean, positive=False)
+    classifier.mark_below_normal(mean, nonzero=np.asarray(scaled_sum != 0.0))
+    return classifier, mean
+
+
+def aggregate_blocks(
+    circular: CircularPowers | CovarianceCircularPowers,
+    *,
+    block_size: int | tuple[int, int],
+) -> BlockAggregates:
+    """Aggregate linear SC and OC per block first, then derive the ratios (PRD 6.2).
+
+    ``circular`` is the linear-power record of :func:`derive_circular` (:class:`CircularPowers`
+    or :class:`CovarianceCircularPowers`) on a two-dimensional pixel grid. Nothing else is
+    accepted: amplitude DN, bare arrays, other stated arrays and dB values
+    (:class:`DecibelArray`, display only) raise TypeError, so amplitude is never averaged as
+    power and dB never enters an average (PRD 6.2, 7). ``block_size`` is the block size in
+    pixels, an int for square blocks or ``(rows, cols)``, and is required. The PRD's common
+    support of about 250 m applies only where the products' effective resolution allows, so the
+    caller converts it to pixels; no size is built in. The grid must divide into whole blocks,
+    otherwise ValueError: a partial block would have a different support, and no pixel is
+    dropped silently.
+
+    Per block, two separately named statistics (PRD 6.2):
+
+    - **ratio of mean powers**, the primary radar statistic: mean SC and mean OC over the power
+      support, the pixels whose SC and OC are both ``VALID``, and then their ratio. SC and OC
+      are averaged over the same pixels, so the ratio is consistent. A pixel whose OC is a
+      valid zero (F5), or negative within the conversion's tolerance, has no pixelwise CPR
+      but still has valid powers, so its SC and OC enter both means; no epsilon or
+      regularized value is formed for it. A valid SC negative within the conversion's
+      tolerance is averaged as computed, never clipped.
+      For covariance input the mean powers equal the powers of the mean covariance over the
+      same pixels, because each power is a linear functional of the covariance, so this is
+      aggregating the covariance first.
+    - **mean of pixelwise ratios**: the mean of the ``VALID`` pixelwise CPR values. A pixel
+      whose CPR is unavailable (OC_NONPOSITIVE, SC_NEGATIVE and the others) is excluded.
+
+    Missing and invalid pixels are excluded from every mean and counted in ``power_support``
+    and ``ratio_support`` (:class:`BlockSupport`). For the power support a pixel takes the
+    state and reason of its SC, or of its OC where SC is valid.
+
+    Rules for each statistic, in order (the first match wins):
+
+    1. No usable pixel in the block: ``BLOCK_NO_VALID_PIXELS``, with state ``MISSING`` where
+       every pixel of the block is missing and ``INVALID`` otherwise. No value, never 0.
+    2. Means: a mean float64 cannot hold (above the largest float64, or nonzero below the
+       smallest normal float64): ``INVALID``, ``FLOAT64_OUT_OF_RANGE``.
+
+    and for the ratio of mean powers, after rule 1:
+
+    3. Mean OC zero or negative: ``INVALID``, ``OC_NONPOSITIVE``. No epsilon is added (PRD 7).
+    4. Mean SC negative: ``INVALID``, ``SC_NEGATIVE``.
+    5. Mean SC or mean OC out of float64 range, or a ratio float64 cannot hold: ``INVALID``,
+       ``FLOAT64_OUT_OF_RANGE``. A valid high ratio is never truncated.
+
+    Each block's values are summed at the block's own power-of-two scale, one scale per
+    quantity, so no sum overflows and neither power is lost at the other's scale. Blocks are
+    not independent samples (``blocks_independent`` is False). Units: mean SC and OC in the
+    linear power units of the input; both ratio statistics dimensionless.
+    """
+    if type(circular) not in (CircularPowers, CovarianceCircularPowers):
+        raise TypeError(
+            "aggregate_blocks takes the linear-power record of derive_circular (CircularPowers "
+            f"or CovarianceCircularPowers), got {type(circular).__name__}: amplitude DN, bare "
+            "arrays and dB values (DecibelArray, display only) are not linear powers"
+        )
+    rows, cols = _block_shape(block_size)
+    shape = circular.sc.value.shape
+    if len(shape) != 2:
+        raise ValueError(f"aggregate_blocks needs a two-dimensional pixel grid, got {shape}")
+    if shape[0] % rows or shape[1] % cols:
+        raise ValueError(
+            f"the pixel grid {shape} does not divide into whole blocks of {(rows, cols)} pixels; "
+            "crop it to a multiple of the block size first"
+        )
+    n_pixels = rows * cols
+    grid = (shape[0] // rows, shape[1] // cols)
+    origin_rows, origin_cols = np.meshgrid(
+        np.arange(grid[0], dtype=np.int64) * rows,
+        np.arange(grid[1], dtype=np.int64) * cols,
+        indexing="ij",
+    )
+    block_origin = np.stack([origin_rows, origin_cols], axis=-1)
+
+    # Power support: a pixel is used where SC and OC are both VALID.
+    sc_valid = _is_valid(circular.sc)
+    pair_state = np.where(sc_valid, circular.oc.state, circular.sc.state)
+    pair_reason = np.where(sc_valid, circular.oc.reason, circular.sc.reason)
+    power_support = _support(
+        _to_blocks(pair_state, rows, cols), _to_blocks(pair_reason, rows, cols), n_pixels
+    )
+    power_used = _to_blocks(np.equal(pair_state, ObsState.VALID), rows, cols)
+    power_base = _no_valid_pixels(power_support)
+    sc_sum, sc_exponent = _scaled_sums(_to_blocks(circular.sc.value, rows, cols), power_used)
+    oc_sum, oc_exponent = _scaled_sums(_to_blocks(circular.oc.value, rows, cols), power_used)
+    sc_classifier, mean_sc = _block_mean(power_base, sc_sum, sc_exponent, power_support.n_valid)
+    oc_classifier, mean_oc = _block_mean(power_base, oc_sum, oc_exponent, power_support.n_valid)
+
+    ratio_classifier = power_base.copy()
+    ratio_classifier.mark(np.asarray(oc_sum <= 0.0), ObsState.INVALID, InvalidReason.OC_NONPOSITIVE)
+    ratio_classifier.mark(np.asarray(sc_sum < 0.0), ObsState.INVALID, InvalidReason.SC_NEGATIVE)
+    ratio_classifier.mark(
+        ~(sc_classifier.valid & oc_classifier.valid),
+        ObsState.INVALID,
+        InvalidReason.FLOAT64_OUT_OF_RANGE,
+    )
+    ratio = np.full(grid, np.nan)
+    use = ratio_classifier.valid
+    # Mantissas first, so the division cannot overflow; the exponents carry the scale.
+    sc_mantissa, sc_shift = np.frexp(sc_sum[use])
+    oc_mantissa, oc_shift = np.frexp(oc_sum[use])
+    with np.errstate(over="ignore", under="ignore"):
+        ratio[use] = np.ldexp(
+            sc_mantissa / oc_mantissa,
+            (sc_exponent[use] + sc_shift) - (oc_exponent[use] + oc_shift),
+        )
+    ratio_classifier.mark_out_of_range(ratio, positive=False)
+    ratio_classifier.mark_below_normal(ratio, nonzero=np.asarray(sc_sum != 0.0))
+
+    # Ratio support: a pixel is used where its CPR is VALID.
+    ratio_support = _support(
+        _to_blocks(circular.cpr.state, rows, cols),
+        _to_blocks(circular.cpr.reason, rows, cols),
+        n_pixels,
+    )
+    cpr_used = _to_blocks(_is_valid(circular.cpr), rows, cols)
+    cpr_sum, cpr_exponent = _scaled_sums(_to_blocks(circular.cpr.value, rows, cols), cpr_used)
+    pixelwise_classifier, pixelwise = _block_mean(
+        _no_valid_pixels(ratio_support), cpr_sum, cpr_exponent, ratio_support.n_valid
+    )
+
+    if type(circular) is CovarianceCircularPowers:
+        input_kind: InputKind = COVARIANCE_INPUT
+        handedness_verified: bool | None = circular.handedness_verified
+    else:
+        input_kind = STOKES_INPUT
+        handedness_verified = None
+    return BlockAggregates(
+        block_size=(rows, cols),
+        block_origin=block_origin,
+        mean_sc=sc_classifier.finish(mean_sc),
+        mean_oc=oc_classifier.finish(mean_oc),
+        ratio_of_mean_powers=ratio_classifier.finish(ratio),
+        mean_of_pixelwise_ratios=pixelwise_classifier.finish(pixelwise),
+        power_support=power_support,
+        ratio_support=ratio_support,
+        input_kind=input_kind,
+        convention=circular.convention,
+        handedness_verified=handedness_verified,
     )

@@ -528,6 +528,7 @@ def test_primary_statistic_is_the_ratio_of_mean_powers() -> None:
     assert PRIMARY_RADAR_STATISTIC == "ratio_of_mean_powers"
     s1, s4, valid = stokes_block({(0, 0): sc_oc(1.0, 1.0)})
     result = aggregate_blocks(from_stokes(s1, s4, valid), block_size=4)
+    assert type(result) is BlockAggregates
     assert result.primary_statistic == PRIMARY_RADAR_STATISTIC
     assert type(getattr(result, result.primary_statistic)) is StatedArray
 
@@ -804,7 +805,8 @@ def test_covariance_block_statistics_are_the_powers_of_the_mean_covariance(conve
     matrices = [f6_covariance(), f7_covariance(0.9), f7_covariance(0.1), second]
     covariance = np.stack(matrices).reshape(2, 2, 3, 3)
     result = aggregate_blocks(from_covariance(covariance, convention=convention), block_size=2)
-    mean = expanded_oracle.expanded_from_matrix(np.mean(np.stack(matrices), axis=0))
+    mean_covariance = np.asarray(np.mean(np.stack(matrices), axis=0), dtype=np.complex128)
+    mean = expanded_oracle.expanded_from_matrix(mean_covariance)
     sc = mean.sc_ll if convention == LL else mean.sc_opp
     assert_value(result.mean_sc, sc)
     assert_value(result.mean_oc, mean.oc)
