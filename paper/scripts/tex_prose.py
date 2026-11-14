@@ -269,6 +269,9 @@ ACCENT = re.compile(
     rf"|{_DOTLESS_LETTER}{ACCENT_GAP}"
     r"|([A-Za-z]))"
 )
+# An accent command whose letter does not follow, as in \'{}, and the gap after it. It prints
+# nothing that ends a word.
+ACCENT_WITHOUT_LETTER = re.compile(_ACCENT_COMMAND + ACCENT_GAP)
 # Special letters. TeX drops the gap after a control word, so \ss e prints as one word.
 SPECIAL_LETTER = re.compile(r"\\(ae|AE|oe|OE|aa|AA|ss|SS|i|j|o|O|l|L)(?![A-Za-z])" + ACCENT_GAP)
 SPECIAL_LETTERS = {
@@ -351,13 +354,43 @@ def fold_latex(text: str) -> str:
 
     TeX prints no braces, so caf{\'e} becomes cafe. overlap_check.py applies this to abstracts,
     which may carry LaTeX accents; the prose of a .tex file is already folded. The two read an
-    accent alike, across the gap TeX skips (ACCENT_GAP), so an abstract that breaks a line inside
-    an accent folds as a .tex file does. A carriage return is a line break.
+    accent alike: from left to right, as pass 2 reads a .tex file, so the letter one accent prints
+    cannot end the name of the control word before it (\l\k{e}), and across the gap TeX skips
+    (ACCENT_GAP), so an abstract that breaks a line inside an accent folds as a .tex file does.
+    An accent with no letter (\'{}) goes with its gap, and other control sequences stay. A
+    carriage return is a line break.
     """
     text = text.replace("\r\n", "\n").replace("\r", "\n")
-    text = ACCENT.sub(lambda match: next(group for group in match.groups() if group), text)
-    text = SPECIAL_LETTER.sub(lambda match: SPECIAL_LETTERS[match[1]], text)
-    return text.replace("{", "").replace("}", "")
+    parts: list[str] = []
+    i = 0
+    while (start := text.find("\\", i)) >= 0:
+        parts.append(text[i:start])
+        folded = _letter_at(text, start)
+        if folded is not None:
+            letter, i = folded
+            parts.append(letter)
+            continue
+        bare = ACCENT_WITHOUT_LETTER.match(text, start)
+        if bare is not None:
+            i = bare.end()
+            continue
+        sequence = CONTROL_SEQUENCE.match(text, start)
+        i = len(text) if sequence is None else sequence.end()
+        parts.append(text[start:i])
+    parts.append(text[i:])
+    return "".join(parts).replace("{", "").replace("}", "")
+
+
+def _letter_at(text: str, start: int) -> tuple[str, int] | None:
+    """The base letter that an accent or a special letter at text[start] prints, and the index
+    past it."""
+    accent = ACCENT.match(text, start)
+    if accent is not None:
+        return next(group for group in accent.groups() if group), accent.end()
+    special = SPECIAL_LETTER.match(text, start)
+    if special is not None:
+        return SPECIAL_LETTERS[special[1]], special.end()
+    return None
 
 
 def argument_count(name: str) -> int | None:
@@ -961,13 +994,9 @@ def _write_letter(out: _ProseWriter, letter: str, code: str, start: int, end: in
 
 
 def _prose_command(code: str, start: int, out: _ProseWriter) -> int:
-    accent = ACCENT.match(code, start)
-    if accent is not None:
-        letter = next(group for group in accent.groups() if group)
-        return _write_letter(out, letter, code, start, accent.end())
-    special = SPECIAL_LETTER.match(code, start)
-    if special is not None:
-        return _write_letter(out, SPECIAL_LETTERS[special[1]], code, start, special.end())
+    folded = _letter_at(code, start)
+    if folded is not None:
+        return _write_letter(out, folded[0], code, start, folded[1])
     if start + 1 >= len(code):
         return len(code)
     following = code[start + 1]
