@@ -809,9 +809,18 @@ class EquirectangularLookup:
         lon0_hi, lon0_lo = _degrees_to_rad(self.center_longitude_deg)
         d_hi, d_lo = _two_sum(lon, np.full_like(lon, -lon0_hi))
         d_hi, d_lo = _two_sum(d_hi, d_lo - lon0_lo)
-        # Reduce to [-pi, pi) on the true circle; a turn is 2 * math.pi plus _TWO_PI_LO.
-        over = (d_hi > _PI) | ((d_hi == _PI) & (d_lo >= _PI_LO))
-        under = (d_hi < -_PI) | ((d_hi == -_PI) & (d_lo < -_PI_LO))
+        # Reduce to [-pi, pi) on the true circle; a turn is 2 * math.pi plus _TWO_PI_LO. The turn
+        # is decided against the centre's antimeridian lon0 + pi, formed exactly in degrees
+        # before the conversion: for a centre on 180 deg it is exactly lon = 0, where the
+        # rounded difference above cannot tell pi - 1e-34 from pi.
+        east_hi, east_lo = _two_sum(
+            np.asarray(_reduced_degrees(self.center_longitude_deg)), np.asarray(180.0)
+        )
+        east_hi, east_lo = _deg_to_rad(np.asarray([float(east_hi)]), np.asarray([float(east_lo)]))
+        west_hi, west_lo = _two_sum(east_hi, np.asarray([-_TWO_PI]))
+        west_lo = west_lo + (east_lo - _TWO_PI_LO)
+        over = _at_or_above(lon, float(east_hi[0]), float(east_lo[0]))
+        under = ~_at_or_above(lon, float(west_hi[0]), float(west_lo[0]))
         turns = np.where(over, -1.0, np.where(under, 1.0, 0.0))
         d_hi, d_lo = _two_sum(d_hi + turns * _TWO_PI, d_lo + turns * _TWO_PI_LO)
         scale = self._parallel_scale()
@@ -1006,16 +1015,26 @@ def _deg_to_rad(deg_hi: FloatArray, deg_lo: FloatArray) -> tuple[FloatArray, Flo
     return _two_sum(product, error)
 
 
-def _degrees_to_rad(degrees: float) -> tuple[float, float]:
-    """A parameter in degrees as radians in double-double, first reduced to [-180, 180).
+def _reduced_degrees(degrees: float) -> float:
+    """An angle in degrees reduced to [-180, 180); exact for |degrees| <= 360 (Sterbenz)."""
+    if degrees >= 180.0:
+        return degrees - 360.0
+    if degrees < -180.0:
+        return degrees + 360.0
+    return degrees
 
-    For |degrees| <= 360 the reduction by 360 is exact (Sterbenz).
-    """
-    reduced = (
-        degrees - 360.0 if degrees >= 180.0 else degrees + 360.0 if degrees < -180.0 else degrees
-    )
-    hi, lo = _deg_to_rad(np.asarray([reduced]), np.zeros(1))
+
+def _degrees_to_rad(degrees: float) -> tuple[float, float]:
+    """A parameter in degrees as radians in double-double, first reduced to [-180, 180)."""
+    hi, lo = _deg_to_rad(np.asarray([_reduced_degrees(degrees)]), np.zeros(1))
     return float(hi[0]), float(lo[0])
+
+
+def _at_or_above(values: FloatArray, bound_hi: float, bound_lo: float) -> BoolArray:
+    """values >= bound_hi + bound_lo, decided on the exact difference."""
+    difference_hi, difference_lo = _two_sum(values, np.full_like(values, -bound_hi))
+    above: BoolArray = difference_hi + (difference_lo - bound_lo) >= 0.0
+    return above
 
 
 def _tan_half(angle_hi: FloatArray, angle_lo: FloatArray) -> FloatArray:
