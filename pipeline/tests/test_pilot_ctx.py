@@ -216,7 +216,11 @@ def write_small_cog(path: Path) -> bytes:
     return path.read_bytes()
 
 
-def item(base: str, item_id: str, *, qa: bool = True) -> dict[str, Any]:
+SIGNED_QUERY = "?X-Amz-Credential=SECRETCRED&X-Amz-Signature=SECRETSIG"
+"""Appended to an asset href to make it signed; the secrets must never reach output or errors."""
+
+
+def item(base: str, item_id: str, *, qa: bool = True, signed: str | None = None) -> dict[str, Any]:
     folder = f"{base}/assets/{item_id}"
     assets: dict[str, Any] = {
         "dtm": {
@@ -235,6 +239,8 @@ def item(base: str, item_id: str, *, qa: bool = True) -> dict[str, Any]:
             "title": "ASP Generated Quality Assurance Metrics",
             "roles": ["metadata"],
         }
+    if signed is not None:
+        assets[signed]["href"] += SIGNED_QUERY
     return {
         "type": "Feature",
         "stac_version": "1.0.0",
@@ -292,6 +298,8 @@ class Content:
     gazetteer: str = GAZETTEER
     fail: dict[str, int] = field(default_factory=dict)
     """Path prefix -> HTTP status to answer instead."""
+    signed: dict[str, str] = field(default_factory=dict)
+    """Item ID -> the asset key whose href the search pages serve signed."""
 
 
 @dataclass
@@ -371,7 +379,15 @@ class StubHandler(http.server.BaseHTTPRequestHandler):
         body: dict[str, Any] = {
             "type": "FeatureCollection",
             "numberReturned": len(chunk),
-            "features": [item(state.base, i, qa=i not in state.content.no_qa_for) for i in chunk],
+            "features": [
+                item(
+                    state.base,
+                    i,
+                    qa=i not in state.content.no_qa_for,
+                    signed=state.content.signed.get(i),
+                )
+                for i in chunk
+            ],
             "links": links,
         }
         if matched is not None:
@@ -633,6 +649,34 @@ def test_a_range_read_that_would_take_the_whole_cog_fails_naming_the_url(
     assert "whole" in error
     assert not (root / "data/raw/ctx/fetch.json").exists()
     assert not list((root / "data/raw/ctx").glob("*.ranges"))
+
+
+@pytest.mark.parametrize("asset", ["thumbnail", "dtm", "qa_metrics"])
+def test_a_signed_asset_href_fails_the_fetch_before_any_asset_request(
+    tmp_path: Path, stub: Stub, capsys: pytest.CaptureFixture[str], asset: str
+) -> None:
+    # The thumbnail is never fetched, so only this check keeps its signed href out of the record.
+    stub.state.content.signed = {FIRST_JEZERO: asset}
+    root = tmp_path / "repo"
+    root.mkdir()
+    assert run_fetch(root, stub) == 1
+    error = capsys.readouterr().err
+    assert FIRST_JEZERO in error
+    assert f"the {asset} asset" in error
+    assert "credentials or a signature" in error
+    assert "SECRET" not in error
+    assert not [path for path, _ in stub.state.requests if path.startswith("/assets/")]
+    assert not (root / "data/raw/ctx/fetch.json").exists()
+
+
+def test_a_signed_href_on_an_item_not_chosen_does_not_stop_the_fetch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Only the chosen item's assets are followed or recorded; other items are only counted.
+    content = Content(signed={"P02_SYNTH_JEZ": "thumbnail"})
+    root, _ = fetch_and_record(tmp_path, monkeypatch, content)
+    assert "SECRET" not in (root / "outputs/pilot/ctx_dtm.json").read_text()
+    assert "SECRET" not in (root / "outputs/sources.json").read_text()
 
 
 def test_a_failed_fetch_keeps_an_earlier_complete_fetch(
@@ -1032,6 +1076,89 @@ def test_record_refuses_window_ranges_that_hold_the_whole_cog(
     assert "whole" in error
     assert "run: python -m terraluna_pipeline.pilot fetch ctx" in error
     assert (root / "outputs/pilot/ctx_dtm.json").read_bytes() == before
+
+
+def sign_saved_asset(root: Path, asset: str) -> None:
+    """Sign ``asset`` of the chosen item in its saved search page, keeping fetch.json consistent."""
+    path = root / "data/raw/ctx/fetch.json"
+    fetched = fetch_json(root)
+    for entry in fetched["documents"]:
+        if entry["role"] != "stac_search" or entry["probe"] != "jezero":
+            continue
+        page_path = root / "data/raw/ctx" / entry["file_name"]
+        page = json.loads(page_path.read_bytes())
+        for feature in page["features"]:
+            if feature["id"] == FIRST_JEZERO:
+                feature["assets"][asset]["href"] += SIGNED_QUERY
+                data = json.dumps(page).encode()
+                page_path.write_bytes(data)
+                entry["bytes_received"] = len(data)
+                entry["sha256"] = hashlib.sha256(data).hexdigest()
+    path.write_text(json.dumps(fetched))
+
+
+@pytest.mark.parametrize("asset", ["thumbnail", "dtm"])
+def test_record_refuses_a_saved_item_with_a_signed_asset_href(
+    recorded: tuple[Path, Stub], capsys: pytest.CaptureFixture[str], asset: str
+) -> None:
+    root, stub = recorded
+    before = {
+        name: (root / name).read_bytes()
+        for name in ("outputs/pilot/ctx_dtm.json", "outputs/sources.json")
+    }
+    sign_saved_asset(root, asset)
+    for command in ("record", "check"):
+        assert run(command, root, stub) == 1
+        error = capsys.readouterr().err
+        assert FIRST_JEZERO in error
+        assert f"the {asset} asset" in error
+        assert "SECRET" not in error
+    assert {name: (root / name).read_bytes() for name in before} == before
+
+
+SIGNED_URL = "https://example.test/astrogeology" + SIGNED_QUERY
+
+
+@pytest.mark.parametrize(
+    ("where", "json_path"),
+    [
+        ("provider_url", "$.collection.providers[0].url"),
+        ("cite_as_link", "$.collection.cite_as"),
+        ("citation_text", "$.collection.citation.value"),
+    ],
+)
+def test_record_writes_no_output_that_holds_a_url_with_credentials(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    where: str,
+    json_path: str,
+) -> None:
+    # Provider-stated URLs that fetch never requests are checked when the outputs are built.
+    body = collection()
+    if where == "provider_url":
+        body["providers"][0]["url"] = SIGNED_URL
+    elif where == "cite_as_link":
+        body["links"][0]["href"] = SIGNED_URL
+    else:
+        body["sci:citation"] = f"Synthetic, 2023. {SIGNED_URL}."
+    root = tmp_path / "repo"
+    root.mkdir()
+    server = Stub(tmp_path, Content(collection=body))
+    try:
+        assert run_fetch(root, server) == 0
+    finally:
+        server.stop()
+    capsys.readouterr()
+    for command in ("record", "check"):
+        assert run(command, root, server) == 1
+        error = capsys.readouterr().err
+        assert "outputs/pilot/ctx_dtm.json" in error
+        assert json_path in error
+        assert "credentials or a signature" in error
+        assert "SECRET" not in error
+    assert not (root / "outputs/pilot/ctx_dtm.json").exists()
+    assert not (root / "outputs/sources.json").exists()
 
 
 def test_record_refuses_a_page_chain_that_does_not_link_up(
