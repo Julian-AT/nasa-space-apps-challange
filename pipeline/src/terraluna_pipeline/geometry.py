@@ -129,12 +129,20 @@ LONGITUDE_RANGE_RAD: Final[tuple[float, float]] = (-math.pi, math.pi)
 
 The inverse returns longitudes in this range, and a window centre must lie in it. The forward
 also accepts a point longitude of exactly ``math.pi``.
+
+Each float64 longitude is the real angle it denotes on the true sphere, whose period is the
+true 2 pi, 2.4e-16 rad more than ``2 * math.pi``. So ``math.pi`` and ``-math.pi`` are two
+meridians 2.4e-16 rad apart, and the range falls that much short of a full turn.
 """
 
 _PI: Final = math.pi
 _TWO_PI: Final = 2.0 * math.pi
 _HALF_PI: Final = math.pi / 2.0
-# pi/2 - math.pi / 2 rounded to float64: the part of pi/2 that math.pi / 2 leaves out.
+# The largest float64 below math.pi: the east end of the longitude range.
+_PI_BELOW: Final = math.nextafter(math.pi, 0.0)
+# 2 pi - 2 * math.pi rounded to float64: the part of a true turn that 2 * math.pi leaves out.
+_TWO_PI_LO: Final = 2.4492935982947064e-16
+# pi/2 - math.pi / 2 rounded to float64 (a quarter of _TWO_PI_LO, exactly).
 _HALF_PI_LO: Final = 6.123233995736766e-17
 # Colatitudes and latitude differences up to which the forward uses series (radians).
 _SERIES_MAX_RAD: Final = 2.0**-6
@@ -195,10 +203,13 @@ def aeqd_inverse(
     latitude lies within 6.2e-17 of that range and the nearest float64 beyond it is 2.2e-16
     out, so the clip only moves such a value closer to the exact latitude.
 
-    Longitude: lam0 + atan2(N, M) lies in [-2 pi, 2 pi) and is brought into [-pi, pi) by one
-    shift of 2 * math.pi, which is exact in float64 (Sterbenz). A longitude and the same value
-    plus or minus 2 * math.pi name the same meridian, as for ``math.degrees``, which maps
-    ``math.pi`` to exactly 180.
+    Longitude: lam0 + atan2(N, M) is formed exactly as a sum of two float64 values (Knuth's
+    two-sum). It lies in [-2 pi, 2 pi), and when it falls outside [-pi, pi) it turns by the
+    true 2 pi, carried as 2 * math.pi plus its residual 2.4e-16 (:data:`LONGITUDE_RANGE_RAD`).
+    The result is the float64 in [-pi, pi) nearest the PRD longitude on the true circle. Next
+    to the antimeridian, where the range is 2.4e-16 short of a turn, that is ``-math.pi`` or
+    the largest float64 below ``math.pi``, whichever is nearer. A turn by 2 * math.pi alone
+    would move the point by 2.4e-16 rad, 1.6e-9 m on the Earth sphere.
 
     Raises :class:`AeqdDomainError` for a centre outside [-pi/2, pi/2] x [-pi, pi), a radius
     that is not finite and positive, a non-finite offset, or rho > pi * R.
@@ -230,9 +241,8 @@ def aeqd_inverse(
     cos_dlat = 1.0 + h * cos_lat0 + s * sin_lat0
     lat = lat0 + np.arctan2(sin_dlat, cos_dlat)
     lat = np.where(at_centre, lat0, np.clip(lat, -_HALF_PI, _HALF_PI))
-    lon = lon0 + np.arctan2(lon_num, lon_den)
-    lon = np.where(lon >= _PI, lon - _TWO_PI, np.where(lon < -_PI, lon + _TWO_PI, lon))
-    lon = np.where(at_centre, lon0, lon)
+    lon_hi, lon_lo = _two_sum(np.full_like(lon_num, lon0), np.arctan2(lon_num, lon_den))
+    lon = np.where(at_centre, lon0, _wrap_longitude(lon_hi, lon_lo))
     return _float_array(lat), _float_array(lon)
 
 
@@ -271,11 +281,14 @@ def aeqd_forward(
 
     The longitude difference d is carried exactly, as an unevaluated sum d_hi + d_lo of two
     float64 values (Knuth's two-sum), and sin d and hav enter to first order in d_lo. When
-    |d| > pi it is moved by 2 * math.pi, which is exact for d_hi (Sterbenz). A rounded d would
-    be off by up to half an ulp of pi, 2.2e-16 rad, wherever |d| is near pi, which happens next
-    to the antimeridian and on the far side of a pole anywhere: there x scales with sin d, and
-    in a window centred within 3.6 km of a pole the rounding moved x near 0 by up to 1.14 times
-    the PRD 7 allowance against the exact forward.
+    |d| > pi it turns by the true 2 pi: d_hi moves by 2 * math.pi, which is exact (Sterbenz),
+    and d_lo by the residual 2.4e-16 (:data:`LONGITUDE_RANGE_RAD`). Without the residual, a
+    point across the antimeridian moved by 1.6e-9 m on the Earth sphere, 12 times the PRD 7
+    allowance at 1.27 m. A rounded d would be off by up to half an ulp of pi, 2.2e-16 rad,
+    wherever |d| is near pi, which happens next to the antimeridian and on the far side of a
+    pole anywhere: there x scales with sin d, and in a window centred within 3.6 km of a pole
+    the rounding moved x near 0 by up to 1.14 times the PRD 7 allowance against the exact
+    forward.
 
     N is summed in double-double arithmetic: each product and the final sum are carried as
     unevaluated sums of two float64 values (Dekker's product with Veltkamp's split, Knuth's
@@ -306,8 +319,8 @@ def aeqd_forward(
     d_hi, d_lo = _two_sum(lon, np.full_like(lon, -lon0))
     over = (d_hi > _PI) | ((d_hi == _PI) & (d_lo > 0.0))
     under = (d_hi < -_PI) | ((d_hi == -_PI) & (d_lo < 0.0))
-    d_hi = np.where(over, d_hi - _TWO_PI, np.where(under, d_hi + _TWO_PI, d_hi))
-    d_hi, d_lo = _two_sum(d_hi, d_lo)
+    turns = np.where(over, -1.0, np.where(under, 1.0, 0.0))
+    d_hi, d_lo = _two_sum(d_hi + turns * _TWO_PI, d_lo + turns * _TWO_PI_LO)
     sin_d_hi = np.sin(d_hi)
     cos_d_hi = np.cos(d_hi)
     sin_d = sin_d_hi + cos_d_hi * d_lo
@@ -349,6 +362,27 @@ def _two_sum(a: FloatArray, b: FloatArray) -> tuple[FloatArray, FloatArray]:
     s = a + b
     b_part = s - a
     return s, (a - (s - b_part)) + (b - b_part)
+
+
+def _wrap_longitude(a_hi: FloatArray, a_lo: FloatArray) -> FloatArray:
+    """The float64 in [-pi, pi) nearest the angle a = a_hi + a_lo on the true circle.
+
+    ``a_hi`` is fl(a) and |a| < 2 pi. Outside [-pi, pi), a turns by the true 2 pi: a_hi by
+    2 * math.pi, exact by Sterbenz, and a_lo by the residual. The rounded result b_hi is then
+    the nearest float64, and it lies outside the range only next to the antimeridian, inside
+    the 2.4e-16 rad that the range falls short of a turn. Below ``-math.pi`` the nearest value
+    in range is ``-math.pi``. At or above ``math.pi`` it is the nearer of the largest float64
+    below ``math.pi`` and ``-math.pi``, which as an angle there is math.pi plus the residual.
+    """
+    over = (a_hi > _PI) | ((a_hi == _PI) & (a_lo >= 0.0))
+    under = (a_hi < -_PI) | ((a_hi == -_PI) & (a_lo < 0.0))
+    turns = np.where(over, -1.0, np.where(under, 1.0, 0.0))
+    b_hi, b_lo = _two_sum(a_hi + turns * _TWO_PI, a_lo + turns * _TWO_PI_LO)
+    to_east_end = (b_hi - _PI_BELOW) + b_lo
+    to_west_end = (_PI - b_hi) + (_TWO_PI_LO - b_lo)
+    east = np.where(to_east_end < to_west_end, _PI_BELOW, -_PI)
+    wrapped: FloatArray = np.where(b_hi >= _PI, east, np.where(b_hi < -_PI, -_PI, b_hi))
+    return wrapped
 
 
 def _split(a: FloatArray) -> tuple[FloatArray, FloatArray]:
