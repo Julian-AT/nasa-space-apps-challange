@@ -1183,11 +1183,12 @@ not zero. This is float64 representability, not a physical threshold: it binds o
 whose parts span about 300 decimal orders of magnitude.
 
 The hybrid-polarimetric synthesis (:func:`hybrid_stokes_from_covariance`) relies on the same
-guard. Its factors are at least 1/4 on the way into a result from ``C'`` (the 1/2 of the
-Hermitian part, at least 1/2 to express it in the (HH, HV, VV) ordering, and the entries 1/2
-of the forms), or from the declared (HH, HV, VV) matrix, whose parts are at least half the
-corresponding parts of ``C'``, the same 1/2 of the Hermitian part and the forms' 1/2. Each
-product so stays at least ``2**-1020``, also a normal float64."""
+guard. A part of ``C'`` that passes it is at least ``2**-1017``. On its way into a hybrid
+output it is multiplied by factors whose product is at least 1/8: the 1/2 of the Hermitian
+part, at least 1/2 to express it in the (HH, HV, VV) ordering (1/sqrt2 or 1/2), and an entry
+of magnitude 1/2 or 1 of the forms. A part of a declared (HH, HV, VV) matrix is at least half
+the corresponding part of ``C'`` and meets the same 1/2 of the Hermitian part and of the
+forms. Each product so stays at least ``2**-1020``, also a normal float64, and is exact."""
 
 
 def _scale_by_power_of_two(
@@ -2134,7 +2135,7 @@ TRANSMIT_ELLIPTICITIES: Final[tuple[float, float]] = (45.0, -45.0)
 
 The transmit Jones vector in the (H, V) basis of the covariance is ``t(chi) = (cos chi,
 i sin chi)``, the Jones vector of a polarization ellipse of orientation 0 and ellipticity angle
-``chi`` (Lee and Pottier 2009, Polarimetric Radar Imaging, ch. 1), whose own Stokes parameter
+``chi`` in the usual orientation-ellipticity parameterization; its own Stokes parameter
 ``-2 Im(t_H conj(t_V))`` is ``sin(2 chi)``. So ``chi_tx = -45`` is ``(1, -i)/sqrt2``, the SC_LL
 transmit vector of the LL/LR convention of Neish et al. (:data:`NEISH_SC_LL_CONVENTION`), and
 ``chi_tx = +45`` is ``(1, +i)/sqrt2``, the opposite handedness (:data:`OPPOSITE_SC_CONVENTION`).
