@@ -1083,16 +1083,31 @@ def test_legend_rejects_invalid_values(legend: dict[str, Any]) -> None:
 
 
 def test_zoom_levels_run_from_min_to_max_with_one_pixel_size_each() -> None:
-    assert_rejected(TileLayer, tile_layer(zoom_min=3, zoom_max=2))
+    # An empty pixel-size list matches the length rule for zoom 3 to 2, so only the order fails.
+    reversed_zooms = tile_layer(
+        zoom_min=3, zoom_max=2, metres_per_pixel_by_zoom=[], omitted_tiles=[]
+    )
+    assert_rejected(TileLayer, reversed_zooms)
     assert_rejected(TileLayer, tile_layer(metres_per_pixel_by_zoom=[20.0, 10.0]))
     assert_rejected(TileLayer, tile_layer(metres_per_pixel_by_zoom=[20.0, 10.0, 5.0, 2.5]))
     one = tile_layer(zoom_min=2, zoom_max=2, metres_per_pixel_by_zoom=[5.0], omitted_tiles=[])
     assert assert_accepted(TileLayer, one).zoom_min == 2
 
 
-@pytest.mark.parametrize("tile", [[3, 0, 0], [1, 0], [2, 0, 3, 1], [2, -1, 3], [2, 0.5, 3]])
+def zooms_one_to_two(tile: list[object]) -> dict[str, Any]:
+    return tile_layer(zoom_min=1, metres_per_pixel_by_zoom=[10.0, 5.0], omitted_tiles=[tile])
+
+
+def test_an_omitted_tile_within_the_zoom_range_is_accepted() -> None:
+    for tile in ([1, 0, 0], [2, 3, 1]):
+        assert assert_accepted(TileLayer, zooms_one_to_two(tile)).omitted_tiles == [tile]
+
+
+@pytest.mark.parametrize(
+    "tile", [[3, 0, 0], [0, 0, 0], [1, 0], [2, 0, 3, 1], [2, -1, 3], [2, 0.5, 3]]
+)
 def test_omitted_tiles_are_z_x_y_within_the_zoom_range(tile: list[object]) -> None:
-    assert_rejected(TileLayer, tile_layer(zoom_min=1, omitted_tiles=[tile]))
+    assert_rejected(TileLayer, zooms_one_to_two(tile))
 
 
 @pytest.mark.parametrize(

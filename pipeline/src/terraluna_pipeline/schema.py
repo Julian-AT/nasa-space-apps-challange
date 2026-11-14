@@ -986,6 +986,463 @@ ComparisonsFile = Annotated[
 """comparisons/{target_id}.json: an array of ComparisonRecords."""
 
 
+# --- Science records II: TileLayer and TargetRecord (CONTRACTS a.4; PRD 4, 8.4, 8.10, 10) -------
+
+TargetId = Annotated[str, Field(pattern=r"^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$")]
+"""A target id such as ``moon-cr-site01-w000`` (PRD 8.4): body-prefixed and lower case, like a
+WindowId, so it is a safe file name in comparisons/{target_id}.json."""
+
+LayerName = Annotated[str, Field(pattern=rf"^{_SEGMENT}$")]
+"""A tile layer name, one BundlePath segment: tiles/{layer}/{z}/{x}/{y}.webp (PRD 8.4)."""
+
+SafeInt = Annotated[int, Field(ge=-JS_MAX_SAFE_INTEGER, le=JS_MAX_SAFE_INTEGER)]
+"""An integer that JavaScript reads exactly."""
+
+Channel = Annotated[int, Field(ge=0, le=255)]
+"""One 8-bit colour channel."""
+
+Rgba = Annotated[list[Channel], Field(min_length=4, max_length=4)]
+
+
+def _refuse_non_int(value: object) -> object:
+    # pydantic matches Literal[512] by equality, so 512.0 would pass; every other count in the
+    # records is a strict integer.
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError("must be the integer 512")
+    return value
+
+
+TilePx = Annotated[Literal[512], BeforeValidator(_refuse_non_int)]
+"""The tile edge in pixels: always 512 (PRD 8.4)."""
+
+TileIndex = Annotated[list[Count], Field(min_length=3, max_length=3)]
+"""A tile as ``[z, x, y]``."""
+
+Extent = Annotated[list[Float], Field(min_length=4, max_length=4)]
+"""``[min_x, min_y, max_x, max_y]`` in the layer's metres."""
+
+
+class LegendClass(Record):
+    """One class of a categorical layer, such as a WorldCover code."""
+
+    code: SafeInt
+    label: NonEmptyStr
+    rgba: Rgba
+
+
+class ClassesLegend(Record):
+    """The legend of a categorical layer: one entry per class code, each code once."""
+
+    kind: Literal["classes"]
+    classes: Annotated[list[LegendClass], Field(min_length=1)]
+
+    @model_validator(mode="after")
+    def _codes_are_distinct(self) -> Self:
+        codes = [entry.code for entry in self.classes]
+        if len(set(codes)) != len(codes):
+            raise ValueError("each class code appears once")
+        return self
+
+
+class NumericLegend(Record):
+    """The legend of a numeric layer on a colour-blind-safe scale (PRD 8.10). ``min`` is below
+    ``max``, so the scale has a range."""
+
+    kind: Literal["numeric"]
+    min: Float
+    max: Float
+    scale: Literal["viridis", "cividis"]
+    unit: NonEmptyStr | None
+
+    @model_validator(mode="after")
+    def _min_below_max(self) -> Self:
+        if not self.min < self.max:
+            raise ValueError(f"min {self.min} must be below max {self.max}")
+        return self
+
+
+Legend = Annotated[ClassesLegend | NumericLegend, Field(discriminator="kind")]
+"""A tile layer legend, told apart by ``kind``."""
+
+
+class Hillshade(Record):
+    """The light of a hillshade layer, in degrees."""
+
+    azimuth_deg: Annotated[float, Field(ge=0, le=360, allow_inf_nan=False)]
+    altitude_deg: Annotated[float, Field(ge=0, le=90, allow_inf_nan=False)]
+
+
+class TileEncoding(Record):
+    """How the tiles are encoded: always WebP (PRD 8.4)."""
+
+    format: Literal["webp"]
+    lossless: bool
+    quality: Annotated[int, Field(ge=0, le=100)] | None
+
+
+class TileLayer(Record):
+    """A tiled raster layer of a target, at tiles/{layer}/{z}/{x}/{y}.webp (PRD 8.4).
+
+    ``metres_per_pixel_by_zoom`` holds one pixel size per zoom level, from ``zoom_min`` to
+    ``zoom_max``. ``omitted_tiles`` lists the all-nodata tiles, as ``[z, x, y]`` within that zoom
+    range, which are never written as images. ``extent_m`` is ``[min_x, min_y, max_x, max_y]``.
+    """
+
+    layer: LayerName
+    body: Body
+    crs: NonEmptyStr
+    units: NonEmptyStr | None
+    evidence_label: EvidenceLabel
+    source_product_ids: list[NonEmptyStr]
+    origin_x_m: Float
+    origin_y_m: Float
+    y_direction: Literal["down", "up"]
+    tile_px: TilePx
+    metres_per_pixel_by_zoom: list[Positive]
+    zoom_min: Count
+    zoom_max: Count
+    extent_m: Extent
+    omitted_tiles: list[TileIndex]
+    legend: Legend
+    hillshade: Hillshade | None
+    encoding: TileEncoding
+    bytes_total: Count
+    mock: bool
+
+    @model_validator(mode="after")
+    def _zooms_tiles_and_extent_agree(self) -> Self:
+        if self.zoom_min > self.zoom_max:
+            raise ValueError(f"zoom_min {self.zoom_min} exceeds zoom_max {self.zoom_max}")
+        levels = self.zoom_max - self.zoom_min + 1
+        if len(self.metres_per_pixel_by_zoom) != levels:
+            raise ValueError(f"metres_per_pixel_by_zoom needs one size for each of {levels} zooms")
+        for z, _, _ in self.omitted_tiles:
+            if not self.zoom_min <= z <= self.zoom_max:
+                raise ValueError(
+                    f"omitted tile zoom {z} is outside {self.zoom_min}..{self.zoom_max}"
+                )
+        min_x, min_y, max_x, max_y = self.extent_m
+        if not (min_x < max_x and min_y < max_y):
+            raise ValueError("extent_m is [min_x, min_y, max_x, max_y] with min below max")
+        return self
+
+
+class Projection(Record):
+    """The target's map projection and its parameters, as read from the product."""
+
+    kind: Literal["polar_stereographic", "equirectangular", "geographic"]
+    params: dict[ObservableName, Float | NonEmptyStr]
+
+
+class WindowGrid(Record):
+    """The window grid over a target; the counts are null until the grid is built."""
+
+    window_m: Positive
+    stride_m: Positive
+    n_generated: Count | None
+    n_eligible: Count | None
+
+    @model_validator(mode="after")
+    def _eligible_within_generated(self) -> Self:
+        if (
+            self.n_generated is not None
+            and self.n_eligible is not None
+            and self.n_eligible > self.n_generated
+        ):
+            raise ValueError("n_eligible cannot exceed n_generated")
+        return self
+
+
+class Shortlist(Record):
+    """The Earth windows shortlisted for a target (PRD 6.5 step 4), and the rule used."""
+
+    earth_window_ids: list[WindowId]
+    rule: NonEmptyStr
+    n_compared: Count | None
+
+    @model_validator(mode="after")
+    def _within_the_compared_windows(self) -> Self:
+        if self.n_compared is not None and len(self.earth_window_ids) > self.n_compared:
+            raise ValueError("a shortlist cannot hold more windows than were compared")
+        return self
+
+
+class TargetRecord(Record):
+    """A target in targets.json (PRD 8.4). The footprint and primary window are null until G0
+    freezes them, and exactly one of ``shortlist`` and ``shortlist_reason`` is null."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when(
+                    {"shortlist": _NULL},
+                    {"shortlist_reason": _STRING},
+                    {"shortlist_reason": _NULL},
+                )
+            ]
+        }
+    )
+
+    target_id: TargetId
+    mock: bool
+    run_id: RunId | None
+    body: Body
+    name: NonEmptyStr
+    description: NonEmptyStr
+    product_ids: list[NonEmptyStr]
+    crs: NonEmptyStr
+    projection: Projection
+    footprint: WindowPolygon | None
+    primary_window_id: WindowId | None
+    window_grid: WindowGrid
+    reference_window_ids: list[WindowId]
+    shortlist: Shortlist | None
+    shortlist_reason: ReasonCode | None
+    shipping_mode: ShippingMode | None
+    tile_layers: list[TileLayer]
+
+    @model_validator(mode="after")
+    def _shortlist_or_its_reason(self) -> Self:
+        if not _exactly_one_null(self.shortlist, self.shortlist_reason):
+            raise ValueError("exactly one of shortlist and shortlist_reason must be null")
+        return self
+
+
+TargetsFile = Annotated[
+    list[TargetRecord],
+    Strict(),
+    Field(title="Targets", description="targets.json: the TargetRecords (PRD 8.4)."),
+]
+"""targets.json: an array of TargetRecords."""
+
+
+# --- Science records II: CardRecord (CONTRACTS a.4; PRD 3, 4, 10) --------------------------------
+# PRD 8.12 lists no card record. This one is built on PRD 10: the seven answers and table D.
+
+CardId = Annotated[
+    str,
+    Field(pattern=r"^(moon|mars|earth)-[a-z0-9][a-z0-9-]*__(moon|mars|earth)-[a-z0-9][a-z0-9-]*$"),
+]
+"""``<target_window_id>__<earth_window_id>``; window ids hold no underscore, so it splits once."""
+
+
+class CardTarget(Record):
+    """The lunar or Mars window the card compares (question 1)."""
+
+    target_id: TargetId
+    target_window_id: WindowId
+    body: Body
+    polygon: WindowPolygon
+    product_ids: list[NonEmptyStr]
+
+
+class CardEarth(Record):
+    """The Earth window the card compares (question 1)."""
+
+    earth_window_id: WindowId
+    polygon: WindowPolygon
+    product_ids: list[NonEmptyStr]
+    search_region_id: NonEmptyStr | None
+
+
+class ComparisonRef(Record):
+    """Where the card's ComparisonRecord is: comparisons/{target_id}.json."""
+
+    path: BundlePath
+    target_window_id: WindowId
+    earth_window_id: WindowId
+
+
+class CardInterpretation(Record):
+    """Question 2: the task the candidate could help investigate, always an assumption."""
+
+    text: NonEmptyStr
+    evidence_label: Literal["Assumed"]
+
+
+class TableDRow(Record):
+    """One row of card table D (PRD 10): an observable, its value and its evidence label."""
+
+    observable: NonEmptyStr
+    value: Float | None
+    unit: NonEmptyStr | None
+    evidence_label: EvidenceLabel
+    support: NonEmptyStr
+    product_id: NonEmptyStr | None
+    band: NonEmptyStr | None
+    geometry: NonEmptyStr | None
+    reason: ReasonCode | None
+
+
+class CardDifferences(Record):
+    """Question 4. ``limits`` holds Earth's seven limits, or the Mars list, of PRD 10 as the
+    card writer supplies them; the schema fixes neither the wording nor the count."""
+
+    limits: list[NonEmptyStr]
+    differing: list[NonEmptyStr]
+    ambiguous: list[NonEmptyStr]
+    not_observed: list[NonEmptyStr]
+
+
+class TiedByFamily(Record):
+    """Each family's ``tied`` flag, as in the card's distances_by_family."""
+
+    terrain_relief: bool | None
+    terrain_texture: bool | None
+    radar_cpr: bool | None
+    model_embedding: bool | None
+
+
+class TieGroupByFamily(Record):
+    """Each family's ``tie_group``, as in the card's distances_by_family."""
+
+    terrain_relief: NonEmptyStr | None
+    terrain_texture: NonEmptyStr | None
+    radar_cpr: NonEmptyStr | None
+    model_embedding: NonEmptyStr | None
+
+
+class CardStability(Record):
+    """Question 5: the uncertainty components and the ties of every family, kept separate."""
+
+    uncertainty_components: UncertaintyComponents
+    tied_by_family: TiedByFamily
+    tie_group_by_family: TieGroupByFamily
+
+
+class CampaignEntry(Record):
+    """A campaign answer (question 6): ``unknown`` exactly when it has no source."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when(
+                    {"value": {"const": UNKNOWN}},
+                    {"source": _NULL},
+                    {"source": _STRING},
+                )
+            ]
+        }
+    )
+
+    value: NonEmptyStr
+    source: NonEmptyStr | None
+
+    @model_validator(mode="after")
+    def _unknown_without_a_source(self) -> Self:
+        if (self.value == UNKNOWN) != (self.source is None):
+            raise ValueError("value is 'unknown' exactly when source is null")
+        return self
+
+
+class CardCampaign(Record):
+    """Question 6: the practical campaign questions."""
+
+    access: CampaignEntry
+    permits: CampaignEntry
+    season: CampaignEntry
+    land_status: CampaignEntry
+    logistics: CampaignEntry
+
+
+class FieldExperiment(Record):
+    """Question 7: the field observation that would test the candidate, always a proposal."""
+
+    text: NonEmptyStr
+    evidence_label: Literal["Assumed"]
+    status: Literal["proposed"]
+
+
+class RadarContextEntry(Record):
+    """An observed radar statistic shown next to the card with its band (PRD 4 Mode B)."""
+
+    product_id: NonEmptyStr
+    band: NonEmptyStr
+    observable: NonEmptyStr
+    statistic: NonEmptyStr
+    value: Float | None
+    unit: NonEmptyStr | None
+    evidence_label: EvidenceLabel
+    support_m: Positive | None
+    reason: ReasonCode | None
+
+
+class FigureRef(Record):
+    """A card figure A to C (PRD 10): its SVG path, or the reason it was not rendered."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [_when({"path": _NULL}, {"reason": _STRING}, {"reason": _NULL})]
+        }
+    )
+
+    figure: Literal["A", "B", "C"]
+    path: BundlePath | None
+    alt: NonEmptyStr
+    reason: ReasonCode | None
+
+    @model_validator(mode="after")
+    def _path_or_its_reason(self) -> Self:
+        if not _exactly_one_null(self.path, self.reason):
+            raise ValueError("exactly one of path and reason must be null")
+        return self
+
+
+class CardRecord(Record):
+    """An evidence card, cards/{card_id}.json (PRD 10).
+
+    The card carries no ``bundle_version``: the page shows the manifest's (D08). Gate states on
+    the page come from validation.json; ``g5_status`` is the state the card was built under. The
+    distances are the comparison's, unchanged, and question 5 repeats their ties. A Mode B or C
+    card has no radar distance (PRD 4).
+    """
+
+    card_id: CardId
+    mock: bool
+    run_id: RunId
+    shipping_mode: ShippingMode
+    title: NonEmptyStr
+    wording: Literal["candidate window identified by this search"]
+    target: CardTarget
+    earth: CardEarth
+    comparison_ref: ComparisonRef
+    q1_compared: NonEmptyStr
+    q2_interpretation: CardInterpretation
+    q3_measurements: list[TableDRow]
+    q4_differences: CardDifferences
+    q5_stability: CardStability
+    q6_campaign: CardCampaign
+    q7_field_experiment: FieldExperiment
+    distances_by_family: DistancesByFamily
+    radar_context: list[RadarContextEntry]
+    figures: list[FigureRef]
+    g5_status: GateStatus
+    claim_limits: list[NonEmptyStr]
+
+    @model_validator(mode="after")
+    def _one_consistent_card(self) -> Self:
+        target_window, earth_window = self.target.target_window_id, self.earth.earth_window_id
+        if self.card_id != f"{target_window}__{earth_window}":
+            raise ValueError("card_id must be '<target_window_id>__<earth_window_id>'")
+        ref = self.comparison_ref
+        if (ref.target_window_id, ref.earth_window_id) != (target_window, earth_window):
+            raise ValueError("comparison_ref names the card's target and Earth windows")
+        if ref.path != f"comparisons/{self.target.target_id}.json":
+            raise ValueError("comparison_ref.path is comparisons/<target_id>.json")
+        stability = self.q5_stability
+        for family, entry in self.distances_by_family.items():
+            if getattr(stability.tied_by_family, family) != entry.tied:
+                raise ValueError(f"q5 tied_by_family.{family} differs from its distance")
+            if getattr(stability.tie_group_by_family, family) != entry.tie_group:
+                raise ValueError(f"q5 tie_group_by_family.{family} differs from its distance")
+        if self.shipping_mode != "A" and self.distances_by_family.radar_cpr.status == "available":
+            raise ValueError(f"a Mode {self.shipping_mode} card has no radar distance (PRD 4)")
+        letters = [figure.figure for figure in self.figures]
+        if len(set(letters)) != len(letters):
+            raise ValueError("each figure appears at most once")
+        return self
+
+
 # --- JSON Schema generation (PRD 8.3, 8.9) ------------------------------------------------------
 
 JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
@@ -1014,6 +1471,8 @@ CONTRACTS: tuple[Contract, ...] = (
     Contract("Windows", "windows.schema.json", TypeAdapter(WindowsFile)),
     Contract("ComparisonRecord", "comparison-record.schema.json", TypeAdapter(ComparisonRecord)),
     Contract("Comparisons", "comparisons.schema.json", TypeAdapter(ComparisonsFile)),
+    Contract("Targets", "targets.schema.json", TypeAdapter(TargetsFile)),
+    Contract("CardRecord", "card-record.schema.json", TypeAdapter(CardRecord)),
 )
 
 
