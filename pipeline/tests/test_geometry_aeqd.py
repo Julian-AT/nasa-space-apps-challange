@@ -5,11 +5,12 @@ Units and conventions used throughout:
 - Window coordinates x (east) and y (north) are metres on the body sphere, measured from the
   window centre. Angles are radians. The radii are the D29 spheres from ``BODY_RADII_M``.
 - Longitudes returned by the inverse lie in the half-open range [-pi, pi), where pi is the
-  float64 ``math.pi``. A window centre must already be in that range. A longitude and the same
-  value plus or minus 2 * math.pi name the same meridian, which is the convention
-  ``math.degrees`` follows (``math.degrees(math.pi) == 180.0``). Real trigonometry has period
-  2 pi, which is 2.4e-16 more than 2 * math.pi, so the exact reference below first moves a
-  longitude that lies more than math.pi from the centre by 2 * math.pi, at 40 digits.
+  float64 ``math.pi``. A window centre must already be in that range. Every float64 longitude
+  is the real angle it denotes, on the true sphere: two longitudes name the same meridian when
+  they differ by a whole number of turns of the true 2 pi, which is 2.4e-16 more than
+  2 * math.pi. On the Earth sphere that difference is 1.6e-9 m, more than the allowance below
+  at offsets under 15 m. The exact references therefore take each float64 longitude at its
+  exact value and use mpmath's pi, with no reduction by 2 * math.pi.
 - Round trips use PRD 7 Tolerances (rtol 1e-10, atol 1e-12) on the window coordinates in plain
   metres, with no normalisation: inverse then forward must give back each of x and y to within
   1e-12 m + 1e-10 * |value|. On the 5 km, 90 m grid the smallest offsets are 25 m (pixel
@@ -84,6 +85,9 @@ GRID_SIZE = window_grid(WINDOW_M, GRID_M).size
 
 # Significant digits of the exact references. Float64 carries about 16.
 REFERENCE_DIGITS = 40
+with mpmath.workdps(REFERENCE_DIGITS):
+    # The true 2 pi minus the float64 2 * math.pi, about 2.449e-16 rad, rounded once.
+    TWO_PI_RESIDUAL = float(2 * mpmath.pi - 2 * mpmath.mpf(PI))
 # Grid rows and columns checked against the exact reference: both edges, their neighbours, two
 # interior lines and the three lines through the centre pixel, where the offsets are smallest
 # (25 m) and the absolute tolerance binds. The full 55 x 55 grid is checked against the module
@@ -200,23 +204,18 @@ def exact_forward(
     the resulting metres are rounded to float64, so the reference adds at most half an ulp to
     each coordinate.
 
-    A longitude more than math.pi from the centre is moved by 2 * math.pi first, which undoes
-    the inverse's wrap into [-pi, pi) under the module's convention (see the module docstring).
+    The longitude difference is used as it is, on the true sphere: mpmath's sine and cosine
+    have the true period 2 pi, so a point across the antimeridian needs no reduction.
     """
     lat, lon = np.broadcast_arrays(np.asarray(lat, np.float64), np.asarray(lon, np.float64))
     x_out = np.empty(lat.shape)
     y_out = np.empty(lat.shape)
     with mpmath.workdps(REFERENCE_DIGITS):
-        pi = mpmath.mpf(PI)
         lam0 = mpmath.mpf(lon0)
         axes = centre_axes(lat0)
         r = mpmath.mpf(radius)
         for index in np.ndindex(lat.shape):
             dlam = mpmath.mpf(float(lon[index])) - lam0
-            if dlam > pi:
-                dlam -= 2 * pi
-            elif dlam < -pi:
-                dlam += 2 * pi
             e, n = exact_offset_mp(mpmath.mpf(float(lat[index])), dlam, axes, r)
             x_out[index] = float(e)
             y_out[index] = float(n)
@@ -231,8 +230,9 @@ def exact_inverse(
     Every float64 offset is taken at its exact binary value (see :func:`exact_point_mp`).
     Returns float64 ``(lat, lon, dlat, dlon)``: the latitude and longitude, and their exact
     differences from the centre, each rounded once. ``dlon`` lies in (-pi, pi]. ``lon`` is
-    lon0 + dlon brought into [-pi, pi) by a shift of 2 * math.pi under the module's convention,
-    so after rounding it can equal math.pi; compare it with :func:`assert_angles_close`.
+    lon0 + dlon, moved by one turn of the true 2 pi when it lies outside [-math.pi, math.pi).
+    That range is 2.4e-16 short of a full turn, so after rounding ``lon`` can lie just outside
+    it; compare it with :func:`assert_angles_close`.
     """
     x, y = np.broadcast_arrays(np.asarray(x, np.float64), np.asarray(y, np.float64))
     lat_out = np.empty(x.shape)
@@ -240,7 +240,7 @@ def exact_inverse(
     dlat_out = np.empty(x.shape)
     dlon_out = np.empty(x.shape)
     with mpmath.workdps(REFERENCE_DIGITS):
-        pi = mpmath.mpf(PI)
+        top = mpmath.mpf(PI)
         phi0 = mpmath.mpf(lat0)
         lam0 = mpmath.mpf(lon0)
         axes = centre_axes(lat0)
@@ -250,10 +250,10 @@ def exact_inverse(
                 mpmath.mpf(float(x[index])), mpmath.mpf(float(y[index])), axes, r
             )
             lam = lam0 + dlam
-            if lam >= pi:
-                lam -= 2 * pi
-            elif lam < -pi:
-                lam += 2 * pi
+            if lam >= top:
+                lam -= 2 * mpmath.pi
+            elif lam < -top:
+                lam += 2 * mpmath.pi
             lat_out[index] = float(phi)
             lon_out[index] = float(lam)
             dlat_out[index] = float(phi - phi0)
@@ -311,12 +311,14 @@ def assert_metres_close(
 def assert_angles_close(actual: Array, expected: Array) -> None:
     """PRD 7 tolerances on angles in radians, comparing the same meridian.
 
-    Each actual angle is first moved by the whole number of turns of 2 * math.pi that brings it
-    nearest the expected one, so that -math.pi and math.pi, which name the same meridian,
-    compare equal. Ranges are asserted separately.
+    Each actual angle is first moved by the whole number of turns of the true 2 pi that brings
+    it nearest the expected one, so that angles on either side of the antimeridian compare as
+    the meridians they name. A turn is added as 2 * math.pi plus ``TWO_PI_RESIDUAL``. Ranges
+    are asserted separately.
     """
     turns = np.round((expected - actual) / (2 * PI))
-    np.testing.assert_allclose(actual + turns * (2 * PI), expected, rtol=RTOL, atol=ATOL)
+    moved = (actual + turns * (2 * PI)) + turns * TWO_PI_RESIDUAL
+    np.testing.assert_allclose(moved, expected, rtol=RTOL, atol=ATOL)
 
 
 def story_grid() -> tuple[Array, Array]:
@@ -684,6 +686,35 @@ def test_forward_near_an_axis_in_a_pole_window(
     assert_metres_close(x, y, x_ref, y_ref)
 
 
+# Points across the antimeridian from the centre, as (lat0, lon0, lat, lon), near the equator,
+# at mid-latitudes and close to a pole, where the longitude difference lies beyond +-math.pi.
+# The first is the counterexample of review finding codex2-r3-1: on the Earth sphere the points
+# are 1.27 m apart, and a longitude difference reduced by 2 * math.pi instead of the true 2 pi
+# moves x by 1.6e-9 m, 12 times the PRD 7 allowance there.
+ANTIMERIDIAN_FORWARD_CASES = (
+    (0.0, -PI + 1e-7, 0.0, PI - 1e-7),
+    (0.0, PI - 1e-7, 0.0, -PI + 1e-7),
+    (0.0, -PI, 1e-9, math.nextafter(PI, 0.0)),
+    (0.0, math.nextafter(PI, 0.0), -1e-9, -PI),
+    (0.0, -PI, 0.0, PI),
+    (-0.9, -PI + 3e-8, -0.9 + 2e-10, PI - 5e-8),
+    (0.9, 3.141592, 0.9 - 1e-12, -3.141592),
+    (1.5707, -PI + 2e-5, 1.5706, PI - 4e-5),
+    (-1.5706, PI - 1e-6, -1.57065, -PI + 1e-6),
+)
+
+
+@pytest.mark.parametrize("body", BODIES)
+@pytest.mark.parametrize(("lat0", "lon0", "lat", "lon"), ANTIMERIDIAN_FORWARD_CASES)
+def test_forward_across_the_antimeridian_uses_the_true_period(
+    body: str, lat0: float, lon0: float, lat: float, lon: float
+) -> None:
+    radius = BODY_RADII_M[body]
+    x, y = aeqd_forward(lat, lon, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
+    x_ref, y_ref = exact_forward(np.array(lat), np.array(lon), lat0, lon0, radius)
+    assert_metres_close(x, y, x_ref, y_ref)
+
+
 def test_forward_returns_the_origin_at_the_centre() -> None:
     for body in BODIES:
         for lat0 in (*POLES_RAD, -0.3, 0.0, 1.2):
@@ -732,6 +763,64 @@ def test_longitudes_are_normalised_to_minus_pi_inclusive_pi_exclusive() -> None:
         _, lon = aeqd_inverse(x, y, lat0_rad=0.0, lon0_rad=lon0, radius_m=radius)
         assert np.all(lon >= -PI)
         assert np.all(lon < PI)
+
+
+def nearest_in_range_longitude(lam: Any) -> float:
+    """The float64 in [-math.pi, math.pi) nearest the real angle ``lam`` on the true circle.
+
+    ``lam`` is an mpmath number. The range is 2.4e-16 rad short of a full turn, so next to the
+    antimeridian the nearest value can be ``-math.pi`` or the largest float64 below math.pi.
+    Call it inside ``mpmath.workdps``.
+    """
+    two_pi = 2 * mpmath.pi
+    candidates = {-PI, math.nextafter(PI, 0.0)}
+    for turns in (-1, 0, 1):
+        value = float(lam + turns * two_pi)
+        for candidate in (math.nextafter(value, -math.inf), value, math.nextafter(value, math.inf)):
+            if -PI <= candidate < PI:
+                candidates.add(candidate)
+
+    def distance(candidate: float) -> Any:
+        gap = mpmath.mpf(candidate) - lam
+        return abs(gap - two_pi * mpmath.nint(gap / two_pi))
+
+    return min(candidates, key=distance)
+
+
+# Window centres at and next to the antimeridian, and east-west offsets small enough that the
+# float64 rounding of the returned longitude, not the accuracy of the increment, decides it.
+ANTIMERIDIAN_CENTRE_LONGITUDES = (
+    -PI,
+    math.nextafter(-PI, 0.0),
+    -PI + 1e-9,
+    math.nextafter(PI, 0.0),
+    math.nextafter(math.nextafter(PI, 0.0), 0.0),
+    PI - 1e-9,
+)
+ANTIMERIDIAN_OFFSETS_M = (1e-10, 3e-10, 1e-9, 2e-9, 2.5e-9, 7e-9, 1e-6, 1e-3, 0.4, 13.9, 25.0)
+
+
+@pytest.mark.parametrize("body", BODIES)
+@pytest.mark.parametrize("lat0", [0.0, 0.8, -1.3])
+@pytest.mark.parametrize("lon0", ANTIMERIDIAN_CENTRE_LONGITUDES)
+def test_inverse_longitude_is_the_nearest_in_range_value_on_the_true_circle(
+    body: str, lat0: float, lon0: float
+) -> None:
+    """Across the antimeridian the inverse returns the in-range float64 nearest the exact
+    longitude, turning by the true 2 pi, not by 2 * math.pi."""
+    radius = BODY_RADII_M[body]
+    offsets = np.array(ANTIMERIDIAN_OFFSETS_M)
+    x = np.concatenate([offsets, -offsets])
+    y = np.zeros_like(x)
+    _, lon = aeqd_inverse(x, y, lat0_rad=lat0, lon0_rad=lon0, radius_m=radius)
+    with mpmath.workdps(REFERENCE_DIGITS):
+        axes = centre_axes(lat0)
+        r = mpmath.mpf(radius)
+        expected = []
+        for offset in x:
+            _, dlam = exact_point_mp(mpmath.mpf(float(offset)), mpmath.mpf(0), axes, r)
+            expected.append(nearest_in_range_longitude(mpmath.mpf(lon0) + dlam))
+    assert lon.tolist() == expected
 
 
 def test_a_window_on_the_antimeridian_wraps_west_points_to_the_east_end() -> None:
