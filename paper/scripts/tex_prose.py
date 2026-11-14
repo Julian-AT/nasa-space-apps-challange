@@ -254,13 +254,23 @@ ACCENT_SYMBOLS = frozenset("'`^\"~=.")
 # Commands that print no text of their own, so no word break: formatting commands print their
 # argument, declarations nothing and accents their letter.
 PRINTS_NO_TEXT = TEXT_COMMANDS | DECLARATIONS | ACCENT_COMMANDS
-# A LaTeX accent command and the letter it accents: \'e, \'{e}, \"{\i}, \v{c} or \v c.
+# What TeX skips where an accent reads its letter and after a control word: spaces and one line
+# break with the indent of the next line. A blank line is \par.
+ACCENT_GAP = r"[ \t]*(?:\n[ \t]*)?"
+# A LaTeX accent command and the letter it accents: \'e, \'{e}, \"{\i}, \v{c} or \v c. The accent
+# reads its letter as an argument, and latex.ltx's \@text@composite takes the first token of a
+# group and drops the rest, so the gap may stand before the letter or its brace, inside the braces
+# and after \i. caf\' with {e} on the next line prints one word.
+_ACCENT_COMMAND = r"\\(?:['`^\"~=.]|[" + ACCENT_LETTERS + r"](?![A-Za-z]))"
+_DOTLESS_LETTER = r"\\([ij])(?![A-Za-z])"
 ACCENT = re.compile(
-    r"\\(?:['`^\"~=.]|[" + ACCENT_LETTERS + r"](?![A-Za-z]))[ \t]*"
-    r"(?:\{[ \t]*(?:\\([ij])(?![A-Za-z])[ \t]*|([A-Za-z]))[ \t]*\}|\\([ij])(?![A-Za-z])|([A-Za-z]))"
+    rf"{_ACCENT_COMMAND}{ACCENT_GAP}(?:"
+    rf"\{{{ACCENT_GAP}(?:{_DOTLESS_LETTER}|([A-Za-z])){ACCENT_GAP}\}}"
+    rf"|{_DOTLESS_LETTER}{ACCENT_GAP}"
+    r"|([A-Za-z]))"
 )
-# Special letters. TeX drops the spaces after a control word, so \ss e prints as one word.
-SPECIAL_LETTER = re.compile(r"\\(ae|AE|oe|OE|aa|AA|ss|SS|i|j|o|O|l|L)(?![A-Za-z])[ \t]*")
+# Special letters. TeX drops the gap after a control word, so \ss e prints as one word.
+SPECIAL_LETTER = re.compile(r"\\(ae|AE|oe|OE|aa|AA|ss|SS|i|j|o|O|l|L)(?![A-Za-z])" + ACCENT_GAP)
 SPECIAL_LETTERS = {
     "ae": "ae",
     "AE": "AE",
@@ -340,8 +350,11 @@ def fold_latex(text: str) -> str:
     r"""Fold LaTeX accent commands and special letters to base letters and drop braces.
 
     TeX prints no braces, so caf{\'e} becomes cafe. overlap_check.py applies this to abstracts,
-    which may carry LaTeX accents; the prose of a .tex file is already folded.
+    which may carry LaTeX accents; the prose of a .tex file is already folded. The two read an
+    accent alike, across the gap TeX skips (ACCENT_GAP), so an abstract that breaks a line inside
+    an accent folds as a .tex file does. A carriage return is a line break.
     """
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = ACCENT.sub(lambda match: next(group for group in match.groups() if group), text)
     text = SPECIAL_LETTER.sub(lambda match: SPECIAL_LETTERS[match[1]], text)
     return text.replace("{", "").replace("}", "")
@@ -938,15 +951,23 @@ def _removed(span: str) -> str:
     return "\n" * span.count("\n") or " "
 
 
+def _write_letter(out: _ProseWriter, letter: str, code: str, start: int, end: int) -> int:
+    """Write the letter that code[start:end] prints, holding the line breaks TeX skips in it."""
+    out.write(letter, start)
+    for offset in range(start, end):
+        if code[offset] == "\n":
+            out.unprinted_line_break(offset)
+    return end
+
+
 def _prose_command(code: str, start: int, out: _ProseWriter) -> int:
     accent = ACCENT.match(code, start)
     if accent is not None:
-        out.write(next(group for group in accent.groups() if group), start)
-        return accent.end()
-    letter = SPECIAL_LETTER.match(code, start)
-    if letter is not None:
-        out.write(SPECIAL_LETTERS[letter[1]], start)
-        return letter.end()
+        letter = next(group for group in accent.groups() if group)
+        return _write_letter(out, letter, code, start, accent.end())
+    special = SPECIAL_LETTER.match(code, start)
+    if special is not None:
+        return _write_letter(out, SPECIAL_LETTERS[special[1]], code, start, special.end())
     if start + 1 >= len(code):
         return len(code)
     following = code[start + 1]
