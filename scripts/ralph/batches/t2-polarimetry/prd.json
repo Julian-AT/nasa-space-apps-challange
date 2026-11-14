@@ -40,12 +40,20 @@
       "priority": 1,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "0ddfd2dd922d00ab302f5e2c89f0ac33e442ccef",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "0710d1ef7488076e1e912fc742c2d30bda8795b4",
+        "files": [
+          "reviews/T2-01-claude.json",
+          "reviews/T2-01-codex.json",
+          "reviews/T2-01-codex-2.json"
+        ],
+        "digests": {
+          "reviews/T2-01-claude.json": "8b6ea634fbca441cf865bd900803bd70a56f7f13caaf0ef603ff9274adcb1efc",
+          "reviews/T2-01-codex.json": "889c60737db33b4514a981ca26738a37e41fd7af834f0fe900fe4258e8727ea9",
+          "reviews/T2-01-codex-2.json": "f95f3fd7d0e6a61b26c341954341f02ee254b47f3e4476d48c3ca824999366e0"
+        }
       },
       "notes": "",
       "codexPasses": 2
