@@ -119,3 +119,14 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at 54fc7a5 (T0-02 passed) or at 9acf9cc or later once T0-03 passes its review. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
 ---
+
+## 2026-11-14T18:06Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6). ralph/t0-bootstrap moved from 9acf9cc to 6440fee ("chore(ralph): record round 1 reviews for t0-03"), which adds only logs/agents/*.jsonl, reviews/T0-03-claude.json, reviews/T0-03-codex.json and its scripts/ralph/prd.json. No code changed, so the dcbce75 simulation still applies and I did not rerun it. main, ralph/t2-polarimetry, ralph/t3-terrain and ralph/tooling still have no pipeline/src/terraluna_pipeline/export.py. Only the iteration number and tip in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap 6440fee
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Nine author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at 54fc7a5 (T0-02 passed) or at a later tip once T0-03 passes its review (it is now in round 1, state reviewed). This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
