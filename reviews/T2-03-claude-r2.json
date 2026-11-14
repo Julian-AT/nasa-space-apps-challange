@@ -1,0 +1,126 @@
+{
+  "task_id": "T2-03",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "4c7bed65810af0f32c1ce98046509d687b4c2147",
+    "head": "a99a3fd0a73adc4e76f46a74570ade6f71c1ebf1",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "2dbed0dab226c395c9c36686dec243db6ccef0dbd6739907669ececdc9a47407"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/__init__.py",
+        "sha256": "b289526dda104254fa6f93383fddf1a78a39efd42c287dd17c2ccd0b2bcc7694"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/expanded_oracle.py",
+        "sha256": "ed198181d0d443868c91faa1a71c5f42465bb96bb827e53c3930d6517f339e31"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/jones_oracle.py",
+        "sha256": "3290b0f2e13ec282e07c261a0cbe866dbda63f68642bca89e6c0fb25909d02d8"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_covariance.py",
+        "sha256": "ff51769f163d34accd387d3bfd05c33a01ce6f3987459e069391814ea5ce1931"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:37:51Z",
+  "finished_utc": "2026-11-14T19:38:19Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T2-03 round 2 passes. The three story checks pass. I ran the pytest file, mypy and make check, and each exited cleanly. The two round-1 Codex fixes are in the code and have regression tests. The two round-1 low-severity rebuttals are acceptable.",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_polarimetry_covariance.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_covariance.py",
+      "outcome": "PASS",
+      "evidence": "150 passed in 0.96s"
+    },
+    {
+      "criterion": "Check: uv run mypy pipeline/src pipeline/tests",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 10 source files"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed (11 files already formatted), mypy found no issues in 11 source files"
+    },
+    {
+      "criterion": "Tests first, two independent oracles that do not import polarimetry.py, rtol 1e-10 and atol 1e-12",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/polarimetry/expanded_oracle.py and jones_oracle.py import only stdlib and numpy. Both docstrings state they do not import polarimetry. The diff touches only files in the story's files list plus scripts/ralph, which was excluded from the diff. Failing-first commit bb173ef is in the log. I did not re-run the tests against the pre-fix code."
+    },
+    {
+      "criterion": "Fixtures assert Hermitian and PSD first; F6 built rank one; F7 eigenvalues (0.1,0.1,1.9) and (0.1,0.9,1.1)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_polarimetry_covariance.py:177 (F6 rank-one fixture) and :187 (F7 eigenvalues) pass."
+    },
+    {
+      "criterion": "F6 values (OC 0.25, SC_LL 0.49, SC_opp 0.09) and F7 CPR 3/19 versus 1 with identical HH and HV powers; CPR values differ",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Tests :195, :215, :234 (F7 against both oracles), :257 (different CPR) and :270 (two-channel data cannot determine CPR) pass."
+    },
+    {
+      "criterion": "Explicit unitary basis transformation with no expanded formulas in the implementation; both oracles compared on F6, F7 and 200 hypothesis PSD covariances including SC_opp",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:958 CIRCULAR_BASIS is a unitary matrix. The conversion runs CIRCULAR_BASIS @ hermitian @ CIRCULAR_BASIS.conj().T at :1357, and the handedness term uses a linear functional built from the basis rows (:989). The docstring states the orderings and the transmit vector (1,-i)/sqrt2. test_random_psd_covariances_match_both_oracles at :1082 passes. I did not confirm the 200-example count (max_examples) in the test settings."
+    },
+    {
+      "criterion": "Convention is required; unknown or missing raises; handedness_verified defaults to False; no Mini-RF-equivalent label",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "_check_handedness_convention raises ValueError (:1003-1012), tested at :373. handedness_verified: bool = False at :1060. The Mini-RF phrase appears only as a negation in docstrings."
+    },
+    {
+      "criterion": "Invalid covariances (non-Hermitian, negative eigenvalue, negative diagonal, NaN) give INVALID with distinct cause codes, nothing published, no repair or clipping, tolerance is an argument defaulting to the PRD 7 arithmetic tolerance",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:1303-1354 marks COV_NONFINITE, COV_NOT_HERMITIAN, COV_NEGATIVE_DIAGONAL and COV_NOT_PSD. The tolerance argument defaults to ARITHMETIC_TOLERANCE (:1203). No eigenvalue is clipped. The open real-data PSD tolerance is recorded in the docstring at :1239-1242."
+    },
+    {
+      "criterion": "OC <= 0 gives OC_NONPOSITIVE with no epsilon; handedness term and ratio returned beside SC; base_SC <= 0 gives an explicit reason; no 'not small' threshold in code",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "polarimetry.py:1376 (OC_NONPOSITIVE), :1383-1385 (BASE_SC_NONPOSITIVE), :1366 (handedness term). No threshold appears in code. The docstring at :1234-1235 says the threshold is set on development data."
+    },
+    {
+      "criterion": "Round-1 Codex fix codex2-r1-1 (handedness term lost beside large powers)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The term is now Re sum(C' * K) at :1366, with no subtraction of rounded powers. Regression test_handedness_term_is_not_lost_beside_large_powers (:932) passes."
+    },
+    {
+      "criterion": "Round-1 Codex fix codex2-r1-2 (scaling discards a part, giving a VALID zero)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Rule 3 at :1323-1334 marks FLOAT64_OUT_OF_RANGE when a part falls too far below the largest. Regressions at :1018 and :1036 pass."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/polarimetry.py:1262",
+      "claim": "Rule 3 refuses a pixel whose parts span more than 2**1016, even when the SC value alone is representable (for example the codex2-r1-2 matrix with SC = 2**-1000). The result is INVALID with FLOAT64_OUT_OF_RANGE, which is the fail-closed choice.",
+      "evidence": "The docstring and _CARRIED_RANGE state that this is representability and not a physical threshold. It affects only matrices spanning about 300 decimal orders, so I accept it as a documented design choice.",
+      "id": "claude-r2-1",
+      "resolution": null
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "task_id": "T2-03",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4c7bed65810af0f32c1ce98046509d687b4c2147",
+    "head": "a99a3fd0a73adc4e76f46a74570ade6f71c1ebf1",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "sha256": "2dbed0dab226c395c9c36686dec243db6ccef0dbd6739907669ececdc9a47407"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/__init__.py",
+        "sha256": "b289526dda104254fa6f93383fddf1a78a39efd42c287dd17c2ccd0b2bcc7694"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/expanded_oracle.py",
+        "sha256": "ed198181d0d443868c91faa1a71c5f42465bb96bb827e53c3930d6517f339e31"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/jones_oracle.py",
+        "sha256": "3290b0f2e13ec282e07c261a0cbe866dbda63f68642bca89e6c0fb25909d02d8"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_covariance.py",
+        "sha256": "ff51769f163d34accd387d3bfd05c33a01ce6f3987459e069391814ea5ce1931"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:37:51Z",
+  "finished_utc": "2026-11-14T19:42:13Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Both prior fixes and both rebuttals are supported by the inspected code, tests and story notes. Execution-dependent criteria remain NOT_RUN because checks were explicitly prohibited in this read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests first, observed failing run, independent oracles and PRD tolerances",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Git history places oracle and covariance-test additions before the implementation. Independent calculations are present at pipeline/tests/polarimetry/expanded_oracle.py:71 and jones_oracle.py:58; neither imports production polarimetry. Test tolerances are set at test_polarimetry_covariance.py:44. A failing run was not observed, and execution was prohibited."
+    },
+    {
+      "criterion": "AC2: F6 and F7 construction asserts Hermitian PSD properties and expected eigenvalues before use",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_polarimetry_covariance.py:105 implements Hermitian and eigenvalue assertions. F6 is constructed from (1, 0.2j, 0) and checked before return at :142-154. Both F7 eigenvalue lists are checked before return at :157-167."
+    },
+    {
+      "criterion": "AC3: F6 powers and F7 CPR ambiguity match the required values",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_polarimetry_covariance.py:194-212 asserts F6 OC, both SC conventions and diagnostics. Lines 257-274 assert equal channel powers, CPR values 3/19 and 1, and their difference. Numerical execution was prohibited."
+    },
+    {
+      "criterion": "AC4: Explicit unitary transformation and comparisons with both oracles on fixtures and 200 random PSD covariances",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Basis entries are defined at pipeline/src/terraluna_pipeline/polarimetry.py:958; normalization and U C U^H are applied at :1322 and :1357. Ordering and transmit vector are declared at :1211-1221. Fixture comparisons appear at test_polarimetry_covariance.py:215-254; the 200-example property covers both conventions and orderings at :1080-1128. These numerical comparisons were not executed."
+    },
+    {
+      "criterion": "AC5: Required convention, rejection of unknown conventions and unverified handedness by default",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1197-1203 requires convention; :1003-1012 rejects undeclared values before conversion. The output field defaults to False at :1060 and is not overridden by the return at :1392-1403. Tests cover omission, unknown values, default False and caller replacement at test_polarimetry_covariance.py:352-410. No output label claims Mini-RF equivalence."
+    },
+    {
+      "criterion": "AC6: Invalid covariance causes, unpublished values, no repair or clipping, configurable tolerance and open real-data decision",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Validation branches are at pipeline/src/terraluna_pipeline/polarimetry.py:1311-1353; invalid values are blanked by :284-288. Tests at test_polarimetry_covariance.py:513-550 cover the four distinct causes, with tolerance and non-clipping cases at :568-703. The negative-diagonal rebuttal is supported by its separate branch and distinct-cause assertion. scripts/ralph/batches/t2-polarimetry/prd.json:163 records the open real-data tolerance. Runtime outcomes were not verified."
+    },
+    {
+      "criterion": "AC7: Nonpositive denominators, handedness diagnostics and no development-data threshold",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/src/terraluna_pipeline/polarimetry.py:1375-1389 rejects nonpositive OC and base_SC without epsilon and forms the diagnostic ratio. Tests cover zero OC, near-zero OC, zero base_SC and unrestricted handedness ratio at test_polarimetry_covariance.py:709-753. The open threshold is recorded in prd.json:163, supporting the notes rebuttal. Numerical outcomes were not executed."
+    },
+    {
+      "criterion": "Prior codex2-r1-1 fix: Preserve the handedness term beside large powers",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static fix verified: pipeline/src/terraluna_pipeline/polarimetry.py:989-991 constructs the difference of quadratic forms, and :1366 evaluates it directly instead of subtracting rounded powers. Targeted regressions and a Fraction-based property are present at test_polarimetry_covariance.py:930-988. Their execution remains unverified."
+    },
+    {
+      "criterion": "Prior codex2-r1-2 fix: Reject components lost by shared scaling",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static fix verified: pipeline/src/terraluna_pipeline/polarimetry.py:1324-1334 compares normalized components against the carried range while checking original nonzero components, then invalidates every output through the shared classifier. The reported covariance and mixed-magnitude properties are covered at test_polarimetry_covariance.py:1007-1067. Their execution remains unverified."
+    },
+    {
+      "criterion": "Changed paths remain within the story scope",
+      "command": "git diff --name-status 4c7bed65810af0f32c1ce98046509d687b4c2147 a99a3fd0a73adc4e76f46a74570ade6f71c1ebf1 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "Only polarimetry.py, test_polarimetry_covariance.py and three files under pipeline/tests/polarimetry/ changed. No configuration, release, application or production mock-data paths changed."
+    },
+    {
+      "criterion": "Focused covariance test suite",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_covariance.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user because the sandbox is read-only and test/dependency caches may write."
+    },
+    {
+      "criterion": "Python type checking",
+      "command": "uv run mypy pipeline/src pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user because the sandbox is read-only and dependency/type-check caches may write."
+    },
+    {
+      "criterion": "Repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user. The Makefile invokes uv-backed Ruff checks, formatting checks and mypy, which may write caches."
+    }
+  ],
+  "findings": []
+}

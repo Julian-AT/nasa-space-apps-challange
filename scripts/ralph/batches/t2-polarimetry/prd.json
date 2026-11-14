@@ -145,19 +145,19 @@
       "priority": 3,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 1,
+        "state": "reviewed",
+        "round": 2,
         "base": "4c7bed65810af0f32c1ce98046509d687b4c2147",
-        "head": "12aa9a91dcc9432ad8c48bd1c5f373b11ff28b83",
+        "head": "a99a3fd0a73adc4e76f46a74570ade6f71c1ebf1",
         "files": [
-          "reviews/T2-03-claude.json",
-          "reviews/T2-03-codex.json",
-          "reviews/T2-03-codex-2.json"
+          "reviews/T2-03-claude-r2.json",
+          "reviews/T2-03-codex-r2.json",
+          "reviews/T2-03-codex-2-r2.json"
         ],
         "digests": {
-          "reviews/T2-03-claude.json": "5c32d791a449d0dd75f2408f6ea92a2ad810c67432a91b670be53fe815da1bb3",
-          "reviews/T2-03-codex.json": "92807ad7b5535e5e5ae64457af64a0a7ef7256103d298311e5ea1d538d44fec9",
-          "reviews/T2-03-codex-2.json": "6f7d1dd7a5c81e976c84c24edc42461a84d1074752154e2f849d469bbdffda83"
+          "reviews/T2-03-claude-r2.json": "609ea019db36dc4d904a3bfb34c5f6f318f38077a263ebf333de7ddebdebffae",
+          "reviews/T2-03-codex-r2.json": "c0dbcf5453d5906b7663917182894dd498854bc660c55640dd2d67f26ed4a326",
+          "reviews/T2-03-codex-2-r2.json": "6241b6233a73d01934485f04710798fcf86275a64b37f0cabe409b60f04a2503"
         }
       },
       "notes": "Open decisions (PRD 7: real-data tolerances come from the product; PRD 6.2: the handedness threshold is set on development data). (1) No real-data Hermitian or PSD tolerance is set: circular_from_covariance takes a named Tolerance that defaults to ARITHMETIC_TOLERANCE (rtol 1e-10, atol 1e-12), and the tests use it. Rules 4-6 compare against atol + rtol * s, with s = max |C_ij| of the covariance in the (HH, sqrt2 HV, VV) form, whatever ordering was declared; atol is in the power units of the covariance. A real-data decision has to set it for the Hermitian, negative-diagonal and PSD rules together. (2) No threshold for a handedness ratio (Im D + Im E) / base_SC that is \"not small\" appears in code; the ratio is reported per pixel. (3) A negative diagonal beyond the tolerance has its own code, COV_NEGATIVE_DIAGONAL, so the four invalid cases (non-Hermitian, negative diagonal, negative eigenvalue, non-finite) have four distinct causes; the acceptance criteria name three codes for four cases. (4) OC carries the rounding error of the transformation, about float64 precision times s. A small positive OC gives its large CPR with no epsilon or floor; whether such an OC is reliable is for the product flag (product_masked) or a configured SNR rule to say. handedness_verified stays False until a caller sets it. (5) Rule 3 (round 1, codex2-r1-2) marks a pixel INVALID with FLOAT64_OUT_OF_RANGE when a nonzero part of C' is below 2**-1016 times its largest part (_CARRIED_RANGE), because one float64 scale cannot carry it. This is representability, not a physical threshold, and binds only matrices spanning about 300 decimal orders. The handedness term is formed as one linear functional of C' (_HANDEDNESS_FORM), not as SC_opp - SC_LL (codex2-r1-1).",
