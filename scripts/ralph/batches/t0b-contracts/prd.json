@@ -1,0 +1,391 @@
+{
+  "project": "Terraluna",
+  "branchName": "ralph/t0b-contracts",
+  "description": "Contracts for the later batches: science, card, target, model and report records, provenance and the single validation.json writer, exactly as CONTRACTS.md (a), (c.3), (c.4) and (d) define them; CONTRACTS (g) fixes the test-basename and generated-file rules. Base: ralph/integration with T0 and t1-pilot through T1-02 merged by the orchestrator in a merge commit (d29b394; ProductRecord and Sources in schema.py, quality masks), which the loop excludes from story scope. T0B-00 first makes that merged state green (zod contracts and if/then translation for ProductRecord and Sources, shared schema cases, make schema-check, make web-build); every later story starts from it. Launch predecessors: T0B-00 to T0B-04 wait for t1-pilot through T1-02 only. T0B-05 and T0B-06 additionally wait for t1-pilot complete (T1-09 G0 block helper) and t2-polarimetry through T2-06 (record-g1), enforced by waitsFor, and for human decision PRD-01 (amend PRD 8.12 GateRecord with command, config_version and input_hashes; option A, or keep provenance in the evidence files; option B): while it is undecided T0B-05 and T0B-06 stop as blocked and never guess. PRD-02 (G6 NOT_RUN in the shipped bundle) is noted by the snapshot command and does not block. The batch holds every schema.py edit after t1-pilot: records T0B-01 to T0B-04 (the old t4-comparison T4-01 and t14-report T14-01), provenance.py (the one run_id implementation), and gates.py (the only writer of outputs/validation.json, merging by gate_id, with G0 and G1 imported from t1 and t2 outputs; the old t6-uncertainty T6-03 and the merge part of t9-release T9-03). Records only plus provenance.py and gates.py: no producer logic. Every story updates the pinned contract list in test_json_schema.py, fixtures/schema-cases/cases.json and packages/schema tests, and regenerates schema files with make schema; generated files are never merged by hand. Test basenames test_schema_*, test_provenance*, test_gates* are reserved for pipeline/tests (CONTRACTS g.3). Ralph's task list, not the product PRD.",
+  "userStories": [
+    {
+      "id": "T0B-00",
+      "title": "Make the merged t1-pilot schemas green: zod for ProductRecord and Sources, if/then parity, shared cases",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.3",
+        "8.4",
+        "8.9",
+        "8.12",
+        "12 (T0)",
+        "D23"
+      ],
+      "description": "Repair the integration state after the orchestrator merges ralph/t1-pilot through T1-02 (commit d29b394, a merge commit outside story scope) into the base of this branch. That merge adds packages/schema/json/product-record.schema.json and sources.schema.json, and the integration then fails: (1) the CONTRACTS list in packages/schema/scripts/generate-zod.ts has no entry for the two new schemas and must mirror schema.py's CONTRACTS, which now list ProductRecord and Sources; (2) the generator rejects product-record.schema.json with 'unsupported keyword \"if\" for type \"object\"', because ProductRecord's JSON Schema carries an if/then construct (verification_status VERIFIED requires local_path and checksum as strings and units not equal to 'unknown' in any case); (3) nine @terraluna/schema Vitest tests and make schema-check fail as a result. The T1 tests also xfail (strict) the shared-case test for the two schemas because fixtures/schema-cases was outside T1-01's files. Resolve all three with tests first, keeping the pydantic, JSON Schema and zod verdicts identical. Preferred route: extend generate-zod.ts to translate the if/then construct faithfully (for example a superRefine that applies the then-branch constraints when the if-condition holds), still failing loudly on any keyword it does not support. Fallback only if parity cannot be proven: restructure the ProductRecord JSON Schema so the condition is expressible (schema.py then changes, with T1's pydantic verdicts unchanged); record the choice and the reason in notes. No T1 record changes meaning. Every later T0B story starts from this green state.",
+      "files": [
+        "packages/schema/*",
+        "fixtures/schema-cases/*",
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "pipeline/tests/test_json_schema.py",
+        "pipeline/tests/test_schema*.py"
+      ],
+      "acceptanceCriteria": [
+        "First, record the failing baseline in notes before changing anything: the exact failing commands and counts on the merged base ('pnpm --filter @terraluna/schema test' with its nine failing tests, 'make schema-check' and the generator error 'unsupported keyword \"if\" for type \"object\"'). Do not weaken or delete any failing test.",
+        "Failing tests first: (a) Vitest cases in packages/schema/tests for the generator: a synthetic object schema with if/then (condition on a const field, then-branch requiring a string and a negated pattern) generates a zod schema that accepts and rejects exactly the documents Draft 2020-12 accepts and rejects, including an absent condition field (the if has required, so it does not apply), and the generator still throws on an unsupported keyword (for example else, oneOf) instead of ignoring it; (b) shared cases in fixtures/schema-cases/cases.json for ProductRecord and Sources; (c) removal of the strict xfail and of the WITHOUT_SHARED_CASES set in pipeline/tests/test_json_schema.py, so that test_every_schema_has_accepted_and_rejected_cases passes for all five schemas as a plain test. Record the failing run.",
+        "Shared cases (verdicts authored from PRD 8.12 and the ProductRecord docstring, never copied from model output), each run by pydantic, by the JSON Schema oracle and by zod: ProductRecord valid with verification_status VERIFIED plus local_path, checksum and real units; valid with a non-VERIFIED status and local_path, checksum null; valid with units 'unknown' and a non-VERIFIED status; invalid VERIFIED with local_path null; invalid VERIFIED with checksum null; invalid VERIFIED with units 'unknown', 'Unknown' and 'UNKNOWN'; invalid with an extra field; invalid with a missing field; invalid with checksum of 63 characters or uppercase hex; invalid with an empty-string field. Sources valid as an empty list and as a list of one valid ProductRecord; invalid when one entry is invalid and when the value is an object instead of an array. Add the trailing-newline case ('unknown' followed by a newline) only if all three evaluators agree on it under ECMA-262 anchoring; otherwise record the disagreement in notes.",
+        "packages/schema/scripts/generate-zod.ts: CONTRACTS mirrors schema.py CONTRACTS (a test fails when the two lists differ in names or file names), the if/then construct is translated faithfully, the generated sources under packages/schema/src/generated and the package exports include ProductRecord and Sources (zod schemas and inferred types, as the existing three), and 'make schema' regenerates everything with no manual edit. Unsupported keywords still raise.",
+        "pipeline/src/terraluna_pipeline/schema.py changes only if the fallback restructure is used; otherwise it is untouched and the generated JSON Schema files are byte-identical to the merged ones.",
+        "All of the following pass at the end: 'pnpm --filter @terraluna/schema test' (nine formerly failing tests green), 'make schema-check' (no drift), 'make check', 'make test' and 'make web-build'. The codex review pass runs twice (codexPasses 2) because the translation decides accept and reject for a bundle record."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_json_schema.py",
+        "pnpm --filter @terraluna/schema test",
+        "make schema-check",
+        "make check",
+        "make test",
+        "make web-build"
+      ],
+      "priority": 1,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "",
+      "codexPasses": 2
+    },
+    {
+      "id": "T0B-01",
+      "title": "Science records I and provenance: windows, fingerprints, distances, comparisons",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "3",
+        "5",
+        "6.5",
+        "6.6",
+        "7 (D29)",
+        "8.4",
+        "8.12",
+        "12 (T4)",
+        "8.13"
+      ],
+      "description": "Add the shared science records that t4-logic, t5-search, t6-uncertainty, t7b-explorer, t13-probe and t15b-api read, exactly as CONTRACTS.md (a.2, a.4) names them, plus provenance.py, the single run_id implementation (CONTRACTS c.4). Records only: no producer logic, no numerics. This story replaces the record part of the old T4-01. Field names are the contract; later batches import them, so do not rename, add or drop a field. Every record inherits the T0 Record base (extra forbidden, strict, frozen, rust-regex). Every field is required with no default; X | None keys must still be present. Reason codes are snake_case strings matching ^[a-z][a-z0-9_]*$. Each new top-level record is appended to CONTRACTS with the schema file named below, then make schema regenerates packages/schema/json and the generated zod, which are committed and never edited by hand. SCHEMA_VERSION stays 1.0.0.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "packages/schema/*",
+        "pipeline/tests/test_json_schema.py",
+        "fixtures/schema-cases/*",
+        "pipeline/src/terraluna_pipeline/provenance.py",
+        "pipeline/tests/test_schema_science.py",
+        "pipeline/tests/test_provenance.py"
+      ],
+      "acceptanceCriteria": [
+        "Failing tests first: pipeline/tests/test_schema_science.py and pipeline/tests/test_provenance.py are written and run failing before any model or provenance.py exists; the failing run is recorded in notes.",
+        "Common types (a.2): EvidenceLabel = Observed | Derived | Predicted | Assumed | Unavailable (PRD 3); Family = terrain_relief | terrain_texture | radar_cpr | model_embedding; ReasonCode (snake_case pattern); RunId = ^sha256:[0-9a-f]{64}$; RepoPath (relative POSIX path, the BundlePath segment rules); WindowId = ^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$; Sha256 named from the existing T0 sha256 constraint; Body and GateStatus are reused. Distribution {n: int, values: list[float], min, median, p05, p95, max: float | None}: values sorted ascending, and the five order statistics are null exactly when n == 0 (tests for n == 0 with a value set, and n > 0 with a null).",
+        "WindowPolygon {frame: utm | polar_stereographic | equirectangular | aeqd_sphere, crs: str (as read, never assumed), epsg: int | None, utm_zone: str | None, ring_m: list[[float, float]] (closed ring in the frame's metres), ring_lonlat: list[[float, float]] (closed ring, degrees; WGS84 for Earth, planetocentric for Moon and Mars)}. A ring that is not closed (first point != last point) fails.",
+        "EnvironmentFlags {search_region_id: str | None, scene_ids: list[str], acquisition_dates: list[str], snow_or_freeze: str | None, moisture_state: str | None, surface_change_since_acquisition: str | None, permanent_shadow_fraction: float | None (0..1), surface_model_note: str | None}. WindowRecord has exactly the PRD 8.12 field names and no extras: window_id: WindowId, body: Body, polygon: WindowPolygon, area_m2: float, analysis_grid_m: float, product_ids: list[str], valid_fraction_by_observable: dict[str, float | None], observed_interpolated_quality: {observed_fraction: float | None, interpolated_fraction: float | None, source: str | None, reason: ReasonCode | None}, environment_flags: EnvironmentFlags, evidence_status_by_field: dict[str, EvidenceLabel]. UTM zone and EPSG live only in polygon; region, scene and environment live only in environment_flags (answers review-science #23 and #26 without a PRD amendment). A test reads the PRD 8.12 WindowRecord and ComparisonRecord field lists from PRD.md, as the T0 GateRecord test does, and compares them with the model fields.",
+        "FingerprintRecord {window_id, body, kind: terrain | radar, product_ids, evidence_label, input_hash: Sha256, run_id: RunId, terrain: TerrainFingerprint | None, radar: RadarFingerprint | None} with terrain set iff kind == terrain and radar set iff kind == radar. TerrainFingerprint {analysis_grid_m, coarsening_factor: float | None, resampler: Literal aeqd_sphere, valid_fraction, relief: TerrainVariant, texture: TerrainVariant}. TerrainVariant {detrend: none | plane, supported_lags_m: list[float], unsupported_lags: list[{lag_m: float, reason: ReasonCode}], nu_m: dict[str, float | None] (key = lag in metres as T3 writes it), nu_by_direction_m: dict[str, dict[str, float | None]] (direction -> lag -> value), hurst: float | None, hurst_reason: ReasonCode | None (exactly one is null), tilt: list[float] | None}. RadarFingerprint {product_id, band, frequency_or_wavelength, convention: str | None, support_m: float, aggregation: Literal ratio_of_mean_powers, blocks_independent: Literal[False], n_blocks: int, n_valid: int, valid_fraction: float, cpr_ratio_of_mean_powers: Distribution | None, cpr_mean_of_pixelwise_ratios: Distribution | None, sc, oc, total_power: Distribution | None, incidence_deg: {min: float, max: float} | None, handedness_ratio: Distribution | None, reason: ReasonCode | None}. Values are copied from T3 terrain_fingerprint and T2 block statistics, never recomputed (review-science #6); this module imports neither.",
+        "WindowEntry {window: WindowRecord, terrain: FingerprintRecord | None, radar: list[FingerprintRecord], status: eligible | rejected | unknown, reasons: list[ReasonCode] (ordered; [] iff status == eligible), grid_index: [int, int] | None, card_id: str | None}; Windows = list[WindowEntry] (windows.schema.json).",
+        "DistanceEntry {value: float | None, unit: str, evidence_label, status: available | unavailable | not_comparable, reason: ReasonCode | None (null iff status == available), reference_spread: {min, median, max: float, n: int} | None, reference_spread_reason: ReasonCode | None (exactly one of the pair is null), background_percentile: float | None, background_percentile_reason: ReasonCode | None, tied: bool | None (null when no spread was supplied), tie_group: str | None, tie_reason: ReasonCode | None}. Validators: status available iff value is not null; a value of 0.0 with status available is a real zero (identical fingerprints) and never stands for missing; a null value with no reason fails and a value together with a reason fails; model_embedding with a value must carry evidence_label Predicted. The background_percentile pair follows the same exactly-one-null rule as the spread pair, which CONTRACTS does not spell out; record that choice in notes. No score or combined field can exist (D07).",
+        "UncertaintyComponents has exactly the keys heterogeneity, measurement_error, statistical_prediction_error and scenario_sensitivity (PRD 6.6); a record missing a key or carrying a fifth fails. Each Component is {status: available | unavailable, evidence_label, reason: ReasonCode | None, note: str | None, by_family: dict[Family, {spread_min, spread_median, spread_max: float | None, n: int | None}] | None, n_requested: int | None, n_used: int | None, scenarios: list[{name: str, change: str, values_by_family: dict[Family, float | None], rank_by_family: dict[Family, int | None]}] | None, rank_frequency: dict[Family, {frequency: float, count: int, n: int}] | None}. No field combines components or families, and no probability or weight field exists on scenarios.",
+        "ComparisonRecord has exactly the PRD 8.12 field names: target_window_id: WindowId, earth_window_id: WindowId, shipping_mode: A | B | C | None, comparable_observables: list[str], excluded_observables_and_reasons: list[{observable: str, reasons: list[ReasonCode]}], distances_by_family: dict[Family, DistanceEntry] (all four Family keys always present, none missing, none extra), uncertainty_components: UncertaintyComponents, sort_rule: str | None, claim_limits: list[str], source_ids: list[str], run_id: RunId. Shortlist membership is not a field here (it lives on TargetRecord). Comparisons = list[ComparisonRecord] (comparisons.schema.json).",
+        "Test cases written first, each named: (1) the WindowRecord and ComparisonRecord field lists equal the PRD 8.12 lists read from PRD.md; (2) every field is required (dropping each one in turn fails); (3) unknown fields are rejected, including a 'score' key on ComparisonRecord and on DistanceEntry (D07); (4) distances_by_family with three or five keys fails; (5) DistanceEntry value null with reason null fails, and value and reason both set fails; (6) a model_embedding entry with a value and a label other than Predicted fails; (7) a null distance survives a JSON round trip as null and a real 0.0 with status available survives as 0.0; (8) RadarFingerprint.blocks_independent accepts only false; (9) UncertaintyComponents missing a key fails; (10) FingerprintRecord with kind terrain and radar set fails, and kind radar with terrain set fails.",
+        "pipeline/src/terraluna_pipeline/provenance.py exposes config_version(path) -> Sha256 (sha256 of the file bytes as read), file_hashes(paths) -> list[{path, sha256}] sorted by path, command_line(module, argv) -> str (shlex-joined argv of 'python -m <module> ...'), and run_id(config_path, products) -> RunId, defined as 'sha256:' + sha256(canonical_json({\"config_sha256\": sha256(config bytes), \"products\": sorted([product_id, checksum or null])})). It uses the same canonical JSON as export.canonical_json (sorted keys, 2-space indent, LF, trailing newline, no NaN) without importing export, matching or search; if the writer must be shared, put it in provenance.py and have export import it in a later story. There is no wall-clock time and no random value anywhere.",
+        "Provenance tests (pipeline/tests/test_provenance.py) written first: run_id equals 'sha256:' plus 64 lowercase hex; it changes when one config byte changes; it changes when one product checksum changes; a product with a null checksum differs from one with a checksum; it does not change when the products are reordered; two calls give identical strings; file_hashes of tmp files equal hashlib values in path order; command_line round-trips through shlex.split.",
+        "Update the pinned contract list in pipeline/tests/test_json_schema.py (CONTRACTS == SCHEMA_FILES) and add at least one valid and one invalid case per new contract to fixtures/schema-cases/cases.json (verdicts authored from CONTRACTS.md, not copied from model output); the cases run in pydantic, in the generated JSON Schema and in the zod tests of @terraluna/schema. make schema was run and make schema-check passes with no drift."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_schema_science.py",
+        "uv run pytest pipeline/tests/test_provenance.py",
+        "uv run pytest pipeline/tests/test_json_schema.py",
+        "pnpm --filter @terraluna/schema test",
+        "make schema-check",
+        "make check"
+      ],
+      "priority": 2,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T0B-02",
+      "title": "Science records II: targets with tile layers, evidence cards",
+      "owner": "science-analyst",
+      "prdRefs": [
+        "3",
+        "4",
+        "8.4",
+        "8.10",
+        "8.12",
+        "10",
+        "12 (T4)"
+      ],
+      "description": "Add TileLayer, TargetRecord, Targets, CardRecord, TableDRow, CampaignEntry and FigureRef exactly as CONTRACTS.md a.4 defines them. TileLayer replaces a separate tile-metadata path: it lives inside TargetRecord (review-science #33). The card record is an engineering choice built on PRD 10 (seven answers, table D) because PRD 8.12 does not list it; record that in notes. Records only. Starts after T0B-01 because it reuses WindowPolygon, WindowId, Family, DistanceEntry, UncertaintyComponents and RunId. Every record inherits the T0 Record base (extra forbidden, strict, frozen, rust-regex). Every field is required with no default; X | None keys must still be present. Reason codes are snake_case strings matching ^[a-z][a-z0-9_]*$. Each new top-level record is appended to CONTRACTS with the schema file named below, then make schema regenerates packages/schema/json and the generated zod, which are committed and never edited by hand. SCHEMA_VERSION stays 1.0.0.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "packages/schema/*",
+        "pipeline/tests/test_json_schema.py",
+        "fixtures/schema-cases/*",
+        "pipeline/tests/test_schema_cards.py"
+      ],
+      "acceptanceCriteria": [
+        "Failing tests first in pipeline/tests/test_schema_cards.py; the failing run is recorded in notes.",
+        "TileLayer {layer: str, body: Body, crs: str, units: str | None, evidence_label, source_product_ids: list[str], origin_x_m: float, origin_y_m: float, y_direction: down | up, tile_px: Literal[512], metres_per_pixel_by_zoom: list[float], zoom_min: int, zoom_max: int, extent_m: [float, float, float, float], omitted_tiles: list[[int, int, int]] (all-nodata tiles as z, x, y), legend: {kind: classes, classes: list[{code: int, label: str, rgba: [int, int, int, int]}]} | {kind: numeric, min: float, max: float, scale: viridis | cividis, unit: str | None}, hillshade: {azimuth_deg: float, altitude_deg: float} | None, encoding: {format: webp, lossless: bool, quality: int | None}, bytes_total: int, mock: bool}. The legend is a discriminated union on kind (PRD 8.10: only the viridis or cividis scales).",
+        "TargetRecord {target_id: str (for example moon-cr-site01-w000), mock: bool, run_id: RunId | None, body: Body, name: str, description: str, product_ids: list[str], crs: str, projection: {kind: polar_stereographic | equirectangular | geographic, params: dict[str, float | str]}, footprint: WindowPolygon | None, primary_window_id: WindowId | None (null until frozen at G0), window_grid: {window_m: float, stride_m: float, n_generated: int | None, n_eligible: int | None}, reference_window_ids: list[WindowId], shortlist: {earth_window_ids: list[WindowId], rule: str, n_compared: int | None} | None, shortlist_reason: ReasonCode | None (exactly one of the pair is null), shipping_mode: A | B | C | None, tile_layers: list[TileLayer]}. Targets = list[TargetRecord] (targets.schema.json). Footprint and primary_window_id null stay null after a JSON round trip.",
+        "CardRecord (PRD 10): card_id: str equal to '<target_window_id>__<earth_window_id>', mock: bool, run_id: RunId, shipping_mode: A | B | C (never null), title: str, wording: Literal['candidate window identified by this search'], target: {target_id: str, target_window_id: WindowId, body: Body, polygon: WindowPolygon, product_ids: list[str]}, earth: {earth_window_id: WindowId, polygon: WindowPolygon, product_ids: list[str], search_region_id: str | None}, comparison_ref: {path: BundlePath, target_window_id: WindowId, earth_window_id: WindowId}, q1_compared: str, q2_interpretation: {text: str, evidence_label: Literal[Assumed]}, q3_measurements: list[TableDRow], q4_differences: {limits: list[str], differing: list[str], ambiguous: list[str], not_observed: list[str]}, q5_stability: {uncertainty_components: UncertaintyComponents, tied_by_family: dict[Family, bool | None], tie_group_by_family: dict[Family, str | None]}, q6_campaign: {access, permits, season, land_status, logistics: CampaignEntry}, q7_field_experiment: {text: str, evidence_label: Literal[Assumed], status: Literal[proposed]}, distances_by_family: dict[Family, DistanceEntry], radar_context: list[{product_id: str, band: str, observable: str, statistic: str, value: float | None, unit: str | None, evidence_label, support_m: float | None, reason: ReasonCode | None}], figures: list[FigureRef], g5_status: GateStatus, claim_limits: list[str]. TableDRow {observable: str, value: float | None, unit: str | None, evidence_label, support: str, product_id: str | None, band: str | None, geometry: str | None, reason: ReasonCode | None}. CampaignEntry {value: str, source: str | None} with value 'unknown' iff source is null. FigureRef {figure: A | B | C, path: BundlePath | None, alt: str, reason: ReasonCode | None}. CardRecord has no bundle_version field (the page shows manifest.bundle_version, D08) and gate states shown on the page come from validation.json; the card stores only the g5_status it was built under.",
+        "Test cases written first, each named: (1) a card without shipping_mode, or with a null shipping_mode, fails; (2) CardRecord has no bundle_version field and one supplied is rejected; (3) a TableDRow without evidence_label fails; (4) CampaignEntry 'unknown' requires source null and any other value requires a source; (5) q2_interpretation and q7_field_experiment accept only the Assumed label, and q7 status only 'proposed'; (6) a TargetRecord with primary_window_id, footprint and shortlist null parses and survives a round trip, while shortlist and shortlist_reason both null fails and both set fails; (7) TileLayer.tile_px other than 512 fails, and a numeric legend scale other than viridis or cividis fails; (8) card_id must equal '<target_window_id>__<earth_window_id>' and comparison_ref window ids must equal the target and earth window ids; (9) a card whose distances_by_family lacks a Family key fails.",
+        "q4_differences.limits carries the seven Earth limits (or the Mars list) of PRD 10 as strings supplied by the writer; this story does not hard-code the wording and does not enforce a count in the schema (the card writer, T4L-06, owns the text). Record in notes how the Mars wording is carried.",
+        "Update the pinned contract list in pipeline/tests/test_json_schema.py (CONTRACTS == SCHEMA_FILES) and add at least one valid and one invalid case per new contract to fixtures/schema-cases/cases.json (verdicts authored from CONTRACTS.md, not copied from model output); the cases run in pydantic, in the generated JSON Schema and in the zod tests of @terraluna/schema. make schema was run and make schema-check passes with no drift."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_schema_cards.py",
+        "uv run pytest pipeline/tests/test_json_schema.py",
+        "pnpm --filter @terraluna/schema test",
+        "make schema-check",
+        "make check"
+      ],
+      "priority": 3,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T0B-03",
+      "title": "Model records I: model card, metrics, G5 conditions, embeddings index",
+      "owner": "ml-engineer",
+      "prdRefs": [
+        "8.4",
+        "8.12",
+        "9",
+        "11.6",
+        "11.7",
+        "11.9",
+        "11.10"
+      ],
+      "description": "Add ModelRecord, MetricRecord, G5ConditionRecord, MetricsFile, EmbeddingRecord and EmbeddingsIndex, taking the first part of the old T14-01 with the review-ml #40 and #41 corrections. Records only. schema.py has one editing batch, so t14-report no longer touches it. Every record inherits the T0 Record base (extra forbidden, strict, frozen, rust-regex). Every field is required with no default; X | None keys must still be present. Reason codes are snake_case strings matching ^[a-z][a-z0-9_]*$. Each new top-level record is appended to CONTRACTS with the schema file named below, then make schema regenerates packages/schema/json and the generated zod, which are committed and never edited by hand. SCHEMA_VERSION stays 1.0.0.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "packages/schema/*",
+        "pipeline/tests/test_json_schema.py",
+        "fixtures/schema-cases/*",
+        "pipeline/tests/test_schema_model.py"
+      ],
+      "acceptanceCriteria": [
+        "Failing tests first in pipeline/tests/test_schema_model.py; the failing run is recorded in notes.",
+        "ModelRecord has exactly the PRD 8.12 fields and no mock field (mock lives in the manifest): model_id: str, version: str, architecture: str, parameter_count: int, training_data: {bodies: list[Body], product_ids: list[str], window_counts: dict[Body, dict[train | val | test, int | None]], split_groups: dict[Body, str]}, objectives_and_weights: {vicreg: {invariance: float, variance: float, covariance: float} | None, alpha_phys: float, lambda_max: float, schedule: str}, seeds: list[int], metrics_with_ci: list[MetricRecord], g5_status: GateStatus, intended_use: str, limitations: str, licence: str, onnx_sha256: Sha256 | None. g5_status reuses GateStatus and rejects 'EXPERIMENTAL' (that value belongs to ModelSummary.status). onnx_sha256 null parses and stays null after a JSON round trip, while a 63-character or uppercase value fails. An unknown field fails and a missing field fails.",
+        "MetricRecord {test_id: physics_probe | morphology_probe | body_invariance | physics_agreement | target_retrieval | seed_stability | held_out_body | out_of_distribution (the eight PRD 11.6 tests), measure: str, target: str | None, body: Body | 'pooled' | None, value: float | None, ci_low: float | None, ci_high: float | None, n_blocks: int | None, n_bootstrap: int | None, unavailable_reason: str | None, evidence_label: Literal[Predicted], baselines: list[{name: str, value: float | None, ci_low: float | None, ci_high: float | None, paired_diff_ci_low: float | None, paired_diff_ci_high: float | None, unavailable_reason: str | None}]}. Rules (review-ml #40): value null requires a non-empty unavailable_reason and value non-null forbids one (missing is never zero); n_blocks and n_bootstrap are null exactly when value is null and otherwise n_bootstrap >= 1; only ci_low <= ci_high is enforced when both are present. The point estimate may lie outside a percentile interval and is not forced inside it.",
+        "G5ConditionRecord {condition: 1..6, test_id: str, statistic: lower_95 | point | paired_interval, threshold: float | None (copied from config ml.g5; null only for condition 6), observed: float | None, passed: bool | None, reason: str | None, components: list[{component: str, observed: float | None, ci_low: float | None, ci_high: float | None, passed: bool | None, reason: str | None}]} (review-ml #41). passed null requires a reason; passed true with observed null and no components fails. components hold per-lag or per-baseline items such as 'relief_lag_270' or 'dino:morph_gain'; the condition's passed is the PRD 11.7 conjunction of them, and this story stores it without recomputing thresholds.",
+        "MetricsFile (contract name Metrics, file metrics.schema.json, report/metrics.json) {mock: bool, run_id: RunId | None, model_id: str, evaluated_split: val | test, g5: {status: GateStatus, conditions: list[G5ConditionRecord], failed_tests: list[str]}, tests: list[MetricRecord], ablations: list[{run_name: str, status: available | unavailable, reason: str | None, metrics: list[MetricRecord]}], run_record: {config_hash: Sha256, data_manifest_sha256: Sha256 | None, split_map_sha256: Sha256 | None, checkpoint_sha256s: list[Sha256], git_sha: str | None, uv_lock_sha256: Sha256, hardware: str, gpu_hours_total: float | None, gpu_hours_partial: bool}}. An ablation with status unavailable requires a reason and empty metrics.",
+        "EmbeddingRecord has exactly the PRD 8.12 fields: window_id: WindowId, body: Body, model_id: str, embedding_f16: list[float] of length 256 where every value is exactly representable in float16 (checked with struct 'e' packing, no numpy dependency in schema.py), input_hash: Sha256, valid_fraction: float, ood_score: float | None. EmbeddingsIndex (embeddings-index.schema.json, model/embeddings.index.json) {model_id: str, onnx_sha256: Sha256 | None, mock: bool, dim: Literal[256], dtype: Literal[float16], byte_order: Literal[little], n_rows: int, rows: list[{row: int, window_id: WindowId, body: Body, split: Literal[test], input_hash: Sha256, valid_fraction: float, ood_score: float | None, ood_flag: bool | None}]} with n_rows == len(rows) (engineering choice; record in notes).",
+        "Test cases written first, each named: (1) a ModelRecord with every PRD 8.12 field parses, with an unknown field fails, with one missing field fails; (2) onnx_sha256 null round trip, 63-character and uppercase values fail; (3) g5_status 'EXPERIMENTAL' fails; (4) a percentile interval that excludes the point estimate parses; (5) ci_low > ci_high fails; (6) an Unavailable test with value null, n_bootstrap null, n_blocks null and a reason parses; (7) value null with n_bootstrap 5 fails and value set with n_bootstrap 0 or null fails; (8) a MetricRecord with a label other than Predicted fails; (9) a condition-1 record carrying one failing relief_lag component with passed false parses; (10) a condition-6 record whose threshold is null parses, and a condition 1 record with null threshold fails; (11) passed null without reason fails; (12) a 255-value embedding fails, a 257-value embedding fails, and a value not representable in float16 (for example 0.1) fails; (13) a MetricsFile with mock true and run_id null parses.",
+        "Update the pinned contract list in pipeline/tests/test_json_schema.py (CONTRACTS == SCHEMA_FILES) and add at least one valid and one invalid case per new contract to fixtures/schema-cases/cases.json (verdicts authored from CONTRACTS.md, not copied from model output); the cases run in pydantic, in the generated JSON Schema and in the zod tests of @terraluna/schema. make schema was run and make schema-check passes with no drift."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_schema_model.py",
+        "uv run pytest pipeline/tests/test_json_schema.py",
+        "pnpm --filter @terraluna/schema test",
+        "make schema-check",
+        "make check"
+      ],
+      "priority": 4,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T0B-04",
+      "title": "Report records II, background file and the bundle path map",
+      "owner": "ml-engineer",
+      "prdRefs": [
+        "6.5",
+        "8.4",
+        "8.12",
+        "11.8",
+        "11.9",
+        "11.10",
+        "12 (T14)"
+      ],
+      "description": "Add CurvesFile, UmapHeader, ExamplesFile, BackgroundFamily, ModelBackground and Background, then BUNDLE_PATHS, the single map from PRD 8.4 path template to contract name, emitted as packages/schema/json/bundle-paths.json so export.py (T4L-08) and the web loader (T15B-01) read one copy. Contract names match the BUNDLE_PATHS values: Metrics is the MetricsFile model, Curves the CurvesFile model, Examples the ExamplesFile model, Background the Background model. This story completes the records (T0B-01 to T0B-04) that t4-logic, t15b-api, t7b-explorer and t12b-evaluate wait for. Every record inherits the T0 Record base (extra forbidden, strict, frozen, rust-regex). Every field is required with no default; X | None keys must still be present. Reason codes are snake_case strings matching ^[a-z][a-z0-9_]*$. Each new top-level record is appended to CONTRACTS with the schema file named below, then make schema regenerates packages/schema/json and the generated zod, which are committed and never edited by hand. SCHEMA_VERSION stays 1.0.0.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "packages/schema/*",
+        "pipeline/tests/test_json_schema.py",
+        "fixtures/schema-cases/*",
+        "pipeline/tests/test_schema_report.py"
+      ],
+      "acceptanceCriteria": [
+        "Failing tests first in pipeline/tests/test_schema_report.py; the failing run is recorded in notes.",
+        "Every file-level record has mock: bool and run_id: RunId | None. CurvesFile has no ablations field (review-ml #44: ablations live in MetricsFile). Engineering choice, recorded in notes because CONTRACTS names only the parts: CurvesFile {mock, run_id, loss_terms: list[{term: str, epochs: list[{epoch: int, mean: float, min: float, max: float, n_seeds: int}]}], gpu_hours: {runs: list[{run_name: str, hours: float | None, reason: str | None, source: str | None}], total_hours: float | None, partial: bool}, tradeoff: list[{lambda_max: float, status: available | unavailable, reason: str | None, body_probe_balanced_accuracy: {value, ci_low, ci_high: float | None}, physics_r2: {value, ci_low, ci_high: float | None}}], chance_level_body_probe: float, validation_probe_metrics: {status: available | unavailable, reason: str | None, metrics: list[MetricRecord]}}. A run with null hours requires a reason, and total_hours null or partial true is required when any run has null hours (never 0). Downstream t14 stories (T14-03) read these names from the generated schema.",
+        "UmapHeader {n_points: int, columns: list[{name: str, dtype: str, unit: str | None}] (ordered), body_codes: dict mapping code to Moon, Mars or Earth, nan_means_unavailable: Literal[True], seed: int, n_neighbors: int, min_dist: float, source_embedding_sha256: Sha256}. The file-level contract is the length-prefixed header of report/umap.bin; layout checks live in report.read_umap (t14), not here.",
+        "ExamplesFile {mock, run_id, retrieval_gallery: list[{target_id: str, encoder_top5: list[GalleryEntry], deterministic_top5: list[GalleryEntry], shortfall_reason: ReasonCode | None}], failure_cases: {sort_rule: str, entries: list[GalleryEntry] (at most 20), shortfall_reason: ReasonCode | None}, ood_examples: list[GalleryEntry], hillshades: list[Hillshade]}. GalleryEntry {window_id: WindowId, body: Body, rank: int, distance: float | None, distance_family: Family, evidence_label}. Rules: encoder entries (distance_family model_embedding) carry evidence_label Predicted and deterministic entries Derived, any other value fails; a top-5 list shorter than five requires shortfall_reason; more than 20 failure cases fails. Hillshade {window_id: WindowId, size: int, encoding: str, data_b64: str | None, unavailable_reason: ReasonCode | None} with exactly one of data_b64 and unavailable_reason null (no placeholder image).",
+        "Background (reference/background_{target_id}.json, background.schema.json) {target_id: str, mock: bool, run_id: RunId, statement: Literal['empirical background comparison, not a physical truth test'], seed: int, requested_n: int, actual_n: int, sample_window_ids: list[WindowId], source_ids: list[str], families: {terrain_relief: BackgroundFamily | None, terrain_texture: BackgroundFamily | None, radar_cpr: BackgroundFamily | None, model_embedding: ModelBackground | None}, family_reasons: dict[Family, ReasonCode | None]}. Exactly one of the family and its reason is null for each of the four keys. BackgroundFamily {unit: str, evidence_label, bin_edges: list[float], counts: list[int], n: int, percentile_definition: Literal[linear_within_bin_v1], direction: Literal[smaller_is_closer]} with len(counts) == len(bin_edges) - 1, edges strictly increasing, and n == sum(counts). ModelBackground has the BackgroundFamily fields plus model_id: str, onnx_sha256: Sha256, g5_status: GateStatus, evidence_label: Literal[Predicted], target_embedding: EmbeddingRecord, sample_window_ids_sha256: Sha256.",
+        "A model validator on Background checks that ModelBackground.sample_window_ids_sha256 equals the sha256 of the canonical JSON (export.canonical_json rules, implemented in provenance or schema without importing export) of the parent's sample_window_ids; a different hash fails. linear_within_bin_v1 is documented in the field description: p = 100 * (counts of bins entirely below d + counts[k] * (d - lo_k) / (hi_k - lo_k) for the containing bin k) / n, 0 below the first edge, 100 above the last (the Python reference is matching.background_percentile in T4L-05; this story only records the literal).",
+        "BUNDLE_PATHS in schema.py is the PRD 8.4 map from path template to contract name, exactly as CONTRACTS a.3: manifest.json -> BundleManifest; validation.json -> Validation; sources.json -> Sources; targets.json -> Targets; windows/{body}.json -> Windows; comparisons/{target_id}.json -> Comparisons; cards/{card_id}.json -> CardRecord; reference/background_{target_id}.json -> Background; model/model_card.json -> ModelRecord; model/embeddings.index.json -> EmbeddingsIndex; report/metrics.json -> Metrics; report/curves.json -> Curves; report/examples.json -> Examples; report/umap.bin -> UmapHeader; figures/{name}.svg -> svg_allowlist; tiles, windows/{body}.parquet, model/*.onnx and model/embeddings.f16.bin -> no JSON schema (budget and sha256 only). 'schema write' emits packages/schema/json/bundle-paths.json from it with canonical formatting and 'schema check' fails on a missing or drifted copy.",
+        "Test cases written first, each named: (1) Background.families and family_reasons cover all four Family keys, and a key with both or neither set fails; (2) a ModelBackground with a label other than Predicted fails; (3) a wrong sample_window_ids_sha256 fails and the right one passes; (4) bundle-paths.json lists every PRD 8.4 path template exactly once (templates read from PRD.md section 8.4), and every contract name in it exists in CONTRACTS or is the sentinel svg_allowlist or none; (5) 'make schema-check' fails when bundle-paths.json drifts (a test edits a tmp copy and calls main(['check', ...]) expecting exit 1); (6) a CurvesFile with an 'ablations' key fails; (7) a null gpu hours value without reason fails, and a total that is a number while a run has null hours and partial false fails; (8) an encoder GalleryEntry labelled Derived fails; (9) a Hillshade with both data_b64 and unavailable_reason null fails.",
+        "Update the pinned contract list in pipeline/tests/test_json_schema.py (CONTRACTS == SCHEMA_FILES) and add at least one valid and one invalid case per new contract to fixtures/schema-cases/cases.json (verdicts authored from CONTRACTS.md, not copied from model output); the cases run in pydantic, in the generated JSON Schema and in the zod tests of @terraluna/schema. make schema was run and make schema-check passes with no drift."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_schema_report.py",
+        "uv run pytest pipeline/tests/test_json_schema.py",
+        "pnpm --filter @terraluna/schema test",
+        "make schema-check",
+        "make check"
+      ],
+      "priority": 5,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": ""
+    },
+    {
+      "id": "T0B-05",
+      "title": "GateRecord provenance fields (PRD 9) and the construction sites",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.12",
+        "9",
+        "8.13",
+        "12 (T0)",
+        "23.6"
+      ],
+      "description": "BLOCKED while human decision PRD-01 (amend PRD 8.12 GateRecord to add command, config_version and input_hashes, or keep them in evidence files) is undecided. Also blocked until t1-pilot is complete (the T1-09 G0 block helper) and t2-polarimetry T2-06 is merged (record-g1). While any of the three is missing the author sets review.state to blocked, names the missing item in notes, makes no commit and ends; it never guesses the option. Decision signal: option A is approved only when a human has amended PRD.md 8.12 so that the GateRecord line lists command, config_version and input_hashes; option B only when the orchestrator has recorded in this story's notes that PRD-01 was declined. Otherwise the story is blocked on PRD-01. Option A (CONTRACTS a.4): add command, config_version and input_hashes (InputHash {path: RepoPath, sha256: Sha256}) to GateRecord with the validators below, and update every construction site in the same story, because the extension changes required fields: export.mock_gate_records and the regenerated mock bundle, the G0 block helper in pilot.py (T1-09) and record-g1 in polarimetry.py (T2-06). This is the only planned edit of a running batch's files after it merges. Option B: GateRecord is unchanged, provenance goes into the evidence files, construction sites are not edited, and only test_schema_gate.py documents the rule. The story does not edit PRD.md, config/run.yaml, shipping_mode or any gate status.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "packages/schema/*",
+        "pipeline/tests/test_json_schema.py",
+        "fixtures/schema-cases/*",
+        "pipeline/src/terraluna_pipeline/pilot.py",
+        "pipeline/src/terraluna_pipeline/polarimetry.py",
+        "pipeline/src/terraluna_pipeline/export.py",
+        "pipeline/tests/test_schema.py",
+        "pipeline/tests/test_export.py",
+        "pipeline/tests/test_pilot*.py",
+        "pipeline/tests/test_polarimetry_gate.py",
+        "pipeline/tests/test_schema_gate.py",
+        "fixtures/mock-bundle/*",
+        "outputs/pilot/g0_evidence.json",
+        "fixtures/polarimetry/g1-record.json"
+      ],
+      "acceptanceCriteria": [
+        "First action: read the PRD-01 decision signal described in the story description. If neither option is established, or t1-pilot T1-09 or t2-polarimetry T2-06 is not merged (check that pilot.py has the G0 block helper and polarimetry.py has record-g1), set review.state to blocked with the exact missing item and what would unblock it, make no commit, and end.",
+        "Option A, failing tests first in pipeline/tests/test_schema_gate.py: GateRecord gains command: NonEmptyStr | None (shlex-joined argv of the producing command), config_version: Sha256 | None (sha256 of config/run.yaml as read) and input_hashes: list[InputHash] (every file read, sorted by path); GateRecord keeps gate_id, status, evidence_path (now RepoPath | None), run_id: RunId | None, scope, result, consequence. Validators: PASS, FAIL, PARTIAL and NOT_APPLICABLE require non-null command, config_version, evidence_path and scope and non-empty input_hashes; PASS also requires run_id; NOT_RUN accepts every nullable field null and input_hashes == []; input_hashes must be sorted by path with no duplicate path. The test that reads the GateRecord field list from PRD.md is updated only to the amended PRD text; the story does not edit PRD.md.",
+        "Option A tests: a T0-shaped seven-field record fails; a PASS without run_id fails; a FAIL without command fails; a PARTIAL with empty input_hashes fails; a NOT_RUN with all nullable fields null and input_hashes [] passes and round-trips with nulls intact; unsorted input_hashes fail; there are no wall-clock fields; the generated JSON Schema and zod match.",
+        "Option A construction sites updated in the same story: export.mock_gate_records builds NOT_RUN records with the three new fields (null, null, []); fixtures/mock-bundle is regenerated only with 'make mock-bundle' and 'make mock-bundle-check' passes; the G0 block helper in pilot.py takes command, config_version and input_hashes from provenance.py, and outputs/pilot/g0_evidence.json is regenerated with 'pilot record g0' (never by hand), still NOT_RUN or PARTIAL and never PASS; record-g1 in polarimetry.py takes the same arguments plus the PRD 8.13 run_id from provenance.run_id, and fixtures/polarimetry/g1-record.json is regenerated with the owner's documented record-g1 command from a fresh junit file kept outside the repository. Record each regeneration command and its exit status in notes.",
+        "Option A existing tests: 'pilot check g0' passes offline and writes nothing; the G1 gate tests (pipeline/tests/test_polarimetry_gate.py) pass; pipeline/tests/test_export.py and pipeline/tests/test_schema.py pass with the extended record; make test passes.",
+        "Option B (PRD-01 declined) instead: GateRecord, pilot.py, polarimetry.py and export.py stay unchanged; pipeline/tests/test_schema_gate.py asserts that GateRecord still has exactly the PRD 8.12 fields and documents that command, config_version and input_hashes live in the evidence file at evidence_path; no committed record is regenerated. State in notes which option was applied and why.",
+        "Whichever option applies, make schema-check passes with no drift and the schema cases are updated for GateRecord (one valid and one invalid case each)."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_schema_gate.py",
+        "uv run python -m terraluna_pipeline.pilot check g0",
+        "make mock-bundle-check",
+        "make test",
+        "uv run pytest pipeline/tests/test_json_schema.py",
+        "pnpm --filter @terraluna/schema test",
+        "make schema-check",
+        "make check"
+      ],
+      "priority": 6,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "",
+      "waitsFor": [
+        "t1-pilot:T1-09",
+        "t2-polarimetry:T2-06"
+      ]
+    },
+    {
+      "id": "T0B-06",
+      "title": "gates.py: the only writer of outputs/validation.json",
+      "owner": "web-platform",
+      "prdRefs": [
+        "8.12",
+        "9",
+        "8.13",
+        "12 (Commands)",
+        "23.6",
+        "23.7",
+        "D10"
+      ],
+      "description": "BLOCKED while human decision PRD-01 is undecided, because gates verify reads provenance either from GateRecord (option A) or from the evidence files (option B); the story also needs T0B-05 passed and merged and shares its start conditions (t1-pilot complete, t2-polarimetry T2-06 merged). The author blocks with the missing item in notes and never guesses. Implement CONTRACTS.md (d) and c.3. gates.py is the only code that writes outputs/validation.json; producers write only their own fragment outputs/gates/<GATE>.json and its evidence file through write_fragment(record). This story replaces the recorder in the old T6-03 and the merge part of the old T9-03. Subcommands: merge, verify, attest-g0 (human only), snapshot. CLI convention (CONTRACTS f): python -m terraluna_pipeline.gates with argparse subcommands (required, no default), main(argv) -> int, exit 0 done, 1 a check failed, 2 usage, 3 blocked. The command attest-g0 records a human decision (PRD 23.6): no Make target, check, CI step or story ever runs it. Do not set outputs/gates/G0.json or write config/run.yaml.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "packages/schema/*",
+        "pipeline/tests/test_json_schema.py",
+        "fixtures/schema-cases/*",
+        "pipeline/src/terraluna_pipeline/gates.py",
+        "pipeline/tests/test_gates*.py",
+        "outputs/validation.json",
+        "outputs/gates/*"
+      ],
+      "acceptanceCriteria": [
+        "First action: confirm PRD-01 is decided as in T0B-05 (its notes record the option) and that T0B-05 has passed. If not, set review.state to blocked naming the missing item, make no commit, and end.",
+        "Failing tests first in pipeline/tests/test_gates.py, all in tmp_path with an explicit root argument so the repository tree is never touched; the failing run is recorded in notes.",
+        "merge semantics (CONTRACTS d): the output outputs/validation.json is a JSON array of exactly seven GateRecords in G0 to G6 order, canonical JSON through export.canonical_json (sorted keys, 2-space indent, LF, trailing newline, no NaN), each entry byte-identical to its source. Sources: G0 from outputs/gates/G0.json (human attestation) if present, else the GateRecord block in outputs/pilot/g0_evidence.json (only NOT_RUN or PARTIAL; a PASS there fails); G1 from fixtures/polarimetry/g1-record.json; G2 to G6 from outputs/gates/G2.json to G6.json. A gate with no source is NOT_RUN with every nullable field null and input_hashes [] (PRD 9). merge never alters another gate's entry, never promotes a status and never reads or writes a wall-clock time.",
+        "write_fragment(record) validates a GateRecord and writes outputs/gates/<GATE>.json in canonical JSON; a record whose gate_id differs from the file name fails; writing two fragments for the same gate leaves the last one and never touches another gate's file. It is a library function with no CLI subcommand.",
+        "merge fails exit 1, naming the file, when a fragment's gate_id differs from its file name, when a gate appears twice, when an entry fails GateRecord validation (for example PASS without run_id), when its evidence_path lies under fixtures/mock-bundle or the evidence file carries mock true, and when G0 shows PASS without a human attestation.",
+        "attest-g0 --mode A|B|C --operator NAME --confirm I-RECORD-THE-G0-DECISION (human only): without the exact confirm string it exits 2 and writes nothing. It writes an attestation evidence file (engineering choice, recorded in notes: outputs/gates/G0_attestation.json holding mode, operator, the sha256 of outputs/pilot/g0_evidence.json and of config/run.yaml) and outputs/gates/G0.json as a PASS GateRecord with the provenance fields. It fails when the attested mode differs from config run.shipping_mode (a human sets that first; attest-g0 never writes config), or when run.shipping_mode is null. It is never run by the story: tests call it on a tmp_path root only, and outputs/gates/G0.json is not committed.",
+        "verify is offline and writes nothing: it re-hashes every entry's input_hashes, fails when any hash differs or a file is missing (naming the gate and path), fails an entry whose config_version differs from the current sha256 of config/run.yaml with reason stale_run_id (provenance.run_id embeds the config hash, so any config edit makes every run_id stale, PRD 8.13), re-checks the G0 attestation hashes when G0.json exists, and requires the committed outputs/validation.json to equal the merge output byte for byte. Under PRD-01 option B the provenance is read from the evidence file at evidence_path instead.",
+        "snapshot --bundle-version <v> --out <path> (CONTRACTS c.3): copies the G0 to G5 entries from outputs/validation.json unchanged and writes G6 as NOT_RUN with null fields, input_hashes [] and the scope text 'G6 for bundle <v> is evaluated after assembly by make validate and recorded in outputs/validation.json of the repository'. It never copies a G6 entry for another bundle version into a later one. Decision PRD-02 (whether the shipped /methods may show G6 NOT_RUN) is recorded in the notes as pending or decided; the code does not depend on it.",
+        "Test cases written first, each named: (1) with no sources merge gives seven NOT_RUN entries in G0 to G6 order; (2) recording G4 leaves G1 and G2 byte-identical; (3) a fragment whose gate_id differs from its file name fails; (4) PASS without run_id fails; (5) evidence under fixtures/mock-bundle, or carrying mock true, fails; (6) G0 PASS without an attestation fails; (7) an attestation whose mode differs from config run.shipping_mode fails; (8) editing an input after recording makes verify fail and names the gate; (9) a snapshot never copies a G6 entry for another bundle version; (10) no wall-clock time appears in gates.py or its output (a source scan for datetime.now, time.time and utcnow) and two merges are byte-identical; (11) a grep test shows that no Makefile target, no .github workflow and no 'checks' array of any scripts/ralph prd.json runs attest-g0 (parse the JSON, do not match descriptions); (12) mock_gate_records style NOT_RUN entries validate; (13) a G1 fragment with PASS and a run_id merges unchanged.",
+        "outputs/validation.json is committed exactly as 'python -m terraluna_pipeline.gates merge' generates it from the real sources on this branch (the T1-09 G0 block and the regenerated fixtures/polarimetry/g1-record.json; G2 to G6 NOT_RUN unless a real fragment exists). Never typed by hand. 'gates verify' passes on it, and 'make check' passes. ruff and mypy --strict are clean for gates.py and its tests.",
+        "A story that writes a fragment later also runs 'gates merge' and commits both files; the orchestrator never hand-merges validation.json (CONTRACTS d). Record this rule in the module docstring."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_gates.py",
+        "uv run python -m terraluna_pipeline.gates verify",
+        "uv run pytest pipeline/tests/test_json_schema.py",
+        "pnpm --filter @terraluna/schema test",
+        "make schema-check",
+        "make check"
+      ],
+      "priority": 7,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "",
+      "waitsFor": [
+        "t1-pilot:T1-09",
+        "t2-polarimetry:T2-06"
+      ]
+    }
+  ]
+}
