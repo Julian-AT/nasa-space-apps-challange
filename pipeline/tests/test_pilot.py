@@ -10,10 +10,11 @@ from __future__ import annotations
 import hashlib
 import io as stdio
 import json
+import re
 import socket
 import tarfile
 import warnings
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -60,9 +61,7 @@ README_URL = BASE + "data/LOLA_5mpp/README"
 INDEX_URL = BASE + "data/LOLA_5mpp/"
 PRODUCT_URL = BASE + "products/78"
 
-STEREO = (
-    "+proj=stere +lat_0=-90 +lat_ts=-90 +lon_0=0 +x_0=0 +y_0=0 +R=1737400 +units=m +no_defs"
-)
+STEREO = "+proj=stere +lat_0=-90 +lat_ts=-90 +lon_0=0 +x_0=0 +y_0=0 +R=1737400 +units=m +no_defs"
 """A south-polar stereographic CRS on a 1,737,400 m sphere; synthetic, as PGDA's files state."""
 
 ESRI_PRJ = (
@@ -136,7 +135,7 @@ PRODUCT_PAGE_WITHOUT_ROIS = PRODUCT_PAGE_WITH_ROIS.replace("Site01_ROIs.tgz", "e
 
 def heights() -> npt.NDArray[np.float32]:
     rows, cols = np.mgrid[0:HEIGHT, 0:WIDTH]
-    array = (100.0 + 2.0 * rows + cols).astype(np.float32)
+    array: npt.NDArray[np.float32] = (100.0 + 2.0 * rows + cols).astype(np.float32)
     for row, col in NAN_PIXELS:
         array[row, col] = np.nan
     return array
@@ -394,12 +393,14 @@ def test_fetch_failure_exits_non_zero_naming_the_url_and_writes_no_record(
     assert not (root / "outputs").exists()
 
 
-def test_fetch_failure_keeps_an_earlier_complete_fetch_usable(fetched: Path, tmp_path: Path) -> None:
+def test_fetch_failure_keeps_an_earlier_complete_fetch_usable(
+    fetched: Path, tmp_path: Path
+) -> None:
     pilot.record("pgda78", root=fetched, sources=sources_for())
     before = snapshot(fetched / "data/raw/pgda78")
     served = site(tmp_path)
     del served[SITE_URL + SLP]
-    with pytest.raises(DownloadError, match="Site01_final_adj_5mpp_slp.tif"):
+    with pytest.raises(DownloadError, match=re.escape(SLP)):
         do_fetch(fetched, MockDownloader(served))
     assert snapshot(fetched / "data/raw/pgda78") == before
     assert pilot.check("pgda78", root=fetched, sources=sources_for()) == []
@@ -421,7 +422,7 @@ def test_fetch_fails_when_the_listing_lacks_a_required_product(tmp_path: Path) -
     root.mkdir()
     index = INDEX.replace("Site01_final_adj_5mpp_ldec.tif", "Site01_other.tif")
     downloader = MockDownloader(site(tmp_path, INDEX=index.encode()))
-    with pytest.raises(pilot.PilotError, match="_ldec.tif"):
+    with pytest.raises(pilot.PilotError, match=re.escape("_ldec.tif")):
         do_fetch(root, downloader)
     assert not (root / "data/raw/pgda78/fetch.json").exists()
 
@@ -603,7 +604,7 @@ def test_roi_with_a_different_crs_is_not_drawn_and_says_why(tmp_path: Path) -> N
     assert roi["outlines_drawn"] is False
     assert "CRS" in roi["outlines_not_drawn_reason"]
     preview = Image.open(root / "outputs/pilot/pgda78_site01_preview.png")
-    assert pilot.ROI_INDEX not in set(preview.getdata())
+    assert not np.any(np.asarray(preview) == pilot.ROI_INDEX)
 
 
 def test_roi_without_a_prj_is_not_drawn(tmp_path: Path) -> None:
@@ -686,7 +687,18 @@ def test_record_is_deterministic_byte_for_byte(recorded: Path) -> None:
 def test_record_refuses_raw_files_that_differ_from_the_fetch(fetched: Path) -> None:
     path = fetched / "data/raw/pgda78" / SLP
     path.write_bytes(path.read_bytes()[:-1] + b"\x00")
-    with pytest.raises(pilot.PilotError, match="fetch.json"):
+    with pytest.raises(pilot.PilotError, match=re.escape("fetch.json")):
+        pilot.record("pgda78", root=fetched, sources=sources_for())
+
+
+def test_a_malformed_fetch_metadata_is_a_clear_error(fetched: Path) -> None:
+    path = fetched / "data/raw/pgda78/fetch.json"
+    metadata = json.loads(path.read_bytes())
+    metadata["files"] = [item for item in metadata["files"] if item["role"] != "slope"]
+    path.write_text(json.dumps(metadata))
+    with pytest.raises(
+        pilot.PilotError, match=re.escape("run: python -m terraluna_pipeline.pilot fetch")
+    ):
         pilot.record("pgda78", root=fetched, sources=sources_for())
 
 
@@ -786,9 +798,7 @@ def test_an_incomplete_fetch_counts_as_missing(fetched: Path) -> None:
         pilot.check("pgda78", root=fetched, sources=sources_for())
 
 
-def test_record_and_check_run_offline(
-    fetched: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_record_and_check_run_offline(fetched: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The autouse fixture already refuses sockets; here any urllib call fails loudly too."""
     import urllib.request
 
@@ -822,6 +832,3 @@ def test_the_registered_pgda78_source_reads_pgda() -> None:
     source = pilot.SOURCES["pgda78"]
     assert isinstance(source, pilot.Pgda78Source)
     assert source.base_url == "https://pgda.gsfc.nasa.gov/"
-
-
-Clock = Callable[[], datetime]
