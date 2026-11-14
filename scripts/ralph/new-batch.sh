@@ -18,9 +18,9 @@ jq -e --arg b "ralph/$batch" '.branchName == $b and (.userStories | length) > 0'
 git -C "$MAIN" worktree add -q -b "ralph/$batch" "$WT" "$base"
 cd "$WT"
 if ! git merge-base --is-ancestor ralph/tooling HEAD; then
-  git merge -q --no-edit -m "Merge branch 'ralph/tooling' into ralph/$batch" ralph/tooling
+  git merge -q --no-edit -m "Merge branch 'ralph/tooling' into ralph/$batch" ralph/tooling >&2
 fi
-pnpm install --frozen-lockfile >/dev/null
+pnpm install --frozen-lockfile >/dev/null 2>&1 || pnpm install --frozen-lockfile >&2
 
 dest="scripts/ralph/batches/$batch"
 mkdir -p "$dest"
