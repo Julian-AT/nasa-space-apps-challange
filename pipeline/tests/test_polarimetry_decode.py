@@ -10,6 +10,7 @@ import inspect
 import math
 import re
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -182,6 +183,20 @@ def test_stated_array_refuses_masked_fields(field: str) -> None:
     fields[field] = np.ma.array(fields[field], mask=[True])
     with pytest.raises(TypeError, match="masked"):
         StatedArray(**fields)
+
+
+@pytest.mark.parametrize("field", ["value", "state", "reason"])
+def test_stated_array_refuses_masked_fields_nested_in_lists(field: str) -> None:
+    # Review codex2-r2-1: two list levels hid the mask, and the masked VALID element survived.
+    fields: dict[str, Any] = {
+        "value": np.array([1.0]),
+        "state": np.array([VALID], dtype=STATE_DTYPE),
+        "reason": np.array([InvalidReason.NONE], dtype=REASON_DTYPE),
+    }
+    fields[field] = np.ma.array(fields[field], mask=[True])
+    nested: dict[str, Any] = {name: [[array]] for name, array in fields.items()}
+    with pytest.raises(TypeError, match="masked"):
+        StatedArray(**nested)
 
 
 def test_results_are_read_only() -> None:
@@ -584,6 +599,177 @@ def test_masked_constant_is_refused(argument: str) -> None:
     # np.asarray(np.ma.masked) is 0.0, which would read as a valid 0 degree angle.
     with pytest.raises(TypeError, match="masked"):
         call_with(argument, np.ma.masked, np.ma.masked)
+
+
+# Review codex2-r2-1: np.ma.asarray reads masks only from the immediate members of a sequence,
+# so [[masked_array]] still lost its mask and the masked 300 came out VALID. The inputs are now
+# walked to every depth, and only plain numpy arrays, scalars, lists and tuples are accepted.
+
+Container = Callable[[list[object]], object]
+CONTAINERS: list[Container] = [list, tuple]
+
+
+def nest(values: object, depth: int, container: Container = list) -> object:
+    """Wrap ``values`` in ``depth`` single-member containers."""
+    for _ in range(depth):
+        values = container([values])
+    return values
+
+
+def test_review_example_masked_array_two_levels_down_is_refused() -> None:
+    masked = np.ma.array([100.0, 300.0], mask=[False, True])
+    with pytest.raises(TypeError, match="masked"):
+        decode_linear([[masked]], nodata=None)
+
+
+@pytest.mark.parametrize("argument", ARRAY_ARGUMENTS)
+@pytest.mark.parametrize("depth", [2, 3])
+@pytest.mark.parametrize("container", CONTAINERS)
+def test_masked_array_nested_at_any_depth_is_refused(
+    argument: str, depth: int, container: Container
+) -> None:
+    dn = nest(np.ma.array([100.0, 300.0], mask=[False, True]), depth, container)
+    flag = nest(np.ma.array([False, False], mask=[False, True]), depth, container)
+    with pytest.raises(TypeError, match="masked"):
+        call_with(argument, dn, flag)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("argument", ARRAY_ARGUMENTS)
+@pytest.mark.parametrize("depth", [1, 2, 3])
+def test_masked_constant_nested_at_any_depth_is_refused(argument: str, depth: int) -> None:
+    # np.asarray([[100.0, np.ma.masked]]) turns the masked element into a number or NaN.
+    dn = nest([100.0, np.ma.masked], depth - 1)
+    flag = nest([False, np.ma.masked], depth - 1)
+    with pytest.raises(TypeError, match="masked"):
+        call_with(argument, dn, flag)  # type: ignore[arg-type]
+
+
+WRAPPINGS = st.lists(
+    st.tuples(st.sampled_from(CONTAINERS), st.integers(0, 2), st.integers(0, 2)),
+    min_size=1,
+    max_size=6,
+)
+
+
+def wrap(
+    masked: object, plain: object, wrapping: list[tuple[Container, int, int]]
+) -> tuple[object, object]:
+    """Nest ``masked`` among plain siblings of the same shape, so numpy would convert it whole.
+
+    Each level is ``(container, before, after)``: the masked member sits after ``before`` plain
+    copies and before ``after`` more. Returns the masked structure and its plain counterpart.
+    """
+    for container, before, after in wrapping:
+        masked = container([plain] * before + [masked] + [plain] * after)
+        plain = container([plain] * (before + 1 + after))
+    return masked, plain
+
+
+@given(argument=st.sampled_from(ARRAY_ARGUMENTS), wrapping=WRAPPINGS)
+def test_masked_array_anywhere_in_nested_sequences_is_refused(
+    argument: str, wrapping: list[tuple[Container, int, int]]
+) -> None:
+    dn, _ = wrap(
+        np.ma.array([100.0, 300.0], mask=[False, True]), np.array([100.0, 300.0]), wrapping
+    )
+    flag, _ = wrap(
+        np.ma.array([False, False], mask=[False, True]), np.array([False, False]), wrapping
+    )
+    with pytest.raises(TypeError, match="masked"):
+        call_with(argument, dn, flag)  # type: ignore[arg-type]
+
+
+class OneMemberSequence:
+    """A sequence that is neither a list nor a tuple; numpy descends into it as into a list."""
+
+    def __init__(self, member: object) -> None:
+        self.member = member
+
+    def __len__(self) -> int:
+        return 1
+
+    def __getitem__(self, index: int) -> object:
+        if index != 0:
+            raise IndexError(index)
+        return self.member
+
+
+class ArrayLike:
+    """An array-like whose ``__array__`` returns ``array``; np.asarray keeps only its data."""
+
+    def __init__(self, array: npt.NDArray[Any]) -> None:
+        self.array = array
+
+    def __array__(self, dtype: object = None, copy: object = None) -> npt.NDArray[Any]:
+        return self.array
+
+
+class PlainSubclass(np.ndarray[Any, Any]):
+    """An ndarray subclass other than numpy's own; third-party subclasses may carry masks."""
+
+
+HIDING_CONTAINERS: dict[str, Callable[[npt.NDArray[Any]], object]] = {
+    "custom sequence": OneMemberSequence,
+    "array-like": ArrayLike,
+    "array-like in a list": lambda array: [ArrayLike(array)],
+    "ndarray subclass": lambda array: np.asarray(array).view(PlainSubclass),
+}
+
+
+@pytest.mark.parametrize("argument", ARRAY_ARGUMENTS)
+@pytest.mark.parametrize("container", list(HIDING_CONTAINERS))
+@pytest.mark.parametrize("masked", [True, False])
+def test_containers_that_could_hide_a_mask_are_refused(
+    argument: str, container: str, masked: bool
+) -> None:
+    # numpy converts these through their own protocols and drops a mask on the way, so they are
+    # refused whether or not anything is masked; the caller converts them explicitly.
+    wrapper = HIDING_CONTAINERS[container]
+    dn: npt.NDArray[Any]
+    flag: npt.NDArray[Any]
+    if masked:
+        dn = np.ma.array([100.0, 300.0], mask=[False, True])
+        flag = np.ma.array([False, False], mask=[False, True])
+    else:
+        dn = np.array([100.0, 300.0])
+        flag = np.array([False, False])
+    with pytest.raises(TypeError, match="plain numpy array"):
+        call_with(argument, wrapper(dn), wrapper(flag))  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("container", CONTAINERS)
+def test_plain_values_nested_in_lists_and_tuples_are_accepted(container: Container) -> None:
+    # Guards the refusals above: nesting alone is not refused.
+    dn = nest(container([100, np.float64(300.0)]), 3, container)
+    flag = nest(container([False, np.bool_(False)]), 3, container)
+    for result in (
+        decode_db(dn, nodata=None),  # type: ignore[arg-type]
+        decode_linear(dn, nodata=None),  # type: ignore[arg-type]
+        x_power(dn, dn, nodata=None, hh_noise_dominated=flag, hv_noise_dominated=flag),  # type: ignore[arg-type]
+        angle_to_degrees(dn, unit="degrees"),  # type: ignore[arg-type]
+    ):
+        assert result.state.shape == (1, 1, 1, 2)
+        assert np.all(result.state == VALID)
+
+
+def test_memory_mapped_arrays_are_accepted(tmp_path: Path) -> None:
+    # Raster stacks are often memory-mapped; np.memmap is numpy's own subclass and has no mask.
+    dn = np.memmap(tmp_path / "dn.bin", dtype=np.float64, mode="w+", shape=(2,))
+    dn[:] = [100.0, 300.0]
+    assert np.all(decode_linear(dn, nodata=None).state == VALID)
+
+
+def test_nesting_up_to_numpys_dimension_limit_is_accepted() -> None:
+    result = decode_linear(nest(100, 64), nodata=None)  # type: ignore[arg-type]
+    assert result.state.ndim == 64
+    assert np.all(result.state == VALID)
+
+
+def test_self_referential_sequence_raises_instead_of_recursing() -> None:
+    loop: list[object] = []
+    loop.append(loop)
+    with pytest.raises(ValueError, match="64"):
+        decode_linear(loop, nodata=None)  # type: ignore[arg-type]
 
 
 # --- Properties ------------------------------------------------------------------------------
