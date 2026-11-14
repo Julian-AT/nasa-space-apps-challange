@@ -20,9 +20,10 @@ text. extract() works in two passes.
    \textcolor{red}{x} in kept TikZ text, are separate words (argument_breaks). What TeX skips
    without printing a space is dropped (unprinted): the spaces, comments and single line break
    after a control word or before the letter of an accent, a comment with its line break and
-   the indent of the next line, and key commands that print nothing, such as \label. So
-   seam\emph {less}, seam{\bf less}, seam\label{x}less and sea% with mless on the next line all
-   read seamless.
+   the indent of the next line, key commands that print nothing, such as \label, and the gap
+   before the text argument that follows keys, as in \href{url} {text}. So seam\emph {less},
+   seam{\bf less}, seam\label{x}less, seam\href{url} {less} and sea% with mless on the next line
+   all read seamless.
 
 The code keeps every character offset and the prose every line break of the source. A word that
 TeX joins across a line break it skips is written whole on the line where the word starts, and
@@ -236,6 +237,10 @@ TEXT_ARGUMENTS_AFTER_KEYS: dict[str, int] = {
     "multicolumn": 1,
     "multirow": 1,
 }
+# Of those, the commands that take optional settings before a text argument: the argument count
+# and default of \newcommand{\x}[1][a]{...} and the [vmove] of \multirow. The others read a [ there
+# as their text, as \href and \textcolor do.
+OPTIONS_BEFORE_TEXT = frozenset({"newcommand", "renewcommand", "providecommand", "multirow"})
 
 # The one-letter accent commands, \v{c} and the like, and the accent control symbols, \'e and the
 # like.
@@ -516,6 +521,7 @@ class _CodeScanner:
             end = self.key_arguments_end(start, i, name)
             if name in UNPRINTED_KEY_COMMANDS:
                 self.unprinted_offsets.update(range(start, end))
+            self.drop_text_argument_gaps(start, end, name)
         else:
             return i
         self.blank(start, end)
@@ -609,6 +615,24 @@ class _CodeScanner:
                 start, i, name, verbatim=index == 0 and name in VERBATIM_ARGUMENT
             )
         return i
+
+    def drop_text_argument_gaps(self, start: int, i: int, name: str) -> None:
+        r"""Blank and drop the gap before each text argument after the keys, which end at text[i].
+
+        TeX skips spaces, comments and one line break before an undelimited argument, and the
+        options of OPTIONS_BEFORE_TEXT are settings, so seam\href{url} {less} and
+        seam\textcolor{red}, a line break and {less} print seamless. A blank line, which TeX reads
+        as \par, or a } keeps the gap. The text arguments themselves stay for the main scan.
+        """
+        text = self.text
+        for _ in range(TEXT_ARGUMENTS_AFTER_KEYS.get(name, 0)):
+            j = self.optional_arguments_end(i) if name in OPTIONS_BEFORE_TEXT else i
+            j = self.space_end(j)
+            if j >= len(text) or text[j] in "\n}":
+                return
+            self.blank(i, j)
+            self.unprinted_offsets.update(range(i, j))
+            i = self.mandatory_argument_end(start, j, name, verbatim=False)
 
     def input_argument_end(self, start: int, i: int) -> int:
         """Index past the file name after the \\input at text[start], whose name ends at text[i].
