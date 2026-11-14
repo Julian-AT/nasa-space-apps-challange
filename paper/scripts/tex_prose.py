@@ -94,6 +94,9 @@ VERBATIM_ARGUMENT = frozenset({"url", "href"})
 # hyperref's \url makes % and the end of a line active before it reads its argument
 # (\hyper@normalise), so either one there would become the URL. \href reads its { first.
 SAME_LINE_ARGUMENT = frozenset({"url"})
+# What ends a file name after \input when no brace follows it, outside double quotes. TeX ends it
+# at a space or a line break; a comment, a brace or a control sequence ends it here too.
+FILE_NAME_END = frozenset(" \t\n%{}\\")
 
 # Environments whose own arguments, after \begin{name}, are layout rather than prose.
 ENVIRONMENT_ARGUMENTS: dict[str, int] = {
@@ -534,6 +537,8 @@ class _CodeScanner:
                 i = self.skip(i)
 
     def key_arguments_end(self, start: int, i: int, name: str) -> int:
+        if name == "input":
+            return self.input_argument_end(start, i)
         count = 1 if CITE_COMMAND.fullmatch(name) else KEY_COMMANDS[name]
         if self.text.startswith("*", i):
             i += 1
@@ -546,6 +551,31 @@ class _CodeScanner:
                 start, i, name, verbatim=index == 0 and name in VERBATIM_ARGUMENT
             )
         return i
+
+    def input_argument_end(self, start: int, i: int) -> int:
+        """Index past the file name after the \\input at text[start], whose name ends at text[i].
+
+        LaTeX's \\input looks past spaces for a brace (\\@ifnextchar) and reads a {group} as the
+        name. Without one, TeX's \\input primitive reads the name up to the first space or line
+        break; XeTeX lets double quotes hold spaces in it, as in \\input "a b.tex".
+        """
+        text = self.text
+        i = self.space_end(i)
+        if text.startswith("{", i):
+            return self.group_end(i, verbatim=False)
+        end = i
+        quoted = False
+        while end < len(text) and (quoted or text[end] not in FILE_NAME_END):
+            if text[end] == "\n":
+                raise self.error(start, 'unclosed " in the file name of \\input')
+            if text[end] == '"':
+                quoted = not quoted
+            end += 1
+        if quoted:
+            raise self.error(start, 'unclosed " in the file name of \\input')
+        if end == i:
+            raise self.error(start, "missing argument of \\input")
+        return end
 
     def same_line_argument_start(self, start: int, i: int, name: str) -> int:
         i = _blanks_end(self.text, i)
