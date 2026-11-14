@@ -223,7 +223,9 @@ const UNTYPED_KEYWORDS: ReadonlySet<string> = new Set(['anyOf', ...ANNOTATIONS])
  *
  * Every object must forbid additional properties and require all of its properties, as the
  * pydantic records do. `minLength` may only be 0 or 1: JSON Schema counts code points and zod
- * counts UTF-16 code units, which agree only on whether a string is empty.
+ * counts UTF-16 code units, which agree only on whether a string is empty. A string `enum` or
+ * `const` stands alone next to `type` and annotations, because the generator would drop a
+ * `pattern`, `minLength` or second `enum`/`const` beside it.
  */
 export function assertSupported(node: Json, pointer = ''): void {
   const where = at(pointer);
@@ -286,6 +288,18 @@ export function assertSupported(node: Json, pointer = ''): void {
       }
       if (constant !== undefined && typeof constant !== 'string') {
         throw new SchemaError(`${where}: const must be a string`);
+      }
+      // json-schema-to-zod emits only z.enum or z.literal for an enum or const and drops every
+      // other string keyword, so such a combination would be weakened silently.
+      if (members !== undefined || constant !== undefined) {
+        const others = ['pattern', 'minLength', 'enum', 'const'].filter(
+          (key) => node[key] !== undefined,
+        );
+        if (others.length > 1) {
+          throw new SchemaError(
+            `${where}: ${others.map((key) => JSON.stringify(key)).join(' and ')} cannot be combined, because only the enum or const would be translated`,
+          );
+        }
       }
       return;
     }
