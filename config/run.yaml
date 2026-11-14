@@ -2,8 +2,8 @@ run:
   working_start: "2026-11-14T18:01:00+01:00"  # first build iteration; the team may correct it
   assigned_event_timezone: Europe/Vienna  # team answer, 2026-11-14
   global_submission_cutoff: "2026-11-15T23:59:00+01:00"  # PRD 13: official page, Sunday 15 Nov 23:59 local
-  local_judging_cutoff: "2026-11-15T13:30:00+01:00"  # team answer: 13:30 local, Sunday
-  effective_cutoff: "2026-11-15T13:30:00+01:00"  # the earlier of the two cutoffs (PRD 13)
+  local_judging_cutoff: "2026-11-15T11:00:00+01:00"  # team correction: 11:00 local, Sunday
+  effective_cutoff: "2026-11-15T11:00:00+01:00"  # the earlier of the two cutoffs (PRD 13)
   shipping_mode: null
 targets:
   moon:
