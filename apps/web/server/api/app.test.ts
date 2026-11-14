@@ -106,9 +106,8 @@ describe('read-only methods', () => {
     }
   }
 
-  // Request upper-cases only the standard methods, so `patch` stays lowercase; PURGE is not an
-  // HTTP method Hono knows. Neither is GET or HEAD, so both are refused.
-  for (const method of ['patch', 'PURGE']) {
+  // Methods outside Hono's list (get, post, put, delete, options, patch) are refused the same way.
+  for (const method of ['PROPFIND', 'PURGE']) {
     it(`refuses the method ${method} too`, async () => {
       const { api } = quietApi();
       const response = await api.request('/api/v1/health', { method });
