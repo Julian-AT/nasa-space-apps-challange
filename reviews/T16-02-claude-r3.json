@@ -130,7 +130,11 @@
       "claim": "An unknown command followed by two groups is read as having two arguments, so the groups are split into separate words. A custom macro written as \\foo{seam}{less} would not be caught as 'seamless'.",
       "evidence": "`argument_count` returns None for unknown commands, so `argument_breaks` adds a break between every following group. The current manuscript has no such case and the choice is deliberate for TikZ. It is a rare edge case and does not fail any criterion.",
       "id": "claude-r3-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted. argument_breaks() splits the groups after an unknown macro on purpose, and the round 2 entry in progress.txt records it as a known limit. The definition of such a macro is not known here, so pass 2 cannot know whether it prints two groups together, apart or not at all. Reading them as separate words follows what TeX does with the groups after a macro, which become its arguments. A macro with two arguments normally prints them apart, as \\textcolor{red}{x} and \\newterm{a}{b} do; test_tex_prose.py guards \\newterm{a}{b} and \\newterm{a} {b}{c}. Joining them instead would let a macro hide prose from the overlap check (PRD 22.6 check 4): in \\foo{word6}{word7} the two words would become one token that matches nothing, and a 12-word run copied from an abstract would pass. Either reading can miss a case, and splitting is the one that does not hide copied text. AC1 asks only that formatting commands such as \\emph, \\textit and \\textbf keep their text. That holds, and the review found that no criterion fails and that the manuscript has no such macro. When the manuscript defines a macro, its argument count and printed arguments go into TEXT_COMMANDS, KEY_COMMANDS or TEXT_ARGUMENTS_AFTER_KEYS, as the Codebase Patterns in progress.txt say."
+      }
     }
   ]
 }
