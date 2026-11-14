@@ -91,9 +91,9 @@
         "make mock-bundle-check"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "resolved",
+        "state": "passed",
         "round": 1,
         "base": "0d57a25f869d71257c5c0e1b1c0dabc539dc0356",
         "head": "b8d6b132c42d7e6e9d31e9f58bf82271f991ad4b",

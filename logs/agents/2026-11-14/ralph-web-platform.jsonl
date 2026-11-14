@@ -314,3 +314,38 @@
 {"ts":"2026-11-14T17:46:09Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"git diff --name-only 0d57a25..HEAD"}
 {"ts":"2026-11-14T17:46:09Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
 {"ts":"2026-11-14T17:46:09Z","agent":"ralph-web-platform","story":"T0-02","event":"result","subtype":"success","num_turns":60,"total_cost_usd":4.231877699999999,"permission_denials":1}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"sed -n '1,80p' scripts/ralph/progress.txt && echo ---- && wc -l scripts/ralph/progress.txt"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"python3 -c \"\nimport json\nd=json.load(open('scripts/ralph/prd.json'))\nfor s in d.get('userStories',d.get('stories',[])):\n    print(s['id'], s['priority'], s['passes'], s.get('review',{}).get('state'))\nprint(list(d.keys()))\n\""}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"jq '.userStories[] | select(.id==\"T0-02\")' scripts/ralph/prd.json"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"cat reviews/T0-02-claude.json; echo ----; cat reviews/T0-02-codex.json"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"grep -n \"def test_\\|mock_on_production\\|shipping_mode_unset\" pipeline/tests/test_export.py | sed -n '1,200p'"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"sed -n '60,150p;610,660p' pipeline/tests/test_export.py"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_export.py -k \"refused_on_production\" -v 2>&1 | tail -8"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"grep -n \"mock_on_production\" pipeline/src/terraluna_pipeline/export.py && git log --oneline --follow -- pipeline/tests/test_export.py | tail -3 && git log -S\"def test_mock_bundle_is_refused_on_production\" --oneline -- pipeline/tests/test_export.py"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"sed -n '375,395p' pipeline/src/terraluna_pipeline/export.py"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"git diff --quiet -- pipeline/src/terraluna_pipeline/export.py && sed -i '' 's/^    if manifest.mock:$/    if False and manifest.mock:/' pipeline/src/terraluna_pipeline/export.py && git diff --stat && uv run pytest pipeline/tests/test_export.py -k \"test_mock_bundle_is_refused_on_production\" -q 2>&1 | tail -6; sed -i '' 's/^    if False and manifest.mock:$/    if manifest.mock:/' pipeline/src/terral"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"f=reviews/T0-02-claude.json && before=$(jq -S 'del(.findings[].resolution)' $f | shasum -a 256) && tmp=$(mktemp) && jq --arg r 'The test exists. pipeline/tests/test_export.py:621 test_mock_bundle_is_refused_on_production (added in 3073be6, the first failing-tests commit, before export.py in ada4d43) builds a temporary bundle with make_bundle(tmp_path, mock=True). The fields() helper sets shipping_"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"make check 2>&1 | tail -6; echo \"exit=$?\""}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"make test 2>&1 | tail -3; echo \"exit=${PIPESTATUS[0]}\""}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"make mock-bundle-check 2>&1 | tail -3; echo \"exit=${PIPESTATUS[0]}\""}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"for t in check test mock-bundle-check; do make $t >/dev/null 2>&1; echo \"make $t exit=$?\"; done"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"tmp=$(mktemp) && jq '(.userStories[] | select(.id==\"T0-02\") | .review.state) = \"resolved\"' scripts/ralph/prd.json > \"$tmp\" && mv \"$tmp\" scripts/ralph/prd.json && chmod 644 scripts/ralph/prd.json && git diff scripts/ralph/prd.json && date -u +%Y-%m-%dT%H:%MZ"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_use","tool":"Bash","input":"cat >> scripts/ralph/progress.txt <<'EOF'\n\n## 2026-11-14T17:50Z · T0-02 · resolve\n- Done: Resolved round 1. claude-r1-1 (low, a mock-on-production test on a temporary bundle reported as missing) is rebutted. The test exists: test_export.py:621 test_mock_bundle_is_refused_on_production, added in the first failing-tests commit 3073be6. It writes a temporary bundle with mock=True and shipping_mode \"B"}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"tool_result","is_error":false}
+{"ts":"2026-11-14T17:51:03Z","agent":"ralph-web-platform","story":"T0-02","event":"result","subtype":"success","num_turns":18,"total_cost_usd":0.5031718000000001,"permission_denials":0}
