@@ -143,16 +143,34 @@ F6_SCATTERER: jones_oracle.Scatterer = (1.0, 0.2j, 0.0)
 
 
 def f6_covariance() -> npt.NDArray[np.complex128]:
+    """PRD 7, F6, asserted Hermitian PSD of rank one before every use."""
     covariance = jones_oracle.covariance_of([F6_SCATTERER])
     # |0.2i|**2 is 0.04000000000000001 in float64, so compare to the PRD 7 tolerance.
     expected = matrix(1.0, 0.0, 0.04, 0.0, -0.2j, 0.0)
     np.testing.assert_allclose(covariance, expected, rtol=RTOL, atol=ATOL)
+    eigenvalues = assert_hermitian_psd(covariance)
+    np.testing.assert_allclose(eigenvalues, [0.0, 0.0, 1.04], rtol=RTOL, atol=ATOL)
     return covariance
 
 
+F7_EIGENVALUES = {0.9: [0.1, 0.1, 1.9], 0.1: [0.1, 0.9, 1.1]}
+"""PRD 7: F7's two matrices have eigenvalues (0.1, 0.1, 1.9) and (0.1, 0.9, 1.1)."""
+
+
 def f7_covariance(c: float) -> npt.NDArray[np.complex128]:
-    """PRD 7, F7: A = B = 1, V = 0.1, D = E = 0 and the given real C."""
-    return matrix(1.0, 1.0, 0.1, c, 0.0, 0.0)
+    """PRD 7, F7: A = B = 1, V = 0.1, D = E = 0 and the given real C, asserted Hermitian PSD
+    with the PRD eigenvalues before every use."""
+    covariance = matrix(1.0, 1.0, 0.1, c, 0.0, 0.0)
+    eigenvalues = assert_hermitian_psd(covariance)
+    np.testing.assert_allclose(eigenvalues, F7_EIGENVALUES[c], rtol=RTOL, atol=ATOL)
+    return covariance
+
+
+def f7_scatterers(c: float) -> list[jones_oracle.Scatterer]:
+    """F7 as a sum of three scatterers, from its eigenvectors (1, 0, 1)/sqrt2 with eigenvalue
+    1 + C, (1, 0, -1)/sqrt2 with 1 - C, and (0, 1, 0) with V = 0.1."""
+    plus, minus = math.sqrt((1.0 + c) / 2.0), math.sqrt((1.0 - c) / 2.0)
+    return [(plus, 0.0, plus), (minus, 0.0, -minus), (0.0, math.sqrt(0.1), 0.0)]
 
 
 def test_F6_fixture_is_a_rank_one_hermitian_psd_covariance() -> None:
@@ -207,6 +225,30 @@ def test_F6_matches_both_oracles() -> None:
         assert_value(result.oc, expanded.oc)
         assert_value(result.oc, jones.oc)
         assert_value(result.total, jones.total)
+        assert_value(result.base_sc, expanded.base_sc)
+        assert_value(result.handedness_term, expanded.handedness_term)
+
+
+@pytest.mark.parametrize("c", [0.9, 0.1])
+def test_F7_matches_both_oracles(c: float) -> None:
+    covariance = f7_covariance(c)
+    scatterers = f7_scatterers(c)
+    np.testing.assert_allclose(
+        jones_oracle.covariance_of(scatterers), covariance, rtol=RTOL, atol=ATOL
+    )
+    expanded = expanded_oracle.expanded_from_matrix(covariance)
+    for convention, transmit, sc in (
+        (LL, jones_oracle.TRANSMIT_LL, expanded.sc_ll),
+        (OPP, jones_oracle.TRANSMIT_OPPOSITE, expanded.sc_opp),
+    ):
+        jones = jones_oracle.scatterer_sum_powers(scatterers, transmit)
+        result = convert(covariance, convention=convention)
+        assert_value(result.sc, sc)
+        assert_value(result.sc, jones.sc)
+        assert_value(result.oc, expanded.oc)
+        assert_value(result.oc, jones.oc)
+        assert_value(result.total, jones.total)
+        assert_value(result.cpr, jones.sc / jones.oc)
         assert_value(result.base_sc, expanded.base_sc)
         assert_value(result.handedness_term, expanded.handedness_term)
 
