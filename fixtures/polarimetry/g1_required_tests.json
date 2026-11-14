@@ -1,5 +1,5 @@
 {
-  "description": "Tests that G1 (PRD 9, conversion correctness) requires, as pytest node ids of test functions; every parametrized case of a listed function counts. fixtures: every test named test_F<n>_ or test_F<a>_to_F<b>_ (PRD 7 fixtures F1-F10), listed under each fixture it covers. invalid_data: the invalid-data tests of stories T2-01 (decoding, x_power, angles, masked inputs), T2-02 (Stokes) and T2-03 (covariance). real_scene_check: the T2-07 polsartools oracle check on one real UAVSAR scene (PRD 12); G1 is not PASS until it has passed. Read by 'python -m terraluna_pipeline.polarimetry record-g1'.",
+  "description": "Tests that G1 (PRD 9, conversion correctness) requires, as pytest node ids of test functions; every parametrized case of a listed function counts. fixtures: every test named test_F<n>_ or test_F<a>_to_F<b>_ (PRD 7 fixtures F1-F10), listed under each fixture it covers. conventions: the tests of stories T2-01 (calibration offset, angle units), T2-02 (Stokes convention) and T2-03 (covariance ordering, handedness, declarations) that the conventions are declared and labelled. invalid_data: the invalid-data tests of stories T2-01 (decoding, x_power, angles, masked inputs), T2-02 (Stokes) and T2-03 (covariance). real_scene_check: the T2-07 polsartools oracle check on one real UAVSAR scene (PRD 12); G1 is not PASS until it has passed. Read by 'python -m terraluna_pipeline.polarimetry record-g1'.",
   "fixtures": {
     "F1": [
       "pipeline/tests/test_polarimetry_stokes.py::test_F1_minirf_zero_cpr_is_valid_not_missing",
@@ -52,6 +52,28 @@
     ],
     "F10": [
       "pipeline/tests/test_polarimetry_decode.py::test_F10_radians_to_degrees"
+    ]
+  },
+  "conventions": {
+    "T2-01": [
+      "pipeline/tests/test_polarimetry_decode.py::test_calibration_offset_is_the_prd_value_and_an_argument",
+      "pipeline/tests/test_polarimetry_decode.py::test_internal_angle_unit_is_degrees",
+      "pipeline/tests/test_polarimetry_decode.py::test_declared_unit_decides_the_result"
+    ],
+    "T2-02": [
+      "pipeline/tests/test_polarimetry_stokes.py::test_sis_convention_is_a_named_string_constant",
+      "pipeline/tests/test_polarimetry_stokes.py::test_docstring_states_the_power_definition",
+      "pipeline/tests/test_polarimetry_stokes.py::test_convention_is_a_required_argument",
+      "pipeline/tests/test_polarimetry_stokes.py::test_constant_with_extra_text_is_not_the_declared_convention"
+    ],
+    "T2-03": [
+      "pipeline/tests/test_polarimetry_covariance.py::test_circular_basis_rows_are_the_declared_transmit_projections",
+      "pipeline/tests/test_polarimetry_covariance.py::test_docstring_states_the_ordering_transmit_vector_and_convention",
+      "pipeline/tests/test_polarimetry_covariance.py::test_orderings_and_conventions_are_named_string_constants",
+      "pipeline/tests/test_polarimetry_covariance.py::test_declarations_are_required_keyword_arguments",
+      "pipeline/tests/test_polarimetry_covariance.py::test_handedness_conventions_give_different_sc_and_the_same_oc",
+      "pipeline/tests/test_polarimetry_covariance.py::test_handedness_is_unverified_by_default",
+      "pipeline/tests/test_polarimetry_covariance.py::test_record_carries_its_declarations"
     ]
   },
   "invalid_data": {
