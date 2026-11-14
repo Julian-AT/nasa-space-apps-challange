@@ -159,7 +159,7 @@ def junit_xml(
     suite.set("time", "0.100")
     root = ET.Element("testsuites", name="pytest tests")
     root.append(suite)
-    return b'<?xml version="1.0" encoding="utf-8"?>' + ET.tostring(root, encoding="utf-8")
+    return b'<?xml version="1.0" encoding="utf-8"?>' + ET.tostring(root)
 
 
 def all_passed(*, real_scene: str | None = "passed") -> dict[str, str]:
@@ -484,7 +484,7 @@ def test_failures_outside_the_g1_modules_do_not_decide_g1(tmp_path: Path) -> Non
     assert result_of(record)["other_failed"] == []
 
 
-OUTCOMES = sorted(CHILDREN) + ["absent"]
+OUTCOMES = [*sorted(CHILDREN), "absent"]
 
 
 def expected_status(outcomes: Mapping[str, str]) -> str:
@@ -890,7 +890,7 @@ def test_tampered_real_report_missing_a_required_test_is_not_pass(
         for case in removed:
             suite.remove(case)
     tampered = tmp_path / "tampered.xml"
-    tampered.write_bytes(ET.tostring(root, encoding="utf-8"))
+    tampered.write_bytes(ET.tostring(root))
     out = tmp_path / "g1-record.json"
     completed = run_record_g1(tampered, out)
     record = GateRecord.model_validate_json(out.read_text(encoding="utf-8"))
@@ -916,7 +916,7 @@ def test_tampered_report_with_its_failures_deleted_is_refused(
                 deleted += 1
     assert deleted
     tampered = tmp_path / "tampered.xml"
-    tampered.write_bytes(ET.tostring(root, encoding="utf-8"))
+    tampered.write_bytes(ET.tostring(root))
     out = tmp_path / "g1-record.json"
     completed = run_record_g1(tampered, out)
     assert completed.returncode == 2

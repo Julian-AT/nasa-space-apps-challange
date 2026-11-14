@@ -37,19 +37,34 @@ Conventions that hold for every function here:
 - Hybrid-polarimetric observables (:func:`hybrid_stokes_from_covariance`, :func:`m_chi`) are
   context in Mode B and enter no distance before G2 (PRD 6.2); their records carry
   ``role = "context"``. No cross-band comparison is offered here.
+- Gate G1 (PRD 9) is recorded from pytest's own junit report by :func:`record_g1`, run as
+  ``python -m terraluna_pipeline.polarimetry record-g1 --junit <path> --out <path>``. The
+  required tests are listed in ``fixtures/polarimetry/g1_required_tests.json``; no record is
+  written by hand.
 """
 
 from __future__ import annotations
 
+import argparse
+import hashlib
+import json
 import math
-from collections.abc import Mapping
+import os
+import shlex
+import sys
+import xml.etree.ElementTree as ET
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import IntEnum, StrEnum
+from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Final, Literal, cast, overload
+from typing import Annotated, Any, Final, Literal, Self, cast, overload
 
 import numpy as np
 import numpy.typing as npt
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+
+from terraluna_pipeline.schema import GateRecord, GateStatus
 
 __all__ = [
     "ARITHMETIC_TOLERANCE",
@@ -58,6 +73,8 @@ __all__ = [
     "COVARIANCE_HH_HV_VV",
     "COVARIANCE_HH_SQRT2HV_VV",
     "COVARIANCE_INPUT",
+    "G1_FAILURE_ACTION",
+    "G1_REQUIRED_TESTS_PATH",
     "INTERNAL_ANGLE_UNIT",
     "MINIRF_SIS_CONVENTION",
     "NEISH_SC_LL_CONVENTION",
@@ -76,6 +93,8 @@ __all__ = [
     "CovarianceInput",
     "CovarianceOrdering",
     "DecibelArray",
+    "G1InputError",
+    "G1RequiredTests",
     "HandednessConvention",
     "HybridStokes",
     "InputKind",
@@ -97,9 +116,11 @@ __all__ = [
     "decode_linear",
     "derive_circular",
     "hybrid_stokes_from_covariance",
+    "load_g1_required_tests",
     "lunar_s4_sign_check",
     "m_chi",
     "m_chi_from_hybrid",
+    "record_g1",
     "to_db_for_display",
     "x_power",
 ]
@@ -2811,3 +2832,424 @@ def lunar_s4_sign_check(
         convention=MINIRF_SIS_CONVENTION,
         tolerance=tolerance,
     )
+
+
+# --- G1 gate record (PRD 9 G1, 8.12 GateRecord, 7 Fixtures) -----------------------------------
+#
+# ``python -m terraluna_pipeline.polarimetry record-g1 --junit <path> --out <path>`` reads the
+# junit XML report that pytest writes itself (``uv run pytest --junitxml=<path>``) and writes
+# one GateRecord for G1. Nothing here runs a test or decides a result: the status follows only
+# from the outcomes in the report and the list of required tests. Status rules, first match:
+#
+# 1. FAIL: a required test failed or errored in any of its cases (a strict XPASS is a failure
+#    in pytest's report), or any other test in a module that holds a required test failed,
+#    collection errors of that module included.
+# 2. NOT_RUN: no required test passed; every one is absent from the report or skipped.
+# 3. PARTIAL: some required tests passed, none failed, but at least one is absent or skipped
+#    (an xfail is reported as skipped).
+# 4. PASS: every required test passed in every case.
+#
+# The real-scene polsartools check of T2-07 is a required test, so G1 is not PASS before it has
+# passed on a real scene (PRD 12 adds it to T2); the scope states whether it was included.
+
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+"""The repository root: this file is ``pipeline/src/terraluna_pipeline/polarimetry.py``."""
+
+_G1_FIXTURES_DIR: Final = "fixtures/polarimetry"
+_G1_REQUIRED_TESTS: Final = "fixtures/polarimetry/g1_required_tests.json"
+
+G1_REQUIRED_TESTS_PATH: Final = _REPO_ROOT / _G1_REQUIRED_TESTS
+"""The tests G1 requires, as function-level pytest node ids (read by :func:`record_g1`)."""
+
+G1_FAILURE_ACTION: Final = "No quantitative CPR output until fixed; terrain work continues"
+"""PRD 9's failure action for G1: the record's consequence for every status but PASS."""
+
+_G1_FIXTURE_IDS: Final = tuple(f"F{n}" for n in range(1, 11))
+_G1_STORIES: Final = ("T2-01", "T2-02", "T2-03")
+_G1_COUNT_KEYS: Final = ("tests", "passed", "failed", "skipped", "absent", "cases")
+
+_RequiredTestId = Annotated[
+    str, Field(pattern=r"^pipeline/tests/test_polarimetry[a-z0-9_]*\.py::test_[A-Za-z0-9_]+$")
+]
+_RequiredTestList = Annotated[tuple[_RequiredTestId, ...], Field(min_length=1)]
+
+
+class G1InputError(ValueError):
+    """An input to :func:`record_g1` that cannot be read or trusted; no record is written."""
+
+
+class G1RequiredTests(BaseModel):
+    """``fixtures/polarimetry/g1_required_tests.json``: the tests G1 requires.
+
+    Every id is a test function in ``pipeline/tests/test_polarimetry*.py``, written as a pytest
+    node id without parameters, so every parametrized case of it counts. ``fixtures`` maps F1
+    to F10 (PRD 7) to the tests named ``test_F<n>_`` or ``test_F<a>_to_F<b>_``; a test covering
+    several fixtures is listed under each. ``invalid_data`` holds the invalid-data tests of
+    T2-01 to T2-03. ``real_scene_check`` is the T2-07 oracle check on a real UAVSAR scene.
+    """
+
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True, regex_engine="rust-regex")
+
+    description: Annotated[str, Field(min_length=1)]
+    fixtures: dict[str, _RequiredTestList]
+    invalid_data: dict[str, _RequiredTestList]
+    real_scene_check: _RequiredTestList
+
+    @model_validator(mode="after")
+    def _check_groups(self) -> Self:
+        if set(self.fixtures) != set(_G1_FIXTURE_IDS):
+            raise ValueError(f"fixtures must name exactly {', '.join(_G1_FIXTURE_IDS)}")
+        if set(self.invalid_data) != set(_G1_STORIES):
+            raise ValueError(f"invalid_data must name exactly {', '.join(_G1_STORIES)}")
+        for ids in [*self.fixtures.values(), *self.invalid_data.values(), self.real_scene_check]:
+            if len(set(ids)) != len(ids):
+                raise ValueError(f"a test is listed twice in one group: {ids}")
+        return self
+
+    def all_ids(self) -> tuple[str, ...]:
+        """Every required test once, in list order."""
+        ids = [nodeid for group in self.fixtures.values() for nodeid in group]
+        ids += [nodeid for group in self.invalid_data.values() for nodeid in group]
+        return tuple(dict.fromkeys([*ids, *self.real_scene_check]))
+
+
+def _read_input(path: Path, what: str) -> bytes:
+    try:
+        return path.read_bytes()
+    except OSError as error:
+        raise G1InputError(f"cannot read the {what} {path}: {error.strerror or error}") from error
+
+
+def _parse_required(data: bytes, path: Path) -> G1RequiredTests:
+    try:
+        return G1RequiredTests.model_validate_json(data)
+    except ValidationError as error:
+        raise G1InputError(f"the required test list {path} is malformed: {error}") from error
+
+
+def load_g1_required_tests(
+    path: str | os.PathLike[str] = G1_REQUIRED_TESTS_PATH,
+) -> G1RequiredTests:
+    """Read and check the list of tests G1 requires; raise :class:`G1InputError` otherwise."""
+    required_path = Path(path)
+    return _parse_required(_read_input(required_path, "required test list"), required_path)
+
+
+_JunitOutcome = Literal["passed", "failed", "skipped"]
+_G1Outcome = Literal["passed", "failed", "skipped", "absent"]
+
+
+@dataclass(frozen=True)
+class _JunitCase:
+    """One ``<testcase>`` element of a pytest junit report."""
+
+    classname: str
+    name: str
+    outcome: _JunitOutcome
+
+    def label(self) -> str:
+        return f"{self.classname}::{self.name}" if self.classname else self.name
+
+
+def _junit_count(suite: ET.Element, attribute: str, path: Path) -> int:
+    value = suite.get(attribute, "0")
+    if not (value.isascii() and value.isdigit()):
+        raise G1InputError(f"{path}: testsuite attribute {attribute}={value!r} is not a count")
+    return int(value)
+
+
+def _parse_junit(data: bytes, path: Path) -> tuple[list[_JunitCase], list[str]]:
+    """The testcases and suite timestamps of a pytest junit report.
+
+    The layout is pytest's (``<testsuites>`` holding ``<testsuite>`` elements, or one
+    ``<testsuite>``). A testcase with a ``failure`` or ``error`` child failed, one with only a
+    ``skipped`` child (skips and xfails) was skipped, and one without either passed. A suite
+    that counts failures or errors but holds no failing testcase is refused as inconsistent,
+    since pytest writes a failing testcase for each. A DOCTYPE or entity declaration is refused
+    before parsing: pytest never writes one.
+    """
+    if b"<!DOCTYPE" in data or b"<!ENTITY" in data:
+        raise G1InputError(f"{path} declares a DOCTYPE or entities, which pytest never writes")
+    try:
+        root = ET.fromstring(data)
+    except ET.ParseError as error:
+        raise G1InputError(f"{path} is not well-formed XML: {error}") from error
+    if root.tag == "testsuites":
+        suites = list(root)
+    elif root.tag == "testsuite":
+        suites = [root]
+    else:
+        raise G1InputError(f"{path} is not a pytest junit report (root element <{root.tag}>)")
+    cases: list[_JunitCase] = []
+    timestamps: list[str] = []
+    for suite in suites:
+        if suite.tag != "testsuite":
+            raise G1InputError(f"{path}: unexpected <{suite.tag}> in <testsuites>")
+        reported = _junit_count(suite, "failures", path) + _junit_count(suite, "errors", path)
+        failing = 0
+        for element in suite:
+            if element.tag == "properties":
+                continue
+            if element.tag != "testcase":
+                raise G1InputError(f"{path}: unexpected <{element.tag}> in <testsuite>")
+            classname = element.get("classname")
+            name = element.get("name")
+            if classname is None or not name:
+                raise G1InputError(f"{path}: a testcase lacks its classname or name")
+            tags = {child.tag for child in element}
+            outcome: _JunitOutcome
+            if tags & {"failure", "error"}:
+                outcome = "failed"
+                failing += 1
+            elif "skipped" in tags:
+                outcome = "skipped"
+            else:
+                outcome = "passed"
+            cases.append(_JunitCase(classname, name, outcome))
+        if reported and not failing:
+            raise G1InputError(
+                f"{path} is inconsistent: a testsuite counts {reported} failures or errors"
+                " but holds no failing testcase"
+            )
+        timestamp = suite.get("timestamp")
+        if timestamp:
+            timestamps.append(timestamp)
+    return cases, timestamps
+
+
+def _junit_address(nodeid: str) -> tuple[str, str]:
+    """The junit classname (dotted module) and test name pytest writes for a function id."""
+    path, _, function = nodeid.partition("::")
+    return path.removesuffix(".py").replace("/", "."), function
+
+
+def _required_outcomes(
+    required: G1RequiredTests, cases: list[_JunitCase]
+) -> tuple[dict[str, tuple[_G1Outcome, int]], list[str]]:
+    """Each required test's outcome and number of cases, and other failures in its modules."""
+    by_class: dict[str, list[int]] = {}
+    for index, case in enumerate(cases):
+        by_class.setdefault(case.classname, []).append(index)
+    outcomes: dict[str, tuple[_G1Outcome, int]] = {}
+    matched: set[int] = set()
+    for nodeid in required.all_ids():
+        module, function = _junit_address(nodeid)
+        own = [
+            index
+            for index in by_class.get(module, [])
+            if cases[index].name == function or cases[index].name.startswith(function + "[")
+        ]
+        matched.update(own)
+        found = {cases[index].outcome for index in own}
+        outcome: _G1Outcome
+        if not own:
+            outcome = "absent"
+        elif "failed" in found:
+            outcome = "failed"
+        elif "skipped" in found:
+            outcome = "skipped"
+        else:
+            outcome = "passed"
+        outcomes[nodeid] = (outcome, len(own))
+    modules = {_junit_address(nodeid)[0] for nodeid in required.all_ids()}
+    other_failed = sorted(
+        case.label()
+        for index, case in enumerate(cases)
+        if case.outcome == "failed"
+        and index not in matched
+        and (
+            case.classname in modules
+            or any(case.classname.startswith(module + ".") for module in modules)
+            or (case.classname == "" and case.name in modules)
+        )
+    )
+    return outcomes, other_failed
+
+
+def _g1_counts(
+    ids: tuple[str, ...], outcomes: Mapping[str, tuple[_G1Outcome, int]]
+) -> dict[str, int]:
+    counts = dict.fromkeys(_G1_COUNT_KEYS, 0)
+    counts["tests"] = len(ids)
+    for nodeid in ids:
+        outcome, n_cases = outcomes[nodeid]
+        counts[outcome] += 1
+        counts["cases"] += n_cases
+    return counts
+
+
+def _g1_status(
+    outcomes: Mapping[str, tuple[_G1Outcome, int]], other_failed: list[str]
+) -> GateStatus:
+    found = [outcome for outcome, _ in outcomes.values()]
+    if other_failed or "failed" in found:
+        return "FAIL"
+    if "passed" not in found:
+        return "NOT_RUN"
+    if any(outcome != "passed" for outcome in found):
+        return "PARTIAL"
+    return "PASS"
+
+
+def _real_scene_phrase(counts: Mapping[str, int]) -> str:
+    n = counts["tests"]
+    if counts["failed"]:
+        return "run and failed"
+    if counts["passed"] == n:
+        return "included and passed"
+    parts = []
+    if counts["absent"]:
+        parts.append(f"{counts['absent']} of {n} absent from the junit report")
+    if counts["skipped"]:
+        parts.append(f"{counts['skipped']} of {n} skipped")
+    return f"not included ({', '.join(parts)})"
+
+
+def _g1_scope(real_scene: Mapping[str, int]) -> str:
+    return (
+        "G1 conversion correctness (PRD 9): fixtures F1-F10 against an independent basis"
+        " transformation and the invalid-data tests of T2-01 to T2-03, as listed in"
+        f" {_G1_REQUIRED_TESTS} and read from a pytest junit report. The real-scene polsartools"
+        f" oracle check (T2-07, PRD 12): {_real_scene_phrase(real_scene)}."
+    )
+
+
+def _g1_evidence_path(junit: Path) -> str:
+    """The junit path to record: relative inside the repository, absolute outside it.
+
+    Inside the repository the report must lie under ``fixtures/polarimetry/``, the only place
+    there that this gate's evidence may be kept.
+    """
+    resolved = junit.resolve()
+    root = _REPO_ROOT.resolve()
+    if resolved.is_relative_to(root):
+        if not resolved.is_relative_to(root / _G1_FIXTURES_DIR):
+            raise G1InputError(
+                f"the junit report {junit} is inside the repository but not under"
+                f" {_G1_FIXTURES_DIR}/; write it outside the repository or under"
+                f" {_G1_FIXTURES_DIR}/"
+            )
+        return resolved.relative_to(root).as_posix()
+    return os.path.abspath(junit)
+
+
+def record_g1(
+    junit: str | os.PathLike[str],
+    out: str | os.PathLike[str],
+    *,
+    command: str,
+    run_id: str | None = None,
+) -> GateRecord:
+    """Write the G1 :class:`GateRecord` for a pytest junit report to ``out`` and return it.
+
+    ``junit`` is pytest's own report (``uv run pytest --junitxml=<path>``), outside the
+    repository or under ``fixtures/polarimetry/``. The required tests come from
+    :data:`G1_REQUIRED_TESTS_PATH`; the status follows the rules above this function, so a
+    required test that is absent, failed, skipped or xfailed never gives PASS. ``command`` is
+    the command line to record and ``run_id`` stays null unless given.
+
+    The record holds ``gate_id`` G1, the status, ``evidence_path`` (the junit report), the
+    scope (stating whether the real-scene check was included), ``consequence`` (PRD 9's failure
+    action unless PASS, else null) and ``result``. GateRecord's ``result`` is a string, so it
+    holds a JSON object: the command, the SHA-256 of the report and of the required list, the
+    report timestamps, the counts per fixture, per story and for the real-scene check (tests,
+    passed, failed, skipped, absent and junit cases), and the ids that failed, were skipped or
+    were absent, plus other failing tests in the same modules (``other_failed``, as junit
+    ``classname::name``).
+
+    Raises :class:`G1InputError`, writing nothing, if an input cannot be read or trusted, and
+    OSError if ``out`` cannot be written.
+    """
+    if run_id is not None and (type(run_id) is not str or not run_id):
+        raise G1InputError("a run id must be a non-empty string")
+    if type(command) is not str or not command:
+        raise G1InputError("the command to record must be a non-empty string")
+    junit_path = Path(junit)
+    out_path = Path(out)
+    evidence_path = _g1_evidence_path(junit_path)
+    if out_path.resolve() in {junit_path.resolve(), G1_REQUIRED_TESTS_PATH.resolve()}:
+        raise G1InputError(f"the output path {out_path} would overwrite an input")
+    if not out_path.parent.is_dir():
+        raise G1InputError(f"the output directory {out_path.parent} does not exist")
+    required_bytes = _read_input(G1_REQUIRED_TESTS_PATH, "required test list")
+    required = _parse_required(required_bytes, G1_REQUIRED_TESTS_PATH)
+    junit_bytes = _read_input(junit_path, "junit report")
+    cases, timestamps = _parse_junit(junit_bytes, junit_path)
+    outcomes, other_failed = _required_outcomes(required, cases)
+    real_scene = _g1_counts(required.real_scene_check, outcomes)
+
+    def ids_with(outcome: _G1Outcome) -> list[str]:
+        return [nodeid for nodeid, (found, _) in outcomes.items() if found == outcome]
+
+    result = {
+        "command": command,
+        "junit_sha256": hashlib.sha256(junit_bytes).hexdigest(),
+        "junit_timestamps": timestamps,
+        "required_tests": _G1_REQUIRED_TESTS,
+        "required_tests_sha256": hashlib.sha256(required_bytes).hexdigest(),
+        "fixtures": {key: _g1_counts(required.fixtures[key], outcomes) for key in _G1_FIXTURE_IDS},
+        "invalid_data": {
+            key: _g1_counts(required.invalid_data[key], outcomes) for key in _G1_STORIES
+        },
+        "real_scene_check": real_scene,
+        "failed": ids_with("failed"),
+        "skipped": ids_with("skipped"),
+        "absent": ids_with("absent"),
+        "other_failed": other_failed,
+    }
+    status = _g1_status(outcomes, other_failed)
+    record = GateRecord(
+        gate_id="G1",
+        status=status,
+        evidence_path=evidence_path,
+        run_id=run_id,
+        scope=_g1_scope(real_scene),
+        result=json.dumps(result),
+        consequence=None if status == "PASS" else G1_FAILURE_ACTION,
+    )
+    out_path.write_text(record.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    return record
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Command line: ``python -m terraluna_pipeline.polarimetry record-g1 ...``.
+
+    Exit status: 0 when the record says PASS, 1 when it says anything else (FAIL, PARTIAL or
+    NOT_RUN; the record is still written), 2 when nothing was written (a usage error or an
+    input that cannot be read or trusted).
+    """
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    parser = argparse.ArgumentParser(
+        prog="python -m terraluna_pipeline.polarimetry",
+        description="Polarimetry tools. record-g1 writes the G1 gate record (PRD 9).",
+    )
+    commands = parser.add_subparsers(dest="command", required=True, metavar="command")
+    record = commands.add_parser(
+        "record-g1",
+        help="write the G1 GateRecord from a pytest junit report",
+        description=(
+            "Read a pytest junit report (uv run pytest --junitxml=<path>) and write the G1"
+            f" GateRecord. Required tests: {_G1_REQUIRED_TESTS}. Exit status 0 for PASS, 1 for"
+            " any other recorded status, 2 when nothing was written."
+        ),
+    )
+    record.add_argument(
+        "--junit",
+        required=True,
+        help=f"pytest junit XML report, outside the repository or under {_G1_FIXTURES_DIR}/",
+    )
+    record.add_argument("--out", required=True, help="path of the GateRecord JSON to write")
+    record.add_argument("--run-id", default=None, help="run id to record (null when omitted)")
+    args = parser.parse_args(arguments)
+    command = shlex.join(["python", "-m", "terraluna_pipeline.polarimetry", *arguments])
+    try:
+        gate = record_g1(args.junit, args.out, command=command, run_id=args.run_id)
+    except (G1InputError, OSError) as error:
+        print(f"record-g1: {error}", file=sys.stderr)
+        return 2
+    print(f"G1 {gate.status}: wrote {args.out}")
+    return 0 if gate.status == "PASS" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
