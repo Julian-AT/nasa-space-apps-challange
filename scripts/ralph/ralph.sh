@@ -253,6 +253,11 @@ gate() { # <id>
     echo "gate> $c"
     if ! bash -c "$c" > "$out" 2>&1; then tail -n 40 "$out"; gate_failure "$id" "$c" "$out"; return; fi
   done < <(field "$id" '.checks[]')
+  # Checks must be repeatable: a check that rewrites tracked files or leaves new ones breaks the next gate.
+  if [ -n "$(dirty)" ]; then
+    { echo "The story's checks left these changes in the working tree:"; dirty; } > "$out"
+    cat "$out"; gate_failure "$id" "story checks must leave the working tree unchanged" "$out"; return
+  fi
   edit --arg id "$id" '(.userStories[] | select(.id==$id)) |= (.passes = true | .review.state = "passed")'
   echo "ralph: $id passed review and the gate"
   # shellcheck disable=SC2046
