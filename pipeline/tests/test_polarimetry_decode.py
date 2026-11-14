@@ -158,6 +158,18 @@ def test_stated_array_rejects_wrong_dtypes() -> None:
         )
 
 
+def test_stated_array_copies_its_inputs() -> None:
+    value = np.array([100.0, np.nan])
+    state = np.array([VALID, INVALID], dtype=STATE_DTYPE)
+    reason = np.array([InvalidReason.NONE, InvalidReason.DN_ZERO], dtype=REASON_DTYPE)
+    record = StatedArray(value=value, state=state, reason=reason)
+    value[1] = 0.0
+    state[1] = VALID
+    assert record.state.tolist() == [VALID, INVALID]
+    assert np.isnan(record.value[1])
+    assert value.flags.writeable
+
+
 def test_results_are_read_only() -> None:
     result = decode_linear(np.array([100, 0]), nodata=None)
     for array in (result.value, result.state, result.reason):
