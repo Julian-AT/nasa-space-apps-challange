@@ -16,6 +16,9 @@ these functions, so they never guess a value:
   network only through its ``fetch`` argument (``fetch_range`` by default), so only the byte
   ranges GDAL needs are transferred. ``ByteRanges`` keeps those bytes so the window can be
   decoded again offline.
+- ``parse_pds3_label``, ``pds3_image_layout`` and ``pds3_polar_stereographic`` read a PDS3
+  detached label (the image layout and the polar stereographic map projection it states), and
+  ``fetch_pds3_rows`` reads whole image rows of a remote PDS3 image with one range request.
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ import bisect
 import hashlib
 import http.client
 import io
+import math
 import os
 import re
 import tempfile
@@ -38,6 +42,7 @@ from typing import IO, Any, Final, Protocol, Required, TypedDict
 
 import numpy as np
 import numpy.typing as npt
+import pyproj
 import rasterio  # type: ignore[import-untyped]
 from affine import Affine
 from rasterio.abc import FileContainer  # type: ignore[import-untyped]
@@ -1135,3 +1140,677 @@ def read_remote_geotiff_window(
 def _window_of(window: RasterWindow) -> tuple[int, int, int, int]:
     height, width = window.array.shape
     return window.col_off, window.row_off, int(width), int(height)
+
+
+# --- PDS3 labels --------------------------------------------------------------------------------
+#
+# Object Description Language as used by PDS3 detached labels (PDS3 Standards Reference, chapter 12
+# and appendix C for the SAMPLE_TYPE names): ``KEY = value`` statements, OBJECT/GROUP blocks,
+# strings, numbers with units, sequences and sets. Nothing is guessed: anything the parser does
+# not understand is a ValueError with the line number.
+
+Pds3Scalar = str | int | float
+
+
+@dataclass(frozen=True)
+class Pds3Quantity:
+    """A number with the unit the label gives it, for example ``1737.4 <km>``."""
+
+    value: int | float
+    unit: str
+
+
+Pds3Value = Pds3Scalar | Pds3Quantity | tuple["Pds3Value", ...]
+
+
+@dataclass(frozen=True)
+class Pds3Item:
+    """One ``KEY = value`` statement; ``raw`` is the value text as written, for quoting."""
+
+    key: str
+    value: Pds3Value
+    raw: str
+
+    def text(self) -> str:
+        """A string value with each run of whitespace (newlines included) as one space."""
+        if not isinstance(self.value, str):
+            raise TypeError(f"{self.key} is not a string: {self.raw!r}")
+        return re.sub(r"\s+", " ", self.value)
+
+
+@dataclass(frozen=True)
+class Pds3Object:
+    """The ROOT of a label or one OBJECT or GROUP block, with its statements and sub-blocks."""
+
+    kind: str
+    name: str
+    items: tuple[Pds3Item, ...]
+    children: tuple[Pds3Object, ...]
+
+    def _where(self) -> str:
+        return "the label root" if self.kind == "ROOT" else f"{self.kind} {self.name}"
+
+    def get(self, key: str) -> Pds3Item | None:
+        """The statement of this block with that key (not its children), or None."""
+        found = [item for item in self.items if item.key == key]
+        if len(found) > 1:
+            raise ValueError(f"{key} is stated {len(found)} times in {self._where()}")
+        return found[0] if found else None
+
+    def require(self, key: str) -> Pds3Item:
+        item = self.get(key)
+        if item is None:
+            raise ValueError(f"{key} is missing from {self._where()}")
+        return item
+
+    def child(self, name: str) -> Pds3Object:
+        found = [child for child in self.children if child.name == name]
+        if len(found) != 1:
+            raise ValueError(
+                f"expected exactly one block named {name} in {self._where()}, found {len(found)}"
+            )
+        return found[0]
+
+
+_PDS3_INT = re.compile(r"[+-]?[0-9]+")
+_PDS3_REAL = re.compile(r"[+-]?(?:[0-9]+\.[0-9]*|\.[0-9]+|[0-9]+(?=[eE]))(?:[eE][+-]?[0-9]+)?")
+_PDS3_BASED = re.compile(r"([0-9]+)#([+-]?[0-9A-Za-z]+)#")
+_PDS3_BLOCK_END = {"END_OBJECT": "OBJECT", "END_GROUP": "GROUP"}
+_PDS3_DELIMITERS = " \t\n\r,(){}<>=\"'/"
+
+
+class _Pds3Parser:
+    def __init__(self, text: str) -> None:
+        self.text = text.replace("\r\n", "\n")
+        self.pos = 0
+
+    def line(self, pos: int | None = None) -> int:
+        return self.text.count("\n", 0, self.pos if pos is None else pos) + 1
+
+    def fail(self, message: str, pos: int | None = None) -> ValueError:
+        return ValueError(f"PDS3 label line {self.line(pos)}: {message}")
+
+    def skip(self, *, newlines: bool = True) -> None:
+        """Skip whitespace and comments, and newlines too unless ``newlines`` is False."""
+        text = self.text
+        while self.pos < len(text):
+            char = text[self.pos]
+            if char == "\n" and not newlines:
+                return
+            if char.isspace():
+                self.pos += 1
+            elif text.startswith("/*", self.pos):
+                end = text.find("*/", self.pos + 2)
+                if end < 0:
+                    raise self.fail("unterminated comment")
+                self.pos = end + 2
+            else:
+                return
+
+    def parse(self) -> Pds3Object:
+        stack: list[tuple[str, str, int, list[Pds3Item], list[Pds3Object]]] = [
+            ("ROOT", "", 1, [], [])
+        ]
+        while True:
+            self.skip()
+            if self.pos >= len(self.text):
+                last = len(self.text.rstrip())
+                if len(stack) > 1:
+                    kind, name, opened, _, _ = stack[-1]
+                    raise self.fail(f"unclosed {kind} {name} (opened on line {opened})", last)
+                raise self.fail("the label has no END statement", last)
+            start = self.pos
+            while self.pos < len(self.text) and self.text[self.pos] not in " \t\n\r=/":
+                self.pos += 1
+            key = self.text[start : self.pos]
+            if not key:
+                raise self.fail(f"expected a keyword, found {self.text[start]!r}", start)
+            self.skip(newlines=False)
+            has_equals = self.pos < len(self.text) and self.text[self.pos] == "="
+            if key == "END" and not has_equals:
+                self.expect_statement_end()
+                break
+            if key in _PDS3_BLOCK_END and not has_equals:
+                self.expect_statement_end()
+                self.close(stack, key, None, start)
+                continue
+            if not has_equals:
+                raise self.fail(f"the statement {key!r} has no '='", start)
+            self.pos += 1
+            if key in ("OBJECT", "GROUP") or key in _PDS3_BLOCK_END:
+                name_item = self.parse_item(key)
+                found = name_item.value
+                if not isinstance(found, str) or not found:
+                    raise self.fail(f"{key} needs a name, found {name_item.raw!r}", start)
+                name = found
+                if key in _PDS3_BLOCK_END:
+                    self.close(stack, key, name, start)
+                else:
+                    stack.append((key, name, self.line(start), [], []))
+                continue
+            stack[-1][3].append(self.parse_item(key))
+        if len(stack) > 1:
+            kind, name, opened, _, _ = stack[-1]
+            raise self.fail(f"unclosed {kind} {name} (opened on line {opened})")
+        return Pds3Object("ROOT", "", tuple(stack[0][3]), tuple(stack[0][4]))
+
+    def close(
+        self,
+        stack: list[tuple[str, str, int, list[Pds3Item], list[Pds3Object]]],
+        keyword: str,
+        name: str | None,
+        start: int,
+    ) -> None:
+        kind = _PDS3_BLOCK_END[keyword]
+        top_kind, top_name, _, items, children = stack[-1]
+        if top_kind == "ROOT":
+            raise self.fail(f"{keyword} without an open {kind}", start)
+        if top_kind != kind or (name is not None and name != top_name):
+            raise self.fail(
+                f"{keyword} {name or ''} does not close the open {top_kind} {top_name}", start
+            )
+        stack.pop()
+        stack[-1][4].append(Pds3Object(top_kind, top_name, tuple(items), tuple(children)))
+
+    def expect_statement_end(self) -> None:
+        self.skip(newlines=False)
+        if self.pos < len(self.text) and self.text[self.pos] != "\n":
+            raise self.fail(f"unexpected text after the statement: {self.rest_of_line()!r}")
+
+    def rest_of_line(self) -> str:
+        end = self.text.find("\n", self.pos)
+        return self.text[self.pos : len(self.text) if end < 0 else end].strip()
+
+    def parse_item(self, key: str) -> Pds3Item:
+        """Parse the value after ``=`` and the end of its statement."""
+        self.skip()
+        start = self.pos
+        if start >= len(self.text):
+            raise self.fail(f"{key} has no value", start)
+        value = self.parse_value()
+        raw = self.text[start : self.pos].strip()
+        self.expect_statement_end()
+        return Pds3Item(key=key, value=value, raw=raw)
+
+    def parse_value(self) -> Pds3Value:
+        self.skip()
+        if self.pos >= len(self.text):
+            raise self.fail("a value is missing", len(self.text))
+        char = self.text[self.pos]
+        if char in "\"'":
+            return self.parse_string(char)
+        if char in "({":
+            return self.parse_sequence(char)
+        start = self.pos
+        while self.pos < len(self.text) and self.text[self.pos] not in _PDS3_DELIMITERS:
+            self.pos += 1
+        token = self.text[start : self.pos]
+        if not token:
+            raise self.fail(f"a value is missing before {self.text[start]!r}", start)
+        scalar = self.scalar(token, start)
+        probe = self.pos
+        while probe < len(self.text) and self.text[probe] in " \t":
+            probe += 1
+        if probe < len(self.text) and self.text[probe] == "<":
+            if isinstance(scalar, str):
+                raise self.fail(f"a unit follows {token!r}, which is not a number", start)
+            end = self.text.find(">", probe)
+            newline = self.text.find("\n", probe)
+            if end < 0 or 0 <= newline < end:
+                raise self.fail("unterminated unit", probe)
+            unit = self.text[probe + 1 : end].strip()
+            if not unit:
+                raise self.fail("empty unit", probe)
+            self.pos = end + 1
+            return Pds3Quantity(scalar, unit)
+        return scalar
+
+    def scalar(self, token: str, start: int) -> Pds3Scalar:
+        based = _PDS3_BASED.fullmatch(token)
+        if based is not None:
+            radix = int(based.group(1))
+            try:
+                if not 2 <= radix <= 16:
+                    raise ValueError(radix)
+                return int(based.group(2), radix)
+            except ValueError:
+                raise self.fail(f"{token!r} is not a valid based integer", start) from None
+        if "#" in token:
+            raise self.fail(f"{token!r} is not a valid based integer", start)
+        if _PDS3_INT.fullmatch(token):
+            return int(token)
+        if _PDS3_REAL.fullmatch(token):
+            return float(token)
+        return token
+
+    def parse_string(self, quote: str) -> str:
+        start = self.pos
+        end = self.text.find(quote, start + 1)
+        if end < 0:
+            raise self.fail("unterminated string", start)
+        self.pos = end + 1
+        return self.text[start + 1 : end]
+
+    def parse_sequence(self, opener: str) -> tuple[Pds3Value, ...]:
+        start = self.pos
+        closer, name = (")", "sequence") if opener == "(" else ("}", "set")
+        self.pos += 1
+        elements: list[Pds3Value] = []
+        expecting_value = False
+        while True:
+            self.skip()
+            if self.pos >= len(self.text):
+                raise self.fail(f"unterminated {name}", start)
+            if self.text[self.pos] == closer:
+                if expecting_value:
+                    raise self.fail(f"a value is missing at the end of the {name}", start)
+                self.pos += 1
+                return tuple(elements)
+            elements.append(self.parse_value())
+            self.skip()
+            if self.pos < len(self.text) and self.text[self.pos] == ",":
+                self.pos += 1
+                expecting_value = True
+            elif self.pos < len(self.text) and self.text[self.pos] == closer:
+                expecting_value = False
+            else:
+                raise self.fail(
+                    f"malformed or unterminated {name}: expected ',' or {closer!r}", start
+                )
+
+
+def parse_pds3_label(text: str) -> Pds3Object:
+    """Parse a PDS3 label into its ROOT object; parsing stops at the ``END`` line.
+
+    CRLF and LF line endings are both accepted; ``\\r\\n`` becomes ``\\n`` in string values and
+    in ``raw``. ValueError names the line of anything it cannot parse.
+    """
+    return _Pds3Parser(text).parse()
+
+
+# --- PDS3 image layout --------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Pds3ImageLayout:
+    """Where the pixels of a detached PDS3 image are and how they are stored.
+
+    ``special_values`` decode the label's CORE_* bit patterns in the image's own dtype, and
+    ``special_raw`` keeps the text as written. ``scaling_factor`` and ``value_offset`` are reported
+    and never applied. ``file_name`` is the image file named by ``^IMAGE``.
+    """
+
+    file_name: str
+    offset_bytes: int
+    lines: int
+    line_samples: int
+    bands: int
+    sample_type: str
+    sample_bits: int
+    dtype: np.dtype[Any]
+    line_bytes: int
+    image_bytes: int
+    record_bytes: int | None
+    scaling_factor: float
+    value_offset: float
+    special_values: dict[str, float]
+    special_raw: dict[str, str]
+
+
+# PDS3 Standards Reference, appendix C (Internal Representation of Data Types): the names (with
+# their aliases) and bit widths of the types this reader decodes. VAX_REAL, VAXG_REAL, complex and
+# the other types are refused.
+_PDS3_SAMPLE_TYPES: Final[dict[str, tuple[str, str, tuple[int, ...]]]] = {
+    **dict.fromkeys(("PC_REAL",), ("<", "f", (32, 64))),
+    **dict.fromkeys(("IEEE_REAL", "FLOAT", "REAL", "MAC_REAL", "SUN_REAL"), (">", "f", (32, 64))),
+    **dict.fromkeys(("LSB_INTEGER", "PC_INTEGER", "VAX_INTEGER"), ("<", "i", (8, 16, 32))),
+    **dict.fromkeys(
+        ("MSB_INTEGER", "INTEGER", "MAC_INTEGER", "SUN_INTEGER"), (">", "i", (8, 16, 32))
+    ),
+    **dict.fromkeys(
+        ("LSB_UNSIGNED_INTEGER", "PC_UNSIGNED_INTEGER", "VAX_UNSIGNED_INTEGER"),
+        ("<", "u", (8, 16, 32)),
+    ),
+    **dict.fromkeys(
+        (
+            "MSB_UNSIGNED_INTEGER",
+            "UNSIGNED_INTEGER",
+            "MAC_UNSIGNED_INTEGER",
+            "SUN_UNSIGNED_INTEGER",
+        ),
+        (">", "u", (8, 16, 32)),
+    ),
+}
+_PDS3_SPECIAL_KEYS: Final = (
+    "CORE_NULL",
+    "CORE_LOW_REPR_SATURATION",
+    "CORE_LOW_INSTR_SATURATION",
+    "CORE_HIGH_REPR_SATURATION",
+    "CORE_HIGH_INSTR_SATURATION",
+)
+
+
+def _pds3_number(item: Pds3Item) -> int | float:
+    value = item.value
+    if isinstance(value, Pds3Quantity):
+        value = value.value
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        raise ValueError(f"{item.key} must be a number, found {item.raw!r}")
+    return value
+
+
+def _pds3_count(item: Pds3Item) -> int:
+    value = item.value
+    if isinstance(value, Pds3Quantity):
+        value = value.value
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ValueError(f"{item.key} must be a positive integer, found {item.raw!r}")
+    return value
+
+
+def _pds3_zero(image: Pds3Object, key: str) -> None:
+    item = image.get(key)
+    if item is not None and _pds3_number(item) != 0:
+        raise ValueError(f"{key} is {item.raw}; line prefix and suffix bytes are not supported")
+
+
+def _pds3_pointer(root: Pds3Object) -> tuple[str, int]:
+    """The file name and byte offset ``^IMAGE`` names; attached labels are refused."""
+    item = root.require("^IMAGE")
+    value = item.value
+    if isinstance(value, str):
+        return value, 0
+    if isinstance(value, int | Pds3Quantity) and not isinstance(value, bool):
+        raise ValueError(f"^IMAGE = {item.raw}: attached labels are not supported")
+    if isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], str):
+        number = value[1]
+        if isinstance(number, int) and not isinstance(number, bool) and number >= 1:
+            record_bytes = root.require("RECORD_BYTES")
+            return value[0], (number - 1) * _pds3_count(record_bytes)
+        if (
+            isinstance(number, Pds3Quantity)
+            and number.unit.upper() == "BYTES"
+            and isinstance(number.value, int)
+            and number.value >= 1
+        ):
+            return value[0], number.value - 1
+    raise ValueError(f"^IMAGE = {item.raw} is not a supported pointer form")
+
+
+def _pds3_special(item: Pds3Item, dtype: np.dtype[Any]) -> float:
+    """A CORE_* value: a based integer is a bit pattern in the image's width, else as written."""
+    value = item.value
+    if isinstance(value, Pds3Quantity):
+        value = value.value
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        raise ValueError(f"{item.key} must be a number, found {item.raw!r}")
+    if _PDS3_BASED.fullmatch(item.raw) is None:
+        return float(value)
+    bits = dtype.itemsize * 8
+    if not 0 <= value < 2**bits:
+        raise ValueError(f"{item.key} = {item.raw} does not fit the image's {bits} bits")
+    native = np.dtype(f"{dtype.kind}{dtype.itemsize}")
+    pattern = np.array([value], dtype=np.dtype(f"u{dtype.itemsize}"))
+    return float(pattern.view(native)[0])
+
+
+def pds3_image_layout(label: Pds3Object) -> Pds3ImageLayout:
+    """The layout of the detached image a PDS3 label describes; refuses what it cannot decode.
+
+    Refused (ValueError): attached labels, more than one band, line prefix or suffix bytes,
+    unknown or VAX_REAL sample types, SAMPLE_BITS the type does not allow, and unreadable
+    CORE_* values. A missing BANDS is the standard's default of 1.
+    """
+    file_name, offset = _pds3_pointer(label)
+    image = label.child("IMAGE")
+    lines = _pds3_count(image.require("LINES"))
+    line_samples = _pds3_count(image.require("LINE_SAMPLES"))
+    bands_item = image.get("BANDS")
+    bands = 1 if bands_item is None else _pds3_count(bands_item)
+    if bands != 1:
+        raise ValueError(f"BANDS = {bands}; only single-band images are supported")
+    _pds3_zero(image, "LINE_PREFIX_BYTES")
+    _pds3_zero(image, "LINE_SUFFIX_BYTES")
+    type_item = image.require("SAMPLE_TYPE")
+    if not isinstance(type_item.value, str) or type_item.value not in _PDS3_SAMPLE_TYPES:
+        raise ValueError(f"SAMPLE_TYPE {type_item.raw} is not supported")
+    sample_type = type_item.value
+    order, kind, widths = _PDS3_SAMPLE_TYPES[sample_type]
+    sample_bits = _pds3_count(image.require("SAMPLE_BITS"))
+    if sample_bits not in widths:
+        raise ValueError(
+            f"SAMPLE_BITS = {sample_bits} is not allowed for SAMPLE_TYPE {sample_type}"
+        )
+    dtype: np.dtype[Any] = np.dtype(f"{order}{kind}{sample_bits // 8}")
+    scaling = image.get("SCALING_FACTOR")
+    value_offset = image.get("OFFSET")
+    record_item = label.get("RECORD_BYTES")
+    special_values: dict[str, float] = {}
+    special_raw: dict[str, str] = {}
+    for key in _PDS3_SPECIAL_KEYS:
+        item = image.get(key)
+        if item is not None:
+            special_values[key] = _pds3_special(item, dtype)
+            special_raw[key] = item.raw
+    line_bytes = line_samples * sample_bits // 8
+    return Pds3ImageLayout(
+        file_name=file_name,
+        offset_bytes=offset,
+        lines=lines,
+        line_samples=line_samples,
+        bands=bands,
+        sample_type=sample_type,
+        sample_bits=sample_bits,
+        dtype=dtype,
+        line_bytes=line_bytes,
+        image_bytes=lines * line_bytes,
+        record_bytes=None if record_item is None else _pds3_count(record_item),
+        scaling_factor=1.0 if scaling is None else float(_pds3_number(scaling)),
+        value_offset=0.0 if value_offset is None else float(_pds3_number(value_offset)),
+        special_values=special_values,
+        special_raw=special_raw,
+    )
+
+
+def pds3_row_byte_range(layout: Pds3ImageLayout, first_row: int, last_row: int) -> tuple[int, int]:
+    """The inclusive byte range of rows ``first_row`` to ``last_row`` (0-based, inclusive)."""
+    if not 0 <= first_row <= last_row < layout.lines:
+        raise ValueError(
+            f"rows {first_row} to {last_row} are not within the image's rows 0 to "
+            f"{layout.lines - 1}"
+        )
+    first = layout.offset_bytes + first_row * layout.line_bytes
+    return first, layout.offset_bytes + (last_row + 1) * layout.line_bytes - 1
+
+
+def decode_pds3_rows(data: bytes, layout: Pds3ImageLayout, row_count: int) -> npt.NDArray[Any]:
+    """Whole rows as stored: a ``(row_count, line_samples)`` array with no scaling or masking."""
+    if row_count < 1:
+        raise ValueError(f"row_count must be at least 1, got {row_count}")
+    expected = row_count * layout.line_bytes
+    if len(data) != expected:
+        raise ValueError(
+            f"{row_count} rows of {layout.line_bytes} bytes need {expected} bytes, got {len(data)}"
+        )
+    array: npt.NDArray[Any] = np.frombuffer(data, dtype=layout.dtype).reshape(
+        row_count, layout.line_samples
+    )
+    return array.copy()
+
+
+# --- PDS3 polar stereographic projection --------------------------------------------------------
+
+_PDS3_LENGTH_M: Final = {"km": 1000.0, "m": 1.0}
+_PDS3_SCALE_M: Final = {
+    "km/pix": 1000.0,
+    "km/pixel": 1000.0,
+    "m/pix": 1.0,
+    "m/pixel": 1.0,
+    "meter/pixel": 1.0,
+    "meters/pixel": 1.0,
+}
+
+
+def _pds3_quantity(item: Pds3Item, units: dict[str, float]) -> float:
+    value = item.value
+    if not isinstance(value, Pds3Quantity) or value.unit.lower() not in units:
+        raise ValueError(f"{item.key} = {item.raw} must have one of the units {sorted(units)}")
+    return float(value.value) * units[value.unit.lower()]
+
+
+def _pds3_text(item: Pds3Item) -> str:
+    return item.text().strip().upper() if isinstance(item.value, str) else item.raw
+
+
+@dataclass(frozen=True)
+class Pds3PolarStereographic:
+    """The polar stereographic map projection a PDS3 label states, on a sphere.
+
+    ``transform`` maps 0-based pixel edge coordinates (column, row) to map metres:
+    ``x = (Sample - S0) * scale`` and ``y = (L0 - Line) * scale`` with 1-based Sample and Line at
+    pixel centres, S0 = SAMPLE_PROJECTION_OFFSET and L0 = LINE_PROJECTION_OFFSET.
+    """
+
+    center_latitude_deg: float
+    center_longitude_deg: float
+    radius_m: float
+    map_scale_m: float
+    map_resolution_ppd: float | None
+    line_projection_offset: float
+    sample_projection_offset: float
+    lines: int
+    line_samples: int
+    crs: pyproj.CRS
+    transform: Affine
+
+    def pixel_window(
+        self, left: float, bottom: float, right: float, top: float
+    ) -> tuple[int, int, int, int]:
+        """The smallest whole-pixel ``(col_off, row_off, width, height)`` covering map bounds.
+
+        The low edge is floored and the high edge ceiled in 0-based edge coordinates. ValueError
+        for non-finite or empty bounds and for a window that leaves the image; it never clips.
+        """
+        if not all(math.isfinite(v) for v in (left, bottom, right, top)):
+            raise ValueError("the map bounds must be finite")
+        if not (left < right and bottom < top):
+            raise ValueError(
+                f"empty map bounds: left={left} right={right} bottom={bottom} top={top}"
+            )
+        inverse = ~self.transform
+        u0, v_top = inverse @ (left, top)
+        u1, v_bottom = inverse @ (right, bottom)
+        col_off, col_end = math.floor(u0), math.ceil(u1)
+        row_off, row_end = math.floor(v_top), math.ceil(v_bottom)
+        if col_off < 0 or row_off < 0 or col_end > self.line_samples or row_end > self.lines:
+            raise ValueError(
+                f"the map bounds cover columns {col_off} to {col_end} and rows {row_off} to "
+                f"{row_end}, which leave the image of {self.line_samples} x {self.lines} pixels"
+            )
+        return col_off, row_off, col_end - col_off, row_end - row_off
+
+
+def pds3_polar_stereographic(label: Pds3Object) -> Pds3PolarStereographic:
+    """The polar stereographic projection of a PDS3 label; ValueError for anything else."""
+    projection = label.child("IMAGE_MAP_PROJECTION")
+    image = label.child("IMAGE")
+    kind = _pds3_text(projection.require("MAP_PROJECTION_TYPE"))
+    if kind != "POLAR STEREOGRAPHIC":
+        raise ValueError(f"MAP_PROJECTION_TYPE {kind!r} is not POLAR STEREOGRAPHIC")
+    for key, required in (
+        ("POSITIVE_LONGITUDE_DIRECTION", "EAST"),
+        ("COORDINATE_SYSTEM_NAME", "PLANETOCENTRIC"),
+    ):
+        found = _pds3_text(projection.require(key))
+        if found != required:
+            raise ValueError(f"{key} is {found!r}; only {required} is supported")
+    rotation = projection.get("MAP_PROJECTION_ROTATION")
+    if rotation is not None and _pds3_number(rotation) != 0:
+        raise ValueError(f"MAP_PROJECTION_ROTATION = {rotation.raw}; only 0 is supported")
+    radii = {
+        key: _pds3_quantity(projection.require(key), _PDS3_LENGTH_M)
+        for key in ("A_AXIS_RADIUS", "B_AXIS_RADIUS", "C_AXIS_RADIUS")
+    }
+    if len(set(radii.values())) != 1:
+        raise ValueError(f"the A, B and C axis RADIUS values differ ({radii}); a sphere is needed")
+    radius = radii["A_AXIS_RADIUS"]
+    scale = _pds3_quantity(projection.require("MAP_SCALE"), _PDS3_SCALE_M)
+    if not scale > 0:
+        raise ValueError(f"MAP_SCALE must be positive, got {projection.require('MAP_SCALE').raw}")
+    latitude = float(_pds3_number(projection.require("CENTER_LATITUDE")))
+    if latitude not in (-90.0, 90.0):
+        raise ValueError(f"CENTER_LATITUDE = {latitude}; only -90 and 90 are supported")
+    longitude = float(_pds3_number(projection.require("CENTER_LONGITUDE")))
+    resolution_item = projection.get("MAP_RESOLUTION")
+    resolution = (
+        None
+        if resolution_item is None
+        else _pds3_quantity(resolution_item, {"pix/deg": 1.0, "pixel/deg": 1.0})
+    )
+    line_offset = float(_pds3_number(projection.require("LINE_PROJECTION_OFFSET")))
+    sample_offset = float(_pds3_number(projection.require("SAMPLE_PROJECTION_OFFSET")))
+    crs = pyproj.CRS.from_dict(
+        {
+            "proj": "stere",
+            "lat_0": latitude,
+            "lat_ts": latitude,
+            "lon_0": longitude,
+            "x_0": 0,
+            "y_0": 0,
+            "R": radius,
+            "units": "m",
+        }
+    )
+    return Pds3PolarStereographic(
+        center_latitude_deg=latitude,
+        center_longitude_deg=longitude,
+        radius_m=radius,
+        map_scale_m=scale,
+        map_resolution_ppd=resolution,
+        line_projection_offset=line_offset,
+        sample_projection_offset=sample_offset,
+        lines=_pds3_count(image.require("LINES")),
+        line_samples=_pds3_count(image.require("LINE_SAMPLES")),
+        crs=crs,
+        transform=Affine(
+            scale, 0.0, (0.5 - sample_offset) * scale, 0.0, -scale, (line_offset - 0.5) * scale
+        ),
+    )
+
+
+# --- PDS3 row range reads -----------------------------------------------------------------------
+
+
+def fetch_pds3_rows(
+    url: str,
+    layout: Pds3ImageLayout,
+    first_row: int,
+    last_row: int,
+    *,
+    fetch: RangeFetcher = fetch_range,
+) -> RangeResponse:
+    """Fetch whole rows ``first_row`` to ``last_row`` (inclusive) with one range request.
+
+    The response must state the file size, and it must equal the size the label's layout implies
+    (``offset_bytes + image_bytes``); it must also hold exactly the requested bytes. Otherwise
+    RangeReadError names the URL. Errors from ``fetch`` propagate unchanged.
+    """
+    _check_public_http_url(url, "fetch_pds3_rows")
+    first, last = pds3_row_byte_range(layout, first_row, last_row)
+    response = fetch(url, first, last)
+    expected_size = layout.offset_bytes + layout.image_bytes
+    if response.total_size is None or response.total_size != expected_size:
+        raise RangeReadError(
+            f"{url}: the file size the server states ({response.total_size}) differs from the "
+            f"label's layout ({expected_size} bytes)"
+        )
+    if (
+        response.first_byte != first
+        or response.last_byte != last
+        or len(response.data) != last - first + 1
+    ):
+        raise RangeReadError(
+            f"{url}: the response holds bytes {response.first_byte}-{response.last_byte} "
+            f"({len(response.data)} received), not the requested {first}-{last}"
+        )
+    return response
