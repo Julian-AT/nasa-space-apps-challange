@@ -72,7 +72,11 @@
       "claim": "The story lists three reason codes (nodata, non_finite, outside_support), but the implementation adds ISIS_SATURATION. It also treats ISIS saturation special pixels as invalid.",
       "evidence": "This is additive and documented, and the nodata, non_finite and outside_support codes are present. No threshold is involved. Confirm that the PRD 5 and 7 vocabulary allows the fourth code before downstream tasks rely on it.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The story requires the codes nodata, non_finite and outside_support to exist, and all three do. It forbids only threshold-based reasons; the story notes record that only the S4-sign, Stokes-consistency and below_threshold reasons were removed. ISIS_SATURATION is not a threshold. It is an exact match on the four ISIS 4-byte special-pixel bit patterns 0xFF7FFFFC to 0xFF7FFFFF (Lrs, Lis, His, Hrs in isis/src/core/include/SpecialPixel.h). The story requires ISIS null values near -3.4e38 to be invalid under a documented tolerance, and these four lie within 2.4e-7 relative of the Null, so they must be invalid under any such tolerance. That leaves only the choice of code. PRD 7 says to keep the product's validity flags and that three states stay distinct: missing observation, invalid measurement and valid low CPR. Saturation, on the instrument or in a computation, is an invalid measurement, not a missing observation. Folding it into nodata would merge two states PRD 7 keeps apart, and non_finite would mislabel finite values. PRD 8.11 fixes no reason vocabulary for quality masks; derive_circular only returns an invalid-reason mask. The fourth code is documented in the module docstring with its precedence, and test_reason_codes_are_fixed pins the enum, so a downstream story cannot change it silently."
+      }
     }
   ]
 }

@@ -78,7 +78,11 @@
       "claim": "Converting declared nodata through Python float can leave explicit nulls valid in accepted extended-precision arrays.",
       "evidence": "The function accepts every floating dtype at :296-298, but :243 narrows nodata to binary64 before :252 casts it to the destination dtype. Where np.longdouble has additional precision, values=np.array(['9007199254740992', '9007199254740993'], dtype=np.longdouble), nodata=9007199254740993 therefore classifies the first value as NODATA and the declared null as VALID, by inspection. Preserve destination-dtype precision or reject unsupported dtypes, and add a regression test.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "c94c6939c5b1b8b2fa63fb3d9deb611946ad3fa5",
+        "reason": "Fixed in c94c693, with tests first in d57fac2. Declared nodata now keeps its exact value (a Fraction, or NaN or +-inf) and never passes through a Python float before it meets the array dtype. Integer arrays compare the exact integer, so Fraction(2**53 + 1) matches 2**53 + 1 in int64 and Fraction(2**64 - 1) matches in uint64, where both were wrong before. Floating and complex arrays accept only a value that is exactly a binary64 double and round it once to their dtype. Any other value is refused with ValueError instead of being compared as a rounded guess. Examples are int 2**53 + 1 for float64, 2**60 + 2**36 + 1 for float32 (which previously double-rounded to 2**60, while the nearest float32 is 2**60 + 2**37) and Fraction(1, 3). Long double and complex long double arrays are refused with TypeError on every platform. The numpy 2.5 manual (Data types, Extended precision) states their precision depends on the C compiler, 80 bits on most x86 builds and 64 bits on MSVC and others. No GDAL band type (raster data model page) is wider than Float64, and no ISIS pixel type is wider than Double. The reviewer's example, np.array(['9007199254740992', '9007199254740993'], dtype=np.longdouble) with nodata=9007199254740993, is now a TypeError, tested for longdouble and clongdouble. This machine is arm64, where np.finfo(np.longdouble) is binary64. The refusal does not depend on the platform, so the test covers the x86 case too. Checks: uv run pytest pipeline/tests/test_quality.py gives 92 passed; make check exits 0."
+      }
     }
   ]
 }
