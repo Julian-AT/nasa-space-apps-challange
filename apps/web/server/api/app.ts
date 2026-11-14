@@ -21,7 +21,8 @@ import {
 import { gatesHandler, gatesRoute } from './gates.ts';
 import { healthHandler, healthRoute } from './health.ts';
 import { manifestHandler, manifestRoute } from './manifest.ts';
-import { problemResponse, VALIDATION_STATUS } from './problem.ts';
+import { ProblemError, problemResponse, VALIDATION_STATUS } from './problem.ts';
+import { targetHandler, targetListHandler, targetListRoute, targetRoute } from './targets.ts';
 
 export const API_BASE_PATH = '/api/v1';
 
@@ -128,6 +129,8 @@ export function createApi({
   const api = root.basePath(API_BASE_PATH);
   api.notFound(notFound);
   api.onError((error, c) => {
+    // An expected problem (an id the bundle does not hold): answered as is, not logged.
+    if (error instanceof ProblemError) return problemResponse(c.req.raw, error.status, error.detail);
     log(error);
     return problemResponse(c.req.raw, 500, serverErrorDetail(error));
   });
@@ -135,5 +138,7 @@ export function createApi({
   api.openapi(healthRoute, healthHandler(read));
   api.openapi(manifestRoute, manifestHandler(read));
   api.openapi(gatesRoute, gatesHandler(read));
+  api.openapi(targetListRoute, targetListHandler(read));
+  api.openapi(targetRoute, targetHandler(read));
   return api;
 }
