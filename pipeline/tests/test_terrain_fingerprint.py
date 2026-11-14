@@ -42,6 +42,7 @@ import numpy.typing as npt
 import pytest
 import yaml
 
+from terraluna_pipeline import terrain
 from terraluna_pipeline.config import (
     TerrainConfig,
     UnknownDetrendError,
@@ -201,17 +202,21 @@ def test_lag_beyond_a_quarter_of_the_window_is_dropped_and_exactly_a_quarter_is_
 
 def test_quarter_window_uses_the_nominal_5000_m_width() -> None:
     # The 55-cell grid covers 4950 m, but the rule is a quarter of the window width (1250 m).
-    config = with_config(lags_m=(270.0, 1170.0, 1260.0))
+    # 1240 m lies between 4950 / 4 and 5000 / 4, so it passes the rule and is then dropped only
+    # because it is 13.8 cells, not a whole-cell offset.
+    config = with_config(lags_m=(270.0, 1170.0, 1240.0, 1260.0))
     result = run(rough_field(55), config=config)
     reasons = {item.lag_m: item.reason for item in result.lags}
     assert reasons[1170.0] is None
+    assert reasons[1240.0] == "lag_not_on_grid"
     assert reasons[1260.0] == "exceeds_quarter_window"
 
 
 def test_lag_failing_both_rules_reports_the_three_cell_rule_first() -> None:
-    # In a 1000 m window, 180 m is both under three cells and over a quarter window (250 m).
+    # In a 600 m window, 180 m is both under three cells (2) and over a quarter window (150 m).
     config = with_config(lags_m=(180.0,))
-    result = run(rough_field(size_of(config, width_m=1000.0)), config=config, width_m=1000.0)
+    assert 180.0 / 600.0 > 0.25
+    result = run(rough_field(size_of(config, width_m=600.0)), config=config, width_m=600.0)
     assert [item.reason for item in result.lags] == ["below_min_lag_cells"]
 
 
@@ -289,12 +294,14 @@ def test_coarsening_factor_is_recorded_and_used_for_lag_support() -> None:
 
 @pytest.mark.parametrize("factor", [0.5, 0.999, math.inf, math.nan, -1.0, 0.0])
 def test_coarsening_factor_below_one_or_not_finite_raises(factor: float) -> None:
-    # Below 1 would be upsampling, which is never treated as information (PRD 6.3).
-    grid = window_grid(5000.0, 90.0)
-    with pytest.raises(TerrainError):
+    # Below 1 would be upsampling, which is never treated as information (PRD 6.3). Where the
+    # factor gives a usable spacing, the grid has that spacing, so only the factor rule fails.
+    spacing = 90.0 * factor if math.isfinite(factor) and factor > 0.0 else 90.0
+    grid = window_grid(5000.0, spacing)
+    with pytest.raises(TerrainError, match="coarsening_factor"):
         terrain_fingerprint(
-            rough_field(55),
-            valid=np.ones((55, 55), dtype=np.bool_),
+            rough_field(grid.size),
+            valid=np.ones((grid.size, grid.size), dtype=np.bool_),
             grid=grid,
             config=CONFIG,
             isotropic_rule="direction_mean",
@@ -729,6 +736,22 @@ def test_window_below_the_minimum_valid_fraction_is_excluded_with_its_fraction()
         assert variant.nu_m == (None,) * 5
         assert variant.hurst.reason == "window_excluded"
         assert variant.hurst.H is None
+
+
+def test_excluded_window_is_not_measured(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[object] = []
+    real = terrain.structure_function
+
+    def spy(*args: Any, **kwargs: Any) -> terrain.StructureFunction:
+        calls.append(args)
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(terrain, "structure_function", spy)
+    run(rough_field(55), first_cells_valid(2420))
+    assert len(calls) == 2  # relief and texture of a passing window
+    calls.clear()
+    run(rough_field(55), first_cells_valid(2419))
+    assert calls == []
 
 
 def test_min_valid_fraction_is_read_from_config() -> None:
