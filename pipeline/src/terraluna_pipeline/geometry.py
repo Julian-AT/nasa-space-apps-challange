@@ -134,6 +134,12 @@ also accepts a point longitude of exactly ``math.pi``.
 _PI: Final = math.pi
 _TWO_PI: Final = 2.0 * math.pi
 _HALF_PI: Final = math.pi / 2.0
+# pi/2 - math.pi / 2 rounded to float64: the part of pi/2 that math.pi / 2 leaves out.
+_HALF_PI_LO: Final = 6.123233995736766e-17
+# Colatitudes and latitude differences up to which the forward uses series (radians).
+_SERIES_MAX_RAD: Final = 2.0**-6
+# Veltkamp's splitter for float64, 2^27 + 1.
+_SPLITTER: Final = 134217729.0
 
 
 def aeqd_inverse(
@@ -271,6 +277,19 @@ def aeqd_forward(
     in a window centred within 3.6 km of a pole the rounding moved x near 0 by up to 1.14 times
     the PRD 7 allowance against the exact forward.
 
+    N is summed in double-double arithmetic: each product and the final sum are carried as
+    unevaluated sums of two float64 values (Dekker's product with Veltkamp's split, Knuth's
+    two-sum). hav is 1 - cos d for cos d < 0.5 and 2 sin^2(d / 2) otherwise, exact apart from
+    the platform's cos or sin. Within 2^-6 rad of a pole, cos phi and sin phi0 come from Taylor
+    series in the colatitude, which is exact as (pi/2 - |phi|) plus the part of pi/2 that
+    ``math.pi / 2`` leaves out; for |phi - phi0| <= 2^-6, sin(phi - phi0) comes from its
+    series. In a window centred near a pole, N near 0 is the difference of two terms the size
+    of the distance to the pole, up to the 2.5 km half width. Rounded in float64, they moved y
+    near 0 by up to 1.28 times the PRD 7 allowance against the exact forward; there only the
+    platform's cos d or sin(d / 2) is now rounded before the final sum. Farther from a pole the
+    platform's cos phi and sin phi0 are used: the two terms are then at most about 120 m (Moon,
+    at a colatitude of 2^-6), where float64 rounding is about 1e-13 m.
+
     ``lat_rad`` must lie in [-pi/2, pi/2] and ``lon_rad`` in [-pi, pi]; the centre as for
     :func:`aeqd_inverse`. Returns float64 metres broadcast to the shape of the inputs.
     """
@@ -290,16 +309,21 @@ def aeqd_forward(
     d_hi = np.where(over, d_hi - _TWO_PI, np.where(under, d_hi + _TWO_PI, d_hi))
     d_hi, d_lo = _two_sum(d_hi, d_lo)
     sin_d_hi = np.sin(d_hi)
-    sin_d = sin_d_hi + np.cos(d_hi) * d_lo
-    sin_lat0 = math.sin(lat0)
-    cos_lat0 = math.cos(lat0)
-    cos_lat = np.cos(lat)
+    cos_d_hi = np.cos(d_hi)
+    sin_d = sin_d_hi + cos_d_hi * d_lo
+    hav_hi, hav_lo = _haversine_dd(d_hi, cos_d_hi)
+    hav_lo = hav_lo + sin_d_hi * d_lo
+    cos_lat_hi, cos_lat_lo = _cos_lat_dd(lat)
+    sin_lat0_hi, sin_lat0_lo = _sin_lat_dd(np.full_like(lat, lat0))
     dlat = lat - lat0
-    hav = 2.0 * np.sin(d_hi / 2.0) ** 2 + sin_d_hi * d_lo
+    sin_dlat_hi, sin_dlat_lo = _sin_small_dd(dlat)
 
-    east = cos_lat * sin_d
-    north = np.sin(dlat) + sin_lat0 * cos_lat * hav
-    up = np.cos(dlat) - cos_lat0 * cos_lat * hav
+    p_hi, p_lo = _dd_mul(cos_lat_hi, cos_lat_lo, hav_hi, hav_lo)
+    q_hi, q_lo = _dd_mul(sin_lat0_hi, sin_lat0_lo, p_hi, p_lo)
+    n_hi, n_lo = _two_sum(sin_dlat_hi, q_hi)
+    north = n_hi + (n_lo + (sin_dlat_lo + q_lo))
+    east = cos_lat_hi * sin_d
+    up = np.cos(dlat) - math.cos(lat0) * cos_lat_hi * hav_hi
     horizontal = np.hypot(east, north)
     at_centre = horizontal == 0.0
     c = np.arctan2(horizontal, up)
@@ -325,6 +349,91 @@ def _two_sum(a: FloatArray, b: FloatArray) -> tuple[FloatArray, FloatArray]:
     s = a + b
     b_part = s - a
     return s, (a - (s - b_part)) + (b - b_part)
+
+
+def _split(a: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """Return (hi, lo) with hi + lo = a exactly and 26 significant bits in each (Veltkamp)."""
+    t = _SPLITTER * a
+    hi = t - (t - a)
+    return hi, a - hi
+
+
+def _two_prod(a: FloatArray, b: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """Return (p, e) with p = fl(a * b) and p + e = a * b exactly (Dekker's product)."""
+    p = a * b
+    a_hi, a_lo = _split(a)
+    b_hi, b_lo = _split(b)
+    return p, ((a_hi * b_hi - p) + a_hi * b_lo + a_lo * b_hi) + a_lo * b_lo
+
+
+def _dd_mul(
+    a_hi: FloatArray, a_lo: FloatArray, b_hi: FloatArray, b_lo: FloatArray
+) -> tuple[FloatArray, FloatArray]:
+    """Product of two double-double values, to about 2^-104 relative."""
+    p, e = _two_prod(a_hi, b_hi)
+    return _two_sum(p, e + (a_hi * b_lo + a_lo * b_hi))
+
+
+def _haversine_dd(d: FloatArray, cos_d: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """1 - cos d as a double-double value, from the platform's cos d or sin(d / 2).
+
+    For cos d < 0.5, 1 - fl(cos d) is taken exactly; otherwise 2 fl(sin(d / 2))^2 is. Either
+    way the only rounding is that of the platform function.
+    """
+    one = np.ones_like(d)
+    wide_hi, wide_lo = _two_sum(one, -cos_d)
+    half = np.sin(d / 2.0)
+    narrow_hi, narrow_lo = _two_prod(half, half)
+    wide = cos_d < 0.5
+    return (
+        np.where(wide, wide_hi, 2.0 * narrow_hi),
+        np.where(wide, wide_lo, 2.0 * narrow_lo),
+    )
+
+
+def _sin_series_dd(t_hi: FloatArray, t_lo: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """sin t for |t| <= 2^-6 as a double-double value, t = t_hi + t_lo.
+
+    The series stops after t^7; the next term is below 1e-20 of t.
+    """
+    t2 = t_hi * t_hi
+    tail = t_hi * t2 * (-1.0 / 6.0 + t2 * (1.0 / 120.0 - t2 / 5040.0))
+    return _two_sum(t_hi, t_lo + tail)
+
+
+def _colatitude_dd(lat: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """pi/2 - |lat| as a double-double value; math.pi / 2 - |lat| is exact for |lat| >= pi/4."""
+    return _two_sum(_HALF_PI - np.abs(lat), np.full_like(lat, _HALF_PI_LO))
+
+
+def _sin_small_dd(t: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """sin t as a double-double value: by series for |t| <= 2^-6, else the platform's sin."""
+    series_hi, series_lo = _sin_series_dd(t, np.zeros_like(t))
+    small = np.abs(t) <= _SERIES_MAX_RAD
+    return np.where(small, series_hi, np.sin(t)), np.where(small, series_lo, 0.0)
+
+
+def _cos_lat_dd(lat: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """cos lat as a double-double value: sin of the colatitude by series near a pole."""
+    colat_hi, colat_lo = _colatitude_dd(lat)
+    series_hi, series_lo = _sin_series_dd(colat_hi, colat_lo)
+    polar = colat_hi <= _SERIES_MAX_RAD
+    return np.where(polar, series_hi, np.cos(lat)), np.where(polar, series_lo, 0.0)
+
+
+def _sin_lat_dd(lat: FloatArray) -> tuple[FloatArray, FloatArray]:
+    """sin lat as a double-double value: +-(1 - w), w = 1 - cos(colatitude), near a pole.
+
+    The series for w stops after t^8; the next term is below 1e-24.
+    """
+    colat_hi, colat_lo = _colatitude_dd(lat)
+    t2 = colat_hi * colat_hi
+    w = t2 * (0.5 - t2 * (1.0 / 24.0 - t2 * (1.0 / 720.0 - t2 / 40320.0)))
+    w = w + colat_hi * colat_lo
+    near_hi, near_lo = _two_sum(np.ones_like(lat), -w)
+    sign = np.where(lat < 0.0, -1.0, 1.0)
+    polar = colat_hi <= _SERIES_MAX_RAD
+    return np.where(polar, sign * near_hi, np.sin(lat)), np.where(polar, sign * near_lo, 0.0)
 
 
 def _float_array(values: npt.ArrayLike) -> FloatArray:
