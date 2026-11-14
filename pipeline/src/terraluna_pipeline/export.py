@@ -596,11 +596,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     problems: list[str] = []
     if args.command == "validate":
         bundle_dir: Path = args.bundle_dir
-        label = "production bundle" if args.production else "bundle"
+        success = "valid production bundle" if args.production else "valid bundle"
         problems += map(str, validate_bundle(bundle_dir, production=args.production))
     elif args.command == "mock-bundle":
         bundle_dir = args.out_dir
-        label = f"mock bundle {MOCK_BUNDLE_VERSION}"
+        success = f"wrote a valid mock bundle {MOCK_BUNDLE_VERSION}"
         try:
             write_mock_bundle(bundle_dir, replace=True)
         except FileExistsError as error:
@@ -609,16 +609,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         problems += map(str, validate_bundle(bundle_dir, production=False))
     else:
         bundle_dir = args.bundle_dir
-        label = "mock bundle, identical to the generated one,"
+        success = "mock bundle matches the generator and is valid"
         problems += mock_bundle_differences(bundle_dir)
         if not problems:
             problems += map(str, validate_bundle(bundle_dir, production=False))
     for problem in problems:
         print(problem)
     if problems:
+        sys.stdout.flush()
         print(f"{len(problems)} problem(s) in {bundle_dir}", file=sys.stderr)
         return 1
-    print(f"valid {label}: {bundle_dir}")
+    print(f"{success}: {bundle_dir}")
     return 0
 
 
