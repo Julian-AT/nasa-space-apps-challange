@@ -654,6 +654,46 @@ def test_psd_tolerance_scales_with_the_matrix(exponent: int) -> None:
     )
 
 
+def test_validity_does_not_depend_on_the_declared_ordering() -> None:
+    """The rules run on the (HH, sqrt2 HV, VV) form, so both orderings decide alike.
+
+    HV dominates: max |C_ij| is V = 1 in the (HH, HV, VV) ordering but 2 V = 2 in the
+    (HH, sqrt2 HV, VV) ordering. The smallest eigenvalue, -1.5e-10, lies between the two
+    allowances 1e-12 + 1e-10 * 1 and 1e-12 + 1e-10 * 2.
+    """
+    covariance = matrix(0.01, 0.01, 1.0, 0.01 + 1.5e-10, 0.0, 0.0)
+    raw = convert(covariance, ordering=RAW)
+    sqrt2 = convert(to_sqrt2_ordering(covariance), ordering=SQRT2)
+    for name in ALL_FIELDS:
+        np.testing.assert_array_equal(getattr(raw, name).state, getattr(sqrt2, name).state)
+        np.testing.assert_array_equal(getattr(raw, name).reason, getattr(sqrt2, name).reason)
+    assert raw.oc.state == VALID
+
+
+MODERATE = st.floats(min_value=-1e100, max_value=1e100, allow_subnormal=False)
+
+
+@settings(deadline=None)
+@given(
+    st.tuples(MODERATE, MODERATE, MODERATE),
+    st.tuples(*(st.builds(complex, MODERATE, MODERATE) for _ in range(3))),
+)
+def test_both_orderings_give_the_same_states_for_any_hermitian_matrix(
+    diagonal: tuple[float, float, float], off_diagonal: tuple[complex, complex, complex]
+) -> None:
+    a, v, b = diagonal
+    c, d, e = off_diagonal
+    covariance = matrix(a, b, v, c, d, e)
+    raw = convert(covariance, ordering=RAW)
+    sqrt2 = convert(to_sqrt2_ordering(covariance), ordering=SQRT2)
+    for name in ALL_FIELDS:
+        np.testing.assert_array_equal(getattr(raw, name).state, getattr(sqrt2, name).state)
+        np.testing.assert_array_equal(getattr(raw, name).reason, getattr(sqrt2, name).reason)
+        np.testing.assert_allclose(
+            getattr(raw, name).value, getattr(sqrt2, name).value, rtol=RTOL, atol=0.0
+        )
+
+
 def test_input_is_not_modified() -> None:
     covariance = near_plane(5e-11)
     before = covariance.copy()
