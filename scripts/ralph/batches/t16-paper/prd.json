@@ -110,17 +110,17 @@
       "priority": 2,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 7,
+        "state": "reviewed",
+        "round": 8,
         "base": "8669311087c958051d5711f70db9885b879e458e",
-        "head": "f5232e40b75733fbbb1e40dc11667ab89d2d7436",
+        "head": "2a4e0722cc9a1d0e2396a338e12d1eb1ef2b2b0a",
         "files": [
-          "reviews/T16-02-claude-r7.json",
-          "reviews/T16-02-codex-r7.json"
+          "reviews/T16-02-claude-r8.json",
+          "reviews/T16-02-codex-r8.json"
         ],
         "digests": {
-          "reviews/T16-02-claude-r7.json": "c6bb4cc710b23fa810d1e17c0e4cfb724b03c022d843360a493216c9f4149abe",
-          "reviews/T16-02-codex-r7.json": "96a637e7d2ed5e92c10beebd443f37d55a0a535e91858d7b0315d9d5dd4639a4"
+          "reviews/T16-02-claude-r8.json": "16ad3ce4b72bf6f17c310916f5d4e2f48187f503c67f583ad98319020618ec38",
+          "reviews/T16-02-codex-r8.json": "efcbce687f185aa4e2432486c46dccc4e1984c9195a0b7656bd1b75768d7fb09"
         }
       },
       "notes": "\nralph orchestrator 2026-11-14T21:42:04Z: T16-02 reached the 4-round limit with 4 fixed blocker findings in round 4, all adversarial LaTeX edge cases. Decision: this loop runs with up to 6 review rounds (RALPH_MAX_REVIEW_ROUNDS=6). Scope clarification for the author and the reviewers: lint_prose.py and overlap_check.py enforce PRD 22.6 and D36 on prose that authors actually write; they are not a security boundary against deliberately crafted LaTeX. Fix every finding that a realistic manuscript could trigger. A finding that needs contrived input no author would write (for example escaped environment spellings built to fake an exemption) may be rebutted with this reason, citing PRD 22.6. No rule, banned word, threshold or test is weakened."
