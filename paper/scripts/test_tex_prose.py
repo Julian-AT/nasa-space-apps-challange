@@ -604,6 +604,30 @@ def test_fold_latex_reads_a_carriage_return_as_a_line_break() -> None:
     assert fold_latex("caf\\'\r\ne na\\\"\r\\i ve") == "cafe naive"
 
 
+# fold_latex reads an abstract from left to right, as pass 2 reads a .tex file, so a letter that
+# one accent prints cannot hide the end of the control word before it.
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Bia\\l{}o\\l\\k{e}ka", "Bialoleka"),
+        ("\\L\\'od\\'z", "Lodz"),
+        ("lu\\L\\`a", "luLa"),
+        ("Gro\\ss\\'e", "Grosse"),
+    ],
+)
+def test_fold_latex_reads_from_left_to_right(text: str, expected: str) -> None:
+    assert fold_latex(text) == expected
+    assert prose(text).strip() == expected
+
+
+# An accent with no letter, as in \'{}, prints nothing that ends a word, in either reading.
+@pytest.mark.parametrize("text", ["caf\\'{}e", "caf\\' {}e", "Ko\\v{}ci"])
+def test_an_accent_without_a_letter_prints_nothing(text: str) -> None:
+    expected = re.sub("[^A-Za-z]", "", text.replace("\\v", ""))
+    assert fold_latex(text) == expected
+    assert prose(text).split() == [expected]
+
+
 # --- Line numbers -------------------------------------------------------------------------------
 
 MIXED = (

@@ -275,6 +275,10 @@ def test_an_accent_split_across_lines_in_an_abstract_still_matches(cafe: str) ->
         "Gro\\ss\n  e",
         "Gro\\ss\n\ne",
         "\\o\nl",
+        "Bia\\l{}o\\l\\k{e}ka",
+        "lu\\L\\`a",
+        "caf\\'{}e",
+        "Ko\\v \\ss e",
     ],
 )
 def test_accents_tokenise_alike_in_prose_and_abstracts(spelling: str) -> None:
