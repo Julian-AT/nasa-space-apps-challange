@@ -161,7 +161,11 @@
       "claim": "The turbo lint, typecheck and test results I saw were cache hits, not fresh executions.",
       "evidence": "'cache hit, replaying logs' and 'FULL TURBO' in the output. The replayed logs show the checks passing, and the pytest portion ran fresh.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "A Turborepo cache hit is a content-addressed replay of a run with identical inputs, not a skipped check. `turbo run lint typecheck test --dry=json` shows each task hash covers every package file (json/, scripts/, src/, src/generated/, tests/), the test task also covers ../../fixtures/mock-bundle/ and ../../fixtures/schema-cases/, and the global hash covers tsconfig.base.json, eslint.config.mjs and the locked external dependencies. Fresh evidence at the round-1 fix head (c27dd95): `TURBO_FORCE=true make check-ts test-ts` exited 0, printing \"cache bypass, force executing\" for lint, typecheck and test, \"Cached: 0 cached, 2 total\" and \"Cached: 0 cached, 1 total\", and Vitest \"Test Files 3 passed (3), Tests 157 passed (157)\". The implement entry also recorded a forced run with 0 cached. Turborepo caching is the PRD 8.2 toolchain choice, so the Makefile keeps it."
+      }
     }
   ]
 }

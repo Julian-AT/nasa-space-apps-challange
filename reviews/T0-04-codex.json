@@ -179,7 +179,11 @@
       "claim": "Require the Node minor version needed for bare TypeScript execution, or use a compatible runner. setup-ts accepts Node 22.17, but the schema commands and generator subprocess tests invoke a .ts file without enabling type stripping, so those commands fail on an accepted runtime.",
       "evidence": "Makefile:44 accepts every 22.* version, while :16 invokes node packages/schema/scripts/generate-zod.ts. packages/schema/tests/generate-zod.test.ts:70 similarly spawns Node without flags. [Node 22 documentation](https://nodejs.org/docs/latest-v22.x/api/typescript.html) records that type stripping became enabled by default in 22.18.0. This conclusion is from static inspection; no command was executed.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "c27dd950a85ce78be713e8e384e8660c8fd35a1f",
+        "reason": "Confirmed: the Node 22 TypeScript docs (nodejs.org/docs/latest-v22.x/api/typescript.html, History) list v22.18.0 for \"Type stripping is enabled by default\". setup-ts now requires a 22.x with minor >= 18 (NODE_MIN_MINOR := 18); engines.node stays \"22.x\" as the T0-04 criterion requires. Vitest 5.1.0 needs ^22.12.0, which this covers. Checked with stub node binaries (NODE=<stub> PNPM=true): 22.17.1, 20.11.1, 23.6.0, 24.11.0, 122.18.0, \"22\" and \"22.x.1\" exit 2 with \"setup-ts: Node 22.18 or a later 22.x is required, found <v>\"; 22.18.0, 22.23.3 and 22.100.0 exit 0; a missing node exits 2 with \"node cannot be run\". The previous recipe accepted 22.17.1 and 22.x.1 (exit 0). make setup on the real Node 22.23.3 passes."
+      }
     },
     {
       "severity": "medium",
@@ -187,7 +191,11 @@
       "claim": "Reject or faithfully translate combinations of enum/const with other string constraints. The supported-subset guard currently accepts combinations that the pinned converter silently weakens.",
       "evidence": "The string branch permits enum together with minLength or pattern and returns without checking their interaction. In the installed pinned converter, dist/esm/parsers/parseSchema.js:97 selects parseEnum before parseString, and parseEnum.js:9 emits only the enum. Consequently, {\"type\":\"string\",\"enum\":[\"\",\"ok\"],\"minLength\":1} is accepted by the guard but generates a validator accepting the forbidden empty string. Current committed schemas do not use this combination.",
       "id": "codex-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "4ab0389aabb375619c50cd1da59429146afc3b70",
+        "reason": "Confirmed: json-schema-to-zod 2.8.1 selectParser picks parseEnum or parseConst before parseString and drops pattern, minLength and a second enum/const. Failing tests first (a36aa11): assertSupported must refuse enum+minLength, enum+pattern, const+minLength, const+pattern and enum+const (5 failed before the fix); three more tests document that the pinned converter drops the sibling keyword, and one accepts an enum or const with only type and annotations. The fix (4ab0389) refuses any string schema that combines enum or const with another of pattern, minLength, enum or const. The committed schemas use none of these combinations, so make schema-check reports no drift and the generated modules are unchanged."
+      }
     }
   ]
 }
