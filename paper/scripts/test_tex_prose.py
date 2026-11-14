@@ -161,7 +161,7 @@ def test_tikz_code_is_removed() -> None:
 
 def test_tikz_code_is_kept_as_text_on_request() -> None:
     kept = words(f"before\n{TIKZ}\nafter", keep_tikz=True)
-    assert "seamless" in kept
+    assert "seamless;" in kept
     assert kept[0] == "before"
     assert kept[-1] == "after"
 
@@ -205,10 +205,10 @@ def test_markup_is_removed_and_text_kept(text: str, expected: list[str]) -> None
         ("caf{\\'e}", "cafe"),
         ("Ko\\v{c}i", "Koci"),
         ("Ko\\v ci", "Koci"),
-        ("na\\\"ive", "naive"),
+        ('na\\"ive', "naive"),
         ("Mart\\'{\\i}nez", "Martinez"),
         ("Gro\\ss e", "Grosse"),
-        ("\\AA ngstr\\\"om", "Angstrom"),
+        ('\\AA ngstr\\"om', "Angstrom"),
     ],
 )
 def test_accent_commands_give_base_letters(text: str, expected: str) -> None:
