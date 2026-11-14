@@ -110,7 +110,11 @@
       "claim": "A whole-file range transfer can be recorded as a partial download, violating AC2.",
       "evidence": "The record hardcodes whole_file_downloaded=false and states that the whole-file checksum is unknown. io.py:1299 initially requests a 262,144-byte block; fetch_range accepts an EOF-clipped response, and _BlockCache only compares transferred bytes against the 200,000,000-byte limit (io.py:1126-1175). A COG smaller than the initial block is consequently downloaded completely and still reported as partial. Derive this field from actual range coverage and enforce the story's non-whole-download requirement; add a small-COG case.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "21a39a3d6a9fb3b68419f6c297e5391f251f658e",
+        "reason": "Fixed in 21a39a3 (failing tests first in 4b68a9c). io.read_remote_geotiff_window now refuses whole coverage. A request that would hold every byte of the file is not sent. A first response that already holds a file no larger than one block_bytes block is refused. Both raise RangeReadError naming the URL, so ctx fetch exits 1 and writes no fetch.json. ByteRanges.covers_whole_file states coverage. The ctx record derives whole_file_downloaded from the stored ranges (ranges.covers_whole_file) instead of hardcoding false. It refuses ranges that hold the whole COG, even when fetch.json's sizes and sha256 agree. New tests cover a block larger than the COG and a 32 x 32 COG smaller than one block (test_pilot_ctx.py), the io refusal before and after the first request, and a tampered whole-coverage fetch.json at record. The pgda78 'every-geotiff' fixture claimed one-row strips, but three of its files were single-strip, so their window reads fetched them whole. All five are now striped and each read is asserted partial (f935eb6). The real record is unchanged: 1,835,008 of 14,245,180 bytes are held, and pilot check ctx, pgda78 and minirf exit 0."
+      }
     },
     {
       "severity": "blocker",
@@ -118,7 +122,11 @@
       "claim": "Signed URLs on unfetched STAC assets can enter committed output, violating AC4 and the credential guardrail.",
       "evidence": "_chosen_record copies every asset href without calling has_url_credentials. Fetch only requests dtm and qa_metrics (pilot.py:3764-3795), so a thumbnail href containing X-Amz-Signature bypasses the request guards. The resulting dictionary is serialized into outputs/pilot/ctx_dtm.json at :4026; canonical_json performs JSON serialization only (export.py:177-183). Validate all hrefs before emitting them and cover a signed unfetched asset with the stub server.",
       "id": "codex-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "4cce8af124b3850c318d7277ec2044e92593c4d7",
+        "reason": "Fixed in 4cce8af (failing tests first in fcdc05a). fetch checks every asset href of the chosen item with schema.has_url_credentials before any asset request, and record checks them again before using the saved page. The error names the item and the asset key, never the URL. That also stops record's dtm mismatch message from repeating a signed href, which one of the new tests caught. As a general guard, pilot.expected_outputs refuses any JSON output (outputs/pilot/*.json and sources.json) whose keys or strings, including URLs quoted inside text, hold a URL with credentials or a signature. It names the JSON path. This covers the other provider-stated URLs that fetch never requests: collection.providers[].url, collection.cite_as and the sci:citation text. Tests sign thumbnail, dtm and qa_metrics at fetch, thumbnail and dtm in a saved page at record and check, and the three collection URLs. Each asserts exit 1, no output written and no secret in stderr. A signed href on an item that is not chosen is neither followed nor recorded and does not stop the run. The real ctx, pgda78 and minirf outputs pass the guard unchanged (pilot check exit 0 for all three)."
+      }
     }
   ]
 }

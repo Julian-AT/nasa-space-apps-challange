@@ -110,7 +110,11 @@
       "claim": "local_path names a .ranges file (header plus window tiles, 1.8 MB), not a plain .tif.",
       "evidence": "The record states it holds exactly the fetched bytes and gives its SHA-256 (48da86cb…). This matches 'exactly the fetched bytes'. It is not a loadable GeoTIFF, though, and the window read is 256x256 but fetched 1.5 MB of tiles, because the file is a 512x512 DEFLATE COG whose window straddles tiles. Noted only.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect, and the reviewer marks it as noted only. AC4 asks that local_path name the data/raw/ctx/ file holding exactly the fetched bytes. For a window read, those bytes are the byte ranges, not a GeoTIFF: a .tif with unfetched bytes zeroed would invent data, and ByteRanges treats a byte it does not hold as unknown, never zero. The .ranges file is decodable offline: record decodes the header and the 256 x 256 window from it with io.read_geotiff_header(ranges=) and read_product(ranges=), and fetch.json lists its two ranges. The transfer size follows from the COG layout as recorded. dtm.header.block_shapes is [[512, 512]], and window cols 827-1082 x rows 1580-1835 span tile columns 1 and 2 of tile row 3. So the read is the header block 0-262143 plus 8650752-10223615 (six 256 KiB blocks), 1,835,008 of 14,245,180 bytes, and range_read lists it per exchange. Since 21a39a3 (codex-r1-1), whole_file_downloaded is derived from these ranges."
+      }
     },
     {
       "severity": "low",
@@ -118,7 +122,11 @@
       "claim": "Units are null because the COG states none; the vertical unit is not in the file.",
       "evidence": "This is correctly recorded as not stated rather than assumed to be metres. A downstream consumer must not treat the null as a value.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect: the reviewer confirms the null is recorded correctly. The record does not leave the null for a consumer to read as a value. dtm.units_stated_by_file and header.units are null because the file states none. The DTM ProductRecord in outputs/sources.json has units 'unknown', which is the ProductRecord convention for a field that applies but was not established, so it cannot be VERIFIED. field_notes.units says 'the DTM COG states no band units, so its ProductRecord units are unknown'. The verification basis adds 'and the file states no units ... the PRD 5 entry rule is not complete'. No metre unit is assumed anywhere in the record."
+      }
     },
     {
       "severity": "low",
@@ -126,7 +134,11 @@
       "claim": "I did not read the stub-server tests or the unreachable-URL code path.",
       "evidence": "They pass in the pytest run, so I could not rule out weak assertions without reading them. Any non-zero exit I accepted rests on the passing tests, not on my own run.",
       "id": "claude-r1-3",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "A limit of the review's scope, not a defect in the code. The other reviewer read the stubs and cited test_pilot_ctx.py:173-196, :375-400 and :546-595. On the network question: the autouse no_network fixture (test_pilot_ctx.py:40) resolves loopback hosts only and clears proxy variables. The stub is http.server.ThreadingHTTPServer on 127.0.0.1 with synthetic STAC JSON and a synthetic COG. fetch_and_record runs record with refuse_sockets (:55, applied at :477), so record and check are offline. On the unreachable URLs: test_an_unreachable_stac_page_or_document_fails_naming_the_url (:582) covers search, collection and documentation answering HTTP 500. test_an_unreachable_asset_fails_naming_the_url (:596) covers dtm and qa_metrics answering 404, and test_a_refused_connection_fails_naming_the_url (:612) covers a closed port. Each asserts exit 1, the URL and the error in stderr, and no fetch.json. These tests pass in uv run pytest pipeline/tests (1340 passed, 2 strict xfails), as does the new failure path for a whole-COG range read."
+      }
     }
   ]
 }
