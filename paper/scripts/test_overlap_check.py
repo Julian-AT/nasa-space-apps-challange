@@ -126,6 +126,10 @@ def twelve_with(change: str) -> str:
         return " ".join(w[:6]) + " \\cite %\n% more\n {a,\n b} " + " ".join(w[6:])
     if change == "comment before a reference":
         return " ".join(w[:6]) + " (\\ref%\n{fig:map}) " + " ".join(w[6:])
+    if change == "grouped word":
+        return " ".join(w[:5]) + " \\emph{{" + w[5][:2] + "}{" + w[5][2:] + "}} " + " ".join(w[6:])
+    if change == "adjacent groups":
+        return " ".join(w[:5]) + " {" + w[5][:2] + "}{" + w[5][2:] + "} " + " ".join(w[6:])
     raise AssertionError(change)
 
 
@@ -142,6 +146,8 @@ def twelve_with(change: str) -> str:
         "comment before a citation",
         "comment lines before a citation",
         "comment before a reference",
+        "grouped word",
+        "adjacent groups",
     ],
 )
 def test_changes_do_not_hide_a_run(change: str) -> None:

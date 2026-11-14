@@ -119,6 +119,10 @@ def test_banned_words_are_the_list_of_prd_22_6() -> None:
         "Leveraging the data",
         "\\emph{seamless}",
         "\\textit{sea}mless",
+        "\\emph{{seam}{less}}",
+        "{seam}{less}",
+        "\\emph{sea}{mless}",
+        "{\\bf pivo}{tal}",
         "It delves into",
         "We leveraged it",
         "showcasing results",
@@ -225,6 +229,7 @@ def test_allow_comment_covers_only_robust_on_its_line() -> None:
         "it is important~to note",
         "it is % a comment\nimportant to note",
         "it\n\nis important to note",
+        "it is \\emph{{impor}{tant}} to note",
     ],
 )
 def test_important_to_note_rule_fails(text: str) -> None:
@@ -379,6 +384,15 @@ def test_tikz_path_syntax_passes() -> None:
             "\\begin{tikzpicture}\\node {\\textcolor{pivotal}{x}};\\end{tikzpicture}",
             "banned-word",
         ),
+        (
+            "\\begin{tikzpicture}\\node {\\textcolor[rgb]{1,0,0}{pivotal}};\\end{tikzpicture}",
+            "banned-word",
+        ),
+        (
+            "\\begin{tikzpicture}\\node {\\textcolor{red}{pivo}{tal}};\\end{tikzpicture}",
+            "banned-word",
+        ),
+        ("\\begin{tikzpicture}\\node {\\emph{{seam}{less}}};\\end{tikzpicture}", "banned-word"),
     ],
 )
 def test_banned_words_and_phrase_also_run_on_tikz(text: str, rule: str) -> None:

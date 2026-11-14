@@ -308,6 +308,46 @@ def test_markup_is_removed_and_text_kept(text: str, expected: list[str]) -> None
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
+        ("{seam}{less}", ["seamless"]),
+        ("\\emph{{seam}{less}}", ["seamless"]),
+        ("\\emph{sea}{mless}", ["seamless"]),
+        ("\\textbf{seam}{less} text", ["seamless", "text"]),
+        ("a {b}{c}{d} e", ["a", "bcd", "e"]),
+        ("{\\bf seam}{less}", ["seamless"]),
+        ("\\bf{seam}{less}", ["seamless"]),
+        ("\\small{seam}{less}", ["seamless"]),
+        ("\\item{seam}{less}", ["seamless"]),
+        ("\\textcolor{red}{seam}{less}", ["seamless"]),
+        ("\\newterm{a}{b}", ["a", "b"]),
+        ("\\newterm{a} {b}{c}", ["a", "b", "c"]),
+        ("\\newterm{\\emph{a}{b}}{c}", ["ab", "c"]),
+    ],
+)
+def test_adjacent_groups_join_unless_they_are_arguments_of_one_command(
+    text: str, expected: list[str]
+) -> None:
+    assert words(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("tikz", "expected"),
+    [
+        ("\\node {\\textcolor{red}{seam}{less}};", ["red", "seamless;"]),
+        ("\\node {\\textcolor[rgb]{1,0,0}{seamless}};", ["[rgb]1,0,0", "seamless;"]),
+        ("\\node {\\emph{{seam}{less}}};", ["seamless;"]),
+        ("\\node {{seam}{less}};", ["seamless;"]),
+    ],
+)
+def test_kept_tikz_groups_join_unless_they_are_arguments_of_one_command(
+    tikz: str, expected: list[str]
+) -> None:
+    text = f"\\begin{{tikzpicture}}\n{tikz}\n\\end{{tikzpicture}}"
+    assert words(text, keep_tikz=True) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
         ("caf\\'e", "cafe"),
         ("caf\\'{e}", "cafe"),
         ("caf{\\'e}", "cafe"),
