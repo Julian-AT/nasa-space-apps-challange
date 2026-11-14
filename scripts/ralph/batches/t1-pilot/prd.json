@@ -135,9 +135,9 @@
       "priority": 3,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "d29b39401856a7b32b2a0a91d6d04a8dc665cfb5",
         "head": null,
         "files": [],
         "digests": {}
