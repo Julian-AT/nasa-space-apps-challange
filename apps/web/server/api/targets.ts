@@ -24,7 +24,14 @@ import {
   conditionalGet,
   notModifiedResponse,
 } from './cache.ts';
-import { PROBLEM_MEDIA_TYPE, ProblemError, ProblemSchema, VALIDATION_STATUS } from './problem.ts';
+import {
+  MOCK_REFUSED_STATUS,
+  mockRefusedResponse,
+  PROBLEM_MEDIA_TYPE,
+  ProblemError,
+  ProblemSchema,
+  VALIDATION_STATUS,
+} from './problem.ts';
 import { BundleManifestRecord, parseBundleFile } from './records.ts';
 
 /**
@@ -100,6 +107,7 @@ export const targetListRoute = createRoute({
     },
     304: notModifiedResponse,
     500: serverError,
+    [MOCK_REFUSED_STATUS]: mockRefusedResponse,
   },
 });
 
@@ -122,6 +130,7 @@ export const targetRoute = createRoute({
       content: problemContent,
     },
     500: serverError,
+    [MOCK_REFUSED_STATUS]: mockRefusedResponse,
     501: {
       description: 'manifest.json lists the id, but target records are not served yet.',
       content: problemContent,

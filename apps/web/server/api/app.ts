@@ -6,6 +6,12 @@
 // network; by default it is loadBundle() over apps/web/data/. A bundle file that is missing or
 // invalid makes the loader throw, and the error becomes a 500 problem: no default is ever served.
 //
+// A mock bundle is never served on production (PRD 8.4, 12 end-to-end checks). Every read goes
+// through the loader's own guard, assertDeployable, imported from lib/bundle.ts, with the
+// environment the API runs in, whatever the reader is; its refusal (MockBundleError) becomes a 503
+// problem on every route that reads the bundle. ./index.ts builds the instance that Next serves
+// (app/api/[[...route]]/route.ts).
+//
 // Only GET and HEAD are served (HEAD is GET without a body). Every other method, on any path the
 // app receives, is a 405 problem with Allow: GET, HEAD.
 //
@@ -16,10 +22,13 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import type { Context, MiddlewareHandler, ValidationTargets } from 'hono';
 
 import {
+  assertDeployable,
+  type BundleEnv,
   BundleError,
   BundleFileError,
   type BundleFileProblem,
   loadBundle,
+  MockBundleError,
   type PulledBundle,
 } from '../../lib/bundle.ts';
 import { compareHandler, compareRoute } from './compare.ts';
@@ -30,7 +39,13 @@ import { manifestHandler, manifestRoute } from './manifest.ts';
 import { matchesHandler, matchesRoute } from './matches.ts';
 import { modelHandler, modelRoute } from './model.ts';
 import { API_INFO, OPENAPI_VERSION, openApiHandler, openApiRoute } from './openapi.ts';
-import { ProblemError, problemResponse, VALIDATION_STATUS } from './problem.ts';
+import {
+  MOCK_REFUSED_DETAIL,
+  MOCK_REFUSED_STATUS,
+  ProblemError,
+  problemResponse,
+  VALIDATION_STATUS,
+} from './problem.ts';
 import { targetHandler, targetListHandler, targetListRoute, targetRoute } from './targets.ts';
 import { windowHandler, windowRoute } from './windows.ts';
 
@@ -42,8 +57,13 @@ export type BundleReader = () => PulledBundle;
 export interface ApiOptions {
   /** How the API reads the bundle; loadBundle() over apps/web/data/ by default. */
   readonly reader?: BundleReader;
-  /** Where errors that become a 500 are logged; console.error by default. */
+  /** Where errors that become a 500 or 503 are logged; console.error by default. */
   readonly log?: (error: unknown) => void;
+  /**
+   * The environment the production mock guard reads (VERCEL_ENV); process.env by default, read
+   * on every request.
+   */
+  readonly env?: BundleEnv;
 }
 
 const ALLOW = 'GET, HEAD';
@@ -102,15 +122,22 @@ function serverErrorDetail(error: Error): string {
   return 'An unexpected error occurred.';
 }
 
-/** Hono hands only Error values to onError, so a reader that throws anything else is wrapped. */
-function guarded(reader: BundleReader): BundleReader {
+/**
+ * The reader every handler uses. Each bundle it returns passes the loader's production mock guard
+ * under env, so no reader can serve a mock on production. Hono hands only Error values to onError,
+ * so a reader that throws anything else is wrapped.
+ */
+function guarded(reader: BundleReader, env: BundleEnv): BundleReader {
   return () => {
+    let bundle: PulledBundle;
     try {
-      return reader();
+      bundle = reader();
     } catch (error) {
       if (error instanceof Error) throw error;
       throw new Error('the bundle reader threw a value that is not an Error', { cause: error });
     }
+    assertDeployable(bundle.manifest, env);
+    return bundle;
   };
 }
 
@@ -120,6 +147,7 @@ export function createApi({
   log = (error: unknown) => {
     console.error(error);
   },
+  env = process.env,
 }: ApiOptions = {}) {
   const root = new OpenAPIHono({
     // The shared validation hook for path and query parameters (VALIDATION_STATUS, ./problem.ts).
@@ -142,9 +170,13 @@ export function createApi({
     // An expected problem (an id the bundle does not hold): answered as is, not logged.
     if (error instanceof ProblemError) return problemResponse(c.req.raw, error.status, error.detail);
     log(error);
+    // A mock bundle on production: logged, since the deploy needs a release bundle.
+    if (error instanceof MockBundleError) {
+      return problemResponse(c.req.raw, MOCK_REFUSED_STATUS, MOCK_REFUSED_DETAIL);
+    }
     return problemResponse(c.req.raw, 500, serverErrorDetail(error));
   });
-  const read = guarded(reader);
+  const read = guarded(reader, env);
   api.openapi(healthRoute, healthHandler(read));
   api.openapi(manifestRoute, manifestHandler(read));
   api.openapi(gatesRoute, gatesHandler(read));

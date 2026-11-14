@@ -22,7 +22,14 @@
 import type { BundleManifest, Validation } from '@terraluna/schema';
 
 import { MANIFEST, type PulledBundle, VALIDATION } from '../../lib/bundle.ts';
-import { PROBLEM_MEDIA_TYPE, ProblemError, ProblemSchema, VALIDATION_STATUS } from './problem.ts';
+import {
+  MOCK_REFUSED_STATUS,
+  mockRefusedResponse,
+  PROBLEM_MEDIA_TYPE,
+  ProblemError,
+  ProblemSchema,
+  VALIDATION_STATUS,
+} from './problem.ts';
 import { BundleManifestRecord, parseBundleFile, ValidationRecord } from './records.ts';
 
 export const NOT_IN_BUNDLE_STATUS = 404;
@@ -74,6 +81,7 @@ export function unavailableResponses(descriptions: {
       content: problemContent,
     },
     [NOT_SERVED_STATUS]: { description: descriptions.notServed, content: problemContent },
+    [MOCK_REFUSED_STATUS]: mockRefusedResponse,
   };
   if (descriptions.invalid === undefined) return responses;
   return {

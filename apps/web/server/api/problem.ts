@@ -20,6 +20,7 @@ const TITLES = {
   405: 'Method Not Allowed',
   500: 'Internal Server Error',
   501: 'Not Implemented',
+  503: 'Service Unavailable',
 } as const;
 
 /** The statuses the API answers with a problem. */
@@ -72,6 +73,27 @@ export const ProblemSchema = z
   });
 
 export type Problem = z.infer<typeof ProblemSchema>;
+
+/**
+ * The status of every route that reads the bundle when this deploy refuses the bundle it holds: a
+ * mock bundle with VERCEL_ENV=production, which the loader's guard (assertDeployable in
+ * lib/bundle.ts) refuses (PRD 8.4, 12 end-to-end checks). 503, not 500: the server works, but this
+ * deploy has no bundle it may serve until a release bundle is deployed.
+ */
+export const MOCK_REFUSED_STATUS = 503;
+
+/** The detail of that refusal. It names no value of the refused bundle. */
+export const MOCK_REFUSED_DETAIL =
+  'This is a production deploy and the bundle it holds is a mock (placeholder data, not results), ' +
+  'which production never serves, so the API serves nothing from it.';
+
+/** The 503 response of a route that reads the bundle, for the OpenAPI document. */
+export const mockRefusedResponse = {
+  description:
+    'This production deploy holds a mock bundle, which production never serves; no mock value ' +
+    'is returned.',
+  content: { [PROBLEM_MEDIA_TYPE]: { schema: ProblemSchema } },
+};
 
 /**
  * A problem+json response for the request. It is built as a new Response, so no header a handler

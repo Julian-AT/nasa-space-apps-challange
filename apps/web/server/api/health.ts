@@ -4,7 +4,12 @@ import { createRoute, type RouteHandler, z } from '@hono/zod-openapi';
 import { BundleManifestSchema } from '@terraluna/schema';
 
 import type { PulledBundle } from '../../lib/bundle.ts';
-import { PROBLEM_MEDIA_TYPE, ProblemSchema } from './problem.ts';
+import {
+  MOCK_REFUSED_STATUS,
+  mockRefusedResponse,
+  PROBLEM_MEDIA_TYPE,
+  ProblemSchema,
+} from './problem.ts';
 
 /**
  * The health body. bundle_version and schema_version are the BundleManifest schemas themselves,
@@ -38,6 +43,7 @@ export const healthRoute = createRoute({
       description: 'A bundle file is missing or invalid, or an unexpected error occurred.',
       content: { [PROBLEM_MEDIA_TYPE]: { schema: ProblemSchema } },
     },
+    [MOCK_REFUSED_STATUS]: mockRefusedResponse,
   },
 });
 

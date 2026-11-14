@@ -12,7 +12,12 @@ import {
   conditionalGet,
   notModifiedResponse,
 } from './cache.ts';
-import { PROBLEM_MEDIA_TYPE, ProblemSchema } from './problem.ts';
+import {
+  MOCK_REFUSED_STATUS,
+  mockRefusedResponse,
+  PROBLEM_MEDIA_TYPE,
+  ProblemSchema,
+} from './problem.ts';
 import { BundleManifestRecord, parseBundleFile, ValidationRecord } from './records.ts';
 
 export const gatesRoute = createRoute({
@@ -36,6 +41,7 @@ export const gatesRoute = createRoute({
       description: 'A bundle file is missing or invalid, or an unexpected error occurred.',
       content: { [PROBLEM_MEDIA_TYPE]: { schema: ProblemSchema } },
     },
+    [MOCK_REFUSED_STATUS]: mockRefusedResponse,
   },
 });
 
