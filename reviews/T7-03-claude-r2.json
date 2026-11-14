@@ -146,7 +146,11 @@
       "claim": "AC2 reads 'Bundle <bundle_version>', but the footer keeps T0-05's 'Bundle version: <v> · Schema <v>' wording.",
       "evidence": "The web-smoke output shows 'Bundle version: mock-0'. T0-05 requires that wording, so it is consistent with the existing assertions; it is a literal reading difference from AC2 only.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "This wording was decided before the reviews. The orchestrator decision of 2026-11-14T21:24:28Z in the story notes says: 'The footer keeps T0-05's \"Bundle version: <bundle_version>\" and appends \" · Schema <schema_version>\".' T0-05's shellText (apps/web/lib/shell.ts, not in this story's files) builds 'Bundle version: <v>', and AC6/AC7 require make web-smoke to keep asserting it. So 'Bundle <bundle_version>' in AC2 is met by 'Bundle version: <bundle_version> · Schema <schema_version>' (site-footer.tsx:9). The finding itself calls this consistent with the existing assertions."
+      }
     },
     {
       "severity": "low",
@@ -154,7 +158,11 @@
       "claim": "The initial-JS gzip -9 measurement was not independently reproduced.",
       "evidence": "The command needs a shell loop or pipe, which the review permission rules forbid, so I could not run it.",
       "id": "claude-r2-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect in the change. The reviewer skipped the measurement because of its own permission rules. Measured again after make web-build at ee9cbca: the six <script src> files of apps/web/.next/server/app/index.html are 48,186 + 71,595 + 3,936 + 6,629 + 39,390 + 7,454 = 177,190 B at gzip -9. That matches the story notes and the round-1 measurement: +3,216 B over the T0 baseline of 173,974 B and within PRD 8.10's 250 kB. __RSC_MANIFEST['/page'].clientModules in page_client-reference-manifest.js lists 9 modules, and the only one outside next is [project]/apps/web/components/site-header.tsx. [project]/apps/web/app/layout appears only as an entryCSSFiles key, for globals.css. The command is the bash loop under Codebase Patterns in progress.txt."
+      }
     }
   ]
 }
