@@ -250,9 +250,9 @@
         "make web-smoke"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "resolved",
+        "state": "passed",
         "round": 1,
         "base": "aaec3d22c58e46d94cb63de5201eef04cc4f1e38",
         "head": "420ac3f44662a732179728854d8ae18c2b79d907",
