@@ -303,7 +303,7 @@
       "priority": 6,
       "passes": false,
       "review": {
-        "state": "resolved",
+        "state": "requested",
         "round": 1,
         "base": "ceaaa37ab485acf6ecabeaf5e4c9335fac6af7b8",
         "head": "1eb32fcccde01ef9eef43af08b39d0bc844e318b",
