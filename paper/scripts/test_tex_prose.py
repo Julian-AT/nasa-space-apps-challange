@@ -298,6 +298,7 @@ def test_nested_tikzpicture_is_removed_to_the_outer_end() -> None:
         ("\\begin{tabular}{lcr}x & y\\end{tabular}", ["x", "&", "y"]),
         ("\\begin{figure}[t]\\caption{Map}\\end{figure}", ["Map"]),
         ("\\textemdash{} a", ["a"]),
+        ("\\newterm{a}{b}", ["a", "b"]),
     ],
 )
 def test_markup_is_removed_and_text_kept(text: str, expected: list[str]) -> None:

@@ -8,10 +8,11 @@ text. extract() works in two passes.
    starred or not), the arguments of key commands (the \cite family, \ref, \eqref, \label, \input,
    \include, \url, the URL of \href and a few more in KEY_COMMANDS), the layout arguments of
    environments such as tabular and figure, the length of a \\ line break and the code of
-   tikzpicture environments are replaced by spaces. Every other character stays where it was, so
-   an offset in the code is an offset in the source. Between a command and its arguments the
-   scanner skips what TeX skips: spaces, comments and single line breaks. A blank line, which TeX
-   reads as \par, ends the search.
+   tikzpicture environments are replaced by spaces; with keep_tikz only the comments of a
+   tikzpicture are. Every other character stays where it was, so an offset in the code is an
+   offset in the source. Between a command and its arguments the scanner skips what TeX skips:
+   spaces, comments and single line breaks. A blank line, which TeX reads as \par, ends the
+   search.
 2. Prose. Commands, environment names and braces are removed from the code. Formatting commands
    such as \emph, \textit and \textbf keep their text, a tie ~ reads as a space, and accent
    commands give their base letter.
@@ -184,8 +185,10 @@ def line_at(text: str, offset: int) -> int:
 def extract(text: str, *, keep_tikz: bool = False) -> Source:
     r"""The code and prose of a LaTeX source.
 
-    With keep_tikz the code of tikzpicture environments is read as text, so node labels and
-    style names reach the prose; lint_prose.py runs its word rules on that version.
+    With keep_tikz the raw text of tikzpicture environments stays in the code, all but its
+    comments: node labels, options, style names, math and the arguments of commands such as
+    \tikzset reach the prose, and pass 2 removes only command names and braces there.
+    lint_prose.py runs its word rules on that version.
     """
     scanner = _CodeScanner(text, keep_tikz)
     code = scanner.run()
@@ -211,8 +214,8 @@ def environment_boundary(names: str) -> re.Pattern[str]:
     r"""\begin{name} or \end{name} in the code that extract() returns, for a regex of names.
 
     Group 1 is begin or end and group 2 the name. Pass 1 has checked that only spaces, comments
-    and single line breaks come between the command and its brace, and has blanked the comments,
-    so any white space may stand there in the code.
+    and single line breaks come between the command and its brace (kept TikZ text it leaves as it
+    is), and has blanked the comments, so any white space may stand there in the code.
     """
     return re.compile(r"\\(begin|end)\s*\{[ \t]*(" + names + r")[ \t]*\}")
 
@@ -396,13 +399,17 @@ class _CodeScanner:
         if command == "end":
             return brace.end()
         name = brace[1]
-        end = self.begin_end(start, name)
-        if end is not None:
-            self.blank(start, end)
-            return end
-        end = self.environment_arguments_end(start, brace.end(), name)
-        self.blank(brace.end(), end)
-        return end
+        if name == TIKZ_ENVIRONMENT and self.keep_tikz:
+            kept_end = self.environment_end(start, name, verbatim=False, nested=True)
+            self.blank_comments(brace.end(), kept_end)
+            return kept_end
+        removed_end = self.begin_end(start, name)
+        if removed_end is not None:
+            self.blank(start, removed_end)
+            return removed_end
+        arguments_end = self.environment_arguments_end(start, brace.end(), name)
+        self.blank(brace.end(), arguments_end)
+        return arguments_end
 
     def environment_arguments_end(self, start: int, i: int, name: str) -> int:
         """Index past the layout arguments after \\begin{name}, such as table columns."""
@@ -425,14 +432,25 @@ class _CodeScanner:
         return end + 1
 
     def begin_end(self, start: int, name: str) -> int | None:
-        """End of a math, verbatim or (unless kept) TikZ environment; None for any other one."""
+        """End of a math, verbatim or TikZ environment; None for any other one."""
         if name in VERBATIM_ENVIRONMENTS:
             return self.environment_end(start, name, verbatim=True, nested=False)
         if name in MATH_ENVIRONMENTS:
             return self.environment_end(start, name, verbatim=False, nested=False)
-        if name == TIKZ_ENVIRONMENT and not self.keep_tikz:
+        if name == TIKZ_ENVIRONMENT:
             return self.environment_end(start, name, verbatim=False, nested=True)
         return None
+
+    def blank_comments(self, start: int, end: int) -> None:
+        """Blank and record the comments in text[start:end] and keep everything else."""
+        i = start
+        while i < end:
+            if self.text[i] == "%":
+                comment_end = self.comment(i)
+                self.blank(i, comment_end)
+                i = comment_end
+            else:
+                i = self.skip(i)
 
     def key_arguments_end(self, start: int, i: int, name: str) -> int:
         count = 1 if CITE_COMMAND.fullmatch(name) else KEY_COMMANDS[name]
@@ -539,6 +557,10 @@ def _prose(code: str) -> str:
         char = code[i]
         if char == "\\":
             i = _prose_command(code, i, out)
+        elif char == "}" and code.startswith("{", i + 1):
+            # Two groups in a row are two arguments, as in \textcolor{red}{x} in kept TikZ text.
+            out.append(" ")
+            i += 1
         elif char in "{}":
             i += 1
         elif char == "~":
