@@ -68,7 +68,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Close',
     from: 114,
     to: 120,
-    text: 'Terraluna: **measure any point on Earth, live.** terraluna-lovat.vercel.app',
+    text: 'Terraluna: **measure any point on Earth, live.** nasa.julianschmidt.cv',
   },
 ];
 

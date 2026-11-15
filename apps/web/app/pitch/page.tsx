@@ -18,7 +18,7 @@ const mono = localFont({ src: '../../public/fonts/dm-mono-regular.woff2', variab
 
 export const metadata: Metadata = { title: `Pitch · ${SITE_TITLE}` };
 
-const SITE_URL = 'https://terraluna-lovat.vercel.app';
+const SITE_URL = 'https://nasa.julianschmidt.cv';
 
 function readNumbersTex(): Map<string, string> {
   const out = new Map<string, string>();
@@ -36,6 +36,16 @@ export default async function PitchPage() {
   const bundle = loadBundle();
   const data = buildPitchData(bundle);
   const bench = buildBenchData(bundle, readNumbersTex());
-  const qr = await QRCode.toString(SITE_URL, { type: 'svg', margin: 0, errorCorrectionLevel: 'M', color: { dark: '#1A1613', light: '#ffffff00' } }).catch(() => null);
+  const links = [
+    { label: 'Live page', url: SITE_URL },
+    { label: 'Paper', url: `${SITE_URL}/paper/terraluna-paper.pdf` },
+    { label: 'GitHub', url: 'https://github.com/Julian-AT/nasa-space-apps-challange' },
+  ];
+  const qr = await Promise.all(
+    links.map(async (l) => ({
+      ...l,
+      svg: await QRCode.toString(l.url, { type: 'svg', margin: 0, errorCorrectionLevel: 'M', color: { dark: '#1A1613', light: '#ffffff00' } }).catch(() => ''),
+    })),
+  );
   return <Deck data={data} bench={bench} curves={bundle.records.curves} qr={qr} fonts={`${sans.variable} ${mono.variable}`} />;
 }

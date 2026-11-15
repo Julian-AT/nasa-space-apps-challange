@@ -22,8 +22,7 @@ import { SslExplainer, SSL_STEPS } from './ssl-explainer';
 const FigLab = dynamic(() => import('./fig-lab'), { ssr: false, loading: () => <div className="size-full" /> });
 const FinderDemo = dynamic(() => import('./finder'), { ssr: false, loading: () => null });
 
-const GITHUB = 'github.com/Julian-AT/nasa-space-apps-challange';
-const SITE = 'terraluna-lovat.vercel.app';
+const SITE = 'nasa.julianschmidt.cv';
 const MONO = 'font-mono';
 
 const BODY = { moon: 'Moon', mars: 'Mars' } as const;
@@ -73,7 +72,9 @@ interface Slide {
   readonly body: (step: number) => ReactNode;
 }
 
-function slides(d: PitchData, qr: string | null, bench: BenchData, curves: CurvesJson | null): Slide[] {
+export interface QrLink { readonly label: string; readonly url: string; readonly svg: string }
+
+function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: CurvesJson | null): Slide[] {
   const m = d.model;
   // the Jezero and Rosamond Dry Lake card: the finder and fingerprint story
   const jr = d.results.find((r) => r.targetName.includes('Jezero')) ?? null;
@@ -280,31 +281,18 @@ function slides(d: PitchData, qr: string | null, bench: BenchData, curves: Curve
       steps: 1,
       bare: true,
       body: () => (
-        <div className="relative grid h-full grid-cols-[1.4fr_1fr] items-center gap-16">
-          <div className="flex flex-col gap-6">
-            <In>
-              <h2 className="text-[5.5rem] font-medium leading-none tracking-[-0.045em]">Terraluna</h2>
-            </In>
-            <In d={0.12}>
-              <p className="text-[1.75rem] tracking-[-0.01em]" style={{ color: MUTED }}>Measure any point on Earth, live.</p>
-            </In>
-            <In d={0.2} className="mt-4 flex flex-col gap-2 text-xl">
-              <a href={`https://${SITE}`} onClick={(e) => e.stopPropagation()} className="underline decoration-zinc-300 underline-offset-8">
-                {SITE}
+        <div className="relative flex h-full flex-col items-center justify-center gap-[7vh]">
+          <h2 className="text-[5rem] font-medium leading-none tracking-[-0.045em]">Terraluna</h2>
+          <div className="grid grid-cols-3 gap-[5vw]">
+            {qr.map((l) => (
+              <a key={l.label} href={l.url} onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-4">
+                <div className="w-[min(16vw,220px)] rounded-xl border bg-white p-5 [&_svg]:h-auto [&_svg]:w-full" style={{ borderColor: C.hair }} role="img" aria-label={`QR code for ${l.url}`} dangerouslySetInnerHTML={{ __html: l.svg }} />
+                <span className="text-lg font-medium">{l.label}</span>
               </a>
-              <a href={`https://${GITHUB}`} onClick={(e) => e.stopPropagation()} className="text-base underline decoration-zinc-200 underline-offset-8" style={{ color: FAINT }}>
-                {GITHUB}
-              </a>
-            </In>
+            ))}
           </div>
-          {qr ? (
-            <In d={0.3} className="flex flex-col items-center gap-3">
-              <div className="w-[min(22vw,300px)] rounded-xl border bg-white p-6 [&_svg]:h-auto [&_svg]:w-full" style={{ borderColor: C.hair }} role="img" aria-label={`QR code for https://${SITE}`} dangerouslySetInnerHTML={{ __html: qr }} />
-              <span className="text-sm" style={{ color: FAINT }}>scan to open</span>
-            </In>
-          ) : null}
           <p className="absolute bottom-0 left-0 text-sm" style={{ color: FAINT }}>
-            NASA Space Apps 2026, Team Terraluna
+            NASA Space Apps 2026, Team Terraluna, nasa.julianschmidt.cv
           </p>
         </div>
       ),
@@ -333,7 +321,7 @@ function Script({ text }: { text: string }) {
   );
 }
 
-export function Deck({ data, bench, curves, qr, fonts = '' }: { data: PitchData; bench: BenchData; curves: CurvesJson | null; qr: string | null; fonts?: string }) {
+export function Deck({ data, bench, curves, qr, fonts = '' }: { data: PitchData; bench: BenchData; curves: CurvesJson | null; qr: readonly QrLink[]; fonts?: string }) {
   const list = slides(data, qr, bench, curves);
   const n = list.length;
   const [pos, setPos] = useState({ i: 0, step: 0, dir: 1 });

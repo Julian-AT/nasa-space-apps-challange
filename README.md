@@ -4,7 +4,7 @@
 
 Terrain-fingerprint analog candidates for Connecting Ridge, Jezero and Arcadia. Radar comparison not completed (Mode C); the terrain encoder is experimental (G5 FAIL) and unranked.
 
-Live app: https://terraluna-lovat.vercel.app. Every number in the app is read from one versioned, checksummed release bundle, and the [paper](paper/) is generated from the same pipeline outputs; the gate board on `/methods` shows every release gate, including those that failed or were not run.
+Live app: https://nasa.julianschmidt.cv. Every number in the app is read from one versioned, checksummed release bundle, and the [paper](paper/) is generated from the same pipeline outputs; the gate board on `/methods` shows every release gate, including those that failed or were not run.
 
 ## What it is
 
