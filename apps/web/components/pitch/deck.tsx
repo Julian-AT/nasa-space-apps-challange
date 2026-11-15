@@ -8,6 +8,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { EarthIcon, Tick02Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 
 import { ACCENT, EASE, FAINT, INK, LINE, MUTED, PAPER } from './bits';
 import { C, FigureCard, LineFigure, type LineSeries } from './figure';
@@ -98,21 +100,19 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
       steps: 1,
       bare: true,
       body: () => (
-        <div className="relative grid h-full grid-cols-[1fr_1fr] items-center gap-8">
-          <div className="flex flex-col gap-7">
-            <In>
-              <h1 className="text-[6.5rem] font-medium leading-none tracking-[-0.045em]">Terraluna</h1>
-            </In>
-            <In d={0.12}>
-              <p className="text-[1.75rem] leading-snug tracking-[-0.01em]" style={{ color: MUTED }}>Find the Moon and Mars on Earth.</p>
-            </In>
+        <div className="grid h-full grid-cols-[1fr_1fr] items-center gap-8">
+          <div className="flex flex-col pl-[4vw]">
+            <span className="flex size-11 items-center justify-center rounded-[10px]" style={{ background: INK }}>
+              <HugeiconsIcon icon={EarthIcon} size={24} color={PAPER} strokeWidth={1.6} />
+            </span>
+            <h1 className="mt-8 text-[6rem] font-medium leading-none tracking-[-0.02em]" style={{ color: INK }}>Terraluna</h1>
+            <p className="mt-6 text-[1.875rem] font-normal leading-snug" style={{ color: MUTED }}>Find the Moon and Mars on Earth.</p>
+            <span className="mt-12 block h-px w-16" style={{ background: LINE }} />
+            <p className="mt-5 text-base" style={{ color: FAINT }}>NASA Space Apps 2026, Team Terraluna</p>
           </div>
-          <In d={0.2} className="relative mx-auto aspect-square h-[78vh] max-w-full">
+          <div className="relative mx-auto aspect-square h-[78vh] max-w-full">
             <EarthHero className="absolute inset-0" />
-          </In>
-          <p className="absolute bottom-0 left-0 text-sm" style={{ color: FAINT }}>
-            NASA Space Apps 2026, Team Terraluna
-          </p>
+          </div>
         </div>
       ),
     },
@@ -120,25 +120,36 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
       id: 'problem',
       steps: 1,
       body: () => (
-        <Frame title="Problem">
-          <div className="flex h-full flex-col justify-center gap-20 pb-[4vh]">
-            <In d={0.1}>
-              <p className="max-w-[60rem] text-[2.25rem] font-normal leading-[1.25] tracking-[-0.02em]">
-                Astronauts and rovers train on Earth first. But <span style={{ color: ACCENT }}>which place on Earth really matches the target?</span>
-              </p>
-            </In>
-            <div className="grid grid-cols-3 gap-10">
+        <Frame title="Where on Earth should astronauts practise?" sub="Analog sites are chosen by experience. We measure them.">
+          <div className="flex h-full flex-col justify-center gap-8 pb-[4vh]">
+            <div className="overflow-hidden rounded-xl border bg-white" style={{ borderColor: LINE }}>
+              <div className="grid grid-cols-[14rem_1fr_1fr] px-10 pt-8 pb-5 text-lg font-medium">
+                <span />
+                <span style={{ color: INK }}>Today</span>
+                <span style={{ color: ACCENT }}>With Terraluna</span>
+              </div>
               {[
-                { big: String(d.targets.length), unit: 'target sites', caption: d.targets.map((t) => `${t.name} (${BODY[t.body]})`).join(', ') },
-                { big: 'By eye', unit: 'how analogs are picked', caption: 'Chosen by experience, not by one shared terrain measure.' },
-                { big: 'Any', unit: 'point on Earth', caption: 'Terraluna measures it live in the browser, in seconds.' },
-              ].map((c, k) => (
-                <In key={c.unit} d={0.2 + k * 0.08} className="flex flex-col gap-2 border-t pt-5">
-                  <span className="mb-2 size-2 rounded-full" style={{ background: [C.orange, C.green, C.blue][k] }} />
-                  <span className="text-[3.5rem] font-medium leading-none tracking-[-0.03em]">{c.big}</span>
-                  <span className="mt-1 text-lg">{c.unit}</span>
-                  <span className="max-w-[22rem] text-base leading-snug" style={{ color: FAINT }}>{c.caption}</span>
-                </In>
+                ['How sites are chosen', 'Expert experience and field reports', 'A measured terrain fingerprint'],
+                ['What you can compare', 'A handful of known analog sites', 'Any point on Earth, in seconds'],
+                ['Evidence', 'Descriptions and photos', 'An evidence card with distances and figures'],
+              ].map(([label, today, ours]) => (
+                <div key={label} className="mx-10 grid grid-cols-[14rem_1fr_1fr] items-baseline border-t py-7" style={{ borderColor: LINE }}>
+                  <span className="text-sm font-medium uppercase tracking-[0.06em]" style={{ color: FAINT }}>{label}</span>
+                  <span className="pr-8 text-[1.375rem] leading-snug" style={{ color: MUTED }}>{today}</span>
+                  <span className="flex items-baseline gap-3 text-[1.375rem] leading-snug" style={{ color: INK }}>
+                    <HugeiconsIcon icon={Tick02Icon} size={20} color={C.green} strokeWidth={2} className="shrink-0 translate-y-[3px]" />
+                    {ours}
+                  </span>
+                </div>
+              ))}
+              <div className="h-3" />
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="mr-2 text-sm" style={{ color: FAINT }}>Targets</span>
+              {d.targets.map((t) => (
+                <span key={t.name} className="rounded-full border bg-white px-4 py-1.5 text-base" style={{ borderColor: LINE, color: MUTED }}>
+                  {t.name}, {BODY[t.body]}
+                </span>
               ))}
             </div>
           </div>
