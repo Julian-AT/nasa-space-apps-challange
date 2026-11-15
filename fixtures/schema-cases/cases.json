@@ -39,9 +39,9 @@
       "created_utc": "1970-01-01T00:00:00Z",
       "files": [
         {
-          "bytes": 1158,
+          "bytes": 1669,
           "path": "validation.json",
-          "sha256": "d49244039d7045d1ed46ac4322f9ca49fbc30e01d7e050e6967955417c44df77"
+          "sha256": "bbc6427414c1dab3ec53afa16d16960f8aebcd34322754243abc914c046eae7e"
         }
       ],
       "git_sha": null,
@@ -1204,7 +1204,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1214,11 +1217,23 @@
     "value": {
       "gate_id": "G0",
       "status": "NOT_APPLICABLE",
-      "evidence_path": null,
+      "evidence_path": "test/schema-case-evidence.json",
       "run_id": null,
       "scope": "schema case scope",
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": "python -m terraluna_pipeline.schema_case record",
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": [
+        {
+          "path": "config/run.yaml",
+          "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        },
+        {
+          "path": "test/schema-case-input.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
     }
   },
   {
@@ -1229,10 +1244,22 @@
       "gate_id": "G1",
       "status": "PARTIAL",
       "evidence_path": "test/schema-case-evidence.json",
-      "run_id": "schema-case-run",
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "scope": "schema case scope",
       "result": "schema case result",
-      "consequence": "schema case consequence"
+      "consequence": "schema case consequence",
+      "command": "python -m terraluna_pipeline.schema_case record",
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": [
+        {
+          "path": "config/run.yaml",
+          "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        },
+        {
+          "path": "test/schema-case-input.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
     }
   },
   {
@@ -1246,7 +1273,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1260,7 +1290,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1273,7 +1306,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1287,7 +1323,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1301,7 +1340,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1314,7 +1356,10 @@
       "evidence_path": null,
       "run_id": null,
       "scope": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1328,7 +1373,10 @@
       "run_id": null,
       "scope": null,
       "result": "",
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1342,7 +1390,10 @@
       "run_id": null,
       "scope": null,
       "result": 0,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1357,7 +1408,119 @@
       "scope": null,
       "result": null,
       "consequence": null,
-      "notes": "not a gate field"
+      "notes": "not a gate field",
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
+    }
+  },
+  {
+    "name": "gate-pass-with-provenance",
+    "schema": "GateRecord",
+    "valid": true,
+    "value": {
+      "gate_id": "G1",
+      "status": "PASS",
+      "evidence_path": "test/schema-case-evidence.json",
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "scope": "schema case scope",
+      "result": "schema case result",
+      "consequence": null,
+      "command": "python -m terraluna_pipeline.schema_case record",
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": [
+        {
+          "path": "config/run.yaml",
+          "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        },
+        {
+          "path": "test/schema-case-input.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    }
+  },
+  {
+    "name": "gate-pass-without-run-id",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G1",
+      "status": "PASS",
+      "evidence_path": "test/schema-case-evidence.json",
+      "run_id": null,
+      "scope": "schema case scope",
+      "result": "schema case result",
+      "consequence": null,
+      "command": "python -m terraluna_pipeline.schema_case record",
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": [
+        {
+          "path": "config/run.yaml",
+          "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        },
+        {
+          "path": "test/schema-case-input.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    }
+  },
+  {
+    "name": "gate-fail-without-command",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G1",
+      "status": "FAIL",
+      "evidence_path": "test/schema-case-evidence.json",
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "scope": "schema case scope",
+      "result": "schema case result",
+      "consequence": "schema case consequence",
+      "command": null,
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": [
+        {
+          "path": "config/run.yaml",
+          "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        },
+        {
+          "path": "test/schema-case-input.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    }
+  },
+  {
+    "name": "gate-partial-empty-input-hashes",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G1",
+      "status": "PARTIAL",
+      "evidence_path": "test/schema-case-evidence.json",
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "scope": "schema case scope",
+      "result": "schema case result",
+      "consequence": "schema case consequence",
+      "command": "python -m terraluna_pipeline.schema_case record",
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": []
+    }
+  },
+  {
+    "name": "gate-t0-seven-fields",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "status": "NOT_RUN",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": null,
+      "consequence": null
     }
   },
   {
@@ -1366,63 +1529,84 @@
     "valid": true,
     "value": [
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G0",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G1",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G2",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G3",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G4",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G5",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G6",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
@@ -1439,10 +1623,22 @@
         "gate_id": "G1",
         "status": "PARTIAL",
         "evidence_path": "test/schema-case-evidence.json",
-        "run_id": "schema-case-run",
+        "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         "scope": "schema case scope",
         "result": "schema case result",
-        "consequence": "schema case consequence"
+        "consequence": "schema case consequence",
+        "command": "python -m terraluna_pipeline.schema_case record",
+        "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "input_hashes": [
+          {
+            "path": "config/run.yaml",
+            "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+          },
+          {
+            "path": "test/schema-case-input.json",
+            "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          }
+        ]
       }
     ]
   },
@@ -1458,7 +1654,10 @@
         "run_id": null,
         "scope": null,
         "result": null,
-        "consequence": null
+        "consequence": null,
+        "command": null,
+        "config_version": null,
+        "input_hashes": []
       },
       {
         "gate_id": "G1",
@@ -1467,7 +1666,10 @@
         "run_id": null,
         "scope": null,
         "result": null,
-        "consequence": null
+        "consequence": null,
+        "command": null,
+        "config_version": null,
+        "input_hashes": []
       }
     ]
   },

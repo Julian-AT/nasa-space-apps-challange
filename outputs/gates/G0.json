@@ -1,0 +1,33 @@
+{
+  "command": "python -m terraluna_pipeline.gates attest-g0 --mode C --operator 'orchestrator, delegated by the team (docs/ralph/DECISIONS.md G0-01-RESULT, G0-02/04/05-RESULT)' --confirm I-RECORD-THE-G0-DECISION",
+  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "consequence": "the bundle ships in Mode C (PRD 4)",
+  "evidence_path": "outputs/gates/G0_attestation.json",
+  "gate_id": "G0",
+  "input_hashes": [
+    {
+      "path": "config/run.yaml",
+      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+    },
+    {
+      "path": "outputs/g0/earth-radar-roi.json",
+      "sha256": "b6b4d32cf3aabf475de896f6608a3194f5bd4ba41611c5e014c654f662194d69"
+    },
+    {
+      "path": "outputs/g0/web-evidence.json",
+      "sha256": "4feaa141ab6ddfa91a267e8a06741a2be33e377bcd815c6a3022a46a400571c3"
+    },
+    {
+      "path": "outputs/g0/windows-evidence.json",
+      "sha256": "670a8083ffae28dafd7f709a2c58e0c9bb98c0ae9e6b7c64ae0ff8f5c5f2ecff"
+    },
+    {
+      "path": "outputs/gates/G0_attestation.json",
+      "sha256": "73e716192bbf2a117d75dc3870e83463bc60198281018b7e59e15c06d9cf37c9"
+    }
+  ],
+  "result": "shipping mode C attested by orchestrator, delegated by the team (docs/ralph/DECISIONS.md G0-01-RESULT, G0-02/04/05-RESULT)",
+  "run_id": "sha256:8d2795078a857ddd00c26e83ebee68ea5751397ad942683034b3adae4445357f",
+  "scope": "G0 pilot decision (PRD 9): shipping mode, frozen target window, Earth search regions and the first-card Earth window, from the pilot evidence",
+  "status": "PASS"
+}
