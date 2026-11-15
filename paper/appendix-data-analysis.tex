@@ -1,9 +1,7 @@
 \section{Data analysis}
 \label{sec:appendix-data-analysis}
 
-This appendix reports the distributions behind the fingerprint. Every value is generated from the
-windows evidence record of the data pilot, the comparison record of the lunar target and the
-configuration; analyses whose records do not exist yet are named as such.
+This appendix reports the distributions behind the fingerprint. Every value is generated from the named analysis records, the windows evidence of the data pilot, the comparison record of the lunar target and the configuration, whose input digests are recorded; analyses whose records do not exist yet are named as such. All values here are Derived.
 
 \paragraph{Site and region distributions.} Table~\ref{tab:distributions} summarises the
 fingerprints of all \DistSiteReliefHCount{} windows of the lunar target site and all \DistHoluhraunReliefHCount{}
@@ -19,7 +17,7 @@ reproduction.
 
 \begin{table}[h]
 \centering
-\caption{Fingerprint distributions per site, over the eligible windows of each site. $\nu$ values
+\caption{Derived fingerprint distributions per site, over the eligible windows of each site. $\nu$ values
 are medians over windows, in metres, at the shortest and longest configured lag.}
 \label{tab:distributions}
 \footnotesize
@@ -27,10 +25,10 @@ are medians over windows, in metres, at the shortest and longest configured lag.
 \toprule
 Site & Variant & windows & $H$ min & $H$ median & $H$ max & median $\nu$ short, long \\
 \midrule
-Moon, target site & relief & \DistSiteReliefHCount & \DistSiteReliefHMin & \DistSiteReliefHMedian & \DistSiteReliefHMax & \DistSiteReliefNuShortMedian, \DistSiteReliefNuLongMedian \\
-Moon, target site & texture & \DistSiteTextureHCount & \DistSiteTextureHMin & \DistSiteTextureHMedian & \DistSiteTextureHMax & \DistSiteTextureNuShortMedian, \DistSiteTextureNuLongMedian \\
-Earth, Holuhraun & relief & \DistHoluhraunReliefHCount & \DistHoluhraunReliefHMin & \DistHoluhraunReliefHMedian & \DistHoluhraunReliefHMax & \DistHoluhraunReliefNuShortMedian, \DistHoluhraunReliefNuLongMedian \\
-Earth, Holuhraun & texture & \DistHoluhraunTextureHCount & \DistHoluhraunTextureHMin & \DistHoluhraunTextureHMedian & \DistHoluhraunTextureHMax & \DistHoluhraunTextureNuShortMedian, \DistHoluhraunTextureNuLongMedian \\
+Moon, target site & relief & \DistSiteReliefHCount{} & \DistSiteReliefHMin{} & \DistSiteReliefHMedian{} & \DistSiteReliefHMax{} & \DistSiteReliefNuShortMedian, \DistSiteReliefNuLongMedian{} \\
+Moon, target site & texture & \DistSiteTextureHCount{} & \DistSiteTextureHMin{} & \DistSiteTextureHMedian{} & \DistSiteTextureHMax{} & \DistSiteTextureNuShortMedian, \DistSiteTextureNuLongMedian{} \\
+Earth, Holuhraun & relief & \DistHoluhraunReliefHCount{} & \DistHoluhraunReliefHMin{} & \DistHoluhraunReliefHMedian{} & \DistHoluhraunReliefHMax{} & \DistHoluhraunReliefNuShortMedian, \DistHoluhraunReliefNuLongMedian{} \\
+Earth, Holuhraun & texture & \DistHoluhraunTextureHCount{} & \DistHoluhraunTextureHMin{} & \DistHoluhraunTextureHMedian{} & \DistHoluhraunTextureHMax{} & \DistHoluhraunTextureNuShortMedian, \DistHoluhraunTextureNuLongMedian{} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -58,16 +56,16 @@ comparison is a sanity check, not a reproduction. The fingerprint's lags all lie
 
 \begin{table}[h]
 \centering
-\caption{Overlap coefficients between the bodies' fingerprint distributions over the windows read by the search. Short and long are relief $\ln \nu$ at the shortest and longest configured lag.}
+\caption{Derived overlap coefficients between the bodies' fingerprint distributions over the windows read by the search. Short and long are relief $\ln \nu$ at the shortest and longest configured lag.}
 \label{tab:overlap}
 \footnotesize
 \begin{tabular}{@{}lcccc@{}}
 \toprule
 Pair & relief $H$ & texture $H$ & relief $\ln \nu$ short & relief $\ln \nu$ long \\
 \midrule
-Earth and Moon & \OverlapEarthMoonReliefH & \OverlapEarthMoonTextureH & \OverlapEarthMoonNuShort & \OverlapEarthMoonNuLong \\
-Mars and Moon & \OverlapMarsMoonReliefH & \OverlapMarsMoonTextureH & \OverlapMarsMoonNuShort & \OverlapMarsMoonNuLong \\
-Earth and Mars & \OverlapEarthMarsReliefH & \OverlapEarthMarsTextureH & \OverlapEarthMarsNuShort & \OverlapEarthMarsNuLong \\
+Earth and Moon & \OverlapEarthMoonReliefH{} & \OverlapEarthMoonTextureH{} & \OverlapEarthMoonNuShort{} & \OverlapEarthMoonNuLong{} \\
+Mars and Moon & \OverlapMarsMoonReliefH{} & \OverlapMarsMoonTextureH{} & \OverlapMarsMoonNuShort{} & \OverlapMarsMoonNuLong{} \\
+Earth and Mars & \OverlapEarthMarsReliefH{} & \OverlapEarthMarsTextureH{} & \OverlapEarthMarsNuShort{} & \OverlapEarthMarsNuLong{} \\
 \bottomrule
 \end{tabular}
 \end{table}

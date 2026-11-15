@@ -17,13 +17,13 @@ NOT\_RUN, never a pass.}
 \toprule
 Gate & Status & What it checks \\
 \midrule
-Data pilot & \GateZeroStatus & real lunar and Earth products decoded with metadata, masks and units \\
-Conversion correctness & \GateOneStatus & radar conversions against independent fixtures \\
-Comparison eligibility & \GateTwoStatus & band, convention, geometry and support of each radar pair \\
-Literature check & \GateThreeStatus & reproduction of the Holuhraun facies overlap \\
-Shortlist and uncertainty & \GateFourStatus & candidate table, rank sensitivity and a counterexample \\
-Encoder promotion & \GateFiveStatus & the six conditions of Section~\ref{sec:results-ml} on test blocks \\
-Release consistency & \GateSixStatus & application, interface, exports and report agree \\
+Data pilot & \GateZeroStatus{} & real lunar and Earth products decoded with metadata, masks and units \\
+Conversion correctness & \GateOneStatus{} & radar conversions against independent fixtures \\
+Comparison eligibility & \GateTwoStatus{} & band, convention, geometry and support of each radar pair \\
+Literature check & \GateThreeStatus{} & reproduction of the Holuhraun facies overlap \\
+Shortlist and uncertainty & \GateFourStatus{} & candidate table, rank sensitivity and a counterexample \\
+Encoder promotion & \GateFiveStatus{} & the six conditions of Section~\ref{sec:results-ml} on test blocks \\
+Release consistency & \GateSixStatus{} & application, interface, exports and report agree \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -39,7 +39,7 @@ correlation between embedding and fingerprint distances reaches \GFiveRhoMin, th
 neighbours agree across seeds with a Jaccard index of at least \GFiveJaccardMin, and the encoder
 beats both frozen image baselines on the two probes with paired bootstrap intervals that exclude zero, the morphology gain having a positive lower bound, and the exported model matches the training model within the parity tolerance. These thresholds were fixed in the
 configuration before training. Table~\ref{tab:probes} reports the probes from the evaluation
-record. The encoder promotion gate is \GateFiveStatus, so the encoder is reported as experimental and every ranking in this paper uses the fingerprint alone. Its report follows the model card form of \citet{mitchell2019}, with intended use, evaluation conditions and limitations stated beside the metrics.
+record. The encoder promotion gate is \GateFiveStatus, so the encoder is reported as experimental and every ranking in this paper uses the fingerprint alone. The model report is built in the model card form of \citet{mitchell2019}, with intended use, evaluation conditions and limitations stated beside the metrics.
 
 \begin{table}[tbp]
 \centering
@@ -53,13 +53,13 @@ distances on cross body pairs.}
 \toprule
 Representation & Physics & Morphology & Body & Agreement \\
 \midrule
-Random initialisation & \RandomPhysRReliefMin & & & \\
-ImageNet ResNet & \ResNetPhysRReliefMin & & & \\
-DINO & \DinoPhysRReliefMin & & & \\
-Terraluna encoder & \EncoderPhysRReliefMin & \EncoderMorphGain & \EncoderBodyAcc & \EncoderAgreementRho \\
-Encoder without gradient reversal & & & \NoAdvBodyAcc & \\
+Random initialisation & \RandomPhysRReliefMin{} & & & \\
+ImageNet ResNet & \ResNetPhysRReliefMin{} & & & \\
+DINO & \DinoPhysRReliefMin{} & & & \\
+Terraluna encoder & \EncoderPhysRReliefMin{} & \EncoderMorphGain{} & \EncoderBodyAcc{} & \EncoderAgreementRho{} \\
+Encoder without gradient reversal & & & \NoAdvBodyAcc{} & \\
 \midrule
-Promotion threshold & \GFivePhysRMin & \GFiveMorphGainMin & \GFiveBodyAccMax & \GFiveRhoMin \\
+Promotion threshold & \GFivePhysRMin{} & \GFiveMorphGainMin{} & \GFiveBodyAccMax{} & \GFiveRhoMin{} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -82,12 +82,9 @@ cover rule is tightened moderately or only the Holuhraun region is searched; whe
 cell must be in an allowed class, or only Rosamond Dry Lake is searched, the window leaves the
 evaluated set. This stability is a frequency over the published height error model, not a
 probability that the window is an analog. It mostly shows that the clones move the target's
-statistics very little. The background percentile is \BestBackgroundPercentile{} and the spread of
-the target reference set is \BestReferenceSpread, because neither has been computed for this
-search, so the distance has not been set against the internal variation of the target.
+statistics very little. Neither the background percentile nor the spread of the target reference set has been computed for this search, so the distance has not been set against the internal variation of the target.
 
-The inspection recorded for the shortlist gate, which passed with status \GateFourStatus, examined
-this window as a counterexample. The target is one broad massif whose relief keeps growing with
+The shortlist and uncertainty gate (status \GateFourStatus) inspected this window as a counterexample. The target is one broad massif whose relief keeps growing with
 lag, while the candidate is a mostly flat plain crossed by narrow ridges and a trough, whose
 relief is close to the target's at the shortest lags but grows much more slowly with lag. Equation~\eqref{eq:distance} averages over lags and does not read the Hurst exponent, so a
 window that matches at short lags can rank first against a target that is rougher at long lags.
@@ -110,7 +107,7 @@ of one surface, and this pilot ranks on the fingerprint only.
 
 \begin{table}[tbp]
 \centering
-\caption{Fingerprints of the lunar target window and the first paired Earth window, on the
+\caption{Derived fingerprints of the lunar target window and the first paired Earth window, on the
 \ConfigGridM\,m grid over the \ConfigWindowM\,m window. $\nu$ is given at the shortest and longest
 configured lag.}
 \label{tab:first-pair}
@@ -119,8 +116,8 @@ configured lag.}
 \toprule
 Window & relief $\nu$ short & relief $\nu$ long & texture $\nu$ short & texture $\nu$ long & $H$ relief & $H$ texture \\
 \midrule
-Moon, target & \MoonTargetReliefNuShort & \MoonTargetReliefNuLong & \MoonTargetTextureNuShort & \MoonTargetTextureNuLong & \MoonTargetReliefH & \MoonTargetTextureH \\
-Earth, Holuhraun & \EarthCardReliefNuShort & \EarthCardReliefNuLong & \EarthCardTextureNuShort & \EarthCardTextureNuLong & \EarthCardReliefH & \EarthCardTextureH \\
+Moon, target & \MoonTargetReliefNuShort{} & \MoonTargetReliefNuLong{} & \MoonTargetTextureNuShort{} & \MoonTargetTextureNuLong{} & \MoonTargetReliefH{} & \MoonTargetTextureH{} \\
+Earth, Holuhraun & \EarthCardReliefNuShort{} & \EarthCardReliefNuLong{} & \EarthCardTextureNuShort{} & \EarthCardTextureNuLong{} & \EarthCardReliefH{} & \EarthCardTextureH{} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -153,13 +150,13 @@ Table~\ref{tab:probes}.}
 \toprule
 Variation & Physics & Body & Agreement \\
 \midrule
-Main configuration & \VarMainPhysR & \VarMainBodyAcc & \VarMainRho \\
-No physics head & \VarNoPhysPhysR & \VarNoPhysBodyAcc & \VarNoPhysRho \\
-No gradient reversal & \VarLambdaZeroPhysR & \VarLambdaZeroBodyAcc & \VarLambdaZeroRho \\
-Weaker gradient reversal & \VarLambdaTenthPhysR & \VarLambdaTenthBodyAcc & \VarLambdaTenthRho \\
-Stronger gradient reversal & \VarLambdaOnePhysR & \VarLambdaOneBodyAcc & \VarLambdaOneRho \\
-VICReg only & \VarVicregOnlyPhysR & \VarVicregOnlyBodyAcc & \VarVicregOnlyRho \\
-Physics head only & \VarPhysOnlyPhysR & \VarPhysOnlyBodyAcc & \VarPhysOnlyRho \\
+Main configuration & \VarMainPhysR{} & \VarMainBodyAcc{} & \VarMainRho{} \\
+No physics head & \VarNoPhysPhysR{} & \VarNoPhysBodyAcc{} & \VarNoPhysRho{} \\
+No gradient reversal & \VarLambdaZeroPhysR{} & \VarLambdaZeroBodyAcc{} & \VarLambdaZeroRho{} \\
+Weaker gradient reversal & \VarLambdaTenthPhysR{} & \VarLambdaTenthBodyAcc{} & \VarLambdaTenthRho{} \\
+Stronger gradient reversal & \VarLambdaOnePhysR{} & \VarLambdaOneBodyAcc{} & \VarLambdaOneRho{} \\
+VICReg only & \VarVicregOnlyPhysR{} & \VarVicregOnlyBodyAcc{} & \VarVicregOnlyRho{} \\
+Physics head only & \VarPhysOnlyPhysR{} & \VarPhysOnlyBodyAcc{} & \VarPhysOnlyRho{} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -167,8 +164,7 @@ Physics head only & \VarPhysOnlyPhysR & \VarPhysOnlyBodyAcc & \VarPhysOnlyRho \\
 \subsection{Held out body}
 \label{sec:results-heldout}
 
-A run trained on the Moon and Earth only and probed on Mars tests whether the physics probe
-transfers to a body the encoder has not seen. Its relief probe \Rsq{} on Mars is \HeldOutMarsR.
+A run trained on the Moon and Earth only and probed on Mars is planned to test whether the physics probe transfers to a body the encoder has not seen. The smallest relief probe \Rsq{} on Mars in the evaluation record is \HeldOutMarsR.
 
 \subsection{Radar context for the lunar target}
 \label{sec:results-radar}
@@ -194,8 +190,6 @@ for spiny and \HoluhraunUndiffMedian{} for undifferentiated lava. The pairwise d
 overlaps are \HoluhraunOverlapRS\%, \HoluhraunOverlapRU\% and \HoluhraunOverlapSU\% (rubbly and
 spiny, rubbly and undifferentiated, spiny and undifferentiated). Applied to the published radar
 values of that study, the same overlap definition gives \PublishedOverlapRS\%,
-\PublishedOverlapRU\% and \PublishedOverlapSU\%. Two of our three overlaps exceed the published comparators and one is slightly lower, so our facies are not markedly better separated than the published ones, which is the plausibility condition of the check, but the overlaps differ in detail; the authors' mosaic combined two data takes, their bin and filter choices are
-not stated, and the handedness convention is not verified against theirs. The literature check
-gate is \GateThreeStatus, and its record lists these reasons. Mini-RF and UAVSAR also differ in band, look geometry
+\PublishedOverlapRU\% and \PublishedOverlapSU\%. Two of our three overlaps exceed the published comparators and one is slightly lower, so our facies are not markedly better separated than the published ones, which is the plausibility condition of the check, but the overlaps differ in detail; the authors' mosaic combined two data takes, their histogram binning and whether their low pass filter acts on CPR or on the covariance are not stated, and the handedness convention is not verified against theirs. The literature check gate is \GateThreeStatus{} because its shadow behaviour part is unavailable without a permanent shadow product; its Holuhraun part is recorded as consistent. Mini-RF and UAVSAR also differ in band, look geometry
 and processing, so even a completed comparison would show the signatures side by side rather than
 as a distance.

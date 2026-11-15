@@ -1,0 +1,30 @@
+{
+  "task_id": "T16-paper-codex-citations",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "head_reviewed": "working tree before 7ecc8fd",
+    "files": []
+  },
+  "started_utc": null,
+  "finished_utc": null,
+  "status": "DONE",
+  "not_run_reason": null,
+  "verdict": "changes requested; resolved",
+  "summary": "Citation check: each \\cite against the supports and abstract of its record in paper/reference-verification.json. Sentences that said more than the record supports (Kreslavsky absolute slope, Campbell mechanisms, Fa 'most probably', Shukla scope, Ganin placement, CraterBench-R scope, topo2vec Earth, GEAR labels, DINO and ViT attribution, Copernicus snow, Ames Stereo Pipeline quality) and two Background sentences about the paper's own design.",
+  "checks": [
+    "read-only codex exec, report only"
+  ],
+  "findings": [
+    {
+      "count": 32,
+      "severity": "mixed",
+      "resolution": "Fixed in 7ecc8fd; data table citations kept as data-source citations (rebutted: they cite the product, not a claim).",
+      "fixed_in": "7ecc8fd"
+    }
+  ]
+}

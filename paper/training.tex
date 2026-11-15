@@ -7,11 +7,29 @@ is a generated macro; a value that the training record does not contain yet is p
 
 \paragraph{Data and batching.} Training windows are drawn from the training blocks of the spatial
 split of Section~\ref{sec:data}, with each batch balanced so that each body contributes a third of
-its windows. The training split holds \DatasetMoonWindows{} lunar, \DatasetMarsWindows{} Martian and \DatasetEarthWindows{} terrestrial windows (Section~\ref{sec:data}); building the dataset took at most \DatasetCpuHours{} CPU hours by its manifest. Physics targets are computed for every window by the same fingerprint code that ranks
+its windows. The training split holds \DatasetMoonWindows{} lunar, \DatasetMarsWindows{} Martian and \DatasetEarthWindows{} terrestrial windows (Section~\ref{sec:data}); the manifest records an upper estimate of about \DatasetCpuHours{} CPU hours for building the dataset. Physics targets are computed for every window by the same fingerprint code that ranks
 candidates (Section~\ref{sec:fingerprint}) and standardised with statistics of the training blocks
 only. Morphology labels, the crater densities of the lunar and Martian crater catalogues \citep{robbins2019,robbins2012}, are reserved for the probes and never used in training; the evaluation code records the morphology probe as unavailable until these labels are built.
 
-\paragraph{Hardware and schedule.} No GPU cluster was available. Training therefore runs on CPUs at a reduced scope. The training record gives the device as \TrainDevice, \TrainEpochs{} epochs with batches of \TrainBatch{} windows, and \TrainHours{} hours of wall clock time. The
+\paragraph{Hardware and schedule.} No GPU cluster was available. Training therefore runs on CPUs at a reduced scope. Table~\ref{tab:training} gives the schedule as the evaluation record states it.
+
+\begin{table}[tbp]
+\centering
+\caption{Training schedule from the evaluation record of the frozen model.}
+\label{tab:training}
+\footnotesize
+\begin{tabular}{@{}ll@{}}
+\toprule
+Item & Value \\
+\midrule
+Device & \TrainDevice{} \\
+Epochs & \TrainEpochs{} \\
+Batch size & \TrainBatch{} \\
+Wall clock hours & \TrainHours{} \\
+Backbone parameters & \EncoderParams{} \\
+\bottomrule
+\end{tabular}
+\end{table} The
 planned grid covers seeds \ConfigSeeds{} of the main configuration and the adversarial weights
 \ConfigLambdas; Section~\ref{sec:results-variations} lists which runs exist.
 

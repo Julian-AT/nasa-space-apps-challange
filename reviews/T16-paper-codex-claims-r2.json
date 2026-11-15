@@ -1,0 +1,30 @@
+{
+  "task_id": "T16-paper-codex-claims",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "head_reviewed": "working tree before daef750",
+    "files": []
+  },
+  "started_utc": null,
+  "finished_utc": null,
+  "status": "DONE",
+  "not_run_reason": null,
+  "verdict": "changes requested; resolved",
+  "summary": "Second claims audit on the updated manuscript. Evidence labels in captions, VICReg normalisation, target exclusion as recorded, G3 PARTIAL reason, deployment presented as planned, awkward not-available sentences.",
+  "checks": [
+    "read-only codex exec, report only"
+  ],
+  "findings": [
+    {
+      "count": 22,
+      "severity": "mixed",
+      "resolution": "Fixed in daef750.",
+      "fixed_in": "daef750"
+    }
+  ]
+}

@@ -15,7 +15,7 @@ are $\operatorname{asinh}(z / s)$ of the plane removed heights with $s = 50$\,m,
 in Python and in the browser, feeds training and the live probe.
 
 \paragraph{Backbone and heads.} The backbone is a ResNet-18 \citep{he2015} at half width, with
-stages of 32, 64, 128 and 256 channels, batch normalisation \citep{ioffe2015} and a three by three stem without max pooling for the small input. The specified stem stride is one; a stride of two, which quarters the compute and leaves the parameter count unchanged, is allowed as a recorded deviation for training on CPUs. Global average pooling gives the embedding $h \in \mathbb{R}^{256}$, which is
+stages of 32, 64, 128 and 256 channels, batch normalisation \citep{ioffe2015} and a three by three stem without max pooling for the small input. The specified stem stride is one; a stride of two, which reduces the spatial computation of the backbone and leaves the parameter count unchanged, is allowed as a recorded deviation for training on CPUs. Global average pooling gives the embedding $h \in \mathbb{R}^{256}$, which is
 L2 normalised for retrieval. A three layer projector of width 2048 maps $h$ to $z$ for the VICReg
 loss. A two layer physics head predicts the eleven standardised physics targets: $\ln \nu$ of
 relief and texture at the five lags and the relief Hurst exponent. A two layer body head predicts
@@ -24,7 +24,7 @@ which of the three bodies a window came from, behind a gradient reversal layer \
 \paragraph{Objective.} For two augmented views of one window with projections $z, z'$ over a
 batch of $n$ windows and dimension $d$, the VICReg loss \citep{bardes2021} is
 \begin{align}
-  \mathcal{L}_{\mathrm{V}} &= \lambda_{\mathrm{inv}}\, \frac{1}{n} \sum_{i} \lVert z_i - z'_i \rVert_2^2
+  \mathcal{L}_{\mathrm{V}} &= \lambda_{\mathrm{inv}}\, \frac{1}{n d} \sum_{i} \lVert z_i - z'_i \rVert_2^2
   + \lambda_{\mathrm{var}}\,\bigl(v(z) + v(z')\bigr) + \lambda_{\mathrm{cov}}\,\bigl(c(z) + c(z')\bigr),
   \label{eq:vicreg}\\
   v(z) &= \frac{1}{d} \sum_{j=1}^{d} \max\bigl(0,\, 1 - \sqrt{\operatorname{Var}(z_{\cdot j}) + \epsilon}\bigr),

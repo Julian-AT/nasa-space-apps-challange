@@ -11,7 +11,7 @@ what evidence. Quantitative studies show how hard the comparison is: even three 
 one Icelandic flow field overlap by 88\% to 89\% in their radar polarization ratio
 \citep{tolometti2022holuhraun}.
 
-Roughness statistics are the natural quantitative starting point. Roughness has been reported at stated baselines from terrain data on Earth, the Moon and Mars \citep{shepard2001,rosenburg2011,kreslavsky2000}, and the structure function of elevation and its Hurst exponent can be measured the same way on all three bodies. They are second order statistics, however. They summarise how height
+Roughness statistics are the natural quantitative starting point. Roughness has been reported at stated baselines from terrain data on Earth, the Moon and Mars \citep{shepard2001,rosenburg2011,kreslavsky2000}, and the structure function of elevation and its Hurst exponent can be computed with shared definitions on all three bodies, while each product keeps its own instrument, processing and support. They are second order statistics, however. They summarise how height
 differences grow with lag and do not determine whether a surface is cratered, ridged or covered in flows, so two windows can be close in every statistic and still differ in the morphology that matters for a traverse. Learned representations can carry morphology. Recent lunar foundation models are trained on lunar data \citep{gironamata2026,fraccaro2026}, and a learned terrain analog retrieval works between two terrestrial regions \citep{liu2026}; a learned similarity across bodies is only useful if it can be checked against physics.
 
 We take up both routes for one lunar target, under one set of declared rules: every distance names
@@ -19,11 +19,11 @@ its observable and its supported lags, missing evidence is never read as zero, a
 this paper is generated from a committed artifact. The system that produces the artifacts
 (Figure~\ref{fig:system-overview}) runs the heavy science offline in Python and is designed to hand a single versioned, checksummed release bundle to a web application, where a browser worker computes the
 same fingerprint for any Earth location on request. This paper is about the measurements and the
-encoder, not the application. Its contributions are two measured results and one preregistered test.
+encoder, not the application. Its contributions are two measured results and one evaluation protocol fixed in advance.
 First, a deterministic fingerprint of relief and texture compares the Connecting Ridge target
 window with \ComparedCount{} eligible Earth windows and returns a shortlist of
 \ShortlistCount{} candidate window, with the closest relief distance \BestReliefDistance{} against
 a median of \ReliefDistanceMedian{} (Section~\ref{sec:results-retrieval}). Second, a radar availability audit decodes the
 Mini-RF mosaic over the site and a UAVSAR scene over Holuhraun, and records why a radar comparison
-could not be qualified within the study (Section~\ref{sec:results-radar}). Third, a terrain encoder for Moon, Mars and Earth elevation with a physics head and a gradient reversal body head is held to a promotion rule fixed before training; at the time of writing its gate status is \GateFiveStatus
+could not be qualified within the study (Section~\ref{sec:results-radar}). Third, a terrain encoder for Moon, Mars and Earth elevation with a physics head and a gradient reversal body head is held to a promotion rule fixed before training; at the time of writing its gate status is \GateFiveStatus{}
 (Section~\ref{sec:results-ml}).
