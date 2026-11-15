@@ -101,7 +101,7 @@ function FromShadowAstra({ className }: { className?: string }) {
 }
 
 function H2({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <h2 className={`split-reveal text-[clamp(30px,4.2vw,62px)] leading-[1.03] font-medium tracking-[-0.038em] ${className ?? ""}`}>{children}</h2>;
+  return <h2 className={`split-reveal text-3xl sm:text-4xl leading-[1.03] font-medium tracking-[-0.038em] ${className ?? ""}`}>{children}</h2>;
 }
 
 function Em({ children }: { children: React.ReactNode }) {
@@ -198,7 +198,7 @@ function Numbers() {
             <GlyphTile>
               <s.icon size={18} strokeWidth={1.5} />
             </GlyphTile>
-            <div className="mt-7 font-mono text-[clamp(34px,4.4vw,64px)] leading-none font-light tracking-tight text-platinum">
+            <div className="mt-7 font-mono text-3xl sm:text-4xl leading-none font-light tracking-tight text-platinum">
               <Counter value={s.n} decimals={s.d} suffix={s.s} duration={1.8} />
             </div>
             <div className="mt-3 text-sm text-platinum">{s.label}</div>
@@ -433,7 +433,6 @@ function MeetAstra() {
     <Section id="meet-astra">
       <div className="grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr]">
         <div data-theme="dark" className="relative overflow-hidden rounded-3xl border border-line bg-void">
-          <div className="absolute inset-x-0 bottom-0 h-28 bg-[url(/textures/moon_lroc_1k.webp)] bg-[length:200%] bg-[position:30%_60%] opacity-30 [mask-image:linear-gradient(to_top,black,transparent)]" />
           <div className="relative grid min-h-[460px] place-items-center p-8">
             <div className="flex flex-col items-center">
               <AnimatePresence mode="wait">
@@ -441,7 +440,7 @@ function MeetAstra() {
                   {m.say}
                 </motion.p>
               </AnimatePresence>
-              <Astronaut size={240} mood={m.mood} action={m.action} />
+              <Astronaut size={64} mood={m.mood} action={m.action} />
             </div>
           </div>
         </div>
@@ -546,7 +545,7 @@ function FalseFriend() {
                 className={`group block w-full border-l pl-6 text-left transition-colors duration-700 ease-[cubic-bezier(.22,1,.36,1)] ${step === k ? "border-flare" : "border-line"}`}
               >
                 <div className={`font-mono text-xs ${step === k ? "text-flare" : "text-dim"}`}>{s.k}</div>
-                <div className={`mt-1 text-[clamp(22px,2.4vw,34px)] leading-tight font-medium tracking-tight transition-colors duration-700 ${step === k ? "text-platinum" : "text-chrome group-hover:text-platinum"}`}>{s.title}</div>
+                <div className={`mt-1 text-2xl leading-tight font-medium tracking-tight transition-colors duration-700 ${step === k ? "text-platinum" : "text-chrome group-hover:text-platinum"}`}>{s.title}</div>
                 <p className={`mt-2 max-w-md text-[15px] leading-relaxed transition-colors duration-700 ${step === k ? "text-chrome" : "text-dim"}`}>{s.text}</p>
               </button>
             ))}
@@ -554,7 +553,7 @@ function FalseFriend() {
         </div>
         <div className="relative">
           <div className="absolute -top-28 right-6 z-10 hidden md:block">
-            <Astronaut size={104} {...astra[step]} sayAlign="left" />
+            <Astronaut size={64} {...astra[step]} sayAlign="left" />
           </div>
           <div className="surface rounded-2xl p-6 md:p-8">
             <div className="flex items-center justify-between font-mono text-[10px] tracking-widest text-dim uppercase">
@@ -780,9 +779,7 @@ function Library() {
       <div className="scrollbar-thin mt-14 flex snap-x gap-4 overflow-x-auto px-4 pb-6 sm:px-6 lg:px-[max(24px,calc((100vw-1400px)/2+24px))]">
         {EARTH_SITES.map((s) => (
           <Link key={s.id} href={`/lab?earth=${s.id}&target=${s.pairs[0]}`} className="surface group relative w-[300px] shrink-0 snap-start overflow-hidden rounded-2xl">
-            <div className="relative h-44 overflow-hidden">
-              <img src={`/shadowastra/thumbs/${s.id}.webp`} alt={`NASA Blue Marble view around ${s.name}`} loading="lazy" className="size-full object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.04]" />
-              <div className="absolute inset-0 bg-gradient-to-t from-panel via-transparent to-transparent" />
+            <div className="relative h-12 overflow-hidden">
               <div className="absolute top-3 left-3 flex gap-1.5">
                 {s.worlds.map((w) => (
                   <span key={w} className="flex items-center gap-1.5 rounded-full bg-void/75 px-2 py-0.5 text-[10px] tracking-wide text-platinum uppercase backdrop-blur">
@@ -923,9 +920,9 @@ function FinalCta() {
       <div className="relative mx-auto max-w-[1000px] text-center">
         <FromShadowAstra className="text-center" />
         <div className="mb-8 flex justify-center">
-          <Astronaut size={110} mood="happy" action="celebrate" />
+          <Astronaut size={64} mood="happy" action="celebrate" />
         </div>
-        <h2 className="split-reveal text-[clamp(36px,6vw,92px)] leading-[0.98] font-medium tracking-[-0.045em]">
+        <h2 className="split-reveal text-4xl sm:text-5xl leading-[0.98] font-medium tracking-[-0.045em]">
           Find where Earth <span className="font-serif font-normal text-flare italic">can teach us.</span>
         </h2>
         <div data-reveal className="mt-10 flex flex-wrap justify-center gap-3">

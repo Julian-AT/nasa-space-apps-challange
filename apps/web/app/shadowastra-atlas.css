@@ -539,3 +539,106 @@ body:has(.sa-ui, .sa-atlas)::before {
   border-color: var(--input);
   background-color: color-mix(in oklab, var(--input) 30%, transparent);
 }
+
+/* Clean shadcn pass: Geist sans only, flat cards, no blur, no decorative gradients or imagery. */
+.sa-ui,
+.sa-atlas {
+  --font-serif: var(--font-sans);
+  --font-wide: var(--font-sans);
+  font-family: var(--font-sans);
+}
+.sa-ui :is(.font-serif, .font-wide, .font-bn),
+.sa-atlas :is(.font-serif, .font-wide, .font-bn) {
+  font-family: var(--font-sans) !important;
+  font-style: normal !important;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+.sa-ui .italic,
+.sa-atlas .italic {
+  font-style: normal;
+}
+/* Tracked uppercase mono eyebrows become plain small muted labels. */
+.sa-ui .uppercase[class*="tracking-["],
+.sa-atlas .uppercase[class*="tracking-["] {
+  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+.sa-ui [class*="tracking-[0.3em]"],
+.sa-ui [class*="tracking-[0.42em]"],
+.sa-atlas [class*="tracking-[0.3em]"],
+.sa-atlas [class*="tracking-[0.42em]"] {
+  letter-spacing: 0.04em;
+}
+/* Glass and panels: opaque shadcn card/popover surfaces. */
+.sa-ui :is(.glass, .panel),
+.sa-atlas :is(.glass, .panel) {
+  background: var(--card);
+  color: var(--card-foreground);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: var(--radius-xl, calc(var(--radius) + 4px));
+}
+.sa-ui [class*="backdrop-blur"]:not(.leaflet-container *),
+.sa-atlas [class*="backdrop-blur"]:not(.leaflet-container *) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+/* Hand-rolled bordered boxes read as shadcn cards. */
+.sa-ui :is(div, section, article, aside, li).border:is(.rounded-2xl, .rounded-3xl, .rounded-xl, .rounded-\[28px\]),
+.sa-atlas :is(div, section, article, aside, li).border:is(.rounded-2xl, .rounded-3xl, .rounded-xl, .rounded-\[28px\]) {
+  border-radius: calc(var(--radius) + 4px);
+  border-color: var(--border);
+}
+.sa-ui :is(div, section, article, aside, li).border.bg-panel,
+.sa-ui :is(div, section, article, aside, li).border.bg-ink,
+.sa-atlas :is(div, section, article, aside, li).border.bg-panel,
+.sa-atlas :is(div, section, article, aside, li).border.bg-ink {
+  background-color: var(--card);
+}
+.sa-ui .surface,
+.sa-atlas .surface {
+  border-radius: calc(var(--radius) + 4px);
+}
+.sa-ui .rounded-2xl,
+.sa-atlas .rounded-2xl {
+  border-radius: calc(var(--radius) + 4px);
+}
+/* Page backgrounds are bg-background only. */
+.sa-ui,
+.sa-atlas {
+  background-color: var(--background);
+}
+.sa-ui [class*="bg-[radial-gradient"],
+.sa-atlas [class*="bg-[radial-gradient"],
+.sa-ui [aria-hidden="true"]:is(.bg-grid, [class*="noise"], [class*="starfield"]),
+.sa-atlas [aria-hidden="true"]:is(.bg-grid, [class*="noise"], [class*="starfield"]) {
+  display: none !important;
+}
+.sa-ui .animate-marquee,
+.sa-atlas .animate-marquee {
+  animation: none;
+}
+/* Decorative imagery: hidden when marked decorative (empty alt, aria-hidden). Data maps, globes
+   and figures carry descriptive alt text or render to canvas, so they stay. */
+.sa-ui img[alt=""]:not(.leaflet-container img):not([data-figure]),
+.sa-atlas img[alt=""]:not(.leaflet-container img):not([data-figure]),
+.sa-ui img[aria-hidden="true"]:not(.leaflet-container img),
+.sa-atlas img[aria-hidden="true"]:not(.leaflet-container img) {
+  display: none !important;
+}
+/* Hover lifts and glows are not part of the shadcn look. */
+.sa-ui :is(.surface, [class*="hover:-translate-y"]):hover,
+.sa-atlas :is(.surface, [class*="hover:-translate-y"]):hover {
+  transform: none !important;
+}
+.sa-ui [class*="shadow-[0"],
+.sa-atlas [class*="shadow-[0"] {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+}
+/* Empty frames left by hidden thumbnails collapse. */
+.sa-ui :is(span, div).overflow-hidden:has(> img[alt=""]:not([data-figure])):not(:has(> :not(img))),
+.sa-atlas :is(span, div).overflow-hidden:has(> img[alt=""]:not([data-figure])):not(:has(> :not(img))) {
+  display: none;
+}

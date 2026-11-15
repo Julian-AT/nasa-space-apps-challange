@@ -11,6 +11,7 @@ import { AnimatePresence, animate, motion } from "motion/react";
 import clsx from "clsx";
 import { ArrowLeft, ArrowRight, Bookmark, BookmarkCheck, Copy, ExternalLink, FileText, LocateFixed, MapPin, Plane, RotateCcw, Search, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
 import { WorldDot } from "@/components/shadowastra/ui/Chrome";
+import { Button } from "@/components/ui/button";
 import { FactorBreakdown, FactorProvenance } from "@/components/shadowastra/factors";
 import { TerralunaFingerprint, type TerralunaProbeProps } from "@/components/shadowastra/terraluna-fingerprint";
 import "@/components/shadowastra/shadowastra.css";
@@ -364,23 +365,9 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
   const still = useMotionReduced(); // Motion's own reduced mode leaves background loops running
   return (
     <section data-theme="dark" className="relative overflow-hidden bg-void">
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -top-24 -left-24 size-[340px] rounded-full opacity-70"
-        style={{ backgroundImage: "url(/shadowastra/textures/moon_lroc_1k.webp)", backgroundSize: "200% 100%", boxShadow: "inset -90px -20px 110px rgba(7,8,10,0.95)" }}
-        animate={{ backgroundPositionX: still ? "0%" : ["0%", "-200%"] }}
-        transition={{ duration: 160, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -right-28 bottom-10 size-[300px] rounded-full opacity-70 max-md:hidden"
-        style={{ backgroundImage: "url(/shadowastra/textures/mars_viking_1k.webp)", backgroundSize: "200% 100%", boxShadow: "inset 80px -20px 100px rgba(7,8,10,0.95)" }}
-        animate={{ backgroundPositionX: still ? "0%" : ["0%", "200%"] }}
-        transition={{ duration: 140, repeat: Infinity, ease: "linear" }}
-      />
       <div className="relative mx-auto max-w-[1180px] px-4 pt-20 pb-24 sm:px-6 md:pt-28">
         <div className="flex flex-col items-center text-center">
-          <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 0.1 }} className="mt-6 text-[clamp(38px,6vw,84px)] leading-[0.98] font-medium tracking-[-0.045em] text-platinum">
+          <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 0.1 }} className="mt-6 text-4xl sm:text-5xl leading-[0.98] font-medium tracking-[-0.045em] text-platinum">
             Where should we test?
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 0.2 }} className="mt-5 max-w-[620px] text-[17px] leading-relaxed text-chrome">
@@ -395,15 +382,9 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
               </li>
             ))}
           </motion.ol>
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: EASE, delay: 0.45 }}
-            onClick={onBuild}
-            className="btn-primary group mt-9 inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px] font-medium"
-          >
-            <Wand2 size={17} /> Build my mission <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-          </motion.button>
+          <Button size="lg" onClick={onBuild} className="mt-9">
+            <Wand2 /> Build my mission <ArrowRight />
+          </Button>
         </div>
 
         <div className="mt-16 flex items-center gap-4">
@@ -421,10 +402,8 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease: EASE, delay: 0.5 + i * 0.06 }}
                 onClick={() => onPreset(p)}
-                className="surface lift group relative flex min-h-[168px] overflow-hidden rounded-2xl text-left"
+                className="surface lift group relative flex min-h-[148px] overflow-hidden rounded-xl text-left"
               >
-                <TargetImage t={t} className="absolute inset-0 opacity-55 transition-[opacity,transform] duration-700 group-hover:scale-[1.05] group-hover:opacity-75" span={30} />
-                <div className="absolute inset-0 bg-gradient-to-t from-void via-void/70 to-void/10" />
                 <div className="relative flex w-full flex-col justify-end p-5">
                   <div className="flex items-center gap-2 text-[11px] text-chrome">
                     <WorldDot world={t.body} /> {t.body === "moon" ? "Moon" : "Mars"} · {t.name}
@@ -496,7 +475,6 @@ function DestinationStep({ world, setWorld, value, onPick, grid, onNext }: { wor
               aria-pressed={x.id === value}
               className={clsx("flex w-full items-center gap-3 rounded-xl border p-2 text-left transition-colors", x.id === value ? "border-flare/50 bg-flare/[0.07]" : "border-transparent hover:border-line-2 hover:bg-platinum/[0.03]")}
             >
-              <TargetImage t={x} className="size-11 shrink-0 rounded-lg" span={14} />
               <span className="min-w-0 flex-1">
                 <span className={clsx("block truncate text-[13px]", x.id === value ? "text-platinum" : "text-chrome")}>{x.name}</span>
                 <span className="block truncate text-[11px] text-dim">{x.kind}</span>

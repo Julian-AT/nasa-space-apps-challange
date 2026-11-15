@@ -6,11 +6,10 @@
 // No ShadowAstra team members, names or photos are shown.
 import { useRef } from "react";
 import Link from "next/link";
-import { motion, useTransform } from "motion/react";
+import { motion } from "motion/react";
 import { ArrowRight, ArrowUpRight, Bot, FileText, Fingerprint, Radar, Sparkles } from "lucide-react";
 import { Github } from "../atlas/ui/Chrome";
 import { Astronaut } from "../chrome/Astronaut";
-import { useSectionProgress } from "../../../lib/shadowastra-learn/useSectionProgress";
 import "../shadowastra.css";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -78,7 +77,7 @@ export default function AboutPage() {
       <Disclosure />
       <section className="relative overflow-hidden border-t border-line px-4 py-32 sm:px-6">
         <div className="relative mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-8">
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="text-[clamp(30px,4vw,60px)] leading-[1.02] font-medium tracking-[-0.04em]">
+          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="text-3xl sm:text-4xl leading-[1.02] font-medium tracking-[-0.04em]">
             Read the method <span className="font-serif font-normal text-flare italic">in full.</span>
           </motion.h2>
           <div className="flex flex-wrap gap-3">
@@ -102,27 +101,16 @@ export default function AboutPage() {
 
 function Hero() {
   const ref = useRef<HTMLElement>(null);
-  const scrollYProgress = useSectionProgress(ref, ["start start", "end start"]);
-  const y = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const fade = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   return (
     <section ref={ref} className="relative overflow-hidden border-b border-line">
-      {/* The real Moon (LROC mosaic), with a Sun sweeping around it, light and shadow. */}
-      <motion.div style={{ y, opacity: fade }} className="pointer-events-none absolute top-1/2 right-[-12%] hidden aspect-square w-[62vw] max-w-[860px] -translate-y-1/2 lg:block">
-        <div className="relative size-full overflow-hidden rounded-full">
-          <img src="/textures/moon_lroc_2k.webp" alt="" className="size-full scale-[1.35] object-cover opacity-60" />
-          <div className="absolute inset-0 animate-[sweep_22s_linear_infinite] rounded-full" style={{ background: "conic-gradient(from 0deg, rgba(242,200,121,0.28), rgba(7,8,10,0.0) 18%, rgba(7,8,10,0.85) 45%, rgba(7,8,10,0.9) 70%, rgba(242,200,121,0.0) 92%, rgba(242,200,121,0.28))", mixBlendMode: "multiply" }} />
-          <div className="absolute inset-0 rounded-full shadow-[inset_0_0_120px_60px_var(--color-void)]" />
-        </div>
-      </motion.div>
       <div className="relative mx-auto max-w-[1400px] px-4 pt-28 pb-24 sm:px-6 lg:pt-36 lg:pb-32">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} className="flex items-center gap-4 font-mono text-[11px] tracking-[0.24em] text-chrome uppercase">
           <span className="h-px w-8 bg-chrome/50" /> About Terraluna
         </motion.div>
-        <h1 className="mt-8 max-w-[900px] text-[clamp(40px,6vw,92px)] leading-[0.98] font-medium tracking-[-0.045em]">
+        <h1 className="mt-8 max-w-[900px] text-4xl sm:text-5xl leading-[0.98] font-medium tracking-[-0.045em]">
           <Words text="Team Terraluna." />
           <br />
-          <Words text="Earth terrain, measured against the Moon and Mars." className="font-serif font-normal tracking-[-0.02em] text-flare italic" delay={0.3} />
+          <Words text="Earth terrain, measured against the Moon and Mars." className="text-muted-foreground" delay={0.3} />
         </h1>
         <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: EASE, delay: 0.7 }} className="mt-8 max-w-[600px] text-[17px] leading-relaxed text-chrome">
           Terraluna is a NASA Space Apps 2026 project. It compares Earth terrain windows with Moon and Mars targets using roughness fingerprints from public elevation data, and labels every value with its evidence and claim limits.
@@ -143,7 +131,7 @@ function Crew() {
     <section className="border-b border-line px-4 py-28 sm:px-6">
       <div className="mx-auto max-w-[1400px]">
         <Kicker n="01">Team Terraluna</Kicker>
-        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="mt-6 text-[clamp(30px,4vw,58px)] leading-[1.03] font-medium tracking-[-0.038em]">
+        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="mt-6 text-3xl sm:text-4xl leading-[1.03] font-medium tracking-[-0.038em]">
           The crew, <span className="font-serif font-normal text-chrome italic">names to be added.</span>
         </motion.h2>
         <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-chrome">These cards are placeholders. The member names and roles will be filled in by the team.</p>
@@ -205,7 +193,7 @@ function Credits() {
       <div className="mx-auto grid max-w-[1400px] gap-14 lg:grid-cols-[0.75fr_1.25fr]">
         <div className="lg:sticky lg:top-28 lg:self-start">
           <Kicker n="03">Credits</Kicker>
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="mt-6 text-[clamp(28px,3.4vw,50px)] leading-[1.04] font-medium tracking-[-0.035em]">
+          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="mt-6 text-2xl sm:text-3xl leading-[1.04] font-medium tracking-[-0.035em]">
             Built on open work, <span className="font-serif font-normal text-chrome italic">credited by name.</span>
           </motion.h2>
           <p className="mt-5 max-w-md text-[15px] leading-relaxed text-chrome">

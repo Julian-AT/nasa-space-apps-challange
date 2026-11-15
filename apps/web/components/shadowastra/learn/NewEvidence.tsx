@@ -499,7 +499,7 @@ export function NewEvidence({ v, grid }: { v: Validation | null; grid: Grid | nu
     <section id="new-evidence" className="relative border-t border-line px-4 py-28 sm:px-6">
       <div className="mx-auto max-w-[1400px]">
         <Kicker n="04">New evidence</Kicker>
-        <h2 className="mt-6 max-w-[980px] text-[clamp(32px,4.4vw,64px)] leading-[1.02] font-medium tracking-[-0.04em]">
+        <h2 className="mt-6 max-w-[980px] text-3xl sm:text-4xl leading-[1.02] font-medium tracking-[-0.04em]">
           New data, new checks. <span className="font-serif font-normal text-flare italic">Each one tested before it counts.</span>
         </h2>
         <p className="mt-5 max-w-[720px] text-[15px] leading-relaxed text-chrome">

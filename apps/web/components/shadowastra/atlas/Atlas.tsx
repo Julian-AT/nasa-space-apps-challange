@@ -385,17 +385,14 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
               />
             </Section>
             <Section title="Practising for">
-              <div className="relative grid grid-cols-3 gap-1 rounded-xl border border-line bg-ink p-1">
+              <ToggleGroup type="single" variant="outline" size="sm" spacing={0} value={world} onValueChange={(v) => v && setWorld(v as WorldFilter)} aria-label="Practising for" className="grid w-full grid-cols-3">
                 {(["moon", "both", "mars"] as WorldFilter[]).map((w) => (
-                  <button key={w} onClick={() => setWorld(w)} aria-pressed={world === w} className={clsx("relative flex items-center justify-center gap-2 rounded-lg py-2 text-[13px] capitalize transition-colors duration-150", world === w ? "text-platinum" : "text-dim hover:text-chrome")}>
-                    {world === w && <motion.span layoutId="practise-pill" className="absolute inset-0 rounded-lg bg-platinum/[0.08]" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
-                    <span className="relative flex items-center gap-2">
-                      {w !== "both" && <WorldDot world={w} />}
-                      {w}
-                    </span>
-                  </button>
+                  <ToggleGroupItem key={w} value={w} aria-label={w} className="gap-2 capitalize">
+                    {w !== "both" && <WorldDot world={w} />}
+                    {w}
+                  </ToggleGroupItem>
                 ))}
-              </div>
+              </ToggleGroup>
             </Section>
 
             <Section title="Mission task" hint={task ? "clear" : undefined} onHint={() => setTask(null)}>
@@ -731,11 +728,11 @@ function WorldTitle({ body, shown, layer, left }: { body: Body; shown: number; l
   return (
     <div className={clsx("pointer-events-none absolute top-24 z-[550] hidden transition-[left] duration-500 lg:block", left ? "left-[336px]" : "left-8")}>
       <AnimatePresence mode="wait">
-        <motion.div key={body} initial="hide" animate="show" exit="hide" variants={{ show: { transition: { staggerChildren: 0.05 } }, hide: {} }}>
-          <motion.div variants={{ hide: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }} className="font-mono text-[10.5px] tracking-[0.26em] text-chrome uppercase">
+        <motion.div key={body} initial="hide" animate="show" exit="hide" variants={{ show: { transition: { staggerChildren: 0.05 } }, hide: {} }} className="w-fit max-w-[380px] rounded-xl border bg-card p-4 text-card-foreground shadow-xs">
+          <motion.div variants={{ hide: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }} className="text-xs text-muted-foreground">
             {WORLD_FACTS[body].kicker}
           </motion.div>
-          <div className="mt-1 flex overflow-hidden text-[clamp(56px,6.4vw,104px)] leading-[0.9] font-medium tracking-[-0.05em] text-platinum">
+          <div className="mt-1 flex overflow-hidden text-2xl font-semibold tracking-tight text-foreground">
             {name.split("").map((ch, i) => (
               <motion.span key={i} variants={{ hide: { y: "100%", opacity: 0 }, show: { y: "0%", opacity: 1 } }} transition={{ duration: 0.7, ease: EASE }}>
                 {ch}
@@ -957,7 +954,7 @@ function EarthDetail({ id, world, onTarget, onClose }: { id: string; world: Worl
   const gapsWorld: World = world === "both" ? s.worlds[0] : world;
   return (
     <div>
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative hidden h-48 overflow-hidden">
         <img src={`/shadowastra/thumbs/${s.id}.webp`} alt={`NASA Blue Marble regional view around ${s.name}`} className="size-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-void via-void/20 to-transparent" />
         <span className="absolute right-3 bottom-3 rounded-full bg-void/70 px-2 py-0.5 font-mono text-[10px] text-chrome backdrop-blur">
@@ -1135,10 +1132,6 @@ function ScreenDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const volc = grid && k >= 0 ? grid.volcano(k) : null;
   return (
     <div>
-      <div className="relative h-44 overflow-hidden">
-        <img src={`/shadowastra/thumbs/${r.id}.webp`} alt={`NASA Blue Marble regional view around ${r.name}`} className="size-full object-cover opacity-80" />
-        <div className="absolute inset-0 bg-gradient-to-t from-void via-void/20 to-transparent" />
-      </div>
       <div className="space-y-7 p-5">
         <PanelHeader eyebrow={`Region we checked · ${r.country}`} title={r.name} sub={formatCoord(r.lat, r.lon)} onClose={onClose} />
         <div>

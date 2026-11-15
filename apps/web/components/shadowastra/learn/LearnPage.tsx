@@ -230,7 +230,7 @@ export default function Learn() {
                 <LangSwitch lang={lang} setLang={setLang} />
               </div>
               <AnimatePresence mode="wait">
-                <motion.h1 key={lang} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.6, ease: EASE }} className={clsx("mt-7 font-medium", bn ? "text-[clamp(38px,6vw,76px)] leading-[1.15]" : "text-[clamp(44px,7vw,100px)] leading-[0.95] tracking-[-0.05em]")}>
+                <motion.h1 key={lang} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.6, ease: EASE }} className={clsx("mt-7 font-medium", bn ? "text-4xl sm:text-5xl leading-[1.15]" : "text-4xl sm:text-5xl leading-[0.95] tracking-[-0.05em]")}>
                   {t.h1a}
                   <br />
                   <span className={clsx("text-flare", !bn && "font-serif font-normal tracking-[-0.02em] italic")}>{t.h1b}</span>
@@ -250,10 +250,10 @@ export default function Learn() {
             </div>
             <div className="flex justify-center lg:justify-end">
               <div className="hidden lg:block">
-                <Astronaut size={190} mood="happy" action="wave" say={t.astra} sayAlign="left" />
+                <Astronaut size={64} mood="happy" action="wave" say={t.astra} sayAlign="left" />
               </div>
               <div className="lg:hidden">
-                <Astronaut size={140} mood="happy" action="wave" />
+                <Astronaut size={64} mood="happy" action="wave" />
               </div>
             </div>
           </div>
@@ -297,7 +297,7 @@ export default function Learn() {
                 ))}
               </div>
             </div>
-            <Astronaut size={120} mood="sad" action="slump" />
+            <Astronaut size={64} mood="sad" action="slump" />
           </div>
         </section>
 
@@ -387,7 +387,7 @@ function Quiz({ lang }: { lang: Lang }) {
           </div>
         ) : done ? (
           <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="mt-10 flex flex-col items-center gap-5 rounded-3xl border border-line bg-panel p-10 text-center">
-            <Astronaut size={130} mood={points >= 4 ? "happy" : "thinking"} action={points >= 4 ? "celebrate" : "idle"} />
+            <Astronaut size={64} mood={points >= 4 ? "happy" : "thinking"} action={points >= 4 ? "celebrate" : "idle"} />
             <div className={clsx("text-[40px] font-medium", !bn && "tracking-[-0.03em]")}>
               {t.got} {num(String(points), lang)} {bn ? `(${num(String(ROUNDS.length), lang)} ${t.of})` : `${t.of} ${ROUNDS.length}`}
             </div>
