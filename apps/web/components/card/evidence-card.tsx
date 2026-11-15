@@ -32,7 +32,7 @@ export interface EvidenceCardViewProps {
   /** manifest.bundle_version: the card record carries none. */
   readonly bundleVersion: string;
   /** validation.json's G5 status. */
-  readonly g5Gate: GateStatus;
+  readonly g5Gate: GateStatus | null;
   /** bundle.records.figures: 'figures/<name>.svg' to allowlisted SVG text. */
   readonly figures: ReadonlyMap<string, string>;
 }
@@ -298,7 +298,9 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
             Evidence card
           </span>
           <Badge data-slot="mode-pill" className="h-auto max-w-full py-1 whitespace-normal">
-            Mode {card.shipping_mode}: {MODE_TITLES[card.shipping_mode]}
+            {t.body === 'mars' && card.shipping_mode === 'C'
+              ? 'Mode C: terrain only; radar comparison not completed'
+              : `Mode ${card.shipping_mode}: ${MODE_TITLES[card.shipping_mode]}`}
           </Badge>
         </div>
         <h1 className="font-serif text-4xl leading-tight font-normal text-balance sm:text-6xl">{card.title}</h1>
@@ -311,7 +313,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
           </span>
         </div>
         <p className="font-mono text-[11px] tracking-wider text-muted-foreground uppercase">
-          Bundle version {bundleVersion} · G5 {g5Gate}
+          Bundle version {bundleVersion} · {g5Gate === null ? 'G5 not recorded' : `G5 ${g5Gate}`}
         </p>
         <p className="text-sm italic text-muted-foreground">{card.wording}</p>
       </header>

@@ -2,13 +2,13 @@
 
 **Gradient Descent · NASA Space Apps 2026**
 
-Earth analogs for lunar and Martian sites, using terrain fingerprints, a cross-planet terrain encoder and qualified radar evidence.
+Terrain-fingerprint analog candidates for Connecting Ridge, Jezero and Arcadia. Radar comparison not completed (Mode C); the terrain encoder is experimental (G5 FAIL) and unranked.
 
 ## Start building
 
 [PRD.md](PRD.md) defines the product and implementation backlog. Start with **section 12, T0** (repository and contracts) and **T1** (real-data pilot). Section 8 defines the architecture; section 23 defines the review workflow.
 
-Build toward one real evidence card flowing through the offline pipeline, a versioned release bundle and the web app. The application, pipeline and trained model are still to be built; T0 establishes runnable setup, test commands and CI.
+Build toward one real evidence card flowing through the offline pipeline, a versioned release bundle and the web app.
 
 The PRD specifies **Python 3.12 + uv** for offline science and training, and **Node 22 + pnpm** for the web app and shared TypeScript packages.
 

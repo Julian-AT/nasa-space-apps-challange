@@ -35,7 +35,7 @@ export default async function CardPage({ params }: Props) {
     <EvidenceCardView
       card={card}
       bundleVersion={bundle.manifest.bundle_version}
-      g5Gate={g5?.status ?? 'NOT_RUN'}
+      g5Gate={g5?.status ?? null}
       figures={bundle.records.figures}
     />
   );
