@@ -6,6 +6,8 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import "@/components/shadowastra/shadowastra.css";
+import "./lab.css";
+import { Badge } from "@/components/ui/badge";
 import { AnimatePresence, animate, motion } from "motion/react";
 import { useMotionReduced } from "@/lib/shadowastra/motionPref";
 import clsx from "clsx";
@@ -831,7 +833,7 @@ function CompareStage({
           <a
             href="#evidence"
             className={clsx(
-              "absolute bottom-12 z-[700] hidden -translate-x-1/2 items-center gap-2 rounded-full border border-line-2 bg-void/80 px-4 py-2 text-[12px] text-chrome backdrop-blur transition-colors hover:text-platinum lg:flex",
+              "absolute bottom-6 z-[700] hidden -translate-x-1/2 items-center gap-2 rounded-full border bg-card px-4 py-2 text-[12px] font-medium text-card-foreground no-underline shadow-lg transition-colors hover:bg-accent lg:flex",
               mode === "split" ? "left-3/4" : "left-1/2",
             )}
           >
@@ -844,28 +846,26 @@ function CompareStage({
   );
 }
 
-/** The glowing seam between the two worlds, with the live match score in the middle. */
+/** The seam between the two worlds, with the live match score in a card centred on it. */
 function Seam({ score, world }: { score: number | null; world: World }) {
-  const still = useMotionReduced();
   const R = 30;
   const CIRC = 2 * Math.PI * R;
   return (
-    <div className="pointer-events-none absolute inset-y-0 left-1/2 z-[650] hidden w-0 md:block">
-      <div className="absolute inset-y-0 -left-px w-[2px] bg-[linear-gradient(180deg,transparent,rgba(242,200,121,0.55)_30%,rgba(242,200,121,0.55)_70%,transparent)]" />
-      {/* moved with a transform (runs on the compositor), not `top`, which re-laid out the page every frame */}
-      <motion.div className="absolute inset-y-0 -left-[3px] w-[8px] will-change-transform" initial={{ transform: "translateY(45%)" }} animate={{ transform: still ? "translateY(45%)" : ["translateY(-10%)", "translateY(105%)"] }} transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }}>
-        <div className="h-24 w-full rounded-full bg-[radial-gradient(closest-side,rgba(255,236,200,0.9),transparent)] blur-[2px]" />
-      </motion.div>
-      <a href="#evidence" className="pointer-events-auto absolute top-1/2 left-0 grid size-[84px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-line-2 bg-void/80 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl transition-transform hover:scale-105">
-        <svg viewBox="0 0 72 72" className="absolute inset-0 m-auto size-[72px] -rotate-90">
-          <circle cx="36" cy="36" r={R} fill="none" style={{ stroke: "var(--color-line-2)" }} strokeWidth="3" />
-          <motion.circle cx="36" cy="36" r={R} fill="none" style={{ stroke: `var(--color-${world})` }} strokeWidth="3" strokeLinecap="round" strokeDasharray={CIRC} initial={{ strokeDashoffset: CIRC }} animate={{ strokeDashoffset: score === null ? CIRC : CIRC * (1 - score) }} transition={{ duration: 1.2, ease: EASE }} />
-        </svg>
-        <span className="relative text-center leading-none">
-          <span className="block font-mono text-[17px] text-platinum">{score === null ? "…" : <CountUp value={score} />}</span>
-          <span className="mt-1 block text-[9px] tracking-[0.18em] text-dim uppercase">match</span>
-          <span className="sr-only">, see the evidence</span>
+    <div className="pointer-events-none absolute inset-y-0 left-1/2 z-[800] hidden w-0 md:block">
+      <div className="absolute inset-y-0 -left-px w-[2px] bg-gradient-to-b from-transparent via-primary/60 to-transparent" />
+      <a
+        href="#evidence"
+        aria-label={score === null ? "Match score loading, see the evidence" : `Match score ${score.toFixed(2)} of 1, see the evidence`}
+        className="pointer-events-auto absolute top-1/2 left-0 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-2xl border bg-card px-3 pt-3 pb-2.5 text-card-foreground no-underline shadow-xl ring-1 ring-foreground/5 transition-transform hover:scale-[1.03] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      >
+        <span className="relative grid size-[72px] place-items-center">
+          <svg viewBox="0 0 72 72" className="absolute inset-0 size-[72px] -rotate-90" aria-hidden>
+            <circle cx="36" cy="36" r={R} fill="none" className="stroke-muted" strokeWidth="5" />
+            <motion.circle cx="36" cy="36" r={R} fill="none" style={{ stroke: `var(--color-${world})` }} strokeWidth="5" strokeLinecap="round" strokeDasharray={CIRC} initial={{ strokeDashoffset: CIRC }} animate={{ strokeDashoffset: score === null ? CIRC : CIRC * (1 - score) }} transition={{ duration: 1.2, ease: EASE }} />
+          </svg>
+          <span className="relative font-mono text-xl font-semibold tabular-nums text-foreground">{score === null ? "…" : <CountUp value={score} />}</span>
         </span>
+        <span className="text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">Match</span>
       </a>
     </div>
   );
@@ -1162,7 +1162,7 @@ function TerrainCard({
         <div
           data-theme="dark"
           className={clsx(
-            "relative bg-panel text-platinum",
+            "dark lab-stage relative",
             full.on ? (field ? "h-[60%] shrink-0 lg:h-auto lg:min-w-0 lg:flex-1" : "min-h-0 flex-1") : field ? "h-[600px] md:h-[660px]" : "h-[520px] md:h-[640px]",
           )}
         >
@@ -1848,9 +1848,17 @@ function ClimateLine({ grid, cell }: { grid: Grid; cell: number }) {
 /** Terraluna addition: provenance label and a pointer to Terraluna's own comparison. */
 function LabProvenance() {
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-4 pt-4 text-[12px] text-chrome sm:px-6">
-      <span className="rounded-full border border-line-2 px-2.5 py-1">ShadowAstra Atlas (MIT)</span>
-      <Link href="/compare" className="underline decoration-dotted underline-offset-4 hover:text-platinum">Terraluna terrain fingerprint comparison</Link>
-    </div>
+    <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 px-4 pt-6 pb-4 sm:px-6">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Compare in 3D</h1>
+        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Put an Earth field site beside a Moon or Mars target at the same scale, then test it in 3D with a rover.</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <Badge variant="outline">ShadowAstra model, not Terraluna evidence</Badge>
+        <span>Ported from ShadowAstra Atlas (MIT)</span>
+        <span aria-hidden>·</span>
+        <Link href="/compare" className="underline decoration-dotted underline-offset-4 hover:text-foreground">Terraluna fingerprint comparison</Link>
+      </div>
+    </header>
   );
 }
