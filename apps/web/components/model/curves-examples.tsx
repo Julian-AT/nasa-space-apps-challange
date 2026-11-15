@@ -173,7 +173,7 @@ export function ExamplesSection({ examples }: { readonly examples: Examples | nu
         <LabelledValue label="Unavailable" reason="examples.json lists no retrieval target" source="report/examples.json" />
       ) : (
         examples.retrieval_gallery.map((t) => (
-          <div key={t.target_id} data-retrieval-target={t.target_id} className="grid gap-4 rounded-xl border border-line bg-card p-4 md:grid-cols-2">
+          <div key={t.target_id} data-retrieval-target={t.target_id} className="grid gap-4 rounded-xl border bg-card p-4 text-card-foreground md:grid-cols-2">
             <h3 className="font-semibold md:col-span-2 wrap-anywhere">{t.target_id}</h3>
             <EntryList title="Deterministic top 5" entries={t.deterministic_top5} />
             <EntryList title="Encoder top 5 (EXPERIMENTAL)" entries={t.encoder_top5} />

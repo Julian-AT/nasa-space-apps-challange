@@ -8,7 +8,10 @@ import { EvidenceLabel } from '@/components/evidence-label';
 import { LabelledValue } from '@/components/labelled-value';
 import { PageHeader } from '@/components/page-header';
 import { Section } from '@/components/section';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import { G5Badge, ModelStats } from '@/components/home/model-section';
@@ -35,10 +38,11 @@ export function G5Status({ status }: { readonly status: string }) {
 function ExperimentalBanner({ g5 }: { readonly g5: GateRecord | null }) {
   const status = g5?.status ?? null;
   return (
-    <div data-slot="experimental" className="flex flex-col gap-3 rounded-2xl border border-evidence-predicted/60 bg-card p-6">
-      <p className="font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">Encoder status</p>
-      <p className="font-serif text-6xl leading-none text-evidence-predicted">EXPERIMENTAL</p>
-      <p className="flex flex-wrap items-center gap-3 text-lg">
+    <Card data-slot="experimental" className="ring-evidence-predicted/50">
+      <CardContent className="flex flex-col gap-3">
+      <p className="text-xs font-medium text-muted-foreground">Encoder status</p>
+      <p className="text-4xl leading-none font-semibold tracking-tight text-evidence-predicted sm:text-5xl">EXPERIMENTAL</p>
+      <p className="flex flex-wrap items-center gap-3 text-base">
         <span>Gate G5 status:</span>
         {status === null ? (
           <LabelledValue label="Unavailable" reason="validation.json has no G5 GateRecord" source="validation.json" />
@@ -55,17 +59,20 @@ function ExperimentalBanner({ g5 }: { readonly g5: GateRecord | null }) {
       </p>
       {g5?.result == null ? null : <p className="text-muted-foreground">G5 result: {g5.result}</p>}
       {g5?.consequence == null ? null : <p className="text-muted-foreground">Consequence: {g5.consequence}</p>}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
 function StatTile({ eyebrow, children, note }: { readonly eyebrow: string; readonly children: React.ReactNode; readonly note?: string }) {
   return (
-    <div data-slot="stat-tile" className="flex flex-col gap-2 rounded-xl border border-line bg-card p-4">
-      <p className="font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">{eyebrow}</p>
-      <p className="font-mono text-3xl">{children}</p>
+    <Card data-slot="stat-tile" size="sm">
+      <CardContent className="flex flex-col gap-2">
+      <p className="text-xs font-medium text-muted-foreground">{eyebrow}</p>
+      <p className="text-3xl font-semibold tracking-tight tabular-nums">{children}</p>
       {note === undefined ? null : <p className="text-sm text-muted-foreground">{note}</p>}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -123,28 +130,37 @@ function ConditionsTable({ metrics }: { readonly metrics: Metrics }) {
         )}
         .
       </p>
+      <Tabs defaultValue="cards">
+      <TabsList>
+        <TabsTrigger value="cards">At a glance</TabsTrigger>
+        <TabsTrigger value="table">Table</TabsTrigger>
+      </TabsList>
+      <TabsContent value="cards" forceMount className="data-[state=inactive]:hidden">
       <ol aria-label="G5 conditions at a glance" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {g5.conditions.map((c: Condition) => (
           <li
             key={`card-${String(c.condition)}-${c.test_id}`}
-            className={`surface flex flex-col gap-3 rounded-2xl border p-5 ${c.passed === true ? 'border-status-pass/50' : c.passed === false ? 'border-status-fail/50' : 'border-dashed border-status-not-run/50'}`}
+            className={`flex flex-col gap-3 rounded-xl border bg-card p-5 text-card-foreground ${c.passed === true ? 'border-status-pass/50' : c.passed === false ? 'border-status-fail/50' : 'border-dashed border-status-not-run/50'}`}
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="font-mono text-[11px] tracking-[0.16em] text-chrome uppercase">Condition {c.condition}</span>
+              <span className="text-xs font-medium text-muted-foreground">Condition {c.condition}</span>
               <Badge variant={c.passed === null ? 'not-run' : c.passed ? 'pass' : 'fail'}>
                 {c.passed === null ? 'not evaluated' : c.passed ? 'passed' : 'failed'}
               </Badge>
             </div>
-            <p className="text-lg leading-tight font-medium">{c.test_id.replaceAll('_', ' ')}</p>
-            <p className="font-mono text-sm text-chrome">
+            <p className="text-base leading-tight font-semibold">{c.test_id.replaceAll('_', ' ')}</p>
+            <p className="font-mono text-sm text-muted-foreground">
               {c.statistic}: {c.observed === null ? 'not recorded' : <N v={c.observed} />}
               {c.threshold === null ? '' : ' vs threshold '}
               {c.threshold === null ? null : <N v={c.threshold} />}
             </p>
-            {c.reason === null || c.reason === undefined ? null : <p className="text-xs text-chrome">{c.reason}</p>}
+            {c.reason === null || c.reason === undefined ? null : <p className="text-xs text-muted-foreground">{c.reason}</p>}
           </li>
         ))}
       </ol>
+      </TabsContent>
+      <TabsContent value="table" forceMount className="data-[state=inactive]:hidden">
+      <Card className="py-0">
       <Table>
         <TableCaption>G5 conditions as serialized in report/metrics.json</TableCaption>
         <TableHeader>
@@ -176,6 +192,9 @@ function ConditionsTable({ metrics }: { readonly metrics: Metrics }) {
           ))}
         </TableBody>
       </Table>
+      </Card>
+      </TabsContent>
+      </Tabs>
     </>
   );
 }
@@ -254,7 +273,7 @@ function MetricsTable({ caption, tests }: { readonly caption: string; readonly t
 
 function Field({ name, children }: { readonly name: string; readonly children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1 border-b border-line py-2 sm:flex-row sm:gap-6">
+    <div className="flex flex-col gap-1 border-b py-2.5 last:border-b-0 sm:flex-row sm:gap-6">
       <dt className="w-48 shrink-0 text-sm font-semibold text-muted-foreground">{name}</dt>
       <dd className="wrap-anywhere">{children}</dd>
     </div>
@@ -264,7 +283,7 @@ function Field({ name, children }: { readonly name: string; readonly children: R
 function CardFields({ card }: { readonly card: ModelRecord }) {
   const t = card.training_data;
   return (
-    <dl data-slot="model-card">
+    <dl data-slot="model-card" className="rounded-xl border bg-card px-5 py-2 text-sm text-card-foreground">
       <Field name="model_id">{card.model_id}</Field>
       <Field name="version">{card.version}</Field>
       <Field name="architecture">{card.architecture}</Field>
@@ -319,7 +338,7 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
           <p className="flex flex-wrap items-center gap-2">
             <EvidenceLabel label="Predicted" />
             <G5Badge status={g5?.status ?? null} className="h-7 px-3 text-sm" />
-            <span className="font-mono text-[11px] tracking-[0.14em] text-chrome uppercase">never used in rankings</span>
+            <span className="text-xs font-medium text-muted-foreground">never used in rankings</span>
           </p>
         </div>
         {facts === null ? null : (
@@ -385,17 +404,19 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
                 </p>
               </UnavailablePanel>
             ) : (
-              <details className="surface rounded-2xl p-4">
-                <summary className="cursor-pointer text-sm font-medium">
-                  Show all {metrics.tests.length} test metrics (Predicted, 95% intervals)
-                </summary>
-                <div className="mt-4">
-                  <MetricsTable
-                    caption={`Test metrics on the ${metrics.evaluated_split} split, model ${metrics.model_id}, with 95% intervals`}
-                    tests={metrics.tests}
-                  />
-                </div>
-              </details>
+              <Accordion type="single" collapsible className="rounded-xl border bg-card px-4">
+                <AccordionItem value="metrics" className="border-b-0">
+                  <AccordionTrigger className="text-sm font-medium">
+                    Show all {metrics.tests.length} test metrics (Predicted, 95% intervals)
+                  </AccordionTrigger>
+                  <AccordionContent forceMount className="data-[state=closed]:hidden">
+                    <MetricsTable
+                      caption={`Test metrics on the ${metrics.evaluated_split} split, model ${metrics.model_id}, with 95% intervals`}
+                      tests={metrics.tests}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             )}
           </Section>
           {metrics === null ? null : (
@@ -409,17 +430,19 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
                     {run.status === 'unavailable' ? (
                       <LabelledValue label="Unavailable" reason={run.reason ?? 'no reason in the record'} source="report/metrics.json" />
                     ) : (
-                      <details className="surface rounded-2xl p-4">
-                        <summary className="cursor-pointer text-sm font-medium">Show {run.metrics.length} metrics of {run.run_name}</summary>
-                        <div className="mt-4">
-                          <MetricsTable caption={`Ablation ${run.run_name}`} tests={run.metrics} />
-                        </div>
-                      </details>
+                      <Accordion type="single" collapsible className="rounded-xl border bg-card px-4">
+                        <AccordionItem value={run.run_name} className="border-b-0">
+                          <AccordionTrigger className="text-sm font-medium">Show {run.metrics.length} metrics of {run.run_name}</AccordionTrigger>
+                          <AccordionContent forceMount className="data-[state=closed]:hidden">
+                            <MetricsTable caption={`Ablation ${run.run_name}`} tests={run.metrics} />
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
                     )}
                   </div>
                 ))
               )}
-              <dl data-slot="run-record">
+              <dl data-slot="run-record" className="rounded-xl border bg-card px-5 py-2 text-sm text-card-foreground">
                 <Field name="hardware">{metrics.run_record.hardware}</Field>
                 <Field name="GPU hours">
                   {metrics.run_record.gpu_hours_total === null ? (

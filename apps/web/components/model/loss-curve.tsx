@@ -31,9 +31,9 @@ export function LossCurve({ term, epochs }: { readonly term: string; readonly ep
   const band = `${d(g.max)} ${d([...g.min].reverse()).replace(/^M/, 'L')} Z`;
   const name = `Loss term ${term}: mean over seeds with min to max band, ${String(epochs.length)} epochs`;
   return (
-    <figure data-loss-term={term} className="flex flex-col gap-2 rounded-xl border border-line bg-card p-4">
+    <figure data-loss-term={term} className="flex flex-col gap-2 rounded-xl border bg-card p-4 text-card-foreground">
       <figcaption className="flex items-baseline justify-between gap-2 font-mono text-xs tracking-[0.14em] text-muted-foreground uppercase">
-        <span className="text-platinum">{term}</span>
+        <span className="text-foreground">{term}</span>
         <span className="text-[10px] tracking-normal normal-case">
           epochs {epochs[0]?.epoch}–{epochs[epochs.length - 1]?.epoch} · {Number(Math.min(...epochs.map((e) => e.min)).toPrecision(3))} to{' '}
           {Number(Math.max(...epochs.map((e) => e.max)).toPrecision(3))}
