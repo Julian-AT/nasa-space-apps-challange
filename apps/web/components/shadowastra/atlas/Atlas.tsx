@@ -349,7 +349,7 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
 
           <WorldTitle body={body} shown={visibleCount} layer={view === "2d" ? (layer?.name ?? null) : null} left={panels.left} />
 
-          <div className="pointer-events-none absolute bottom-4 left-1/2 z-[600] hidden -translate-x-1/2 items-center gap-4 rounded-lg border bg-background/80 px-4 py-2 text-xs whitespace-nowrap text-foreground shadow-xs backdrop-blur-md md:flex lg:left-[calc(50%-40px)]">
+          <div className="pointer-events-none absolute bottom-4 left-1/2 z-[600] hidden -translate-x-1/2 items-center gap-4 rounded-lg border bg-background/80 px-4 py-2 text-xs whitespace-nowrap text-foreground shadow-xs backdrop-blur-md w-max md:flex lg:left-[calc(50%-40px)]">
             {body === "earth" ? (
               <>
                 <Key color={WORLD_COLOR.moon} label="Moon analog" />

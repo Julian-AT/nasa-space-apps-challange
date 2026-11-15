@@ -10,6 +10,7 @@ import { ArrowRight, MapPin, X } from "lucide-react";
 import Link from "next/link";
 
 import { EvidenceLabel, isEvidenceLabel } from "@/components/evidence-label";
+import { buttonVariants } from "@/components/ui/button";
 import type { WindowRelief } from "@/components/map/explore-data";
 import type { Body } from "@/lib/shadowastra-atlas/data/sites";
 
@@ -29,13 +30,13 @@ export function TerralunaAttribution({ className }: { className?: string }) {
 function Relief({ r, what }: { r: WindowRelief | null; what: string }) {
   const ok = r !== null && r.evidenceLabel !== "Unavailable";
   return (
-    <div className="flex items-center justify-between gap-3 text-[12px] text-chrome">
+    <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
       <span className="truncate" title={ok ? `${what}, relief ν at ${r.lagM} m lag` : undefined}>
         {what.replace(" window", "")}
-        {ok ? <span className="text-dim"> ν {Math.round(Number(r.lagM))} m</span> : null}
+        {ok ? <span> · relief at {Math.round(Number(r.lagM))} m</span> : null}
       </span>
       <span className="flex shrink-0 items-center gap-2 tabular-nums">
-        <span className="font-mono text-platinum">{ok ? `${r.valueM.toFixed(2)} m` : "—"}</span>
+        <span className="font-medium text-foreground">{ok ? `${r.valueM.toFixed(2)} m` : "—"}</span>
         {ok ? <EvidenceLabel label={isEvidenceLabel(r.evidenceLabel) ? r.evidenceLabel : "Unavailable"} /> : null}
       </span>
     </div>
@@ -44,22 +45,22 @@ function Relief({ r, what }: { r: WindowRelief | null; what: string }) {
 
 function CardRow({ c, onPin }: { c: TlCard; onPin: (id: string) => void }) {
   return (
-    <li className="border-b border-line py-4">
+    <li className="border-b py-4 last:border-b-0">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[13px] font-medium text-platinum">{c.targetName}</div>
-          <div className="truncate font-mono text-[11px] text-dim" title={c.earthWindowId}>↔ {c.earthWindowId}</div>
+          <div className="truncate text-sm font-medium text-foreground">{c.targetName}</div>
+          <div className="truncate text-[11px] text-muted-foreground" title={c.earthWindowId}>↔ {c.earthWindowId}</div>
           <div className="mt-2 space-y-1.5">
             <Relief r={c.targetRelief} what={`${BODY_NAME[c.targetBody]} window`} />
             <Relief r={c.earthRelief} what="Earth window" />
           </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <Link href={`/site/${c.cardId}`} className="inline-flex items-center gap-1 rounded-full border border-line-2 px-2.5 py-1 text-[11px] text-chrome hover:border-flare/60 hover:text-platinum">
+          <Link href={`/site/${c.cardId}`} className={clsx(buttonVariants({ variant: "outline", size: "sm" }), "no-underline")}>
             Card <ArrowRight size={11} />
           </Link>
           {(c.earthPinId ?? c.targetPinId) && (
-            <button onClick={() => onPin((c.earthPinId ?? c.targetPinId) as string)} className="inline-flex items-center gap-1 text-[11px] text-dim hover:text-platinum" aria-label={`Show ${c.cardId} on the map`}>
+            <button onClick={() => onPin((c.earthPinId ?? c.targetPinId) as string)} className={clsx(buttonVariants({ variant: "ghost", size: "sm" }), "text-muted-foreground")} aria-label={`Show ${c.cardId} on the map`}>
               <MapPin size={11} /> Show
             </button>
           )}
@@ -90,7 +91,7 @@ export function TerralunaEvidence({ data, onPin }: { data: TerralunaAtlas; onPin
           ))}
         </ul>
       )}
-      <p className="mt-3 text-[11px] leading-relaxed text-dim">ν: terrain relief from the windows file terrain fingerprint, at the shortest lag the bundle holds.</p>
+      <p className="mt-3 text-[11px] leading-relaxed text-dim">Relief: terrain relief from the windows file terrain fingerprint, at the shortest lag the bundle holds.</p>
     </section>
   );
 }
