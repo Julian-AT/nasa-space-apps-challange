@@ -1,0 +1,88 @@
+{
+  "products": {
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N34_00_W118_00_DEM/Copernicus_DSM_COG_10_N34_00_W118_00_DEM.tif": {
+      "bytes": 39978922,
+      "file": "Copernicus_DSM_COG_10_N34_00_W118_00_DEM.tif",
+      "sha256": "e14c164c62f40a1a8867818709a1611af3722a41164e50bb56fa15c4e2119286"
+    },
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N34_00_W119_00_DEM/Copernicus_DSM_COG_10_N34_00_W119_00_DEM.tif": {
+      "bytes": 42718799,
+      "file": "Copernicus_DSM_COG_10_N34_00_W119_00_DEM.tif",
+      "sha256": "eb5f76ce3183a33c76e24d00fd854598b490523f6cb325e3f234203a3bc011a8"
+    },
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N35_00_W118_00_DEM/Copernicus_DSM_COG_10_N35_00_W118_00_DEM.tif": {
+      "bytes": 39616834,
+      "file": "Copernicus_DSM_COG_10_N35_00_W118_00_DEM.tif",
+      "sha256": "13ab03bf9bda169aa096f1ad75544429cedf64dec92d1e41a4e04c2b49a00568"
+    },
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif": {
+      "bytes": 19059689,
+      "file": "Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "sha256": "ef1caf534b843ebb0bc3226c99f29f23bd08e8d2aa6d7096ab9c02a4bf1544b4"
+    },
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N65_00_W017_00_DEM/Copernicus_DSM_COG_10_N65_00_W017_00_DEM.tif": {
+      "bytes": 20729649,
+      "file": "Copernicus_DSM_COG_10_N65_00_W017_00_DEM.tif",
+      "sha256": "1c663c1b6c3263c763ee40e5e20b85dfacdfeddaf3c41acb6b60cac8581cd56e"
+    },
+    "CTX/mro_ctx_controlled_usgs_dtms/D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W/D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W_dtm.tif": {
+      "bytes": 10069775,
+      "file": "D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W_dtm.tif",
+      "sha256": "c6cf6d487446cfcce8e52d929c3d9b5164bde6913750c66a0367da0def11d0d8"
+    },
+    "CTX/mro_ctx_controlled_usgs_dtms/D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W/qa_metrics.txt": {
+      "bytes": 399,
+      "file": "qa_metrics.txt",
+      "sha256": "83c4e3a77c8cbe262b5c770db6828e4547f61f210f4142ab9470dc4ab923ba9e"
+    },
+    "CTX/mro_ctx_controlled_usgs_dtms/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W_dtm.tif": {
+      "bytes": 8023256,
+      "file": "D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W_dtm.tif",
+      "sha256": "24d4d5954970be44f0c23f4e3cb94da88c6864152e4455d23efd4a0177f3b8c0"
+    },
+    "CTX/mro_ctx_controlled_usgs_dtms/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W/qa_metrics.txt": {
+      "bytes": 401,
+      "file": "qa_metrics.txt",
+      "sha256": "0213a46eb24608979aa08693bdfcdfed99f79da45cb5b400e7491803306943bf"
+    },
+    "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif": {
+      "bytes": 40980744,
+      "file": "Site01_final_adj_5mpp_ldec.tif",
+      "sha256": "16d6ed21020ad48fa71d94e7437492acf5bf04118f52bcd292f57f22ead4cd23"
+    },
+    "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif": {
+      "bytes": 40980810,
+      "file": "Site01_final_adj_5mpp_surf.tif",
+      "sha256": "3ba7b97cb00a2bcf21189c3aeb535f65afc21207154ab9f0d43c5bdc1f7e747e"
+    },
+    "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N33W120_Map.tif": {
+      "bytes": 101202142,
+      "file": "ESA_WorldCover_10m_2021_v200_N33W120_Map.tif",
+      "sha256": "61e0909a51e2e76a6f153599316753370be937d0ce150261d023006a80613385"
+    },
+    "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif": {
+      "bytes": 38079044,
+      "file": "ESA_WorldCover_10m_2021_v200_N63W018_Map.tif",
+      "sha256": "2cd9f61d735c41beff27a470d773773f5b324efb5eb2f376f8d01f288e7fdd05"
+    }
+  },
+  "run_id_checksums": {
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N34_00_W118_00_DEM/Copernicus_DSM_COG_10_N34_00_W118_00_DEM.tif": "e14c164c62f40a1a8867818709a1611af3722a41164e50bb56fa15c4e2119286",
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N34_00_W119_00_DEM/Copernicus_DSM_COG_10_N34_00_W119_00_DEM.tif": "eb5f76ce3183a33c76e24d00fd854598b490523f6cb325e3f234203a3bc011a8",
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N35_00_W118_00_DEM/Copernicus_DSM_COG_10_N35_00_W118_00_DEM.tif": "13ab03bf9bda169aa096f1ad75544429cedf64dec92d1e41a4e04c2b49a00568",
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif": "2f8ad7cfcb8f6cf96597bad3ecd0d25f6a448710b7cb705bd93c706faf9b49a5",
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N65_00_W017_00_DEM/Copernicus_DSM_COG_10_N65_00_W017_00_DEM.tif": "1c663c1b6c3263c763ee40e5e20b85dfacdfeddaf3c41acb6b60cac8581cd56e",
+    "CTX/mro_ctx_controlled_usgs_dtms/D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W/D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W_dtm.tif": "c6cf6d487446cfcce8e52d929c3d9b5164bde6913750c66a0367da0def11d0d8",
+    "CTX/mro_ctx_controlled_usgs_dtms/D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W/qa_metrics.txt": "83c4e3a77c8cbe262b5c770db6828e4547f61f210f4142ab9470dc4ab923ba9e",
+    "CTX/mro_ctx_controlled_usgs_dtms/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W_dtm.tif": "24d4d5954970be44f0c23f4e3cb94da88c6864152e4455d23efd4a0177f3b8c0",
+    "CTX/mro_ctx_controlled_usgs_dtms/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W/qa_metrics.txt": "0213a46eb24608979aa08693bdfcdfed99f79da45cb5b400e7491803306943bf",
+    "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif": "16d6ed21020ad48fa71d94e7437492acf5bf04118f52bcd292f57f22ead4cd23",
+    "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif": "3ba7b97cb00a2bcf21189c3aeb535f65afc21207154ab9f0d43c5bdc1f7e747e",
+    "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N33W120_Map.tif": "61e0909a51e2e76a6f153599316753370be937d0ce150261d023006a80613385",
+    "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif": "f09fd29db6ae00713f9dfb1f69197809a9ca31bd872c2e8be295d3e682688066"
+  },
+  "tiles": {
+    "budget_bytes": 300000000,
+    "bytes_total": 914022
+  }
+}

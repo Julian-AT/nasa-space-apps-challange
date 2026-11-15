@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
 import { loadBundle } from '../../lib/bundle.ts';
+import { probeEncoder } from '../../lib/probe/encoder-source.ts';
 import { probeTargets } from '../../lib/probe/targets.ts';
 import { SITE_TITLE } from '../../lib/shell.ts';
 import { LIVE_PROBE_SENTENCE } from '../../lib/probe/result.ts';
@@ -17,6 +18,7 @@ export const metadata: Metadata = { title: `Live probe · ${SITE_TITLE}` };
 export default function ProbePage() {
   const bundle = loadBundle();
   const targets = probeTargets(bundle);
+  const encoder = probeEncoder(bundle);
   return (
     <>
       <h1>Live Earth probe</h1>
@@ -25,13 +27,17 @@ export default function ProbePage() {
         Enter a point on Earth. Your browser reads the 5 km window from Copernicus GLO-30 and measures it with the same
         resampler and terrain fingerprint as the pipeline. Nothing is stored or ranked.
       </p>
+      <p className="mt-1 max-w-prose text-sm">
+        {encoder.encoder === null
+          ? `Encoder (experimental): Unavailable: ${encoder.reason}.`
+          : `Encoder (experimental, ${encoder.encoder.spec.model_id}, G5 ${encoder.encoder.spec.g5_status}): its distances are Predicted and never rank anything.`}
+      </p>
       <Suspense fallback={<p className="mt-4">Loading the probe…</p>}>
         <ProbeClient
           targets={targets.fingerprints}
           targetsReason={targets.reason}
           bundleVersion={bundle.manifest.bundle_version}
-          // The bundle ships no exported encoder yet: the encoder distance stays Unavailable.
-          encoder={null}
+          encoder={encoder.encoder}
         />
       </Suspense>
     </>
