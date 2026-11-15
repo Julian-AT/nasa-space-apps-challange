@@ -20,9 +20,9 @@ PYTHON = $(UV_RUN) python -P
 PYTHON_MODULE = PYTHONPATH=. $(PYTHON) -m
 NUMBERS_ARGS = $(if $(BUNDLE_VERSION),--bundle ../release/$(BUNDLE_VERSION))
 
-.PHONY: all numbers numbers-check bib refs refs-check figures lint overlap test check pdf
+.PHONY: all numbers numbers-check tables bib refs refs-check figures lint overlap test check pdf
 
-all: numbers bib refs lint overlap test pdf
+all: numbers tables bib refs lint overlap test pdf
 
 numbers:
 	$(PYTHON) scripts/numbers.py $(NUMBERS_ARGS) --out generated/numbers.tex
@@ -38,6 +38,10 @@ numbers-check:
 		echo "numbers-check: generated/numbers.tex drifted; run make -C paper numbers" >&2; \
 		exit 1; \
 	fi
+
+# pgfplots data from the committed artifacts (generated/distance-plot.tex).
+tables:
+	$(PYTHON_MODULE) scripts.tables
 
 # refs.bib from reference-verification.json, for exactly the cited keys (PRD 22.6 check 3).
 bib:
