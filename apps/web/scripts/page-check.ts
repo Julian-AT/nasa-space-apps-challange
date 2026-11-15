@@ -4,10 +4,18 @@
 // region around it) wherever the layout puts it, and one <main> that shows only the title and
 // HOME_LINE, so no numbers, targets or claims.
 // The only other text outside <main> is the layout's skip link and navigation labels
-// (LAYOUT_LABELS). Only the rendered markup counts: <script> elements, which hold the RSC
-// payload, are removed first.
+// (LAYOUT_LABELS). The page is read as a browser reads it: parse5 builds the document tree as the
+// HTML Living Standard parser does, so comments, misplaced tags and character references end up
+// where a browser puts them. The text of <script> and <style> elements, which hold the RSC payload
+// and the CSS, is not page text.
+import { defaultTreeAdapter, html as htmlSpec, parse } from 'parse5';
+import type { DefaultTreeAdapterTypes } from 'parse5';
+
 import type { Bundle } from '../lib/bundle.ts';
 import { shellText, SITE_TITLE } from '../lib/shell.ts';
+
+type Element = DefaultTreeAdapterTypes.Element;
+type ParentNode = DefaultTreeAdapterTypes.ParentNode;
 
 /** The one line / shows under its title (app/page.tsx): no numbers, targets or claims. */
 export const HOME_LINE = 'These pages show records from the bundle named in the footer.';
@@ -44,53 +52,26 @@ export const LAYOUT_LABELS: readonly string[] = [
 const COMPARED_ELEMENTS: ReadonlySet<string> = new Set(['main', 'footer']);
 
 /**
- * Whether a block is the document head, the first block in <html>, whose text a browser never
- * shows. A head tag anywhere else is ignored by the HTML parser, which shows its text in the body.
+ * Whether a block is a title in the document head, the document's title, which a browser shows in
+ * its tab, never on the page. The parser keeps one head, the first child of the one html element,
+ * and ignores a head tag anywhere else, so a title outside it is page text.
  */
-function isDocumentHead(block: Block): boolean {
-  return block.name === 'head' && block.parent?.name === 'html' && block.parent.children[0] === block;
+function isDocumentTitle(block: Block): boolean {
+  const head = block.parent;
+  return block.name === 'title' && head?.name === 'head' && head.parent?.name === 'html' && head.parent.parent === undefined;
 }
 
 const SHIPPING_MODE = 'Shipping mode:';
 const MOCK_MARKER = 'Mock bundle';
 
-const ENTITIES: Readonly<Record<string, string>> = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-};
-
-function decodeEntities(text: string): string {
-  return text.replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);/gi, (entity: string, name: string) => {
-    if (name.startsWith('#x') || name.startsWith('#X')) {
-      return String.fromCodePoint(Number.parseInt(name.slice(2), 16));
-    }
-    if (name.startsWith('#')) return String.fromCodePoint(Number.parseInt(name.slice(1), 10));
-    return ENTITIES[name.toLowerCase()] ?? entity;
-  });
-}
-
-/** The text a reader sees: no scripts, styles or comments; tags become spaces. */
-export function visibleText(html: string): string {
-  const markup = renderedMarkup(html).replace(/<[^>]*>/g, ' ');
-  return decodeEntities(markup).replace(/\s+/g, ' ').trim();
-}
-
-/** The markup without scripts, styles and comments, which a reader never sees. */
-function renderedMarkup(html: string): string {
-  return html
-    .replace(/<script\b[\s\S]*?<\/script\s*>/gi, ' ')
-    .replace(/<style\b[\s\S]*?<\/style\s*>/gi, ' ')
-    .replace(/<!--[\s\S]*?-->/g, '');
-}
+/** Elements whose text is not page text: the RSC payload in <script>, the CSS in <style>. */
+const UNSHOWN_ELEMENTS: ReadonlySet<string> = new Set(['script', 'style']);
 
 /**
- * Elements a browser lays out as a box of their own by default (HTML Living Standard, Rendering).
- * Every other element, such as a, span, b or strong, flows inline with the text around it. An
- * element missing here only joins more text into one block, so the check gets stricter, not weaker.
+ * HTML elements a browser lays out as a box of their own by default (HTML Living Standard,
+ * Rendering). Every other element, such as a, span, b or strong, and every SVG or MathML element,
+ * flows inline with the text around it. An element missing here only joins more text into one
+ * block, so the check gets stricter, not weaker.
  */
 const BLOCK_ELEMENTS: ReadonlySet<string> = new Set([
   'address', 'article', 'aside', 'blockquote', 'body', 'caption', 'dd', 'details', 'dialog', 'div',
@@ -100,27 +81,21 @@ const BLOCK_ELEMENTS: ReadonlySet<string> = new Set([
   'tr', 'ul',
 ]);
 
-/** Elements that never have content or an end tag (HTML Living Standard, void elements). */
-const VOID_ELEMENTS: ReadonlySet<string> = new Set([
-  'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr',
-]);
-
 /**
  * WAI-ARIA 1.2 live region roles. Assistive technology announces a live region as one message,
  * so a banner inside one reads as the region's whole text.
  */
 const LIVE_ROLES: ReadonlySet<string> = new Set(['alert', 'log', 'marquee', 'status', 'timer']);
 
-/** An attribute's value in a start tag, quoted or not, or undefined when the tag lacks it. */
-function attribute(tag: string, name: string): string | undefined {
-  const match = new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'=<>\`]+))`, 'i').exec(tag);
-  return match === null ? undefined : (match[1] ?? match[2] ?? match[3] ?? '');
+/** An attribute's value, or '' when the element lacks it. The parser lower-cases HTML attribute names. */
+function attribute(element: Element, name: string): string {
+  return element.attrs.find((attr) => attr.name === name)?.value ?? '';
 }
 
-/** Whether a start tag opens a live region: a live role among its roles, or aria-live polite or assertive. */
-function isLiveRegion(tag: string): boolean {
-  const roles = (attribute(tag, 'role') ?? '').toLowerCase().split(/\s+/);
-  const live = (attribute(tag, 'aria-live') ?? '').trim().toLowerCase();
+/** Whether an element is a live region: a live role among its roles, or aria-live polite or assertive. */
+function isLiveRegion(element: Element): boolean {
+  const roles = attribute(element, 'role').toLowerCase().split(/\s+/);
+  const live = attribute(element, 'aria-live').trim().toLowerCase();
   return roles.some((role) => LIVE_ROLES.has(role)) || live === 'polite' || live === 'assertive';
 }
 
@@ -140,68 +115,63 @@ interface Block extends Extent {
   readonly regions: readonly Extent[];
 }
 
-/** An open element: a block, a live region, both, or neither (a plain inline element). */
-interface OpenElement {
-  readonly name: string;
-  readonly block: Block | undefined;
-  readonly region: Extent | undefined;
-}
-
 /**
- * Every block element in the markup, with its text as a reader sees it, whitespace collapsed.
- * All elements are tracked, so an end tag closes its own element, but only blocks split the text.
+ * Every block element of the parsed page, with its text as a reader sees it, whitespace collapsed.
+ * Only blocks split the text; inline elements join theirs into the block around them. The content
+ * of a <template> counts as text too, as a declarative shadow root shows it.
  */
-function blockTree(markup: string): Block[] {
-  const open: OpenElement[] = [];
+function blockTree(html: string): Block[] {
   const blocks: Block[] = [];
   const extents: Extent[] = [];
-  const innermostBlock = () => open.findLast((entry) => entry.block !== undefined)?.block;
+  /** The blocks and live regions around the node the walk is at. */
+  const open: Extent[] = [];
+  /** The live regions among them, outermost first. */
+  const regions: Extent[] = [];
+  let innermost: Block | undefined;
   const add = (text: string) => {
-    const filled = new Set<Extent>();
-    for (const { block, region } of open) {
-      if (block !== undefined) filled.add(block);
-      if (region !== undefined) filled.add(region);
-    }
-    for (const extent of filled) extent.full += text;
-    const innermost = innermostBlock();
+    for (const extent of open) extent.full += text;
     if (innermost !== undefined) innermost.own += text;
   };
-  // With one capturing group, split puts the text between tags at even indexes, the tags at odd ones.
-  markup.split(/(<[^>]*>)/).forEach((token, index) => {
-    if (index % 2 === 0) {
-      add(decodeEntities(token));
-      return;
+  const visit = (node: ParentNode) => {
+    const children = 'content' in node ? [...node.content.childNodes, ...node.childNodes] : node.childNodes;
+    for (const child of children) {
+      if (defaultTreeAdapter.isTextNode(child)) add(child.value);
+      else if (defaultTreeAdapter.isElementNode(child)) visitElement(child);
     }
-    const tag = /^<(\/?)([a-z][a-z0-9-]*)/i.exec(token);
-    const name = tag?.[2]?.toLowerCase();
-    if (tag === null || name === undefined) return;
-    const isBlock = BLOCK_ELEMENTS.has(name);
-    if (isBlock) add(' ');
-    if (tag[1] === '/') {
-      const at = open.map((entry) => entry.name).lastIndexOf(name);
-      if (at >= 0) open.splice(at);
-      return;
-    }
-    if (VOID_ELEMENTS.has(name) || token.endsWith('/>')) return;
-    const live = isLiveRegion(token);
-    const around = open.flatMap((entry) => (entry.region === undefined ? [] : [entry.region]));
-    let block: Block | undefined;
+  };
+  const visitElement = (element: Element) => {
+    const name = element.tagName.toLowerCase();
+    if (UNSHOWN_ELEMENTS.has(name)) return;
+    const live = isLiveRegion(element);
+    const isBlock = element.namespaceURI === htmlSpec.NS.HTML && BLOCK_ELEMENTS.has(name);
+    const outer = innermost;
+    let extent: Extent | undefined;
     if (isBlock) {
-      const parent = innermostBlock();
-      const regions: Extent[] = [...around];
-      block = { name, own: '', full: '', parent, children: [], regions };
-      if (live) regions.push(block);
-      parent?.children.push(block);
+      add(' ');
+      const blockRegions: Extent[] = [...regions];
+      const block: Block = { name, own: '', full: '', parent: outer, children: [], regions: blockRegions };
+      if (live) blockRegions.push(block);
+      outer?.children.push(block);
       blocks.push(block);
-      extents.push(block);
+      innermost = block;
+      extent = block;
+    } else if (live) {
+      extent = { full: '' };
     }
-    let region: Extent | undefined;
-    if (live) {
-      region = block ?? { full: '' };
-      if (block === undefined) extents.push(region);
+    if (extent !== undefined) {
+      extents.push(extent);
+      open.push(extent);
+      if (live) regions.push(extent);
     }
-    open.push({ name, block, region });
-  });
+    visit(element);
+    if (extent !== undefined) {
+      open.pop();
+      if (live) regions.pop();
+    }
+    innermost = outer;
+    if (isBlock) add(' ');
+  };
+  visit(parse(html));
   const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
   for (const extent of extents) extent.full = collapse(extent.full);
   for (const block of blocks) block.own = collapse(block.own);
@@ -254,13 +224,13 @@ function checkBanner(blocks: readonly Block[], marker: string, banner: string, n
 
 /**
  * The text outside the elements whose text the check compares as a whole: every block's own text,
- * unless the block is in the document head, <main>, a footer or a banner part, or sits in a live
- * region that is a banner part. Each of these texts must be a layout label.
+ * unless the block is the document's title, in <main>, in a footer or in a banner part, or sits in
+ * a live region that is a banner part. Each of these texts must be a layout label.
  */
 function strayTexts(blocks: readonly Block[], banners: readonly Extent[]): string[] {
   const compared = new Set<Extent>(banners);
   for (const block of blocks) {
-    if (COMPARED_ELEMENTS.has(block.name) || isDocumentHead(block)) compared.add(block);
+    if (COMPARED_ELEMENTS.has(block.name) || isDocumentTitle(block)) compared.add(block);
   }
   const isCompared = (block: Block): boolean => {
     for (let at: Block | undefined = block; at !== undefined; at = at.parent) {
@@ -283,6 +253,15 @@ function modeBanner(bundle: Bundle, shippingMode: string): string {
   return mode === null ? shippingMode : `${shippingMode} — ${PRD4_TITLES[mode]}`;
 }
 
+/** Exactly one block with this name, or a problem that says how many the page has. */
+function onlyBlock(blocks: readonly Block[], name: string): Block | string {
+  const found = blocks.filter((block) => block.name === name);
+  const [only] = found;
+  if (only === undefined) return `the page has no <${name}>`;
+  if (found.length !== 1) return `the page must have exactly one <${name}>, but has ${String(found.length)}`;
+  return only;
+}
+
 // Each protected text must be whole: a mock banner, mode banner or footer that only starts with
 // the expected text (bundle version v10 for v1, mode BA for B), or that has words added inside its
 // element or in a container of the banner's own, fails, as it failed the T0-05 check of the whole
@@ -290,9 +269,12 @@ function modeBanner(bundle: Bundle, shippingMode: string): string {
 // claim beside a banner, in the header or between <main> and the footer fails too.
 export function pageProblems(html: string, bundle: Bundle): string[] {
   const expected = shellText(bundle);
-  const markup = renderedMarkup(html);
-  const text = visibleText(html);
-  const blocks = blockTree(markup);
+  const blocks = blockTree(html);
+  // The whole page as a reader sees it: the text of the html element, the one top-level block.
+  const text = blocks
+    .filter((block) => block.parent === undefined)
+    .map((block) => block.full)
+    .join(' ');
   const problems: string[] = [];
   const banners: Extent[] = [];
   if (expected.mockBanner !== null) {
@@ -311,27 +293,19 @@ export function pageProblems(html: string, bundle: Bundle): string[] {
     problems.push(`"${SHIPPING_MODE}" appears ${String(modeLines)} times; the page must state its mode once`);
   }
   // One footer, so a second one, even nested in the first, cannot state other versions.
-  const footer = `${expected.footer} · Schema ${bundle.manifest.schema_version}`;
-  const footers = blocks.filter((block) => block.name === 'footer');
-  const [onlyFooter] = footers;
-  if (onlyFooter === undefined) {
-    problems.push('the page has no <footer>');
-  } else if (footers.length !== 1) {
-    problems.push(`the page must have exactly one <footer>, but has ${String(footers.length)}`);
-  } else if (onlyFooter.full !== footer) {
-    problems.push(`the footer must read "${footer}"`);
+  const footerText = `${expected.footer} · Schema ${bundle.manifest.schema_version}`;
+  const footer = onlyBlock(blocks, 'footer');
+  if (typeof footer === 'string') {
+    problems.push(footer);
+  } else if (footer.full !== footerText) {
+    problems.push(`the footer must read "${footerText}"`);
   }
-  const opened = markup.match(/<main(?=[\s/>])/gi)?.length ?? 0;
-  const mains = [...markup.matchAll(/<main(?=[\s/>])[^>]*>([\s\S]*?)<\/main\s*>/gi)];
-  const [main] = mains;
-  if (opened !== 1 || mains.length !== 1 || main === undefined) {
-    problems.push(`the page must have exactly one <main>, but has ${String(opened)}`);
-  } else {
-    const allowed = `${SITE_TITLE} ${HOME_LINE}`;
-    const shown = visibleText(main[1] ?? '');
-    if (shown !== allowed) {
-      problems.push(`<main> must show only "${allowed}", but shows "${shown}"`);
-    }
+  const main = onlyBlock(blocks, 'main');
+  const allowed = `${SITE_TITLE} ${HOME_LINE}`;
+  if (typeof main === 'string') {
+    problems.push(main);
+  } else if (main.full !== allowed) {
+    problems.push(`<main> must show only "${allowed}", but shows "${main.full}"`);
   }
   for (const stray of strayTexts(blocks, banners)) {
     problems.push(`text outside <main> must be a banner, the footer or a layout label, but "${stray}" is none of these`);
