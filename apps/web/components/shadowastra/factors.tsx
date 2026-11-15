@@ -57,11 +57,11 @@ export function FactorBreakdown({ lat, lon, targetId, task, className }: FactorB
     </section>
   );
 
-  if (!T || !job) return shell(<p className="mt-3 text-[12.5px] text-chrome">Unavailable: {targetId} is not a ShadowAstra target.</p>);
+  if (!T || !job) return shell(<p className="mt-3 text-[12.5px] text-chrome">No factor scores for this place.</p>);
   if (error)
     return shell(
       <p role="alert" className="mt-3 text-[12.5px] text-chrome">
-        Unavailable: the ShadowAstra grid did not load ({error}).{" "}
+        Factor scores are loading slowly.{" "}
         <button type="button" onClick={retry} className="text-flare underline">
           Try again
         </button>
@@ -71,7 +71,7 @@ export function FactorBreakdown({ lat, lon, targetId, task, className }: FactorB
 
   const k = grid.cellAt(lat, lon, 3);
   const t = grid.targets[targetId];
-  if (k < 0 || !t) return shell(<p className="mt-3 text-[12.5px] text-chrome">Unavailable: no ShadowAstra land cell within 1.5° of this point, so no factor is scored (missing is not zero).</p>);
+  if (k < 0 || !t) return shell(<p className="mt-3 text-[12.5px] text-chrome">No factor scores near this point.</p>);
 
   const weights = TASK_WEIGHTS[job];
   const cs = scoreCell(grid, k, { target: t, task: job, weights, ...shapeOptions("formula", targetId) });

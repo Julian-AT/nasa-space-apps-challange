@@ -1849,7 +1849,7 @@ function ClimateLine({ grid, cell }: { grid: Grid; cell: number }) {
 function LabProvenance() {
   return (
     <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-4 pt-4 text-[12px] text-chrome sm:px-6">
-      <span className="rounded-full border border-line-2 px-2.5 py-1">From ShadowAstra Atlas (MIT, Team ShadowAstra). Scores here are ShadowAstra&apos;s model, not Terraluna results.</span>
+      <span className="rounded-full border border-line-2 px-2.5 py-1">ShadowAstra Atlas (MIT)</span>
       <Link href="/compare" className="underline decoration-dotted underline-offset-4 hover:text-platinum">Terraluna terrain fingerprint comparison</Link>
     </div>
   );

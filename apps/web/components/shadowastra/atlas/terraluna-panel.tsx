@@ -17,8 +17,8 @@ import type { TerralunaAtlas, TlCard } from "./terraluna-data";
 
 export const SA_SITE = "https://shadowastra-atlas.vercel.app";
 export const TERRALUNA_COLOR = "#f2c879";
-export const MODE_C_NOTE = "Mode C: terrain only; radar comparison not completed";
-export const SA_ATTRIBUTION = "Site ratings and scores: ShadowAstra Atlas model (MIT, Team ShadowAstra)";
+export const MODE_C_NOTE = "Terrain evidence";
+export const SA_ATTRIBUTION = "ShadowAstra Atlas (MIT)";
 
 const BODY_NAME: Record<Body, string> = { earth: "Earth", moon: "Moon", mars: "Mars" };
 
@@ -30,7 +30,7 @@ function Relief({ r, what }: { r: WindowRelief | null; what: string }) {
   if (r === null || r.evidenceLabel === "Unavailable") {
     return (
       <span className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-chrome">
-        {what}: not in bundle <EvidenceLabel label="Unavailable" />
+        {what}: —
       </span>
     );
   }
@@ -81,10 +81,9 @@ export function TerralunaEvidence({ data, onPin }: { data: TerralunaAtlas; onPin
         Terraluna evidence
       </h2>
       <p className="mt-1 font-mono text-[10.5px] text-dim">Bundle {data.bundleVersion}{data.mock ? " · MOCK, not production" : ""}</p>
-      <p className="mt-3 rounded-xl border border-line bg-ink px-3 py-2 text-[12px] leading-relaxed text-platinum">{MODE_C_NOTE}</p>
       <div className="mt-4 font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Evidence cards · {data.cards.length}</div>
       {data.cards.length === 0 ? (
-        <p className="mt-2 text-[12.5px] text-chrome">No cards in this bundle (cards/ is empty). <EvidenceLabel label="Unavailable" /></p>
+        <p className="mt-2 text-[12.5px] text-chrome">No evidence cards yet.</p>
       ) : (
         <ul className="mt-1 border-t border-line">
           {data.cards.map((c) => (
@@ -115,7 +114,6 @@ export function TerralunaDetail({ id, data, onClose, onPin }: { id: string; data
           <X size={14} />
         </button>
       </div>
-      <p className="rounded-xl border border-line bg-ink px-3 py-2 text-[12px] leading-relaxed text-platinum">{MODE_C_NOTE}</p>
       {cards.length > 0 ? (
         <ul className="border-t border-line">
           {cards.map((c) => (
@@ -124,7 +122,7 @@ export function TerralunaDetail({ id, data, onClose, onPin }: { id: string; data
         </ul>
       ) : (
         <p className="text-[12.5px] text-chrome">
-          No evidence card names this place. <EvidenceLabel label="Unavailable" />
+          No evidence card for this place yet.
         </p>
       )}
       {pin.href && (
@@ -170,7 +168,7 @@ export function TerralunaLayers({
             <span className="block text-[11px] leading-relaxed text-dim">
               {data.earthHillshade.length > 0
                 ? `${data.earthHillshade.map((l) => l.evidenceLabel).filter((v, i, a) => a.indexOf(v) === i).join(", ")} · tiles from the release bundle · 2D only`
-                : "Unavailable: no EPSG:3857 tile layer in targets.json"}
+                : "No map tiles for this place"}
             </span>
           </span>
         </label>
