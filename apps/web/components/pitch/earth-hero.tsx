@@ -21,7 +21,7 @@ const NIGHT = '/textures/earth_night_2k.webp';
 const TILT = (23.4 * Math.PI) / 180;
 const TURN_S = 90;
 /** World-space direction towards the sun: upper left, a little in front. */
-const SUN = new Vector3(-1.0, 0.55, 0.62).normalize();
+const SUN = new Vector3(-0.95, 0.5, 0.78).normalize();
 
 const vertex = /* glsl */ `
   varying vec2 vUv;
@@ -54,35 +54,42 @@ const fragment = /* glsl */ `
     vec3 night = texture2D(uNight, vUv).rgb;
 
     float ndl = dot(N, L);
-    // Soft terminator: a gentle wrap so the day side rolls off instead of cutting.
-    float diffuse = smoothstep(-0.12, 0.55, ndl) * 0.85 + max(ndl, 0.0) * 0.35;
-    float dayMix = smoothstep(-0.18, 0.12, ndl);
+    // Soft terminator: wrapped Lambert, eased, so the day side rolls off into shadow.
+    float w = clamp((ndl + 0.18) / 1.18, 0.0, 1.0);
+    float diffuse = w * w * (3.0 - 2.0 * w) * 0.55 + w * 0.6;
+    float dayMix = smoothstep(-0.18, 0.15, ndl);
 
     // Ocean mask from the day texture: blue-dominant and dark.
-    float lum = dot(day, vec3(0.2126, 0.7152, 0.0722));
-    float blueness = day.b - max(day.r, day.g * 0.92);
-    float ocean = smoothstep(0.004, 0.03, blueness) * (1.0 - smoothstep(0.05, 0.16, lum));
+    // Read the mask from a blurred mip so its edges stay soft and texture blocks do not show.
+    vec3 dayBlur = texture2D(uDay, vUv, 3.0).rgb;
+    float lum = dot(dayBlur, vec3(0.2126, 0.7152, 0.0722));
+    float blueness = dayBlur.b - max(dayBlur.r, dayBlur.g * 0.92);
+    float ocean = smoothstep(-0.005, 0.02, blueness) * (1.0 - smoothstep(0.20, 0.38, lum));
+
+    // Lift the very dark Blue Marble ocean to a calm deep blue so it reads in daylight.
+    // Mostly a uniform deep blue so the bathymetry streaks in the texture do not show.
+    vec3 sea = mix(vec3(0.010, 0.030, 0.080), dayBlur * 0.9, 0.12);
+    vec3 albedo = mix(day, sea, ocean);
 
     float ndv = max(dot(N, V), 0.0);
     float fres = pow(1.0 - ndv, 5.0);
 
-    // Ocean glint: a tight core and a broad sheen, lit side only, Schlick-boosted.
+    // Ocean glint: a soft core and a broad sheen, lit side only, Schlick-boosted.
     float ndh = max(dot(N, H), 0.0);
-    float spec = (pow(ndh, 90.0) * 0.55 + pow(ndh, 14.0) * 0.06) * ocean * smoothstep(0.0, 0.25, ndl);
-    spec *= 0.6 + 0.4 * (0.02 + 0.98 * fres);
+    float spec = (pow(ndh, 48.0) * 0.14 + pow(ndh, 8.0) * 0.015) * ocean * smoothstep(0.0, 0.3, ndl);
 
-    // Very slight cool-neutral fill in the shadow so it reads as soft, never black.
-    vec3 ambient = day * vec3(0.030, 0.031, 0.034);
-    vec3 col = day * diffuse * vec3(1.0, 0.985, 0.96) * 1.25 + ambient;
+    // Slight neutral fill in the shadow so it reads as soft, never pure black.
+    vec3 ambient = albedo * vec3(0.045, 0.046, 0.05);
+    vec3 col = albedo * diffuse * vec3(1.0, 0.985, 0.96) * 1.2 + ambient;
     col += vec3(1.0, 0.97, 0.92) * spec;
 
     // Limb haze on the day side: lift towards a pale neutral, not blue.
-    col = mix(col, vec3(0.80, 0.82, 0.84) * diffuse, pow(1.0 - ndv, 3.0) * 0.22 * dayMix);
+    col = mix(col, vec3(0.78, 0.80, 0.82) * diffuse, pow(1.0 - ndv, 3.0) * 0.25 * dayMix);
 
     // City lights only in the dark hemisphere, warm and subdued.
     float nightMask = 1.0 - smoothstep(-0.25, 0.02, ndl);
     float lights = pow(dot(night, vec3(0.333)), 1.4);
-    col += vec3(1.0, 0.72, 0.42) * lights * nightMask * 1.6;
+    col += vec3(1.0, 0.72, 0.42) * lights * nightMask * 1.1;
 
     // Thin white rim for edge definition (alpha-limited).
     float rim = pow(1.0 - ndv, 6.0) * 0.12;
