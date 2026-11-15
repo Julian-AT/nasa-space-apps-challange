@@ -1,20 +1,21 @@
-// The release bundle as the web reads it (PRD 8.4, 8.5, 8.9). `bundle:pull` copies the small JSON
-// files the server reads from the selected bundle into apps/web/data/: manifest.json,
-// validation.json and, when the manifest lists them, sources.json, targets.json,
-// comparisons/<target_id>.json and windows/<body>.json (the top-N subset). `next build` and the
-// API read apps/web/data/ through loadBundle, which repeats every check, so nothing reads a
-// bundle that bundle:pull refuses.
+// The release bundle as the web reads it (PRD 8.4, 8.5, 8.9). `bundle:pull` copies the small files
+// the web reads from the selected bundle into apps/web/data/: manifest.json, validation.json and,
+// when the manifest lists them, every path in lib/bundle-paths.ts (sources.json, targets.json,
+// windows/<body>.json, comparisons/<target_id>.json, cards/<card_id>.json, model/model_card.json,
+// report/metrics.json and figures/<name>.svg). `next build` and the API read apps/web/data/ through
+// loadBundle, which repeats every check, so nothing reads a bundle that bundle:pull refuses.
 //
 // Every copied file must be listed in the manifest, and its byte count and SHA-256 must match the
 // entry. A listed file the bundle lacks is an error; a file the manifest does not list is never
-// copied or read. Large artifacts (tiles/, windows/*.parquet, model/, report/, reference/) and
-// files the server never reads (cards/, figures/) stay in the bundle and are not read here, so
-// they may live in object storage only. Validating the whole bundle (every checksum, unlisted
-// files, budgets) is `export.py validate`'s job.
+// copied or read. Large artifacts (tiles/, windows/*.parquet, model/*.onnx, embeddings,
+// report/umap.bin, reference/) stay in the bundle and may live in object storage only.
+// Validating the whole bundle (every checksum, unlisted files, budgets) is `export.py validate`'s
+// job.
 //
-// manifest.json and validation.json are validated with their @terraluna/schema schemas. sources,
-// targets, comparisons and windows have no schema there yet (schema gaps, left to a human
-// decision), so they are checked against the manifest only and kept as bytes, never parsed.
+// Each JSON file is validated with the @terraluna/schema contract its path maps to and exposed as
+// bundle.records; each figure must pass the SVG allowlist (no script, on* attribute,
+// foreignObject or external reference). An optional file that is not listed is null or absent
+// from its map, never an empty default.
 //
 // Selection: BUNDLE_VERSION unset or empty selects the mock bundle in fixtures/mock-bundle/;
 // otherwise release/<BUNDLE_VERSION>/. A requested bundle that is missing or invalid is an error;
