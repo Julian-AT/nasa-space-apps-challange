@@ -21,8 +21,9 @@ function Stat({ name, d }: { readonly name: string; readonly d: CardRecord['dist
       {has ? (
         <>
           <p className="mt-1 font-mono text-2xl leading-none font-semibold tabular-nums">
-            {show(d.value ?? 0)} <span className="text-xs text-muted-foreground">{d.unit}</span>
+            {show(d.value ?? 0)}
           </p>
+          <p className="mt-1 text-xs whitespace-nowrap text-muted-foreground">{d.unit}</p>
           <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
             {isEvidenceLabel(d.evidence_label) ? <EvidenceLabel label={d.evidence_label} /> : null}
             {d.background_percentile === null ? null : <span>percentile {show(d.background_percentile)}</span>}
