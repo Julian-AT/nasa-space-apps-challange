@@ -432,6 +432,20 @@ describe('pageProblems', () => {
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/<main>/);
   });
 
+  // Inside <svg>, main and footer tags make SVG elements, not landmarks (HTML parsing, foreign
+  // content), so they neither stand in for the page's <main> or footer nor exempt their text.
+  it('reports a page whose only main is an SVG element', () => {
+    const html = MOCK_PAGE.replace(MAIN, `<svg><main>Terraluna ${HOME_LINE}</main></svg>`);
+    expect(pageProblems(html, MOCK).join('\n')).toMatch(/the page has no <main>/);
+  });
+
+  it('reports the text of an SVG footer element outside <main>', () => {
+    const html = REAL_PAGE.replace('</main>', '</main><svg><footer>Bundle version: v10 · Schema 1.0.0</footer></svg>');
+    expect(pageProblems(html, REAL)).toStrictEqual([
+      'text outside <main> must be a banner, the footer or a layout label, but "Bundle version: v10 · Schema 1.0.0" is none of these',
+    ]);
+  });
+
   it('reports more than one <main>', () => {
     const html = MOCK_PAGE.replace(MAIN, `${MAIN}<main><p>${HOME_LINE}</p></main>`);
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/<main>/);
