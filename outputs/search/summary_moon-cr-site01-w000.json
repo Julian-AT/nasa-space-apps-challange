@@ -8,8 +8,8 @@
   "claim_limits": [],
   "comparisons_dropped": 0,
   "comparisons_path": "outputs/search/comparisons/moon-cr-site01-w000.json",
-  "comparisons_raw_sha256": "0685f4eba1e0493aecd235869ce7941b000a36e86d023b5edce77447bd66cb1f",
-  "comparisons_sha256": "0685f4eba1e0493aecd235869ce7941b000a36e86d023b5edce77447bd66cb1f",
+  "comparisons_raw_sha256": "71dcd456d8b38b1c09e2afa8d0d2a7e2264b6606a05936bbe62ad37b4d57fb3b",
+  "comparisons_sha256": "71dcd456d8b38b1c09e2afa8d0d2a7e2264b6606a05936bbe62ad37b4d57fb3b",
   "config_sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
   "earth_universe": {
     "eligible": 71,
@@ -21,7 +21,7 @@
     "unknown": 0,
     "unknown_by_reason": {}
   },
-  "elapsed_s_total_run": 57.5,
+  "elapsed_s_total_run": 45.2,
   "isotropic_rule": "direction_mean",
   "mock": false,
   "n_compared": 71,
@@ -161,7 +161,7 @@
       "bytes": 464119,
       "n": 73,
       "path": "data/processed/windows/earth.json",
-      "sha256": "1ed6fcc446b81505a6c427f74a361aea1cd9e9a1778f299cdfb437e0902f0207"
+      "sha256": "fb7f8911aff25ce3aa75621e20188f04350eb1b87ef131d6ce7fbdcf1e39a101"
     },
     "moon": {
       "bytes": 160116,

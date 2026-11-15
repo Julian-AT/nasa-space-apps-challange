@@ -8,8 +8,8 @@
   "claim_limits": [],
   "comparisons_dropped": 0,
   "comparisons_path": "outputs/search/comparisons/mars-jezero-w000.json",
-  "comparisons_raw_sha256": "45dfbf7690b99e0841147ed62a03a02ec9706616d17c92c19dea9b936ed7a367",
-  "comparisons_sha256": "45dfbf7690b99e0841147ed62a03a02ec9706616d17c92c19dea9b936ed7a367",
+  "comparisons_raw_sha256": "a750d3900da10395a54b15364094bb534b3ca54c626313855455b85bf434ea52",
+  "comparisons_sha256": "a750d3900da10395a54b15364094bb534b3ca54c626313855455b85bf434ea52",
   "config_sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
   "earth_universe": {
     "eligible": 71,
@@ -21,7 +21,7 @@
     "unknown": 0,
     "unknown_by_reason": {}
   },
-  "elapsed_s_total_run": 57.5,
+  "elapsed_s_total_run": 45.2,
   "isotropic_rule": "direction_mean",
   "mock": false,
   "n_compared": 71,
@@ -170,7 +170,7 @@
       "bytes": 464119,
       "n": 73,
       "path": "data/processed/windows/earth.json",
-      "sha256": "1ed6fcc446b81505a6c427f74a361aea1cd9e9a1778f299cdfb437e0902f0207"
+      "sha256": "fb7f8911aff25ce3aa75621e20188f04350eb1b87ef131d6ce7fbdcf1e39a101"
     },
     "mars": {
       "bytes": 2753008,

@@ -146,20 +146,20 @@
     {
       "alt": "Location maps: the Earth polygon and the Mars target window, each with a scale bar",
       "figure": "A",
-      "path": null,
-      "reason": "figure_not_rendered"
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_A.svg",
+      "reason": null
     },
     {
       "alt": "nu(L) on log-log axes for the target and the Earth window, relief and texture",
       "figure": "B",
-      "path": null,
-      "reason": "figure_not_rendered"
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_B.svg",
+      "reason": null
     },
     {
       "alt": "Radar block distributions with band labels, or the reason they are unavailable",
       "figure": "C",
-      "path": null,
-      "reason": "figure_not_rendered"
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_C.svg",
+      "reason": null
     }
   ],
   "g5_status": "NOT_RUN",

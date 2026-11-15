@@ -1,5 +1,125 @@
 [
   {
+    "bytes": 8799,
+    "card_id": "mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "A",
+    "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_A.svg",
+    "sha256": "cd40fd79956a9f3d555502de8b143c2d32d424909f099aa2de373427ce2aebfc"
+  },
+  {
+    "bytes": 9006,
+    "card_id": "mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "B",
+    "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_B.svg",
+    "sha256": "cae85609e61459db6208b5766f44b108cbffcc1e531daeb93c21cd66cecc2a67"
+  },
+  {
+    "bytes": 1295,
+    "card_id": "mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "C",
+    "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_C.svg",
+    "sha256": "3242ec8533aebfd1ff82933b1035b1f6b05d1428f6bb3bf2b05bb99c2a41d8b9"
+  },
+  {
+    "bytes": 9043,
+    "card_id": "mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "A",
+    "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879_A.svg",
+    "sha256": "fd036240f07f01110f9e93ff867a8486b1ac41eb7a239617cef62778ab2aff78"
+  },
+  {
+    "bytes": 9299,
+    "card_id": "mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "B",
+    "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879_B.svg",
+    "sha256": "9f8c8ae839a7659414760ba8166d9d9a9921af2a6fe0c5798392609af3bde899"
+  },
+  {
+    "bytes": 1295,
+    "card_id": "mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "C",
+    "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879_C.svg",
+    "sha256": "1b0e3eb1b8933fde0a65271cd61182be1721a5c4282dadefca8ca0fd5730e188"
+  },
+  {
+    "bytes": 8296,
+    "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "A",
+    "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_A.svg",
+    "sha256": "9eace154dbab17646548845680d13d5c5d27f978db0210f224176722a58023df"
+  },
+  {
+    "bytes": 9283,
+    "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "B",
+    "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_B.svg",
+    "sha256": "0dda5a06007ebfbad57a6fdab1f5e99c69e7be2d00d597b0032410f10b87d896"
+  },
+  {
+    "bytes": 1290,
+    "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "C",
+    "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_C.svg",
+    "sha256": "ea47f8ff2482748fc1f2e00488a095317355e70d8eed7941f22819d7ce9892d6"
+  },
+  {
+    "bytes": 8940,
+    "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "A",
+    "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882_A.svg",
+    "sha256": "5a6f6a7ada441d5d767b248629dcfddb7d22d9d7a3a7c379a310af9b7c27afb0"
+  },
+  {
+    "bytes": 9431,
+    "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "B",
+    "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882_B.svg",
+    "sha256": "9d667997d94f39faac97012fa694919c2e8f9a3a076223e390ac4ab7b117f0eb"
+  },
+  {
+    "bytes": 1290,
+    "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "C",
+    "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882_C.svg",
+    "sha256": "a3e539ff82f86acf94eb92691b9d6b6c93b060177cfb4232aaad6ce96b50df84"
+  },
+  {
+    "bytes": 8600,
+    "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "A",
+    "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_A.svg",
+    "sha256": "aa4b425f8baca38b330e8bb03511e78125535fda1ce5e619e28c0c3642f1eac0"
+  },
+  {
+    "bytes": 9433,
+    "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "B",
+    "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_B.svg",
+    "sha256": "e1f66c351fcc26c3a5d42bb1540a005f05fc313970f3396f788d45e25b4bd2fc"
+  },
+  {
+    "bytes": 1290,
+    "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "C",
+    "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_C.svg",
+    "sha256": "00b83cc2e0c3f63d0e7bf4a5f89d4ce73004c0caeb8670cd5257f305c0729633"
+  },
+  {
     "bytes": 8636,
     "card_id": "moon-sps-x2-y2__earth-utm27n-e280-n2880",
     "command": "python -m terraluna_pipeline.figures cards",
@@ -8,20 +128,20 @@
     "sha256": "a82852c3cb3ccf6d49783d5660d1ef58f173e704c3800a705add461b08fccb73"
   },
   {
-    "bytes": 10416,
+    "bytes": 10829,
     "card_id": "moon-sps-x2-y2__earth-utm27n-e280-n2880",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "B",
     "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_B.svg",
-    "sha256": "36fc5747349336eaf0117c7d3b1967703e5d8e4de22189e4d492e867be5b1e64"
+    "sha256": "187b14debc38a3c04fa3c4aed028d511a1ac8fd8efc086fb4eacea0b2400c2dc"
   },
   {
-    "bytes": 1206,
+    "bytes": 1234,
     "card_id": "moon-sps-x2-y2__earth-utm27n-e280-n2880",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "C",
     "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_C.svg",
-    "sha256": "0e2e935e8f2d7c73b73fa5b52880144092e94b80a72fc8b3e4e9e252cc7a0d3f"
+    "sha256": "ba0cbb8bece61b0a951e2c21f9d735029b967bb36ec4102d5a0aaad10a6c0f29"
   },
   {
     "bytes": 10680,
@@ -32,19 +152,19 @@
     "sha256": "b568ddc5adb14670f86d41034f0e22852440426758e7b51f669b398e95c42d84"
   },
   {
-    "bytes": 9565,
+    "bytes": 9813,
     "card_id": "moon-sps-x2-y2__earth-utm27n-e285-n2879",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "B",
     "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_B.svg",
-    "sha256": "8614d7b7d5d588f470849f80b4d2971cef295e052be2805acdbd0a83d1a6e505"
+    "sha256": "d6851be04b916f6b3be513df49078c37602885b21e6f1e103b1c5a33bf07160f"
   },
   {
-    "bytes": 1206,
+    "bytes": 1234,
     "card_id": "moon-sps-x2-y2__earth-utm27n-e285-n2879",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "C",
     "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_C.svg",
-    "sha256": "335ae2a3f2803aae9e29ed140c6d3ae89e2929eea3c347cf9c92be027b1e1614"
+    "sha256": "0079b661a012457f6e4ef71206e7787a10dca93696dda22ba593765375f7b8a0"
   }
 ]
