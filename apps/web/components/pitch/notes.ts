@@ -20,7 +20,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Problem',
     from: 8,
     to: 20,
-    text: "Astronauts and rovers train on Earth first. But which place on Earth **really matches the target**? We have **three target sites**: Connecting Ridge on the Moon, Jezero and Arcadia on Mars. Today, analog sites are chosen **by eye**, by experience, not by one shared terrain measure. Terraluna measures **any point on Earth**, live, in seconds.",
+    text: "Where on Earth should astronauts **practise**? Today, analog sites are chosen by **expert experience** and field reports. Terraluna **measures** them: a terrain fingerprint for **any point on Earth**, in seconds, and an **evidence card** with distances and figures. We do this for **three targets**: Connecting Ridge on the Moon, Jezero and Arcadia on Mars.",
   },
   {
     title: 'Physics fingerprint',
