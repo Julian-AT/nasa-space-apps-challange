@@ -21,7 +21,10 @@ curves.json layout (all arrays are parallel; missing is ``null``, never 0)::
          "terms": {"loss_total": {"epochs": [0, 1], "mean": [..], "min": [..], "max": [..],
                                   "n_seeds": [3, 3]}}}],
      "gpu_hours": {"total": float|null, "partial": bool,
-                   "per_run": [{"run": str, "gpu_hours": float|null, "reason": str|null}]},
+                   "cpu_core_hours_total": float|null,   # measured threads x wall-clock
+                   "per_run": [{"run": str, "gpu_hours": float|null, "reason": str|null,
+                                "gpu_hours_note", "cpu_core_hours", "wall_clock_s", "hardware",
+                                "deviations_from_prd": {field: {"prd", "used"}}}]},
      "tradeoff": {"chance_body_accuracy": 1/n_bodies, "n_bodies": 3,
                   "points": [{"lambda_max": float, "arm": str,
                               "status": "available"|"unavailable", "reason": str|null,
@@ -286,6 +289,11 @@ def loss_curves(run_dirs: Sequence[Path]) -> tuple[list[dict[str, Any]], dict[st
                     "run": d.name,
                     "gpu_hours": float(gpu) if isinstance(gpu, int | float) else None,
                     "reason": None if isinstance(gpu, int | float) else "gpu_hours not logged",
+                    "gpu_hours_note": metrics.get("gpu_hours_note"),
+                    "cpu_core_hours": metrics.get("cpu_core_hours"),
+                    "wall_clock_s": metrics.get("wall_clock_s"),
+                    "hardware": metrics.get("hardware"),
+                    "deviations_from_prd": metrics.get("deviations_from_prd"),
                 }
             )
         out_terms: dict[str, Any] = {}
@@ -311,6 +319,11 @@ def loss_curves(run_dirs: Sequence[Path]) -> tuple[list[dict[str, Any]], dict[st
         "total": float(sum(logged)) if logged else None,
         "partial": len(logged) < len(per_run) or not per_run,
         "per_run": sorted(per_run, key=lambda r: str(r["run"])),
+        "cpu_core_hours_total": (
+            float(sum(r["cpu_core_hours"] for r in per_run))
+            if per_run and all(isinstance(r["cpu_core_hours"], int | float) for r in per_run)
+            else None
+        ),
     }
     return curves, gpu_hours
 
