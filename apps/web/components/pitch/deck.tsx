@@ -12,7 +12,7 @@ import { createPortal } from 'react-dom';
 import { Globe } from '@/components/globe';
 
 import { ArchDiagram, ARCH_STEPS } from './arch';
-import { ACCENT, EASE, FAINT, INK, LINE, MUTED, PAPER } from './bits';
+import { ACCENT, EASE, FAINT, HillTile, INK, LINE, MUTED, PAPER } from './bits';
 import { BarFigure, C, FigureCard, LineFigure, type LineSeries } from './figure';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
@@ -365,15 +365,25 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                   sub={`${BODY[r.body]} vs Earth, ${r.label}`}
                   caption="Candidate windows found by this search, not proven analogs."
                 >
-                  <div className="grid grid-cols-2 gap-8">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <HillTile tile={r.targetTile} className="rounded-lg" />
+                      <span className="text-xs" style={{ color: FAINT }}>{r.targetName}, hillshade</span>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <HillTile tile={r.earthTile} className="rounded-lg" />
+                      <span className="text-xs" style={{ color: FAINT }}>{r.earthName.split(',')[0]}, hillshade</span>
+                    </div>
+                  </div>
+                  <div className="mt-6 grid grid-cols-2 gap-8">
                     <div className="flex flex-col gap-2">
-                      <p className="text-[4rem] font-medium leading-none tracking-[-0.03em] tabular-nums" style={{ color: k === 0 ? ACCENT : INK }}>{r.relief.toFixed(3)}</p>
+                      <p className="text-[2.75rem] font-medium leading-none tracking-[-0.03em] tabular-nums" style={{ color: k === 0 ? ACCENT : INK }}>{r.relief.toFixed(3)}</p>
                       <p className="text-lg">relief distance</p>
                       <p className="text-sm" style={{ color: FAINT }}>{r.unit}, lower is closer</p>
                     </div>
                     {r.closerThan !== null ? (
                       <div className="flex flex-col gap-2">
-                        <p className="text-[4rem] font-medium leading-none tracking-[-0.03em] tabular-nums">{r.closerThan}%</p>
+                        <p className="text-[2.75rem] font-medium leading-none tracking-[-0.03em] tabular-nums">{r.closerThan}%</p>
                         <p className="text-lg">closer than</p>
                         <p className="text-sm" style={{ color: FAINT }}>of candidate windows searched</p>
                       </div>
@@ -593,13 +603,7 @@ export function Deck({ data, qr, fonts = '' }: { data: PitchData; qr: string | n
           aria-hidden={i !== labIndex}
         >
           <LabTwin earth={data.lab.earth} target={data.lab.target} earthName={data.lab.earthName} targetName={data.lab.targetName} />
-          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-[1.375rem] font-medium tracking-[-0.01em] text-zinc-950">Terrain twin</span>
-              <span className="text-sm text-zinc-400">40 km blocks, real elevation tiles, drag to orbit</span>
-            </div>
-          </div>
-          <span className="pointer-events-none absolute bottom-5 left-6 text-sm text-zinc-400">Figure 6. Same rover route on both blocks at the same scale.</span>
+          <span className="pointer-events-none absolute bottom-5 left-6 text-sm text-zinc-400">Figure 6. Terrain twin, 40 km blocks of real elevation, same rover route, same scale. Drag to orbit.</span>
         </motion.div>
       ) : null}
 

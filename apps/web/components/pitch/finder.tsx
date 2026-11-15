@@ -11,7 +11,7 @@ import { Globe } from '@/components/globe';
 import { COP30_MODE } from '@/lib/probe/mode';
 import { type ProbeResult, isProbeResult } from '@/lib/probe/result';
 
-import { EASE, INK } from './bits';
+import { EASE } from './bits';
 import type { PitchData } from './pitch-data';
 
 type Finder = NonNullable<PitchData['finder']>;
@@ -80,7 +80,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
             <motion.span
               aria-hidden
               className="pointer-events-none absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
-              style={{ borderColor: INK }}
+              style={{ borderColor: '#CC5800' }}
               initial={{ scale: 0.4, opacity: 0.9 }}
               animate={{ scale: [0.4, 3.2], opacity: [0.9, 0] }}
               transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut', delay: 1.1 }}
@@ -91,7 +91,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
       <div className="flex flex-col gap-6">
         <AnimatePresence mode="wait">
           {step === 0 ? (
-            <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-3xl leading-snug text-[#4D4843]">
+            <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-[1.75rem] leading-snug tracking-[-0.01em] text-[#4D4843]">
               Click any spot on Earth.
               <br />
               <span className="text-[#1A1613]">Real elevation to fingerprint, in seconds.</span>
@@ -102,12 +102,12 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
               initial={{ opacity: 0, x: 40, filter: 'blur(6px)' }}
               animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.7, delay: 0.6, ease: EASE }}
-              className="flex flex-col gap-6 rounded-2xl border border-[rgba(26,22,19,0.1)] bg-white/60 p-8"
+              className="flex flex-col gap-6 rounded-xl border border-[rgba(26,22,19,0.1)] bg-white p-7"
             >
               <div className="flex items-center justify-between gap-4">
                 <span
-                  className="rounded-full px-3 py-1 text-sm font-medium"
-                  style={isLive ? { background: INK, color: '#ffffff' } : { background: '#ECE9E3', color: '#4D4843' }}
+                  className="rounded-md px-2.5 py-1 text-sm font-medium"
+                  style={isLive ? { background: '#FFE8CC', color: '#CC5800' } : { background: '#F2F0EB', color: '#4D4843' }}
                 >
                   {isLive ? `Measured live in your browser${ms === null ? '' : `, ${(ms / 1000).toFixed(1)} s`}` : why === null ? 'Measuring live…' : 'From the evidence card'}
                 </span>
@@ -116,29 +116,29 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
                 </span>
               </div>
               <div>
-                <p className="text-3xl font-semibold tracking-tight">{finder.earthName}</p>
-                <p className="mt-1 text-xl text-[#4D4843]">vs {finder.targetName}</p>
+                <p className="text-[1.375rem] font-medium tracking-[-0.01em]">{finder.earthName}</p>
+                <p className="mt-1 text-sm text-[#A39E95]">vs {finder.targetName}</p>
               </div>
               <div className="grid grid-cols-2 gap-6 border-t border-[rgba(26,22,19,0.1)] pt-6">
                 <div>
-                  <p className="text-5xl font-bold tabular-nums text-[#1A1613]">
+                  <p className="text-5xl font-medium tracking-[-0.02em] tabular-nums text-[#CC5800]">
                     {f3(isLive ? relief : finder.relief)}
                   </p>
                   <p className="mt-1 text-base text-[#4D4843]">relief distance, lower is closer</p>
                 </div>
                 <div>
-                  <p className="text-5xl font-semibold tabular-nums text-[#1A1613]">{f3(isLive ? texture : finder.texture)}</p>
+                  <p className="text-5xl font-medium tracking-[-0.02em] tabular-nums text-[#4A8044]">{f3(isLive ? texture : finder.texture)}</p>
                   <p className="mt-1 text-base text-[#4D4843]">texture distance</p>
                 </div>
               </div>
               {closer !== null ? (
-                <p className="text-xl text-[#4D4843]">
-                  Closer than <span className="font-semibold">{closer}%</span> of candidate windows
+                <p className="text-lg text-[#4D4843]">
+                  Closer than <span className="font-medium text-[#1A1613]">{closer}%</span> of candidate windows
                   <span className="text-sm text-[#A39E95]">{closerFromCard ? ', from the evidence card' : ', live background'}</span>
                 </p>
               ) : null}
-              <p className="text-xs text-[#A39E95]">
-                Derived (live), Copernicus GLO-30, terrain only
+              <p className="text-sm text-[#A39E95]">
+                Figure. Derived (live), Copernicus GLO-30, terrain only
                 {why !== null && !isLive ? `, live probe unavailable (${why})` : ''}
               </p>
             </motion.div>
@@ -147,7 +147,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
         <a
           href="/find"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex w-fit items-center gap-2 rounded-full bg-[#1A1613] px-6 py-3 text-lg font-medium text-white transition-colors hover:bg-[#120C08]"
+          className="inline-flex w-fit items-center gap-2 rounded-lg border border-[rgba(26,22,19,0.1)] bg-white px-4 py-2 text-base font-medium text-[#1A1613] transition-colors hover:border-[#CC5800] hover:text-[#CC5800]"
         >
           Try it on /find
         </a>
