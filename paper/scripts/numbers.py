@@ -63,8 +63,9 @@ class ArtifactMacro:
     JSON pointer. format_spec: a Python format specification for a number, the same prefixed
     with % for a fraction shown in percent, "count" for the length of an array or object, or
     "text" for a string, which is escaped for LaTeX, or min:, max: or median: followed by a number
-    format for an aggregate over a pointer with one "/*" segment, such as /*/distance. A leading "?" makes an absent pointer render
-    \\NotAvailable instead of failing; it is only for artifacts whose schema is not fixed yet.
+    format for an aggregate over a pointer with one "/*" segment, such as /*/distance (n: counts
+    the non-null values). A leading "?" makes an absent pointer render \\NotAvailable instead of
+    failing; it is only for artifacts whose schema is not fixed yet.
 
     An artifact that does not exist yet, or a null value (missing evidence), renders as
     \NotAvailable, never as 0. A pointer that is absent from an existing file, a non-finite
