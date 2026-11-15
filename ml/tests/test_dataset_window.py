@@ -319,8 +319,9 @@ def test_a_plane_source_leaves_texture_below_the_t3_curvature_bound(body: str, s
     assert np.all(np.abs(window.residual_m) <= texture_bound)
     assert np.array_equal(window.channels[0], np.arcsinh(window.residual_m / ELEVATION_SCALE_M))
 
-    # Texture nu of the plane-removed window is bounded by twice the residual bound, and agrees
-    # with what terraluna_pipeline.terrain measures on the same window (its exact plane fit).
+    # Texture nu of the plane-removed window is bounded by twice the residual bound (a physical
+    # residual assertion), and agrees with what terraluna_pipeline.terrain measures on the same
+    # window with its exact plane fit (an arithmetic assertion, below).
     ours = structure_function(
         window.residual_m,
         valid=window.valid,
@@ -338,10 +339,18 @@ def test_a_plane_source_leaves_texture_below_the_t3_curvature_bound(body: str, s
     ).variants["plane"]
     assert theirs.surface_m is not None
     assert np.all(np.abs(theirs.surface_m) <= texture_bound)
+    # The two plane removals differ only by float64 rounding of the elevations they subtract.
+    gap = float(np.max(np.abs(window.residual_m - theirs.surface_m)[window.valid]))
+    assert gap <= ATOL + RTOL * float(np.max(np.abs(window.elevation_m)))
+    # terrain evaluates structure_function on its surface with the same valid mask, lags and
+    # rule, so both nu(L) are RMS values over the same pairs. Per pair the differences differ by
+    # e_i - e_j with |e| <= gap, so Minkowski's inequality gives |nu_ours - nu_terrain| <= 2 gap
+    # exactly; PRD 7's tolerance covers rounding in evaluating each nu. Unlike the 2 x bound
+    # above, this tolerance does not follow from the separate bounds, so unequal nu can fail.
     for item, nu in zip(ours.isotropic, theirs.nu_m, strict=True):
         assert item.nu_m is not None and nu is not None
         assert item.nu_m <= 2 * texture_bound
-        assert abs(item.nu_m - nu) <= 2 * texture_bound
+        assert abs(item.nu_m - nu) <= 2 * gap + ATOL + RTOL * max(item.nu_m, nu)
         assert (item.nu_m == 0.0) == (nu == 0.0)
     assert (theirs.hurst.reason == "nu_zero") == any(item.nu_m == 0.0 for item in ours.isotropic)
 
