@@ -62,7 +62,7 @@ export function PairSelect({ value, options }: { readonly value: string; readonl
         router.push(v, { scroll: false });
       }}
     >
-      <SelectTrigger aria-label="Card pair" className="h-9 max-w-[min(85vw,460px)] min-w-0 [&>span]:truncate">
+      <SelectTrigger aria-label="Card pair" className="h-9 w-full min-w-0 sm:w-[300px] [&>span]:truncate">
         <SelectValue placeholder="Card pair" />
       </SelectTrigger>
       <SelectContent>

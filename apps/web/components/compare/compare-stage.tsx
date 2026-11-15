@@ -1,15 +1,15 @@
 'use client';
 // Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
-// The compare stage: the pair bar (every card of the bundle), Side by side | Swipe, linked views
-// and the two hillshade panes (target left, Earth right). Leaflet loads only here, client-side.
-// The view mode and swipe position live in the URL (?view=swipe&swipe=50).
-import { clsx } from 'clsx';
-import { Columns2, Link2, Link2Off, LocateFixed, SplitSquareHorizontal } from 'lucide-react';
+// The compare stage: the page header (title, pair select, Side by side | Swipe), then one card with
+// the two hillshade panes at equal size (target left, Earth right). Leaflet loads only here,
+// client-side. The view mode and swipe position live in the URL (?view=swipe&swipe=50).
+import { CenterFocusIcon, LayoutTwoColumnIcon, ArrowLeftRightIcon, Link01Icon, Unlink01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import type { HillshadeMapHandle, LinkedView } from './hillshade-map.tsx';
 import { type PairOption, PairSelect, Seg, WorldDot, type World } from './kit.tsx';
@@ -18,9 +18,7 @@ import { SwipeStage } from './swipe.tsx';
 
 const HillshadeMap = dynamic(() => import('./hillshade-map.tsx'), {
   ssr: false,
-  loading: () => (
-    <div className="grid size-full place-items-center font-mono text-[11px] tracking-widest text-chrome uppercase">Loading hillshade tiles</div>
-  ),
+  loading: () => <Skeleton className="size-full rounded-none" />,
 });
 
 type Mode = 'split' | 'swipe';
@@ -29,21 +27,21 @@ const fmtMpp = (mpp: number): string => (mpp >= 1000 ? `${(mpp / 1000).toFixed(2
 const fmtLonLat = ([lon, lat]: readonly [number, number]): string =>
   `${Math.abs(lat).toFixed(3)}° ${lat < 0 ? 'S' : 'N'}, ${Math.abs(lon).toFixed(3)}° ${lon < 0 ? 'W' : 'E'}`;
 
-function Unavailable({ what }: { readonly what: string }) {
+function NoTiles({ what }: { readonly what: string }) {
   return (
-    <div className="grid size-full place-items-center p-6 text-center text-sm text-chrome">
-      <p>
-        Unavailable — no bundle hillshade tile layer covers the {what} window (targets.json tile_layers).
-      </p>
+    <div className="grid size-full place-items-center bg-muted p-6 text-center text-sm text-muted-foreground">
+      <p>No hillshade tiles for the {what} window in this bundle.</p>
     </div>
   );
 }
 
-function PaneFooter({ pane, mpp }: { readonly pane: PaneLayer; readonly mpp: number | null }) {
+function ScaleChip({ pane, mpp }: { readonly pane: PaneLayer; readonly mpp: number | null }) {
   return (
-    <div className="pointer-events-none absolute bottom-3 left-3 z-[600] max-w-[calc(100%-5rem)] rounded-md bg-background/85 px-2 py-1 font-mono text-[10px] leading-snug text-muted-foreground backdrop-blur">
-      <span className="text-chrome">{pane.evidenceLabel}</span> · {pane.hillshade}
-      {mpp === null ? null : ` · ${fmtMpp(mpp)}`}
+    <div
+      className="pointer-events-none absolute bottom-3 left-3 z-[600] rounded-md bg-background/85 px-2 py-1 text-[11px] text-muted-foreground tabular-nums shadow-sm backdrop-blur"
+      title={`${pane.evidenceLabel} · ${pane.hillshade}`}
+    >
+      {mpp === null ? pane.evidenceLabel : `${fmtMpp(mpp)} · ${pane.evidenceLabel}`}
     </div>
   );
 }
@@ -53,28 +51,23 @@ function MapPane({
   world,
   pane,
   mpp,
-  border,
   children,
 }: {
   readonly title: string;
   readonly world: World;
   readonly pane: PaneLayer | null;
   readonly mpp: number | null;
-  readonly border?: boolean;
   readonly children: React.ReactNode;
 }) {
   return (
-    <div className={clsx('relative h-[46vh] min-h-[320px] min-w-0 md:h-full', border === true && 'border-t border-line md:border-t-0 md:border-l')}>
+    <div className="relative aspect-square min-w-0 overflow-hidden bg-muted md:aspect-auto md:h-full">
       {children}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-[600] flex items-start justify-between gap-2 p-3">
-        <div className="pointer-events-auto min-w-0 rounded-lg border bg-popover/95 px-3 py-2 shadow-sm">
-          <div className="flex items-center gap-2 text-[13px] font-medium">
-            <WorldDot world={world} /> <span className="truncate">{title}</span>
-          </div>
-          {pane === null ? null : <div className="font-mono text-[10px] text-dim tabular-nums">{fmtLonLat(pane.centreLonLat)}</div>}
-        </div>
+      <div className="pointer-events-none absolute top-3 left-3 z-[600] flex max-w-[calc(100%-1.5rem)] items-center gap-2 rounded-md bg-background/90 px-2.5 py-1.5 shadow-sm backdrop-blur">
+        <WorldDot world={world} />
+        <span className="truncate text-xs font-medium">{title}</span>
+        {pane === null ? null : <span className="hidden text-[11px] text-muted-foreground tabular-nums sm:inline">{fmtLonLat(pane.centreLonLat)}</span>}
       </div>
-      {pane === null ? null : <PaneFooter pane={pane} mpp={mpp} />}
+      {pane === null ? null : <ScaleChip pane={pane} mpp={mpp} />}
     </div>
   );
 }
@@ -137,75 +130,44 @@ export function CompareStage({ pair, current, options }: CompareStageProps) {
     eRef.current?.reset();
   };
 
-  const targetMap = pair.target === null ? <Unavailable what="target" /> : <HillshadeMap key={`t-${mode}-${pair.cardId}`} pane={pair.target} label={pair.targetName} onView={onT} control={tRef} />;
-  const earthMap = pair.earth === null ? <Unavailable what="Earth" /> : <HillshadeMap key={`e-${mode}-${pair.cardId}`} pane={pair.earth} label={pair.earthName} onView={onE} control={eRef} />;
+  const targetMap =
+    pair.target === null ? <NoTiles what="target" /> : <HillshadeMap key={`t-${mode}-${pair.cardId}`} pane={pair.target} label={pair.targetName} onView={onT} control={tRef} />;
+  const earthMap =
+    pair.earth === null ? <NoTiles what="Earth" /> : <HillshadeMap key={`e-${mode}-${pair.cardId}`} pane={pair.earth} label={pair.earthName} onView={onE} control={eRef} />;
 
   return (
-    <section aria-label="Compare stage" className="border-y border-line">
-      <div className="border-b bg-background">
-        <div className="flex flex-wrap items-center gap-2.5 px-4 py-3 sm:px-6">
+    <>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Compare</h1>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <PairSelect value={current} options={options} />
-          <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
-            <Seg
-              label="View mode"
-              value={mode}
-              onChange={(v) => {
-                setMode(v === 'swipe' ? 'swipe' : 'split');
-              }}
-              options={[
-                { id: 'split', label: (<><Columns2 size={13} aria-hidden="true" /> Side by side</>) },
-                { id: 'swipe', label: (<><SplitSquareHorizontal size={13} aria-hidden="true" /> Swipe</>) },
-              ]}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                setLocked((l) => !l);
-              }}
-              aria-pressed={locked}
-              className={clsx(buttonVariants({ variant: locked ? 'secondary' : 'outline', size: 'sm' }), 'h-9 gap-1.5 text-xs', locked && 'text-primary')}
-            >
-              {locked ? <Link2 size={13} aria-hidden="true" /> : <Link2Off size={13} aria-hidden="true" />} Matched scale
-            </button>
-            <button type="button" onClick={reset} className={clsx(buttonVariants({ variant: 'outline', size: 'sm' }), 'h-9 gap-1.5 text-xs')}>
-              <LocateFixed size={13} aria-hidden="true" /> Window
-            </button>
-          </div>
+          <Seg
+            label="View mode"
+            value={mode}
+            onChange={(v) => {
+              setMode(v === 'swipe' ? 'swipe' : 'split');
+            }}
+            options={[
+              { id: 'split', label: (<><HugeiconsIcon icon={LayoutTwoColumnIcon} size={14} aria-hidden="true" /> Side by side</>) },
+              { id: 'swipe', label: (<><HugeiconsIcon icon={ArrowLeftRightIcon} size={14} aria-hidden="true" /> Swipe</>) },
+            ]}
+          />
         </div>
-        <nav aria-label="All card pairs" className="scrollbar-thin flex items-center gap-2 overflow-x-auto border-t border-line px-4 py-2 sm:px-6">
-          <span className="shrink-0 text-xs font-medium text-muted-foreground">Cards</span>
-          {options.map((o, i) => {
-            const on = o.href === current;
-            return (
-              <Link
-                key={o.href}
-                href={o.href}
-                scroll={false}
-                aria-current={on ? 'page' : undefined}
-                className={clsx(buttonVariants({ variant: on ? 'secondary' : 'ghost', size: 'sm' }), 'h-7 shrink-0 gap-1.5 font-mono text-xs no-underline', on && 'text-primary')}
-              >
-                <WorldDot world={o.body} />
-                {String(i + 1).padStart(2, '0')}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+      </header>
 
-      <div className="relative">
+      <section aria-label="Compare stage" className="mt-6 overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
         {mode === 'split' ? (
-          <div className="relative grid md:h-[min(72dvh,720px)] md:min-h-[520px] md:grid-cols-2">
+          <div className="grid gap-px bg-border md:h-[min(68dvh,640px)] md:min-h-[480px] md:grid-cols-2">
             <MapPane title={pair.targetName} world={pair.body} pane={pair.target} mpp={mppT}>
               {targetMap}
             </MapPane>
-            <MapPane title={pair.earthName} world="earth" pane={pair.earth} mpp={mppE} border>
+            <MapPane title={pair.earthName} world="earth" pane={pair.earth} mpp={mppE}>
               {earthMap}
             </MapPane>
-            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-1/2 z-[650] hidden w-[2px] -translate-x-px bg-[linear-gradient(180deg,transparent,rgba(242,200,121,0.55)_30%,rgba(242,200,121,0.55)_70%,transparent)] md:block" />
           </div>
         ) : (
           <SwipeStage
-            className="h-[70dvh] md:h-[min(72dvh,720px)] md:min-h-[520px]"
+            className="aspect-square bg-muted md:aspect-auto md:h-[min(68dvh,640px)] md:min-h-[480px]"
             value={swipe}
             onChange={setSwipe}
             left={targetMap}
@@ -215,11 +177,30 @@ export function CompareStage({ pair, current, options }: CompareStageProps) {
             leftWorld={pair.body}
           />
         )}
-      </div>
-      <p className="px-4 py-2 text-[12px] text-dim sm:px-6">
-        Gold outline: the 5 km analysis window. Each pane stays in its own frame ({pair.target?.units ?? 'target frame unavailable'}; {pair.earth?.units ?? 'Earth frame unavailable'}); Matched scale links
-        ground metres per pixel and the offset from each window centre. Ctrl or ⌘ + scroll zooms; focus a map to pan with the arrow keys and zoom with + and −.
-      </p>
-    </section>
+        <div className="flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted-foreground">
+            Gold outline: the 5 km analysis window. Each map stays in its own projection; scroll with Ctrl or ⌘ to zoom, arrow keys pan a focused map.
+          </p>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              variant={locked ? 'secondary' : 'outline'}
+              size="sm"
+              aria-pressed={locked}
+              onClick={() => {
+                setLocked((l) => !l);
+              }}
+            >
+              <HugeiconsIcon icon={locked ? Link01Icon : Unlink01Icon} size={14} aria-hidden="true" />
+              Matched scale
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={reset}>
+              <HugeiconsIcon icon={CenterFocusIcon} size={14} aria-hidden="true" />
+              Recentre
+            </Button>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

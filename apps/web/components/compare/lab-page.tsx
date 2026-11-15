@@ -14,7 +14,7 @@ export function LabPage({ bundle, card }: { readonly bundle: PulledBundle; reado
   const cards = labCards(bundle);
   const options: PairOption[] = cards.map((c, i) => {
     const p = buildLabPair(bundle, c);
-    return { href: compareHref(c), label: `${String(i + 1).padStart(2, '0')} · ${p.headline} · ${c.comparison_ref.earth_window_id}`, body: p.body };
+    return { href: compareHref(c), label: p.headline, body: p.body };
   });
   return (
     <CompareLab
