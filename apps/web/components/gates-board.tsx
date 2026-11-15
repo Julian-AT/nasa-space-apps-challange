@@ -27,7 +27,7 @@ export const NULL_REASON = 'validation.json gives null for this field';
 
 // Identifiers and statuses are set in a monospace face; free text is not. Each column has one
 // style whatever the value, so a status is told apart only by its text.
-const IDENTIFIER: ReadonlySet<GateField> = new Set(['gate_id', 'status', 'evidence_path', 'run_id']);
+const IDENTIFIER: ReadonlySet<GateField> = new Set(['gate_id', 'status', 'evidence_path', 'run_id', 'command', 'config_version', 'input_hashes']);
 
 function cellClass(field: GateField): string {
   return cn('border border-border px-2 py-1 text-left align-top wrap-anywhere', IDENTIFIER.has(field) && 'font-mono');
@@ -54,10 +54,19 @@ export function recordsByGate(validation: Validation): ReadonlyMap<GateId, GateR
 
 function Value({ field, value }: { readonly field: GateField; readonly value: string | null }) {
   return (
-    <td data-field={field} className={cellClass(field)}>
+    <td data-field={field} className={cn(cellClass(field), 'whitespace-pre-wrap')}>
       {value === null ? <LabelledValue label="Unavailable" reason={NULL_REASON} /> : value}
     </td>
   );
+}
+
+/** A record field as text: input_hashes as one `path sha256` line per file, none as null. */
+function fieldText(record: GateRecord, field: GateField): string | null {
+  const value = record[field];
+  if (Array.isArray(value)) {
+    return value.length === 0 ? null : value.map((entry) => `${entry.path} ${entry.sha256}`).join('\n');
+  }
+  return value;
 }
 
 function RecordRow({ record }: { readonly record: GateRecord }) {
@@ -67,7 +76,7 @@ function RecordRow({ record }: { readonly record: GateRecord }) {
         {record.gate_id}
       </th>
       {GATE_FIELDS.filter((field) => field !== 'gate_id').map((field) => (
-        <Value key={field} field={field} value={record[field]} />
+        <Value key={field} field={field} value={fieldText(record, field)} />
       ))}
     </tr>
   );
