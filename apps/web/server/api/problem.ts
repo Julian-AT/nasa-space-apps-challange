@@ -20,7 +20,9 @@ const TITLES = {
   405: 'Method Not Allowed',
   500: 'Internal Server Error',
   501: 'Not Implemented',
+  502: 'Bad Gateway',
   503: 'Service Unavailable',
+  504: 'Gateway Timeout',
 } as const;
 
 /** The statuses the API answers with a problem. */

@@ -30,6 +30,7 @@ const ROUTED_PATHS = [
   '/api/v1/compare',
   '/api/v1/model',
   '/api/v1/gates',
+  '/api/v1/dem/cop30/{tile}',
   '/api/v1/openapi.json',
   '/api/v1/docs',
 ];
@@ -183,7 +184,7 @@ describe('GET /api/v1/openapi.json', () => {
 
 describe('the production mock refusal in the document (T15-07)', () => {
   /** The routed paths that never read the bundle: fixed per deploy. */
-  const DEPLOY_ONLY = ['/api/v1/openapi.json', '/api/v1/docs'];
+  const DEPLOY_ONLY = ['/api/v1/openapi.json', '/api/v1/docs', '/api/v1/dem/cop30/{tile}'];
 
   /** A request URL for each documented path, with valid parameters (the ids are test-only). */
   const SAMPLE_URLS: Readonly<Record<string, string>> = {
