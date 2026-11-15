@@ -10,7 +10,7 @@ import './globals.css';
 
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Instrument_Serif, Michroma } from 'next/font/google';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 import { SiteChrome, THEME_SCRIPT } from '../components/shadowastra/chrome/SiteChrome.tsx';
 import { MockBanner } from '../components/mock-banner.tsx';
@@ -51,7 +51,13 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     cardCount: cardRecords.length,
   };
   return (
-    <html lang="en" suppressHydrationWarning className={`dark ${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`dark ${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}
+      // globals.css maps --font-sans onto itself; point it at Geist here so text is not set in the serif fallback.
+      style={{ '--font-sans': 'var(--font-geist), ui-sans-serif, system-ui, sans-serif' } as CSSProperties}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: DARK_CLASS_SCRIPT }} />
