@@ -84,7 +84,11 @@
       "claim": "The stated 0.04 worst-case slope-error bound uses an endpoint slope, whereas H uses five-point least squares. Correct the rationale while retaining the declared tolerances.",
       "evidence": "The executable generator check at :324 permits independent ±3% errors at each lag. For OLS weights w_i=(ln L_i−mean(ln L))/sum((ln L−mean(ln L))²), ratios (0.97, 0.97, 1.03, 1.03, 1.03) satisfy that check but shift H by ln(1.03/0.97)·sum(w_i>0) ≈ 0.0524. terrain.py:690–700 implements this OLS estimator.",
       "id": "codex2-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "e997940aaa5eb35cc8a3ba83a447418fdfe17253",
+        "reason": "Confirmed: the OLS weights for lags 3, 4, 6, 8, 12 cells sum to 0.8724 on each side, so the worst case is 0.8724 ln(1.03/0.97) = 0.0524, not 0.04. The GENERATOR_RTOL docstring now states the least-squares bound and notes the correction; GENERATOR_RTOL = 0.03 and H_TOLERANCE = 0.1 are unchanged."
+      }
     }
   ]
 }

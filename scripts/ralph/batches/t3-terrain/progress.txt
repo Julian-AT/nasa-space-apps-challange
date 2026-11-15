@@ -248,3 +248,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes (T3-06; PRD.md is read-only for the loop)
 - PRD 12 T3 / story T3-07: the seeded fractal for fixtures/parity must come from an importable generator in terraluna_pipeline.terrain. T3-06 keeps its generator in pipeline/tests/test_terrain_fractal.py, so T3-07 should move it to terrain.py (labelled synthetic) and point this test at it. The parity file should store the exact array, since numpy Generator streams are not stable across numpy feature releases and TypeScript cannot reproduce them.
 ---
+
+## 2026-11-15T00:29Z · T3-06 · resolve
+- Done: resolved 4 round-1 findings. codex2-r1-1 fixed: the GENERATOR_RTOL rationale now gives the least-squares worst-case slope bound (0.872 ln(1.03/0.97) = 0.0524) instead of the endpoint slope (0.043); tolerances unchanged. claude-r1-1 (numpy stream; pinned, disclosed, exact arrays belong to T3-07 parity), claude-r1-2 (seed-mean H tolerance declared before first run, spread disclosed) and claude-r1-3 (bookkeeping files allowed by the loop) rebutted.
+- Commits: e997940 fix(t3-06): correct the generator tolerance slope bound to least squares (codex2-r1-1)
+- Checks: uv run pytest pipeline/tests/test_terrain_fractal.py — 26 passed; make test — 1474 passed.
+- Docs used: none new (docstring only).
+- Learnings: when justifying a tolerance on a fitted slope, bound it with the actual OLS weights over the configured lags (for 3,4,6,8,12 cells the one-sided weight sum is 0.872), not an endpoint slope over ln 4.
+---

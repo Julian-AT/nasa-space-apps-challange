@@ -84,7 +84,11 @@
       "claim": "The test module sets filterwarnings(\"error\") and its results depend on numpy's Generator stream, which can change across numpy feature releases.",
       "evidence": "The module docstring and the notes disclose this, and uv.lock pins numpy. A numpy upgrade could shift the observed H values, and H_TOLERANCE must not be retuned then. Optional follow-up: store the exact array in the parity fixture (T3-07).",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect in this story. The dependence on numpy's Generator stream is disclosed in the module docstring and in the story notes, and numpy is pinned in uv.lock, so `make test` and the focused check are reproducible for the locked build. The assertions are statistical bounds over 8 seeds (mean H within 0.1, per-seed order), not exact values, so an upgrade only shifts draws; H_TOLERANCE is documented as not to be retuned. Storing exact arrays is parity-fixture work owned by T3-07 (fixtures/parity), as the finding itself suggests."
+      }
     },
     {
       "severity": "low",
@@ -92,7 +96,11 @@
       "claim": "The H tolerance applies to the 8-seed mean, so one window at H = 0.8 can deviate by up to 0.167. The story text does not say whether H is recovered per window or as a mean.",
       "evidence": "The notes disclose this as human decision (1). The order test is per seed. This is an interpretation for the orchestrator to confirm, not a defect.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The criterion leaves the tolerance to the author, to be declared before the first run with its reason. H_TOLERANCE and its definition as the mean over SEEDS were declared in 286aeec before any result existed (test_terrain_fractal.py H_TOLERANCE docstring), and the per-window spread (SD 0.04 to 0.11, max deviation 0.167 at H = 0.8) is recorded in the notes rather than hidden. The order criterion is checked per seed. The reviewer states this is an interpretation, not a defect; the notes keep it as decision (1) for the orchestrator."
+      }
     },
     {
       "severity": "low",
@@ -100,7 +108,11 @@
       "claim": "prd.json and progress.txt changed, which are outside the story's files list.",
       "evidence": "These are the loop's own bookkeeping files (review state, notes, progress log). They contain no result or gate values beyond the notes.",
       "id": "claude-r1-3",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The Ralph author instructions allow changes to the batch's story list and progress log in addition to the story's files (section 2: 'Change only paths that match the story's files patterns, plus the story list and the progress log'). The changes to scripts/ralph/batches/t3-terrain/prd.json and progress.txt are the review-state request, notes and progress entry only."
+      }
     }
   ]
 }
