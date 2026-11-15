@@ -6,7 +6,6 @@ import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-import { MODE_TITLES } from '../../components/mode-banner.tsx';
 import { loadBundle } from '../../lib/bundle.ts';
 import { SITE_TITLE } from '../../lib/shell.ts';
 
@@ -44,7 +43,6 @@ export default function SiteIndex() {
                     <CardDescription>
                       {card.target.target_id} · {card.earth.earth_window_id}
                     </CardDescription>
-                    <CardDescription>{MODE_TITLES[card.shipping_mode]}</CardDescription>
                   </CardHeader>
                 </Card>
               </Link>
