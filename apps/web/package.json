@@ -16,6 +16,7 @@
     "test": "vitest run",
     "e2e:install": "playwright install chromium",
     "e2e": "node scripts/bundle-pull.ts && next build && playwright test"
+    "test:parity": "vitest run --config vitest.parity.config.ts"
   },
   "dependencies": {
     "@deck.gl/core": "9.4.1",

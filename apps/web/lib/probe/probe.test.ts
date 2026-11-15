@@ -170,6 +170,23 @@ describe('runProbe', () => {
   });
 });
 
+describe('transient upstream errors', () => {
+  it('retries a 502 once and then succeeds', async () => {
+    const inner = stubFetch(tiles, { requests: [], bytes: 0 });
+    let failed = 0;
+    const flaky = ((input: string | URL | Request, init?: RequestInit) => {
+      if (failed === 0) {
+        failed += 1;
+        return Promise.resolve(new Response('bad gateway', { status: 502 }));
+      }
+      return inner(input, init);
+    }) as typeof fetch;
+    const result = await runProbe({ id: 11, latDeg: 64.5, lonDeg: -16.5 }, { mode: 'proxy', fetch: flaky, targets: noTargets, bundleVersion: null });
+    expect(result.kind).toBe('result');
+    expect(failed).toBe(1);
+  });
+});
+
 describe('runProbe with an encoder session (stub session, no model file)', () => {
   it('labels the encoder distance Predicted with the manifest G5 status and guards the percentile', async () => {
     const spec = { url: 'u', model_id: 'enc-v1', onnx_sha256: 'abc', status: 'EXPERIMENTAL', g5_status: 'NOT_RUN', input_name: 'x', output_name: 'e', l2_normalized: true };
