@@ -12,7 +12,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
+import { openPalette } from '@/components/shadowastra/chrome/CommandPalette';
+import { Github, ThemeToggle } from '@/components/shadowastra/ui/Chrome';
 import { cn } from '@/lib/utils';
+
+export const REPO_URL = 'https://github.com/Julian-AT/nasa-space-apps-challange';
 
 export const NAV_ITEMS = [
   { label: 'Home', href: '/' },
@@ -83,6 +87,45 @@ function Wordmark() {
   );
 }
 
+/** ShadowAstra's search pill: opens the command palette (also Ctrl K or /). */
+function SearchPill() {
+  return (
+    <button
+      type="button"
+      onClick={openPalette}
+      aria-label="Search (Ctrl K)"
+      aria-keyshortcuts="Control+K Meta+K /"
+      className="inline-flex h-9 items-center gap-2 rounded-full border border-line-2 bg-panel pr-1.5 pl-3 text-[12.5px] text-chrome transition-colors hover:border-chrome hover:text-platinum"
+    >
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
+      <span className="hidden sm:inline">Search</span>
+      <kbd className="hidden rounded-full border border-line-2 px-2 py-0.5 font-mono text-[10px] text-dim sm:inline">Ctrl K</kbd>
+    </button>
+  );
+}
+
+function HeaderActions() {
+  return (
+    <div className="flex shrink-0 items-center gap-2">
+      <SearchPill />
+      <a
+        href={REPO_URL}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Terraluna on GitHub"
+        title="GitHub"
+        className="grid size-9 place-items-center rounded-full border border-line-2 text-chrome no-underline transition-colors hover:border-chrome hover:text-platinum"
+      >
+        <Github size={15} />
+      </a>
+      <ThemeToggle />
+    </div>
+  );
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -90,6 +133,8 @@ export function SiteHeader() {
     <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
       <Wordmark />
       <SiteNav pathname={pathname} className="hidden lg:block" />
+      <div className="flex items-center gap-2">
+      <HeaderActions />
       <button
         type="button"
         aria-label={open ? 'Close menu' : 'Open menu'}
@@ -104,6 +149,7 @@ export function SiteHeader() {
           {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 8h16M4 16h16" />}
         </svg>
       </button>
+      </div>
       {open ? (
         <div
           id="site-menu"

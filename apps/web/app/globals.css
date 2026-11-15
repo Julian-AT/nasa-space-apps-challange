@@ -82,6 +82,92 @@
   --radius: 1.25rem;
 }
 
+/*
+ * Light theme, ported from ShadowAstra_Atlas's warm-paper palette (styles.css [data-theme="light"]).
+ * Dark stays the default; the header toggle sets html[data-theme="light"] and remembers it in
+ * localStorage ("sa-theme"). Same token names, so every existing class keeps working.
+ */
+[data-theme="light"] {
+  color-scheme: light;
+  --void: #f3efe6;
+  --ink: #ebe5d9;
+  --panel: #fbf8f2;
+  --panel-2: #f2ede3;
+  --line-2: #c9c0ae;
+  --platinum: #1c1a16;
+  --chrome: #55514a;
+  --dim: #6a665e;
+  --flare: #8f5414;
+  --moon: #6d685d;
+  --mars: #9c4523;
+  --earth: #2d62ad;
+
+  --background: #f3efe6;
+  --foreground: #1c1a16;
+  --card: #fbf8f2;
+  --card-foreground: #1c1a16;
+  --popover: #fbf8f2;
+  --popover-foreground: #1c1a16;
+  --primary: #8f5414;
+  --primary-foreground: #fbf8f2;
+  --secondary: #f2ede3;
+  --secondary-foreground: #1c1a16;
+  --muted: #ebe5d9;
+  --muted-foreground: #55514a;
+  --accent: #e4ddcf;
+  --accent-foreground: #1c1a16;
+  --border: #857f72;
+  --input: #857f72;
+  --ring: #8f5414;
+  --line: #dcd5c7;
+  --destructive: #9e3520;
+  --destructive-foreground: #fbf8f2;
+
+  --evidence-observed: #2d62ad;
+  --evidence-derived: #22694a;
+  --evidence-predicted: #6858a6;
+  --evidence-assumed: #7d540c;
+  --evidence-unavailable: #55514a;
+
+  --status-pass: #22694a;
+  --status-fail: #9e3520;
+  --status-partial: #7d540c;
+  --status-not-run: #55514a;
+  --status-not-applicable: #2d62ad;
+
+  --world-moon: #6d685d;
+  --world-mars: #9c4523;
+  --world-earth: #2d62ad;
+}
+/* Space scenes (full-bleed globe and map views) and the splash keep the dark palette, as in
+   ShadowAstra, where space scenes are wrapped in data-theme="dark". */
+[data-theme="light"] [data-theme="dark"],
+[data-theme="light"] [data-full-bleed] {
+  color-scheme: dark;
+  --void: #07080a;
+  --ink: #0b0c0f;
+  --panel: #101114;
+  --panel-2: #16171b;
+  --line-2: #2f3035;
+  --platinum: #edeae4;
+  --chrome: #a8a59e;
+  --dim: #8a8882;
+  --flare: #f2c879;
+  --background: #07080a;
+  --foreground: #edeae4;
+  --line: #2a2b31;
+  --muted-foreground: #a8a59e;
+  --border: #6b6962;
+  color: var(--foreground);
+}
+html[data-theme="light"] body::before {
+  opacity: 0.07;
+  mix-blend-mode: multiply;
+}
+html {
+  transition: background-color 0.4s ease;
+}
+
 @theme inline {
   /* The default palette's reds would let other elements look like the mock banner. */
   --color-red-*: initial;

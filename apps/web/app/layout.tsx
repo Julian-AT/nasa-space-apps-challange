@@ -12,6 +12,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Instrument_Serif, Michroma } from 'next/font/google';
 import type { ReactNode } from 'react';
 
+import { SiteChrome, THEME_SCRIPT } from '../components/shadowastra/chrome/SiteChrome.tsx';
 import { MockBanner } from '../components/mock-banner.tsx';
 import { ModeBanner } from '../components/mode-banner.tsx';
 import { SiteFooter } from '../components/site-footer.tsx';
@@ -37,8 +38,20 @@ export const metadata: Metadata = { title: SITE_TITLE };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const bundle = loadBundle();
+  // Bundle records for the command palette and Astra; nothing here is typed in.
+  const cardRecords = [...bundle.records.cards.values()];
+  const cards = cardRecords.map((card) => ({ id: card.card_id, title: card.title, body: card.target.body }));
+  const astraCtx = {
+    bundleVersion: bundle.manifest.bundle_version,
+    shippingMode: bundle.manifest.shipping_mode,
+    g5Status: cardRecords[0]?.g5_status ?? null,
+    cardCount: cardRecords.length,
+  };
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="bg-observatory min-h-dvh antialiased">
         <SkipLink />
         <header className="sticky top-0 z-40 border-b border-line bg-void">
@@ -54,6 +67,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           {children}
         </main>
         <SiteFooter bundle={bundle} />
+        <SiteChrome cards={cards} ctx={astraCtx} />
       </body>
     </html>
   );
