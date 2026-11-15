@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import hashlib
 import json
 import re
 import struct
@@ -139,26 +140,6 @@ class BundleManifest(Record):
     targets: list[NonEmptyStr]
     model: ModelSummary | None
     files: list[BundleFile]
-
-
-class GateRecord(Record):
-    """One release gate's state in validation.json (PRD 8.12, section 9)."""
-
-    gate_id: GateId
-    status: GateStatus
-    evidence_path: NonEmptyStr | None
-    run_id: NonEmptyStr | None
-    scope: NonEmptyStr | None
-    result: NonEmptyStr | None
-    consequence: NonEmptyStr | None
-
-
-ValidationFile = Annotated[
-    list[GateRecord],
-    Strict(),
-    Field(title="Validation", description="validation.json: the GateRecords (PRD 8.4, 8.12)."),
-]
-"""validation.json: an array of GateRecords."""
 
 
 # --- ProductRecord (PRD 5, 8.11, 8.12) ----------------------------------------------------------
@@ -455,6 +436,94 @@ def _when(
 
 def _exactly_one_null(value: object, reason: object) -> bool:
     return (value is None) != (reason is None)
+
+
+# --- GateRecord (PRD 8.12 as amended by PRD-01, PRD 9; CONTRACTS a.4) --------------------------
+
+
+class InputHash(Record):
+    """The SHA-256 of one file a gate's producer read, by its repository path."""
+
+    path: RepoPath
+    sha256: Sha256
+
+
+_EXECUTED_STATUSES: tuple[str, ...] = ("PASS", "FAIL", "PARTIAL", "NOT_APPLICABLE")
+"""Statuses of a gate that was run: each names its command, config version and inputs."""
+
+_GATE_PROVENANCE = ("command", "config_version", "evidence_path", "scope")
+
+# A conditional cannot hold a $ref, so the non-empty check names the InputHash shape; the
+# patterns stay on the property itself.
+_INPUT_HASH_SHAPE: dict[str, Any] = {
+    "type": "object",
+    "properties": {"path": _STRING, "sha256": _STRING},
+    "required": ["path", "sha256"],
+    "additionalProperties": False,
+}
+
+
+def _gate_rule(status: str) -> dict[str, Any]:
+    required = {
+        **dict.fromkeys(_GATE_PROVENANCE, _STRING),
+        "input_hashes": {"type": "array", "items": _INPUT_HASH_SHAPE, "minItems": 1},
+    }
+    if status == "PASS":
+        required["run_id"] = _STRING
+    return _when({"status": {"const": status}}, required)
+
+
+class GateRecord(Record):
+    """One release gate's state in validation.json (PRD 8.12, section 9).
+
+    A gate that was run (PASS, FAIL, PARTIAL or NOT_APPLICABLE) names its ``command``,
+    ``config_version``, ``evidence_path`` and ``scope`` and lists at least one input; PASS also
+    needs the PRD 8.13 ``run_id``. NOT_RUN may leave every nullable field null with no inputs.
+    ``input_hashes`` is sorted by path with no path twice, so `gates verify` can re-hash it.
+    There are no wall-clock fields, so re-recording a gate is byte-identical.
+    """
+
+    model_config = ConfigDict(
+        json_schema_extra={"allOf": [_gate_rule(status) for status in _EXECUTED_STATUSES]}
+    )
+
+    gate_id: GateId
+    status: GateStatus
+    evidence_path: RepoPath | None = Field(description="The committed evidence file.")
+    run_id: RunId | None = Field(description="PRD 8.13 run_id; required for PASS.")
+    scope: NonEmptyStr | None
+    result: NonEmptyStr | None
+    consequence: NonEmptyStr | None
+    command: NonEmptyStr | None = Field(
+        description="The shlex-joined argv of the command that produced the record."
+    )
+    config_version: Sha256 | None = Field(description="SHA-256 of config/run.yaml as read.")
+    input_hashes: list[InputHash] = Field(
+        description="Every file the producer read, sorted by path, each path once."
+    )
+
+    @model_validator(mode="after")
+    def _provenance_follows_the_status(self) -> Self:
+        paths = [entry.path for entry in self.input_hashes]
+        if any(a >= b for a, b in pairwise(paths)):
+            raise ValueError("input_hashes must be sorted by path with no path listed twice")
+        if self.status in _EXECUTED_STATUSES:
+            missing = [name for name in _GATE_PROVENANCE if getattr(self, name) is None]
+            if not self.input_hashes:
+                missing.append("input_hashes")
+            if self.status == "PASS" and self.run_id is None:
+                missing.append("run_id")
+            if missing:
+                raise ValueError(f"a {self.status} gate record needs {', '.join(missing)}")
+        return self
+
+
+ValidationFile = Annotated[
+    list[GateRecord],
+    Strict(),
+    Field(title="Validation", description="validation.json: the GateRecords (PRD 8.4, 8.12)."),
+]
+"""validation.json: an array of GateRecords."""
 
 
 _STATISTICS = ("min", "median", "p05", "p95", "max")
@@ -1834,6 +1903,465 @@ class EmbeddingsIndex(Record):
         return self
 
 
+# --- Report records II (T0B-04; CONTRACTS a.4; PRD 11.8 to 11.10) ------------------------------
+
+Availability = Literal["available", "unavailable"]
+"""Whether a curve point or a set of metrics was produced; ``unavailable`` carries a reason."""
+
+
+def _unavailable_rule(*, empty_list: str | None = None) -> dict[str, Any]:
+    """JSON Schema for a status that is ``available`` exactly when ``reason`` is null."""
+    unavailable: dict[str, dict[str, Any]] = {"reason": _STRING}
+    if empty_list is not None:
+        unavailable[empty_list] = {"type": "array", "items": _NULL, "maxItems": 0}
+    return _when({"status": {"const": "unavailable"}}, unavailable, {"reason": _NULL})
+
+
+def _check_availability(status: str, reason: object) -> None:
+    if (status == "unavailable") != (reason is not None):
+        raise ValueError("an unavailable status needs a reason, and an available one has none")
+
+
+class LossEpoch(Record):
+    """One epoch of one loss term, over the seeds: mean, min and max of the per-seed values."""
+
+    epoch: Count
+    mean: Float
+    min: Float
+    max: Float
+    n_seeds: PositiveCount
+
+    @model_validator(mode="after")
+    def _mean_within_range(self) -> Self:
+        if not self.min <= self.mean <= self.max:
+            raise ValueError("a loss epoch needs min <= mean <= max")
+        return self
+
+
+class LossTerm(Record):
+    """The curve of one loss term, epochs strictly increasing."""
+
+    term: NonEmptyStr
+    epochs: list[LossEpoch]
+
+    @model_validator(mode="after")
+    def _epochs_increase(self) -> Self:
+        if any(a.epoch >= b.epoch for a, b in pairwise(self.epochs)):
+            raise ValueError("loss epochs must be strictly increasing")
+        return self
+
+
+class GpuRun(Record):
+    """GPU hours of one run; null hours need a reason (missing is never 0)."""
+
+    model_config = ConfigDict(
+        json_schema_extra={"allOf": [_when({"hours": _NULL}, {"reason": _STRING})]}
+    )
+
+    run_name: NonEmptyStr
+    hours: NonNegative | None
+    reason: NonEmptyStr | None
+    source: NonEmptyStr | None
+
+    @model_validator(mode="after")
+    def _null_hours_have_a_reason(self) -> Self:
+        if self.hours is None and self.reason is None:
+            raise ValueError("a run with null hours needs a reason")
+        return self
+
+
+class GpuHours(Record):
+    """GPU hours per run. When any run's hours are null, the total is null or marked partial."""
+
+    runs: list[GpuRun]
+    total_hours: NonNegative | None
+    partial: bool
+
+    @model_validator(mode="after")
+    def _total_is_not_complete_with_missing_runs(self) -> Self:
+        missing = any(run.hours is None for run in self.runs)
+        if missing and self.total_hours is not None and not self.partial:
+            raise ValueError(
+                "a run has null hours, so total_hours must be null or partial must be true"
+            )
+        return self
+
+
+class IntervalValue(Record):
+    """A value with its 95% interval; all three null when unavailable."""
+
+    value: Float | None
+    ci_low: Float | None
+    ci_high: Float | None
+
+    @model_validator(mode="after")
+    def _ordered(self) -> Self:
+        present = [x is not None for x in (self.value, self.ci_low, self.ci_high)]
+        if any(present) and not all(present):
+            raise ValueError("value, ci_low and ci_high are all set or all null")
+        _ordered(self.ci_low, self.ci_high, "interval")
+        return self
+
+
+class TradeoffPoint(Record):
+    """One lambda_max of the physics/body-probe tradeoff curve (PRD 11.9)."""
+
+    model_config = ConfigDict(json_schema_extra={"allOf": [_unavailable_rule()]})
+
+    lambda_max: NonNegative
+    status: Availability
+    reason: NonEmptyStr | None
+    body_probe_balanced_accuracy: IntervalValue
+    physics_r2: IntervalValue
+
+    @model_validator(mode="after")
+    def _unavailable_has_no_values(self) -> Self:
+        _check_availability(self.status, self.reason)
+        if self.status == "unavailable" and any(
+            point.value is not None
+            for point in (self.body_probe_balanced_accuracy, self.physics_r2)
+        ):
+            raise ValueError("an unavailable tradeoff point has null values")
+        return self
+
+
+class ValidationProbeMetrics(Record):
+    """Probe metrics on the validation split; Unavailable with a reason and no metrics."""
+
+    model_config = ConfigDict(
+        json_schema_extra={"allOf": [_unavailable_rule(empty_list="metrics")]}
+    )
+
+    status: Availability
+    reason: NonEmptyStr | None
+    metrics: list[MetricRecord]
+
+    @model_validator(mode="after")
+    def _unavailable_has_no_metrics(self) -> Self:
+        _check_availability(self.status, self.reason)
+        if self.status == "unavailable" and self.metrics:
+            raise ValueError("unavailable validation probe metrics list no metrics")
+        return self
+
+
+class CurvesFile(Record):
+    """report/curves.json (PRD 11.9; contract name Curves). Ablations live in MetricsFile."""
+
+    mock: bool
+    run_id: RunId | None
+    loss_terms: list[LossTerm]
+    gpu_hours: GpuHours
+    tradeoff: list[TradeoffPoint]
+    chance_level_body_probe: Fraction
+    validation_probe_metrics: ValidationProbeMetrics
+
+
+AlwaysTrue = Annotated[Literal[True], BeforeValidator(_refuse_non_bool)]
+
+
+class UmapColumn(Record):
+    """One column of report/umap.bin, in file order."""
+
+    name: NonEmptyStr
+    dtype: NonEmptyStr
+    unit: NonEmptyStr | None
+
+
+class UmapHeader(Record):
+    """The length-prefixed JSON header of report/umap.bin (PRD 11.10). The binary layout is
+    checked by report.read_umap (t14), not here. NaN in a column means Unavailable."""
+
+    mock: bool
+    run_id: RunId | None
+    n_points: Count
+    columns: Annotated[list[UmapColumn], Field(min_length=1)]
+    body_codes: dict[NonEmptyStr, Body]
+    nan_means_unavailable: AlwaysTrue
+    seed: Count
+    n_neighbors: PositiveCount
+    min_dist: NonNegative
+    source_embedding_sha256: Sha256
+
+    @model_validator(mode="after")
+    def _column_names_unique(self) -> Self:
+        names = [column.name for column in self.columns]
+        if len(set(names)) != len(names):
+            raise ValueError("UMAP column names must be unique")
+        return self
+
+
+class GalleryEntry(Record):
+    """One retrieved window. Encoder entries (model_embedding) are Predicted, deterministic
+    fingerprint entries Derived (PRD 3, 11.10)."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when(
+                    {"distance_family": {"const": "model_embedding"}},
+                    {"evidence_label": _const("Predicted")},
+                    {"evidence_label": _const("Derived")},
+                )
+            ]
+        }
+    )
+
+    window_id: WindowId
+    body: Body
+    rank: PositiveCount
+    distance: NonNegative | None
+    distance_family: Family
+    evidence_label: EvidenceLabel
+
+    @model_validator(mode="after")
+    def _label_follows_family(self) -> Self:
+        expected = "Predicted" if self.distance_family == "model_embedding" else "Derived"
+        if self.evidence_label != expected:
+            raise ValueError(f"a {self.distance_family} entry is labelled {expected}")
+        return self
+
+
+TOP_K = 5
+MAX_FAILURE_CASES = 20
+
+
+class RetrievalTarget(Record):
+    """The encoder and deterministic top 5 for one target; a shorter list needs a reason."""
+
+    target_id: NonEmptyStr
+    encoder_top5: Annotated[list[GalleryEntry], Field(max_length=TOP_K)]
+    deterministic_top5: Annotated[list[GalleryEntry], Field(max_length=TOP_K)]
+    shortfall_reason: ReasonCode | None
+
+    @model_validator(mode="after")
+    def _lists_and_shortfall(self) -> Self:
+        if any(e.distance_family != "model_embedding" for e in self.encoder_top5):
+            raise ValueError("encoder_top5 holds only model_embedding entries")
+        if any(e.distance_family == "model_embedding" for e in self.deterministic_top5):
+            raise ValueError("deterministic_top5 holds no model_embedding entry")
+        short = len(self.encoder_top5) < TOP_K or len(self.deterministic_top5) < TOP_K
+        if short != (self.shortfall_reason is not None):
+            raise ValueError("a top-5 list shorter than five needs shortfall_reason, else null")
+        return self
+
+
+class FailureCases(Record):
+    """At most 20 failure cases in the order ``sort_rule`` states."""
+
+    sort_rule: NonEmptyStr
+    entries: Annotated[list[GalleryEntry], Field(max_length=MAX_FAILURE_CASES)]
+    shortfall_reason: ReasonCode | None
+
+
+class ExampleHillshade(Record):
+    """A stored hillshade, or the reason it is not stored; never a placeholder image."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when(
+                    {"data_b64": _NULL},
+                    {"unavailable_reason": _STRING},
+                    {"unavailable_reason": _NULL},
+                )
+            ]
+        }
+    )
+
+    window_id: WindowId
+    size: PositiveCount
+    encoding: NonEmptyStr
+    data_b64: NonEmptyStr | None
+    unavailable_reason: ReasonCode | None
+
+    @model_validator(mode="after")
+    def _data_or_reason(self) -> Self:
+        if not _exactly_one_null(self.data_b64, self.unavailable_reason):
+            raise ValueError("exactly one of data_b64 and unavailable_reason is null")
+        return self
+
+
+class ExamplesFile(Record):
+    """report/examples.json (PRD 11.10; contract name Examples)."""
+
+    mock: bool
+    run_id: RunId | None
+    retrieval_gallery: list[RetrievalTarget]
+    failure_cases: FailureCases
+    ood_examples: list[GalleryEntry]
+    hillshades: list[ExampleHillshade]
+
+
+# --- Background (T0B-04; CONTRACTS a.4; PRD 6.5) -----------------------------------------------
+
+BACKGROUND_STATEMENT = "empirical background comparison, not a physical truth test"
+
+LINEAR_WITHIN_BIN_V1 = (
+    "linear_within_bin_v1: for a distance d, p = 100 * (counts of bins entirely below d + "
+    "counts[k] * (d - lo_k) / (hi_k - lo_k) for the containing bin k) / n; 0 below the first "
+    "edge and 100 above the last. Python reference: matching.background_percentile."
+)
+
+
+def canonical_json_sha256(value: object) -> str:
+    """SHA-256 of ``value`` in canonical JSON: the export.canonical_json and
+    provenance.canonical_json rules (sorted keys, 2-space indent, trailing newline)."""
+    text = json.dumps(value, sort_keys=True, indent=2, ensure_ascii=False, allow_nan=False)
+    return hashlib.sha256((text + "\n").encode("utf-8")).hexdigest()
+
+
+class BackgroundFamily(Record):
+    """A distance histogram of one family over the background sample (PRD 6.5)."""
+
+    unit: NonEmptyStr
+    evidence_label: EvidenceLabel
+    bin_edges: Annotated[list[Float], Field(min_length=2)]
+    counts: list[Count]
+    n: Count
+    percentile_definition: Literal["linear_within_bin_v1"] = Field(description=LINEAR_WITHIN_BIN_V1)
+    direction: Literal["smaller_is_closer"]
+
+    @model_validator(mode="after")
+    def _histogram_is_consistent(self) -> Self:
+        if len(self.counts) != len(self.bin_edges) - 1:
+            raise ValueError("a histogram has one count per bin: len(bin_edges) - 1")
+        if any(a >= b for a, b in pairwise(self.bin_edges)):
+            raise ValueError("bin_edges must be strictly increasing")
+        if self.n != sum(self.counts):
+            raise ValueError(f"n is {self.n} but the counts sum to {sum(self.counts)}")
+        return self
+
+
+class ModelBackground(BackgroundFamily):
+    """The encoder family's histogram, tied to one exported model and the target embedding."""
+
+    evidence_label: Literal["Predicted"]
+    model_id: NonEmptyStr
+    onnx_sha256: Sha256
+    g5_status: GateStatus
+    target_embedding: EmbeddingRecord
+    sample_window_ids_sha256: Sha256 = Field(
+        description="SHA-256 of the canonical JSON of the parent's sample_window_ids."
+    )
+
+
+class BackgroundFamilies(Record):
+    """One histogram per family, null where ``family_reasons`` names why."""
+
+    terrain_relief: BackgroundFamily | None
+    terrain_texture: BackgroundFamily | None
+    radar_cpr: BackgroundFamily | None
+    model_embedding: ModelBackground | None
+
+
+class FamilyReasons(Record):
+    """Why a family has no histogram, null where it has one."""
+
+    terrain_relief: ReasonCode | None
+    terrain_texture: ReasonCode | None
+    radar_cpr: ReasonCode | None
+    model_embedding: ReasonCode | None
+
+
+class Background(Record):
+    """reference/background_{target_id}.json (PRD 6.5; CONTRACTS a.4).
+
+    Exactly one of each family and its reason is null; ``actual_n`` counts the sample; the
+    model family hashes the sample it was computed on.
+    """
+
+    target_id: NonEmptyStr
+    mock: bool
+    run_id: RunId
+    statement: Literal["empirical background comparison, not a physical truth test"]
+    seed: Count
+    requested_n: Count
+    actual_n: Count
+    sample_window_ids: list[WindowId]
+    source_ids: list[NonEmptyStr]
+    families: BackgroundFamilies
+    family_reasons: FamilyReasons
+
+    @model_validator(mode="after")
+    def _families_and_sample(self) -> Self:
+        for family in _FAMILIES:
+            if not _exactly_one_null(
+                getattr(self.families, family), getattr(self.family_reasons, family)
+            ):
+                raise ValueError(f"exactly one of families.{family} and its reason is null")
+        if self.actual_n != len(self.sample_window_ids):
+            raise ValueError("actual_n must equal the number of sample_window_ids")
+        model = self.families.model_embedding
+        if model is not None and model.sample_window_ids_sha256 != canonical_json_sha256(
+            self.sample_window_ids
+        ):
+            raise ValueError("sample_window_ids_sha256 does not hash sample_window_ids")
+        return self
+
+
+# --- Bundle path map (T0B-04; CONTRACTS a.3; PRD 8.4) ------------------------------------------
+
+SVG_ALLOWLIST = "svg_allowlist"
+"""Sentinel: an SVG checked against the allowlist (no script, on* attributes, foreignObject or
+external href), not a JSON Schema."""
+
+NO_JSON_SCHEMA = "none"
+"""Sentinel: a file with no JSON Schema, checked by budget and sha256 only."""
+
+BUNDLE_PATHS: dict[str, str] = {
+    "manifest.json": "BundleManifest",
+    "validation.json": "Validation",
+    "sources.json": "Sources",
+    "targets.json": "Targets",
+    "windows/{body}.json": "Windows",
+    "comparisons/{target_id}.json": "Comparisons",
+    "cards/{card_id}.json": "CardRecord",
+    "reference/background_{target_id}.json": "Background",
+    "model/model_card.json": "ModelRecord",
+    "model/embeddings.index.json": "EmbeddingsIndex",
+    "report/metrics.json": "Metrics",
+    "report/curves.json": "Curves",
+    "report/examples.json": "Examples",
+    "report/umap.bin": "UmapHeader",
+    "figures/{name}.svg": SVG_ALLOWLIST,
+    "tiles/{layer}/{z}/{x}/{y}.webp": NO_JSON_SCHEMA,
+    "windows/{body}.parquet": NO_JSON_SCHEMA,
+    "model/*.onnx": NO_JSON_SCHEMA,
+    "model/embeddings.f16.bin": NO_JSON_SCHEMA,
+}
+"""The one map from PRD 8.4 path template to contract name. export.py and the web loader read
+the generated packages/schema/json/bundle-paths.json rather than keeping copies."""
+
+BUNDLE_PATHS_FILE = "bundle-paths.json"
+
+
+def _template_pattern(template: str) -> re.Pattern[str]:
+    parts = re.split(r"(\{[a-z_]+\}|\*)", template)
+    body = "".join(rf"{_SEGMENT}" if p.startswith("{") or p == "*" else re.escape(p) for p in parts)
+    return re.compile(body)
+
+
+_BUNDLE_PATTERNS = tuple((_template_pattern(t), name) for t, name in BUNDLE_PATHS.items())
+
+
+def bundle_contract_for(path: str) -> str | None:
+    """The contract name for a bundle path, or None when no template matches it.
+
+    A placeholder or ``*`` matches exactly one path segment that is not ``.`` or ``..``.
+    """
+    for pattern, name in _BUNDLE_PATTERNS:
+        match = pattern.fullmatch(path)
+        if match is not None:
+            return name
+    return None
+
+
+def bundle_paths_json() -> bytes:
+    """bundle-paths.json in canonical JSON (sorted keys, 2-space indent, trailing newline)."""
+    text = json.dumps(BUNDLE_PATHS, sort_keys=True, indent=2, ensure_ascii=False)
+    return (text + "\n").encode("utf-8")
+
+
 # --- JSON Schema generation (PRD 8.3, 8.9) ------------------------------------------------------
 
 JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
@@ -1868,6 +2396,10 @@ CONTRACTS: tuple[Contract, ...] = (
     Contract("Metrics", "metrics.schema.json", TypeAdapter(MetricsFile)),
     Contract("EmbeddingRecord", "embedding-record.schema.json", TypeAdapter(EmbeddingRecord)),
     Contract("EmbeddingsIndex", "embeddings-index.schema.json", TypeAdapter(EmbeddingsIndex)),
+    Contract("Curves", "curves.schema.json", TypeAdapter(CurvesFile)),
+    Contract("UmapHeader", "umap-header.schema.json", TypeAdapter(UmapHeader)),
+    Contract("Examples", "examples.schema.json", TypeAdapter(ExamplesFile)),
+    Contract("Background", "background.schema.json", TypeAdapter(Background)),
 )
 
 
@@ -1896,15 +2428,23 @@ def generate_json_schemas(contracts: Sequence[Contract] = CONTRACTS) -> dict[str
     return generated
 
 
+def generate_contract_files(contracts: Sequence[Contract] = CONTRACTS) -> dict[str, bytes]:
+    """The JSON Schemas plus bundle-paths.json (BUNDLE_PATHS), by file name."""
+    generated = generate_json_schemas(contracts)
+    generated[BUNDLE_PATHS_FILE] = bundle_paths_json()
+    return generated
+
+
 def write_json_schemas(out_dir: Path, contracts: Sequence[Contract] = CONTRACTS) -> list[Path]:
-    """Write the JSON Schemas into ``out_dir``, creating it and overwriting the files in place.
+    """Write the JSON Schemas and bundle-paths.json into ``out_dir``, creating it and
+    overwriting the files in place.
 
     Nothing is deleted, and nothing is written if a target is a symlink or not a regular file.
     """
     out = Path(out_dir)
     if out.is_symlink() or (out.exists() and not out.is_dir()):
         raise FileExistsError(f"{out} is not a directory, so nothing was written")
-    generated = generate_json_schemas(contracts)
+    generated = generate_contract_files(contracts)
     targets = {out / name: data for name, data in generated.items()}
     for target in targets:
         if target.is_symlink() or (target.exists() and not target.is_file()):
@@ -1977,7 +2517,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         except FileExistsError as error:
             print(f"schema write: {error}", file=sys.stderr)
             return 1
-        print(f"wrote {len(written)} JSON Schemas to {args.out_dir}")
+        print(f"wrote {len(written) - 1} JSON Schemas and {BUNDLE_PATHS_FILE} to {args.out_dir}")
         return 0
     problems = json_schema_differences(args.schema_dir)
     for problem in problems:

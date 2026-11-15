@@ -688,7 +688,7 @@ Release runbook: `make bundle` → `make validate` → `make publish` (object st
 - **ProductRecord:** `product_id`, `provider`, `version`, `source_url`, `local_path`, `checksum`, `body`, `acquisition_time`, `frequency_or_wavelength`, `transmit_receive_convention`, `units`, `calibration_type`, `native_grid`, `effective_resolution`, `crs_and_frame`, `incidence_source`, `qa_definition`, `license_or_attribution`, `verification_status`
 - **WindowRecord:** `window_id`, `body`, `polygon`, `area_m2`, `analysis_grid_m`, `product_ids`, `valid_fraction_by_observable`, `observed_interpolated_quality`, `environment_flags`, `evidence_status_by_field`
 - **ComparisonRecord:** `target_window_id`, `earth_window_id`, `shipping_mode`, `comparable_observables`, `excluded_observables_and_reasons`, `distances_by_family`, `uncertainty_components`, `sort_rule`, `claim_limits`, `source_ids`, `run_id`
-- **GateRecord:** `gate_id`, `status` (`NOT_RUN`, `PASS`, `FAIL`, `PARTIAL`, `NOT_APPLICABLE`), `evidence_path`, `run_id`, `scope`, `result`, `consequence`
+- **GateRecord:** `gate_id`, `status` (`NOT_RUN`, `PASS`, `FAIL`, `PARTIAL`, `NOT_APPLICABLE`), `evidence_path`, `run_id`, `scope`, `result`, `consequence`, `command`, `config_version`, `input_hashes`
 - **EmbeddingRecord:** `window_id`, `body`, `model_id`, `embedding_f16` (256 values), `input_hash`, `valid_fraction`, `ood_score`
 - **ModelRecord** (`model_card.json`): `model_id`, `version`, `architecture`, `parameter_count`, `training_data` (bodies, product IDs, window counts, split groups), `objectives_and_weights`, `seeds`, `metrics_with_ci`, `g5_status`, `intended_use`, `limitations`, `licence`, `onnx_sha256`
 - **BundleManifest:** the fields shown in 8.4

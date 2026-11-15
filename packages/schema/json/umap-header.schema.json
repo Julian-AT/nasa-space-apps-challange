@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "UmapColumn": {
+      "additionalProperties": false,
+      "description": "One column of report/umap.bin, in file order.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "dtype": {
+          "minLength": 1,
+          "title": "Dtype",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "name",
+        "dtype",
+        "unit"
+      ],
+      "title": "UmapColumn",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The length-prefixed JSON header of report/umap.bin (PRD 11.10). The binary layout is\nchecked by report.read_umap (t14), not here. NaN in a column means Unavailable.",
+  "properties": {
+    "mock": {
+      "title": "Mock",
+      "type": "boolean"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Run Id"
+    },
+    "n_points": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "N Points",
+      "type": "integer"
+    },
+    "columns": {
+      "items": {
+        "$ref": "#/$defs/UmapColumn"
+      },
+      "minItems": 1,
+      "title": "Columns",
+      "type": "array"
+    },
+    "body_codes": {
+      "additionalProperties": {
+        "enum": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "type": "string"
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Body Codes",
+      "type": "object"
+    },
+    "nan_means_unavailable": {
+      "const": true,
+      "title": "Nan Means Unavailable",
+      "type": "boolean"
+    },
+    "seed": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Seed",
+      "type": "integer"
+    },
+    "n_neighbors": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "N Neighbors",
+      "type": "integer"
+    },
+    "min_dist": {
+      "minimum": 0,
+      "title": "Min Dist",
+      "type": "number"
+    },
+    "source_embedding_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Source Embedding Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "mock",
+    "run_id",
+    "n_points",
+    "columns",
+    "body_codes",
+    "nan_means_unavailable",
+    "seed",
+    "n_neighbors",
+    "min_dist",
+    "source_embedding_sha256"
+  ],
+  "title": "UmapHeader",
+  "type": "object"
+}

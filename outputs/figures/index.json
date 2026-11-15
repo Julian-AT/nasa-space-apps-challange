@@ -1,0 +1,50 @@
+[
+  {
+    "bytes": 8636,
+    "card_id": "moon-sps-x2-y2__earth-utm27n-e280-n2880",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "A",
+    "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_A.svg",
+    "sha256": "a82852c3cb3ccf6d49783d5660d1ef58f173e704c3800a705add461b08fccb73"
+  },
+  {
+    "bytes": 10416,
+    "card_id": "moon-sps-x2-y2__earth-utm27n-e280-n2880",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "B",
+    "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_B.svg",
+    "sha256": "234a3a506b094a384a94775d2a41b812ddc32c4f2b27a6f736bcbbaef64ee854"
+  },
+  {
+    "bytes": 1206,
+    "card_id": "moon-sps-x2-y2__earth-utm27n-e280-n2880",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "C",
+    "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_C.svg",
+    "sha256": "0e2e935e8f2d7c73b73fa5b52880144092e94b80a72fc8b3e4e9e252cc7a0d3f"
+  },
+  {
+    "bytes": 10680,
+    "card_id": "moon-sps-x2-y2__earth-utm27n-e285-n2879",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "A",
+    "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_A.svg",
+    "sha256": "b568ddc5adb14670f86d41034f0e22852440426758e7b51f669b398e95c42d84"
+  },
+  {
+    "bytes": 9565,
+    "card_id": "moon-sps-x2-y2__earth-utm27n-e285-n2879",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "B",
+    "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_B.svg",
+    "sha256": "ae7eccf5c91a696220ea1413faa9320b9129fac0c89961abd91ba586a8091793"
+  },
+  {
+    "bytes": 1206,
+    "card_id": "moon-sps-x2-y2__earth-utm27n-e285-n2879",
+    "command": "python -m terraluna_pipeline.figures cards",
+    "figure": "C",
+    "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_C.svg",
+    "sha256": "335ae2a3f2803aae9e29ed140c6d3ae89e2929eea3c347cf9c92be027b1e1614"
+  }
+]

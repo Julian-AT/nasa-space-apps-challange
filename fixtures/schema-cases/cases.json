@@ -39,9 +39,9 @@
       "created_utc": "1970-01-01T00:00:00Z",
       "files": [
         {
-          "bytes": 1158,
+          "bytes": 1669,
           "path": "validation.json",
-          "sha256": "d49244039d7045d1ed46ac4322f9ca49fbc30e01d7e050e6967955417c44df77"
+          "sha256": "bbc6427414c1dab3ec53afa16d16960f8aebcd34322754243abc914c046eae7e"
         }
       ],
       "git_sha": null,
@@ -1204,7 +1204,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1214,11 +1217,23 @@
     "value": {
       "gate_id": "G0",
       "status": "NOT_APPLICABLE",
-      "evidence_path": null,
+      "evidence_path": "test/schema-case-evidence.json",
       "run_id": null,
       "scope": "schema case scope",
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": "python -m terraluna_pipeline.schema_case record",
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": [
+        {
+          "path": "config/run.yaml",
+          "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        },
+        {
+          "path": "test/schema-case-input.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
     }
   },
   {
@@ -1229,10 +1244,22 @@
       "gate_id": "G1",
       "status": "PARTIAL",
       "evidence_path": "test/schema-case-evidence.json",
-      "run_id": "schema-case-run",
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "scope": "schema case scope",
       "result": "schema case result",
-      "consequence": "schema case consequence"
+      "consequence": "schema case consequence",
+      "command": "python -m terraluna_pipeline.schema_case record",
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": [
+        {
+          "path": "config/run.yaml",
+          "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        },
+        {
+          "path": "test/schema-case-input.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
     }
   },
   {
@@ -1246,7 +1273,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1260,7 +1290,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1273,7 +1306,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1287,7 +1323,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1301,7 +1340,10 @@
       "run_id": null,
       "scope": null,
       "result": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1314,7 +1356,10 @@
       "evidence_path": null,
       "run_id": null,
       "scope": null,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1328,7 +1373,10 @@
       "run_id": null,
       "scope": null,
       "result": "",
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1342,7 +1390,10 @@
       "run_id": null,
       "scope": null,
       "result": 0,
-      "consequence": null
+      "consequence": null,
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
     }
   },
   {
@@ -1357,7 +1408,119 @@
       "scope": null,
       "result": null,
       "consequence": null,
-      "notes": "not a gate field"
+      "notes": "not a gate field",
+      "command": null,
+      "config_version": null,
+      "input_hashes": []
+    }
+  },
+  {
+    "name": "gate-pass-with-provenance",
+    "schema": "GateRecord",
+    "valid": true,
+    "value": {
+      "gate_id": "G1",
+      "status": "PASS",
+      "evidence_path": "test/schema-case-evidence.json",
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "scope": "schema case scope",
+      "result": "schema case result",
+      "consequence": null,
+      "command": "python -m terraluna_pipeline.schema_case record",
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": [
+        {
+          "path": "config/run.yaml",
+          "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        },
+        {
+          "path": "test/schema-case-input.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    }
+  },
+  {
+    "name": "gate-pass-without-run-id",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G1",
+      "status": "PASS",
+      "evidence_path": "test/schema-case-evidence.json",
+      "run_id": null,
+      "scope": "schema case scope",
+      "result": "schema case result",
+      "consequence": null,
+      "command": "python -m terraluna_pipeline.schema_case record",
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": [
+        {
+          "path": "config/run.yaml",
+          "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        },
+        {
+          "path": "test/schema-case-input.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    }
+  },
+  {
+    "name": "gate-fail-without-command",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G1",
+      "status": "FAIL",
+      "evidence_path": "test/schema-case-evidence.json",
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "scope": "schema case scope",
+      "result": "schema case result",
+      "consequence": "schema case consequence",
+      "command": null,
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": [
+        {
+          "path": "config/run.yaml",
+          "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        },
+        {
+          "path": "test/schema-case-input.json",
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    }
+  },
+  {
+    "name": "gate-partial-empty-input-hashes",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G1",
+      "status": "PARTIAL",
+      "evidence_path": "test/schema-case-evidence.json",
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "scope": "schema case scope",
+      "result": "schema case result",
+      "consequence": "schema case consequence",
+      "command": "python -m terraluna_pipeline.schema_case record",
+      "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "input_hashes": []
+    }
+  },
+  {
+    "name": "gate-t0-seven-fields",
+    "schema": "GateRecord",
+    "valid": false,
+    "value": {
+      "gate_id": "G0",
+      "status": "NOT_RUN",
+      "evidence_path": null,
+      "run_id": null,
+      "scope": null,
+      "result": null,
+      "consequence": null
     }
   },
   {
@@ -1366,63 +1529,84 @@
     "valid": true,
     "value": [
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G0",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G1",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G2",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G3",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G4",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G5",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
         "status": "NOT_RUN"
       },
       {
+        "command": null,
+        "config_version": null,
         "consequence": null,
         "evidence_path": null,
         "gate_id": "G6",
+        "input_hashes": [],
         "result": null,
         "run_id": null,
         "scope": null,
@@ -1439,10 +1623,22 @@
         "gate_id": "G1",
         "status": "PARTIAL",
         "evidence_path": "test/schema-case-evidence.json",
-        "run_id": "schema-case-run",
+        "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         "scope": "schema case scope",
         "result": "schema case result",
-        "consequence": "schema case consequence"
+        "consequence": "schema case consequence",
+        "command": "python -m terraluna_pipeline.schema_case record",
+        "config_version": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "input_hashes": [
+          {
+            "path": "config/run.yaml",
+            "sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+          },
+          {
+            "path": "test/schema-case-input.json",
+            "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          }
+        ]
       }
     ]
   },
@@ -1458,7 +1654,10 @@
         "run_id": null,
         "scope": null,
         "result": null,
-        "consequence": null
+        "consequence": null,
+        "command": null,
+        "config_version": null,
+        "input_hashes": []
       },
       {
         "gate_id": "G1",
@@ -1467,7 +1666,10 @@
         "run_id": null,
         "scope": null,
         "result": null,
-        "consequence": null
+        "consequence": null,
+        "command": null,
+        "config_version": null,
+        "input_hashes": []
       }
     ]
   },
@@ -30121,6 +30323,2236 @@
           "ood_flag": null
         }
       ]
+    }
+  },
+  {
+    "name": "curves-valid",
+    "schema": "Curves",
+    "valid": true,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "loss_terms": [
+        {
+          "term": "vicreg_invariance",
+          "epochs": [
+            {
+              "epoch": 0,
+              "mean": 1.5,
+              "min": 1.25,
+              "max": 1.75,
+              "n_seeds": 3
+            },
+            {
+              "epoch": 1,
+              "mean": 1.125,
+              "min": 0.75,
+              "max": 1.25,
+              "n_seeds": 3
+            }
+          ]
+        }
+      ],
+      "gpu_hours": {
+        "runs": [
+          {
+            "run_name": "seed-0",
+            "hours": 1.5,
+            "reason": null,
+            "source": "scheduler log"
+          },
+          {
+            "run_name": "seed-1",
+            "hours": 2.25,
+            "reason": null,
+            "source": "scheduler log"
+          }
+        ],
+        "total_hours": 3.75,
+        "partial": false
+      },
+      "tradeoff": [
+        {
+          "lambda_max": 0.5,
+          "status": "available",
+          "reason": null,
+          "body_probe_balanced_accuracy": {
+            "value": 0.625,
+            "ci_low": 0.5,
+            "ci_high": 0.75
+          },
+          "physics_r2": {
+            "value": 0.75,
+            "ci_low": 0.625,
+            "ci_high": 0.875
+          }
+        },
+        {
+          "lambda_max": 1.5,
+          "status": "unavailable",
+          "reason": "run_not_completed",
+          "body_probe_balanced_accuracy": {
+            "value": null,
+            "ci_low": null,
+            "ci_high": null
+          },
+          "physics_r2": {
+            "value": null,
+            "ci_low": null,
+            "ci_high": null
+          }
+        }
+      ],
+      "chance_level_body_probe": 0.5,
+      "validation_probe_metrics": {
+        "status": "unavailable",
+        "reason": "encoder_not_evaluated",
+        "metrics": []
+      }
+    }
+  },
+  {
+    "name": "curves-with-ablations",
+    "schema": "Curves",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "loss_terms": [
+        {
+          "term": "vicreg_invariance",
+          "epochs": [
+            {
+              "epoch": 0,
+              "mean": 1.5,
+              "min": 1.25,
+              "max": 1.75,
+              "n_seeds": 3
+            },
+            {
+              "epoch": 1,
+              "mean": 1.125,
+              "min": 0.75,
+              "max": 1.25,
+              "n_seeds": 3
+            }
+          ]
+        }
+      ],
+      "gpu_hours": {
+        "runs": [
+          {
+            "run_name": "seed-0",
+            "hours": 1.5,
+            "reason": null,
+            "source": "scheduler log"
+          },
+          {
+            "run_name": "seed-1",
+            "hours": 2.25,
+            "reason": null,
+            "source": "scheduler log"
+          }
+        ],
+        "total_hours": 3.75,
+        "partial": false
+      },
+      "tradeoff": [
+        {
+          "lambda_max": 0.5,
+          "status": "available",
+          "reason": null,
+          "body_probe_balanced_accuracy": {
+            "value": 0.625,
+            "ci_low": 0.5,
+            "ci_high": 0.75
+          },
+          "physics_r2": {
+            "value": 0.75,
+            "ci_low": 0.625,
+            "ci_high": 0.875
+          }
+        },
+        {
+          "lambda_max": 1.5,
+          "status": "unavailable",
+          "reason": "run_not_completed",
+          "body_probe_balanced_accuracy": {
+            "value": null,
+            "ci_low": null,
+            "ci_high": null
+          },
+          "physics_r2": {
+            "value": null,
+            "ci_low": null,
+            "ci_high": null
+          }
+        }
+      ],
+      "chance_level_body_probe": 0.5,
+      "validation_probe_metrics": {
+        "status": "unavailable",
+        "reason": "encoder_not_evaluated",
+        "metrics": []
+      },
+      "ablations": []
+    }
+  },
+  {
+    "name": "curves-null-hours-without-reason",
+    "schema": "Curves",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "loss_terms": [
+        {
+          "term": "vicreg_invariance",
+          "epochs": [
+            {
+              "epoch": 0,
+              "mean": 1.5,
+              "min": 1.25,
+              "max": 1.75,
+              "n_seeds": 3
+            },
+            {
+              "epoch": 1,
+              "mean": 1.125,
+              "min": 0.75,
+              "max": 1.25,
+              "n_seeds": 3
+            }
+          ]
+        }
+      ],
+      "gpu_hours": {
+        "runs": [
+          {
+            "run_name": "seed-0",
+            "hours": 1.5,
+            "reason": null,
+            "source": "scheduler log"
+          },
+          {
+            "run_name": "seed-1",
+            "hours": null,
+            "reason": null,
+            "source": "scheduler log"
+          }
+        ],
+        "total_hours": null,
+        "partial": true
+      },
+      "tradeoff": [
+        {
+          "lambda_max": 0.5,
+          "status": "available",
+          "reason": null,
+          "body_probe_balanced_accuracy": {
+            "value": 0.625,
+            "ci_low": 0.5,
+            "ci_high": 0.75
+          },
+          "physics_r2": {
+            "value": 0.75,
+            "ci_low": 0.625,
+            "ci_high": 0.875
+          }
+        },
+        {
+          "lambda_max": 1.5,
+          "status": "unavailable",
+          "reason": "run_not_completed",
+          "body_probe_balanced_accuracy": {
+            "value": null,
+            "ci_low": null,
+            "ci_high": null
+          },
+          "physics_r2": {
+            "value": null,
+            "ci_low": null,
+            "ci_high": null
+          }
+        }
+      ],
+      "chance_level_body_probe": 0.5,
+      "validation_probe_metrics": {
+        "status": "unavailable",
+        "reason": "encoder_not_evaluated",
+        "metrics": []
+      }
+    }
+  },
+  {
+    "name": "curves-unavailable-point-without-reason",
+    "schema": "Curves",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "loss_terms": [
+        {
+          "term": "vicreg_invariance",
+          "epochs": [
+            {
+              "epoch": 0,
+              "mean": 1.5,
+              "min": 1.25,
+              "max": 1.75,
+              "n_seeds": 3
+            },
+            {
+              "epoch": 1,
+              "mean": 1.125,
+              "min": 0.75,
+              "max": 1.25,
+              "n_seeds": 3
+            }
+          ]
+        }
+      ],
+      "gpu_hours": {
+        "runs": [
+          {
+            "run_name": "seed-0",
+            "hours": 1.5,
+            "reason": null,
+            "source": "scheduler log"
+          },
+          {
+            "run_name": "seed-1",
+            "hours": 2.25,
+            "reason": null,
+            "source": "scheduler log"
+          }
+        ],
+        "total_hours": 3.75,
+        "partial": false
+      },
+      "tradeoff": [
+        {
+          "lambda_max": 0.5,
+          "status": "available",
+          "reason": null,
+          "body_probe_balanced_accuracy": {
+            "value": 0.625,
+            "ci_low": 0.5,
+            "ci_high": 0.75
+          },
+          "physics_r2": {
+            "value": 0.75,
+            "ci_low": 0.625,
+            "ci_high": 0.875
+          }
+        },
+        {
+          "lambda_max": 1.5,
+          "status": "unavailable",
+          "reason": null,
+          "body_probe_balanced_accuracy": {
+            "value": null,
+            "ci_low": null,
+            "ci_high": null
+          },
+          "physics_r2": {
+            "value": null,
+            "ci_low": null,
+            "ci_high": null
+          }
+        }
+      ],
+      "chance_level_body_probe": 0.5,
+      "validation_probe_metrics": {
+        "status": "unavailable",
+        "reason": "encoder_not_evaluated",
+        "metrics": []
+      }
+    }
+  },
+  {
+    "name": "umap-header-valid",
+    "schema": "UmapHeader",
+    "valid": true,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "n_points": 3,
+      "columns": [
+        {
+          "name": "x",
+          "dtype": "float32",
+          "unit": null
+        },
+        {
+          "name": "y",
+          "dtype": "float32",
+          "unit": null
+        },
+        {
+          "name": "body",
+          "dtype": "uint8",
+          "unit": null
+        }
+      ],
+      "body_codes": {
+        "0": "moon",
+        "1": "mars",
+        "2": "earth"
+      },
+      "nan_means_unavailable": true,
+      "seed": 0,
+      "n_neighbors": 15,
+      "min_dist": 0.125,
+      "source_embedding_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "umap-header-nan-means-unavailable-false",
+    "schema": "UmapHeader",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "n_points": 3,
+      "columns": [
+        {
+          "name": "x",
+          "dtype": "float32",
+          "unit": null
+        },
+        {
+          "name": "y",
+          "dtype": "float32",
+          "unit": null
+        },
+        {
+          "name": "body",
+          "dtype": "uint8",
+          "unit": null
+        }
+      ],
+      "body_codes": {
+        "0": "moon",
+        "1": "mars",
+        "2": "earth"
+      },
+      "nan_means_unavailable": false,
+      "seed": 0,
+      "n_neighbors": 15,
+      "min_dist": 0.125,
+      "source_embedding_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "examples-valid",
+    "schema": "Examples",
+    "valid": true,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "retrieval_gallery": [
+        {
+          "target_id": "moon-cr-site01-w000",
+          "encoder_top5": [
+            {
+              "window_id": "earth-utm27n-0001-0001",
+              "body": "earth",
+              "rank": 1,
+              "distance": 0.375,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0002",
+              "body": "earth",
+              "rank": 2,
+              "distance": 0.625,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0003",
+              "body": "earth",
+              "rank": 3,
+              "distance": 0.875,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0004",
+              "body": "earth",
+              "rank": 4,
+              "distance": 1.125,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0005",
+              "body": "earth",
+              "rank": 5,
+              "distance": 1.375,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            }
+          ],
+          "deterministic_top5": [
+            {
+              "window_id": "earth-utm27n-0001-0001",
+              "body": "earth",
+              "rank": 1,
+              "distance": 0.375,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0002",
+              "body": "earth",
+              "rank": 2,
+              "distance": 0.625,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0003",
+              "body": "earth",
+              "rank": 3,
+              "distance": 0.875,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0004",
+              "body": "earth",
+              "rank": 4,
+              "distance": 1.125,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0005",
+              "body": "earth",
+              "rank": 5,
+              "distance": 1.375,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            }
+          ],
+          "shortfall_reason": null
+        }
+      ],
+      "failure_cases": {
+        "sort_rule": "largest physics residual first",
+        "entries": [
+          {
+            "window_id": "earth-utm27n-0001-0001",
+            "body": "earth",
+            "rank": 1,
+            "distance": 0.375,
+            "distance_family": "model_embedding",
+            "evidence_label": "Predicted"
+          }
+        ],
+        "shortfall_reason": null
+      },
+      "ood_examples": [
+        {
+          "window_id": "earth-utm27n-0001-0001",
+          "body": "earth",
+          "rank": 1,
+          "distance": 0.375,
+          "distance_family": "model_embedding",
+          "evidence_label": "Predicted"
+        }
+      ],
+      "hillshades": [
+        {
+          "window_id": "earth-utm27n-0001-0001",
+          "size": 64,
+          "encoding": "png",
+          "data_b64": "iVBORw0KGgo=",
+          "unavailable_reason": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "examples-encoder-entry-derived",
+    "schema": "Examples",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "retrieval_gallery": [
+        {
+          "target_id": "moon-cr-site01-w000",
+          "encoder_top5": [
+            {
+              "window_id": "earth-utm27n-0001-0001",
+              "body": "earth",
+              "rank": 1,
+              "distance": 0.375,
+              "distance_family": "model_embedding",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0002",
+              "body": "earth",
+              "rank": 2,
+              "distance": 0.625,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0003",
+              "body": "earth",
+              "rank": 3,
+              "distance": 0.875,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0004",
+              "body": "earth",
+              "rank": 4,
+              "distance": 1.125,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0005",
+              "body": "earth",
+              "rank": 5,
+              "distance": 1.375,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            }
+          ],
+          "deterministic_top5": [
+            {
+              "window_id": "earth-utm27n-0001-0001",
+              "body": "earth",
+              "rank": 1,
+              "distance": 0.375,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0002",
+              "body": "earth",
+              "rank": 2,
+              "distance": 0.625,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0003",
+              "body": "earth",
+              "rank": 3,
+              "distance": 0.875,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0004",
+              "body": "earth",
+              "rank": 4,
+              "distance": 1.125,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0005",
+              "body": "earth",
+              "rank": 5,
+              "distance": 1.375,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            }
+          ],
+          "shortfall_reason": null
+        }
+      ],
+      "failure_cases": {
+        "sort_rule": "largest physics residual first",
+        "entries": [
+          {
+            "window_id": "earth-utm27n-0001-0001",
+            "body": "earth",
+            "rank": 1,
+            "distance": 0.375,
+            "distance_family": "model_embedding",
+            "evidence_label": "Predicted"
+          }
+        ],
+        "shortfall_reason": null
+      },
+      "ood_examples": [
+        {
+          "window_id": "earth-utm27n-0001-0001",
+          "body": "earth",
+          "rank": 1,
+          "distance": 0.375,
+          "distance_family": "model_embedding",
+          "evidence_label": "Predicted"
+        }
+      ],
+      "hillshades": [
+        {
+          "window_id": "earth-utm27n-0001-0001",
+          "size": 64,
+          "encoding": "png",
+          "data_b64": "iVBORw0KGgo=",
+          "unavailable_reason": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "examples-hillshade-without-data-or-reason",
+    "schema": "Examples",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "retrieval_gallery": [
+        {
+          "target_id": "moon-cr-site01-w000",
+          "encoder_top5": [
+            {
+              "window_id": "earth-utm27n-0001-0001",
+              "body": "earth",
+              "rank": 1,
+              "distance": 0.375,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0002",
+              "body": "earth",
+              "rank": 2,
+              "distance": 0.625,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0003",
+              "body": "earth",
+              "rank": 3,
+              "distance": 0.875,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0004",
+              "body": "earth",
+              "rank": 4,
+              "distance": 1.125,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0005",
+              "body": "earth",
+              "rank": 5,
+              "distance": 1.375,
+              "distance_family": "model_embedding",
+              "evidence_label": "Predicted"
+            }
+          ],
+          "deterministic_top5": [
+            {
+              "window_id": "earth-utm27n-0001-0001",
+              "body": "earth",
+              "rank": 1,
+              "distance": 0.375,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0002",
+              "body": "earth",
+              "rank": 2,
+              "distance": 0.625,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0003",
+              "body": "earth",
+              "rank": 3,
+              "distance": 0.875,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0004",
+              "body": "earth",
+              "rank": 4,
+              "distance": 1.125,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            },
+            {
+              "window_id": "earth-utm27n-0001-0005",
+              "body": "earth",
+              "rank": 5,
+              "distance": 1.375,
+              "distance_family": "terrain_relief",
+              "evidence_label": "Derived"
+            }
+          ],
+          "shortfall_reason": null
+        }
+      ],
+      "failure_cases": {
+        "sort_rule": "largest physics residual first",
+        "entries": [
+          {
+            "window_id": "earth-utm27n-0001-0001",
+            "body": "earth",
+            "rank": 1,
+            "distance": 0.375,
+            "distance_family": "model_embedding",
+            "evidence_label": "Predicted"
+          }
+        ],
+        "shortfall_reason": null
+      },
+      "ood_examples": [
+        {
+          "window_id": "earth-utm27n-0001-0001",
+          "body": "earth",
+          "rank": 1,
+          "distance": 0.375,
+          "distance_family": "model_embedding",
+          "evidence_label": "Predicted"
+        }
+      ],
+      "hillshades": [
+        {
+          "window_id": "earth-utm27n-0001-0001",
+          "size": 64,
+          "encoding": "png",
+          "data_b64": null,
+          "unavailable_reason": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "background-valid",
+    "schema": "Background",
+    "valid": true,
+    "value": {
+      "target_id": "moon-cr-site01-w000",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "statement": "empirical background comparison, not a physical truth test",
+      "seed": 7,
+      "requested_n": 2,
+      "actual_n": 2,
+      "sample_window_ids": [
+        "moon-aeqd-0001-0001",
+        "moon-aeqd-0001-0002"
+      ],
+      "source_ids": [
+        "pgda78_site01"
+      ],
+      "families": {
+        "terrain_relief": {
+          "unit": "dimensionless",
+          "evidence_label": "Derived",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer"
+        },
+        "terrain_texture": {
+          "unit": "dimensionless",
+          "evidence_label": "Derived",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer"
+        },
+        "radar_cpr": null,
+        "model_embedding": {
+          "unit": "embedding cosine distance",
+          "evidence_label": "Predicted",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer",
+          "model_id": "terraluna-enc-v1",
+          "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "g5_status": "NOT_RUN",
+          "target_embedding": {
+            "window_id": "moon-aeqd-0003-0007",
+            "body": "moon",
+            "model_id": "terraluna-enc-v1",
+            "embedding_f16": [
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5
+            ],
+            "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "valid_fraction": 0.75,
+            "ood_score": null
+          },
+          "sample_window_ids_sha256": "cf4637f166dbc77cb69f6d2be444207454c04c62bc7f3ed676921ea62e71ac30"
+        }
+      },
+      "family_reasons": {
+        "terrain_relief": null,
+        "terrain_texture": null,
+        "radar_cpr": "radar_unavailable_for_body",
+        "model_embedding": null
+      }
+    }
+  },
+  {
+    "name": "background-model-family-derived",
+    "schema": "Background",
+    "valid": false,
+    "value": {
+      "target_id": "moon-cr-site01-w000",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "statement": "empirical background comparison, not a physical truth test",
+      "seed": 7,
+      "requested_n": 2,
+      "actual_n": 2,
+      "sample_window_ids": [
+        "moon-aeqd-0001-0001",
+        "moon-aeqd-0001-0002"
+      ],
+      "source_ids": [
+        "pgda78_site01"
+      ],
+      "families": {
+        "terrain_relief": {
+          "unit": "dimensionless",
+          "evidence_label": "Derived",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer"
+        },
+        "terrain_texture": {
+          "unit": "dimensionless",
+          "evidence_label": "Derived",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer"
+        },
+        "radar_cpr": null,
+        "model_embedding": {
+          "unit": "embedding cosine distance",
+          "evidence_label": "Derived",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer",
+          "model_id": "terraluna-enc-v1",
+          "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "g5_status": "NOT_RUN",
+          "target_embedding": {
+            "window_id": "moon-aeqd-0003-0007",
+            "body": "moon",
+            "model_id": "terraluna-enc-v1",
+            "embedding_f16": [
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5
+            ],
+            "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "valid_fraction": 0.75,
+            "ood_score": null
+          },
+          "sample_window_ids_sha256": "cf4637f166dbc77cb69f6d2be444207454c04c62bc7f3ed676921ea62e71ac30"
+        }
+      },
+      "family_reasons": {
+        "terrain_relief": null,
+        "terrain_texture": null,
+        "radar_cpr": "radar_unavailable_for_body",
+        "model_embedding": null
+      }
+    }
+  },
+  {
+    "name": "background-missing-family-reason-key",
+    "schema": "Background",
+    "valid": false,
+    "value": {
+      "target_id": "moon-cr-site01-w000",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "statement": "empirical background comparison, not a physical truth test",
+      "seed": 7,
+      "requested_n": 2,
+      "actual_n": 2,
+      "sample_window_ids": [
+        "moon-aeqd-0001-0001",
+        "moon-aeqd-0001-0002"
+      ],
+      "source_ids": [
+        "pgda78_site01"
+      ],
+      "families": {
+        "terrain_relief": {
+          "unit": "dimensionless",
+          "evidence_label": "Derived",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer"
+        },
+        "terrain_texture": {
+          "unit": "dimensionless",
+          "evidence_label": "Derived",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer"
+        },
+        "radar_cpr": null,
+        "model_embedding": {
+          "unit": "embedding cosine distance",
+          "evidence_label": "Predicted",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer",
+          "model_id": "terraluna-enc-v1",
+          "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "g5_status": "NOT_RUN",
+          "target_embedding": {
+            "window_id": "moon-aeqd-0003-0007",
+            "body": "moon",
+            "model_id": "terraluna-enc-v1",
+            "embedding_f16": [
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5
+            ],
+            "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "valid_fraction": 0.75,
+            "ood_score": null
+          },
+          "sample_window_ids_sha256": "cf4637f166dbc77cb69f6d2be444207454c04c62bc7f3ed676921ea62e71ac30"
+        }
+      },
+      "family_reasons": {
+        "terrain_relief": null,
+        "terrain_texture": null,
+        "model_embedding": null
+      }
+    }
+  },
+  {
+    "name": "background-statement-changed",
+    "schema": "Background",
+    "valid": false,
+    "value": {
+      "target_id": "moon-cr-site01-w000",
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "statement": "a physical truth test",
+      "seed": 7,
+      "requested_n": 2,
+      "actual_n": 2,
+      "sample_window_ids": [
+        "moon-aeqd-0001-0001",
+        "moon-aeqd-0001-0002"
+      ],
+      "source_ids": [
+        "pgda78_site01"
+      ],
+      "families": {
+        "terrain_relief": {
+          "unit": "dimensionless",
+          "evidence_label": "Derived",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer"
+        },
+        "terrain_texture": {
+          "unit": "dimensionless",
+          "evidence_label": "Derived",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer"
+        },
+        "radar_cpr": null,
+        "model_embedding": {
+          "unit": "embedding cosine distance",
+          "evidence_label": "Predicted",
+          "bin_edges": [
+            0.25,
+            0.5,
+            1.125,
+            1.5
+          ],
+          "counts": [
+            2,
+            3,
+            5
+          ],
+          "n": 10,
+          "percentile_definition": "linear_within_bin_v1",
+          "direction": "smaller_is_closer",
+          "model_id": "terraluna-enc-v1",
+          "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "g5_status": "NOT_RUN",
+          "target_embedding": {
+            "window_id": "moon-aeqd-0003-0007",
+            "body": "moon",
+            "model_id": "terraluna-enc-v1",
+            "embedding_f16": [
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5,
+              0.5,
+              -0.25,
+              0.125,
+              1.5
+            ],
+            "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "valid_fraction": 0.75,
+            "ood_score": null
+          },
+          "sample_window_ids_sha256": "cf4637f166dbc77cb69f6d2be444207454c04c62bc7f3ed676921ea62e71ac30"
+        }
+      },
+      "family_reasons": {
+        "terrain_relief": null,
+        "terrain_texture": null,
+        "radar_cpr": "radar_unavailable_for_body",
+        "model_embedding": null
+      }
     }
   }
 ]

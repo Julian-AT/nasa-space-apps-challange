@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "ExampleHillshade": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "data_b64": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "data_b64"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "A stored hillshade, or the reason it is not stored; never a placeholder image.",
+      "properties": {
+        "window_id": {
+          "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+          "title": "Window Id",
+          "type": "string"
+        },
+        "size": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Size",
+          "type": "integer"
+        },
+        "encoding": {
+          "minLength": 1,
+          "title": "Encoding",
+          "type": "string"
+        },
+        "data_b64": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Data B64"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unavailable Reason"
+        }
+      },
+      "required": [
+        "window_id",
+        "size",
+        "encoding",
+        "data_b64",
+        "unavailable_reason"
+      ],
+      "title": "ExampleHillshade",
+      "type": "object"
+    },
+    "FailureCases": {
+      "additionalProperties": false,
+      "description": "At most 20 failure cases in the order ``sort_rule`` states.",
+      "properties": {
+        "sort_rule": {
+          "minLength": 1,
+          "title": "Sort Rule",
+          "type": "string"
+        },
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/GalleryEntry"
+          },
+          "maxItems": 20,
+          "title": "Entries",
+          "type": "array"
+        },
+        "shortfall_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Shortfall Reason"
+        }
+      },
+      "required": [
+        "sort_rule",
+        "entries",
+        "shortfall_reason"
+      ],
+      "title": "FailureCases",
+      "type": "object"
+    },
+    "GalleryEntry": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "evidence_label": {
+                "const": "Derived",
+                "type": "string"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "distance_family": {
+                "const": "model_embedding"
+              }
+            },
+            "required": [
+              "distance_family"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_label": {
+                "const": "Predicted",
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One retrieved window. Encoder entries (model_embedding) are Predicted, deterministic\nfingerprint entries Derived (PRD 3, 11.10).",
+      "properties": {
+        "window_id": {
+          "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+          "title": "Window Id",
+          "type": "string"
+        },
+        "body": {
+          "enum": [
+            "moon",
+            "mars",
+            "earth"
+          ],
+          "title": "Body",
+          "type": "string"
+        },
+        "rank": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "Rank",
+          "type": "integer"
+        },
+        "distance": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Distance"
+        },
+        "distance_family": {
+          "enum": [
+            "terrain_relief",
+            "terrain_texture",
+            "radar_cpr",
+            "model_embedding"
+          ],
+          "title": "Distance Family",
+          "type": "string"
+        },
+        "evidence_label": {
+          "enum": [
+            "Observed",
+            "Derived",
+            "Predicted",
+            "Assumed",
+            "Unavailable"
+          ],
+          "title": "Evidence Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "window_id",
+        "body",
+        "rank",
+        "distance",
+        "distance_family",
+        "evidence_label"
+      ],
+      "title": "GalleryEntry",
+      "type": "object"
+    },
+    "RetrievalTarget": {
+      "additionalProperties": false,
+      "description": "The encoder and deterministic top 5 for one target; a shorter list needs a reason.",
+      "properties": {
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "encoder_top5": {
+          "items": {
+            "$ref": "#/$defs/GalleryEntry"
+          },
+          "maxItems": 5,
+          "title": "Encoder Top5",
+          "type": "array"
+        },
+        "deterministic_top5": {
+          "items": {
+            "$ref": "#/$defs/GalleryEntry"
+          },
+          "maxItems": 5,
+          "title": "Deterministic Top5",
+          "type": "array"
+        },
+        "shortfall_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Shortfall Reason"
+        }
+      },
+      "required": [
+        "target_id",
+        "encoder_top5",
+        "deterministic_top5",
+        "shortfall_reason"
+      ],
+      "title": "RetrievalTarget",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "report/examples.json (PRD 11.10; contract name Examples).",
+  "properties": {
+    "mock": {
+      "title": "Mock",
+      "type": "boolean"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Run Id"
+    },
+    "retrieval_gallery": {
+      "items": {
+        "$ref": "#/$defs/RetrievalTarget"
+      },
+      "title": "Retrieval Gallery",
+      "type": "array"
+    },
+    "failure_cases": {
+      "$ref": "#/$defs/FailureCases"
+    },
+    "ood_examples": {
+      "items": {
+        "$ref": "#/$defs/GalleryEntry"
+      },
+      "title": "Ood Examples",
+      "type": "array"
+    },
+    "hillshades": {
+      "items": {
+        "$ref": "#/$defs/ExampleHillshade"
+      },
+      "title": "Hillshades",
+      "type": "array"
+    }
+  },
+  "required": [
+    "mock",
+    "run_id",
+    "retrieval_gallery",
+    "failure_cases",
+    "ood_examples",
+    "hillshades"
+  ],
+  "title": "ExamplesFile",
+  "type": "object"
+}
