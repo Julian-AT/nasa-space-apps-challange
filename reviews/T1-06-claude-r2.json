@@ -118,7 +118,11 @@
       "claim": "The range also touches logs/agents/*, reviews/* and scripts/ralph/batches/t1-pilot/{prd.json,progress.txt}, which are not in the story's files list.",
       "evidence": "These are agent logs, review records and batch bookkeeping. config/ and PRD.md are unchanged, so no kickoff values were set and no gate was passed. This agrees with the round-1 rebuttal.",
       "id": "claude-r2-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted. The prompt allows the story list and progress log (scripts/ralph/prompt.md section 2), and ralph.sh writes and commits logs/agents/* and reviews/* itself. No product path outside the story files changed in 2f82141..115fa5f, and config/run.yaml and PRD.md are unchanged. This repeats claude-r1-1, whose rebuttal the reviewer accepts here and Codex r2 confirms (scripts/ralph/prompt.md:21, :35-36; ralph.sh:48). Nothing to change."
+      }
     },
     {
       "severity": "low",
@@ -126,7 +130,11 @@
       "claim": "The window centre comes from a Wikipedia coordinate that was not fetched, so it is a stated choice and not an observation.",
       "evidence": "The record discloses this and the criterion asks for a stated centre. No config/run.yaml values are set. The record is acceptable as written.",
       "id": "claude-r2-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted. AC3 asks for \"a stated centre in the tile\", not an observed or fetched one. outputs/pilot/cop30_range_read.json dem.window.centre_basis already says the Holuhraun coordinate is a stated pilot choice taken from the English Wikipedia article, not an observation and not a target window. config/run.yaml keeps its kickoff values null. Wikipedia returns HTTP 403 to the io client, which sends no User-Agent (Codebase Patterns), so it cannot be a fetched basis document. The reviewer calls the record acceptable as written, and Codex r2 confirms the rebuttal of claude-r1-2."
+      }
     }
   ]
 }
