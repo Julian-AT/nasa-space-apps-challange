@@ -99,6 +99,18 @@ function product(id: string, fields: Record<string, unknown> = {}): Record<strin
     license_or_attribution: 'test-licence-text',
     checksum: 'f'.repeat(64),
     verification_status: 'NOT_CHECKED',
+    // The remaining ProductRecord fields (PRD 8.12), synthetic like the rest.
+    local_path: null,
+    acquisition_time: null,
+    frequency_or_wavelength: null,
+    transmit_receive_convention: null,
+    units: 'test-unit',
+    calibration_type: null,
+    native_grid: null,
+    effective_resolution: null,
+    crs_and_frame: 'test-crs',
+    incidence_source: null,
+    qa_definition: null,
     ...fields,
   };
 }
@@ -244,6 +256,7 @@ describe('readSources: validation', () => {
     const bytes = toBytes([product('test-product')]);
     const result = readSources({ manifest: manifest([entry(SOURCES, bytes)]), dataDir: dataDirWith(bytes) });
     if (!exported) expect(result).toEqual({ kind: 'unavailable', reason: NO_PRODUCT_RECORD_SCHEMA, source: SOURCES });
+    else expect(result).toMatchObject({ kind: 'records', records: [{ product_id: 'test-product' }] });
   });
 
   it('names the missing schema in a code comment', () => {
@@ -412,6 +425,10 @@ describe('/data', () => {
       expect(labelledValuesOutsideTables(html)).toEqual([{ label: 'Unavailable', reason: NO_PRODUCT_RECORD_SCHEMA }]);
       expect(readTables(html)).toHaveLength(1);
       expect(textOf(html)).not.toContain('test-provider');
+    } else {
+      expect(labelledValuesOutsideTables(html)).toEqual([]);
+      expect(readTables(html)).toHaveLength(2);
+      expect(textOf(html)).toContain('test-provider');
     }
   });
 
