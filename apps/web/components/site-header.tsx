@@ -22,6 +22,7 @@ export const NAV_ITEMS = [
   { label: 'Home', href: '/' },
   { label: 'Cards', href: '/site' },
   { label: 'Compare', href: '/compare' },
+  { label: 'Lab', href: '/lab' },
   { label: 'Find', href: '/find' },
   { label: 'Maps', href: '/explore/earth' },
   { label: 'Model', href: '/model' },
@@ -30,8 +31,8 @@ export const NAV_ITEMS = [
   { label: 'API docs', href: '/api/docs' },
 ] as const;
 
-/** Index in NAV_ITEMS after which a group divider is drawn: Home | Cards Compare Find Maps | Model Methods Paper | API docs. */
-const GROUP_ENDS: ReadonlySet<number> = new Set([0, 4, 7]);
+/** Index in NAV_ITEMS after which a group divider is drawn: Home | Cards Compare Lab Find Maps | Model Methods Paper | API docs. */
+const GROUP_ENDS: ReadonlySet<number> = new Set([0, 5, 8]);
 
 const LINK =
   'block rounded-full px-3.5 py-2 text-[13px] whitespace-nowrap no-underline transition-colors duration-200 lg:inline-block lg:py-1.5';

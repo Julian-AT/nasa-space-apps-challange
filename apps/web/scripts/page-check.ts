@@ -42,6 +42,7 @@ export const LAYOUT_LABELS: readonly string[] = [
   'Home',
   'Cards',
   'Compare',
+  'Lab',
   'Find',
   'Maps',
   'Model',
