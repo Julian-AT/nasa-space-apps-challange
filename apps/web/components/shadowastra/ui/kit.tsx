@@ -173,7 +173,7 @@ export function Meter({ value, label, right, hint, tone = "var(--primary)", kind
             {label}
             {kind && <KindBadge kind={kind} />}
           </span>
-          <span className="font-mono text-foreground tabular">{right ?? (value === null ? "n/a" : value.toFixed(2))}</span>
+          <span className="font-medium text-foreground tabular-nums">{right ?? (value === null ? "n/a" : value.toFixed(2))}</span>
         </div>
       )}
       <div data-slot="progress" className={clsx("relative overflow-hidden rounded-md bg-muted", thin ? "mt-1.5 h-1" : "mt-2 h-1.5")}>

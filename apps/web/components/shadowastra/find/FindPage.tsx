@@ -376,7 +376,7 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
           <motion.ol initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9, delay: 0.35 }} className="mt-8 flex flex-wrap items-center justify-center gap-2 text-[12.5px] text-chrome">
             {["Pick a destination", "Pick the job", "Set your needs", "We search the Earth"].map((s, i) => (
               <li key={s} className="flex items-center gap-2">
-                <span className="grid size-6 place-items-center rounded-full border border-line-2 font-mono text-[10px] text-platinum">{i + 1}</span>
+                <span className="grid size-6 place-items-center rounded-full border border-line-2 text-[11px] tabular-nums text-foreground">{i + 1}</span>
                 {s}
                 {i < 3 && <ArrowRight size={13} className="text-dim" />}
               </li>
@@ -460,7 +460,7 @@ function DestinationStep({ world, setWorld, value, onPick, grid, onNext }: { wor
             ].map(([a, b]) => (
               <div key={a} className="bg-panel px-2 py-2.5">
                 <dt className="text-[10px] text-dim">{a}</dt>
-                <dd className="font-mono text-[14px] text-platinum">{b}</dd>
+                <dd className="text-[15px] font-semibold tabular-nums text-foreground">{b}</dd>
               </div>
             ))}
           </dl>
@@ -662,7 +662,7 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
             <span className="flex items-center gap-1.5">
               Places experts already like <Tip text="Weight of the model trained on 38 known test sites." />
             </span>
-            <span className="font-mono text-[11px] text-dim">{Math.round(m.modelMix * 100)}%</span>
+            <span className="text-xs tabular-nums text-muted-foreground">{Math.round(m.modelMix * 100)}%</span>
           </div>
           <Seg
             size="sm"
@@ -675,7 +675,7 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
       </div>
       <div className="mt-5 rounded-2xl border border-earth/30 bg-earth/[0.06] p-6">
         <div className="text-xs font-medium text-muted-foreground">Places still possible</div>
-        <div className="mt-1 font-mono text-[34px] leading-none font-light text-platinum">{screening ? <Counter value={screening.passCount} duration={0.6} /> : "…"}</div>
+        <div className="mt-1 text-[34px] leading-none font-semibold tracking-tight tabular-nums text-foreground">{screening ? <Counter value={screening.passCount} duration={0.6} /> : "…"}</div>
         <div className="mt-1 text-[12px] text-chrome">of {grid ? grid.n.toLocaleString() : "80,206"} land areas · shown in blue on the globe</div>
         {lines.length > 0 && (
           <ul className="mt-2 space-y-0.5 text-[11.5px] text-dim">
@@ -1091,7 +1091,7 @@ function CompareHead({ grid, k, score, best, delay, onOpen, conf }: { grid: Grid
         <div className="truncate text-[14px] text-platinum">{nm.title}</div>
         <div className="truncate text-[11px] text-dim">{nm.subtitle}</div>
         <div className="mt-2 flex items-center justify-between gap-2">
-          <span className="font-mono text-[22px] text-platinum">{score.toFixed(2)}</span>
+          <span className="text-[22px] font-semibold tabular-nums text-foreground">{score.toFixed(2)}</span>
           <button onClick={onOpen} className="rounded-full border border-line-2 px-2.5 py-1 text-[11px] text-chrome hover:text-platinum">
             Report
           </button>
