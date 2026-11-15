@@ -81,8 +81,8 @@ export function Astronaut({ mood = "neutral", action = "idle", say, size = 160, 
             <stop offset="1" stopColor="#cfcac0" />
           </linearGradient>
           <linearGradient id="astro-beam" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#f2c879" stopOpacity="0.75" />
-            <stop offset="1" stopColor="#f2c879" stopOpacity="0" />
+            <stop offset="0" stopColor="#d4d4d4" stopOpacity="0.75" />
+            <stop offset="1" stopColor="#d4d4d4" stopOpacity="0" />
           </linearGradient>
           <filter id="astro-glow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="1.1" result="b" />
@@ -123,7 +123,7 @@ export function Astronaut({ mood = "neutral", action = "idle", say, size = 160, 
               <>
                 <polygon className="astro-beam" points="103,147 84,198 122,198" fill="url(#astro-beam)" />
                 <rect x="96" y="128" width="14" height="18" rx="3" fill="#23242a" stroke="#3a3b40" />
-                <circle cx="103" cy="145" r="2.4" fill="#f2c879" filter="url(#astro-glow)" />
+                <circle cx="103" cy="145" r="2.4" fill="#d4d4d4" filter="url(#astro-glow)" />
               </>
             )}
             {action === "flag" && (
@@ -142,7 +142,7 @@ export function Astronaut({ mood = "neutral", action = "idle", say, size = 160, 
             {action === "sample" && (
               <path d="M96 134 L104 128 L113 133 L111 142 L100 144 Z" fill="#6c6a65" stroke="#2f3035" strokeWidth="1.2" />
             )}
-            {action === "point" && <circle cx="103" cy="140" r="2.6" fill="#f2c879" filter="url(#astro-glow)" className="astro-led" />}
+            {action === "point" && <circle cx="103" cy="140" r="2.6" fill="#d4d4d4" filter="url(#astro-glow)" className="astro-led" />}
             <rect x="96" y="86" width="14" height="42" rx="7" fill="url(#astro-suit)" stroke="#2f3035" strokeWidth="1.4" />
             <circle cx="103" cy="131" r="6.5" fill="#8d887e" stroke="#2f3035" strokeWidth="1.4" />
           </g>
@@ -161,7 +161,7 @@ export function Astronaut({ mood = "neutral", action = "idle", say, size = 160, 
           {/* torso */}
           <rect x="56" y="80" width="48" height="52" rx="16" fill="url(#astro-suit)" stroke="#2f3035" strokeWidth="1.4" />
           <rect x="67" y="95" width="26" height="17" rx="4" fill="#16171b" stroke="#2f3035" />
-          <circle className="astro-led astro-led-1" cx="73" cy="103.5" r="2" fill="#f2c879" />
+          <circle className="astro-led astro-led-1" cx="73" cy="103.5" r="2" fill="#d4d4d4" />
           <circle className="astro-led astro-led-2" cx="80" cy="103.5" r="2" fill="#8fb4ea" />
           <circle className="astro-led astro-led-3" cx="87" cy="103.5" r="2" fill="#7cc8a0" />
           <line x1="58" y1="120" x2="102" y2="120" stroke="#b3ada2" strokeWidth="1.2" />
@@ -170,16 +170,16 @@ export function Astronaut({ mood = "neutral", action = "idle", say, size = 160, 
           <g className="astro-head">
             <circle cx="80" cy="56" r="30" fill="url(#astro-suit)" stroke="#2f3035" strokeWidth="1.5" />
             <rect x="106" y="46" width="6" height="16" rx="3" fill="#bdb7ac" stroke="#2f3035" strokeWidth="1.2" />
-            <circle cx="62" cy="34" r="2.2" fill="#f2c879" className="astro-lamp" />
+            <circle cx="62" cy="34" r="2.2" fill="#d4d4d4" className="astro-lamp" />
             <rect x="57" y="40" width="46" height="32" rx="15" fill="url(#astro-visor)" stroke="#2f3035" strokeWidth="1.4" />
             <path d="M63 47 Q70 42 80 42" stroke="#fff" strokeOpacity="0.28" strokeWidth="2.4" fill="none" strokeLinecap="round" />
 
             {/* HUD expressions */}
-            <g className="astro-face" stroke="#f2c879" fill="none" strokeWidth="2.2" strokeLinecap="round" filter="url(#astro-glow)">
+            <g className="astro-face" stroke="#d4d4d4" fill="none" strokeWidth="2.2" strokeLinecap="round" filter="url(#astro-glow)">
               <g className="face face-neutral">
                 <g className="astro-eyes">
-                  <circle cx="71" cy="56" r="2.1" fill="#f2c879" stroke="none" />
-                  <circle cx="89" cy="56" r="2.1" fill="#f2c879" stroke="none" />
+                  <circle cx="71" cy="56" r="2.1" fill="#d4d4d4" stroke="none" />
+                  <circle cx="89" cy="56" r="2.1" fill="#d4d4d4" stroke="none" />
                 </g>
                 <path d="M76 64 L84 64" />
               </g>
@@ -199,8 +199,8 @@ export function Astronaut({ mood = "neutral", action = "idle", say, size = 160, 
                 <path d="M77 64 L83 64" />
               </g>
               <g className="face face-thinking">
-                <circle cx="73" cy="54" r="2" fill="#f2c879" stroke="none" />
-                <circle cx="91" cy="54" r="2" fill="#f2c879" stroke="none" />
+                <circle cx="73" cy="54" r="2" fill="#d4d4d4" stroke="none" />
+                <circle cx="91" cy="54" r="2" fill="#d4d4d4" stroke="none" />
                 <path d="M78 64 Q82 62 86 64" />
               </g>
               <g className="face face-cold">
@@ -250,7 +250,7 @@ export function Astronaut({ mood = "neutral", action = "idle", say, size = 160, 
             <circle cx="132" cy="10" r="3.2" />
           </g>
           {/* celebration sparks */}
-          <g className="astro-sparks" stroke="#f2c879" strokeWidth="1.6" strokeLinecap="round">
+          <g className="astro-sparks" stroke="#d4d4d4" strokeWidth="1.6" strokeLinecap="round">
             <path d="M34 40 L28 34" />
             <path d="M30 56 L22 56" />
             <path d="M126 40 L132 34" />

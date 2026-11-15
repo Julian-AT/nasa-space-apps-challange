@@ -13,6 +13,9 @@ import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+// Default point for the find and probe forms: Vienna, Austria.
+const VIENNA = { lat: 48.2082, lon: 16.3738 } as const;
+
 import type { TileView } from '../cards/card-visual.ts';
 import type { EncoderSpec, ModelBackground } from '../../lib/probe/embedding.ts';
 import { COP30_MODE } from '../../lib/probe/mode.ts';
@@ -107,9 +110,9 @@ export function FindClient({ fingerprints, targetsReason, bundleVersion, encoder
   const hasPoint = lat !== null && lon !== null;
 
   const [step, setStep] = useState<StepId>(() => (hasPoint ? 'result' : urlTarget === null ? 'target' : 'place'));
-  const [pending, setPending] = useState<{ lat: number; lon: number } | null>(hasPoint ? { lat, lon } : null);
-  const [latText, setLatText] = useState(params.get('lat') ?? '');
-  const [lonText, setLonText] = useState(params.get('lon') ?? '');
+  const [pending, setPending] = useState<{ lat: number; lon: number } | null>(hasPoint ? { lat, lon } : VIENNA);
+  const [latText, setLatText] = useState(params.get('lat') ?? String(VIENNA.lat));
+  const [lonText, setLonText] = useState(params.get('lon') ?? String(VIENNA.lon));
   const [layerId, setLayerId] = useState(DEFAULT_EARTH_LAYER);
   const [blocked, setBlocked] = useState<string | null>(null);
   const [result, setResult] = useState<ProbeResult | null>(null);

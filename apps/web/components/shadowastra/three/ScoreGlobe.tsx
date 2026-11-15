@@ -72,8 +72,8 @@ const fragment = /* glsl */ `
     float shown = smoothstep(reveal - 0.02, reveal, front) < 0.5 ? 1.0 : 0.0;
     float edge = exp(-pow((front - reveal) * 60.0, 2.0)) * step(0.001, reveal) * step(reveal, 0.999);
     c = mix(c, h.rgb, h.a * heatOn * shown);
-    c += vec3(0.95, 0.78, 0.47) * edge * 0.55;
-    c += vec3(0.55, 0.7, 0.95) * pow(1.0 - facing, 3.0) * 0.28;
+    c += vec3(1.0) * edge * 0.55;
+    c += vec3(0.0) * facing;
     gl_FragColor = vec4(c, 1.0);
     #include <colorspace_fragment>
   }
@@ -212,11 +212,11 @@ function Pin({ pin, active, onPin }: { pin: GlobePin; active: boolean; onPin?: (
       <group position={pos} quaternion={quat}>
         <mesh>
           <circleGeometry args={[0.011, 24]} />
-          <meshBasicMaterial color="#f2c879" toneMapped={false} />
+          <meshBasicMaterial color="#ffffff" toneMapped={false} />
         </mesh>
         <mesh ref={ring}>
           <ringGeometry args={[0.015, 0.019, 40]} />
-          <meshBasicMaterial color="#f2c879" transparent depthWrite={false} toneMapped={false} />
+          <meshBasicMaterial color="#ffffff" transparent depthWrite={false} toneMapped={false} />
         </mesh>
       </group>
     );
@@ -251,7 +251,7 @@ function RangeRing({ lat, lon, km }: { lat: number; lon: number; km: number }) {
       pts.push(p.multiplyScalar(1.006));
     }
     const g = new THREE.BufferGeometry().setFromPoints(pts);
-    const m = new THREE.LineDashedMaterial({ color: "#f2c879", dashSize: 0.012, gapSize: 0.01, transparent: true, opacity: 0.85 });
+    const m = new THREE.LineDashedMaterial({ color: "#ffffff", dashSize: 0.012, gapSize: 0.01, transparent: true, opacity: 0.85 });
     const l = new THREE.Line(g, m);
     l.computeLineDistances();
     return l;

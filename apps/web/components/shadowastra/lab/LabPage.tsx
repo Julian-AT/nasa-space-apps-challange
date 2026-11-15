@@ -238,7 +238,7 @@ export default function Lab() {
                 Real terrain, <Em>cut to the same size.</Em>
               </>
             }
-            text={`Both blocks show the same ${footprint} × ${footprint} km of real ground, at the same scale, with real satellite images on top. The gold line marks the slice shown below.`}
+            text={`Both blocks show the same ${footprint} × ${footprint} km of real ground, at the same scale, with real satellite images on top. The white line marks the slice shown below.`}
             kind="computed"
             astra={{ mood: "focused", action: "scan", say: "Drag to turn the view. Try “Light & shadow”, then “Turn the Sun”." }}
             aside={
@@ -1230,12 +1230,12 @@ function TerrainCard({
                     </button>
                     <label className="flex items-center gap-2 text-[11px] text-chrome">
                       <span className="font-mono">AZ</span>
-                      <input type="range" min={0} max={359} value={sunAz} onChange={(e) => setSunAz(+e.target.value)} className="w-12 accent-[#f2c879] sm:w-20" aria-label="Sun azimuth" />
+                      <input type="range" min={0} max={359} value={sunAz} onChange={(e) => setSunAz(+e.target.value)} className="w-12 accent-primary sm:w-20" aria-label="Sun azimuth" />
                     </label>
                     {overlay !== "imagery" && (
                       <label className="flex items-center gap-2 text-[11px] text-chrome">
                         <Sun size={13} className="text-flare" />
-                        <input type="range" min={0.5} max={60} step={0.5} value={sunElev} onChange={(e) => setSunElev(+e.target.value)} className="w-20 accent-[#f2c879]" aria-label="Sun elevation" />
+                        <input type="range" min={0.5} max={60} step={0.5} value={sunElev} onChange={(e) => setSunElev(+e.target.value)} className="w-20 accent-primary" aria-label="Sun elevation" />
                         <span className="w-10 font-mono text-platinum tabular">{sunElev.toFixed(1)}°</span>
                         {sunElev !== defaultSun && (
                           <button onClick={() => setSunElev(defaultSun)} className="text-dim hover:text-chrome" title="Reset to the target's median Sun">
@@ -1594,7 +1594,7 @@ function ShadowCard({ grids, ills, sunElev, names, targetBody }: { grids: (Terra
           ))}
         </div>
         <div className="mt-5 flex items-center gap-3 text-[11px] text-dim">
-          <span className="h-2 w-24 rounded-full" style={{ background: "linear-gradient(90deg,#0a1230,#101a3a,#f2c879)" }} />
+          <span className="h-2 w-24 rounded-full" style={{ background: "linear-gradient(90deg,#0a1230,#101a3a,#ffffff)" }} />
           never lit → lit from every direction
         </div>
         <p className="mt-4 text-[12px] leading-relaxed text-dim">We check 24 directions around every point. If hills block the low Sun from all of them, the point stays dark. Deep blue means always dark, where ice could last.</p>

@@ -211,7 +211,7 @@ export function CheckTown() {
                   y1={y(res.lat) / 2}
                   x2={x(grid!.lon(info.near.k))}
                   y2={y(grid!.lat(info.near.k)) / 2}
-                  stroke="#f2c879"
+                  stroke="currentColor"
                   strokeWidth="0.25"
                   strokeDasharray="1 0.8"
                   initial={{ pathLength: 0 }}

@@ -233,7 +233,7 @@ export function BodyMap({ frame, base, bundleLayers, shapes, pins, activeId, onS
       const ring = s.ring.map(([la, lo]) => L.latLng(la, lo));
       L.polygon(ring, {
         ...tone,
-        color: active ? '#edeae4' : s.highlight !== null ? '#f2c879' : tone.color,
+        color: active ? '#edeae4' : s.highlight !== null ? '#ffffff' : tone.color,
         weight: active ? 3 : s.highlight !== null ? 2.2 : 1,
         opacity: active ? 1 : 0.85,
         fillOpacity: active ? 0.22 : s.highlight !== null ? 0.14 : 0.06,

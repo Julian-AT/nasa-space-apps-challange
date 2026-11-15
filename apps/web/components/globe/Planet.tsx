@@ -10,7 +10,7 @@ import type { GlobeBody, GlobePin, PinTone } from './types';
 
 export const SUN_DIR = new THREE.Vector3(-0.85, 0.32, 0.55).normalize();
 
-const TONE: Record<PinTone, string> = { earth: '#8fb4ea', moon: '#c9c5bc', mars: '#e08a5f', flare: '#f2c879' };
+const TONE: Record<PinTone, string> = { earth: '#8fb4ea', moon: '#c9c5bc', mars: '#e08a5f', flare: "#ffffff" };
 
 const earthVertex = /* glsl */ `
   varying vec2 vUv;
@@ -43,7 +43,7 @@ const earthFragment = /* glsl */ `
     vec3 lit = day * (0.16 + 1.2 * pow(max(d, 0.0), 0.75));
     vec3 col = mix(night, lit, dayMix);
     float fres = pow(1.0 - max(dot(n, vViewDir), 0.0), 3.4);
-    col += vec3(0.55, 0.7, 0.95) * fres * 0.45 * smoothstep(-0.2, 0.4, d);
+    col += vec3(0.0) * fres * d;
     gl_FragColor = vec4(col, 1.0);
     #include <colorspace_fragment>
   }
@@ -71,10 +71,8 @@ const atmoFragment = /* glsl */ `
   }
 `;
 
-const ATMO: Partial<Record<GlobeBody, { color: string; strength: number }>> = {
-  earth: { color: '#9cc0ff', strength: 1.9 },
-  mars: { color: '#e5a27c', strength: 0.9 },
-};
+// No atmosphere shell: clean textured spheres with soft lighting only.
+const ATMO: Partial<Record<GlobeBody, { color: string; strength: number }>> = {};
 
 export interface PlanetProps {
   readonly body: GlobeBody;

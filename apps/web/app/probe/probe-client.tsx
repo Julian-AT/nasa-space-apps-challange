@@ -7,6 +7,9 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+// Default point for the find and probe forms: Vienna, Austria.
+const VIENNA = { lat: 48.2082, lon: 16.3738 } as const;
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,8 +48,8 @@ export function ProbeClient({
   const pathname = usePathname();
   const lat = parseCoordinate(params.get('lat'), 90);
   const lon = parseCoordinate(params.get('lon'), 180);
-  const [latText, setLatText] = useState(params.get('lat') ?? '');
-  const [lonText, setLonText] = useState(params.get('lon') ?? '');
+  const [latText, setLatText] = useState(params.get('lat') ?? String(VIENNA.lat));
+  const [lonText, setLonText] = useState(params.get('lon') ?? String(VIENNA.lon));
   const [result, setResult] = useState<ProbeResult | null>(null);
   const [running, setRunning] = useState(false);
   const [workerError, setWorkerError] = useState<string | null>(null);

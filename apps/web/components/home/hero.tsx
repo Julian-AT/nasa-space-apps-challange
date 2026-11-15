@@ -60,7 +60,7 @@ export function Hero({ eyebrow, cards }: HeroProps) {
           </Badge>
           <h1 className="text-[clamp(40px,5.2vw,68px)] leading-[1.02] font-medium tracking-[-0.035em] text-balance text-foreground">
             <span className="block">Find the Moon and Mars</span>
-            <span className="block font-serif text-[1.08em] font-normal tracking-[-0.01em] text-primary italic">on Earth.</span>
+            <span className="block text-muted-foreground">on Earth.</span>
           </h1>
           <p className="mt-6 max-w-[580px] text-base leading-relaxed text-muted-foreground sm:text-lg">
             <span className="font-medium text-foreground">Our own physics model, measured live:</span> Terraluna computes a relief and texture
