@@ -6152,8 +6152,6 @@ class WorldcoverSource:
         try:
             return self._build(raw_dir, root, fetched)
         except (KeyError, TypeError, ValueError) as error:
-            if isinstance(error, PilotError):
-                raise
             raise self._refetch(
                 f"data/raw/{self.raw_directory}/{FETCH_METADATA} lacks an expected entry or "
                 f"value ({error!r})"
@@ -6402,7 +6400,11 @@ class WorldcoverSource:
                 "legend_as_stated": legend_text,
                 "legend": legend,
                 "present": present,
-                "nodata_value": None if nodata is None else int(nodata),
+                "nodata_value": (
+                    int(nodata)
+                    if nodata is not None and float(nodata).is_integer()
+                    else _json_number(nodata)
+                ),
                 "nodata_pixels": int(np.sum(is_nodata)),
                 "total_pixels": int(values.size),
                 "bare_ground_caveat": _BARE_GROUND_CAVEAT,
