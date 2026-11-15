@@ -1,0 +1,2702 @@
+[
+  {
+    "name": "conditional",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "Conditional",
+      "description": "Synthetic: when status is DONE, label must be a string and code must not be all x.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "DONE",
+            "OPEN"
+          ]
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z]+$",
+          "not": {
+            "pattern": "bad"
+          }
+        }
+      },
+      "required": [
+        "status",
+        "label",
+        "code",
+        "slug"
+      ],
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "status": {
+            "const": "DONE"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "code": {
+            "not": {
+              "pattern": "^[Xx]+$"
+            }
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "name": "done-complete",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "open-complete",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-label-null",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": null,
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "open-label-null",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "label": null,
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-label-number",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": 5,
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-code-x",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-code-mixed-case-x",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "xXx",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "open-code-x",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "label": "a",
+          "code": "xx",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-code-x-after-a-letter",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "axx",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-code-x-trailing-newline",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "xx\n",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "done-label-null-and-code-x",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": null,
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "open-label-null-and-code-x",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "label": null,
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "status-absent",
+        "valid": false,
+        "value": {
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "status-absent-label-null-and-code-x",
+        "valid": false,
+        "value": {
+          "label": null,
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "status-null",
+        "valid": false,
+        "value": {
+          "status": null,
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "status-lowercase",
+        "valid": false,
+        "value": {
+          "status": "done",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "code-empty",
+        "valid": false,
+        "value": {
+          "status": "OPEN",
+          "label": "a",
+          "code": "",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "slug-contains-bad",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "isbad"
+        }
+      },
+      {
+        "name": "slug-bad",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "bad"
+        }
+      },
+      {
+        "name": "slug-uppercase",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "OK"
+        }
+      },
+      {
+        "name": "slug-trailing-newline",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok\n"
+        }
+      },
+      {
+        "name": "extra-field",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok",
+          "note": "x"
+        }
+      },
+      {
+        "name": "array",
+        "valid": false,
+        "value": [
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "c1",
+            "slug": "ok"
+          }
+        ]
+      },
+      {
+        "name": "string",
+        "valid": false,
+        "value": "DONE"
+      },
+      {
+        "name": "null",
+        "valid": false,
+        "value": null
+      }
+    ],
+    "conditionCases": [
+      {
+        "name": "done",
+        "holds": true,
+        "value": {
+          "status": "DONE"
+        }
+      },
+      {
+        "name": "done-with-the-other-properties",
+        "holds": true,
+        "value": {
+          "status": "DONE",
+          "label": null,
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "status-absent",
+        "holds": false,
+        "value": {}
+      },
+      {
+        "name": "status-absent-with-the-other-properties",
+        "holds": false,
+        "value": {
+          "label": null,
+          "code": "x",
+          "slug": "ok"
+        }
+      },
+      {
+        "name": "open",
+        "holds": false,
+        "value": {
+          "status": "OPEN"
+        }
+      },
+      {
+        "name": "status-null",
+        "holds": false,
+        "value": {
+          "status": null
+        }
+      },
+      {
+        "name": "status-lowercase",
+        "holds": false,
+        "value": {
+          "status": "done"
+        }
+      },
+      {
+        "name": "status-trailing-space",
+        "holds": false,
+        "value": {
+          "status": "DONE "
+        }
+      },
+      {
+        "name": "status-number",
+        "holds": false,
+        "value": {
+          "status": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "conditional-two-keys",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "ConditionalTwoKeys",
+      "description": "Synthetic: when status is DONE and kind is A, label must be a string.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "DONE",
+            "OPEN"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B"
+          ]
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "kind",
+        "label"
+      ],
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "status": {
+            "const": "DONE"
+          },
+          "kind": {
+            "const": "A"
+          }
+        },
+        "required": [
+          "status",
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "label": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "name": "done-a-label",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "kind": "A",
+          "label": "a"
+        }
+      },
+      {
+        "name": "done-a-label-null",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "kind": "A",
+          "label": null
+        }
+      },
+      {
+        "name": "done-b-label-null",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "kind": "B",
+          "label": null
+        }
+      },
+      {
+        "name": "open-a-label-null",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "kind": "A",
+          "label": null
+        }
+      },
+      {
+        "name": "open-b-label-null",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "kind": "B",
+          "label": null
+        }
+      },
+      {
+        "name": "kind-absent-label-null",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": null
+        }
+      },
+      {
+        "name": "status-absent-label-null",
+        "valid": false,
+        "value": {
+          "kind": "A",
+          "label": null
+        }
+      }
+    ],
+    "conditionCases": [
+      {
+        "name": "done-a",
+        "holds": true,
+        "value": {
+          "status": "DONE",
+          "kind": "A"
+        }
+      },
+      {
+        "name": "done-a-with-label-null",
+        "holds": true,
+        "value": {
+          "status": "DONE",
+          "kind": "A",
+          "label": null
+        }
+      },
+      {
+        "name": "kind-absent",
+        "holds": false,
+        "value": {
+          "status": "DONE"
+        }
+      },
+      {
+        "name": "status-absent",
+        "holds": false,
+        "value": {
+          "kind": "A"
+        }
+      },
+      {
+        "name": "both-absent",
+        "holds": false,
+        "value": {}
+      },
+      {
+        "name": "done-b",
+        "holds": false,
+        "value": {
+          "status": "DONE",
+          "kind": "B"
+        }
+      },
+      {
+        "name": "open-a",
+        "holds": false,
+        "value": {
+          "status": "OPEN",
+          "kind": "A"
+        }
+      },
+      {
+        "name": "kind-null",
+        "holds": false,
+        "value": {
+          "status": "DONE",
+          "kind": null
+        }
+      }
+    ]
+  },
+  {
+    "name": "conditional-list",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$defs": {
+        "Conditional": {
+          "title": "Conditional",
+          "description": "Synthetic: when status is DONE, label must be a string and code must not be all x.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "DONE",
+                "OPEN"
+              ]
+            },
+            "label": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "code": {
+              "type": "string",
+              "minLength": 1
+            },
+            "slug": {
+              "type": "string",
+              "pattern": "^[a-z]+$",
+              "not": {
+                "pattern": "bad"
+              }
+            }
+          },
+          "required": [
+            "status",
+            "label",
+            "code",
+            "slug"
+          ],
+          "additionalProperties": false,
+          "if": {
+            "properties": {
+              "status": {
+                "const": "DONE"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "code": {
+                "not": {
+                  "pattern": "^[Xx]+$"
+                }
+              }
+            }
+          }
+        }
+      },
+      "title": "ConditionalList",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Conditional"
+      }
+    },
+    "cases": [
+      {
+        "name": "empty",
+        "valid": true,
+        "value": []
+      },
+      {
+        "name": "one-done",
+        "valid": true,
+        "value": [
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "c1",
+            "slug": "ok"
+          }
+        ]
+      },
+      {
+        "name": "done-and-open-label-null",
+        "valid": true,
+        "value": [
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "c1",
+            "slug": "ok"
+          },
+          {
+            "status": "OPEN",
+            "label": null,
+            "code": "c1",
+            "slug": "ok"
+          }
+        ]
+      },
+      {
+        "name": "second-done-label-null",
+        "valid": false,
+        "value": [
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "c1",
+            "slug": "ok"
+          },
+          {
+            "status": "DONE",
+            "label": null,
+            "code": "c1",
+            "slug": "ok"
+          }
+        ]
+      },
+      {
+        "name": "second-done-code-x",
+        "valid": false,
+        "value": [
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "c1",
+            "slug": "ok"
+          },
+          {
+            "status": "DONE",
+            "label": "a",
+            "code": "X",
+            "slug": "ok"
+          }
+        ]
+      },
+      {
+        "name": "object",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1",
+          "slug": "ok"
+        }
+      }
+    ]
+  },
+  {
+    "name": "number-bounds",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "NumberBounds",
+      "description": "Synthetic: numbers with inclusive bounds and an exclusive minimum.",
+      "type": "object",
+      "properties": {
+        "unit": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "title": "Unit"
+        },
+        "positive": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Strictly positive."
+        },
+        "degrees": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "free": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "unit",
+        "positive",
+        "degrees",
+        "free"
+      ],
+      "additionalProperties": false
+    },
+    "cases": [
+      {
+        "name": "all-inside",
+        "valid": true,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "unit-zero",
+        "valid": true,
+        "value": {
+          "unit": 0,
+          "positive": 1,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "unit-one",
+        "valid": true,
+        "value": {
+          "unit": 1,
+          "positive": 1,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "unit-below",
+        "valid": false,
+        "value": {
+          "unit": -0.5,
+          "positive": 1,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "unit-above",
+        "valid": false,
+        "value": {
+          "unit": 1.5,
+          "positive": 1,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "unit-string",
+        "valid": false,
+        "value": {
+          "unit": "1",
+          "positive": 1,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "unit-true",
+        "valid": false,
+        "value": {
+          "unit": true,
+          "positive": 1,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "unit-null",
+        "valid": false,
+        "value": {
+          "unit": null,
+          "positive": 1,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "positive-zero",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": 0,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "positive-small",
+        "valid": true,
+        "value": {
+          "unit": 0.5,
+          "positive": 0.5,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "positive-negative",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": -1,
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "positive-string",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": "1",
+          "degrees": 45,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "degrees-max-integer",
+        "valid": true,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 90,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "degrees-min-integer",
+        "valid": true,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": -90,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "degrees-above",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 90.5,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "degrees-below",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": -90.5,
+          "free": -3.5
+        }
+      },
+      {
+        "name": "free-integer",
+        "valid": true,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 45,
+          "free": 90
+        }
+      },
+      {
+        "name": "free-zero",
+        "valid": true,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 45,
+          "free": 0
+        }
+      },
+      {
+        "name": "free-string",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 45,
+          "free": "1"
+        }
+      },
+      {
+        "name": "free-true",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 45,
+          "free": true
+        }
+      },
+      {
+        "name": "free-null",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 45,
+          "free": null
+        }
+      },
+      {
+        "name": "free-array",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 45,
+          "free": [
+            1
+          ]
+        }
+      },
+      {
+        "name": "missing-free",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 45
+        }
+      },
+      {
+        "name": "extra-key",
+        "valid": false,
+        "value": {
+          "unit": 0.5,
+          "positive": 1,
+          "degrees": 45,
+          "free": -3.5,
+          "extra": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "boolean-const",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "BooleanConst",
+      "description": "Synthetic: booleans fixed to one value.",
+      "type": "object",
+      "properties": {
+        "off": {
+          "type": "boolean",
+          "const": false
+        },
+        "on": {
+          "type": "boolean",
+          "const": true,
+          "description": "Always true."
+        }
+      },
+      "required": [
+        "off",
+        "on"
+      ],
+      "additionalProperties": false
+    },
+    "cases": [
+      {
+        "name": "both-fixed",
+        "valid": true,
+        "value": {
+          "off": false,
+          "on": true
+        }
+      },
+      {
+        "name": "off-true",
+        "valid": false,
+        "value": {
+          "off": true,
+          "on": true
+        }
+      },
+      {
+        "name": "off-zero",
+        "valid": false,
+        "value": {
+          "off": 0,
+          "on": true
+        }
+      },
+      {
+        "name": "off-null",
+        "valid": false,
+        "value": {
+          "off": null,
+          "on": true
+        }
+      },
+      {
+        "name": "off-string",
+        "valid": false,
+        "value": {
+          "off": "false",
+          "on": true
+        }
+      },
+      {
+        "name": "on-false",
+        "valid": false,
+        "value": {
+          "off": false,
+          "on": false
+        }
+      },
+      {
+        "name": "on-one",
+        "valid": false,
+        "value": {
+          "off": false,
+          "on": 1
+        }
+      },
+      {
+        "name": "on-null",
+        "valid": false,
+        "value": {
+          "off": false,
+          "on": null
+        }
+      },
+      {
+        "name": "missing-on",
+        "valid": false,
+        "value": {
+          "off": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "array-length",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "ArrayLength",
+      "description": "Synthetic: arrays with a minimum and a maximum length.",
+      "type": "object",
+      "properties": {
+        "pair": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "some": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "capped": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "title": "Capped"
+        }
+      },
+      "required": [
+        "pair",
+        "some",
+        "capped"
+      ],
+      "additionalProperties": false
+    },
+    "cases": [
+      {
+        "name": "all-inside",
+        "valid": true,
+        "value": {
+          "pair": [
+            1,
+            2.5
+          ],
+          "some": [
+            "a"
+          ],
+          "capped": []
+        }
+      },
+      {
+        "name": "capped-at-max",
+        "valid": true,
+        "value": {
+          "pair": [
+            1,
+            2.5
+          ],
+          "some": [
+            "a"
+          ],
+          "capped": [
+            1,
+            2
+          ]
+        }
+      },
+      {
+        "name": "pair-short",
+        "valid": false,
+        "value": {
+          "pair": [
+            1
+          ],
+          "some": [
+            "a"
+          ],
+          "capped": []
+        }
+      },
+      {
+        "name": "pair-empty",
+        "valid": false,
+        "value": {
+          "pair": [],
+          "some": [
+            "a"
+          ],
+          "capped": []
+        }
+      },
+      {
+        "name": "pair-long",
+        "valid": false,
+        "value": {
+          "pair": [
+            1,
+            2,
+            3
+          ],
+          "some": [
+            "a"
+          ],
+          "capped": []
+        }
+      },
+      {
+        "name": "pair-string-item",
+        "valid": false,
+        "value": {
+          "pair": [
+            1,
+            "2"
+          ],
+          "some": [
+            "a"
+          ],
+          "capped": []
+        }
+      },
+      {
+        "name": "some-empty",
+        "valid": false,
+        "value": {
+          "pair": [
+            1,
+            2.5
+          ],
+          "some": [],
+          "capped": []
+        }
+      },
+      {
+        "name": "some-many",
+        "valid": true,
+        "value": {
+          "pair": [
+            1,
+            2.5
+          ],
+          "some": [
+            "a",
+            "b",
+            "c"
+          ],
+          "capped": []
+        }
+      },
+      {
+        "name": "some-number-item",
+        "valid": false,
+        "value": {
+          "pair": [
+            1,
+            2.5
+          ],
+          "some": [
+            1
+          ],
+          "capped": []
+        }
+      },
+      {
+        "name": "capped-above-max",
+        "valid": false,
+        "value": {
+          "pair": [
+            1,
+            2.5
+          ],
+          "some": [
+            "a"
+          ],
+          "capped": [
+            1,
+            2,
+            3
+          ]
+        }
+      },
+      {
+        "name": "capped-fractional-item",
+        "valid": false,
+        "value": {
+          "pair": [
+            1,
+            2.5
+          ],
+          "some": [
+            "a"
+          ],
+          "capped": [
+            0.5
+          ]
+        }
+      },
+      {
+        "name": "capped-null",
+        "valid": false,
+        "value": {
+          "pair": [
+            1,
+            2.5
+          ],
+          "some": [
+            "a"
+          ],
+          "capped": null
+        }
+      },
+      {
+        "name": "capped-object",
+        "valid": false,
+        "value": {
+          "pair": [
+            1,
+            2.5
+          ],
+          "some": [
+            "a"
+          ],
+          "capped": {}
+        }
+      }
+    ]
+  },
+  {
+    "name": "map-keys",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "MapKeys",
+      "description": "Synthetic: maps with free, non-empty and enumerated keys.",
+      "type": "object",
+      "properties": {
+        "free": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Free"
+        },
+        "named": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "description": "Keys must not be empty."
+        },
+        "known": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "propertyNames": {
+            "enum": [
+              "a",
+              "b",
+              "c"
+            ]
+          }
+        }
+      },
+      "required": [
+        "free",
+        "named",
+        "known"
+      ],
+      "additionalProperties": false
+    },
+    "cases": [
+      {
+        "name": "all-inside",
+        "valid": true,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "all-empty",
+        "valid": true,
+        "value": {
+          "free": {},
+          "named": {},
+          "known": {}
+        }
+      },
+      {
+        "name": "free-empty-key",
+        "valid": true,
+        "value": {
+          "free": {
+            "": 1
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "free-string-value",
+        "valid": false,
+        "value": {
+          "free": {
+            "k": "1"
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "free-array",
+        "valid": false,
+        "value": {
+          "free": [
+            1
+          ],
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "free-null",
+        "valid": false,
+        "value": {
+          "free": null,
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "named-null-value",
+        "valid": true,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": null
+          },
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "named-empty-key",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "": "v"
+          },
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "named-one-of-two-empty",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v",
+            "": null
+          },
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "named-number-value",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": 1
+          },
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "named-array",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": [],
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "named-null",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": null,
+          "known": {
+            "a": 0.5
+          }
+        }
+      },
+      {
+        "name": "known-all-keys",
+        "valid": true,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "a": 0,
+            "b": 1,
+            "c": null
+          }
+        }
+      },
+      {
+        "name": "known-subset",
+        "valid": true,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "c": 0.25
+          }
+        }
+      },
+      {
+        "name": "known-unknown-key",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "d": 0.5
+          }
+        }
+      },
+      {
+        "name": "known-known-and-unknown",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "a": 0.5,
+            "d": 0.5
+          }
+        }
+      },
+      {
+        "name": "known-empty-key",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "": 0.5
+          }
+        }
+      },
+      {
+        "name": "known-case-differs",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "A": 0.5
+          }
+        }
+      },
+      {
+        "name": "known-negative",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "a": -1
+          }
+        }
+      },
+      {
+        "name": "known-string-value",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": {
+            "a": "x"
+          }
+        }
+      },
+      {
+        "name": "known-array",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": [
+            0.5
+          ]
+        }
+      },
+      {
+        "name": "known-null",
+        "valid": false,
+        "value": {
+          "free": {
+            "": 1,
+            "k": 2.5
+          },
+          "named": {
+            "k": "v"
+          },
+          "known": null
+        }
+      }
+    ]
+  },
+  {
+    "name": "conditional-else",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "ConditionalElse",
+      "description": "Synthetic: when status is DONE, label is a string; otherwise label is null and code is not all x.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "DONE",
+            "OPEN"
+          ]
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "status",
+        "label",
+        "code"
+      ],
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "status": {
+            "const": "DONE"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "label": {
+            "type": "null"
+          },
+          "code": {
+            "not": {
+              "pattern": "^[Xx]+$"
+            }
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "name": "done-label-string",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "c1"
+        }
+      },
+      {
+        "name": "done-label-null",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": null,
+          "code": "c1"
+        }
+      },
+      {
+        "name": "done-code-x-is-free",
+        "valid": true,
+        "value": {
+          "status": "DONE",
+          "label": "a",
+          "code": "xx"
+        }
+      },
+      {
+        "name": "open-label-null",
+        "valid": true,
+        "value": {
+          "status": "OPEN",
+          "label": null,
+          "code": "c1"
+        }
+      },
+      {
+        "name": "open-label-string",
+        "valid": false,
+        "value": {
+          "status": "OPEN",
+          "label": "a",
+          "code": "c1"
+        }
+      },
+      {
+        "name": "open-code-x",
+        "valid": false,
+        "value": {
+          "status": "OPEN",
+          "label": null,
+          "code": "xX"
+        }
+      },
+      {
+        "name": "open-label-string-and-code-x",
+        "valid": false,
+        "value": {
+          "status": "OPEN",
+          "label": "a",
+          "code": "x"
+        }
+      },
+      {
+        "name": "status-unknown",
+        "valid": false,
+        "value": {
+          "status": "LATER",
+          "label": null,
+          "code": "c1"
+        }
+      },
+      {
+        "name": "done-label-number",
+        "valid": false,
+        "value": {
+          "status": "DONE",
+          "label": 5,
+          "code": "c1"
+        }
+      }
+    ],
+    "conditionCases": [
+      {
+        "name": "done",
+        "holds": true,
+        "value": {
+          "status": "DONE"
+        }
+      },
+      {
+        "name": "open",
+        "holds": false,
+        "value": {
+          "status": "OPEN"
+        }
+      },
+      {
+        "name": "lower-case",
+        "holds": false,
+        "value": {
+          "status": "done"
+        }
+      },
+      {
+        "name": "number",
+        "holds": false,
+        "value": {
+          "status": 1
+        }
+      },
+      {
+        "name": "null",
+        "holds": false,
+        "value": {
+          "status": null
+        }
+      },
+      {
+        "name": "status-absent",
+        "holds": false,
+        "value": {
+          "label": "a"
+        }
+      },
+      {
+        "name": "empty",
+        "holds": false,
+        "value": {}
+      }
+    ]
+  },
+  {
+    "name": "conditional-null",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "ConditionalNull",
+      "description": "Synthetic: exactly one of a and b is null.",
+      "type": "object",
+      "properties": {
+        "a": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "b": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "a",
+        "b"
+      ],
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "a": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "a"
+        ]
+      },
+      "then": {
+        "properties": {
+          "b": {
+            "type": "string"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "b": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "name": "a-null-b-string",
+        "valid": true,
+        "value": {
+          "a": null,
+          "b": "x"
+        }
+      },
+      {
+        "name": "a-null-b-null",
+        "valid": false,
+        "value": {
+          "a": null,
+          "b": null
+        }
+      },
+      {
+        "name": "a-null-b-number",
+        "valid": false,
+        "value": {
+          "a": null,
+          "b": 1
+        }
+      },
+      {
+        "name": "a-string-b-null",
+        "valid": true,
+        "value": {
+          "a": "x",
+          "b": null
+        }
+      },
+      {
+        "name": "a-string-b-string",
+        "valid": false,
+        "value": {
+          "a": "x",
+          "b": "y"
+        }
+      },
+      {
+        "name": "a-empty-string-b-null",
+        "valid": true,
+        "value": {
+          "a": "",
+          "b": null
+        }
+      },
+      {
+        "name": "a-empty-string-b-string",
+        "valid": false,
+        "value": {
+          "a": "",
+          "b": "y"
+        }
+      },
+      {
+        "name": "a-number",
+        "valid": false,
+        "value": {
+          "a": 1,
+          "b": null
+        }
+      }
+    ],
+    "conditionCases": [
+      {
+        "name": "a-null",
+        "holds": true,
+        "value": {
+          "a": null
+        }
+      },
+      {
+        "name": "a-string",
+        "holds": false,
+        "value": {
+          "a": "x"
+        }
+      },
+      {
+        "name": "a-empty-string",
+        "holds": false,
+        "value": {
+          "a": ""
+        }
+      },
+      {
+        "name": "a-zero",
+        "holds": false,
+        "value": {
+          "a": 0
+        }
+      },
+      {
+        "name": "a-false",
+        "holds": false,
+        "value": {
+          "a": false
+        }
+      },
+      {
+        "name": "a-empty-array",
+        "holds": false,
+        "value": {
+          "a": []
+        }
+      },
+      {
+        "name": "a-absent",
+        "holds": false,
+        "value": {
+          "b": null
+        }
+      },
+      {
+        "name": "empty",
+        "holds": false,
+        "value": {}
+      }
+    ]
+  },
+  {
+    "name": "conditional-integer",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "ConditionalInteger",
+      "description": "Synthetic: with n 0 the stats are null and items is empty; otherwise the stats are numbers and items is not empty.",
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stats": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "n",
+        "stats",
+        "items"
+      ],
+      "additionalProperties": false,
+      "if": {
+        "properties": {
+          "n": {
+            "const": 0
+          }
+        },
+        "required": [
+          "n"
+        ]
+      },
+      "then": {
+        "properties": {
+          "stats": {
+            "type": "null"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "stats": {
+            "type": "number"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "name": "zero-null-empty",
+        "valid": true,
+        "value": {
+          "n": 0,
+          "stats": null,
+          "items": []
+        }
+      },
+      {
+        "name": "zero-number",
+        "valid": false,
+        "value": {
+          "n": 0,
+          "stats": 1.5,
+          "items": []
+        }
+      },
+      {
+        "name": "zero-null-one-item",
+        "valid": false,
+        "value": {
+          "n": 0,
+          "stats": null,
+          "items": [
+            1
+          ]
+        }
+      },
+      {
+        "name": "one-number-one-item",
+        "valid": true,
+        "value": {
+          "n": 1,
+          "stats": 1.5,
+          "items": [
+            2
+          ]
+        }
+      },
+      {
+        "name": "one-null",
+        "valid": false,
+        "value": {
+          "n": 1,
+          "stats": null,
+          "items": [
+            2
+          ]
+        }
+      },
+      {
+        "name": "one-number-empty",
+        "valid": false,
+        "value": {
+          "n": 1,
+          "stats": 2,
+          "items": []
+        }
+      },
+      {
+        "name": "two-number-items",
+        "valid": true,
+        "value": {
+          "n": 2,
+          "stats": 0,
+          "items": [
+            1,
+            2.5
+          ]
+        }
+      },
+      {
+        "name": "zero-item-string",
+        "valid": false,
+        "value": {
+          "n": 0,
+          "stats": null,
+          "items": [
+            "a"
+          ]
+        }
+      },
+      {
+        "name": "one-item-string",
+        "valid": false,
+        "value": {
+          "n": 1,
+          "stats": 3,
+          "items": [
+            "a"
+          ]
+        }
+      },
+      {
+        "name": "n-string",
+        "valid": false,
+        "value": {
+          "n": "0",
+          "stats": null,
+          "items": []
+        }
+      }
+    ],
+    "conditionCases": [
+      {
+        "name": "zero",
+        "holds": true,
+        "value": {
+          "n": 0
+        }
+      },
+      {
+        "name": "one",
+        "holds": false,
+        "value": {
+          "n": 1
+        }
+      },
+      {
+        "name": "minus-one",
+        "holds": false,
+        "value": {
+          "n": -1
+        }
+      },
+      {
+        "name": "half",
+        "holds": false,
+        "value": {
+          "n": 0.5
+        }
+      },
+      {
+        "name": "string-zero",
+        "holds": false,
+        "value": {
+          "n": "0"
+        }
+      },
+      {
+        "name": "false",
+        "holds": false,
+        "value": {
+          "n": false
+        }
+      },
+      {
+        "name": "null",
+        "holds": false,
+        "value": {
+          "n": null
+        }
+      },
+      {
+        "name": "n-absent",
+        "holds": false,
+        "value": {
+          "items": []
+        }
+      }
+    ]
+  },
+  {
+    "name": "conditional-all-of",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "ConditionalAllOf",
+      "description": "Synthetic: a distance entry whose value, reason, spread and tie flag depend on its status and spread.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "available",
+            "missing"
+          ]
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "spread": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "spread_reason": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tied": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "value",
+        "reason",
+        "spread",
+        "spread_reason",
+        "tied"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "available"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "reason": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "spread": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "spread"
+            ]
+          },
+          "then": {
+            "properties": {
+              "spread_reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "spread_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "spread": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "spread"
+            ]
+          },
+          "then": {
+            "properties": {
+              "tied": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "cases": [
+      {
+        "name": "available-spread",
+        "valid": true,
+        "value": {
+          "status": "available",
+          "value": 12.5,
+          "reason": null,
+          "spread": 1.5,
+          "spread_reason": null,
+          "tied": false
+        }
+      },
+      {
+        "name": "available-spread-tied",
+        "valid": true,
+        "value": {
+          "status": "available",
+          "value": 12.5,
+          "reason": null,
+          "spread": 1.5,
+          "spread_reason": null,
+          "tied": true
+        }
+      },
+      {
+        "name": "available-spread-tied-null",
+        "valid": true,
+        "value": {
+          "status": "available",
+          "value": 12.5,
+          "reason": null,
+          "spread": 1.5,
+          "spread_reason": null,
+          "tied": null
+        }
+      },
+      {
+        "name": "available-single-family",
+        "valid": true,
+        "value": {
+          "status": "available",
+          "value": 12.5,
+          "reason": null,
+          "spread": null,
+          "spread_reason": "one family",
+          "tied": null
+        }
+      },
+      {
+        "name": "missing-no-value",
+        "valid": true,
+        "value": {
+          "status": "missing",
+          "value": null,
+          "reason": "no coverage",
+          "spread": null,
+          "spread_reason": "no value",
+          "tied": null
+        }
+      },
+      {
+        "name": "missing-with-spread",
+        "valid": true,
+        "value": {
+          "status": "missing",
+          "value": null,
+          "reason": "no coverage",
+          "spread": 2.5,
+          "spread_reason": null,
+          "tied": true
+        }
+      },
+      {
+        "name": "available-value-null",
+        "valid": false,
+        "value": {
+          "status": "available",
+          "value": null,
+          "reason": null,
+          "spread": 1.5,
+          "spread_reason": null,
+          "tied": false
+        }
+      },
+      {
+        "name": "available-reason-string",
+        "valid": false,
+        "value": {
+          "status": "available",
+          "value": 12.5,
+          "reason": "oops",
+          "spread": 1.5,
+          "spread_reason": null,
+          "tied": false
+        }
+      },
+      {
+        "name": "missing-value-number",
+        "valid": false,
+        "value": {
+          "status": "missing",
+          "value": 1.5,
+          "reason": "no coverage",
+          "spread": 2.5,
+          "spread_reason": null,
+          "tied": true
+        }
+      },
+      {
+        "name": "missing-reason-null",
+        "valid": false,
+        "value": {
+          "status": "missing",
+          "value": null,
+          "reason": null,
+          "spread": 2.5,
+          "spread_reason": null,
+          "tied": true
+        }
+      },
+      {
+        "name": "spread-null-reason-null",
+        "valid": false,
+        "value": {
+          "status": "available",
+          "value": 12.5,
+          "reason": null,
+          "spread": null,
+          "spread_reason": null,
+          "tied": null
+        }
+      },
+      {
+        "name": "spread-number-reason-string",
+        "valid": false,
+        "value": {
+          "status": "available",
+          "value": 12.5,
+          "reason": null,
+          "spread": 1.5,
+          "spread_reason": "oops",
+          "tied": false
+        }
+      },
+      {
+        "name": "spread-null-tied-boolean",
+        "valid": false,
+        "value": {
+          "status": "available",
+          "value": 12.5,
+          "reason": null,
+          "spread": null,
+          "spread_reason": "one family",
+          "tied": false
+        }
+      },
+      {
+        "name": "spread-null-tied-true",
+        "valid": false,
+        "value": {
+          "status": "available",
+          "value": 12.5,
+          "reason": null,
+          "spread": null,
+          "spread_reason": "one family",
+          "tied": true
+        }
+      },
+      {
+        "name": "status-unknown",
+        "valid": false,
+        "value": {
+          "status": "later",
+          "value": 12.5,
+          "reason": null,
+          "spread": 1.5,
+          "spread_reason": null,
+          "tied": false
+        }
+      }
+    ]
+  }
+]

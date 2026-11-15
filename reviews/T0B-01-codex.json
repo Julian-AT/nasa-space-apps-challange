@@ -1,0 +1,235 @@
+{
+  "task_id": "T0B-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "548c2ec2184a698afb2d9eeadbda7b32cd4c0331",
+    "head": "7b44de6933bb0733d61d33f3ed3d40dd682e0436",
+    "files": [
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "7500d40f743ac794dcdb941513e436ff4c10d894580aa55ca5729c5a197fbda4"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "0f54e23173b25be89942f22ec51b13de071e358fdc90ec151570cdc6539290c4"
+      },
+      {
+        "path": "fixtures/schema-cases/generator-cases.json",
+        "sha256": "244b786b9e6194200d8e89e606aacdb4503a2eb63c27172e2ad1c374c2f3fd55"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "a6e303188d293bd89069016c529aed6a470259ecb615b00c9ac1e823871a65f6"
+      },
+      {
+        "path": "packages/schema/json/comparison-record.schema.json",
+        "sha256": "4fe6cff5b31a14c6268b927c6341920fca80ed2169efdf380bd179affb85af72"
+      },
+      {
+        "path": "packages/schema/json/comparisons.schema.json",
+        "sha256": "dacc4d91ca32ef061ecd87080574731bcc13bfec24123a0dcf8aaefe98fac297"
+      },
+      {
+        "path": "packages/schema/json/fingerprint-record.schema.json",
+        "sha256": "d71dd81527a11bd934f704656938b2200ade33c458f377a0ec8545aad917586a"
+      },
+      {
+        "path": "packages/schema/json/window-record.schema.json",
+        "sha256": "6548485aaaf19ecc32d14054387419d7d435044a5d698a598d8f6f93b2f26214"
+      },
+      {
+        "path": "packages/schema/json/windows.schema.json",
+        "sha256": "1f21e5b38aa6aaeda16b5a80afc12404f7bc431f6e16229ae093576c35c9e72a"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "4abbb532e769613dce93e7ca355b8789e4db4cbba61c9ed216a07b5d76973588"
+      },
+      {
+        "path": "packages/schema/src/generated/comparison-record.ts",
+        "sha256": "d9e065fc20a9580982ef3502774200811865c3ffb7a4dcb80082746f9784c74d"
+      },
+      {
+        "path": "packages/schema/src/generated/comparisons.ts",
+        "sha256": "4d3b7e138e338210a9d624e6ef2797c3c61c9537fd09bae90303a75572a903ce"
+      },
+      {
+        "path": "packages/schema/src/generated/fingerprint-record.ts",
+        "sha256": "e50509c92dd9729eba29a1a230da1d71f8adb5d3cdc8f1e32d7c549e4ae42fa9"
+      },
+      {
+        "path": "packages/schema/src/generated/window-record.ts",
+        "sha256": "f6c480417b1c756ecfa626b334b50c8d405dc5ae679d8cddb8ef103df9e895bf"
+      },
+      {
+        "path": "packages/schema/src/generated/windows.ts",
+        "sha256": "57b9bb5266b03bb86e55f4edeaeb18e2a91faad294cc586bbf4b12bd7237e8fd"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "44beeae358d5f568bfe778ba001a2390c68547c17feaaf6e343c715b6f6b638d"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "a05659fb8f03ffdd91f6ae41234a60765612031d4667290a64bef8fdf9da2bfb"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "06c0d10a29e478314ce03763cef9f81b5164ea54dd2e967046b1249bec987ade"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "53c263ce6c7cb5f16fd1a8ba9edc45606b19c76cec7a6ea979b1a4d68d06d888"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/provenance.py",
+        "sha256": "1a0404eb40f90241d8cda79e74913989e550531067a65f2c10831b183b1d2634"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "053f28823d31d03be21618ec9cdd2e2d50e5585c35cd470dbbb3df0e1e3f54d1"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "ffa962e6a110a0b479ff329343d863dd190916a69f9087ea9e7460e876084611"
+      },
+      {
+        "path": "pipeline/tests/test_provenance.py",
+        "sha256": "b8f259c0fb33843dd169798a31049d4cc8572b770e377a82f3d7b3b03fffc99f"
+      },
+      {
+        "path": "pipeline/tests/test_schema_science.py",
+        "sha256": "ffbf173e65c3e3a5da105332358648388bd6358763914faaec3a29f8a7dbe9ac"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:10:08Z",
+  "finished_utc": "2026-11-14T22:19:36Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static review found no actionable defects. Required checks and historical failing-run evidence remain unverified because execution was prohibited. PASS entries below reflect source inspection only.",
+  "checks": [
+    {
+      "criterion": "1. Science and provenance tests written and run failing before implementation, with the failing run recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The f4274cd tree contains both test files before the new models and provenance.py. Historical execution was not independently witnessed; reported results were not treated as proof."
+    },
+    {
+      "criterion": "2. Common types, Record rules, schema version and Distribution invariants.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:52,75,104,374,454; pipeline/tests/test_schema_science.py:650,735,762,776. Distribution sorting and count consistency are Python-only guards."
+    },
+    {
+      "criterion": "3. WindowPolygon fields, supported frames and rejection of open rings.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:500,509,520; pipeline/tests/test_schema_science.py:816,833. Python checks closure; generated JSON Schema/Zod check ring shape and length only."
+    },
+    {
+      "criterion": "4. EnvironmentFlags and exact PRD WindowRecord fields, including PRD-reading tests.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:529,547,556; pipeline/tests/test_schema_science.py:79,613,619. Fields agree with PRD.md:689 and PRD.md:690."
+    },
+    {
+      "criterion": "5. Fingerprint records, terrain/radar exclusivity, Hurst reason pairing and radar constants.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:583,614,640,644,671; pipeline/tests/test_schema_science.py:919,966,1013. Imports contain no terrain or polarimetry producers."
+    },
+    {
+      "criterion": "6. WindowEntry fields, ordered eligibility reasons and Windows array contract.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:710,745,969; pipeline/tests/test_schema_science.py:1049,1053,1094."
+    },
+    {
+      "criterion": "7. Distance availability, null/reason pairs, real zero, Predicted embedding labels and absence of combined scores.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:784,807,822; pipeline/tests/test_schema_science.py:1114,1156,1201,1226,1234. The percentile-pair choice is recorded in scripts/ralph/batches/t0b-contracts/prd.json:121."
+    },
+    {
+      "criterion": "8. Exactly four uncertainty components and prescribed component/scenario fields.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:858,867,876,885,900; pipeline/tests/test_schema_science.py:1275,1282,1287. No combining, probability or scenario-weight fields are present."
+    },
+    {
+      "criterion": "9. Exact ComparisonRecord fields, four mandatory family keys and Comparisons array.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:842,916,933; pipeline/tests/test_schema_science.py:619,1251,1258,1341,1346. DistancesByFamily supplies the fixed four-key serialized object."
+    },
+    {
+      "criterion": "10. All ten named science test cases written first.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The f4274cd test snapshot contains the required cases. Current assertions are at pipeline/tests/test_schema_science.py:613,735,747,1013,1114,1201,1226,1234,1251,1275; subsequent edits preserve those assertions."
+    },
+    {
+      "criterion": "11. Deterministic provenance helpers and the specified canonical run_id formula.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/provenance.py:36,46,51,56,70,91. Canonical formatting matches pipeline/src/terraluna_pipeline/export.py:177; no clock, randomness or prohibited writer imports are present."
+    },
+    {
+      "criterion": "12. Provenance tests written first covering hash changes, ordering, determinism, file hashes and command-line round trips.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_provenance.py exists in f4274cd before provenance.py. Assertions appear at lines 78,84,93,111,117,127,149,203,263."
+    },
+    {
+      "criterion": "13. Pinned contracts, shared valid/invalid cases, generated artifacts and successful generation/drift checks.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Contract registration and test wiring are present at schema.py:961, test_json_schema.py:55,220,771 and packages/schema/tests/cases.test.ts:135. Fixtures contain valid/invalid examples for all five new contracts. Generation history, evaluator results and absence of drift require execution, prohibited in this read-only review."
+    },
+    {
+      "criterion": "Science schema test command.",
+      "command": "uv run pytest pipeline/tests/test_schema_science.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents dependency/cache and test writes."
+    },
+    {
+      "criterion": "Provenance test command.",
+      "command": "uv run pytest pipeline/tests/test_provenance.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: these tests create temporary files and may write caches."
+    },
+    {
+      "criterion": "JSON Schema test command.",
+      "command": "uv run pytest pipeline/tests/test_json_schema.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: generation tests create temporary directories and files."
+    },
+    {
+      "criterion": "Generated Zod test command.",
+      "command": "pnpm --filter @terraluna/schema test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: generator tests create temporary files and test tooling may write caches."
+    },
+    {
+      "criterion": "Schema drift check command.",
+      "command": "make schema-check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the Python drift check regenerates schemas in a temporary directory."
+    },
+    {
+      "criterion": "Repository check command.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: toolchain and cache writes are unavailable in the read-only sandbox."
+    }
+  ],
+  "findings": []
+}

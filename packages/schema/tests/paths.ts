@@ -12,3 +12,10 @@ export const CASES_FILE = fileURLToPath(
 export const MOCK_BUNDLE_DIR = fileURLToPath(
   new URL('../../../fixtures/mock-bundle', import.meta.url),
 );
+export const GENERATOR_CASES_FILE = fileURLToPath(
+  new URL('../../../fixtures/schema-cases/generator-cases.json', import.meta.url),
+);
+// The pydantic records whose CONTRACTS list the generator's CONTRACTS mirror.
+export const SCHEMA_PY = fileURLToPath(
+  new URL('../../../pipeline/src/terraluna_pipeline/schema.py', import.meta.url),
+);

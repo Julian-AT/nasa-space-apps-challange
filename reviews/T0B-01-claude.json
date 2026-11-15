@@ -1,0 +1,248 @@
+{
+  "task_id": "T0B-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "548c2ec2184a698afb2d9eeadbda7b32cd4c0331",
+    "head": "7b44de6933bb0733d61d33f3ed3d40dd682e0436",
+    "files": [
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "7500d40f743ac794dcdb941513e436ff4c10d894580aa55ca5729c5a197fbda4"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "0f54e23173b25be89942f22ec51b13de071e358fdc90ec151570cdc6539290c4"
+      },
+      {
+        "path": "fixtures/schema-cases/generator-cases.json",
+        "sha256": "244b786b9e6194200d8e89e606aacdb4503a2eb63c27172e2ad1c374c2f3fd55"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "a6e303188d293bd89069016c529aed6a470259ecb615b00c9ac1e823871a65f6"
+      },
+      {
+        "path": "packages/schema/json/comparison-record.schema.json",
+        "sha256": "4fe6cff5b31a14c6268b927c6341920fca80ed2169efdf380bd179affb85af72"
+      },
+      {
+        "path": "packages/schema/json/comparisons.schema.json",
+        "sha256": "dacc4d91ca32ef061ecd87080574731bcc13bfec24123a0dcf8aaefe98fac297"
+      },
+      {
+        "path": "packages/schema/json/fingerprint-record.schema.json",
+        "sha256": "d71dd81527a11bd934f704656938b2200ade33c458f377a0ec8545aad917586a"
+      },
+      {
+        "path": "packages/schema/json/window-record.schema.json",
+        "sha256": "6548485aaaf19ecc32d14054387419d7d435044a5d698a598d8f6f93b2f26214"
+      },
+      {
+        "path": "packages/schema/json/windows.schema.json",
+        "sha256": "1f21e5b38aa6aaeda16b5a80afc12404f7bc431f6e16229ae093576c35c9e72a"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "4abbb532e769613dce93e7ca355b8789e4db4cbba61c9ed216a07b5d76973588"
+      },
+      {
+        "path": "packages/schema/src/generated/comparison-record.ts",
+        "sha256": "d9e065fc20a9580982ef3502774200811865c3ffb7a4dcb80082746f9784c74d"
+      },
+      {
+        "path": "packages/schema/src/generated/comparisons.ts",
+        "sha256": "4d3b7e138e338210a9d624e6ef2797c3c61c9537fd09bae90303a75572a903ce"
+      },
+      {
+        "path": "packages/schema/src/generated/fingerprint-record.ts",
+        "sha256": "e50509c92dd9729eba29a1a230da1d71f8adb5d3cdc8f1e32d7c549e4ae42fa9"
+      },
+      {
+        "path": "packages/schema/src/generated/window-record.ts",
+        "sha256": "f6c480417b1c756ecfa626b334b50c8d405dc5ae679d8cddb8ef103df9e895bf"
+      },
+      {
+        "path": "packages/schema/src/generated/windows.ts",
+        "sha256": "57b9bb5266b03bb86e55f4edeaeb18e2a91faad294cc586bbf4b12bd7237e8fd"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "44beeae358d5f568bfe778ba001a2390c68547c17feaaf6e343c715b6f6b638d"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "a05659fb8f03ffdd91f6ae41234a60765612031d4667290a64bef8fdf9da2bfb"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "06c0d10a29e478314ce03763cef9f81b5164ea54dd2e967046b1249bec987ade"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "53c263ce6c7cb5f16fd1a8ba9edc45606b19c76cec7a6ea979b1a4d68d06d888"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/provenance.py",
+        "sha256": "1a0404eb40f90241d8cda79e74913989e550531067a65f2c10831b183b1d2634"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "053f28823d31d03be21618ec9cdd2e2d50e5585c35cd470dbbb3df0e1e3f54d1"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "ffa962e6a110a0b479ff329343d863dd190916a69f9087ea9e7460e876084611"
+      },
+      {
+        "path": "pipeline/tests/test_provenance.py",
+        "sha256": "b8f259c0fb33843dd169798a31049d4cc8572b770e377a82f3d7b3b03fffc99f"
+      },
+      {
+        "path": "pipeline/tests/test_schema_science.py",
+        "sha256": "ffbf173e65c3e3a5da105332358648388bd6358763914faaec3a29f8a7dbe9ac"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:10:08Z",
+  "finished_utc": "2026-11-14T22:10:58Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Review round 1 of T0B-01 (reviewer Claude Sonnet 5.5, claude-sonnet-5-5, Claude Code CLI; reviewed 548c2ec..7b44de6). All six check commands passed when I ran them. The records, provenance.py, shared cases, generated schema and zod match the acceptance criteria in the code I read. I did not read the test bodies line by line, so test-quality claims rest on test counts and on the progress.txt account of mutation checks. I found no blocker or high finding. The diff also touches scripts/ralph/batches/t0b-contracts/prd.json and progress.txt, which are outside the story's file list. Those edits are orchestrator state, notes and learnings. They are not product paths.",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_schema_science.py",
+      "command": "uv run pytest pipeline/tests/test_schema_science.py",
+      "outcome": "PASS",
+      "evidence": "416 passed"
+    },
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_provenance.py",
+      "command": "uv run pytest pipeline/tests/test_provenance.py",
+      "outcome": "PASS",
+      "evidence": "41 passed"
+    },
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_json_schema.py",
+      "command": "uv run pytest pipeline/tests/test_json_schema.py",
+      "outcome": "PASS",
+      "evidence": "628 passed"
+    },
+    {
+      "criterion": "Check: pnpm --filter @terraluna/schema test",
+      "command": "pnpm --filter @terraluna/schema test",
+      "outcome": "PASS",
+      "evidence": "3 files, 700 tests passed"
+    },
+    {
+      "criterion": "Check: make schema-check",
+      "command": "make schema-check",
+      "outcome": "PASS",
+      "evidence": "JSON Schemas and zod schemas match, no drift"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, format and mypy clean; turbo lint and typecheck 4/4 successful"
+    },
+    {
+      "criterion": "Failing tests first, with the failing run recorded in notes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The test commits f4274cd, a6ffb8c and 25d4995 come before the implementation commits. The prd.json notes record collection ImportErrors and failure counts (167 failed, 165 failed, 74 failed). I read the notes and commit order only and did not rerun the failing state."
+    },
+    {
+      "criterion": "Common types and Distribution rules (a.2)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "schema.py defines EvidenceLabel, Family, ReasonCode, RunId, RepoPath and WindowId with the required patterns. Distribution has an n/values/sorted validator, and a JSON Schema if/else rule gives null statistics exactly when n is 0."
+    },
+    {
+      "criterion": "WindowPolygon, EnvironmentFlags and WindowRecord; the PRD 8.12 field lists are tested against PRD.md",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "schema.py WindowPolygon rejects open rings through a pydantic validator. test_schema_science.py:613 and :619 read the PRD 8.12 lists from PRD.md and compare them with the model fields."
+    },
+    {
+      "criterion": "FingerprintRecord, TerrainFingerprint and RadarFingerprint",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The kind/terrain/radar rule is enforced in pydantic and in JSON Schema allOf. blocks_independent uses a BeforeValidator that refuses non-bools, so 0 is rejected. hurst and hurst_reason follow the exactly-one-null rule. The module imports neither T2 nor T3."
+    },
+    {
+      "criterion": "WindowEntry and Windows",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "schema.py checks reasons empty exactly when status is eligible, and that the terrain and radar slots hold fingerprints of the right kind. WindowsFile is a list[WindowEntry] and has its schema file."
+    },
+    {
+      "criterion": "DistanceEntry rules, including the background_percentile choice recorded in notes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Value is non-null exactly when status is available, and reason is null exactly when it is available. 0.0 is accepted as a real zero. A value of None is never coerced to 0. There is no score field. model_embedding with a value must be Predicted (ModelEmbeddingDistanceEntry). The notes record the percentile-pair choice."
+    },
+    {
+      "criterion": "UncertaintyComponents and ComparisonRecord",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The four fixed component keys are required and extras are forbidden. DistancesByFamily has four required keys and no extras. ComparisonRecord has the 8.12 fields and no shortlist field. ComparisonsFile has its schema file. Scenarios carry no probability or weight field."
+    },
+    {
+      "criterion": "provenance.py and its tests",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "provenance.py defines config_version, file_hashes (sorted by path), command_line (shlex.join) and run_id with the 'sha256:' prefix. run_id hashes canonical_json({config_sha256, products sorted by id}), and the canonical writer is a copy defined in provenance.py. It imports no export, matching or search module, and uses no clock or random value. 41 tests pass."
+    },
+    {
+      "criterion": "Contract list pinned, shared cases added, generated schema and zod committed, no drift",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "CONTRACTS in schema.py lists the five new contracts. cases.json gained cases and the zod tests run them. The generated JSON Schema and zod files are committed, and make schema-check shows no drift."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/schema.py: DistancesByFamily",
+      "claim": "distances_by_family is a four-field record, not a dict[Family, DistanceEntry] as the contract wording says. The JSON shape is the same, with four required keys and no extras.",
+      "evidence": "The notes record the choice. Tests (4) and (6) pass against the JSON shape, and a __getitem__ method lets callers index by family name.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "9606b535e3a84615d6f8faab931fa51e383d0eb4",
+        "reason": "DistancesByFamily keeps its four required fields, so the JSON shape (an object with exactly the four Family keys and no extras) is unchanged, and only its description changed in the generated schema and zod. In Python it now also reads as the read-only dict[Family, DistanceEntry] of CONTRACTS a.4: iteration yields the family names, and [], len, in, keys, values, items and get work over them. A DistanceEntry object given for model_embedding is validated again as ModelEmbeddingDistanceEntry, so the Predicted rule still applies. Tests first in dc7f229 (16 failed | 7 passed before the fix, as its message records). After the fix, test_schema_science.py has 433 passed and make schema-check reports no drift."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t0b-contracts/prd.json notes",
+      "claim": "The story adds definitional bounds beyond the acceptance criteria, such as epsg >= 1, rings of at least 4 positions, ReferenceSpread.n >= 1 and non-negative distances. These could reject legitimate producer output in later stories.",
+      "evidence": "The notes list these bounds explicitly. They follow from the definitions, so I count them as visible and acceptable. Later batches should be told that they exist.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "fixed",
+        "commit": "69e2d6f4fa8891dc1b6a9fb2f6659e9f3a8fed98",
+        "reason": "Each bound follows from what its field means, and none refuses a value a producer can legitimately write. Fractions and percentiles have fixed ranges. The CONTRACTS a.4 distance units (RMS of log nu, CPR Wasserstein-1, cosine distance) and nu are non-negative. A size or lag of 0 would stand for a missing value. A spread or frequency over zero items is null with its reason. EPSG codes are positive. RFC 7946 3.1.6 needs four positions for a closed ring. CONTRACTS a.4 calls acquisition_dates ISO dates. PRD 6.5 excludes an observable only for a reason. The one producer-side case is round-off: 1 - cosine similarity can give about -1e-16, which is refused rather than stored. Every bound is a single-field constraint in the generated JSON Schema and zod (for example area_m2 exclusiveMinimum 0, ring minItems 4, reasons minItems 1), so a producer meets it at write time. As the finding asks, later batches are now told: packages/schema/README.md lists every bound and the round-off case (69e2d6f), and the story notes keep the same list. The progress log proposes that the orchestrator copies the list into CONTRACTS a.4, which is outside this story's files."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/schema.py: IncidenceRange",
+      "claim": "IncidenceRange does not enforce min <= max. The notes say this was considered and left out because CONTRACTS does not require it.",
+      "evidence": "The IncidenceRange class has no validator.",
+      "id": "claude-r1-3",
+      "resolution": {
+        "action": "fixed",
+        "commit": "f51ac4f6bbb0afc0c32e9d04f57f4ed6ab60c1f1",
+        "reason": "IncidenceRange now refuses min > max with a pydantic validator, and min == max (one angle) is accepted. JSON Schema cannot compare two values in one document, so the rule is pydantic-only, like sorted Distribution values and closed rings. test_json_schema.py pins that the committed JSON Schema accepts such a document (incidence-min-above-max), and the schema.py module comment and both READMEs name the rule (115e877). Tests first in aa0d882 (2 failed | 9 passed with -k incidence). No shared case changed, because every incidence_deg in cases.json is {min: 35.5, max: 48.25}. Only the IncidenceRange description changed in the generated files, and make schema-check reports no drift. Python writes every bundle file through these models, so the web never receives a reversed range."
+      }
+    }
+  ]
+}

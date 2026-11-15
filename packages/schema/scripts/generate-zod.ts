@@ -7,7 +7,10 @@
 // json-schema-to-zod translates each schema after local $defs references are inlined. Before
 // that, assertSupported refuses every keyword outside the small set that the generator
 // translates with the same verdicts as pydantic and JSON Schema, so a new keyword in schema.py
-// fails here instead of being dropped from the zod output.
+// fails here instead of being dropped from the zod output. The converter mistranslates `not`,
+// ignores `if`/`then` without `else`, and drops `propertyNames` from a map, so translateOverride
+// translates those itself: `not` as a negated pattern, a record object's `if`/`then`/`else` and
+// `allOf` of such conditionals as refinements, and a map object as a zod record.
 import { lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
@@ -15,7 +18,8 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { diff } from 'node:util';
 
-import { jsonSchemaToZod } from 'json-schema-to-zod';
+import { jsonSchemaToZod, parseSchema } from 'json-schema-to-zod';
+import type { JsonSchemaObject, Refs } from 'json-schema-to-zod';
 import { format, version as prettierVersion } from 'prettier';
 import type { Options as PrettierOptions } from 'prettier';
 
@@ -49,6 +53,48 @@ export const CONTRACTS: readonly Contract[] = [
     module: 'validation.ts',
     schemaName: 'ValidationSchema',
     typeName: 'Validation',
+  },
+  {
+    json: 'product-record.schema.json',
+    module: 'product-record.ts',
+    schemaName: 'ProductRecordSchema',
+    typeName: 'ProductRecord',
+  },
+  {
+    json: 'sources.schema.json',
+    module: 'sources.ts',
+    schemaName: 'SourcesSchema',
+    typeName: 'Sources',
+  },
+  {
+    json: 'window-record.schema.json',
+    module: 'window-record.ts',
+    schemaName: 'WindowRecordSchema',
+    typeName: 'WindowRecord',
+  },
+  {
+    json: 'fingerprint-record.schema.json',
+    module: 'fingerprint-record.ts',
+    schemaName: 'FingerprintRecordSchema',
+    typeName: 'FingerprintRecord',
+  },
+  {
+    json: 'windows.schema.json',
+    module: 'windows.ts',
+    schemaName: 'WindowsSchema',
+    typeName: 'Windows',
+  },
+  {
+    json: 'comparison-record.schema.json',
+    module: 'comparison-record.ts',
+    schemaName: 'ComparisonRecordSchema',
+    typeName: 'ComparisonRecord',
+  },
+  {
+    json: 'comparisons.schema.json',
+    module: 'comparisons.ts',
+    schemaName: 'ComparisonsSchema',
+    typeName: 'Comparisons',
   },
 ];
 
@@ -125,10 +171,11 @@ function at(pointer: string): string {
 /**
  * Inline every `{"$ref": "#/$defs/<Name>"}` and drop the root `$defs`.
  *
- * References are read only where a subschema is expected: under `properties`, `items` and
- * `anyOf`, the keywords assertSupported accepts. Elsewhere, such as in a `properties` map or an
- * `enum`, `$ref` is plain data. pydantic emits only local references with no sibling keywords,
- * so anything else is refused, as is a recursive reference, which inlining cannot express.
+ * References are read only where a subschema is expected: under `properties`, `items`, `anyOf`
+ * and a schema-valued `additionalProperties`, the keywords assertSupported accepts. Elsewhere,
+ * such as in a `properties` map or an `enum`, `$ref` is plain data. pydantic emits only local
+ * references with no sibling keywords, so anything else is refused, as is a recursive
+ * reference, which inlining cannot express.
  */
 export function dereference(root: JsonObject): JsonObject {
   const { $defs: defsValue, ...rest } = root;
@@ -142,6 +189,9 @@ export function dereference(root: JsonObject): JsonObject {
 
   const inlineKeyword = (key: string, value: Json, pointer: string, stack: readonly string[]): Json => {
     if (key === 'items') {
+      return inline(value, pointer, stack);
+    }
+    if (key === 'additionalProperties' && isObject(value)) {
       return inline(value, pointer, stack);
     }
     if (key === 'anyOf' && Array.isArray(value)) {
@@ -206,17 +256,184 @@ const ANNOTATIONS = ['title', 'description'];
 // check with the same verdict as pydantic (strict, extra=forbid) and JSON Schema 2020-12.
 const KEYWORDS_BY_TYPE: ReadonlyMap<string, ReadonlySet<string>> = new Map(
   Object.entries({
-    string: ['type', 'pattern', 'minLength', 'enum', 'const'],
+    string: ['type', 'pattern', 'minLength', 'enum', 'const', 'not'],
     integer: ['type', 'minimum', 'maximum'],
-    boolean: ['type'],
+    number: ['type', 'minimum', 'maximum', 'exclusiveMinimum'],
+    boolean: ['type', 'const'],
     null: ['type'],
-    array: ['type', 'items'],
-    object: ['type', 'properties', 'required', 'additionalProperties'],
+    array: ['type', 'items', 'minItems', 'maxItems'],
+    object: [
+      'type',
+      'properties',
+      'required',
+      'additionalProperties',
+      'propertyNames',
+      'if',
+      'then',
+      'else',
+      'allOf',
+    ],
   }).map(([type, keywords]) => [type, new Set([...keywords, ...ANNOTATIONS])]),
 );
 
-// A schema without `type` may only be a union.
-const UNTYPED_KEYWORDS: ReadonlySet<string> = new Set(['anyOf', ...ANNOTATIONS]);
+// A schema without `type` may only be a union or a negated pattern.
+const UNTYPED_KEYWORDS: ReadonlySet<string> = new Set(['anyOf', 'not', ...ANNOTATIONS]);
+
+function sameKeys(keys: readonly string[], expected: readonly string[]): boolean {
+  return keys.length === expected.length && expected.every((key) => keys.includes(key));
+}
+
+/**
+ * Refuse a `not` other than `{"pattern": <portable pattern>}`.
+ *
+ * JSON Schema searches for the pattern and applies it only to strings, so such a `not` holds
+ * exactly for a string that contains no match, whether or not its schema has a `type`.
+ */
+function assertNegatedPattern(negated: Json, pointer: string): void {
+  const where = at(pointer);
+  if (!isObject(negated) || !sameKeys(Object.keys(negated), ['pattern'])) {
+    throw new SchemaError(`${where}: "not" must hold only a "pattern"`);
+  }
+  const pattern = negated['pattern'];
+  if (typeof pattern !== 'string') {
+    throw new SchemaError(`${where}/pattern: pattern must be a string`);
+  }
+  assertPortablePattern(pattern);
+}
+
+/**
+ * Refuse an `if`/`then`/`else` other than the one form translateOverride translates.
+ *
+ * `if` must hold only `properties` and `required`, with each property one test, either
+ * `{"const": <string>}`, `{"const": <safe integer>}` or `{"type": "null"}`, and `required`
+ * naming exactly those properties, so it holds when each of them is present and passes its test.
+ * `then` and the optional `else` must each hold only a non-empty `properties`, each a supported
+ * schema; `else` needs `then`. Every property any of them names must be a property of the
+ * enclosing object. `$ref` is not inlined inside a conditional, so assertSupported refuses it.
+ */
+function assertConditional(
+  condition: Json | undefined,
+  consequence: Json | undefined,
+  alternative: Json | undefined,
+  objectKeys: readonly string[],
+  pointer: string,
+): void {
+  if (condition === undefined || consequence === undefined) {
+    throw new SchemaError(`${at(pointer)}: "if" and "then" must appear together`);
+  }
+  const ifPointer = `${pointer}/if`;
+  if (!isObject(condition) || !sameKeys(Object.keys(condition), ['properties', 'required'])) {
+    throw new SchemaError(`${at(ifPointer)}: "if" must hold only "properties" and "required"`);
+  }
+  const { properties: tested, required } = condition;
+  if (!isObject(tested) || Object.keys(tested).length === 0) {
+    throw new SchemaError(`${ifPointer}/properties: must name at least one property`);
+  }
+  const testedKeys = Object.keys(tested);
+  const isString = (key: Json): key is string => typeof key === 'string';
+  if (!Array.isArray(required) || !required.every(isString) || !sameKeys(required, testedKeys)) {
+    throw new SchemaError(`${ifPointer}/required: must list every "if" property exactly once`);
+  }
+  for (const key of testedKeys) {
+    const where = `${ifPointer}/properties/${pointerToken(key)}`;
+    if (!objectKeys.includes(key)) {
+      throw new SchemaError(`${where}: not a property of the object`);
+    }
+    const test = tested[key];
+    const constant = isObject(test) ? test['const'] : undefined;
+    const isConstTest =
+      isObject(test) &&
+      sameKeys(Object.keys(test), ['const']) &&
+      (typeof constant === 'string' || (typeof constant === 'number' && Number.isSafeInteger(constant)));
+    const isNullTest =
+      isObject(test) && sameKeys(Object.keys(test), ['type']) && test['type'] === 'null';
+    if (!isConstTest && !isNullTest) {
+      throw new SchemaError(
+        `${where}: an "if" property must be exactly {"const": <string>}, {"const": <safe integer>} or {"type": "null"}`,
+      );
+    }
+  }
+
+  const branches: [string, Json][] = [['then', consequence]];
+  if (alternative !== undefined) {
+    branches.push(['else', alternative]);
+  }
+  for (const [name, branch] of branches) {
+    const branchPointer = `${pointer}/${name}`;
+    if (!isObject(branch) || !sameKeys(Object.keys(branch), ['properties'])) {
+      throw new SchemaError(`${at(branchPointer)}: "${name}" must hold only "properties"`);
+    }
+    const constrained = branch['properties'];
+    if (!isObject(constrained) || Object.keys(constrained).length === 0) {
+      throw new SchemaError(`${branchPointer}/properties: must name at least one property`);
+    }
+    for (const [key, schema] of Object.entries(constrained)) {
+      const where = `${branchPointer}/properties/${pointerToken(key)}`;
+      if (!objectKeys.includes(key)) {
+        throw new SchemaError(`${where}: not a property of the object`);
+      }
+      assertSupported(schema, where);
+    }
+  }
+}
+
+/**
+ * Refuse an `allOf` that is not a non-empty array of conditionals, each exactly an `if`/`then`
+ * with an optional `else` that assertConditional accepts.
+ */
+function assertConditionalAllOf(
+  elements: Json,
+  objectKeys: readonly string[],
+  pointer: string,
+): void {
+  const where = `${pointer}/allOf`;
+  if (!Array.isArray(elements) || elements.length === 0) {
+    throw new SchemaError(`${where}: must be a non-empty array of conditionals`);
+  }
+  elements.forEach((element, index) => {
+    const elementPointer = `${where}/${String(index)}`;
+    if (
+      !isObject(element) ||
+      !Object.keys(element).every((key) => ['if', 'then', 'else'].includes(key))
+    ) {
+      throw new SchemaError(
+        `${elementPointer}: an "allOf" element must be only an "if", "then" and optional "else"`,
+      );
+    }
+    assertConditional(element['if'], element['then'], element['else'], objectKeys, elementPointer);
+  });
+}
+
+/**
+ * Refuse a map object other than `{"additionalProperties": <schema>}` with optional
+ * `propertyNames` of `{"minLength": 1}` or `{"enum": [<non-empty list of strings>]}`.
+ */
+function assertMap(node: JsonObject, pointer: string): void {
+  const where = at(pointer);
+  for (const key of ['properties', 'required', 'if', 'then', 'else', 'allOf']) {
+    if (node[key] !== undefined) {
+      throw new SchemaError(`${where}: a map with a schema for "additionalProperties" cannot have "${key}"`);
+    }
+  }
+  const names = node['propertyNames'];
+  if (names !== undefined) {
+    const members = isObject(names) ? names['enum'] : undefined;
+    const isMinLength =
+      isObject(names) && sameKeys(Object.keys(names), ['minLength']) && names['minLength'] === 1;
+    const isEnum =
+      isObject(names) &&
+      sameKeys(Object.keys(names), ['enum']) &&
+      Array.isArray(members) &&
+      members.length > 0 &&
+      members.every((member) => typeof member === 'string');
+    if (!isMinLength && !isEnum) {
+      throw new SchemaError(
+        `${where}/propertyNames: must be {"minLength": 1} or {"enum": [<non-empty list of strings>]}`,
+      );
+    }
+  }
+  assertSupported(node['additionalProperties'] ?? null, `${pointer}/additionalProperties`);
+}
 
 /**
  * Refuse any schema the generator would not translate with the same verdicts.
@@ -225,7 +442,12 @@ const UNTYPED_KEYWORDS: ReadonlySet<string> = new Set(['anyOf', ...ANNOTATIONS])
  * pydantic records do. `minLength` may only be 0 or 1: JSON Schema counts code points and zod
  * counts UTF-16 code units, which agree only on whether a string is empty. A string `enum` or
  * `const` stands alone next to `type` and annotations, because the generator would drop a
- * `pattern`, `minLength` or second `enum`/`const` beside it.
+ * `pattern`, `minLength`, `not` or second `enum`/`const` beside it. `not` may only negate a
+ * pattern. An object either is a map (assertMap) or sets `additionalProperties: false`, and then
+ * its `if`/`then`/`else` and its `allOf` of conditionals must have the forms assertConditional
+ * and assertConditionalAllOf describe. A `number` takes finite `minimum`, `maximum` and
+ * `exclusiveMinimum`, a `boolean` may be a boolean `const`, and an array's `minItems` and
+ * `maxItems` must be non-negative safe integers.
  */
 export function assertSupported(node: Json, pointer = ''): void {
   const where = at(pointer);
@@ -258,9 +480,16 @@ export function assertSupported(node: Json, pointer = ''): void {
 
   switch (type) {
     case undefined: {
-      const branches = node['anyOf'];
+      const { anyOf: branches, not: negated } = node;
+      if (negated !== undefined) {
+        if (branches !== undefined) {
+          throw new SchemaError(`${where}: "anyOf" and "not" cannot be combined`);
+        }
+        assertNegatedPattern(negated, `${pointer}/not`);
+        return;
+      }
       if (!Array.isArray(branches) || branches.length === 0) {
-        throw new SchemaError(`${where}: a schema needs "type" or a non-empty "anyOf"`);
+        throw new SchemaError(`${where}: a schema needs "type", a non-empty "anyOf" or "not"`);
       }
       branches.forEach((branch, index) => {
         assertSupported(branch, `${pointer}/anyOf/${String(index)}`);
@@ -268,7 +497,10 @@ export function assertSupported(node: Json, pointer = ''): void {
       return;
     }
     case 'string': {
-      const { pattern, minLength, enum: members, const: constant } = node;
+      const { pattern, minLength, enum: members, const: constant, not: negated } = node;
+      if (negated !== undefined) {
+        assertNegatedPattern(negated, `${pointer}/not`);
+      }
       if (pattern !== undefined) {
         if (typeof pattern !== 'string') {
           throw new SchemaError(`${where}: pattern must be a string`);
@@ -292,7 +524,7 @@ export function assertSupported(node: Json, pointer = ''): void {
       // json-schema-to-zod emits only z.enum or z.literal for an enum or const and drops every
       // other string keyword, so such a combination would be weakened silently.
       if (members !== undefined || constant !== undefined) {
-        const others = ['pattern', 'minLength', 'enum', 'const'].filter(
+        const others = ['pattern', 'minLength', 'enum', 'const', 'not'].filter(
           (key) => node[key] !== undefined,
         );
         if (others.length > 1) {
@@ -312,16 +544,48 @@ export function assertSupported(node: Json, pointer = ''): void {
       }
       return;
     }
+    case 'number': {
+      for (const key of ['minimum', 'maximum', 'exclusiveMinimum']) {
+        const bound = node[key];
+        if (bound !== undefined && !(typeof bound === 'number' && Number.isFinite(bound))) {
+          throw new SchemaError(`${where}: ${key} must be a finite number`);
+        }
+      }
+      return;
+    }
+    case 'boolean': {
+      const constant = node['const'];
+      if (constant !== undefined && typeof constant !== 'boolean') {
+        throw new SchemaError(`${where}: const must be a boolean`);
+      }
+      return;
+    }
     case 'array': {
       const items = node['items'];
       if (items === undefined) {
         throw new SchemaError(`${where}: an array needs "items"`);
+      }
+      for (const key of ['minItems', 'maxItems']) {
+        const length = node[key];
+        if (
+          length !== undefined &&
+          !(typeof length === 'number' && Number.isSafeInteger(length) && length >= 0)
+        ) {
+          throw new SchemaError(`${where}: ${key} must be a non-negative safe integer`);
+        }
       }
       assertSupported(items, `${pointer}/items`);
       return;
     }
     case 'object': {
       const { properties, required, additionalProperties } = node;
+      if (isObject(additionalProperties)) {
+        assertMap(node, pointer);
+        return;
+      }
+      if (node['propertyNames'] !== undefined) {
+        throw new SchemaError(`${where}: "propertyNames" is only supported on a map`);
+      }
       if (!isObject(properties)) {
         throw new SchemaError(`${where}: an object needs "properties"`);
       }
@@ -339,10 +603,16 @@ export function assertSupported(node: Json, pointer = ''): void {
       for (const key of keys) {
         assertSupported(properties[key] ?? null, `${pointer}/properties/${pointerToken(key)}`);
       }
+      if (node['if'] !== undefined || node['then'] !== undefined || node['else'] !== undefined) {
+        assertConditional(node['if'], node['then'], node['else'], keys, pointer);
+      }
+      if (node['allOf'] !== undefined) {
+        assertConditionalAllOf(node['allOf'], keys, pointer);
+      }
       return;
     }
     default:
-      // boolean and null take no further keywords.
+      // null takes no further keywords.
       return;
   }
 }
@@ -414,6 +684,221 @@ export function assertPortablePattern(pattern: string): void {
   }
 }
 
+// --- Translation ----------------------------------------------------------------------------
+// json-schema-to-zod 2.8.1 turns any schema with `not` into z.any().refine(...), dropping its
+// type and pattern, translates `if`/`then` only next to `else` and never on an object, has no
+// `allOf` of conditionals, and drops `propertyNames` from a map. The override below translates
+// the forms that assertSupported admits; the converter translates every other node. Generated
+// code is plain JavaScript over `z`, so zodExpression can be evaluated in tests.
+
+/** A JavaScript string literal in generated code. */
+function literal(value: string): string {
+  return JSON.stringify(value);
+}
+
+function withDescription(source: string, description: Json | undefined): string {
+  return typeof description === 'string' ? `${source}.describe(${literal(description)})` : source;
+}
+
+function notChecked(refs: Refs, keyword: string): never {
+  throw new SchemaError(`/${refs.path.join('/')}: "${keyword}" was not checked by assertSupported`);
+}
+
+/**
+ * `not: {"pattern": P}`: a string in which P finds no match.
+ *
+ * JSON Schema searches for a pattern, as RegExp.prototype.test does without flags, and P is
+ * portable (assertPortablePattern). `{"pattern": P}` holds for every non-string, so its negation
+ * needs a string even where the schema has no `type`.
+ */
+function translateNegatedPattern(node: JsonObject, refs: Refs): string {
+  const { not: negated, description, ...rest } = node;
+  const pattern = isObject(negated) ? negated['pattern'] : undefined;
+  if (typeof pattern !== 'string') {
+    return notChecked(refs, 'not');
+  }
+  const base = rest['type'] === undefined ? 'z.string()' : parseSchema(rest, refs, true);
+  const error = literal('Invalid input: must not match the "not" pattern');
+  return withDescription(
+    `${base}.refine((text) => !new RegExp(${literal(pattern)}).test(text), { error: ${error} })`,
+    description,
+  );
+}
+
+/**
+ * The JavaScript test, over the parsed object `value`, of an `if` that assertConditional accepts:
+ * every `if` property is present, as `required` demands, and equal to its string or integer
+ * constant or, for `{"type": "null"}`, null. An absent property makes it false, as in Draft
+ * 2020-12.
+ */
+export function conditionSource(condition: Json | undefined, pointer = ''): string {
+  const tested = isObject(condition) ? condition['properties'] : undefined;
+  const refused = new SchemaError(`${at(pointer)}: "if" was not checked by assertSupported`);
+  if (!isObject(tested) || Object.keys(tested).length === 0) {
+    throw refused;
+  }
+  const terms = Object.entries(tested).map(([key, test]) => {
+    if (!isObject(test)) {
+      throw refused;
+    }
+    const constant = test['const'];
+    let expected: string;
+    if (typeof constant === 'string') {
+      expected = literal(constant);
+    } else if (typeof constant === 'number' && Number.isSafeInteger(constant)) {
+      expected = String(constant);
+    } else if (test['type'] === 'null' && constant === undefined) {
+      expected = 'null';
+    } else {
+      throw refused;
+    }
+    return `Object.hasOwn(value, ${literal(key)}) && value[${literal(key)}] === ${expected}`;
+  });
+  return terms.join(' && ');
+}
+
+/** One `if`/`then`/`else` of a record object, and where it sits in the schema. */
+interface Conditional {
+  readonly condition: Json | undefined;
+  readonly consequence: Json | undefined;
+  readonly alternative: Json | undefined;
+  readonly path: readonly (string | number)[];
+}
+
+/** The statements that check each property in `branch` (a `then` or `else`) when it applies. */
+function branchChecks(
+  branch: Json | undefined,
+  name: 'then' | 'else',
+  prefix: string,
+  refs: Refs,
+  path: readonly (string | number)[],
+): string {
+  const constrained = isObject(branch) ? branch['properties'] : undefined;
+  if (!isObject(constrained)) {
+    return notChecked(refs, name);
+  }
+  return Object.entries(constrained)
+    .map(([key, schema]) => {
+      if (!isObject(schema)) {
+        return notChecked(refs, name);
+      }
+      const property = literal(key);
+      const zod = parseSchema(schema, { ...refs, path: [...path, name, 'properties', key] });
+      return [
+        `if (Object.hasOwn(value, ${property})) {`,
+        `for (const issue of ${zod}.safeParse(value[${property}]).error?.issues ?? []) {`,
+        `ctx.addIssue({ code: 'custom', path: [${property}, ...issue.path], input: value[${property}], message: ${prefix} + issue.message });`,
+        '}',
+        '}',
+      ].join('\n');
+    })
+    .join('\n');
+}
+
+/**
+ * One conditional as a superRefine on the base schema, as Draft 2020-12 evaluates it: when every
+ * `if` property is present and passes its test, every `then` property that is present must match
+ * its schema; otherwise every `else` property that is present must match its schema.
+ *
+ * For each issue of such a property it adds one issue at the path below that property, with the
+ * nested message after a fixed prefix naming the branch.
+ */
+function refinement(conditional: Conditional, refs: Refs): string {
+  const { condition, consequence, alternative, path } = conditional;
+  const holds = conditionSource(condition, `/${path.join('/')}`);
+  const thenPrefix = literal('Invalid input: must match the "then" schema when the "if" schema holds: ');
+  const elsePrefix = literal('Invalid input: must match the "else" schema when the "if" schema fails: ');
+  const otherwise =
+    alternative === undefined
+      ? ''
+      : ` else {\n${branchChecks(alternative, 'else', elsePrefix, refs, path)}\n}`;
+  return `.superRefine((value, ctx) => {\nif (${holds}) {\n${branchChecks(consequence, 'then', thenPrefix, refs, path)}\n}${otherwise}\n})`;
+}
+
+/**
+ * An object with a top-level `if`/`then`/`else` and/or an `allOf` of such conditionals: the
+ * object's own keywords are the converter's and each conditional is a superRefine on top, the
+ * top-level one first, then the `allOf` elements in order.
+ */
+function translateConditionals(node: JsonObject, refs: Refs): string {
+  const { if: condition, then: consequence, else: alternative, allOf, description, ...rest } = node;
+  const conditionals: Conditional[] = [];
+  if (condition !== undefined) {
+    conditionals.push({ condition, consequence, alternative, path: refs.path });
+  }
+  if (allOf !== undefined) {
+    if (!Array.isArray(allOf)) {
+      return notChecked(refs, 'allOf');
+    }
+    for (const [index, element] of allOf.entries()) {
+      if (!isObject(element)) {
+        return notChecked(refs, 'allOf');
+      }
+      conditionals.push({
+        condition: element['if'],
+        consequence: element['then'],
+        alternative: element['else'],
+        path: [...refs.path, 'allOf', index],
+      });
+    }
+  }
+  const base = parseSchema(rest, refs, true);
+  const refinements = conditionals.map((conditional) => refinement(conditional, refs));
+  return withDescription(`${base}${refinements.join('')}`, description);
+}
+
+/**
+ * A map object: `z.record(z.string(), V)`, `z.record(z.string().min(1), V)` for non-empty keys,
+ * or `z.partialRecord(z.enum([...]), V)` for enumerated keys, which allows any subset of them.
+ */
+function translateMap(node: JsonObject, refs: Refs): string {
+  const { additionalProperties: values, propertyNames: names, description } = node;
+  if (!isObject(values)) {
+    return notChecked(refs, 'additionalProperties');
+  }
+  const valueZod = parseSchema(values, { ...refs, path: [...refs.path, 'additionalProperties'] });
+  const members = isObject(names) ? names['enum'] : undefined;
+  let source: string;
+  if (names === undefined) {
+    source = `z.record(z.string(), ${valueZod})`;
+  } else if (isObject(names) && names['minLength'] === 1) {
+    source = `z.record(z.string().min(1), ${valueZod})`;
+  } else if (Array.isArray(members)) {
+    source = `z.partialRecord(z.enum(${JSON.stringify(members)}), ${valueZod})`;
+  } else {
+    return notChecked(refs, 'propertyNames');
+  }
+  return withDescription(source, description);
+}
+
+function translateOverride(schema: JsonSchemaObject, refs: Refs): string | undefined {
+  const node = schema as JsonObject;
+  if (node['not'] !== undefined) {
+    return translateNegatedPattern(node, refs);
+  }
+  if (node['type'] === 'object' && isObject(node['additionalProperties'])) {
+    return translateMap(node, refs);
+  }
+  if (node['if'] !== undefined || node['allOf'] !== undefined) {
+    return translateConditionals(node, refs);
+  }
+  return undefined;
+}
+
+const CONVERTER_OPTIONS = { zodVersion: 4, parserOverride: translateOverride } as const;
+
+/** Inline the references, then refuse anything outside the supported subset. */
+function checkedSchema(root: JsonObject): JsonObject {
+  const schema = dereference(root);
+  assertSupported(schema);
+  return schema;
+}
+
+/** The zod expression for a JSON Schema, after the same checks and translation as a module. */
+export function zodExpression(root: JsonObject): string {
+  return jsonSchemaToZod(checkedSchema(root), { module: 'none', ...CONVERTER_OPTIONS });
+}
+
 // --- Generation -----------------------------------------------------------------------------
 
 function header(contract: Contract): string {
@@ -441,8 +926,7 @@ function parseSchemaText(text: string): JsonObject {
 export async function generateModule(contract: Contract, schemaText: string): Promise<string> {
   let schema: JsonObject;
   try {
-    schema = dereference(parseSchemaText(schemaText));
-    assertSupported(schema);
+    schema = checkedSchema(parseSchemaText(schemaText));
   } catch (error) {
     if (error instanceof SchemaError) {
       throw new SchemaError(`${contract.json}: ${error.message}`);
@@ -453,7 +937,7 @@ export async function generateModule(contract: Contract, schemaText: string): Pr
     name: contract.schemaName,
     module: 'esm',
     type: contract.typeName,
-    zodVersion: 4,
+    ...CONVERTER_OPTIONS,
   });
   return format(`${header(contract)}\n\n${source}`, PRETTIER_OPTIONS);
 }

@@ -6,7 +6,19 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { ZodType } from 'zod';
 
-import { BundleManifestSchema, GateRecordSchema, ValidationSchema } from '../src/index.ts';
+import {
+  BundleManifestSchema,
+  ComparisonRecordSchema,
+  ComparisonsSchema,
+  FingerprintRecordSchema,
+  GateRecordSchema,
+  ProductRecordSchema,
+  SourcesSchema,
+  ValidationSchema,
+  WindowRecordSchema,
+  WindowsSchema,
+} from '../src/index.ts';
+import { CONTRACTS } from '../scripts/generate-zod.ts';
 import { CASES_FILE, MOCK_BUNDLE_DIR } from './paths.ts';
 
 interface SchemaCase {
@@ -25,6 +37,13 @@ const SCHEMAS: ReadonlyMap<string, ZodType> = new Map<string, ZodType>([
   ['BundleManifest', BundleManifestSchema],
   ['GateRecord', GateRecordSchema],
   ['Validation', ValidationSchema],
+  ['ProductRecord', ProductRecordSchema],
+  ['Sources', SourcesSchema],
+  ['WindowRecord', WindowRecordSchema],
+  ['FingerprintRecord', FingerprintRecordSchema],
+  ['Windows', WindowsSchema],
+  ['ComparisonRecord', ComparisonRecordSchema],
+  ['Comparisons', ComparisonsSchema],
 ]);
 
 const CASE_KEYS = ['name', 'schema', 'valid', 'value'];
@@ -76,7 +95,11 @@ function readMockFile(name: string): unknown {
 }
 
 describe('shared schema cases', () => {
-  it('give each of the three schemas accepted and rejected values', () => {
+  it('run every generated contract', () => {
+    expect([...SCHEMAS.keys()].sort()).toEqual(CONTRACTS.map((c) => c.typeName).sort());
+  });
+
+  it('give each schema accepted and rejected values', () => {
     for (const schema of SCHEMAS.keys()) {
       const verdicts = new Set(cases.filter((c) => c.schema === schema).map((c) => c.valid));
       expect([schema, [...verdicts].sort()]).toEqual([schema, [false, true]]);

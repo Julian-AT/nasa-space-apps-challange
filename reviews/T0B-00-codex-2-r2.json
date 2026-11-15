@@ -1,0 +1,183 @@
+{
+  "task_id": "T0B-00",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "6fbfd479ecf7833aff8339b65902af41a8271a60",
+    "head": "bda54e7171008c3fa44e4467b4e85b83a08de43e",
+    "files": [
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "37b08431bd5ff8315f31aca318035249e91e312028d98d3d4448e0291d78aeb0"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "6c4179f5ceb986df0b158dc52101299f09ecd7ec43c81aa1b0c72f28b91d02b5"
+      },
+      {
+        "path": "fixtures/schema-cases/generator-cases.json",
+        "sha256": "c09c4f34ccc25163582dabe9301ab67b39acd1e21cc774f2414f7431efffcbc6"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "f0247a0f244aa3c51f967e81809c8d72692a2f51aebd44789d56b50e22cb4a94"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "46e44c20a751299513913990aa5c724eb264b591a2b5bf45ef1b2a3e034c179d"
+      },
+      {
+        "path": "packages/schema/src/generated/product-record.ts",
+        "sha256": "144358310d56be1498511c719609d8e3710f5313ce10ec36e030386af1c4407f"
+      },
+      {
+        "path": "packages/schema/src/generated/sources.ts",
+        "sha256": "72ec58d03c66be8726aa552f1f34356b17d696cf813cf9eff1fa1ce7e5d4c008"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "4cfda2070148bd85edfcb21f9dc2bcd3c92ae923aa74606aabb15818072c1f74"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "3ecd8fac797e42d22ac32b53cb854157f3deeb70b7e13e32b5534dd81287e84b"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "b98743419695f8e90b250b3ab933b66b09c879ca3f543f7992d60528063f106a"
+      },
+      {
+        "path": "packages/schema/tests/paths.ts",
+        "sha256": "458ff2ca54c0125e5dae7287bfda94f95fe003afa38fa379ab88365e0f30e21c"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "09e529fb5201bd368b6a885c695c87f9db7d55492f0145737df31826c7ad65db"
+      },
+      {
+        "path": "packages/schema/turbo.json",
+        "sha256": "b3bbdbaf5f193b6b3a1a5ea651f2b58a04cb0a55852e73caae34ef498f3c89fc"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "365d5522e6ef2096528b367d3563f69e3d2084852e24739fbadf8744cc5430f0"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:33:35Z",
+  "finished_utc": "2026-11-14T21:38:25Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Previous fixes and the documentation rebuttal are supported by inspection. Execution-dependent criteria remain unverified because checks were prohibited in this read-only review.",
+  "checks": [
+    {
+      "criterion": "AC1: Record the failing baseline before changes; preserve failing tests.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Existing failing assertions remain in packages/schema/tests/generate-zod.test.ts. Baseline notes exist at scripts/ralph/batches/t0b-contracts/prd.json:60, but historical execution counts and recording order were not independently observed; baseline reruns were prohibited."
+    },
+    {
+      "criterion": "AC2: Tests first for conditional translation, unsupported keywords, shared cases, and removal of strict xfails.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Test-only commit contents precede the generator implementation. packages/schema/tests/generate-zod.test.ts:288 exercises document verdicts; :315 directly tests the generated condition, including absent properties; :342 checks unsupported keywords. pipeline/tests/test_json_schema.py:390 parametrizes all five schemas without xfail. Failing and passing executions were not run."
+    },
+    {
+      "criterion": "AC3: Required ProductRecord and Sources cases receive identical verdicts from all three evaluators.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "fixtures/schema-cases/cases.json:1497 onward contains every requested case, including unknown followed by a newline at :1757. Python evaluates shared cases at pipeline/tests/test_json_schema.py:520 and :525; zod evaluates them at packages/schema/tests/cases.test.ts:125. Verdicts match the unchanged contract by inspection, but three-evaluator execution was prohibited."
+    },
+    {
+      "criterion": "AC4: Mirror CONTRACTS, faithfully translate if/then, export both schemas and types, regenerate without manual changes, and reject unsupported keywords.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "CONTRACTS matches schema.py at packages/schema/scripts/generate-zod.ts:36; the comparison test is at packages/schema/tests/generate-zod.test.ts:179. Translation and refusal guards are at generate-zod.ts:266, :339, :553 and :596. Both exports exist at packages/schema/src/index.ts:6. Regeneration and drift checks were not executed."
+    },
+    {
+      "criterion": "AC5: Preserve schema.py and byte-identical generated JSON Schemas when using the preferred translation route.",
+      "command": "git ls-tree 6fbfd479ecf7833aff8339b65902af41a8271a60 pipeline/src/terraluna_pipeline/schema.py packages/schema/json/; git ls-tree bda54e7171008c3fa44e4467b4e85b83a08de43e pipeline/src/terraluna_pipeline/schema.py packages/schema/json/",
+      "outcome": "PASS",
+      "evidence": "Both trees contain identical blob IDs for schema.py and all five JSON Schemas. ProductRecord is c3bc1c68eed2357bff474306e1603f3209e0de87, Sources is 34cf932c244e53583123ceb03d7697ee61bcdf3f, and schema.py is fca9abc12d19e0d75c91db9dadc8c409dfc4030b."
+    },
+    {
+      "criterion": "AC6: All final commands pass and two Codex passes are required.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "scripts/ralph/batches/t0b-contracts/prd.json:61 sets codexPasses to 2, and this is the requested second review. Final command outcomes were not independently executed because the user prohibited checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Python JSON Schema tests",
+      "command": "uv run pytest pipeline/tests/test_json_schema.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Prohibited by the review instructions; uv and pytest can write environment, temporary, and cache files."
+    },
+    {
+      "criterion": "Schema Vitest suite",
+      "command": "pnpm --filter @terraluna/schema test",
+      "outcome": "NOT_RUN",
+      "evidence": "Prohibited by the review instructions; the suite creates temporary files and may write caches."
+    },
+    {
+      "criterion": "Generated schema drift check",
+      "command": "make schema-check",
+      "outcome": "NOT_RUN",
+      "evidence": "Prohibited by the review instructions; Python regeneration uses a temporary directory."
+    },
+    {
+      "criterion": "Repository lint and type checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Prohibited by the review instructions; toolchain and task-cache writes are unavailable."
+    },
+    {
+      "criterion": "Repository test suites",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Prohibited by the review instructions; tests and task caches require filesystem writes."
+    },
+    {
+      "criterion": "Web production build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "Prohibited by the review instructions; bundle staging and build output require filesystem writes."
+    },
+    {
+      "criterion": "Resolve codex-r1-1: independently observe absent-condition behavior.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "fixtures/schema-cases/generator-cases.json:313 and :507 contain direct condition cases with missing properties. packages/schema/tests/generate-zod.test.ts:315 verifies that the tested condition appears in generated code and evaluates its verdict. pipeline/tests/test_json_schema.py:680 checks the same cases against the if schema."
+    },
+    {
+      "criterion": "Resolve claude-r1-1: preserve nested then-property failure details.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "packages/schema/scripts/generate-zod.ts:612 forwards every nested issue's message and path. packages/schema/tests/generate-zod.test.ts:365 checks both failure reasons; :378 checks the nested array path ['tags', 1]."
+    },
+    {
+      "criterion": "Resolve codex-r1-2 and claude-r1-3: include schema.py in Turbo test inputs.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "packages/schema/turbo.json:7 appends schema.py using $TURBO_EXTENDS$, preserving the root fixture inputs. packages/schema/tests/generate-zod.test.ts:215 verifies inheritance and :221 checks the path against SCHEMA_PY."
+    },
+    {
+      "criterion": "Check claude-r1-2 documentation rebuttal.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "fixtures/schema-cases/README.md:18 explicitly documents the trailing-newline case. packages/schema/README.md:23 points readers to the shared cases."
+    },
+    {
+      "criterion": "Independent validity-rule derivation and scientific guardrails.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "PRD 8.12 requires explicit nullability and preservation of missing values. Generated ProductRecord fields remain required and strict at packages/schema/src/generated/product-record.ts:8; VERIFIED checks at :51 match schema.py:344. Negating a pattern correctly rejects nonstrings through z.string() at generate-zod.ts:559. No arithmetic formulas, handedness conventions, conversions, tolerances, kickoff settings, or production data paths changed."
+    }
+  ],
+  "findings": []
+}

@@ -1,0 +1,146 @@
+{
+  "task_id": "T1-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "323dfbaaf26b88b1aa75a143d0b1b6ad4c7895c2",
+    "head": "169dcf1bfae510b68a4321770dfce664cbe3d54e",
+    "files": [
+      {
+        "path": "packages/schema/json/product-record.schema.json",
+        "sha256": "9df5b47de573da876c76793594fd74141dde49513216e2f5819c161ecf079a00"
+      },
+      {
+        "path": "packages/schema/json/sources.schema.json",
+        "sha256": "61b2b8d527ea1b9ee97ef027e5966fe2b73b85b2291cde5f95aeef4aaecd5fc2"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "fc1c1ed7e06024c1bc9d5699faf9acb6b59a6977398ce7941703b91de12d934f"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "7a03c6dfa16716a87be49e8eb56e7648972fa861e24360568c7041e7d1ecb567"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "bc605a4e2be99d5921254a63898afa858ef37700f7f26da8701c308024be3d5b"
+      },
+      {
+        "path": "pipeline/tests/test_io.py",
+        "sha256": "f177addc289f659711de0dca5abe469da51927c5375574f2c203285a1f18b1d3"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "d398e53abdf4e0cae82be9981f8935d7166ae972dd9c626113cb8fb8e6a5790b"
+      },
+      {
+        "path": "pipeline/tests/test_schema_productrecord.py",
+        "sha256": "32c532d29c7af53ea1cc4bdd5e826bf4400be3e1732d962b6fdff99734230321"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "bbce3c617c0976356d076c009d3c5930f37d0dfbc1b832dc6ad669876762eaa7"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:28:15Z",
+  "finished_utc": "2026-11-14T18:32:23Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Two blockers: encoded credential parameters bypass URL validation, and read_product requires an argument absent from the contracted interface. All changed paths are permitted. No checks were executed, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests run failing first; tiny synthetic inputs; offline execution.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Tests use synthetic inputs and loopback HTTP (pipeline/tests/test_io.py:55, :115, :522). Failing-first execution cannot be established from static reading; execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC2: Exact ProductRecord fields, strict validation, checksum format and credential rejection; existing models unchanged.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The fields and strict constraints are present at pipeline/src/terraluna_pipeline/schema.py:301. However, URL validation searches raw text without decoding query keys (:228–244), allowing an encoded token parameter such as ?%74oken=abc."
+    },
+    {
+      "criterion": "AC3: Schema generation includes ProductRecord and schema-check passes without drift.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "ProductRecord and Sources are registered at pipeline/src/terraluna_pipeline/schema.py:361, and their JSON files are committed. No generated zod sources exist in this checkout. Regeneration and drift verification require execution prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "AC4: Streaming checksum, validated HTTP ranges, windowed GeoTIFF reads and the contracted read_product interface.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The readers are implemented, but pipeline/src/terraluna_pipeline/io.py:263–269 requires keyword-only root without a default. The contracted read_product(product_id, local_files, metadata) call therefore raises TypeError before reading anything."
+    },
+    {
+      "criterion": "AC5: Tests cover known checksum, missing fields, signed URLs, raster window metadata, exact HTTP ranges and ignored Range headers.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Substantive assertions appear in pipeline/tests/test_io.py:77, :172, :537, :591 and pipeline/tests/test_schema_productrecord.py:189, :385. This assesses test coverage by reading, not test execution."
+    },
+    {
+      "criterion": "AC6: No external network in tests; only existing dependencies added; lockfile remains consistent.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_io.py:55 restricts resolution to loopback; :522 binds the required local server to 127.0.0.1. The only dependency additions are directly imported affine and numpy, already locked dependencies of rasterio; pipeline/pyproject.toml:8 and uv.lock:511–522 agree. No package versions change."
+    },
+    {
+      "criterion": "Required schema drift check.",
+      "command": "make schema-check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: schema-check creates temporary generated files, which this read-only sandbox cannot permit."
+    },
+    {
+      "criterion": "Required ProductRecord test command.",
+      "command": "uv run pytest pipeline/tests/test_schema_productrecord.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the review instructions forbid executing checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required I/O test command.",
+      "command": "uv run pytest pipeline/tests/test_io.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: these tests create temporary files and run a loopback server."
+    },
+    {
+      "criterion": "Required repository check command.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: tool execution may create environment or checker caches in the read-only sandbox."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/schema.py:242",
+      "claim": "Percent-encoded credential parameter names bypass the published-record credential guard.",
+      "evidence": "has_url_credentials only searches the original URL with a regex, while URL_PATTERN permits percent escapes. Consequently, https://example.org/a.tif?%74oken=abc passes these guards although its decoded query key is token. The generated JSON schemas repeat the same restriction, and fetch_range also uses this helper. Decode and inspect query parameter names, or reject encoded forms that cannot be validated consistently, and add regression cases.",
+      "id": "codex-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "53a72be675d2dc991d71e2b426888dba365360e3",
+        "reason": "has_url_credentials and the JSON Schema not-pattern now also refuse a query or fragment that percent-encodes an RFC 3986 unreserved character (letters, digits, -._~ in either hex case; 2.3 says such encodings never change meaning and normalizers decode them), so every parameter name the token check sees is spelled literally, as the server decodes it. The = after a token also matches %3D, so ?token%3Dx is refused. Reserved encodings (%2F, %20) and any encoding in the path stay allowed. The rule is still one regex in the ECMA-262/Python/Rust subset, and make schema regenerated product-record and sources schemas. Tests added in 47cddc0 (failing first): encoded SIGNED_URLS cases, a hypothesis test that encoding any subset of a signed token in any case is refused, an every-byte RFC 3986 oracle for query, fragment and path, pydantic/JSON Schema parity for every encoded byte, and fetch_range refusing encoded names before any request."
+      }
+    },
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/io.py:268",
+      "claim": "The required three-argument read_product interface is unavailable.",
+      "evidence": "root is a required keyword-only parameter with no default. Calling read_product(product_id, local_files, metadata), as specified by AC4, fails with a missing-argument TypeError. The tests consistently supply root, including pipeline/tests/test_io.py:316, so they do not exercise the contracted call. Preserve that call by making root an optional override and test it without the override.",
+      "id": "codex-r1-2",
+      "resolution": {
+        "action": "fixed",
+        "commit": "524c1daae1422cb9d38aff62de55d13194c1e586",
+        "reason": "root is now an optional keyword (root: Path | None = None) and defaults to the working directory, from which the Makefile and uv run commands run, so the PRD 8.11 call read_product(product_id, local_files, metadata) works. A file not under data/raw, data/interim or data/processed of that root is refused with a message to run from the repository root or pass root, so a run from another directory fails instead of recording a wrong local_path. Tests added in e46d836 (failing first with the missing-root TypeError): the three-argument call from the root gives local_path data/raw/synthetic/dem.tif and the same record as an explicit root (also for a relative file path), and calls from data, data/raw, an unrelated directory and the parent raise."
+      }
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "task_id": "T1-01",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "323dfbaaf26b88b1aa75a143d0b1b6ad4c7895c2",
+    "head": "79864cff9c7e9f1e5bc8b4a69aa0dced1996fa52",
+    "files": [
+      {
+        "path": "packages/schema/json/product-record.schema.json",
+        "sha256": "7e7c4c0d3a96cbecf7964f845ee82e00ccfe5a2ea0618ff71dbfc6b97aad3ccc"
+      },
+      {
+        "path": "packages/schema/json/sources.schema.json",
+        "sha256": "3bf496723842f3ac9db3e3f535f50314726a0c6bb282301ef40654cbfd84286f"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "fc1c1ed7e06024c1bc9d5699faf9acb6b59a6977398ce7941703b91de12d934f"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "e3591fcf83018afd5c78bd6b10ea04d0100005246963c2ad2e0a28bf57493d53"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "bea94655659ffb48bcd31dd2c9870ced960500eb2a4b4164c924a88d4b3c5dfb"
+      },
+      {
+        "path": "pipeline/tests/test_io.py",
+        "sha256": "cf493f190beb9ad8a89fe6216bb3d00c44144b69ed2713f75b6449523033eb68"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "abe66fb1e068b1d139d66734f01ae122dcbc36285d9cf36b73ac69805ce82cd8"
+      },
+      {
+        "path": "pipeline/tests/test_schema_productrecord.py",
+        "sha256": "4a7b241e4d2319fab86944b4e2a6bbb4a1cea84f8b4e41dae1d262dc371730d4"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "bbce3c617c0976356d076c009d3c5930f37d0dfbc1b832dc6ad669876762eaa7"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:40:19Z",
+  "finished_utc": "2026-11-14T18:40:42Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T1-01 round 2 passes. Both round-1 blockers are fixed: percent-encoded credential names are refused, and the three-argument read_product call works with root defaulting to the working directory. All four story checks pass, and the diff stays within the story's file list.",
+  "checks": [
+    {
+      "criterion": "make schema-check (no drift, ProductRecord included)",
+      "command": "make schema-check",
+      "outcome": "PASS",
+      "evidence": "JSON Schemas match schema.py: packages/schema/json. product-record.schema.json and sources.schema.json are in the diff."
+    },
+    {
+      "criterion": "ProductRecord tests",
+      "command": "uv run pytest pipeline/tests/test_schema_productrecord.py",
+      "outcome": "PASS",
+      "evidence": "248 passed"
+    },
+    {
+      "criterion": "io tests",
+      "command": "uv run pytest pipeline/tests/test_io.py",
+      "outcome": "PASS",
+      "evidence": "75 passed"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed, mypy reported no issues"
+    },
+    {
+      "criterion": "AC2: ProductRecord has exactly the PRD 8.12 fields, forbids extras, requires every field, allows only the five statuses, checks sha256, and rejects signed URLs and userinfo",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "schema.py ProductRecord lists the 19 fields. SourceUrl combines URL_PATTERN, an AfterValidator and a JSON Schema `not` pattern. Percent-encoded unreserved characters in the query or fragment are now refused."
+    },
+    {
+      "criterion": "AC4: sha256_file streams, fetch_range checks 206 and Content-Range and records the bytes received, the windowed GeoTIFF reader returns the file's values, and read_product marks missing units unknown and PARTIAL",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "io.py:42 (chunked read), io.py:396-479 (206, Content-Range and length checks, 200 raises RangeNotSupportedError, connection errors wrapped), io.py:89-156 (raw array, nodata, CRS, transform; None when the file states none), io.py:246-262 and :319 (units default to unknown; status PARTIAL)."
+    },
+    {
+      "criterion": "Round-1 fix codex-r1-2: read_product(product_id, local_files, metadata) works without root",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "io.py:278 has root: Path | None = None, and io.py:305 falls back to Path.cwd(). test_io.py:440-462 call it without root and check wrong working directories."
+    },
+    {
+      "criterion": "Round-1 fix codex-r1-1: percent-encoded credential names are refused",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "schema.py CREDENTIAL_URL_PATTERN includes _ENCODED_UNRESERVED and a %3D alternative; fetch_range and the redirect handler use the same helper. This is read from the code; I did not run the encoded-name cases individually, but they sit inside the 248 passing tests."
+    },
+    {
+      "criterion": "Scope, dependencies and no network in tests",
+      "command": "git diff --stat",
+      "outcome": "PASS",
+      "evidence": "Nine files changed, all within the story's file list. pyproject.toml adds affine and numpy, which were already transitive dependencies of rasterio; uv.lock is consistent (make check runs with --locked)."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "Makefile (make check)",
+      "claim": "make check runs only ruff and mypy, not pytest. This is the round-1 finding that the author rebutted. The rebuttal is accepted: the Makefile is outside this story, and pytest runs through the story's own checks.",
+      "evidence": "make check output shows only ruff and mypy.",
+      "id": "claude-r2-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Same point as claude-r1-1, which this reviewer now accepts. make check is the lint and type target T0-01 defined (Makefile line 16: check -> check-py, running ruff check, ruff format --check and mypy); pytest runs under make test (Makefile line 17: test -> test-py), which PRD 12 Commands names as the unit-test command (PRD.md line 1091). The story checks run the T1-01 tests directly: uv run pytest pipeline/tests/test_schema_productrecord.py gives 248 passed and uv run pytest pipeline/tests/test_io.py gives 75 passed at 8f00d68, and make test gives 771 passed, 2 strict xfailed. The Makefile is outside T1-01 files, and the finding names no defect in the T1-01 change, so nothing is changed."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/schema.py (SourcesFile, Contract Sources)",
+      "claim": "A Sources contract was added that the acceptance criteria do not list. It matches PRD 8.4, which names sources.json, and adds one schema file. Optional to note.",
+      "evidence": "schema.py CONTRACTS; packages/schema/json/sources.schema.json.",
+      "id": "claude-r2-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The Sources contract is required by the PRD rather than extra scope. PRD 8.4 (release bundle contract, PRD.md line 563) lists sources.json with format ProductRecords, producer io.py and consumers /data and the API, and PRD 12 T1 (line 1042) lists sources.json as a T1 deliverable; the batch description commits outputs/sources.json. SourcesFile (schema.py line 355) is only an array of the ProductRecord model the story adds, so it adds no fields or rules of its own, and existing models and their three schema files are unchanged as AC2 requires. Registering it in CONTRACTS lets make schema emit sources.schema.json, which make schema-check covers (exit 0 at 8f00d68), so later source stories and export validation can check sources.json against a generated schema instead of defining one outside the story that owns schema.py. The reviewer marks it optional to note, and it stays."
+      }
+    }
+  ]
+}
