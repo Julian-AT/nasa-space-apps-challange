@@ -30,7 +30,7 @@ function FamilyLine({ family, candidate, modelInBundle }: { readonly family: Fam
       <>
         <LabelledValue label={label} value={entry.value} unit={entry.unit} source={SHORT[family]} />
         {entry.background_percentile === null ? null : (
-          <span className="text-xs text-muted-foreground">background percentile {String(entry.background_percentile)}</span>
+          <span className="text-xs text-muted-foreground">background percentile {Number(entry.background_percentile.toFixed(1))}</span>
         )}
         {entry.tied === true ? (
           <Chip className="font-semibold">Tied{entry.tie_group === null ? '' : ` (${entry.tie_group})`}</Chip>

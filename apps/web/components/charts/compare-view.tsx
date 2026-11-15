@@ -327,7 +327,7 @@ export function CompareView({ records, a, b }: { readonly records: PairRecords; 
             </ul>
           </>
         )}
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm break-all text-muted-foreground">
           Sources: {record.source_ids.join(', ')}. Run {record.run_id}.
         </p>
       </Section>

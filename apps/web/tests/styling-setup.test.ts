@@ -181,6 +181,8 @@ describe('the web shell stays light (PRD 8.10, D35)', () => {
 
   it('ships no image or illustration asset', () => {
     const images = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.svg', '.ico']);
-    expect(ownFiles().filter((path) => images.has(extname(path).toLowerCase()))).toEqual([]);
+    // public/assets/<v>/tiles holds the bundle's generated hillshade tiles (bundle:pull, gitignored), not artwork.
+    const own = ownFiles().filter((path) => !path.replaceAll('\\', '/').includes('public/assets/'));
+    expect(own.filter((path) => images.has(extname(path).toLowerCase()))).toEqual([]);
   });
 });
