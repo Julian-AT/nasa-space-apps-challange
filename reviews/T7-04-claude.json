@@ -108,7 +108,11 @@
       "claim": "The rendered /methods page contains the word 'Model' as a layout nav link. The story's own new files contain no encoder, model or embedding text.",
       "evidence": "grep of methods.html matched only `<a href=\"/model\">Model</a>`. It comes from the pre-existing layout, not from this change, and is a navigation label, not encoder content. A strict reading of the 'no model content of any kind' criterion would still want the owner of the layout to confirm this link is acceptable.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The only match is the layout navigation link <a href=\"/model\">Model</a> from components/site-header.tsx NAV_ITEMS (added by T7-03, commit 1f9cf43, which passed). That file is outside T7-04 files, and the link is a route label in the PRD 8.6 route table (/model, static, model card and training report 11.9), shown on every page, not encoder content on /methods. PRD 10 requires the model report to show the G5 verdict whatever it is, so the /model route name is not a claim about the encoder. T7-04 sources (app/methods/page.tsx, components/gates-board.tsx) contain no encoder, model or embedding text, and G5 appears only as a GateRecord row."
+      }
     },
     {
       "severity": "low",
@@ -116,7 +120,11 @@
       "claim": "The diff range also touches prd.json and progress.txt. These are orchestrator files outside the story's files list, though the review scope lists only the five story paths.",
       "evidence": "git diff --stat shows scripts/ralph/batches/t7-shell/prd.json (4 lines) and progress.txt (12 lines) changed. They look like ralph bookkeeping, so I did not read them.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "scripts/ralph/batches/t7-shell/prd.json and progress.txt are the batch story list and progress log, which the Ralph loop lets every iteration change in addition to the story files (author prompt section 2). The prd.json diff sets review.state to requested and records the review base commit; the progress.txt diff appends the T7-04 implement entry. Neither is product code."
+      }
     }
   ]
 }

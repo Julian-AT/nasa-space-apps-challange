@@ -308,3 +308,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 ### Proposed instruction changes
 - make web-smoke (apps/web/scripts/smoke.ts, owned by T15) fetches only /. Once /methods exists, T15 or T7-07 could also fetch /methods and require x-nextjs-prerender: 1 and the mock and mode banners there.
 ---
+
+## 2026-11-15T00:33Z · T7-04 · resolve
+- Done: resolved round 1. claude-r1-1 rebutted: the only "Model" text on /methods is the layout nav link to /model from components/site-header.tsx (T7-03, outside T7-04 files), a PRD 8.6 route label, not encoder content. claude-r1-2 rebutted: prd.json and progress.txt are the batch story list and progress log, which every iteration may change. Codex reported no findings (verdict NOT_RUN, read-only sandbox). No code changed.
+- Commits: chore(ralph): resolve review findings for t7-04
+- Checks: make check exit 0; make test exit 0 (turbo cache, no source change since f67942a); pnpm --filter @terraluna/web exec vitest run components/gates-board.test.tsx exit 0 (20 passed); make web-build exit 0 (○ /methods static); make web-smoke exit 0.
+- Docs used: none (no library change).
+- Learnings: verify every factual claim in a rebuttal against git diff before writing it; resolution hash check via jq -S 'del(.findings[].resolution)' confirmed only resolution fields changed.
+---
