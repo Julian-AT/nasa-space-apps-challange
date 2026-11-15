@@ -63,7 +63,7 @@
   /* Evidence labels (PRD 3): text colour on a 15% tint of itself over the card. */
   --evidence-observed: #2d62ad;
   --evidence-derived: #22694a;
-  --evidence-predicted: #6858a6;
+  --evidence-predicted: #5e4f9c;
   --evidence-assumed: #7d540c;
   --evidence-unavailable: #55514a;
 
