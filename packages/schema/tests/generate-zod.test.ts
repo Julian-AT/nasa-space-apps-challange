@@ -177,7 +177,9 @@ function pythonContracts(): string[][] {
 
 describe('contracts', () => {
   it('cover every committed JSON Schema', () => {
-    expect(CONTRACTS.map((c) => c.json).sort()).toEqual(visible(JSON_DIR));
+    // bundle-paths.json is the PRD 8.4 path map (BUNDLE_PATHS in schema.py), not a JSON Schema.
+    const schemas = visible(JSON_DIR).filter((name) => name !== 'bundle-paths.json');
+    expect(CONTRACTS.map((c) => c.json).sort()).toEqual(schemas);
   });
 
   it('match the committed generated modules one to one', () => {
@@ -216,6 +218,10 @@ describe('contracts', () => {
       'Metrics',
       'EmbeddingRecord',
       'EmbeddingsIndex',
+      'Curves',
+      'UmapHeader',
+      'Examples',
+      'Background',
     ]);
   });
 });

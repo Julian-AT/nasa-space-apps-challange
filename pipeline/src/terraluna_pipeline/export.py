@@ -8,21 +8,27 @@ also a mock bundle or an unchosen shipping mode.
 
 Command line::
 
-    python -m terraluna_pipeline.export validate <bundle_dir> [--production]
+    python -m terraluna_pipeline.export validate <bundle_dir> [--production] [--contracts]
     python -m terraluna_pipeline.export mock-bundle <out_dir>
     python -m terraluna_pipeline.export mock-bundle-check <bundle_dir>
     python -m terraluna_pipeline.export cards [--check] [--target-window W --earth-window E]
+    python -m terraluna_pipeline.export stage --out data/processed/bundle-staging
+    python -m terraluna_pipeline.export bundle-version --utc YYYY-MM-DDTHHMMZ --sha SHORT
+    python -m terraluna_pipeline.export assemble --staging DIR --bundle-version V --release-dir R
 """
 
 from __future__ import annotations
 
 import argparse
+import copy
 import difflib
 import functools
 import hashlib
 import json
 import math
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 from collections.abc import Callable, Mapping, Sequence
@@ -31,6 +37,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any, Literal, get_args
 
+import yaml
 from pydantic import TypeAdapter, ValidationError
 from pydantic_core import ErrorDetails
 
@@ -64,6 +71,7 @@ from terraluna_pipeline.schema import (
     TargetRecord,
     TiedByFamily,
     TieGroupByFamily,
+    UtcTimestamp,
     WindowEntry,
     WindowPolygon,
 )
@@ -97,6 +105,9 @@ ErrorCode = Literal[
     "gate_listed_twice",
     "mock_on_production",
     "shipping_mode_unset_on_production",
+    "unknown_bundle_path",
+    "contract_invalid",
+    "gate_missing",
 ]
 
 
@@ -459,10 +470,15 @@ def _validation_errors(root: Path, sizes: Mapping[str, int]) -> list[BundleError
     return errors
 
 
-def validate_bundle(bundle_dir: Path, *, production: bool) -> list[BundleError]:
+def validate_bundle(
+    bundle_dir: Path, *, production: bool, contracts: bool = False
+) -> list[BundleError]:
     """Return every way ``bundle_dir`` breaks the bundle contract; an empty list means valid.
 
-    With ``production=True`` a mock bundle and a null shipping_mode are errors too.
+    With ``production=True`` a mock bundle and a null shipping_mode are errors too. With
+    ``contracts=True`` (T4L-08; export assemble and the release checks pass it) every file is
+    also checked against its BUNDLE_PATHS contract and the SVG allowlist, an unknown path or a
+    gate missing from validation.json fails, and on production any record with mock true fails.
     """
     root = Path(bundle_dir)
     if not root.is_dir():
@@ -480,6 +496,8 @@ def validate_bundle(bundle_dir: Path, *, production: bool) -> list[BundleError]:
             errors.extend(_production_errors(manifest))
     errors.extend(budget_errors(sizes))
     errors.extend(_validation_errors(root, sizes))
+    if contracts:
+        errors.extend(contract_check_errors(root, sizes, production=production))
     return errors
 
 
@@ -632,8 +650,7 @@ _FALLBACK_BUNDLE_PATHS: dict[str, str | None] = {
     "figures/{name}.svg": SVG_ALLOWLIST,
     "tiles/{layer}/{z}/{x}/{y}.webp": None,
     "windows/{body}.parquet": None,
-    "model/encoder.onnx": None,
-    "model/encoder.fp16.onnx": None,
+    "model/*.onnx": None,
     "model/embeddings.f16.bin": None,
 }
 """A private copy of the CONTRACTS a.3 map, read only while bundle-paths.json does not exist.
@@ -660,7 +677,7 @@ def _parse_bundle_paths(raw: object) -> dict[str, str | None]:
     for template, contract in items:
         if not isinstance(template, str) or not (contract is None or isinstance(contract, str)):
             raise ValueError(f"bundle-paths.json: bad entry {template!r}: {contract!r}")
-        mapping[template] = contract
+        mapping[template] = None if contract == "none" else contract
     return mapping
 
 
@@ -679,7 +696,7 @@ def bundle_paths(root: Path = REPO_ROOT) -> dict[str, str | None]:
 def contract_for(bundle_path: str, paths: Mapping[str, str | None]) -> tuple[bool, str | None]:
     """``(known, contract)`` for a bundle path: whether a template matches, and its contract."""
     for template, contract in paths.items():
-        if _template_pattern(template).fullmatch(bundle_path):
+        if _template_pattern(template.replace("*", "{star}")).fullmatch(bundle_path):
             return True, contract
     return False, None
 
@@ -1615,6 +1632,647 @@ def run_cards(inputs: CardInputs, pair: tuple[str, str] | None, *, check: bool) 
     return 0
 
 
+# --- Per-path contract checks of a bundle (T4L-08; CONTRACTS a.3) ------------------------------
+
+
+def contract_check_errors(
+    root: Path, sizes: Mapping[str, int], *, production: bool
+) -> list[BundleError]:
+    """Each file against its BUNDLE_PATHS contract: an unknown path, a contract error, every
+    gate present in validation.json, and on production no record with ``mock: true``."""
+    paths = bundle_paths()
+    errors: list[BundleError] = []
+    for path in sizes:
+        if path == MANIFEST:
+            continue
+        known, contract = contract_for(path, paths)
+        if not known:
+            errors.append(BundleError("unknown_bundle_path", path, "not a PRD 8.4 bundle path"))
+            continue
+        data = (root / path).read_bytes()
+        errors.extend(
+            BundleError("contract_invalid", path, problem)
+            for problem in contract_errors(contract, data)
+        )
+        if production and path.endswith(".json"):
+            try:
+                mock = contains_mock(_load_json(data))
+            except ValueError:
+                mock = False
+            if mock:
+                errors.append(
+                    BundleError("mock_on_production", path, "holds a record with mock true")
+                )
+    if VALIDATION in sizes:
+        try:
+            raw = _load_json((root / VALIDATION).read_bytes())
+        except ValueError:
+            raw = None
+        if isinstance(raw, list):
+            present = {entry.get("gate_id") for entry in raw if isinstance(entry, dict)}
+            errors.extend(
+                BundleError("gate_missing", VALIDATION, f"{gate_id} is not recorded")
+                for gate_id in get_args(GateId)
+                if gate_id not in present
+            )
+    return errors
+
+
+# --- export stage (T4L-08; CONTRACTS b, c.1) ---------------------------------------------------
+
+STAGING_MANIFEST = "STAGING.json"
+BUNDLE_VERSION_PATTERN = re.compile(
+    r"^(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})T(?P<hh>[0-9]{2})(?P<mm>[0-9]{2})Z-(?P<sha>[0-9a-f]{7,40})$"
+)
+REQUIRED_PATHS = ("validation.json", "sources.json", "targets.json")
+
+
+@dataclass(frozen=True)
+class StagedFile:
+    """One file staged for the bundle, with where it came from (STAGING.json)."""
+
+    bundle_path: str
+    source_path: str
+    producer: str
+    data: bytes
+
+
+@dataclass
+class StagePlan:
+    """What ``export stage`` would write: files, absent paths, superseded sources, problems."""
+
+    files: dict[str, StagedFile] = field(default_factory=dict)
+    not_present: list[dict[str, str]] = field(default_factory=list)
+    superseded: list[Superseded] = field(default_factory=list)
+    problems: list[str] = field(default_factory=list)
+    missing: list[str] = field(default_factory=list)
+
+    def add(self, bundle_path: str, source: Path, root: Path, producer: str, data: bytes) -> None:
+        self.files[bundle_path] = StagedFile(bundle_path, _relative(source, root), producer, data)
+
+    def absent(self, bundle_path: str, source: str, producer: str) -> None:
+        self.not_present.append(
+            {
+                "bundle_path": bundle_path,
+                "source_path": source,
+                "producer": producer,
+                "reason": ExportReason.NOT_PRESENT.value,
+            }
+        )
+
+
+def _relative(path: Path, root: Path) -> str:
+    try:
+        return Path(path).resolve().relative_to(Path(root).resolve()).as_posix()
+    except ValueError:
+        return Path(path).as_posix()
+
+
+def _under_fixtures(path: Path, root: Path) -> bool:
+    resolved = Path(path).resolve()
+    fixtures = (Path(root) / "fixtures").resolve()
+    return resolved == fixtures or fixtures in resolved.parents
+
+
+def _read_staged(plan: StagePlan, root: Path, source: Path) -> bytes | None:
+    if _under_fixtures(source, root):
+        plan.problems.append(
+            f"{_relative(source, root)}: fixture_file: never staged from fixtures/"
+        )
+        return None
+    if source.is_symlink() or not source.is_file():
+        plan.problems.append(f"{_relative(source, root)}: not a regular file")
+        return None
+    return source.read_bytes()
+
+
+def _copy_one(
+    plan: StagePlan, root: Path, bundle_path: str, source: Path, producer: str
+) -> bytes | None:
+    if not source.exists() and not source.is_symlink():
+        plan.absent(bundle_path, _relative(source, root), producer)
+        return None
+    data = _read_staged(plan, root, source)
+    if data is not None:
+        plan.add(bundle_path, source, root, producer, data)
+    return data
+
+
+def compose_background(
+    terrain_part: Mapping[str, Any],
+    model_part: Mapping[str, Any] | None,
+    model_card: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """reference/background_{target_id}.json from the terrain part (T5-05) and the optional
+    model part (T13-08). The model part must name the staged model's model_id and onnx_sha256;
+    otherwise it is refused. Without a model part the terrain part is returned unchanged."""
+    composed = copy.deepcopy(dict(terrain_part))
+    if model_part is None:
+        return composed
+    if model_card is None:
+        raise CardExportError("a model background part needs a staged model/model_card.json")
+    for key in ("model_id", "onnx_sha256"):
+        if model_part.get(key) != model_card.get(key):
+            raise CardExportError(
+                f"model background {key} {model_part.get(key)!r} differs from the staged "
+                f"model's {model_card.get(key)!r}"
+            )
+    families = dict(composed.get("families") or {})
+    reasons = dict(composed.get("family_reasons") or {})
+    families["model_embedding"] = copy.deepcopy(dict(model_part))
+    reasons["model_embedding"] = None
+    composed["families"] = families
+    composed["family_reasons"] = reasons
+    return composed
+
+
+def _export_record_problems(record: object) -> list[str]:
+    problems: list[str] = []
+    if contains_mock(record):
+        problems.append("model export record says mock")
+    text = json.dumps(record).lower()
+    if "random-init" in text or "random_init" in text:
+        problems.append("model export record says random-init")
+    return problems
+
+
+def _stale(plan: StagePlan, where: str, stored: str | None, expected: str | None) -> None:
+    if stored is not None and expected is not None and stored != expected:
+        plan.problems.append(
+            f"{where}: {ExportReason.STALE_RUN_ID.value}: stored {stored}, recomputed {expected}"
+        )
+
+
+def _scoped_run_id(
+    plan: StagePlan,
+    where: str,
+    config: Path,
+    product_ids: Sequence[str],
+    sources: Mapping[str, ProductRecord],
+) -> str | None:
+    unknown = sorted(set(product_ids) - set(sources))
+    if unknown:
+        plan.problems.append(f"{where}: unknown_source: {', '.join(unknown)}")
+        return None
+    return provenance.run_id(config, [sources[p] for p in sorted(set(product_ids))])
+
+
+def _check_run_ids(plan: StagePlan, config: Path, sources: Mapping[str, ProductRecord]) -> None:
+    for path, staged in sorted(plan.files.items()):
+        if not path.endswith(".json") or path in (VALIDATION, "sources.json"):
+            continue
+        try:
+            raw = _load_json(staged.data)
+        except ValueError:
+            continue
+        if path.startswith("comparisons/") and isinstance(raw, list):
+            for index, record in enumerate(raw):
+                if isinstance(record, dict):
+                    expected = _scoped_run_id(
+                        plan, f"{path}[{index}]", config, record.get("source_ids") or [], sources
+                    )
+                    _stale(plan, f"{path}[{index}]", record.get("run_id"), expected)
+        elif path.startswith("cards/"):
+            try:
+                card = CardRecord.model_validate(raw)
+                expected = recompute_card_run_id(card, sources, config)
+            except (ValidationError, CardExportError) as error:
+                plan.problems.append(f"{path}: {error}")
+                continue
+            _stale(plan, path, card.run_id, expected)
+        elif path == "targets.json" and isinstance(raw, list):
+            for index, record in enumerate(raw):
+                if isinstance(record, dict) and record.get("run_id") is not None:
+                    expected = _scoped_run_id(
+                        plan, f"{path}[{index}]", config, record.get("product_ids") or [], sources
+                    )
+                    _stale(plan, f"{path}[{index}]", record.get("run_id"), expected)
+        elif path.startswith("windows/") and isinstance(raw, list):
+            for index, entry in enumerate(raw):
+                if not isinstance(entry, dict):
+                    continue
+                prints = [entry.get("terrain"), *(entry.get("radar") or [])]
+                for print_ in prints:
+                    if isinstance(print_, dict):
+                        where = f"{path}[{index}] {print_.get('kind')} fingerprint"
+                        expected = _scoped_run_id(
+                            plan, where, config, print_.get("product_ids") or [], sources
+                        )
+                        _stale(plan, where, print_.get("run_id"), expected)
+        elif path.startswith("reference/") and isinstance(raw, dict):
+            expected = _scoped_run_id(plan, path, config, raw.get("source_ids") or [], sources)
+            _stale(plan, path, raw.get("run_id"), expected)
+
+
+MODEL_FILES = (
+    "encoder.onnx",
+    "encoder.fp16.onnx",
+    "embeddings.f16.bin",
+    "embeddings.index.json",
+)
+REPORT_FILES = ("metrics.json", "curves.json", "examples.json", "umap.bin")
+
+
+def plan_stage(root: Path, config: Path) -> StagePlan:
+    """Collect and check everything ``export stage`` copies, without writing anything."""
+    root = Path(root)
+    plan = StagePlan()
+    outputs, processed = root / "outputs", root / "data" / "processed"
+
+    validation = outputs / "validation.json"
+    if validation.is_file():
+        _copy_one(plan, root, VALIDATION, validation, "t0b T0B-06 gates merge")
+    else:
+        plan.missing.append("validation.json (outputs/validation.json)")
+
+    fragments = source_fragments(root)
+    merged: list[ProductRecord] = []
+    if fragments:
+        for fragment in fragments:
+            _read_staged(plan, root, fragment)
+        try:
+            merged, plan.superseded = merge_sources(fragments, root)
+        except SourcesConflictError as error:
+            plan.problems.append(f"sources.json: {error}")
+        plan.files["sources.json"] = StagedFile(
+            "sources.json",
+            ", ".join(_relative(f, root) for f in fragments),
+            "owners' fetch and record commands (merged by product_id)",
+            canonical_json([record.model_dump(mode="json") for record in merged]),
+        )
+    else:
+        plan.missing.append("sources.json (outputs/**/sources.json)")
+
+    targets_path = outputs / "search" / "targets.json"
+    if targets_path.is_file():
+        _copy_one(plan, root, "targets.json", targets_path, "t5 search targets")
+    else:
+        plan.missing.append("targets.json (outputs/search/targets.json)")
+
+    for kind, directory, producer in (
+        ("comparisons", outputs / "comparisons", "export.write_comparisons"),
+        ("cards", outputs / "cards", "export cards"),
+    ):
+        found = sorted(directory.glob("*.json")) if directory.is_dir() else []
+        found = [path for path in found if path.name != "sources.json"]
+        if not found:
+            plan.missing.append(f"at least one {kind} file ({_relative(directory, root)}/*.json)")
+        for path in found:
+            _copy_one(plan, root, f"{kind}/{path.name}", path, producer)
+
+    windows_dir = processed / "windows"
+    window_files = sorted(windows_dir.glob("*.json")) + sorted(windows_dir.glob("*.parquet"))
+    if not window_files:
+        plan.absent("windows/{body}.json", "data/processed/windows/", "export.write_windows")
+    for path in window_files if windows_dir.is_dir() else []:
+        _copy_one(plan, root, f"windows/{path.name}", path, "export.write_windows; search")
+
+    index_path = outputs / "figures" / "index.json"
+    if index_path.is_file():
+        try:
+            entries = read_figures_index(index_path)
+        except ValueError as error:
+            plan.problems.append(str(error))
+            entries = []
+        for entry in entries:
+            # The index names the bundle path (figures/<name>.svg); the SVG itself lives in
+            # data/processed/figures/ (CONTRACTS b). Any other path is read as a repo path.
+            if entry.path.startswith("figures/"):
+                source = processed / "figures" / Path(entry.path).name
+            else:
+                source = root / entry.path
+            svg = _copy_one(plan, root, f"figures/{Path(entry.path).name}", source, "figures cards")
+            if svg is not None and hashlib.sha256(svg).hexdigest() != entry.sha256:
+                plan.problems.append(
+                    f"{entry.path}: sha256 differs from outputs/figures/index.json"
+                )
+    else:
+        plan.absent("figures/{name}.svg", "outputs/figures/index.json", "figures cards (T4R-02)")
+
+    tiles = processed / "tiles"
+    tile_files = sorted(p for p in tiles.rglob("*.webp")) if tiles.is_dir() else []
+    if not tile_files:
+        plan.absent("tiles/{layer}/{z}/{x}/{y}.webp", "data/processed/tiles/", "search tiles")
+    for path in tile_files:
+        _copy_one(plan, root, f"tiles/{path.relative_to(tiles).as_posix()}", path, "search tiles")
+
+    model_dir = processed / "model"
+    for name in MODEL_FILES:
+        _copy_one(plan, root, f"model/{name}", model_dir / name, "export_onnx; evaluate")
+    card_path = processed / "report" / "model" / "model_card.json"
+    model_card_bytes = _copy_one(plan, root, "model/model_card.json", card_path, "report build")
+    for name in REPORT_FILES:
+        source = processed / "report" / "report" / name
+        _copy_one(plan, root, f"report/{name}", source, "report build")
+
+    model_card: dict[str, Any] | None = None
+    if model_card_bytes is not None:
+        try:
+            loaded = _load_json(model_card_bytes)
+            model_card = loaded if isinstance(loaded, dict) else None
+        except ValueError:
+            model_card = None
+    onnx = [name for name in ("encoder.fp16.onnx", "encoder.onnx") if f"model/{name}" in plan.files]
+    if onnx:
+        record_path = model_dir / "export_record.json"
+        if not record_path.is_file():
+            plan.problems.append("model export record data/processed/model/export_record.json")
+        else:
+            plan.problems.extend(_export_record_problems(_load_json(record_path.read_bytes())))
+        primary = plan.files[f"model/{onnx[0]}"]
+        digest = hashlib.sha256(primary.data).hexdigest()
+        expected = None if model_card is None else model_card.get("onnx_sha256")
+        if digest != expected:
+            plan.problems.append(
+                f"model/{onnx[0]}: sha256 {digest} differs from model_card.onnx_sha256 {expected}"
+            )
+
+    reference = outputs / "search" / "reference"
+    terrain_parts = sorted(reference.glob("background_*.json")) if reference.is_dir() else []
+    if not terrain_parts:
+        plan.absent(
+            "reference/background_{target_id}.json",
+            "outputs/search/reference/",
+            "search compute; export_onnx reference",
+        )
+    for part in terrain_parts:
+        part_data = _read_staged(plan, root, part)
+        if part_data is None:
+            continue
+        target_id = part.stem.removeprefix("background_")
+        model_path = model_dir / f"background_model_{target_id}.json"
+        try:
+            model_part = _load_json(model_path.read_bytes()) if model_path.is_file() else None
+            terrain = _load_json(part_data)
+            if not isinstance(terrain, dict) or not (
+                model_part is None or isinstance(model_part, dict)
+            ):
+                raise CardExportError("a background part must be a JSON object")
+            composed = compose_background(terrain, model_part, model_card)
+        except (ValueError, CardExportError) as error:
+            plan.problems.append(f"{_relative(part, root)}: {error}")
+            continue
+        sources_text = _relative(part, root) + (
+            f", {_relative(model_path, root)}" if model_part is not None else ""
+        )
+        plan.files[f"reference/{part.name}"] = StagedFile(
+            f"reference/{part.name}",
+            sources_text,
+            "export.compose_background",
+            canonical_json(composed),
+        )
+
+    paths = bundle_paths(root)
+    for bundle_path, staged in sorted(plan.files.items()):
+        known, contract = contract_for(bundle_path, paths)
+        if not known:
+            plan.problems.append(f"{bundle_path}: unknown_bundle_path")
+            continue
+        plan.problems.extend(f"{bundle_path}: {p}" for p in contract_errors(contract, staged.data))
+        if bundle_path.endswith(".json"):
+            try:
+                if contains_mock(_load_json(staged.data)):
+                    plan.problems.append(
+                        f"{bundle_path}: mock_record: a real bundle holds no mock record"
+                    )
+            except ValueError:
+                pass
+    plan.problems.extend(
+        str(error) for error in budget_errors({p: len(s.data) for p, s in plan.files.items()})
+    )
+    if config.is_file():
+        _check_run_ids(plan, config, {record.product_id: record for record in merged})
+    else:
+        plan.missing.append(f"config ({_relative(config, root)})")
+    return plan
+
+
+def staging_manifest(plan: StagePlan, root: Path, config: Path) -> bytes:
+    """STAGING.json: every staged file with its source, sha256, bytes and producer."""
+    absent = sorted(plan.not_present, key=lambda item: item["bundle_path"])
+    return canonical_json(
+        {
+            "config_sha256": provenance.config_version(config),
+            "files": [
+                {
+                    "bundle_path": staged.bundle_path,
+                    "source_path": staged.source_path,
+                    "sha256": hashlib.sha256(staged.data).hexdigest(),
+                    "bytes": len(staged.data),
+                    "producer": staged.producer,
+                }
+                for staged in sorted(plan.files.values(), key=lambda s: s.bundle_path)
+            ],
+            "not_present": absent,
+            "superseded_sources": [
+                {
+                    "product_id": item.product_id,
+                    "kept_from": item.kept_from,
+                    "superseded_from": item.superseded_from,
+                    "superseded": item.superseded,
+                }
+                for item in plan.superseded
+            ],
+        }
+    )
+
+
+def _replace_dir(out: Path, write: Callable[[Path], None]) -> None:
+    """Write into a temporary sibling, then swap it in for ``out``. An existing ``out`` is
+    replaced only when it is an earlier staging directory (it holds STAGING.json)."""
+    if out.exists() and (
+        not out.is_dir() or (any(out.iterdir()) and not (out / STAGING_MANIFEST).is_file())
+    ):
+        raise FileExistsError(f"{out} exists and is not a staging directory")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    temporary = Path(tempfile.mkdtemp(prefix=f".{out.name}-", dir=out.parent))
+    try:
+        write(temporary)
+        if out.exists():
+            shutil.rmtree(out)
+        temporary.rename(out)
+    except BaseException:
+        shutil.rmtree(temporary, ignore_errors=True)
+        raise
+
+
+def run_stage(root: Path, out: Path, config: Path) -> int:
+    """``export stage``: 0 staged, 1 refused (nothing written), 3 a required input missing."""
+    root = Path(root)
+    config = config if config.is_absolute() else root / config
+    out = out if out.is_absolute() else root / out
+    plan = plan_stage(root, config)
+    if plan.missing:
+        print("blocked: missing_input " + "; ".join(plan.missing), file=sys.stderr)
+        return 3
+    if plan.problems:
+        for problem in plan.problems:
+            print(problem)
+        print(f"stage refused: {len(plan.problems)} problem(s); nothing staged", file=sys.stderr)
+        return 1
+
+    def write(directory: Path) -> None:
+        _write_files(directory, {path: staged.data for path, staged in plan.files.items()})
+        (directory / STAGING_MANIFEST).write_bytes(staging_manifest(plan, root, config))
+
+    _replace_dir(out, write)
+    print(f"staged {len(plan.files)} file(s) in {out}; {len(plan.not_present)} path(s) not_present")
+    return 0
+
+
+# --- export bundle-version and export assemble (T4L-08; CONTRACTS c.1) --------------------------
+
+GitRunner = Callable[[Sequence[str]], str]
+
+
+def git_runner(root: Path) -> GitRunner:
+    """Run ``git <args>`` in ``root`` and return its stdout."""
+
+    def run(args: Sequence[str]) -> str:
+        result = subprocess.run(
+            ["git", *args], cwd=root, check=True, capture_output=True, text=True
+        )
+        return result.stdout
+
+    return run
+
+
+def bundle_version(utc: str, sha: str, head: str) -> str:
+    """The PRD 8.4 bundle version ``<YYYY-MM-DDTHHMMZ>-<short sha>``; ``sha`` must be a prefix
+    of ``head``."""
+    if re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{4}Z", utc) is None:
+        raise ValueError(f"--utc {utc!r} is not YYYY-MM-DDTHHMMZ")
+    if re.fullmatch(r"[0-9a-f]{7,40}", sha) is None or not head.startswith(sha):
+        raise ValueError(f"--sha {sha} is not a prefix of HEAD {head}")
+    version = f"{utc}-{sha}"
+    _created_utc(version)
+    return version
+
+
+def _created_utc(version: str) -> str:
+    match = BUNDLE_VERSION_PATTERN.fullmatch(version)
+    if match is None:
+        raise ValueError(f"bundle version {version!r} is not <YYYY-MM-DDTHHMMZ>-<short sha>")
+    created = f"{match['date']}T{match['hh']}:{match['mm']}:00Z"
+    TypeAdapter(UtcTimestamp).validate_python(created)
+    return created
+
+
+def _config_mode(config: Path) -> ShippingMode | None:
+    document = yaml.safe_load(config.read_text(encoding="utf-8"))
+    run = document.get("run") if isinstance(document, dict) else None
+    mode = run.get("shipping_mode") if isinstance(run, dict) else None
+    if mode not in (None, "A", "B", "C"):
+        raise ValueError(f"config run.shipping_mode {mode!r} is not A, B or C")
+    return mode
+
+
+class AssembleError(RuntimeError):
+    """A bundle that cannot be assembled; nothing is left in the release directory."""
+
+
+def _read_staging(staging: Path) -> dict[str, bytes]:
+    manifest_path = staging / STAGING_MANIFEST
+    if not manifest_path.is_file():
+        raise MissingInputError(f"{staging}/{STAGING_MANIFEST}")
+    listing = _load_json(manifest_path.read_bytes())
+    if not isinstance(listing, dict) or not isinstance(listing.get("files"), list):
+        raise AssembleError(f"{manifest_path}: not a staging manifest")
+    files: dict[str, bytes] = {}
+    for entry in listing["files"]:
+        path = entry["bundle_path"]
+        data = (staging / path).read_bytes()
+        if hashlib.sha256(data).hexdigest() != entry["sha256"] or len(data) != entry["bytes"]:
+            raise AssembleError(f"{path}: changed since staging")
+        files[path] = data
+    on_disk = set(_scan(staging)[0]) - {STAGING_MANIFEST}
+    if on_disk != set(files):
+        raise AssembleError(f"{staging}: files differ from {STAGING_MANIFEST}")
+    return files
+
+
+def assemble(
+    staging: Path,
+    version: str,
+    release_dir: Path,
+    *,
+    root: Path,
+    config: Path,
+    git: GitRunner | None = None,
+) -> Path:
+    """Assemble release/<version>/ from a staging directory (CONTRACTS c.1 step 2).
+
+    Requires a clean git tree and a new version directory, writes into a temporary directory
+    next to the target, takes validation.json from ``gates snapshot`` and renames the directory
+    only after ``validate_bundle(production=True, contracts=True)`` passes.
+    """
+    git = git or git_runner(root)
+    if git(["status", "--porcelain"]).strip():
+        raise AssembleError("the git tree is not clean")
+    head = git(["rev-parse", "HEAD"]).strip()
+    created = _created_utc(version)
+    sha = BUNDLE_VERSION_PATTERN.fullmatch(version)["sha"]  # type: ignore[index]
+    if not head.startswith(sha):
+        raise AssembleError(f"bundle version sha {sha} is not a prefix of HEAD {head}")
+    target = Path(release_dir) / version
+    if target.exists():
+        raise AssembleError(f"{target} exists; a bundle is immutable")
+    mode = _config_mode(config)
+    if mode is None:
+        raise AssembleError("config run.shipping_mode is null; a real bundle needs a mode")
+    files = _read_staging(staging)
+    for required in REQUIRED_PATHS:
+        if required not in files:
+            raise MissingInputError(required)
+    sources: list[ProductRecord] = _contract_adapter("Sources").validate_json(files["sources.json"])
+    targets: list[TargetRecord] = _contract_adapter("Targets").validate_json(files["targets.json"])
+    Path(release_dir).mkdir(parents=True, exist_ok=True)
+    temporary = Path(tempfile.mkdtemp(prefix=f".{version}-", dir=release_dir))
+    try:
+        snapshot = temporary / "snapshot.json"
+        from terraluna_pipeline import gates
+
+        argv = [
+            "--root",
+            str(root),
+            "snapshot",
+            "--bundle-version",
+            version,
+            "--out",
+            str(snapshot),
+        ]
+        if gates.main(argv) != 0:
+            raise AssembleError("gates snapshot failed")
+        validation = snapshot.read_bytes()
+        snapshot.unlink()
+        records: list[GateRecord] = _contract_adapter("Validation").validate_json(validation)
+        model = None
+        if "model/model_card.json" in files:
+            card = _load_json(files["model/model_card.json"])
+            model_id = card.get("model_id") if isinstance(card, dict) else None
+            model = {"id": model_id, "status": "EXPERIMENTAL", "g5": g5_status(records)}
+        fields = {
+            "bundle_version": version,
+            "schema_version": SCHEMA_VERSION,
+            "mock": False,
+            "run_id": provenance.run_id(config, sources),
+            "git_sha": head,
+            "created_utc": created,
+            "shipping_mode": mode,
+            "targets": [record.target_id for record in targets],
+            "model": model,
+        }
+        bundle = temporary / "bundle"
+        write_bundle(bundle, {**files, VALIDATION: validation}, fields)
+        errors = validate_bundle(bundle, production=True, contracts=True)
+        if errors:
+            raise AssembleError("; ".join(map(str, errors)))
+        bundle.rename(target)
+    finally:
+        shutil.rmtree(temporary, ignore_errors=True)
+    return target
+
+
 # --- Command line -------------------------------------------------------------------------------
 
 
@@ -1655,7 +2313,76 @@ def _add_card_commands(commands: Any) -> None:
     cards.add_argument("--out-dir", type=Path, default=defaults.out_dir)
 
 
-_EXTRA_COMMANDS: dict[str, Callable[[argparse.Namespace], int]] = {"cards": _cards_command}
+def _stage_command(args: argparse.Namespace) -> int:
+    try:
+        return run_stage(args.root, args.out, args.config)
+    except FileExistsError as error:
+        print(f"stage: {error}", file=sys.stderr)
+        return 1
+
+
+def _bundle_version_command(args: argparse.Namespace) -> int:
+    try:
+        head = git_runner(args.root)(["rev-parse", "HEAD"]).strip()
+        print(bundle_version(args.utc, args.sha, head))
+    except (ValueError, subprocess.CalledProcessError) as error:
+        print(f"bundle-version: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def _assemble_command(args: argparse.Namespace) -> int:
+    root: Path = args.root
+    config: Path = args.config if args.config.is_absolute() else root / args.config
+    release: Path = args.release_dir if args.release_dir.is_absolute() else root / args.release_dir
+    staging: Path = args.staging if args.staging.is_absolute() else root / args.staging
+    try:
+        target = assemble(staging, args.bundle_version, release, root=root, config=config)
+    except MissingInputError as error:
+        print(f"blocked: missing_input {error}", file=sys.stderr)
+        return 3
+    except (AssembleError, ValueError, subprocess.CalledProcessError) as error:
+        print(f"assemble: {error}", file=sys.stderr)
+        return 1
+    print(f"assembled {target}")
+    return 0
+
+
+def _add_bundle_commands(commands: Any) -> None:
+    stage = commands.add_parser("stage", help="stage every bundle path (CONTRACTS c.1)")
+    stage.add_argument("--out", type=Path, required=True)
+    stage.add_argument("--root", type=Path, default=Path("."))
+    stage.add_argument("--config", type=Path, default=Path("config/run.yaml"))
+    version = commands.add_parser("bundle-version", help="print <YYYY-MM-DDTHHMMZ>-<short sha>")
+    version.add_argument("--utc", required=True)
+    version.add_argument("--sha", required=True)
+    version.add_argument("--root", type=Path, default=Path("."))
+    assemble_parser = commands.add_parser("assemble", help="assemble release/<v>/ from staging")
+    assemble_parser.add_argument("--staging", type=Path, required=True)
+    assemble_parser.add_argument("--bundle-version", required=True)
+    assemble_parser.add_argument("--release-dir", type=Path, default=Path("release"))
+    assemble_parser.add_argument("--root", type=Path, default=Path("."))
+    assemble_parser.add_argument("--config", type=Path, default=Path("config/run.yaml"))
+    real = commands.add_parser(
+        "build-real-card", help="delegate to realcard build (T4R-04): the slice records of a pair"
+    )
+    real.add_argument("--target", required=True)
+    real.add_argument("--earth", required=True)
+
+
+def _build_real_card_command(args: argparse.Namespace) -> int:
+    from terraluna_pipeline import realcard
+
+    return realcard.main(["build", "--target", args.target, "--earth", args.earth])
+
+
+_EXTRA_COMMANDS: dict[str, Callable[[argparse.Namespace], int]] = {
+    "build-real-card": _build_real_card_command,
+    "cards": _cards_command,
+    "stage": _stage_command,
+    "bundle-version": _bundle_version_command,
+    "assemble": _assemble_command,
+}
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -1666,6 +2393,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     validate = commands.add_parser("validate", help="print every error in a bundle")
     validate.add_argument("bundle_dir", type=Path)
+    validate.add_argument(
+        "--contracts",
+        action="store_true",
+        help="also check every file against its BUNDLE_PATHS contract (T4L-08)",
+    )
     validate.add_argument(
         "--production",
         action="store_true",
@@ -1681,6 +2413,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     check.add_argument("bundle_dir", type=Path)
     _add_card_commands(commands)
+    _add_bundle_commands(commands)
     args = parser.parse_args(argv)
     if args.command in _EXTRA_COMMANDS:
         return _EXTRA_COMMANDS[args.command](args)
@@ -1689,7 +2422,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "validate":
         bundle_dir: Path = args.bundle_dir
         success = "valid production bundle" if args.production else "valid bundle"
-        problems += map(str, validate_bundle(bundle_dir, production=args.production))
+        problems += map(
+            str, validate_bundle(bundle_dir, production=args.production, contracts=args.contracts)
+        )
     elif args.command == "mock-bundle":
         bundle_dir = args.out_dir
         success = f"wrote a valid mock bundle {MOCK_BUNDLE_VERSION}"

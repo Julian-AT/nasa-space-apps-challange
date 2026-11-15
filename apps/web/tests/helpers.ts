@@ -42,14 +42,24 @@ export function toBytes(value: unknown): Buffer {
   return Buffer.from(`${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
+/**
+ * A synthetic GateRecord. NOT_RUN leaves every nullable field null; any other status carries the
+ * PRD-01 provenance fields (command, config_version, evidence_path, scope, input_hashes) with
+ * labelled synthetic values, and PASS a run_id, as the GateRecord schema requires.
+ */
 export function gate(gateId: string, status = 'NOT_RUN'): Record<string, unknown> {
+  const run = status !== 'NOT_RUN';
+  const zero = '0'.repeat(64);
   return {
+    command: run ? 'synthetic test command' : null,
+    config_version: run ? zero : null,
     consequence: null,
-    evidence_path: null,
+    evidence_path: run ? 'outputs/gates/synthetic-evidence.json' : null,
     gate_id: gateId,
+    input_hashes: run ? [{ path: 'config/run.yaml', sha256: zero }] : [],
     result: null,
-    run_id: null,
-    scope: null,
+    run_id: status === 'PASS' ? `sha256:${zero}` : null,
+    scope: run ? 'synthetic test scope' : null,
     status,
   };
 }

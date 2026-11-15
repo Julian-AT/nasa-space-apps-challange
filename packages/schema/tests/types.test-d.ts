@@ -62,6 +62,9 @@ expectTypeOf<GateRecord>().toEqualTypeOf<{
   scope: string | null;
   result: string | null;
   consequence: string | null;
+  command: string | null;
+  config_version: string | null;
+  input_hashes: { path: string; sha256: string }[];
 }>();
 
 expectTypeOf<Validation>().toEqualTypeOf<GateRecord[]>();

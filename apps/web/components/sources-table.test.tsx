@@ -99,6 +99,17 @@ function product(id: string, fields: Record<string, unknown> = {}): Record<strin
     license_or_attribution: 'test-licence-text',
     checksum: 'f'.repeat(64),
     verification_status: 'NOT_CHECKED',
+    local_path: null,
+    acquisition_time: 'unknown',
+    frequency_or_wavelength: null,
+    transmit_receive_convention: null,
+    units: 'unknown',
+    calibration_type: null,
+    native_grid: null,
+    effective_resolution: null,
+    crs_and_frame: 'unknown',
+    incidence_source: null,
+    qa_definition: null,
     ...fields,
   };
 }

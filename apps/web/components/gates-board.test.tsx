@@ -10,7 +10,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import { EVIDENCE_MEANINGS } from './evidence-label.tsx';
-import { GATE_FIELDS, GATE_IDS, GatesBoard, NO_RECORD, NULL_REASON } from './gates-board.tsx';
+import { GATE_FIELDS, GATE_IDS, GatesBoard, NO_RECORD, NULL_REASON, fieldText } from './gates-board.tsx';
 import { MOCK_DIR, WEB_DIR } from '../tests/helpers.ts';
 import { prd812GateFields } from '../tests/prd.ts';
 
@@ -97,7 +97,19 @@ function render(records: readonly unknown[]): string {
   return renderToStaticMarkup(<GatesBoard validation={ValidationSchema.parse(records)} />);
 }
 
-function record(gateId: string, fields: Partial<Record<keyof GateRecord, string | null>> = {}): GateRecord {
+function record(gateId: string, fields: Partial<Record<keyof GateRecord, unknown>> = {}): GateRecord {
+  // A run gate (any status but NOT_RUN) must name its provenance (PRD-01); synthetic values.
+  const run = fields.status !== undefined && fields.status !== 'NOT_RUN';
+  const provenance = run
+    ? {
+        command: `synthetic command of ${gateId}`,
+        config_version: 'e'.repeat(64),
+        evidence_path: `outputs/${gateId}/synthetic.json`,
+        scope: `synthetic scope of ${gateId}`,
+        input_hashes: [{ path: 'config/run.yaml', sha256: 'e'.repeat(64) }],
+        run_id: fields.status === 'PASS' ? `sha256:${'e'.repeat(64)}` : null,
+      }
+    : {};
   return GateRecordSchema.parse({
     gate_id: gateId,
     status: 'NOT_RUN',
@@ -106,6 +118,10 @@ function record(gateId: string, fields: Partial<Record<keyof GateRecord, string 
     scope: null,
     result: null,
     consequence: null,
+    command: null,
+    config_version: null,
+    input_hashes: [],
+    ...provenance,
     ...fields,
   });
 }
@@ -115,7 +131,10 @@ function fullRecord(gateId: string, status: string): GateRecord {
   return record(gateId, {
     status,
     evidence_path: `outputs/${gateId}/evidence.json`,
-    run_id: `sha256:run-${gateId}`,
+    run_id: `sha256:${String(Number(gateId.slice(1))).repeat(64)}`,
+    command: `command text of ${gateId}`,
+    config_version: 'c'.repeat(64),
+    input_hashes: [{ path: `outputs/${gateId}/input.json`, sha256: 'd'.repeat(64) }],
     scope: `scope text of ${gateId}`,
     result: `result text of ${gateId}`,
     consequence: `consequence text of ${gateId}`,
@@ -185,7 +204,7 @@ describe('GatesBoard on small GateRecord arrays', () => {
   it('renders every field of a full record verbatim in its own column', () => {
     const full = fullRecord('G3', 'PARTIAL');
     const [row] = readTable(render([full])).rows.filter((cells) => cells[0]?.text === 'G3');
-    expect(row?.map((c) => c.text)).toEqual(GATE_FIELDS.map((field) => full[field]));
+    expect(row?.map((c) => c.text)).toEqual(GATE_FIELDS.map((field) => fieldText(full[field])));
   });
 
   it('renders each status as its own literal text, with the same styling for every status', () => {
@@ -214,7 +233,7 @@ describe('GatesBoard on small GateRecord arrays', () => {
     expect(rows.map((row) => row[0]?.text)).toEqual(GATE_IDS);
     for (const row of rows) {
       const source = shuffled.find((entry) => entry.gate_id === row[0]?.text);
-      expect(row.map((c) => c.text)).toEqual(GATE_FIELDS.map((field) => source?.[field]));
+      expect(row.map((c) => c.text)).toEqual(GATE_FIELDS.map((field) => (source === undefined ? undefined : fieldText(source[field]))));
     }
   });
 
@@ -252,14 +271,14 @@ describe('GatesBoard on small GateRecord arrays', () => {
     const g5 = fullRecord('G5', 'FAIL');
     const rows = readTable(render([g5])).rows;
     expect(rows.find((row) => row[0]?.text === 'G5')?.map((c) => c.text)).toEqual(
-      GATE_FIELDS.map((field) => g5[field]),
+      GATE_FIELDS.map((field) => fieldText(g5[field])),
     );
   });
 
   it('adds no text of its own beyond the caption, the field names and the two fixed reasons', () => {
     const records = ['G0', 'G2'].map((id) => fullRecord(id, 'PASS'));
     const table = readTable(render(records));
-    const own = new Set([...GATE_IDS, NO_RECORD, ...records.flatMap((entry) => GATE_FIELDS.map((f) => entry[f]))]);
+    const own = new Set([...GATE_IDS, NO_RECORD, ...records.flatMap((entry) => GATE_FIELDS.map((f) => fieldText(entry[f])))]);
     for (const c of table.rows.flat()) expect(own).toContain(c.text);
   });
 });

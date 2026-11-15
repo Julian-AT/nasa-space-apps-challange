@@ -16,3 +16,7 @@ export { ModelRecordSchema, type ModelRecord } from './generated/model-record.ts
 export { MetricsSchema, type Metrics } from './generated/metrics.ts';
 export { EmbeddingRecordSchema, type EmbeddingRecord } from './generated/embedding-record.ts';
 export { EmbeddingsIndexSchema, type EmbeddingsIndex } from './generated/embeddings-index.ts';
+export { CurvesSchema, type Curves } from './generated/curves.ts';
+export { UmapHeaderSchema, type UmapHeader } from './generated/umap-header.ts';
+export { ExamplesSchema, type Examples } from './generated/examples.ts';
+export { BackgroundSchema, type Background } from './generated/background.ts';
