@@ -49,7 +49,7 @@ make bundle                                            # stage, version and asse
 uv run python -m terraluna_pipeline.export validate release/<version> --production --contracts
 ```
 
-[CI](.github/workflows/ci.yml) runs the jobs `py` (`make setup-py check-py test-py`), `ts` (`make setup-ts check-ts test-ts`), `schema` (`make schema-check mock-bundle-check`) and `commitlint` (the pull request's commits) on pull requests and on pushes to `main`. CI has not run on GitHub yet. [apps/web/README.md](apps/web/README.md) explains how the web app selects its bundle and how the Vercel preview is deployed.
+[CI](.github/workflows/ci.yml) runs the jobs `py` (`make setup-py check-py test-py`), `ts` (`make setup-ts check-ts test-ts`), `schema` (`make schema-check mock-bundle-check`) and `commitlint` (the pull request's commits) on pull requests and on pushes to `main`. On GitHub (Ubuntu, x86_64) the first run on 15 November 2026 passed `ts` and `schema`. In `py`, 6 tests of `pipeline/tests/test_terrain_parity.py` still fail by design of the test: they require the committed parity fixtures, generated on macOS arm64, to be reproduced byte for byte. On Linux x86_64, regenerating them differs only in the last bits of floats (largest absolute difference 2.3e-12 m in the AEQD cases, largest relative difference 1.4e-15 in the terrain cases; the PRD 8.8 tolerances are 1e-9). The fractal input's sha256 differs for the same reason. Those tests pass on macOS. The tolerances stay unchanged; per-platform fixtures are not built yet. [apps/web/README.md](apps/web/README.md) explains how the web app selects its bundle and how the Vercel preview is deployed.
 
 ## Credits
 

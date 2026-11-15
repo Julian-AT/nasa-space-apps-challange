@@ -29,8 +29,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
+      # Full history: the parity tests compare each fixture's producing_commit with the last
+      # commit that touched its producing sources (git log -- <paths>).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
       # The uv of the build machine that wrote uv.lock (scripts/ralph/progress.txt).
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
