@@ -23,12 +23,16 @@ Rules (decisions recorded for a human where the PRD is silent)
   valid and one-sided where only one is; slope = degrees(atan(hypot(dz/dx, dz/dy))).
 - **Invalid fill.** Channels 0 and 1 hold :data:`INVALID_FILL` (0.0) wherever the valid channel
   is 0. This is a network-input fill, not an elevation or a slope; no NaN is stored.
+- **Finite arithmetic.** Finite valid elevations so large that plane removal or the slope leaves
+  float64 (near 1e308 m) are refused with :class:`DatasetError`, and ``storage()`` refuses any
+  non-finite channel, so neither NaN nor an infinite slope reaches a shard.
 - **Valid fraction.** ``valid_cells / 4096`` is recorded with every window and is not a filter
   here; the PRD 11.2 quality filter applies it later.
 """
 
 from __future__ import annotations
 
+import dataclasses
 import math
 from dataclasses import dataclass
 from typing import Final
@@ -136,8 +140,14 @@ class EncoderWindow:
     valid_fraction: float
 
     def storage(self) -> Float16Array:
-        """The window as stored in a shard: ``(3, 64, 64)`` float16, with no NaN."""
+        """The window as stored in a shard: ``(3, 64, 64)`` float16, with no NaN.
+
+        Raises :class:`DatasetError` if a channel is not finite after the cast, so no NaN or
+        infinity is ever stored.
+        """
         stored: Float16Array = self.channels.astype(STORAGE_DTYPE)
+        if not np.all(np.isfinite(stored)):
+            raise DatasetError("a stored channel value is not finite")
         return stored
 
 
@@ -199,13 +209,23 @@ def encode_channels(values: npt.ArrayLike, valid: npt.ArrayLike) -> EncodedChann
 
     channels = np.full((len(CHANNELS), *shape), INVALID_FILL, dtype=np.float64)
     residual = np.full(shape, np.nan, dtype=np.float64)
-    plane = _plane_fit(filled, use)
+    with np.errstate(all="ignore"):  # an overflow is refused just below, never passed on
+        plane = _plane_fit(filled, use)
+        gradient = _gradient(filled, use)
     if plane is None:
         use = np.zeros(shape, dtype=np.bool_)
     else:
         coefficients, fitted = plane
+        if not (
+            all(math.isfinite(value) for value in dataclasses.astuple(coefficients))
+            and np.all(np.isfinite(fitted[use]))
+            and all(np.all(np.isfinite(part[use])) for part in gradient)
+        ):
+            raise DatasetError(
+                "the valid elevations overflow float64 plane removal or slope arithmetic"
+            )
         residual[use] = fitted[use]
-        slope_deg = np.degrees(np.arctan(np.hypot(*_gradient(filled, use))))
+        slope_deg = np.degrees(np.arctan(np.hypot(*gradient)))
         channels[0][use] = np.arcsinh(residual[use] / ELEVATION_SCALE_M)
         channels[1][use] = slope_deg[use] / SLOPE_SCALE_DEG
         channels[2][use] = 1.0
