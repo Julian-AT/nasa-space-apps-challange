@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="660" viewBox="0 0 960 660" role="img" aria-labelledby="fig-mars-arcadia-d16-033291-x6-y9--earth-utm27n-e280-n2878-B-title fig-mars-arcadia-d16-033291-x6-y9--earth-utm27n-e280-n2878-B-desc">
+<title id="fig-mars-arcadia-d16-033291-x6-y9--earth-utm27n-e280-n2878-B-title">Figure B: nu(L) for the target and the Earth candidate, relief and texture</title>
+<desc id="fig-mars-arcadia-d16-033291-x6-y9--earth-utm27n-e280-n2878-B-desc">Log-log structure-function curves nu(L) in metres against lag L in metres for the target and Earth windows, relief (no detrend) and texture (plane removed), with each terrain distance, its reference spread and the clone envelope when they are available.</desc>
+<style>text{font-family:sans-serif;font-size:12px;fill:#1a1a1a}.muted{fill:#5a5a5a}.head{font-size:15px;font-weight:bold}.sub{font-size:13px;font-weight:bold}</style>
+<rect x="0" y="0" width="960" height="660" fill="#ffffff"/>
+<text x="20.00" y="28.00" class="head">Figure B: nu(L), relief and texture</text>
+<text x="20.00" y="46.00" class="muted">Card mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878; Mode C</text>
+<text x="90.00" y="88.00" class="sub">Relief (no detrend)</text>
+<line x1="149.97" y1="110.00" x2="149.97" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="149.97" y="416.00" text-anchor="middle">300</text>
+<line x1="241.25" y1="110.00" x2="241.25" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="241.25" y="416.00" text-anchor="middle">500</text>
+<line x1="301.37" y1="110.00" x2="301.37" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="301.37" y="416.00" text-anchor="middle">700</text>
+<line x1="365.10" y1="110.00" x2="365.10" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="365.10" y="416.00" text-anchor="middle">1000</text>
+<line x1="90.00" y1="278.55" x2="420.00" y2="278.55" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="84.00" y="282.55" text-anchor="end">5</text>
+<line x1="90.00" y1="190.34" x2="420.00" y2="190.34" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="84.00" y="194.34" text-anchor="end">7</text>
+<rect x="90.00" y="110.00" width="330.00" height="290.00" fill="none" stroke="#1a1a1a"/>
+<text x="255.00" y="434.00" text-anchor="middle">Lag L (m)</text>
+<text x="46.00" y="255.00" text-anchor="middle" transform="rotate(-90 46.00 255.00)">nu(L) (m)</text>
+<path d="M131.14 339.63L182.55 332.65L255.00 320.34L306.40 311.59L378.86 293.81" fill="none" stroke="#440154" stroke-width="2" stroke-dasharray="none"/>
+<circle cx="131.14" cy="339.63" r="3.5" fill="#440154"/>
+<circle cx="182.55" cy="332.65" r="3.5" fill="#440154"/>
+<circle cx="255.00" cy="320.34" r="3.5" fill="#440154"/>
+<circle cx="306.40" cy="311.59" r="3.5" fill="#440154"/>
+<circle cx="378.86" cy="293.81" r="3.5" fill="#440154"/>
+<path d="M131.14 321.19L182.55 286.79L255.00 251.45L306.40 232.95L378.86 170.37" fill="none" stroke="#21918c" stroke-width="2" stroke-dasharray="6 3"/>
+<rect x="127.64" y="317.69" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="179.05" y="283.29" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="251.50" y="247.95" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="302.90" y="229.45" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="375.36" y="166.87" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<path d="M90.00 450.00L118.00 450.00" stroke="#440154" stroke-width="2" stroke-dasharray="none"/>
+<text x="124.00" y="454.00">Target mars-arcadia-d16-033291-x6-y9</text>
+<path d="M90.00 468.00L118.00 468.00" stroke="#21918c" stroke-width="2" stroke-dasharray="6 3"/>
+<text x="124.00" y="472.00">Earth earth-utm27n-e280-n2878</text>
+<text x="30.00" y="510.00" class="sub">Distance (RMS of log nu): 0.288549</text>
+<text x="30.00" y="538.00">Reference spread</text>
+<text x="30.00" y="572.00">Clone envelope</text>
+<rect x="183.60" y="530.00" width="214.58" height="8.00" fill="#3b528b" stroke="none"/>
+<line x1="243.76" y1="527.00" x2="243.76" y2="541.00" stroke="#1a1a1a" stroke-width="1.50"/>
+<text x="180.00" y="554.00" class="muted">0.022044 to 1.33425, median 0.389943, n 163</text>
+<text x="180.00" y="572.00">Unavailable: no_published_clone_set</text>
+<path d="M227.18 520.00L222.18 512.00L232.18 512.00Z" fill="#440154"/>
+<line x1="227.18" y1="520.00" x2="227.18" y2="574.00" stroke="#440154" stroke-width="1.00"/>
+<line x1="180.00" y1="602.00" x2="420.00" y2="602.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<line x1="180.00" y1="602.00" x2="180.00" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="180.00" y="618.00" text-anchor="middle" class="muted">0.0</text>
+<line x1="261.76" y1="602.00" x2="261.76" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="261.76" y="618.00" text-anchor="middle" class="muted">0.5</text>
+<line x1="343.52" y1="602.00" x2="343.52" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="343.52" y="618.00" text-anchor="middle" class="muted">1.0</text>
+<text x="570.00" y="88.00" class="sub">Texture (plane removed)</text>
+<line x1="629.97" y1="110.00" x2="629.97" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="629.97" y="416.00" text-anchor="middle">300</text>
+<line x1="721.25" y1="110.00" x2="721.25" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="721.25" y="416.00" text-anchor="middle">500</text>
+<line x1="781.37" y1="110.00" x2="781.37" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="781.37" y="416.00" text-anchor="middle">700</text>
+<line x1="845.10" y1="110.00" x2="845.10" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="845.10" y="416.00" text-anchor="middle">1000</text>
+<line x1="570.00" y1="199.68" x2="900.00" y2="199.68" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="564.00" y="203.68" text-anchor="end">5</text>
+<rect x="570.00" y="110.00" width="330.00" height="290.00" fill="none" stroke="#1a1a1a"/>
+<text x="735.00" y="434.00" text-anchor="middle">Lag L (m)</text>
+<text x="526.00" y="255.00" text-anchor="middle" transform="rotate(-90 526.00 255.00)">nu(L) (m)</text>
+<path d="M611.14 299.63L662.55 288.64L735.00 269.35L786.40 256.07L858.86 230.74" fill="none" stroke="#440154" stroke-width="2" stroke-dasharray="none"/>
+<circle cx="611.14" cy="299.63" r="3.5" fill="#440154"/>
+<circle cx="662.55" cy="288.64" r="3.5" fill="#440154"/>
+<circle cx="735.00" cy="269.35" r="3.5" fill="#440154"/>
+<circle cx="786.40" cy="256.07" r="3.5" fill="#440154"/>
+<circle cx="858.86" cy="230.74" r="3.5" fill="#440154"/>
+<path d="M611.14 301.84L662.55 256.93L735.00 230.02L786.40 244.70L858.86 208.16" fill="none" stroke="#21918c" stroke-width="2" stroke-dasharray="6 3"/>
+<rect x="607.64" y="298.34" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="659.05" y="253.43" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="731.50" y="226.52" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="782.90" y="241.20" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="855.36" y="204.66" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<path d="M570.00 450.00L598.00 450.00" stroke="#440154" stroke-width="2" stroke-dasharray="none"/>
+<text x="604.00" y="454.00">Target mars-arcadia-d16-033291-x6-y9</text>
+<path d="M570.00 468.00L598.00 468.00" stroke="#21918c" stroke-width="2" stroke-dasharray="6 3"/>
+<text x="604.00" y="472.00">Earth earth-utm27n-e280-n2878</text>
+<text x="510.00" y="510.00" class="sub">Distance (RMS of log nu): 0.0593165</text>
+<text x="510.00" y="538.00">Reference spread</text>
+<text x="510.00" y="572.00">Clone envelope</text>
+<rect x="663.28" y="530.00" width="214.90" height="8.00" fill="#3b528b" stroke="none"/>
+<line x1="716.98" y1="527.00" x2="716.98" y2="541.00" stroke="#1a1a1a" stroke-width="1.50"/>
+<text x="660.00" y="554.00" class="muted">0.0201108 to 1.33765, median 0.349313, n 163</text>
+<text x="660.00" y="572.00">Unavailable: no_published_clone_set</text>
+<path d="M669.68 520.00L664.68 512.00L674.68 512.00Z" fill="#440154"/>
+<line x1="669.68" y1="520.00" x2="669.68" y2="574.00" stroke="#440154" stroke-width="1.00"/>
+<line x1="660.00" y1="602.00" x2="900.00" y2="602.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<line x1="660.00" y1="602.00" x2="660.00" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="660.00" y="618.00" text-anchor="middle" class="muted">0.0</text>
+<line x1="741.55" y1="602.00" x2="741.55" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="741.55" y="618.00" text-anchor="middle" class="muted">0.5</text>
+<line x1="823.11" y1="602.00" x2="823.11" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="823.11" y="618.00" text-anchor="middle" class="muted">1.0</text>
+<text x="20.00" y="645.00" class="muted">Missing nu values are left out, never drawn as zero. Values from the windows file and the comparison record (run sha256:340b5eefa7a2).</text>
+</svg>

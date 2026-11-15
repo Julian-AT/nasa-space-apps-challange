@@ -1,0 +1,1148 @@
+{
+  "failure_cases": {
+    "entries": [
+      {
+        "body": "earth",
+        "distance": 0.7280731693774002,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 231,
+        "window_id": "earth-n34-00-w119-00-5004-00598"
+      },
+      {
+        "body": "earth",
+        "distance": 0.5515839278851715,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 45,
+        "window_id": "earth-n34-00-w119-00-5004-00444"
+      },
+      {
+        "body": "earth",
+        "distance": 0.6976379221044972,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 206,
+        "window_id": "earth-n34-00-w119-00-5004-00154"
+      },
+      {
+        "body": "earth",
+        "distance": 0.7637270862613219,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 243,
+        "window_id": "earth-n75-00-w091-00-5028-00137"
+      },
+      {
+        "body": "earth",
+        "distance": 0.46565805700264873,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 11,
+        "window_id": "earth-n34-00-w119-00-5004-00455"
+      },
+      {
+        "body": "earth",
+        "distance": 0.5519253152626125,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 46,
+        "window_id": "earth-n34-00-w119-00-5004-00043"
+      },
+      {
+        "body": "earth",
+        "distance": 0.4760491369900244,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 15,
+        "window_id": "earth-n34-00-w119-00-5004-00049"
+      },
+      {
+        "body": "earth",
+        "distance": 0.7677851559046986,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 244,
+        "window_id": "earth-n34-00-w119-00-5004-00112"
+      },
+      {
+        "body": "earth",
+        "distance": 0.5509540026768157,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 44,
+        "window_id": "earth-n34-00-w119-00-5004-00413"
+      },
+      {
+        "body": "earth",
+        "distance": 0.49326975507349213,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 18,
+        "window_id": "earth-n34-00-w119-00-5004-00485"
+      },
+      {
+        "body": "earth",
+        "distance": 0.5568444223955018,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 54,
+        "window_id": "earth-n34-00-w119-00-5004-00263"
+      },
+      {
+        "body": "earth",
+        "distance": 0.5561521726437686,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 53,
+        "window_id": "earth-n34-00-w119-00-5004-00179"
+      },
+      {
+        "body": "earth",
+        "distance": 0.5486146169229618,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 41,
+        "window_id": "earth-n34-00-w119-00-5004-00245"
+      },
+      {
+        "body": "earth",
+        "distance": 0.5576710625282993,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 55,
+        "window_id": "earth-n34-00-w119-00-5004-00200"
+      },
+      {
+        "body": "earth",
+        "distance": 0.5143981144476748,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 30,
+        "window_id": "earth-n34-00-w119-00-5004-00576"
+      },
+      {
+        "body": "earth",
+        "distance": 0.5527337132611921,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 48,
+        "window_id": "earth-n34-00-w119-00-5004-00080"
+      },
+      {
+        "body": "earth",
+        "distance": 0.48484842482233503,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 17,
+        "window_id": "earth-n34-00-w119-00-5004-00329"
+      },
+      {
+        "body": "earth",
+        "distance": 0.512001621957871,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 26,
+        "window_id": "earth-n34-00-w119-00-5004-00428"
+      },
+      {
+        "body": "earth",
+        "distance": 0.5028465438376715,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 22,
+        "window_id": "earth-n34-00-w119-00-5004-00098"
+      },
+      {
+        "body": "earth",
+        "distance": 0.550644889483344,
+        "distance_family": "model_embedding",
+        "evidence_label": "Predicted",
+        "rank": 43,
+        "window_id": "earth-n34-00-w119-00-5004-00133"
+      }
+    ],
+    "shortfall_reason": null,
+    "sort_rule": "descending |encoder rank - RMS log-nu rank|, ties by Earth window_id then target window_id; basis: RMS distance over the 10 log-nu values (not the deterministic M0 ranking); each entry's rank and distance are the encoder's (rank among the Earth test candidates, cosine distance to the target embedding)"
+  },
+  "hillshades": [
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00043"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00049"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00080"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00098"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00112"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00133"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00154"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00168"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00179"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00200"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00245"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00263"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00329"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00409"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00413"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00428"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00444"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00446"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00455"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00485"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00497"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00502"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00576"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n34-00-w119-00-5004-00598"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "earth-n75-00-w091-00-5028-00137"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00004"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00083"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00106"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00110"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00137"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00172"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00244"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00248"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00274"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00002"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00030"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00060"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00091"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00126"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00134"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00156"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00202"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00230"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00009"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00023"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00028"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00042"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00063"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00071"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00085"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00089"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00098"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00105"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00108"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00115"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00123"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00124"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00128"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00133"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00144"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00161"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00164"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00165"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00171"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00181"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00193"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00203"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00212"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00215"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00219"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00223"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00229"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00240"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00249"
+    },
+    {
+      "data_b64": null,
+      "encoding": "not_stored",
+      "size": 64,
+      "unavailable_reason": "hillshade_not_rendered",
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00255"
+    }
+  ],
+  "mock": false,
+  "ood_examples": [
+    {
+      "body": "mars",
+      "distance": 34.04668591694574,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 1,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00115"
+    },
+    {
+      "body": "mars",
+      "distance": 33.96716516471006,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 2,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00223"
+    },
+    {
+      "body": "mars",
+      "distance": 32.99667198558646,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 3,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00249"
+    },
+    {
+      "body": "mars",
+      "distance": 32.922347550433464,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 4,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00105"
+    },
+    {
+      "body": "mars",
+      "distance": 32.25031602136747,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 5,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00240"
+    },
+    {
+      "body": "mars",
+      "distance": 31.274717989624673,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 6,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00215"
+    },
+    {
+      "body": "mars",
+      "distance": 31.23095038385531,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 7,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00181"
+    },
+    {
+      "body": "mars",
+      "distance": 31.166116400592863,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 8,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00009"
+    },
+    {
+      "body": "mars",
+      "distance": 31.140178598164834,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 9,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00171"
+    },
+    {
+      "body": "mars",
+      "distance": 30.180099546846254,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 10,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00161"
+    },
+    {
+      "body": "mars",
+      "distance": 29.94548948075773,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 11,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00085"
+    },
+    {
+      "body": "mars",
+      "distance": 29.723991886248825,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 12,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00212"
+    },
+    {
+      "body": "mars",
+      "distance": 29.719151979443563,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 13,
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00060"
+    },
+    {
+      "body": "mars",
+      "distance": 29.556408820771882,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 14,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00144"
+    },
+    {
+      "body": "mars",
+      "distance": 29.466856629417904,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 15,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00071"
+    },
+    {
+      "body": "mars",
+      "distance": 29.367970007987903,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 16,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00028"
+    },
+    {
+      "body": "mars",
+      "distance": 29.041524664240217,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 17,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00123"
+    },
+    {
+      "body": "mars",
+      "distance": 28.291903104208462,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 18,
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00002"
+    },
+    {
+      "body": "mars",
+      "distance": 28.26850102138726,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 19,
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00230"
+    },
+    {
+      "body": "mars",
+      "distance": 28.197233293289784,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 20,
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00106"
+    },
+    {
+      "body": "mars",
+      "distance": 28.07119837522356,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 21,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00203"
+    },
+    {
+      "body": "mars",
+      "distance": 27.598860089581706,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 22,
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00274"
+    },
+    {
+      "body": "mars",
+      "distance": 27.24278529296034,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 23,
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00172"
+    },
+    {
+      "body": "mars",
+      "distance": 27.183591593482795,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 24,
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00110"
+    },
+    {
+      "body": "mars",
+      "distance": 27.177451085762307,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 25,
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00083"
+    },
+    {
+      "body": "mars",
+      "distance": 27.15144728750458,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 26,
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00244"
+    },
+    {
+      "body": "mars",
+      "distance": 26.75846218851776,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 27,
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00004"
+    },
+    {
+      "body": "mars",
+      "distance": 26.688868142838807,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 28,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00023"
+    },
+    {
+      "body": "mars",
+      "distance": 26.543627877004006,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 29,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00063"
+    },
+    {
+      "body": "mars",
+      "distance": 26.502380894693147,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 30,
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00202"
+    },
+    {
+      "body": "mars",
+      "distance": 26.473014592173897,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 31,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00165"
+    },
+    {
+      "body": "mars",
+      "distance": 26.464201126526042,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 32,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00229"
+    },
+    {
+      "body": "mars",
+      "distance": 26.45536890365753,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 33,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00164"
+    },
+    {
+      "body": "mars",
+      "distance": 26.364157667880413,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 34,
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00091"
+    },
+    {
+      "body": "mars",
+      "distance": 26.343786663905696,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 35,
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00137"
+    },
+    {
+      "body": "mars",
+      "distance": 26.335858876334008,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 36,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00255"
+    },
+    {
+      "body": "mars",
+      "distance": 26.305954804985475,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 37,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00042"
+    },
+    {
+      "body": "mars",
+      "distance": 26.284263357040338,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 38,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00193"
+    },
+    {
+      "body": "mars",
+      "distance": 26.247326977056982,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 39,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00089"
+    },
+    {
+      "body": "mars",
+      "distance": 26.126971382595976,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 40,
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00156"
+    },
+    {
+      "body": "mars",
+      "distance": 26.062453652369665,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 41,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00219"
+    },
+    {
+      "body": "mars",
+      "distance": 26.01384931705361,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 42,
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00126"
+    },
+    {
+      "body": "mars",
+      "distance": 25.96583092108956,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 43,
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00030"
+    },
+    {
+      "body": "mars",
+      "distance": 25.829597319662497,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 44,
+      "window_id": "mars-f18-042930-2210-xn-41n-1008-00134"
+    },
+    {
+      "body": "mars",
+      "distance": 25.769141162616044,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 45,
+      "window_id": "mars-d18-034187-2276-xn-47n-1005-00248"
+    },
+    {
+      "body": "mars",
+      "distance": 25.75365813370025,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 46,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00133"
+    },
+    {
+      "body": "mars",
+      "distance": 25.647394799236302,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 47,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00098"
+    },
+    {
+      "body": "mars",
+      "distance": 25.597121727302063,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 48,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00124"
+    },
+    {
+      "body": "mars",
+      "distance": 25.58134017128126,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 49,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00108"
+    },
+    {
+      "body": "mars",
+      "distance": 25.578279770633284,
+      "distance_family": "model_embedding",
+      "evidence_label": "Predicted",
+      "rank": 50,
+      "window_id": "mars-g20-025906-2242-xn-44n-1011-00128"
+    }
+  ],
+  "retrieval_gallery": [
+    {
+      "deterministic_top5": [],
+      "encoder_top5": [
+        {
+          "body": "earth",
+          "distance": 0.36118094375200893,
+          "distance_family": "model_embedding",
+          "evidence_label": "Predicted",
+          "rank": 1,
+          "window_id": "earth-n34-00-w119-00-5004-00497"
+        },
+        {
+          "body": "earth",
+          "distance": 0.4254506828216327,
+          "distance_family": "model_embedding",
+          "evidence_label": "Predicted",
+          "rank": 2,
+          "window_id": "earth-n34-00-w119-00-5004-00446"
+        },
+        {
+          "body": "earth",
+          "distance": 0.42997946801289677,
+          "distance_family": "model_embedding",
+          "evidence_label": "Predicted",
+          "rank": 3,
+          "window_id": "earth-n34-00-w119-00-5004-00168"
+        },
+        {
+          "body": "earth",
+          "distance": 0.4494209052097359,
+          "distance_family": "model_embedding",
+          "evidence_label": "Predicted",
+          "rank": 4,
+          "window_id": "earth-n34-00-w119-00-5004-00502"
+        },
+        {
+          "body": "earth",
+          "distance": 0.45162712082680967,
+          "distance_family": "model_embedding",
+          "evidence_label": "Predicted",
+          "rank": 5,
+          "window_id": "earth-n34-00-w119-00-5004-00409"
+        }
+      ],
+      "shortfall_reason": "deterministic_ranking_not_an_input",
+      "target_id": "moon-sps-x2-y2"
+    }
+  ],
+  "run_id": "sha256:a903a6e10a32fb72d78ad5e6c6552b6bca44f92d70a3c49b637022cf62fbee68"
+}
