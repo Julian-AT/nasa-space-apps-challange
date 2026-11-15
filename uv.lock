@@ -950,8 +950,6 @@ wheels = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-=======
 name = "pyshp"
 version = "3.1.8"
 source = { registry = "https://pypi.org/simple" }
@@ -961,7 +959,6 @@ wheels = [
 ]
 
 [[package]]
->>>>>>> ralph/t1-pilot
 name = "pytest"
 version = "9.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1242,12 +1239,9 @@ dependencies = [
     { name = "numpy" },
     { name = "pillow" },
     { name = "pydantic" },
-<<<<<<< HEAD
-    { name = "pyyaml" },
-=======
     { name = "pyproj" },
     { name = "pyshp" },
->>>>>>> ralph/t1-pilot
+    { name = "pyyaml" },
     { name = "rasterio" },
     { name = "scipy" },
 ]
@@ -1268,12 +1262,9 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.5,<3" },
     { name = "pillow", specifier = ">=13.0,<14" },
     { name = "pydantic", specifier = ">=2.14,<3" },
-<<<<<<< HEAD
-    { name = "pyyaml", specifier = ">=6.0.3,<7" },
-=======
     { name = "pyproj", specifier = ">=3.8,<4" },
     { name = "pyshp", specifier = ">=3.1,<4" },
->>>>>>> ralph/t1-pilot
+    { name = "pyyaml", specifier = ">=6.0.3,<7" },
     { name = "rasterio", specifier = ">=1.5,<2" },
     { name = "scipy", specifier = ">=1.18,<2" },
 ]
