@@ -9,6 +9,7 @@ import DeckGL from '@deck.gl/react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { scaleColour } from './colour-scales.ts';
+import { markerScale, markerT } from './earth-state.ts';
 import type { Candidate, Family } from './explore-data.ts';
 
 export interface EarthCanvasProps {
@@ -23,7 +24,7 @@ export interface EarthCanvasProps {
 interface Marker {
   readonly index: number;
   readonly position: [number, number];
-  readonly percentile: number | null;
+  readonly t: number | null;
 }
 
 const GRATICULE_STEP_DEG = 30;
@@ -54,15 +55,14 @@ function graticule(): [number, number][][] {
 const GRID = graticule();
 
 export default function EarthCanvas({ candidates, family, selected, focus, onSelect }: EarthCanvasProps) {
-  const markers = useMemo<Marker[]>(
-    () =>
-      candidates.flatMap((c, index) =>
-        c.centroidLonLat === null
-          ? []
-          : [{ index, position: [c.centroidLonLat[0], c.centroidLonLat[1]] as [number, number], percentile: c.distances[family].background_percentile }],
-      ),
-    [candidates, family],
-  );
+  const markers = useMemo<Marker[]>(() => {
+    const scale = markerScale(candidates, family);
+    return candidates.flatMap((c, index) =>
+      c.centroidLonLat === null
+        ? []
+        : [{ index, position: [c.centroidLonLat[0], c.centroidLonLat[1]] as [number, number], t: markerT(c.distances[family], scale) }],
+    );
+  }, [candidates, family]);
   const [viewState, setViewState] = useState({ ...focus });
   useEffect(() => {
     setViewState({ longitude: focus.longitude, latitude: focus.latitude, zoom: focus.zoom });
@@ -100,10 +100,10 @@ export default function EarthCanvas({ candidates, family, selected, focus, onSel
         pickable: true,
         radiusUnits: 'pixels',
         getPosition: (m) => m.position,
-        getRadius: (m) => (m.index === selected ? 16 : 13),
+        getRadius: (m) => (m.index === selected ? 15 : 12),
         getFillColor: (m) => {
-          if (m.percentile === null) return [140, 140, 140, 240];
-          const [r, g, b] = scaleColour('viridis', m.percentile / 100);
+          if (m.t === null) return [140, 140, 140, 240];
+          const [r, g, b] = scaleColour('viridis', m.t);
           return [r, g, b, 240];
         },
         getLineColor: (m) => (m.index === selected ? [255, 255, 255, 255] : [20, 20, 30, 255]),
@@ -119,7 +119,8 @@ export default function EarthCanvas({ candidates, family, selected, focus, onSel
         data: markers,
         getPosition: (m) => m.position,
         getText: (m) => String(m.index + 1),
-        getSize: 13,
+        getSize: 12,
+        sizeUnits: 'pixels',
         getColor: [255, 255, 255, 255],
         fontWeight: 700,
         outlineWidth: 3,

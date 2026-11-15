@@ -10,7 +10,7 @@ import { scaleGradient } from './colour-scales.ts';
 import { EarthCards } from './earth-cards.tsx';
 import { CandidateTable, FAMILY_TITLES, modelIsRanked, visibleFamilies } from './earth-table.tsx';
 import { Chip, ResultsPanel } from './results-panel.tsx';
-import { DEFAULT_EARTH_VIEW, type EarthView, focusOn, parseEarthView, serializeEarthView } from './earth-state.ts';
+import { DEFAULT_EARTH_VIEW, type EarthView, focusOn, markerScale, parseEarthView, serializeEarthView } from './earth-state.ts';
 import { EarthCanvas } from './earth-loader.tsx';
 import type { EarthData } from './explore-data.ts';
 import { UnavailablePanel } from './unavailable-panel.tsx';
@@ -70,6 +70,7 @@ export function EarthExplorer({ data, mapsEnabled, probeEnabled }: EarthExplorer
             .filter((p) => region === null || p.c.regionId === region)
             .flatMap((p) => (p.c.centroidLonLat === null ? [] : [p.c.centroidLonLat])),
         );
+  const scale = markerScale(target.candidates, family);
   const sortRule = target.candidates.find((c) => c.sortRule !== null)?.sortRule ?? null;
   const mode = target.candidates.find((c) => c.shippingMode !== null)?.shippingMode ?? null;
 
@@ -169,7 +170,7 @@ export function EarthExplorer({ data, mapsEnabled, probeEnabled }: EarthExplorer
         <div className="flex min-w-0 flex-col gap-2 lg:sticky lg:top-4 lg:self-start">
           <div
             role="img"
-            aria-label={`Globe with ${String(target.candidates.filter((c) => c.centroidLonLat !== null).length)} numbered candidate markers for ${target.name}, coloured by ${FAMILY_TITLES[family]} background percentile. The result cards list the same windows.`}
+            aria-label={`Globe with ${String(target.candidates.filter((c) => c.centroidLonLat !== null).length)} numbered candidate markers for ${target.name}, coloured by ${FAMILY_TITLES[family]}. The result cards list the same windows.`}
             className="relative h-[34rem] overflow-hidden rounded-2xl border border-border bg-black/70 lg:h-[calc(100dvh-8rem)]"
             data-slot="earth-map"
           >
@@ -194,16 +195,22 @@ export function EarthExplorer({ data, mapsEnabled, probeEnabled }: EarthExplorer
             )}
             {mapsEnabled && drawable ? (
               <div className="pointer-events-none absolute top-3 right-3 flex flex-col gap-1 rounded-xl border border-border bg-card/90 p-3 text-xs text-card-foreground">
-                <span className="font-semibold">{FAMILY_TITLES[family]} background percentile</span>
+                <span className="font-semibold">
+                  {FAMILY_TITLES[family]}
+                  {scale.mode === 'percentile' ? ' background percentile' : ' distance'}
+                </span>
                 <span
                   role="img"
-                  aria-label="viridis colour scale from percentile 0 to 100"
+                  aria-label="viridis colour scale"
                   className="h-2.5 w-44 rounded-sm border border-border"
                   style={{ backgroundImage: scaleGradient('viridis') }}
                 />
-                <span className="flex justify-between">
-                  <span>0</span>
-                  <span>100 (as serialized)</span>
+                <span className="flex justify-between font-mono">
+                  <span>{String(scale.min)}</span>
+                  <span>{String(scale.max)}</span>
+                </span>
+                <span>
+                  {scale.mode === 'percentile' ? 'as serialized (0 to 100)' : `${scale.unit ?? 'no unit'}; Derived, smaller is closer`}
                 </span>
                 <span>Grey: Unavailable</span>
               </div>

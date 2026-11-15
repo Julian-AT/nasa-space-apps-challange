@@ -5,6 +5,7 @@
 import type { Metadata } from 'next';
 
 import { PageHeader } from '../../components/page-header.tsx';
+import { EvidenceLegend } from '../../components/evidence-legend.tsx';
 import { Section } from '../../components/section.tsx';
 import { GatesBoard } from '../../components/gates-board.tsx';
 import { loadBundle } from '../../lib/bundle.ts';
@@ -15,14 +16,18 @@ export const dynamic = 'error';
 
 export const metadata: Metadata = { title: `Methods · ${SITE_TITLE}` };
 
+const LEAD =
+  "Each release gate with its status, scope, result and consequence, as recorded in the bundle's validation.json. A status is always shown as its literal text, and a missing field is labelled Unavailable.";
+
 export default function Methods() {
   const { validation } = loadBundle();
   return (
     <>
-      <PageHeader title="Methods" />
-      <Section title="Validation board" id="validation-board">
+      <PageHeader title="Methods" lead={LEAD} />
+      <Section title="Validation board" id="validation-board" className="mt-8 border-t-0 pt-0">
         <GatesBoard validation={validation} />
       </Section>
+      <EvidenceLegend />
     </>
   );
 }

@@ -140,3 +140,40 @@ describe('Earth result cards', () => {
     expect(html).toContain('>1<');
   });
 });
+
+describe('layerless Moon view and marker scale', () => {
+  it('draws the window grid with a note when the bundle has no tile layers', () => {
+    const data = buildBodyData(
+      testBundle({
+        targets: testTarget({ tile_layers: [] }),
+        windows: new Map([['moon', [testWindow('moon-test-window-a', 'eligible', []), testWindow('moon-test-window-b', 'rejected', ['too_steep'], 200)]]]),
+      }),
+      'moon',
+    );
+    const html = renderToStaticMarkup(<ExplorerMap data={data} body="moon" assetBase={null} />);
+    expect(html).toContain('data-testid="deck"');
+    expect(html).toContain('No tile layers in this bundle');
+  });
+  it('colours markers by stored value when percentiles are null, and leaves missing values grey', async () => {
+    const { markerScale, markerT } = await import('../components/map/earth-state.ts');
+    const d = buildEarthData(
+      testBundle({
+        targets: testTarget(),
+        comparisons: new Map([
+          [
+            'moon-test-target',
+            [
+              testComparison('earth-test-a', { terrain_relief: testDistance({ value: 2, background_percentile: null, background_percentile_reason: 'background_not_run' }) }),
+              testComparison('earth-test-b', { terrain_relief: testDistance({ value: 4, background_percentile: null, background_percentile_reason: 'background_not_run' }) }),
+              testComparison('earth-test-c', {}),
+            ],
+          ],
+        ]),
+      }),
+    );
+    const c = d.targets[0]?.candidates ?? [];
+    const scale = markerScale(c, 'terrain_relief');
+    expect(scale).toMatchObject({ mode: 'value', min: 2, max: 4, unit: 'test-unit' });
+    expect(c.map((x) => markerT(x.distances.terrain_relief, scale))).toEqual([0, 1, null]);
+  });
+});
