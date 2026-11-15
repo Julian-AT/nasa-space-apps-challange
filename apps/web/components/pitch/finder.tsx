@@ -11,13 +11,14 @@ import { COP30_MODE } from '@/lib/probe/mode';
 import { type ProbeResult, isProbeResult } from '@/lib/probe/result';
 
 import { EASE } from './bits';
+import { DEEP_FADE_MS, DEEP_ZOOM_MS, DeepZoom } from './deep-zoom';
 import { EarthHero } from './earth-hero';
 import type { PitchData } from './pitch-data';
 
 type Finder = NonNullable<PitchData['finder']>;
 
-/** The → sequence: scan sweep while turning, camera dolly, then the target marker and the card. */
-type Phase = 'idle' | 'scan' | 'zoom' | 'mark';
+/** The → sequence: scan sweep while turning, camera dolly, deep satellite zoom, then the window and the card. */
+type Phase = 'idle' | 'scan' | 'zoom' | 'deep' | 'mark';
 const SCAN_MS = 1300;
 const ZOOM_MS = 1250;
 
@@ -73,16 +74,18 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
     }
     setPhase('scan');
     const a = window.setTimeout(() => setPhase('zoom'), SCAN_MS);
-    const b = window.setTimeout(() => setPhase('mark'), SCAN_MS + ZOOM_MS);
+    const b = window.setTimeout(() => setPhase('deep'), SCAN_MS + ZOOM_MS);
+    const c = window.setTimeout(() => setPhase('mark'), SCAN_MS + ZOOM_MS + DEEP_FADE_MS + DEEP_ZOOM_MS);
     return () => {
       window.clearTimeout(a);
       window.clearTimeout(b);
+      window.clearTimeout(c);
     };
   }, [step, reduce]);
 
   // the card's Earth window centroid; the globe opens on the Americas and turns to it on →
   const at = phase !== 'idle' ? { lat: finder.lat, lon: finder.lon } : null;
-  const zoomed = phase === 'zoom' || phase === 'mark';
+  const zoomed = phase === 'zoom' || phase === 'deep' || phase === 'mark';
   const place = finder.earthName.split(',')[0] ?? finder.earthName;
 
   return (
@@ -103,6 +106,8 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
         {/* clipped to a disc so the zoomed surface reads as a round lens */}
         <div className="absolute inset-0 overflow-hidden rounded-full">
           <EarthHero className="absolute inset-0" focus={at} startLon={-65} shadow={false} scan={phase === 'scan'} zoom={zoomed} />
+          {/* the globe crossfades into Sentinel-2 mosaics and zooms on to the true-to-scale window */}
+          <DeepZoom lat={finder.lat} lon={finder.lon} label={`${place}, 5 km window`} play={phase === 'deep' || phase === 'mark'} done={phase === 'mark'} reduce={reduce} />
         </div>
         <motion.div
           aria-hidden
@@ -111,34 +116,8 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
           animate={{ boxShadow: zoomed ? 'inset 0 0 0 1px rgba(26,22,19,0.12), inset 0 0 48px rgba(0,0,0,0.22)' : 'inset 0 0 0 0px rgba(26,22,19,0), inset 0 0 0px rgba(0,0,0,0)' }}
           transition={{ duration: 0.8, ease: EASE }}
         />
-        {/* target marker at the disc centre, where the focused point faces the camera (not to scale) */}
-        <AnimatePresence>
-          {phase === 'mark' ? (
-            <motion.div
-              key="mark"
-              aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2"
-              initial={{ opacity: 0, scale: 1.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: reduce ? 0 : 0.45, ease: EASE }}
-            >
-              <motion.span
-                className="absolute left-0 top-0 block size-8 rounded-full border-[1.5px] border-[#CC5800]"
-                style={{ x: '-50%', y: '-50%' }}
-                animate={reduce ? { opacity: 0.6 } : { scale: [1, 2.6], opacity: [0.8, 0] }}
-                transition={reduce ? { duration: 0 } : { duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
-              />
-              <span
-                className="absolute left-0 top-0 block size-[22px] -translate-x-1/2 -translate-y-1/2 rounded-[2px] border-[1.5px] border-[#CC5800]"
-                style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.55), 0 0 10px 1px rgba(255,138,42,0.7)' }}
-              />
-              <span className="absolute left-5 top-4 whitespace-nowrap rounded-md bg-white/92 px-2 py-0.5 text-sm font-medium text-[#1A1613] shadow-[0_1px_2px_rgba(0,0,0,0.12)]">
-                {place}
-              </span>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        {/* attribution for the deep-zoom imagery, under the lens */}
+        <p className="absolute inset-x-0 -bottom-9 text-center text-xs text-[#A39E95]">Sentinel-2 cloudless 2020 by EOX (CC BY-NC-SA 4.0)</p>
       </div>
       <div className="flex flex-col gap-6">
         <AnimatePresence mode="wait">
