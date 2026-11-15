@@ -338,13 +338,14 @@ describe('pageProblems', () => {
     expect(pageProblems(html, MOCK)).toStrictEqual([]);
   });
 
-  it('accepts every layout label outside <main>: the skip link, the wordmark and the nine navigation links', () => {
+  it('accepts every layout label outside <main>: the skip link, the wordmark and the ten navigation links', () => {
     expect(LAYOUT_LABELS).toStrictEqual([
       'Skip to content',
       'Home',
       'Moon',
       'Mars',
       'Earth',
+      'Probe',
       'Model',
       'Methods',
       'Data',

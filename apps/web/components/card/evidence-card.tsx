@@ -24,6 +24,9 @@ import { FAMILY_ORDER } from './og-text.ts';
 type GateStatus = CardRecord['g5_status'];
 type Family = (typeof FAMILY_ORDER)[number];
 
+// Display rounding to 6 significant digits; the bundle value is unchanged.
+const show = (v: number | string | boolean | null): string => (typeof v === 'number' && !Number.isInteger(v) ? String(Number(v.toPrecision(6))) : String(v));
+
 export interface EvidenceCardViewProps {
   readonly card: CardRecord;
   /** manifest.bundle_version: the card record carries none. */
@@ -148,7 +151,7 @@ function Distances({ card, g5Passed }: { readonly card: CardRecord; readonly g5P
             </div>
             {has ? (
               <p className="font-mono text-3xl leading-none">
-                <span data-slot="value">{String(d.value)}</span>{' '}
+                <span data-slot="value">{show(d.value)}</span>{' '}
                 <span data-slot="unit" className="text-sm text-muted-foreground">
                   {d.unit}
                 </span>
@@ -294,7 +297,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
           <span className="font-mono text-[11px] tracking-[0.24em] text-muted-foreground uppercase">
             Evidence card
           </span>
-          <Badge data-slot="mode-pill">
+          <Badge data-slot="mode-pill" className="h-auto max-w-full py-1 whitespace-normal">
             Mode {card.shipping_mode}: {MODE_TITLES[card.shipping_mode]}
           </Badge>
         </div>
@@ -386,7 +389,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
                     ) : (
                       <>
                         <span data-slot="value" className="font-mono">
-                          {String(m.value)}
+                          {show(m.value)}
                         </span>
                         {m.unit === null ? null : <> {m.unit}</>}
                       </>
@@ -433,7 +436,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
                   </>
                 ) : (
                   <>
-                    {String(r.value)}
+                    {show(r.value)}
                     {r.unit === null ? '' : ` ${r.unit}`}
                   </>
                 )}{' '}

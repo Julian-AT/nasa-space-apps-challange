@@ -16,7 +16,8 @@ export type LoadedBundle = Bundle & { readonly records: ExplorerBundle['records'
 
 function assetBase(): string | null {
   const value = process.env.NEXT_PUBLIC_ASSET_BASE;
-  return value === undefined || value === '' ? null : value;
+  // Default: same-origin copy of the bundle tiles written by bundle:pull (public/assets/<v>/tiles).
+  return value === undefined || value === '' ? '/assets' : value;
 }
 
 const LEAD: Readonly<Record<'moon' | 'mars', string>> = {

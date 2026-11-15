@@ -5,6 +5,8 @@
 // a usage error.
 //
 //   node scripts/bundle-pull.ts [--root <repository root>] [--out <directory>]
+import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
@@ -41,6 +43,16 @@ function main(): number {
     console.log(
       `bundle:pull: copied ${pulledPaths(bundle).join(', ')} from ${source} (bundle_version ${manifest.bundle_version}${label}) to ${outDir}`,
     );
+    // Same-origin tile pyramids (tiles/{layer}/{z}/{x}/{y}.webp, about 1 MB) go to public/assets/<v>/
+    // so the maps work without a CDN; NEXT_PUBLIC_ASSET_BASE overrides this default (public/assets is gitignored).
+    const tiles = join(repoRoot, source, 'tiles');
+    if (out === undefined && existsSync(tiles)) {
+      const dest = fileURLToPath(new URL(`../public/assets/${manifest.bundle_version}/tiles`, import.meta.url));
+      rmSync(fileURLToPath(new URL('../public/assets', import.meta.url)), { recursive: true, force: true });
+      mkdirSync(dest, { recursive: true });
+      cpSync(tiles, dest, { recursive: true });
+      console.log(`bundle:pull: copied tiles/ to ${dest}`);
+    }
     return 0;
   } catch (error) {
     if (error instanceof BundleError) {
