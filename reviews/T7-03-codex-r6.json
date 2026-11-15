@@ -170,7 +170,11 @@
       "claim": "Restrict the head exemption to the actual document root. Criterion 7 and the r5-1 text-accounting fix remain incomplete.",
       "evidence": "By inspection, MOCK_PAGE.replace('<header>', '<html><head>Radar match passed</head></html><header>') is accepted. blockTree records a nested html whose first child is head, so isDocumentHead returns true and strayTexts exempts the added claim. Browsers ignore these misplaced html/head start tags and display the claim in the body. The original whole-body equality rejected this addition. Existing head regressions at tests/page-check.test.ts:316-317 omit the nested html wrapper. Identify the actual document head or reject nested document elements, and add this regression.",
       "id": "codex-r6-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "e0b4937cd33b9acd25093788c079e30829ba6cc7",
+        "reason": "page-check.ts now builds its block tree from the document parse5 8.0.1 builds (HTML Living Standard tree construction; dependency added in 3cb8825), not from a regex tokenizer. The parser keeps a single head and ignores html and head start tags in the body, so their text lands in the body. Only a title in that one document head is left out (isDocumentTitle, page-check.ts:59), and the old whole-head exemption is gone. Regression tests from e2ba0a8 and ae7f913 (tests/page-check.test.ts, from line 344): your fixture MOCK_PAGE.replace('<header>', '<html><head>Radar match passed</head></html><header>') and the same with a <title> are reported as stray text, as are text after the document title, text after </html>, comments ended by <!-->, <!---> or --!>, text between comments that hold script tags, and a lone '<'. A div written inside a banner's p is now expected beside it, where the parser closes the p. All 14 new cases failed before e0b4937 and pass after it."
+      }
     },
     {
       "severity": "blocker",
@@ -178,7 +182,11 @@
       "claim": "Count shipping-mode banners using the same inline-text normalization used to validate them. The once-only assertion can currently be bypassed.",
       "evidence": "By inspection, append '<p>Ship<span>ping</span> mode: B — Terrain analog candidates for Connecting Ridge, with radar context</p>' before REAL_PAGE's </header>. blockTree joins the inline text, so checkBanner accepts both complete mode paragraphs and accounts for both in strayTexts. However, visibleText replaces inline tags with spaces, making the added marker 'Ship ping mode:'; occurrences therefore counts only the original line and pageProblems returns no problems. The original whole-body equality rejected duplicates. Add a duplicate-banner regression with inline markup splitting the marker and enforce uniqueness from the parsed banner text.",
       "id": "codex-r6-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "e0b4937cd33b9acd25093788c079e30829ba6cc7",
+        "reason": "The shipping-mode count and the non-mock 'Mock bundle' check now use the parsed page text, the text of the html block, where inline markup joins up as a browser shows it (page-check.ts:291). visibleText is removed, so no check splits words at inline tags any more. tests/page-check.test.ts:67-81 adds your fixture '<p>Ship<span>ping</span> mode: B — Terrain analog candidates for Connecting Ridge, with radar context</p>' before REAL_PAGE's </header>, which now gives '\"Shipping mode:\" appears 2 times; the page must state its mode once'. It also adds the words split across two blocks, and 'Mo<b>ck</b> bundle' on a bundle that is not mock. The inline case and the mock case failed before e0b4937."
+      }
     }
   ]
 }

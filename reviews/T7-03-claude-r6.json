@@ -158,7 +158,11 @@
       "claim": "The range also contains files outside the story's files list: scripts/ralph/*, logs/agents/*, reviews/* and the t7-shell prd.json and progress.txt.",
       "evidence": "The diff of the whole range lists scripts/ralph/{new-batch.sh,prompt.md,ralph.sh,review.sh}. I did not check which commits touched them. They look like orchestrator or run-record changes, not story code, and the story's own non-merge commits touch only the listed paths.",
       "id": "claude-r6-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "These paths are not the story's changes. `git log --first-parent --no-merges ceeae12..427c541 -- scripts/ralph/new-batch.sh scripts/ralph/prompt.md scripts/ralph/ralph.sh scripts/ralph/review.sh` lists no commit. They arrived through the orchestrator's merge 1c59a9b (Merge branch 'ralph/tooling' into ralph/t7-shell), which brought a6dfe83, c02fb70, c97ca63, 3dc1c63 and 151ee09, all on ralph/integration or ralph/t0b-contracts. reviews/*, logs/agents/* and this batch's prd.json and progress.txt are ralph.sh's own bookkeeping commits. The story's own commits touch only paths in its files list, which ralph.sh checks before review (bounces 0), and c97ca63 makes the reviewers review only those commits."
+      }
     },
     {
       "severity": "low",
@@ -166,7 +170,11 @@
       "claim": "The PRD 4 titles are kept as two copies, MODE_TITLES and PRD4_TITLES.",
       "evidence": "The two copies are identical. The tests compare PRD4_TITLES with PRD.md via tests/prd.ts. I did not verify that the mode-banner test compares MODE_TITLES with PRD.md too. The risk is only drift between the copies.",
       "id": "claude-r6-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Both copies are tied to PRD.md, so neither can drift without make test failing. components/mode-banner.test.tsx:55-58 asserts MODE_TITLES toStrictEqual prd4Titles(), and tests/page-check.test.ts:427 asserts PRD4_TITLES toStrictEqual prd4Titles(). tests/prd.ts reads both from the PRD 4 'Title wording' text in PRD.md. The second copy is on purpose: page-check.ts is make web-smoke's independent check of the rendered page. If it imported the component's MODE_TITLES, a wrong title in the component would pass its own check (page-check.ts:23-26 says this is the check's own copy)."
+      }
     }
   ]
 }
