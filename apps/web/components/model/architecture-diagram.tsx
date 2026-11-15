@@ -24,10 +24,8 @@ export function ArchitectureDiagram({ facts }: { readonly facts: ModelFacts }) {
           height={455}
         />
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        Inputs at the bottom, losses at the top. The grey frame is the repeated residual block. Only
-        the backbone with its L2 normalisation (dashed) is exported to ONNX; the three heads are used in training only, and the body head is trained through a
-        gradient reversal layer so the embedding is pushed not to encode the body.
+      <p className="mx-auto max-w-prose text-center text-xs leading-relaxed text-muted-foreground">
+        Inputs at the bottom, losses at the top; only the dashed backbone ships to the browser as ONNX.
       </p>
     </figure>
     </Card>
