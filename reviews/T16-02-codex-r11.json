@@ -154,7 +154,11 @@
       "claim": "Spaces before a \\verb delimiter leak verbatim content into prose and can bypass the mandatory overlap check.",
       "evidence": "Static trace, not executed: verb_end() uses the character immediately after \\verb or its star as the delimiter. For valid '\\verb |x y|', that character is a space, so the scanner blanks only '\\verb |x ' and leaves 'y|' as prose. Consequently, 'We measure the roughness of lunar \\verb |x y| and martian terrain at baselines from' inserts y between the two six-word halves of the abstract at test_overlap_check.py:27-30, and shared_runs() finds no 12-word run. Similarly, '\\verb |x seamless|' leaks seamless and produces a false lint finding. The pinned v33 bundle's latex.ltx:11086 defines \\@sverb to skip spaces before its delimiter; :11106-11112 routes \\verb through that reader. Existing extraction tests at test_tex_prose.py:102-114 cover only adjacent delimiters. Skip permitted spaces before selecting the delimiter and add extraction and consumer regressions.",
       "id": "codex-r11-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "a9094e5",
+        "reason": "Reproduced: \\verb |x y| took the space as delimiter and left y| in the prose, hiding the 12-word run. latex.ltx (bundle v33) lines 11086 and 11106-11112: \\verb makes the space other before \\@ifstar, and \\@sverb skips spaces before the delimiter. verb_end now skips tabs before the star and spaces and tabs before the delimiter (\\verb |x y|, \\verb* |x|, \\verb *x* are verbatim). Regressions in 1c888fc: extraction cases with line count, unclosed cases, dash, banned-word and question rules, and the overlap run."
+      }
     }
   ]
 }
