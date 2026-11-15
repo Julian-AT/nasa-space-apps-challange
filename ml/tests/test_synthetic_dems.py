@@ -11,6 +11,7 @@ from __future__ import annotations
 import dataclasses
 import math
 import typing
+from typing import Any
 
 import numpy as np
 import pytest
@@ -90,7 +91,7 @@ def test_every_synthetic_dem_is_a_labelled_mock(index: int) -> None:
     # The lookup's sphere is the body's D29 sphere.
     assert dem.lookup.radius_m == BODY_RADII_M[dem.body]
     with pytest.raises(dataclasses.FrozenInstanceError):
-        dem.mock = False  # type: ignore[misc]
+        dem.mock = False  # type: ignore[misc, assignment]
 
 
 @pytest.mark.parametrize("index", range(4))
@@ -215,12 +216,13 @@ def test_the_raster_width_must_be_a_whole_number_of_pixels() -> None:
 
 
 def test_an_unknown_body_is_rejected() -> None:
+    unknown: Any = "venus"
     with pytest.raises(ValueError, match="body"):
         plane_dem(
             seed=0,
-            body="venus",
+            body=unknown,
             center_lat_deg=0.0,
-            center_lon_deg=0.0,  # type: ignore[arg-type]
+            center_lon_deg=0.0,
             half_width_m=100.0,
             pixel_m=10.0,
         )

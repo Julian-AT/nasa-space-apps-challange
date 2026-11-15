@@ -15,6 +15,7 @@ import ast
 import dataclasses
 import math
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -79,7 +80,7 @@ ENCODER_GRID_TERRAIN = TerrainConfig(
 )
 
 
-def assert_close(actual: npt.ArrayLike, expected: npt.ArrayLike) -> None:
+def assert_close(actual: Array, expected: Array) -> None:
     np.testing.assert_allclose(actual, expected, rtol=RTOL, atol=ATOL)
 
 
@@ -183,7 +184,7 @@ def test_sample_window_calls_the_d29_resampler_once_with_the_encoder_grid(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[dict[str, Any]] = []
-    real = dataset.resample_window
+    real: Callable[..., geometry.ResampledGrid] = vars(dataset)["resample_window"]
 
     def spy(*args: Any, **kwargs: Any) -> geometry.ResampledGrid:
         calls.append({"args": args, **kwargs})
@@ -202,7 +203,7 @@ def test_sample_window_calls_the_d29_resampler_once_with_the_encoder_grid(
     assert call["lat0_rad"] == math.radians(-20.0)
     assert call["lon0_rad"] == math.radians(135.0)
     assert call["nodata"] == NODATA_SENTINEL
-    assert dataset.resample_window is spy
+    assert vars(dataset)["resample_window"] is spy
     assert real is geometry.resample_window
     assert window.body_radius_m == BODY_RADII_M["mars"]
 
