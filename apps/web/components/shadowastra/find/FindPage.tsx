@@ -402,18 +402,18 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease: EASE, delay: 0.5 + i * 0.06 }}
                 onClick={() => onPreset(p)}
-                className="surface lift group relative flex min-h-[148px] overflow-hidden rounded-xl text-left"
+                className="surface lift group relative flex overflow-hidden rounded-xl text-left"
               >
-                <div className="relative flex w-full flex-col justify-end p-5">
-                  <div className="flex items-center gap-2 text-[11px] text-chrome">
+                <div className="relative flex w-full flex-col p-5 pr-10">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <WorldDot world={t.body} /> {t.body === "moon" ? "Moon" : "Mars"} · {t.name}
                   </div>
-                  <div className="mt-1.5 flex items-center gap-2 text-[18px] font-medium tracking-tight text-platinum">
-                    <Icon size={17} className="text-flare" /> {p.title}
+                  <div className="mt-2 flex items-center gap-2 text-lg font-medium tracking-tight text-foreground">
+                    <Icon size={17} className="text-primary" /> {p.title}
                   </div>
-                  <div className="mt-1 text-[13px] text-chrome">{p.line}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{p.line}</div>
                 </div>
-                <ArrowRight size={16} className="absolute top-4 right-4 text-chrome transition-transform group-hover:translate-x-0.5 group-hover:text-flare" />
+                <ArrowRight size={16} className="absolute top-5 right-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
               </motion.button>
             );
           })}
@@ -447,7 +447,7 @@ function DestinationStep({ world, setWorld, value, onPick, grid, onNext }: { wor
       <div className="surface mt-5 overflow-hidden rounded-2xl">
         <TargetImage t={t} className="h-40 w-full" span={18} />
         <div className="p-4">
-          <div className="flex items-center gap-2 text-[11px] tracking-wide text-flare uppercase">
+          <div className="flex items-center gap-2 text-xs font-medium text-primary capitalize">
             <WorldDot world={t.body} /> {t.kind}
           </div>
           <div className="mt-1 text-[19px] font-medium tracking-tight">{t.name}</div>
@@ -1287,7 +1287,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
             <Meter value={factor(r.f.dims)} label={r.f.label} kind="computed" />
             <div className="mt-3 grid grid-cols-2 gap-3 text-[12px]">
               <div>
-                <div className="flex items-center gap-1.5 text-[10.5px] tracking-wide text-earth uppercase">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-earth">
                   <WorldDot world="earth" /> This place
                 </div>
                 <dl className="mt-1 space-y-0.5">
@@ -1300,7 +1300,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
                 </dl>
               </div>
               <div>
-                <div className="flex items-center gap-1.5 text-[10.5px] tracking-wide uppercase" style={{ color: `var(--color-${T.body})` }}>
+                <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: `var(--color-${T.body})` }}>
                   <WorldDot world={T.body} /> {T.name}
                 </div>
                 <dl className="mt-1 space-y-0.5">

@@ -203,7 +203,7 @@ const KIND: Record<Kind, { label: string; cls: string; tip: string }> = {
 
 export function KindBadge({ kind }: { kind: Kind }) {
   return (
-    <Badge variant="outline" title={KIND[kind].tip} className={clsx("h-5 shrink-0 px-1.5 text-[10px] font-medium tracking-wide uppercase", KIND[kind].cls)}>
+    <Badge variant="outline" title={KIND[kind].tip} className={clsx("h-5 shrink-0 px-1.5 text-[11px] font-medium capitalize", KIND[kind].cls)}>
       {KIND[kind].label}
     </Badge>
   );
