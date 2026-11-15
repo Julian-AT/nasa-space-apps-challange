@@ -968,7 +968,7 @@ def search(root: Path, also_card: Sequence[str] = ()) -> list[Path]:
                     config_path=config_path,
                 )
             )
-    shortlist_ids = _first_pareto_layer(comparisons)
+    shortlist_ids = _first_pareto_layer(comparisons, root)
     compared = {c.earth_window_id for c in comparisons}
     for wid in also_card:
         if wid not in compared:
@@ -1019,33 +1019,22 @@ def search(root: Path, also_card: Sequence[str] = ()) -> list[Path]:
     return written
 
 
-def _first_pareto_layer(comparisons: list[Any]) -> list[str]:
-    """Earth window ids of the comparisons no other comparison dominates on the terrain
-    families (no worse on both, strictly better on one); matching.pareto_shortlist is used
-    when it exists."""
+def _first_pareto_layer(comparisons: list[Any], root: Path) -> list[str]:
+    """Earth window ids of the first Pareto layer (matching.pareto_shortlist, T4L-04) under
+    the G5 state in outputs/validation.json, so the encoder never ranks unless G5 is PASS."""
+    import json
+
     from terraluna_pipeline import matching
 
-    pareto = getattr(matching, "pareto_shortlist", None)
-    if pareto is not None:
-        result = pareto(comparisons, "NOT_RUN")
-        ids = getattr(result, "shortlist", None) or getattr(result, "earth_window_ids", None)
-        if ids is not None:
-            return sorted(str(i) for i in ids)
-    families = ("terrain_relief", "terrain_texture")
-    points = []
-    for c in comparisons:
-        values = [c.distances_by_family[f].value for f in families]
-        if all(v is not None for v in values):
-            points.append((c.earth_window_id, values))
-    layer = [
-        wid
-        for wid, v in points
-        if not any(
-            all(o[i] <= v[i] for i in range(2)) and any(o[i] < v[i] for i in range(2))
-            for _, o in points
+    g5: Any = None
+    validation = root / "outputs" / "validation.json"
+    if validation.is_file():
+        g5 = next(
+            (g["status"] for g in json.loads(validation.read_text()) if g["gate_id"] == "G5"),
+            None,
         )
-    ]
-    return sorted(layer)
+    result = matching.pareto_shortlist(comparisons, g5)
+    return sorted(result.layers[0]) if result.layers else []
 
 
 def _search_claim_limits(moon: RealWindow, mode: str, region: dict[str, Any]) -> list[str]:
