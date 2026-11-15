@@ -30,7 +30,7 @@ export function NuTable({ caption, series }: { readonly caption: string; readonl
               return (
                 <TableCell key={s.id} data-lag={lag}>
                   {point !== undefined ? (
-                    <span>{point.nu}</span>
+                    <span title={String(point.nu)}>{Number.isInteger(point.nu) ? point.nu : Number(point.nu.toPrecision(6))}</span>
                   ) : gap !== undefined ? (
                     <span>
                       <strong>Unavailable</strong>: {gap.reason}
