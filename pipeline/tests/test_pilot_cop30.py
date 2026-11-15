@@ -119,8 +119,23 @@ terms and conditions of the Licence found <a
 </body></html>"""
 
 
-def registry(collection_url: str) -> str:
-    return f"""<html><body><h1>Copernicus Digital Elevation Model (DEM)</h1>
+def registry_json_ld(collection_url: str) -> str:
+    """The JSON-LD the real registry page carries before its visible text, markup escaped."""
+    licence = (
+        "GLO-30 Public and GLO-90 are available on a free basis for the general public under the "
+        f'terms and conditions of the Licence found on \\u003ca href=\\"{collection_url}\\"'
+        "\\u003ehere\\u003c/a\\u003e."
+    )
+    return (
+        '<script type="application/ld+json">\n{"@type" : "Dataset", '
+        f'"description" : "{DSM_README} {VERSION_SENTENCE}", "license" : "{licence}"}}\n'
+        "</script>"
+    )
+
+
+def registry(collection_url: str, head: str = "") -> str:
+    return f"""<html><head>{head}{registry_json_ld(collection_url)}</head>
+<body><h1>Copernicus Digital Elevation Model (DEM)</h1>
 <h4>Description</h4><p>{DSM_README} {VERSION_SENTENCE}</p>
 <h4>License</h4>
 <p>GLO-30 Public and GLO-90 are available on a free basis for the general public under the
@@ -173,7 +188,12 @@ HOLE = (slice(50, 54), slice(25, 33))
 """A NaN block in the rows and columns the Holuhraun window reads."""
 
 
-def write_tile(path: Path, tile: str) -> npt.NDArray[np.float32]:
+def write_tile(
+    path: Path, tile: str, *, sparse_block: tuple[int, int] | None = None
+) -> npt.NDArray[np.float32]:
+    """The synthetic tile; with ``sparse_block`` (row, column) that internal tile is all zeros
+    and written with SPARSE_OK, so the file does not store it and its tile index states no
+    offset or size for it."""
     rng = np.random.default_rng(sum(tile.encode()))
     rows = np.arange(ROWS, dtype=np.float64)[:, None]
     cols = np.arange(COLUMNS, dtype=np.float64)[None, :]
@@ -181,6 +201,11 @@ def write_tile(path: Path, tile: str) -> npt.NDArray[np.float32]:
         np.float32
     )
     array[HOLE] = np.nan
+    options: dict[str, str] = {}
+    if sparse_block is not None:
+        row, col = sparse_block
+        array[row * TILE : (row + 1) * TILE, col * TILE : (col + 1) * TILE] = 0.0
+        options["SPARSE_OK"] = "TRUE"
     with rasterio.open(
         path,
         "w",
@@ -195,6 +220,7 @@ def write_tile(path: Path, tile: str) -> npt.NDArray[np.float32]:
         compress="deflate",
         predictor=3,
         overview_resampling="average",
+        **options,
     ) as dst:
         dst.write(array, 1)
     return array
@@ -207,6 +233,8 @@ class Content:
     tiles: list[str] = field(default_factory=lambda: [*OTHER_TILES, HOLUHRAUN_TILE, FALLBACK_TILE])
     readme: str = field(default_factory=readme)
     collection: str = field(default_factory=collection)
+    registry_head: str = ""
+    """Extra markup for the registry page's head, which is not visible text."""
     fail: dict[str, int] = field(default_factory=dict)
     """Path prefix -> HTTP status to answer instead."""
 
@@ -249,7 +277,8 @@ class StubHandler(http.server.BaseHTTPRequestHandler):
         elif path == "/readme.html":
             self._send(200, content.readme.encode(), "text/html")
         elif path == "/registry/copernicus-dem/":
-            self._send(200, registry(f"{state.base}/cdse/COP-DEM").encode(), "text/html")
+            page = registry(f"{state.base}/cdse/COP-DEM", content.registry_head)
+            self._send(200, page.encode(), "text/html")
         elif path == "/cdse/COP-DEM":
             self._send(200, content.collection.encode(), "text/html; charset=UTF-8")
         elif tile_match is not None and tile_match.group(1) in state.cogs:
@@ -717,6 +746,66 @@ def test_record_states_the_cog_structure_crs_datum_nodata_and_units(
     units = dem["units"]
     assert units["stated_by_file"] is None
     assert units["product_documentation"]["quote"] == "Vertical Unit: meters"
+
+
+def test_a_touched_tile_the_file_does_not_store_has_unknown_bytes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Block (1, 0) holds rows 32-63 and columns 0-31, which the Holuhraun window reads (HOLE).
+    write_tile(tmp_path / f"served_{HOLUHRAUN_TILE}.tif", HOLUHRAUN_TILE, sparse_block=(1, 0))
+    root, _ = fetch_and_record(tmp_path, monkeypatch)
+    dem = cop30_json(root)["dem"]
+    touched = dem["cog"]["tiles_touched"]
+    by_position = {(t["row"], t["col"]): t for t in touched["tiles"]}
+    unstored = by_position.pop((1, 0))
+    assert (unstored["offset"], unstored["size"]) == (None, None)
+    assert unstored["held_in_ranges"] is None
+    assert by_position
+    assert all(t["size"] > 0 and t["held_in_ranges"] is True for t in by_position.values())
+    assert touched["stored_bytes"] is None
+    budget = dem["live_probe_budget"]
+    assert budget["touched_tile_bytes"] is None
+    assert budget["tiles_touched"] == touched["count"] == len(by_position) + 1
+    assert budget["bytes_fetched"] == dem["range_read"]["bytes_received"] > 0
+
+
+def test_provider_statements_are_read_from_visible_text_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    decoy = (
+        "<style>p::after { content: 'comes from Copernicus DEM 2019 release.' }</style>"
+        "<script>var s = 'Data is provided as Cloud Optimized GeoTIFFs and comes from "
+        "Copernicus DEM 2019 release.';</script>"
+        "<!-- Data is provided as Cloud Optimized GeoTIFFs and comes from Copernicus DEM 2019 "
+        "release. -->"
+    )
+    page = collection().replace(
+        "<body>",
+        "<body><SCRIPT type='application/json'>Vertical EGM96 (EPSG 5773) Vertical Unit: feet"
+        "</SCRIPT>",
+        1,
+    )
+    content = Content(registry_head=decoy, collection=page)
+    root, _ = fetch_and_record(tmp_path, monkeypatch, content)
+    record = cop30_json(root)
+    registry_licence = record["licence"]["registry_licence"]["quote"]
+    assert registry_licence == (
+        "GLO-30 Public and GLO-90 are available on a free basis for the general public under the "
+        "terms and conditions of the Licence found on here ."
+    )
+    assert record["version"]["value"].startswith("Copernicus DEM 2021 release")
+    vertical = record["dem"]["vertical_datum"]["product_documentation"]
+    assert (vertical["datum"], vertical["epsg"]) == ("EGM2008", 3855)
+    assert record["dem"]["units"]["product_documentation"]["quote"] == "Vertical Unit: meters"
+    (product,) = [r for r in sources(root) if r.product_id.startswith("COP30/")]
+    assert "2021 release" in product.version and "2019" not in product.version
+
+
+def test_the_registry_licence_quote_is_the_visible_sentence(recorded: tuple[Path, Stub]) -> None:
+    root, _ = recorded
+    quote = cop30_json(root)["licence"]["registry_licence"]["quote"]
+    assert quote.endswith("Licence found on here .")
+    assert "\\u003c" not in quote and "href" not in quote and "<" not in quote
 
 
 def test_record_states_the_budget_and_the_surface_model_caveat(

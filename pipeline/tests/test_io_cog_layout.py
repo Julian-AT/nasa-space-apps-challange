@@ -44,6 +44,8 @@ TILE = 256
 BLOCK = 8192
 WINDOW = Window(200, 250, 100, 30)
 """Columns 200-299 and rows 250-279: block columns 0 and 1, block rows 0 and 1."""
+SPARSE_BLOCK = (0, 1)
+"""A block WINDOW touches, which the sparse COG does not store."""
 
 _LOOPBACK = {"127.0.0.1", "localhost", "::1"}
 
@@ -63,10 +65,22 @@ def no_network(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("no_proxy", "*")
 
 
-def write_cog(path: Path) -> npt.NDArray[np.float32]:
-    """A 600 x 700 EPSG:4326 COG in 256 x 256 tiles, deflate without a predictor."""
+def write_cog(
+    path: Path, *, sparse_block: tuple[int, int] | None = None
+) -> npt.NDArray[np.float32]:
+    """A 600 x 700 EPSG:4326 COG in 256 x 256 tiles, deflate without a predictor.
+
+    With ``sparse_block`` (row, column), that block is all zeros and the file is written with
+    SPARSE_OK, so GDAL leaves the block out of the file and its tile index states no offset or
+    size for it.
+    """
     rng = np.random.default_rng(23)
     array = rng.normal(800.0, 30.0, (HEIGHT, WIDTH)).astype(np.float32)
+    options: dict[str, str] = {}
+    if sparse_block is not None:
+        row, col = sparse_block
+        array[row * TILE : (row + 1) * TILE, col * TILE : (col + 1) * TILE] = 0.0
+        options["SPARSE_OK"] = "TRUE"
     with rasterio.open(
         path,
         "w",
@@ -81,6 +95,7 @@ def write_cog(path: Path) -> npt.NDArray[np.float32]:
         compress="deflate",
         predictor=1,
         overview_resampling="nearest",
+        **options,
     ) as dst:
         dst.write(array, 1)
     return array
@@ -125,7 +140,17 @@ class Served:
 @pytest.fixture
 def served(tmp_path: Path) -> Iterator[Served]:
     path = tmp_path / "dem.tif"
-    array = write_cog(path)
+    yield from serve(path, write_cog(path))
+
+
+@pytest.fixture
+def served_sparse(tmp_path: Path) -> Iterator[Served]:
+    """The COG with block (0, 1), which WINDOW touches, left out of the file (SPARSE_OK)."""
+    path = tmp_path / "sparse.tif"
+    yield from serve(path, write_cog(path, sparse_block=SPARSE_BLOCK))
+
+
+def serve(path: Path, array: npt.NDArray[np.float32]) -> Iterator[Served]:
     state = RangeServer(body=path.read_bytes())
     handler = type("Handler", (RangeHandler,), {"state": state})
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
@@ -185,9 +210,57 @@ def test_the_touched_blocks_hold_exactly_the_tile_bytes(tmp_path: Path) -> None:
         rows = slice(block.row * TILE, (block.row + 1) * TILE)
         cols = slice(block.col * TILE, (block.col + 1) * TILE)
         assert tile == array[rows, cols].astype("<f4").tobytes()
-    assert layout.stored_bytes == sum(
-        block.size for block in layout.blocks if block.size is not None
+    assert layout.stored_bytes == sum(block.size for block in layout.blocks if block.size)
+
+
+def test_a_block_the_file_does_not_store_has_no_offset_or_size(tmp_path: Path) -> None:
+    path = tmp_path / "sparse.tif"
+    write_cog(path, sparse_block=SPARSE_BLOCK)
+    layout = read_cog_layout(path, WINDOW)
+    by_position = {(block.row, block.col): block for block in layout.blocks}
+    assert set(by_position) == {(0, 0), (0, 1), (1, 0), (1, 1)}
+    unstored = by_position.pop(SPARSE_BLOCK)
+    assert (unstored.offset, unstored.size) == (None, None)
+    for block in by_position.values():
+        assert block.offset is not None and block.size is not None and block.size > 0
+
+
+def test_the_stored_bytes_of_a_window_with_an_unstated_block_size_are_unknown(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "sparse.tif"
+    write_cog(path, sparse_block=SPARSE_BLOCK)
+    layout = read_cog_layout(path, WINDOW)
+    assert layout.stored_bytes is None
+
+
+@pytest.mark.parametrize(
+    ("sizes", "stored"),
+    [
+        ([(100, 7), (107, 5)], 12),
+        ([(100, 7), (None, None)], None),
+        ([(None, None), (None, None)], None),
+        ([(100, 7), (107, None)], None),
+    ],
+)
+def test_stored_bytes_are_a_sum_only_when_every_block_size_is_stated(
+    sizes: list[tuple[int | None, int | None]], stored: int | None
+) -> None:
+    layout = CogLayout(
+        width=512,
+        height=256,
+        band=1,
+        block_shape=(256, 256),
+        blocks_across=2,
+        blocks_down=1,
+        overviews=(),
+        window=(0, 0, 512, 256),
+        blocks=tuple(
+            CogBlock(row=0, col=col, offset=offset, size=size)
+            for col, (offset, size) in enumerate(sizes)
+        ),
     )
+    assert layout.stored_bytes == stored
 
 
 @pytest.mark.parametrize(
@@ -288,6 +361,19 @@ def test_every_touched_block_is_held_in_the_stored_ranges(served: Served) -> Non
     for block in result.layout.blocks:
         assert block.offset is not None and block.size is not None
         assert result.ranges.holds(block.offset, block.offset + block.size - 1)
+
+
+def test_the_remote_read_of_a_sparse_cog_reports_the_unstored_block(
+    served_sparse: Served,
+) -> None:
+    result = read_remote_cog_window(served_sparse.url, choose, block_bytes=BLOCK)
+    assert result.layout is not None
+    assert result.layout == read_cog_layout(served_sparse.path, WINDOW)
+    by_position = {(block.row, block.col): block for block in result.layout.blocks}
+    assert (by_position[SPARSE_BLOCK].offset, by_position[SPARSE_BLOCK].size) == (None, None)
+    assert result.layout.stored_bytes is None
+    assert np.array_equal(result.band.array, served_sparse.array[250:280, 200:300])
+    assert not result.ranges.covers_whole_file
 
 
 def test_the_exchanges_are_tagged_header_then_window(served: Served) -> None:
