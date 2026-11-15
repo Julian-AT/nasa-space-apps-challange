@@ -491,3 +491,12 @@ def test_unreachable_bucket_exits_non_zero_naming_the_url(
 def test_source_is_frozen() -> None:
     with pytest.raises(dataclasses.FrozenInstanceError):
         pilot.CorsSource().range_header = "bytes=0-1"  # type: ignore[misc]
+
+
+def test_an_s3_error_message_in_the_body_is_quoted(disabled: tuple[Path, Stub]) -> None:
+    root, _ = disabled
+    origin = url_entry(cors_json(root), "glo30")["origins"][0]
+    assert origin["preflight"]["body"]["error_message"] == (
+        "CORSResponse: CORS is not enabled for this bucket."
+    )
+    assert origin["range_get"]["body"]["error_message"] is None
