@@ -73,7 +73,7 @@ function cell(element: Element): Cell {
 }
 
 function cellsOf(row: Element): Cell[] {
-  return row.childNodes.filter(defaultTreeAdapter.isElementNode).map(cell);
+  return row.childNodes.filter((node) => defaultTreeAdapter.isElementNode(node)).map(cell);
 }
 
 function readTable(html: string): Table {
