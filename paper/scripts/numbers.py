@@ -428,76 +428,101 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
         "/counts_by_body_split/earth/train",
         ",d",
     ),
-    ArtifactMacro("TrainEpochs", "outputs/ml/train/summary.json", "/epochs", "?d"),
-    ArtifactMacro("TrainBatch", "outputs/ml/train/summary.json", "/batch_size", "?d"),
-    ArtifactMacro("TrainHours", "outputs/ml/train/summary.json", "/wall_hours", "?.1f"),
-    ArtifactMacro("TrainDevice", "outputs/ml/train/summary.json", "/device", "?text"),
-    ArtifactMacro("EncoderParams", "outputs/ml/train/summary.json", "/parameters", "?,d"),
+    ArtifactMacro(
+        "TrainEpochs",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/model/config/epochs",
+        "?d",
+    ),
+    ArtifactMacro(
+        "TrainBatch",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/model/config/batch_size",
+        "?d",
+    ),
+    ArtifactMacro(
+        "TrainHours",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/run_record/gpu_hours",
+        "?.1f",
+    ),
+    ArtifactMacro(
+        "TrainDevice",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/model/config/device",
+        "?text",
+    ),
+    ArtifactMacro(
+        "EncoderParams",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/model/parameter_count",
+        "?,d",
+    ),
     ArtifactMacro(
         "EncoderPhysRReliefMin",
-        "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/physics_probe/encoder/relief_r2_lower_min",
+        "outputs/ml/evaluation/test/g5_conditions.json",
+        "/conditions/[condition=1]/observed",
         "?.2f",
     ),
     ArtifactMacro(
         "ResNetPhysRReliefMin",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/physics_probe/imagenet_resnet18/relief_r2_lower_min",
-        "?.2f",
+        "/tests/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/baselines/[name=imagenet_resnet18]/ci_low",
+        "?min:.2f",
     ),
     ArtifactMacro(
         "DinoPhysRReliefMin",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/physics_probe/dino_vits8/relief_r2_lower_min",
-        "?.2f",
+        "/tests/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/baselines/[name=dino_vits8]/ci_low",
+        "?min:.2f",
     ),
     ArtifactMacro(
         "RandomPhysRReliefMin",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/physics_probe/random_init/relief_r2_lower_min",
-        "?.2f",
+        "/tests/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/baselines/[name=random_init]/ci_low",
+        "?min:.2f",
     ),
     ArtifactMacro(
         "EncoderMorphGain",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/morphology_probe/encoder/gain",
+        "/tests/[test_id=morphology_probe,measure=r2_gain_over_fingerprint_ridge]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "EncoderBodyAcc",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/body_probe/encoder/balanced_accuracy",
+        "/tests/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "NoAdvBodyAcc",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/body_probe/lambda_zero/balanced_accuracy",
+        "/tests/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/baselines/[name=lambda_0]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "EncoderAgreementRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/physics_agreement/spearman_rho",
+        "/tests/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "EncoderSeedJaccard",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/seed_stability/jaccard20",
+        "/tests/[test_id=seed_stability,measure=jaccard_at_20_mean]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "EncoderTargetJaccard",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/target_retrieval/jaccard20",
+        "/tests/[test_id=target_retrieval,measure=jaccard_at_20]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "HeldOutMarsR",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/held_out_body/mars/relief_r2",
-        "?.2f",
+        "/tests/[*test_id=held_out_body,body=mars]/value",
+        "?min:.2f",
     ),
     ArtifactMacro(
         "GFiveVerdict", "outputs/ml/evaluation/test/g5_conditions.json", "/status", "?text"
@@ -589,128 +614,128 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ),
     ArtifactMacro(
         "VarMainPhysR",
-        "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/main/relief_r2_lower_min",
+        "outputs/ml/evaluation/test/g5_conditions.json",
+        "/conditions/[condition=1]/observed",
         "?.2f",
     ),
     ArtifactMacro(
         "VarMainBodyAcc",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/main/body_balanced_accuracy",
+        "/tests/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarMainRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/main/physics_agreement_rho",
+        "/tests/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarNoPhysPhysR",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/no_physics_head/relief_r2_lower_min",
-        "?.2f",
+        "/arms/no_phys_head/runs/no_phys_head~1seed0/records/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low",
+        "?min:.2f",
     ),
     ArtifactMacro(
         "VarNoPhysBodyAcc",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/no_physics_head/body_balanced_accuracy",
+        "/arms/no_phys_head/runs/no_phys_head~1seed0/records/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarNoPhysRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/no_physics_head/physics_agreement_rho",
+        "/arms/no_phys_head/runs/no_phys_head~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarLambdaZeroPhysR",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/lambda_zero/relief_r2_lower_min",
-        "?.2f",
+        "/arms/lambda_0/runs/lambda_0~1seed0/records/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low",
+        "?min:.2f",
     ),
     ArtifactMacro(
         "VarLambdaZeroBodyAcc",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/lambda_zero/body_balanced_accuracy",
+        "/arms/lambda_0/runs/lambda_0~1seed0/records/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarLambdaZeroRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/lambda_zero/physics_agreement_rho",
+        "/arms/lambda_0/runs/lambda_0~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarVicregOnlyPhysR",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/vicreg_only/relief_r2_lower_min",
-        "?.2f",
+        "/arms/vicreg_only/runs/vicreg_only~1seed0/records/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low",
+        "?min:.2f",
     ),
     ArtifactMacro(
         "VarVicregOnlyBodyAcc",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/vicreg_only/body_balanced_accuracy",
+        "/arms/vicreg_only/runs/vicreg_only~1seed0/records/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarVicregOnlyRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/vicreg_only/physics_agreement_rho",
+        "/arms/vicreg_only/runs/vicreg_only~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarPhysOnlyPhysR",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/physics_only/relief_r2_lower_min",
-        "?.2f",
+        "/arms/physics_only/runs/physics_only~1seed0/records/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low",
+        "?min:.2f",
     ),
     ArtifactMacro(
         "VarPhysOnlyBodyAcc",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/physics_only/body_balanced_accuracy",
+        "/arms/physics_only/runs/physics_only~1seed0/records/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarPhysOnlyRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/physics_only/physics_agreement_rho",
+        "/arms/physics_only/runs/physics_only~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarLambdaOnePhysR",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/lambda_one/relief_r2_lower_min",
-        "?.2f",
+        "/arms/lambda_1/runs/lambda_1~1seed0/records/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low",
+        "?min:.2f",
     ),
     ArtifactMacro(
         "VarLambdaOneBodyAcc",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/lambda_one/body_balanced_accuracy",
+        "/arms/lambda_1/runs/lambda_1~1seed0/records/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarLambdaOneRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/lambda_one/physics_agreement_rho",
+        "/arms/lambda_1/runs/lambda_1~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarLambdaTenthPhysR",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/lambda_point_one/relief_r2_lower_min",
-        "?.2f",
+        "/arms/lambda_0.1/runs/lambda_0.1~1seed0/records/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low",
+        "?min:.2f",
     ),
     ArtifactMacro(
         "VarLambdaTenthBodyAcc",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/lambda_point_one/body_balanced_accuracy",
+        "/arms/lambda_0.1/runs/lambda_0.1~1seed0/records/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
         "VarLambdaTenthRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/variations/lambda_point_one/physics_agreement_rho",
+        "/arms/lambda_0.1/runs/lambda_0.1~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
@@ -1666,32 +1691,55 @@ AGGREGATES = ("min:", "max:", "median:", "n:", "span:")
 SELECTOR = re.compile(r"/\[([^\]]+)\]")
 
 
-def select(document: object, pointer: str) -> tuple[object, str]:
-    """Resolve every "[key=value,...]" segment: the one array element whose fields match.
+def matches(item: object, conditions: str) -> bool:
+    """key=value compares str(field) exactly; key^=prefix compares the start of str(field)."""
+    if not isinstance(item, dict):
+        return False
+    for part in conditions.split(","):
+        if "^=" in part:
+            key, prefix = part.split("^=", 1)
+            if not str(item.get(key)).startswith(prefix):
+                return False
+        else:
+            key, value = part.split("=", 1)
+            if str(item.get(key)) != value:
+                return False
+    return True
 
-    Returns the document reached after the last selector and the rest of the pointer. Zero or
-    several matching elements are an error, so a selector never picks an element silently.
+
+def select(document: object, pointer: str) -> object:
+    """Resolve a pointer with "[key=value,...]" segments.
+
+    "[...]" picks the one array element whose fields match; zero or several matches are an
+    error, so a selector never picks an element silently. "[*...]" keeps every match (at least
+    one) and maps the rest of the pointer over them, giving an array for min:, max: or median:.
     """
-    while (match := SELECTOR.search(pointer)) is not None:
-        items = resolve(document, pointer[: match.start()])
-        if not isinstance(items, list):
-            raise MacroError(f"pointer {pointer!r}: the selector needs an array")
-        wanted = dict(part.split("=", 1) for part in match.group(1).split(","))
-        hits = [
-            item
-            for item in items
-            if isinstance(item, dict)
-            and all(str(item.get(key)) == value for key, value in wanted.items())
-        ]
-        if len(hits) != 1:
-            raise MacroError(f"pointer {pointer!r}: {len(hits)} elements match {wanted}")
-        document, pointer = hits[0], pointer[match.end() :]
-    return document, pointer
+    match = SELECTOR.search(pointer)
+    if match is None:
+        return resolve_star(document, pointer)
+    items = resolve(document, pointer[: match.start()])
+    if not isinstance(items, list):
+        raise MacroError(f"pointer {pointer!r}: the selector needs an array")
+    conditions = match.group(1)
+    many = conditions.startswith("*")
+    hits = [item for item in items if matches(item, conditions.removeprefix("*"))]
+    rest = pointer[match.end() :]
+    if many:
+        if not hits:
+            raise MacroError(f"pointer {pointer!r}: no element matches {conditions}")
+        return [select(hit, rest) for hit in hits]
+    if len(hits) != 1:
+        raise MacroError(f"pointer {pointer!r}: {len(hits)} elements match {conditions}")
+    return select(hits[0], rest)
 
 
 def resolve_artifact(document: object, pointer: str) -> object:
     """resolve(), plus "[key=value]" selectors and one "/*" segment mapped over an array."""
-    document, pointer = select(document, pointer)
+    return select(document, pointer)
+
+
+def resolve_star(document: object, pointer: str) -> object:
+    """resolve(), plus one "/*" segment that maps the rest of the pointer over an array."""
     if "/*" not in pointer:
         return resolve(document, pointer)
     head, _, rest = pointer.partition("/*")

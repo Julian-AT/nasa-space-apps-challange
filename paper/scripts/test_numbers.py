@@ -581,3 +581,16 @@ def test_selector_picks_the_one_matching_element(tmp_path: Path) -> None:
     assert "{\\B}{0.7}" in text and "{\\Body}{0.4}" in text
     bad = (artifact("X", "m.json", "/tests/[test_id=physics_probe]/value", ".1f"),)
     assert run_artifacts(tmp_path, bad)[0] == 1
+
+
+def test_multi_selector_with_prefix_feeds_an_aggregate(tmp_path: Path) -> None:
+    tests = [
+        {"test_id": "physics_probe", "target": "log_nu_relief_270", "ci_low": 0.6},
+        {"test_id": "physics_probe", "target": "log_nu_relief_1080", "ci_low": 0.4},
+        {"test_id": "physics_probe", "target": "log_nu_texture_270", "ci_low": 0.1},
+    ]
+    (tmp_path / "m.json").write_text(json.dumps({"tests": tests}))
+    pointer = "/tests/[*test_id=physics_probe,target^=log_nu_relief_]/ci_low"
+    status, text = run_artifacts(tmp_path, (artifact("Lo", "m.json", pointer, "min:.1f"),))
+    assert status == 0
+    assert "{\\Lo}{0.4}" in text
