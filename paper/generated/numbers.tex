@@ -4,7 +4,7 @@
 % Artifact outputs/g0/earth-radar-roi.json sha256 b6b4d32cf3aabf475de896f6608a3194f5bd4ba41611c5e014c654f662194d69.
 % Artifact outputs/pilot/minirf_mosaic.json sha256 7ca9debe596749ff41004f89d5e0023a5ca51d0f28d25d029cefcf3ebd2833f7.
 % Artifact config/run.yaml sha256 e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e.
-% Artifact outputs/ml/dataset/manifest.json: not present.
+% Artifact outputs/ml/dataset/manifest.json sha256 53f0c2614945436ba7e89460ed365d1aefa7e86b55ed34c9a58f0a65d5227b3e.
 % Artifact outputs/ml/train/summary.json: not present.
 % Artifact outputs/ml/evaluation/test/evaluation_metrics.json: not present.
 % Artifact outputs/ml/evaluation/test/g5_conditions.json: not present.
@@ -97,10 +97,9 @@
 \newcommand{\GFiveRhoMin}{0.5}
 \newcommand{\GFiveJaccardMin}{0.5}
 \newcommand{\ConfigShippingMode}{C}
-\newcommand{\DatasetMoonWindows}{\NotAvailable}
-\newcommand{\DatasetMarsWindows}{\NotAvailable}
-\newcommand{\DatasetEarthWindows}{\NotAvailable}
-\newcommand{\DatasetTestWindows}{\NotAvailable}
+\newcommand{\DatasetMoonWindows}{6,848}
+\newcommand{\DatasetMarsWindows}{1,398}
+\newcommand{\DatasetEarthWindows}{11,147}
 \newcommand{\TrainEpochs}{\NotAvailable}
 \newcommand{\TrainBatch}{\NotAvailable}
 \newcommand{\TrainHours}{\NotAvailable}
@@ -226,6 +225,14 @@
 \newcommand{\HoluhraunRubblyMedian}{0.40}
 \newcommand{\HoluhraunSpinyMedian}{0.40}
 \newcommand{\HoluhraunUndiffMedian}{0.42}
+\newcommand{\DatasetWindows}{28,843}
+\newcommand{\DatasetCpuHours}{1.1}
+\newcommand{\DatasetMoonVal}{2,418}
+\newcommand{\DatasetMoonTest}{2,937}
+\newcommand{\DatasetMarsVal}{364}
+\newcommand{\DatasetMarsTest}{726}
+\newcommand{\DatasetEarthVal}{2,760}
+\newcommand{\DatasetEarthTest}{244}
 \newcommand{\GateZeroStatus}{PASS}
 \newcommand{\GateOneStatus}{PASS}
 \newcommand{\GateTwoStatus}{NOT\_RUN}

@@ -411,15 +411,23 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro("GFiveJaccardMin", "config/run.yaml", "/ml/g5/seed_jaccard20_min", ".1f"),
     ArtifactMacro("ConfigShippingMode", "config/run.yaml", "/run/shipping_mode", "text"),
     ArtifactMacro(
-        "DatasetMoonWindows", "outputs/ml/dataset/manifest.json", "/counts/moon/total", "?,d"
+        "DatasetMoonWindows",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/moon/train",
+        ",d",
     ),
     ArtifactMacro(
-        "DatasetMarsWindows", "outputs/ml/dataset/manifest.json", "/counts/mars/total", "?,d"
+        "DatasetMarsWindows",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/mars/train",
+        ",d",
     ),
     ArtifactMacro(
-        "DatasetEarthWindows", "outputs/ml/dataset/manifest.json", "/counts/earth/total", "?,d"
+        "DatasetEarthWindows",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/earth/train",
+        ",d",
     ),
-    ArtifactMacro("DatasetTestWindows", "outputs/ml/dataset/manifest.json", "/counts/test", "?,d"),
     ArtifactMacro("TrainEpochs", "outputs/ml/train/summary.json", "/epochs", "?d"),
     ArtifactMacro("TrainBatch", "outputs/ml/train/summary.json", "/batch_size", "?d"),
     ArtifactMacro("TrainHours", "outputs/ml/train/summary.json", "/wall_hours", "?.1f"),
@@ -1111,6 +1119,40 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
         "analysis/holuhraun_reproduction.json",
         "/variants/boxcar3x3/per_facies/undifferentiated/cpr/median",
         ".2f",
+    ),
+    ArtifactMacro("DatasetWindows", "outputs/ml/dataset/manifest.json", "/n_windows", ",d"),
+    ArtifactMacro(
+        "DatasetCpuHours", "outputs/ml/dataset/manifest.json", "/cpu_hours_upper_bound", ".1f"
+    ),
+    ArtifactMacro(
+        "DatasetMoonVal", "outputs/ml/dataset/manifest.json", "/counts_by_body_split/moon/val", ",d"
+    ),
+    ArtifactMacro(
+        "DatasetMoonTest",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/moon/test",
+        ",d",
+    ),
+    ArtifactMacro(
+        "DatasetMarsVal", "outputs/ml/dataset/manifest.json", "/counts_by_body_split/mars/val", ",d"
+    ),
+    ArtifactMacro(
+        "DatasetMarsTest",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/mars/test",
+        ",d",
+    ),
+    ArtifactMacro(
+        "DatasetEarthVal",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/earth/val",
+        ",d",
+    ),
+    ArtifactMacro(
+        "DatasetEarthTest",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/earth/test",
+        ",d",
     ),
     ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
     ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
