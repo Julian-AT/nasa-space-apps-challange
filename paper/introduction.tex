@@ -5,24 +5,17 @@
 
 Crews and rovers rehearse on Earth before they work on the Moon or Mars, and the value of a
 rehearsal depends on how well the Earth site stands in for the target. Connecting Ridge, one of
-the candidate Artemis III landing regions near the lunar south pole \citep{nasa2022artemis}, has
-high resolution laser altimetry \citep{barker2021} but no surface that anyone has walked on. The
+the candidate Artemis III landing regions near the lunar south pole \citep{nasa2022artemis}, has elevation models at 5 m per pixel built from laser altimetry alone \citep{barker2021}. The
 practical question is which Earth surfaces are worth visiting to learn about such a site, and on
 what evidence. Analog sites are usually proposed from geological reasoning and then argued for
 qualitatively. Quantitative studies show how hard the comparison is: even three lava facies at
 one Icelandic flow field overlap by 88\% to 89\% in their radar polarization ratio
 \citep{tolometti2022holuhraun}.
 
-Roughness statistics are the natural quantitative starting point. The structure function of
-elevation and its Hurst exponent are defined on every body with altimetry or stereo terrain models
-\citep{shepard2001,rosenburg2011,kreslavsky2000}, and they can be measured the same way on the
-Moon, on Mars and on Earth. They are second order statistics, however. They summarise how height
+Roughness statistics are the natural quantitative starting point. Roughness has been reported at stated baselines from terrain data on Earth, the Moon and Mars \citep{shepard2001,rosenburg2011,kreslavsky2000}, and the structure function of elevation and its Hurst exponent can be measured the same way on all three bodies. They are second order statistics, however. They summarise how height
 differences grow with lag and say nothing about whether a surface is cratered, ridged or covered
 in flows, so two windows can match in every statistic and still differ in the morphology that
-matters for a traverse. Learned representations can carry morphology, but planetary models have
-been trained within one body \citep{gironamata2026,fraccaro2026} and terrain analog retrieval
-within one planet \citep{liu2026}, and a learned similarity is only useful if it can be checked
-against physics.
+matters for a traverse. Learned representations can carry morphology. Recent lunar foundation models are trained on lunar data \citep{gironamata2026,fraccaro2026}, and a learned terrain analog retrieval works between two terrestrial regions \citep{liu2026}; a learned similarity across bodies is only useful if it can be checked against physics.
 
 We study both routes on one lunar target, under one set of declared rules: every distance names
 its observable and its supported lags, missing evidence is never read as zero, and every number in

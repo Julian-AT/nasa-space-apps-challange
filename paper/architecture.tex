@@ -34,7 +34,7 @@ batch of $n$ windows and dimension $d$, the VICReg loss \citep{bardes2021} is
   c(z) = \frac{1}{d} \sum_{j \neq k} \operatorname{Cov}(z)_{jk}^2,
   \nonumber
 \end{align}
-with the published coefficients $\lambda_{\mathrm{inv}} = \lambda_{\mathrm{var}} = 25$ and
+with coefficients $\lambda_{\mathrm{inv}} = \lambda_{\mathrm{var}} = 25$ and
 $\lambda_{\mathrm{cov}} = 1$. The physics loss is a masked mean squared error over the targets $y$
 that exist for a window, for both views,
 \begin{equation}

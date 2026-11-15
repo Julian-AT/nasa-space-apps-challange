@@ -18,8 +18,7 @@ changes, the breakover typically sits near a 1 km baseline \citep{rosenburg2011}
 exponent is 0.95 in the highlands and 0.76 in the maria \citep{rosenburg2011}. \citet{kreslavsky2013}
 mapped lunar roughness from LOLA profile curvature at baselines from 115 m to 1.8 km and found that
 hectometre and kilometre roughness correlate poorly, because they record different processes and
-ages. On Mars, \citet{kreslavsky2000} measured kilometre scale roughness from MOLA as the median
-differential slope over baselines from 0.6 km to about 20 km and showed that geological units
+ages. On Mars, \citet{kreslavsky2000} measured kilometre scale roughness from MOLA as the median absolute differential slope over baselines from 0.6 km to about 20 km and showed that geological units
 have distinct roughness and distinct scale dependence. Field measurements give the same caution
 at smaller scales: lava flow roughness behaves as a self affine surface only over a limited range
 of lengths, and the smallest scales follow different statistics \citep{campbell1996}. A Hurst
@@ -33,15 +32,13 @@ Orbiter is a hybrid polarity synthetic aperture radar that measures the Stokes p
 echo \citep{nozette2010}. From them, the circular polarization ratio (CPR) of the same sense to
 the opposite sense return is formed, and the m-chi decomposition interprets the echo through the degree of polarization and the
 Poincar\'e ellipticity parameter \citep{raney2012}. CPR is sensitive to structure near the radar wavelength. Real CPR values above
-unity occur on the Moon, on Venus and on terrestrial lava flows, produced by scattering from rock
-edges and between rock facets \citep{campbell2012}. Lunar impact melt flows typically have high
+unity occur on the Moon, on Venus and on terrestrial lava flows, and scattering from rock edges and between rock facets can explain them \citep{campbell2012}. Lunar impact melt flows typically have high
 CPR, so deposits that look smooth in optical images may be rough at centimetre to decimetre scales
 \citep{carter2012}.
 
 CPR is not a direct measure of rock size. Viewing geometry shifts it: across the inner wall of a
 bowl shaped crater the local incidence angle changes by about 30 degrees, which can change CPR by
-about 0.2 \citep{fa2013}. The same study attributes the enhanced CPR inside anomalous polar
-craters mostly to rocks perched on or buried in the regolith, rather than to ice \citep{fa2013}.
+about 0.2 \citep{fa2013}. The same study attributes the enhanced CPR inside anomalous craters most probably to rocks perched on or buried in the regolith, rather than to ice \citep{fa2013}.
 Across the lunar highlands, \citet{riveravalentin2026} found that CPR rises quickly with rock
 abundance at low abundance, then levels off and can fall over rock rich terrain, so a CPR of 0.8
 may correspond to a rock abundance of about 0.7\% or about 10\%. They show that several
@@ -49,9 +46,7 @@ polarimetric properties used together resolve this ambiguity \citep{riveravalent
 mosaics also depend on how terrain effects are handled. \citet{fassett2024} orthorectified the
 archived monostatic data onto lunar topography and reduced topographic effects with an empirical
 correction based on the known effect of incidence angle.
-Learned inversions inherit the same geometry dependence: comparing east and west looking polar
-mosaics gives a look direction uncertainty of 1.01 in the real part of the inferred dielectric
-constant \citep{shukla2024}.
+A learned inversion inherits the same geometry dependence: for a deep learning inversion of Mini-RF mosaics, comparing east and west looking polar mosaics gives a look direction uncertainty of 1.01 in the real part of the inferred dielectric constant \citep{shukla2024}.
 
 \subsection{Quantitative analog studies}
 
@@ -81,10 +76,7 @@ explicit variance term on every embedding dimension to an invariance term and a 
 that decorrelates dimensions \citep{bardes2021}. DINO trains a Vision
 Transformer by self distillation without labels, and its features work well as nearest neighbour
 classifiers \citep{caron2021}. Domain-adversarial training addresses a
-different problem: a gradient reversal layer between a feature extractor and a domain classifier
-makes the features useful for the main task while uninformative about the domain
-\citep{ganin2015}. The two ideas combine naturally when the domains are planetary bodies and the
-aim is an embedding of terrain that does not encode which body a window came from.
+different problem: a gradient reversal layer makes the learned features discriminative for the main task while indiscriminate with respect to the shift between domains \citep{ganin2015}.
 
 \subsection{Learned planetary and terrain representations}
 
@@ -93,12 +85,10 @@ masked autoencoder that maps 18 channels from six instruments on three lunar mis
 shared 768 dimensional embedding, with a training set spanning 70 degrees south to 70 degrees
 north \citep{gironamata2026}. SomBench assembles more than 30 co-registered lunar layers into
 machine learning ready tiles with leakage safe splits \citep{patil2026}, and a lunar foundation
-model was pretrained on its tiles at 1 m and 100 m per pixel \citep{fraccaro2026}. Crater retrieval benchmarks show that self-supervised Vision Transformers
-with in-domain pretraining outperform larger generic models \citep{fang2026}. On Earth, topo2vec
+model was pretrained on its tiles at 1 m and 100 m per pixel \citep{fraccaro2026}. On the CraterBench-R retrieval benchmark, self-supervised Vision Transformers with in-domain pretraining outperform larger generic models \citep{fang2026}. topo2vec
 learns embeddings of elevation data with self-supervision built on the fractal assumption that
 structures recur across scales \citep{kavitzky2021}. GEAR retrieves terrestrial topographic analogs
 of the Mariana Trench on the Qinghai-Tibet Plateau with a Siamese graph network and an expert
 annotated similarity dataset \citep{liu2026}. Optical surveys at the boulder scale complement
 these models: a convolutional network mapped about 94 million boulders in images between
-60 degrees south and 60 degrees north \citep{aussel2025}. Section~\ref{sec:embedding} compares the
-inputs, training signals and invariances of these models with those of the encoder studied here.
+60 degrees south and 60 degrees north \citep{aussel2025}. 

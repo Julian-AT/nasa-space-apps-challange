@@ -17,13 +17,12 @@ provider's error clones measure this uncertainty under the published error model
 propagated to the shortlist distances, but not to the background or to the encoder.
 
 \paragraph{Earth surface model.} Copernicus GLO-30 is a digital surface model, so canopy, buildings
-and snow are part of the height \citep{airbus2022copernicus}. The land cover mask removes windows
+are part of the height \citep{airbus2022copernicus}, and so is any snow present when the elevation was acquired. The land cover mask removes windows
 that are mostly vegetated, built up or water, but it is a single year of a land cover product at
 the analysis cell centres. Surface change since the elevation was acquired, seasonal snow and
 moisture were not checked.
 
-\paragraph{Mars.} The Martian elevation models are stereo products whose quality varies
-\citep{beyer2018}; models are filtered by their CTX minus MOLA height differences, and stereo
+\paragraph{Mars.} The Martian elevation models are stereo products of the Ames Stereo Pipeline \citep{beyer2018}, and their quality varies between models; models are filtered by their CTX minus MOLA height differences, and stereo
 artefacts that survive the filter can mimic roughness. The Martian target windows were not frozen
 in time, so no Mars retrieval is reported.
 

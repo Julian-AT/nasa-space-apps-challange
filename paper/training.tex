@@ -21,7 +21,7 @@ planned grid covers seeds \ConfigSeeds{} of the main configuration and the adver
 \ConfigLambdas; Section~\ref{sec:results-variations} lists which runs exist.
 
 \paragraph{Optimiser.} We use AdamW \citep{loshchilov2017} with a learning rate scaled linearly
-with the batch size after a warm up \citep{goyal2017}, cosine decay \citep{loshchilov2016} and
+with the batch size after a warm up \citep{goyal2017}, cosine decay of the learning rate in the manner of \citet{loshchilov2016} without restarts, and
 decoupled weight decay. The adversarial weight follows the schedule of Equation~\eqref{eq:total}.
 Model selection uses validation blocks only; the test blocks are read once, after the
 configuration is frozen, by a logged command.
