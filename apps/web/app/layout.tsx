@@ -46,6 +46,8 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
             <ModeBanner bundle={bundle} />
             <SiteHeader />
+            {/* A zero-height flex break, so the mode pill (order-3) always starts its own row. */}
+            <div aria-hidden="true" className="order-2 h-0 basis-full" />
           </div>
         </header>
         {/* tabIndex -1 lets the skip link move focus here in every browser. */}
