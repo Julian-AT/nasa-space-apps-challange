@@ -7,7 +7,7 @@
 // anchors in DOM order and keep the global focus indicator. The current route is a filled pill
 // with bold text, never colour alone. On narrow screens the row scrolls sideways instead of hiding
 // behind a toggle, so every link stays reachable by keyboard. The wordmark and nav are flex items
-// of the header row in app/layout.tsx; the mode pill (components/mode-banner.tsx) shares that row.
+// of the header row in app/layout.tsx; the mode pill (components/mode-banner.tsx) wraps to its own row.
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -30,7 +30,7 @@ const LINK = 'inline-block rounded-full px-3.5 py-1.5 text-[13px] whitespace-now
 /** The navigation for a given pathname; a link is current only on its own route. */
 export function SiteNav({ pathname }: Readonly<{ pathname: string | null }>) {
   return (
-    <nav aria-label="Primary" className="order-3 -mx-1 w-full min-w-0 overflow-x-auto xl:order-2 xl:w-auto xl:flex-1">
+    <nav aria-label="Primary" className="order-2 -mx-1 w-full min-w-0 overflow-x-auto xl:w-auto xl:flex-1">
       <ul className="flex items-center gap-0.5 px-1 py-1 xl:justify-center">
         {NAV_ITEMS.map(({ label, href }) => {
           const isCurrent = pathname === href;

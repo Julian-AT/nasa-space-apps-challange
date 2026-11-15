@@ -23,7 +23,7 @@ export function modeBannerText(bundle: Bundle): string {
 
 export function ModeBanner({ bundle }: Readonly<{ bundle: Bundle }>) {
   return (
-    <div className="order-2 ml-auto flex max-w-full items-center gap-2 rounded-3xl border border-line-2 bg-panel px-3 py-1.5 xl:order-3 xl:ml-0">
+    <div className="order-3 flex w-fit max-w-full items-center gap-2 rounded-3xl border border-line-2 bg-panel px-3 py-1">
       <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-flare" />
       <p className="text-xs leading-snug font-semibold text-foreground">{modeBannerText(bundle)}</p>
       <p className="hidden shrink-0 border-l border-line-2 pl-2 font-mono text-[11px] text-chrome sm:block">

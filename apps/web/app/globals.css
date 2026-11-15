@@ -186,6 +186,29 @@
   }
 
   /* Preflight sets headings to body size; keep the page outline visible. */
+  /*
+   * The root layout's main is full width so the explorer can bleed. Every other page's top-level
+   * blocks are centred in a 1400px column with the page padding; a route that wants the full width
+   * marks its root element data-full-bleed.
+   */
+  main > :not([data-full-bleed]) {
+    width: 100%;
+    max-width: 1400px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  main > :not([data-full-bleed]):first-child {
+    padding-top: 3rem;
+  }
+  main > :not([data-full-bleed]):last-child {
+    padding-bottom: 3rem;
+  }
+  @media (min-width: 40rem) {
+    main > :not([data-full-bleed]) {
+      padding-inline: 1.5rem;
+    }
+  }
+
   h1 {
     font-size: var(--text-3xl);
     line-height: var(--text-3xl--line-height);

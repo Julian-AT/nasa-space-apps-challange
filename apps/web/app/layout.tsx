@@ -42,14 +42,14 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <SkipLink />
         <header className="sticky top-0 z-40 border-b border-line bg-void/90 backdrop-blur-md">
           <MockBanner bundle={bundle} />
-          {/* The mode pill comes before the navigation in the DOM (read first) but sits at the right on wide screens. */}
+          {/* The mode pill comes before the navigation in the DOM (read first) but is drawn on its own row below it. */}
           <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
             <ModeBanner bundle={bundle} />
             <SiteHeader />
           </div>
         </header>
         {/* tabIndex -1 lets the skip link move focus here in every browser. */}
-        <main id={MAIN_ID} tabIndex={-1} className="mx-auto w-full max-w-[1400px] px-4 py-12 sm:px-6">
+        <main id={MAIN_ID} tabIndex={-1} className="w-full">
           {children}
         </main>
         <SiteFooter bundle={bundle} />
