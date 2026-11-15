@@ -5,3 +5,7 @@ packages:
 
 # PRD 8.2 pins exact versions; `pnpm add` writes them without a range.
 saveExact: true
+
+# protobufjs (via onnxruntime-web) has an optional postinstall; it is not needed, so do not run it.
+allowBuilds:
+  protobufjs: false
