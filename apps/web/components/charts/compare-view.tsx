@@ -35,13 +35,16 @@ function DistanceValue({ entry, source }: { readonly entry: Entry; readonly sour
   return <LabelledValue label={label} value={entry.value} unit={entry.unit} source={source} />;
 }
 
+// Display rounding to n significant digits; the full value stays in a title attribute.
+const sig = (v: number, n: number): string => (Number.isInteger(v) ? String(v) : String(Number(v.toPrecision(n))));
+
 function DistanceRow({ name, entry, source }: { readonly name: string; readonly entry: Entry; readonly source: string }) {
   const spread = entry.reference_spread;
   return (
     <div data-family={name} className="[&_[data-slot=source]]:wrap-anywhere flex flex-col gap-2 border-b border-line py-4 last:border-0">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h4 className="font-semibold">{name}</h4>
-        <span className="font-mono text-lg">
+        <span className="font-mono text-lg [&_[data-slot=source]]:block [&_[data-slot=source]]:font-sans [&_[data-slot=source]]:text-sm [&_[data-slot=source]]:font-normal [&_[data-slot=source]]:text-muted-foreground">
           <DistanceValue entry={entry} source={source} />
         </span>
       </div>
@@ -52,7 +55,9 @@ function DistanceRow({ name, entry, source }: { readonly name: string; readonly 
             {spread === null ? (
               <LabelledValue label="Unavailable" reason={entry.reference_spread_reason ?? NO_REASON} />
             ) : (
-              `min ${String(spread.min)}, median ${String(spread.median)}, max ${String(spread.max)} (n = ${String(spread.n)}) ${entry.unit}`
+              <span title={`min ${String(spread.min)}, median ${String(spread.median)}, max ${String(spread.max)}`}>
+                {`min ${sig(spread.min, 4)}, median ${sig(spread.median, 4)}, max ${sig(spread.max, 4)} (n = ${String(spread.n)}) ${entry.unit}`}
+              </span>
             )}
           </dd>
         </div>
@@ -62,7 +67,7 @@ function DistanceRow({ name, entry, source }: { readonly name: string; readonly 
             {entry.background_percentile === null ? (
               <LabelledValue label="Unavailable" reason={entry.background_percentile_reason ?? NO_REASON} />
             ) : (
-              entry.background_percentile
+              <span title={String(entry.background_percentile)}>{sig(entry.background_percentile, 4)}</span>
             )}
           </dd>
         </div>
@@ -299,7 +304,7 @@ export function CompareView({ records, a, b }: { readonly records: PairRecords; 
                 <TableCell>
                   <EvidenceLabel label={component.evidence_label} />
                 </TableCell>
-                <TableCell>{component.status}</TableCell>
+                <TableCell className="whitespace-nowrap">{component.status}</TableCell>
                 <TableCell>{component.reason ?? component.note ?? 'none recorded'}</TableCell>
               </TableRow>
             ))}
