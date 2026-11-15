@@ -1,7 +1,7 @@
 // @ts-nocheck
 // Copied from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 /**
- * Astra's brain: a small, transparent question-answering engine over our own data.
+ * Luna's brain: a small, transparent question-answering engine over our own data.
  * No language model and no internet, every answer is built from the catalogue,
  * the solar-geometry model and the distance maths, so it can never invent a fact.
  */
@@ -145,7 +145,7 @@ export function pageGreeting(path: string): AstraReply {
   if (path.startsWith("/methods"))
     return { text: "This page shows our data and maths. Ask me to explain any part in simple words.", mood: "neutral", suggestions: ["How is the score made?", "Which NASA data do you use?", "How was the model tested?"] };
   if (path.startsWith("/about")) return { text: "We are team ShadowAstra from Dhaka. Ask me about the team or the name.", mood: "happy", suggestions: ["Who is on the team?", "Why the name ShadowAstra?", "Tell me a space fact"] };
-  return { text: "Hi, I'm Astra, your field-test astronaut. I can check any town, or find Earth places to practise Moon and Mars missions. What do you want to test?", mood: "happy", suggestions: STARTERS };
+  return { text: "Hi, I'm Luna. I can check any town, or find Earth places to practise Moon and Mars missions. What do you want to test?", mood: "happy", suggestions: STARTERS };
 }
 
 export function astraAnswer(raw: string): AstraReply {

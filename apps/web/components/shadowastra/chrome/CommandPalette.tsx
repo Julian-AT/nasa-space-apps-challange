@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
-import { ArrowRight, Compass, CornerDownLeft, FileText, MapPin, MessageCircle, Moon, Search, Sun } from "lucide-react";
+import { ArrowRight, Compass, CornerDownLeft, FileText, MapPin, MessageCircle, Search } from "lucide-react";
 import { WorldDot } from "@/components/shadowastra/ui/Chrome";
 import { loadGrid, searchGrid, type Grid } from "@/lib/shadowastra/grid";
 import { EASE } from "@/components/shadowastra/ui/kit";
@@ -29,12 +29,9 @@ export const ROUTES = [
   { to: "/explore/mars", label: "Maps: Mars" },
   { to: "/lab", label: "Lab" },
   { to: "/report", label: "Report" },
-  { to: "/learn", label: "Learn" },
   { to: "/model", label: "Model" },
-  { to: "/methods", label: "Methods" },
   { to: "/paper", label: "Paper" },
   { to: "/paper/terraluna-paper.pdf", label: "Paper PDF", hard: true },
-  { to: "/api/docs", label: "API docs", hard: true },
 ] as const;
 
 interface Item {
@@ -110,26 +107,9 @@ export function CommandPalette({ cards }: { cards: readonly PaletteCard[] }) {
   const go = (to: string) => () => navigate(to);
   const hard = (to: string) => () => window.location.assign(to);
   const base: Item[] = useMemo(() => {
-    const theme = typeof document !== "undefined" && document.documentElement.dataset.theme === "light" ? "dark" : "light";
     return [
       ...ROUTES.map((l) => ({ id: `p${l.to}`, group: "Pages", label: l.label, sub: l.to, icon: <Compass size={15} />, run: "hard" in l ? hard(l.to) : go(l.to) })),
-      {
-        id: "a-theme",
-        group: "Actions",
-        label: `Switch to ${theme} mode`,
-        icon: theme === "light" ? <Sun size={15} /> : <Moon size={15} />,
-        keywords: "theme dark light colour",
-        run: () => {
-          document.documentElement.dataset.theme = theme;
-          try {
-            localStorage.setItem("sa-theme", theme);
-          } catch {
-            /* private mode */
-          }
-          window.dispatchEvent(new Event("sa-theme"));
-        },
-      },
-      { id: "a-ask", group: "Actions", label: "Ask Astra a question", icon: <MessageCircle size={15} />, keywords: "help chat assistant", run: () => askAstra("") },
+      { id: "a-ask", group: "Actions", label: "Ask Luna a question", icon: <MessageCircle size={15} />, keywords: "help chat assistant", run: () => askAstra("") },
       ...cards.map((c) => ({
         id: `c${c.id}`,
         group: "Evidence cards",

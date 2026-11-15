@@ -6,7 +6,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
 import { ArrowRight, Send, X } from "lucide-react";
-import { Astronaut, type Mood } from "./Astronaut";
+import { AiChat02Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { astraAnswerAsync, pageGreeting, type AstraContext, type AstraReply } from "@/lib/shadowastra-chrome/astra";
 import { logBadge } from "@/lib/shadowastra/fieldlog";
 
@@ -18,7 +21,7 @@ interface Msg {
   text?: string;
 }
 
-/** Floating "Ask Astra" assistant, available on every page. */
+/** Floating "Ask Luna" assistant, available on every page. */
 export function AskAstra({ ctx }: { ctx: AstraContext }) {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
@@ -35,7 +38,7 @@ export function AskAstra({ ctx }: { ctx: AstraContext }) {
     setMsgs([{ from: "astra", reply: pageGreeting(pathname, ctx) }]);
   }, [pathname]);
 
-  // Gentle nudge on a first visit only, and never over the full-screen tools, so people notice Astra can talk.
+  // Gentle nudge on a first visit only, and never over the full-screen tools, so people notice Luna can talk.
   useEffect(() => {
     if (pathname.startsWith("/explore") || pathname.startsWith("/compare") || pathname.startsWith("/probe")) return;
     try {
@@ -59,7 +62,7 @@ export function AskAstra({ ctx }: { ctx: AstraContext }) {
     };
   }, [pathname]);
 
-  // Other parts of the site can open Astra with a question: askAstra("…")
+  // Other parts of the site can open Luna with a question: askAstra("…")
   useEffect(() => {
     const on = (e: Event) => {
       const q = (e as CustomEvent<{ q: string }>).detail?.q ?? "";
@@ -92,43 +95,43 @@ export function AskAstra({ ctx }: { ctx: AstraContext }) {
   const askRef = useRef(ask);
   askRef.current = ask;
 
-  const last = [...msgs].reverse().find((m) => m.from === "astra")?.reply;
-  const mood: Mood = typing ? "thinking" : (last?.mood ?? "happy");
-
   return (
     <>
       <AnimatePresence>
         {!open && (
-          <motion.button
+          <motion.div
             key="fab"
-            onClick={() => {
-              setOpen(true);
-              setNudge(false);
-            }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.5, ease: EASE, delay: 0.4 }}
-            className="group fixed right-4 bottom-4 z-[900] flex items-center gap-2 rounded-full border border-line-2 bg-panel py-1.5 pr-4 pl-1.5 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.6)] transition-colors hover:border-chrome sm:right-6 sm:bottom-6"
-            aria-label="Ask Astra"
+            className="fixed right-4 bottom-4 z-[900] sm:right-6 sm:bottom-6"
           >
-            <span className="grid size-9 place-items-center overflow-hidden rounded-full bg-ink">
-              <Astronaut size={30} mood="happy" action="wave" />
-            </span>
-            <span className="text-[13px] text-platinum">Ask Astra</span>
-            <AnimatePresence>
-              {nudge && (
-                <motion.span
-                  initial={{ opacity: 0, x: 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="pointer-events-none absolute right-full mr-3 w-max max-w-[220px] rounded-xl border border-line-2 bg-panel px-3 py-2 text-left text-[12px] text-platinum"
-                >
-                  Need help? Ask me what Terraluna is or where the cards are.
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
+            <Button
+              size="lg"
+              className="relative rounded-full shadow-lg"
+              onClick={() => {
+                setOpen(true);
+                setNudge(false);
+              }}
+              aria-label="Ask Luna"
+            >
+              <HugeiconsIcon icon={AiChat02Icon} strokeWidth={2} />
+              Ask Luna
+              <AnimatePresence>
+                {nudge && (
+                  <motion.span
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="pointer-events-none absolute right-full mr-3 w-max max-w-[220px] rounded-md border bg-popover px-3 py-2 text-left text-xs font-normal text-popover-foreground"
+                  >
+                    Ask me what Terraluna is or where the cards are.
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Button>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -137,27 +140,26 @@ export function AskAstra({ ctx }: { ctx: AstraContext }) {
           <motion.section
             key="panel"
             role="dialog"
-            aria-label="Ask Astra"
+            aria-label="Ask Luna"
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.97 }}
             transition={{ duration: 0.4, ease: EASE }}
             style={{ transformOrigin: "bottom right" }}
-            className="fixed right-3 bottom-3 z-[900] flex h-[min(620px,calc(100dvh-24px))] w-[min(400px,calc(100vw-24px))] flex-col overflow-hidden rounded-3xl border border-line-2 bg-panel shadow-[0_40px_120px_-30px_rgba(0,0,0,0.7)] sm:right-6 sm:bottom-6"
+            className="fixed right-3 bottom-3 z-[900] h-[min(620px,calc(100dvh-24px))] w-[min(400px,calc(100vw-24px))] sm:right-6 sm:bottom-6"
           >
-            <header className="relative flex items-center gap-3 border-b border-line bg-ink px-4 py-3">
-              <div className="-my-2">
-                <Astronaut size={52} mood={mood} action={typing ? "scan" : mood === "sad" ? "slump" : mood === "wow" ? "flag" : "idle"} />
-              </div>
+            <Card className="flex h-full flex-col gap-0 overflow-hidden py-0 shadow-2xl">
+            <header className="flex items-center gap-3 border-b px-4 py-3">
+              <span aria-hidden="true" className="inline-flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <HugeiconsIcon icon={AiChat02Icon} strokeWidth={2} className="size-4" />
+              </span>
               <div className="flex-1">
-                <div className="text-[15px] font-medium text-platinum">Astra</div>
-                <div className="flex items-center gap-1.5 text-[11px] text-dim">
-                  <span className="size-1.5 rounded-full bg-strong" /> Field-test astronaut · answers from the release bundle
-                </div>
+                <div className="text-sm font-semibold">Luna</div>
+                <div className="text-xs text-muted-foreground">Answers from the release bundle</div>
               </div>
-              <button onClick={() => setOpen(false)} aria-label="Close" className="rounded-full border border-line-2 p-1.5 text-chrome hover:text-platinum">
+              <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Close">
                 <X size={14} />
-              </button>
+              </Button>
             </header>
 
             <div ref={list} className="scrollbar-thin flex-1 space-y-3 overflow-y-auto px-4 py-4">
@@ -224,7 +226,8 @@ export function AskAstra({ ctx }: { ctx: AstraContext }) {
                 <Send size={15} />
               </button>
             </form>
-            <p className="px-4 pb-3 text-[10.5px] text-dim">No chatbot. Terraluna answers quote the release bundle; other answers come from ShadowAstra's open catalogue (MIT).</p>
+            <p className="px-4 pb-3 text-[10.5px] text-muted-foreground">Terraluna answers quote the release bundle; other answers come from ShadowAstra's open catalogue (MIT).</p>
+            </Card>
           </motion.section>
         )}
       </AnimatePresence>

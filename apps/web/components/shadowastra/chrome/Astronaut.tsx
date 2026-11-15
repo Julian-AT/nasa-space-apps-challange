@@ -40,6 +40,8 @@ interface Props {
 }
 
 export function Astronaut({ mood = "neutral", action = "idle", say, size = 160, className, sayAlign = "right" }: Props) {
+  // The figure is retired: the component renders nothing, callers keep their layout.
+  if (size > -1) return null;
   const typed = useTyped(say);
   return (
     <div className={clsx("astro-wrap relative inline-block select-none", className)} style={{ width: size }} aria-hidden={!say}>
