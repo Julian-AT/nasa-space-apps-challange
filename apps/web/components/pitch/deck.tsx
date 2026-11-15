@@ -30,18 +30,9 @@ function Unavailable({ reason }: { reason: string }) {
   return <span className="text-base font-normal text-zinc-400">Unavailable ({reason})</span>;
 }
 
-/** Staggered fade entrance for slide elements. */
-function In({ d = 0, children, className }: { d?: number; children: ReactNode; className?: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.08 + d, ease: EASE }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
+/** A slide block. Slide changes are instant: no entrance animation. `d` is kept for call sites. */
+function In({ children, className }: { d?: number; children: ReactNode; className?: string }) {
+  return <div className={className}>{children}</div>;
 }
 
 /** Emphasis by weight, never by colour. */
@@ -581,32 +572,23 @@ export function Deck({ data, qr, fonts = '' }: { data: PitchData; qr: string | n
 
       {/* slim progress line */}
       <div className="absolute inset-x-0 top-0 z-10 h-px" style={{ background: 'rgba(26,22,19,0.15)' }}>
-        <motion.div className="h-full" style={{ background: ACCENT }} animate={{ width: `${((i + 1) / n) * 100}%` }} transition={{ duration: 0.5, ease: EASE }} />
+        <div className="h-full" style={{ background: ACCENT, width: `${((i + 1) / n) * 100}%` }} />
       </div>
 
-      <AnimatePresence mode="wait" custom={pos.dir}>
-        <motion.section
-          key={slide?.id}
-          aria-roledescription="slide"
-          aria-label={`${i + 1} of ${n}: ${note?.title ?? ''}`}
-          initial={{ opacity: 0, x: pos.dir * 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: pos.dir * -30 }}
-          transition={{ duration: 0.4, ease: EASE }}
-          className="absolute inset-0 px-[6vw] pb-[10vh] pt-[8vh]"
-        >
-          {slide?.body(step)}
-        </motion.section>
-      </AnimatePresence>
+      <section
+        key={slide?.id}
+        aria-roledescription="slide"
+        aria-label={`${i + 1} of ${n}: ${note?.title ?? ''}`}
+        className="absolute inset-0 px-[6vw] pb-[10vh] pt-[8vh]"
+      >
+        {slide?.body(step)}
+      </section>
 
       {/* the Lab's 3D stage: mounted one slide early, shown only on the Lab slide */}
       {labMounted && data.lab ? (
         <motion.div
           className="absolute bottom-[9vh] left-[6vw] right-[6vw] top-[23vh] overflow-hidden rounded-xl border border-zinc-200 bg-white"
-          initial={false}
-          animate={{ opacity: i === labIndex ? 1 : 0, scale: i === labIndex ? 1 : 0.985 }}
-          transition={{ duration: 0.6, delay: i === labIndex ? 0.25 : 0, ease: EASE }}
-          style={{ pointerEvents: i === labIndex ? 'auto' : 'none', visibility: i === labIndex || i === labIndex - 1 ? 'visible' : 'hidden' }}
+          style={{ opacity: i === labIndex ? 1 : 0, pointerEvents: i === labIndex ? 'auto' : 'none', visibility: i === labIndex || i === labIndex - 1 ? 'visible' : 'hidden' }}
           onClick={(e) => e.stopPropagation()}
           aria-hidden={i !== labIndex}
         >

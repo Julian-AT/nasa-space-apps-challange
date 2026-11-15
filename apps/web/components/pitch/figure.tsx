@@ -3,10 +3,8 @@
 // Research-post figures for /pitch: a white bordered card with title, subtitle and a "Figure N"
 // caption; a thin-line chart with a hover crosshair and direct end labels; a pastel bar chart with
 // value labels. Every value plotted is passed in from pitch-data.ts (bundle or generated numbers).
-import { motion } from 'motion/react';
 import { type PointerEvent, type ReactNode, useState } from 'react';
 
-import { EASE } from './bits';
 
 export const C = {
   ink: '#1A1613',
@@ -143,9 +141,9 @@ export function LineFigure({ series, xTicks, yTicks, xLog = false, yLog = false,
       <line x1={P.l} x2={W - P.r} y1={H - P.b} y2={H - P.b} stroke={C.hair} />
       <text x={(P.l + W - P.r) / 2} y={H - 8} textAnchor="middle" fontSize={12} fill={C.muted}>{xLabel}</text>
       <text x={14} y={(P.t + H - P.b) / 2} textAnchor="middle" fontSize={12} fill={C.muted} transform={`rotate(-90 14 ${(P.t + H - P.b) / 2})`}>{yLabel}</text>
-      {series.map((s, k) => (
+      {series.map((s) => (
         <g key={s.id}>
-          <motion.path d={path(s.points)} fill="none" stroke={s.color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.4, delay: 0.25 + k * 0.15, ease: EASE }} />
+          <path d={path(s.points)} fill="none" stroke={s.color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
           {dots ? s.points.map((p) => <circle key={p.x} cx={sx(p.x)} cy={sy(p.y)} r={3} fill="#fff" stroke={s.color} strokeWidth={1.5} />) : null}
         </g>
       ))}
@@ -226,21 +224,10 @@ export function BarFigure({ bars, yMin = 0, yMax, yTicks, fmtY, yLabel, refLine,
         const h = H - P.b - top;
         return (
           <g key={b.label}>
-            <motion.rect
-              x={cx - bw / 2}
-              width={bw}
-              rx={3}
-              fill={b.color}
-              fillOpacity={0.22}
-              stroke={b.color}
-              strokeWidth={1}
-              initial={{ y: H - P.b, height: 0 }}
-              animate={{ y: top, height: h }}
-              transition={{ duration: 0.9, delay: 0.25 + k * 0.12, ease: EASE }}
-            />
-            <motion.text x={cx} y={top - 8} textAnchor="middle" fontSize={13} fontWeight={500} fill={b.color} className="tabular-nums" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 + k * 0.12 }}>
+            <rect x={cx - bw / 2} y={top} width={bw} height={h} rx={3} fill={b.color} fillOpacity={0.22} stroke={b.color} strokeWidth={1} />
+            <text x={cx} y={top - 8} textAnchor="middle" fontSize={13} fontWeight={500} fill={b.color} className="tabular-nums">
               {b.text}
-            </motion.text>
+            </text>
             <text x={cx} y={H - P.b + 22} textAnchor="middle" fontSize={12.5} fill={C.sub}>{b.label}</text>
           </g>
         );
