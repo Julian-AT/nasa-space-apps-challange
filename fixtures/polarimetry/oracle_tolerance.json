@@ -1,0 +1,43 @@
+{
+  "description": "The T2-07 comparison tolerance for our polarimetry against polsartools 0.13 on one real UAVSAR GRD window, derived from the float32 precision of the inputs and the operation count of both implementations, and committed before any comparison ran. It is never chosen or changed after differences are seen; a field outside it fails.",
+  "decided_by": "T2-07 author iteration (Claude Opus 5.5), as the person this story waits for, under the delegation in the orchestrator note on T2-07 (2026-11-14T23:34:56Z) and docs/ralph/DECISIONS.md (team, 2026-11-14)",
+  "decided_utc": "2026-11-15T00:31:20Z",
+  "declared_before_results": true,
+  "justification": "Both sides read the same float32 GRD values; ours widen them exactly to float64 and compute in float64 (error of order 1e-15 of the span), so the difference is polsartools' float32 rounding. With u = 2**-24 and P = span = A + B + 2V, Cauchy-Schwarz gives |D| + |E| <= P/2, S1 <= P and |J_HV| <= S1/2. polsartools rounds C12 = sqrt2 D and C23 = sqrt2 E to float32 once (import_uavsar_grd), computes the C2 elements in float64 from the stored C3 and rounds each to float32 once more (simulate_CP). Each Stokes parameter and SC, OC and base_SC formed from that C2 is then within 1.5 u P of its exact value with round-to-nearest conversions, or 3 u P if a float32 conversion rounded toward zero (error up to 2 u). The m of m_chi is computed in float32 from the float32 C2 (two additions, three squares, a square root and a division), within about 9.3 u P / S1, or 18.6 u P / S1 with directed rounding. Each factor is the next power of two above the directed-rounding bound. The per-field derivations are in groups[].derivation.",
+  "conversion_tolerance": {
+    "rtol": 2.384185791015625e-07,
+    "atol": 0.0,
+    "justification": "The Hermitian and PSD tolerance of our conversion on this float32 product (it replaces ARITHMETIC_TOLERANCE, whose rtol 1e-10 is below float32 resolution). The stored covariance is a PSD multi-look matrix whose parts were each rounded to float32, |dC'_ij| <= u |C'_ij| <= u s with s = max |C'_ij|; by Weyl's inequality its eigenvalues move by at most ||dC'||_2 <= ||dC'||_F <= 3 u s. rtol = 2**-22 = 4 u covers that plus float64 eigvalsh rounding; atol 0 because the window holds no zero matrix. A pixel beyond it is INVALID with its reason and is counted, not compared."
+  },
+  "groups": [
+    {
+      "fields": [
+        "sc_ll",
+        "oc_ll",
+        "sc_opp",
+        "oc_opp",
+        "base_sc",
+        "s1@chi_tx=-45",
+        "s2@chi_tx=-45",
+        "s3@chi_tx=-45",
+        "s4@chi_tx=-45",
+        "s1@chi_tx=+45",
+        "s2@chi_tx=+45",
+        "s3@chi_tx=+45",
+        "s4@chi_tx=+45"
+      ],
+      "scale": "span",
+      "factor": 2.384185791015625e-07,
+      "derivation": "Rounding of the stored C12 and C23 moves CP11 by at most u |D|, CP22 by u |E| and CP12 by u (|D| + |E|)/2; the final float32 cast adds at most u CP11, u CP22 and u |Re CP12|, u |Im CP12|. So S1 = CP11 + CP22 and S2 = CP11 - CP22 err by at most u (|D| + |E|) + u S1 <= 1.5 u P, S3 = 2 Re CP12 and S4 = -2 Im CP12 by at most u (|D| + |E|) + 2 u |J_HV| <= 1.5 u P, and SC = (S1 - S4)/2, OC = (S1 + S4)/2 and base_SC = (SC_LL + SC_opp)/2 by at most 1.5 u P. The float64 sums of float32 values in polsartools_stokes are exact or within 1e-16 P, and ours within 1e-15 P. Directed rounding doubles the float32 terms to 3 u P; the factor is 4 u = 2**-22 of the pixel's span."
+    },
+    {
+      "fields": [
+        "m@chi_tx=-45",
+        "m@chi_tx=+45"
+      ],
+      "scale": "span_over_s1",
+      "factor": 1.9073486328125e-06,
+      "derivation": "m_chi forms, in float32, s0 = c11 + c22 and s1 = c11 - c22 (one rounding each, at most u S1), s2 and s3 exactly, then m = sqrt(s1^2 + s2^2 + s3^2)/s0. With the C2 errors above, s1 errs by at most 1.5 u P + u S1 <= 2.5 u P, s2 and s3 by 1.5 u P, and s0 by 2.5 u P. So the polarized norm errs by at most sqrt(2.5^2 + 1.5^2 + 1.5^2) u P = 3.3 u P, which moves m by 3.3 u P/S1, and s0 moves m by m 2.5 u P/S1 <= 2.5 u P/S1 with m <= 1. The float32 operations on these values (three squares and two additions, about 3 u relative on the squared norm and so 1.5 u after the square root, plus u for the square root and u for the division) add 3.5 u m <= 3.5 u P/S1, since S1 <= P. Total 9.3 u P/S1; directed rounding doubles it to 18.6 u P/S1, and the factor is the next power of two, 32 u = 2**-19, of span/S1 with S1 our hybrid S1 at the field's ellipticity."
+    }
+  ]
+}
