@@ -39,7 +39,7 @@ function Box({ x, w, h, cy = CY, fill, stroke, lines, dashed }: BoxProps) {
           y={top + i * 21}
           textAnchor="middle"
           dominantBaseline="central"
-          fontSize={i === 0 ? 17 : 14.5}
+          fontSize={i === 0 ? 17 : 12.5}
           fontWeight={i === 0 ? 600 : 400}
           fill={i === 0 ? INK : SUB}
           fontFamily={i === 0 ? undefined : 'var(--font-geist-mono), ui-monospace, monospace'}
@@ -84,18 +84,18 @@ function Reveal({ show, children, delay = 0 }: { readonly show: boolean; readonl
 }
 
 const STAGES = [
-  { x: 340, h: 120, ch: 32 },
-  { x: 480, h: 160, ch: 64 },
-  { x: 620, h: 200, ch: 128 },
-  { x: 760, h: 240, ch: 256 },
+  { x: 336, h: 120, ch: 32 },
+  { x: 482, h: 160, ch: 64 },
+  { x: 628, h: 200, ch: 128 },
+  { x: 774, h: 240, ch: 256 },
 ] as const;
 
 const HEAD_X = 1250;
 const HEAD_W = 230;
 const HEADS = [
-  { cy: 120, fill: '#FBE4EC', stroke: '#E3A3B9', lines: ['Projector', '256→2048→2048→2048', 'VICReg loss'] },
-  { cy: 300, fill: '#E0F0F8', stroke: '#93C4DD', lines: ['Physics head', '256→256→11', 'masked MSE'] },
-  { cy: 480, fill: '#ECE5F8', stroke: '#B7A3DE', lines: ['Body head', '256→256→3', 'cross-entropy'] },
+  { cy: 120, fill: '#FBE4EC', stroke: '#E3A3B9', lines: ['Projector', '256-2048-2048-2048', 'VICReg loss'] },
+  { cy: 300, fill: '#E0F0F8', stroke: '#93C4DD', lines: ['Physics head', '256-256-11', 'masked MSE'] },
+  { cy: 480, fill: '#ECE5F8', stroke: '#B7A3DE', lines: ['Body head', '256-256-3', 'cross-entropy'] },
 ] as const;
 
 export function ArchDiagram({ step }: { readonly step: number }) {
@@ -122,10 +122,10 @@ export function ArchDiagram({ step }: { readonly step: number }) {
             Input window
           </text>
           <text x={100} y={385} textAnchor="middle" fontSize={14.5} fill={SUB} fontFamily="var(--font-geist-mono), ui-monospace, monospace">
-            64 × 64 × 3
+            64 x 64 x 3
           </text>
           <text x={100} y={410} textAnchor="middle" fontSize={13.5} fill={SUB} fontFamily="var(--font-geist-mono), ui-monospace, monospace">
-            asinh(z/s) · slope · mask
+            asinh(z/s), slope, mask
           </text>
         </g>
       </Reveal>
@@ -133,27 +133,27 @@ export function ArchDiagram({ step }: { readonly step: number }) {
       {/* (b) ResNet backbone */}
       <Reveal show={step >= 1}>
         <g>
-          <path d="M200,150 v-12 h785 v12" fill="none" stroke={LINE} strokeWidth={1.2} />
-          <text x={592} y={124} textAnchor="middle" fontSize={15} fill={SUB} letterSpacing="0.08em">
-            RESNET BACKBONE · 4 STAGES
+          <path d="M190,150 v-12 h814 v12" fill="none" stroke={LINE} strokeWidth={1.2} />
+          <text x={597} y={124} textAnchor="middle" fontSize={15} fill={SUB} letterSpacing="0.08em">
+            RESNET BACKBONE, 4 STAGES
           </text>
-          <Edge d={`M172,${CY} H198`} />
-          <Box x={200} w={110} h={120} fill="#FBE6D6" stroke="#E5B08A" lines={['Stem', 'conv 3×3', '32 · stride 2']} />
+          <Edge d={`M168,${CY} H188`} />
+          <Box x={190} w={124} h={120} fill="#FBE6D6" stroke="#E5B08A" lines={['Stem', 'conv 3x3', '32, stride 2']} />
           {STAGES.map((s, k) => (
             <g key={s.ch}>
-              <Edge d={`M${k === 0 ? 310 : (STAGES[k - 1]?.x ?? 0) + 110},${CY} H${s.x - 2}`} delay={0.15 * (k + 1)} />
-              <Box x={s.x} w={110} h={s.h} fill="#FCF0D2" stroke="#E2C27A" lines={[`Stage ${k + 1}`, 'BasicBlock ×2', `${s.ch} ch`]} />
+              <Edge d={`M${k === 0 ? 314 : (STAGES[k - 1]?.x ?? 0) + 124},${CY} H${s.x - 2}`} delay={0.15 * (k + 1)} />
+              <Box x={s.x} w={124} h={s.h} fill="#FCF0D2" stroke="#E2C27A" lines={[`Stage ${k + 1}`, '2 x BasicBlock', `${s.ch} ch`]} />
             </g>
           ))}
-          <Edge d={`M870,${CY} H903`} delay={0.75} />
-          <Box x={905} w={80} h={120} fill="#ECECF4" stroke="#B4B4CC" lines={['GAP', 'global', 'avg pool']} />
+          <Edge d={`M898,${CY} H918`} delay={0.75} />
+          <Box x={920} w={84} h={120} fill="#ECECF4" stroke="#B4B4CC" lines={['GAP', 'global', 'avg pool']} />
         </g>
       </Reveal>
 
       {/* (c) embedding */}
       <Reveal show={step >= 2}>
         <g>
-          <Edge d={`M985,${CY} H1018`} delay={0.9} />
+          <Edge d={`M1004,${CY} H1018`} delay={0.9} />
           <rect x={1020} y={CY - 140} width={90} height={280} rx={12} fill="#DDF2E3" stroke={GOLD} strokeWidth={2} />
           <text x={1065} y={CY - 30} textAnchor="middle" fontSize={26} fontWeight={700} fill={INK}>
             256
@@ -178,7 +178,7 @@ export function ArchDiagram({ step }: { readonly step: number }) {
             GRL
           </text>
           <text x={1188} y={HEADS[2].cy + 14} textAnchor="middle" fontSize={13.5} fill={SUB} fontFamily="var(--font-geist-mono), ui-monospace, monospace">
-            ×(−λ)
+            x(-λ)
           </text>
           <Edge d={`M1226,${HEADS[2].cy} H${HEAD_X - 2}`} delay={1.4} />
           {HEADS.map((h, k) => (
@@ -193,8 +193,8 @@ export function ArchDiagram({ step }: { readonly step: number }) {
 }
 
 export const ARCH_STEPS = [
-  { key: 'input', label: 'Input window', hint: '64×64 · 3 channels' },
-  { key: 'backbone', label: 'ResNet backbone', hint: '4 stages · 32→256' },
-  { key: 'embedding', label: 'Embedding', hint: '256-d · L2-normalised' },
-  { key: 'heads', label: 'Three heads', hint: 'VICReg · physics · adversary' },
+  { key: 'input', label: 'Input window', hint: '64 x 64, 3 channels' },
+  { key: 'backbone', label: 'ResNet backbone', hint: '4 stages, 32 to 256' },
+  { key: 'embedding', label: 'Embedding', hint: '256-d, L2-normalised' },
+  { key: 'heads', label: 'Three heads', hint: 'VICReg, physics, adversary' },
 ] as const;

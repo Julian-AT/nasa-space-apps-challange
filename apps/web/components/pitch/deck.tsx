@@ -7,6 +7,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { ArchDiagram, ARCH_STEPS } from './arch';
 import { CountUp, EASE, GOLD, HillTile, NuChart } from './bits';
@@ -83,6 +84,18 @@ function Keywords({ items, d = 0.35 }: { items: readonly string[]; d?: number })
   );
 }
 
+function Chips({ items }: { items: readonly string[] }) {
+  return (
+    <ul className="flex flex-wrap justify-end gap-2">
+      {items.map((t) => (
+        <li key={t} className="rounded-full border border-zinc-200 px-4 py-1.5 text-lg text-zinc-700">
+          {t}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function Metric({ label, children, note, d }: { label: string; children: ReactNode; note?: string | undefined; d: number }) {
   return (
     <In d={d} className="flex flex-col gap-2 border-t border-zinc-200 pt-5">
@@ -117,7 +130,7 @@ interface Slide {
 function slides(d: PitchData, qr: string | null): Slide[] {
   const m = d.model;
   const [jezT, , arcT] = [d.targets.find((t) => t.targetId.includes('jezero')), null, d.targets.find((t) => t.targetId.includes('arcadia'))];
-  const lagText = d.lags.length ? `${d.lags[0]} m → ${(d.lags[d.lags.length - 1] ?? 0) >= 1000 ? `${((d.lags[d.lags.length - 1] ?? 0) / 1000).toFixed(1)} km` : `${d.lags[d.lags.length - 1]} m`}` : 'multi-scale lags';
+  const lagText = d.lags.length ? `${d.lags[0]} m to ${(d.lags[d.lags.length - 1] ?? 0) >= 1000 ? `${((d.lags[d.lags.length - 1] ?? 0) / 1000).toFixed(1)} km` : `${d.lags[d.lags.length - 1]} m`}` : 'multi-scale lags';
   return [
     {
       id: 'title',
@@ -126,7 +139,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
         <div className="relative grid h-full grid-cols-[1.25fr_1fr] items-center gap-12">
           <div className="flex flex-col gap-10">
             <In>
-              <Kicker>NASA Space Apps 2026 · Gradient Descent</Kicker>
+              <Kicker>NASA Space Apps 2026, Gradient Descent</Kicker>
             </In>
             <In d={0.1}>
               <h1 className="text-[11rem] font-semibold leading-[0.9] tracking-[-0.06em]">
@@ -175,7 +188,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
             </div>
             <In d={0.6} className="flex items-center gap-6 text-2xl">
               <span className="text-zinc-400 line-through decoration-zinc-300">picked by experience</span>
-              <span className="text-zinc-300">→</span>
+              <svg aria-hidden viewBox="0 0 40 12" className="h-3 w-10 text-zinc-300"><path d="M0 6h36M31 1l6 5-6 5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
               <span className="font-semibold">measured</span>
             </In>
           </div>
@@ -200,7 +213,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                     </span>
                   ))}
                 </div>
-                <span className="text-sm text-zinc-400">hover to read · Derived, relief ν(L) from the bundle</span>
+                <span className="text-sm text-zinc-400">hover to read values, Derived from the bundle</span>
               </div>
             </In>
           </div>
@@ -221,25 +234,24 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       steps: 5,
       body: (step) => (
         <Frame
-          kicker="Our model · experimental learned similarity"
+          kicker="Our model, experimental learned similarity"
           title="ResNet terrain encoder"
-          aside={
-            <ol className="flex gap-2">
+        >
+          <div className="relative flex h-full flex-col justify-between gap-6">
+            <ArchDiagram step={Math.min(step, 3)} />
+            <ol className="grid grid-cols-4 gap-4">
               {ARCH_STEPS.map((s, k) => (
                 <li
                   key={s.key}
                   className="flex flex-col rounded-xl border px-4 py-2 transition-all duration-500"
                   style={{ borderColor: k <= step ? GOLD : '#e4e4e7', opacity: k <= step ? 1 : 0.45, background: k === Math.min(step, 3) ? '#FBF3E2' : 'white' }}
                 >
-                  <span className="text-base font-semibold">{s.label}</span>
-                  <span className={`${MONO} text-xs text-zinc-500`}>{s.hint}</span>
+                  <span className="text-lg font-semibold">{s.label}</span>
+                  <span className={`${MONO} text-sm text-zinc-500`}>{s.hint}</span>
                 </li>
               ))}
             </ol>
-          }
-        >
-          <div className="relative flex h-full items-center">
-            <ArchDiagram step={Math.min(step, 3)} />
+
             <AnimatePresence>
               {step >= 4 ? (
                 <motion.figure
@@ -263,29 +275,29 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       steps: 1,
       body: () => (
         <Frame
-          kicker={`Experimental learned similarity · ${m.version ?? 'model card'}`}
+          kicker={`Experimental learned similarity, ${m.version ?? 'model card'}`}
           title="Small, fast, runs in your browser"
         >
           <div className="grid grid-cols-3 gap-x-14 gap-y-12 pt-4">
             <Metric d={0.15} label="parameters">
               {m.parameters === null ? <Unavailable reason="model card" /> : <CountUp value={m.parameters} />}
             </Metric>
-            <Metric d={0.25} label="training windows" note={m.totalWindows === null ? undefined : `of ${m.totalWindows.toLocaleString('en-US')} · Moon · Mars · Earth`}>
+            <Metric d={0.25} label="training windows" note={m.totalWindows === null ? undefined : `of ${m.totalWindows.toLocaleString('en-US')}, Moon, Mars and Earth`}>
               {m.trainWindows === null ? <Unavailable reason="model card" /> : <CountUp value={m.trainWindows} />}
             </Metric>
             <Metric d={0.35} label="faster training on Apple MPS" note={m.mpsMedian !== null && m.cpuMedian !== null ? `${m.mpsMedian} vs ${m.cpuMedian} windows/s, median` : undefined}>
               {m.mpsMedian !== null && m.cpuMedian ? (
                 <>
-                  ~<CountUp value={Math.round(m.mpsMedian / m.cpuMedian)} />×
+                  ~<CountUp value={Math.round(m.mpsMedian / m.cpuMedian)} />x
                 </>
               ) : (
                 <Unavailable reason="run records" />
               )}
             </Metric>
-            <Metric d={0.45} label="browser parity · min cosine" note="ONNX → WebAssembly vs PyTorch">
+            <Metric d={0.45} label="browser parity, min cosine" note="ONNX in WebAssembly vs PyTorch">
               {m.wasmMinCosine === null ? <Unavailable reason="numbers.tex" /> : <CountUp value={m.wasmMinCosine} digits={6} />}
             </Metric>
-            <Metric d={0.55} label="physics probe R² · lower bound" note="pooled relief ν, 95% CI">
+            <Metric d={0.55} label="physics probe R², lower bound" note="pooled relief ν, 95% CI">
               {m.probeR2Low === null ? <Unavailable reason="model card" /> : <CountUp value={Number(m.probeR2Low.toFixed(3))} digits={3} />}
             </Metric>
             <Metric d={0.65} label="evidence label" note="a second opinion beside the physics fingerprint">
@@ -301,8 +313,8 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       body: () => (
         <Frame
           kicker="The Lab"
-          title={d.lab ? <>{d.lab.earthName.split(',')[0]} <span className="text-zinc-300">↔</span> {d.lab.targetName}</> : 'Side-by-side terrain twin'}
-          aside={<Keywords items={['real elevation', 'same scale', 'same rover route']} d={0.3} />}
+          title={d.lab ? <>{d.lab.earthName.split(',')[0]} <span className="text-zinc-300">vs</span> {d.lab.targetName}</> : 'Side-by-side terrain twin'}
+          aside={<Chips items={['real elevation', 'same scale', 'same rover route']} />}
         >
           {/* the 3D stage is the persistent layer in Deck, laid over this space */}
           <div className="h-full" />
@@ -320,22 +332,22 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-2">
                     <HillTile tile={r.targetTile} className="max-h-[30vh]" />
-                    <span className={`${MONO} text-xs uppercase tracking-widest text-zinc-400`}>{BODY[r.body]} · {r.targetName}</span>
+                    <span className={`${MONO} text-xs uppercase tracking-widest text-zinc-400`}>{BODY[r.body]}, {r.targetName}</span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <HillTile tile={r.earthTile} className="max-h-[30vh]" />
-                    <span className={`${MONO} text-xs uppercase tracking-widest text-zinc-400`}>Earth · {r.earthName.split(',')[0]}</span>
+                    <span className={`${MONO} text-xs uppercase tracking-widest text-zinc-400`}>Earth, {r.earthName.split(',')[0]}</span>
                   </div>
                 </div>
                 <p className="text-2xl font-semibold tracking-tight">
-                  {r.targetName} <span className="text-zinc-300">↔</span> {r.earthName}
+                  {r.targetName} <span className="text-zinc-400">and</span> {r.earthName.split(',')[0]}
                 </p>
                 <div className="flex items-end justify-between gap-6">
                   <div>
                     <p className="font-mono text-5xl font-semibold" style={{ color: GOLD }}>
                       <CountUp value={Number(r.relief.toPrecision(3))} digits={Math.max(0, 2 - Math.floor(Math.log10(r.relief)))} delay={0.5 + k * 0.15} />
                     </p>
-                    <p className="text-sm text-zinc-500">relief distance{r.unit ? ` (${r.unit})` : ''} · lower is closer</p>
+                    <p className="text-sm text-zinc-500">relief distance{r.unit ? ` (${r.unit})` : ''}, lower is closer</p>
                   </div>
                   {r.closerThan !== null ? (
                     <p className="text-right text-xl text-zinc-700">
@@ -345,7 +357,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                     </p>
                   ) : null}
                 </div>
-                <p className="text-xs text-zinc-400">{r.label} · candidate windows found by this search, not proven analogs</p>
+                <p className="text-xs text-zinc-400">{r.label}, candidate windows found by this search, not proven analogs</p>
               </In>
             ))}
           </div>
@@ -360,7 +372,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
           <div className="flex flex-col gap-12">
             <In>
               <h2 className="text-[7.5rem] font-semibold leading-[0.95] tracking-[-0.05em]">
-                Measure any point on Earth <span style={{ color: GOLD }}>— live.</span>
+                Measure any point on Earth, <span style={{ color: GOLD }}>live.</span>
               </h2>
             </In>
             <In d={0.25} className="flex flex-col gap-3 text-2xl">
@@ -373,8 +385,8 @@ function slides(d: PitchData, qr: string | null): Slide[] {
             </In>
             <In d={0.4}>
               <p className="text-base text-zinc-400">
-                Terraluna · Gradient Descent · bundle {d.bundleVersion}
-                {d.shippingMode ? ` · ${d.shippingMode}` : ''}
+                Terraluna, Gradient Descent, bundle {d.bundleVersion}
+                {d.shippingMode ? `, mode ${d.shippingMode}` : ''}
               </p>
             </In>
           </div>
@@ -424,6 +436,9 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
   const touch = useRef<number | null>(null);
   const { i, step } = pos;
   const labIndex = list.findIndex((s) => s.id === 'lab');
+  // portal to <body>: the site layout has transformed ancestors that would clip a fixed overlay
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  useEffect(() => setHost(document.body), []);
 
   useEffect(() => {
     const [a, b] = window.location.hash.slice(1).split('.');
@@ -508,7 +523,8 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
   const left = TOTAL_S - elapsed;
   const pace = note === undefined || t0 === null ? null : elapsed < note.from ? -(note.from - elapsed) : elapsed > note.to ? elapsed - note.to : 0;
 
-  return (
+  if (host === null) return <div className="fixed inset-0 z-[1000] bg-white" />;
+  return createPortal(
     <div
       className="fixed inset-0 z-[1000] overflow-hidden bg-white font-sans text-zinc-900 antialiased"
       role="region"
@@ -556,7 +572,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
       {/* the Lab's 3D stage: mounted one slide early, shown only on the Lab slide */}
       {labMounted && data.lab ? (
         <motion.div
-          className="absolute bottom-[8vh] left-[6vw] right-[6vw] top-[27vh] overflow-hidden rounded-3xl bg-[#0b0c0f]"
+          className="absolute bottom-[6vh] left-[6vw] right-[6vw] top-[23vh] overflow-hidden rounded-3xl border border-zinc-200 bg-white"
           initial={false}
           animate={{ opacity: i === labIndex ? 1 : 0, scale: i === labIndex ? 1 : 0.985 }}
           transition={{ duration: 0.6, delay: i === labIndex ? 0.25 : 0, ease: EASE }}
@@ -564,15 +580,9 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
           onClick={(e) => e.stopPropagation()}
           aria-hidden={i !== labIndex}
         >
-          <LabTwin earth={data.lab.earth} target={data.lab.target} />
-          <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-between bg-gradient-to-b from-black/50 to-transparent p-6 text-base text-white/90">
-            <span>
-              Earth · {data.lab.earthName}
-            </span>
-            <span>Mars · {data.lab.targetName}</span>
-          </div>
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-between bg-gradient-to-t from-black/50 to-transparent p-5 text-sm text-white/70">
-            <span>40 km blocks · real elevation tiles (Terrarium SRTM · NASA Trek MOLA) · rover on the same route</span>
+          <LabTwin earth={data.lab.earth} target={data.lab.target} earthName={data.lab.earthName} targetName={data.lab.targetName} />
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-between p-6 text-sm text-zinc-500">
+            <span>40 km blocks, real elevation tiles</span>
             <span>drag to orbit</span>
           </div>
           <span aria-hidden className="pitch-border-beam pointer-events-none absolute inset-0 rounded-3xl" />
@@ -609,11 +619,11 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
               <div className="flex flex-col gap-1">
                 <span className={`${MONO} text-4xl font-semibold tabular-nums ${left < 0 ? 'text-red-600' : 'text-zinc-900'}`}>{t0 === null ? '2:00' : mmss(left)}</span>
                 <span className="text-xs text-zinc-500">
-                  {i + 1}. {note.title} · {mmss(note.from)}–{mmss(note.to)}
-                  {(list[i]?.steps ?? 1) > 1 ? ` · step ${step + 1}/${list[i]?.steps ?? 1}` : ''}
+                  {i + 1}. {note.title}, {mmss(note.from)} to {mmss(note.to)}
+                  {(list[i]?.steps ?? 1) > 1 ? `, step ${step + 1}/${list[i]?.steps ?? 1}` : ''}
                 </span>
                 <span className={`text-xs font-medium ${pace === null ? 'text-zinc-400' : pace === 0 ? 'text-zinc-600' : pace < 0 ? 'text-green-700' : 'text-red-600'}`}>
-                  {pace === null ? 'timer starts on first key · R resets' : pace === 0 ? 'on time' : pace < 0 ? `ahead ${Math.round(-pace)} s` : `behind ${Math.round(pace)} s`}
+                  {pace === null ? 'timer starts on first key, R resets' : pace === 0 ? 'on time' : pace < 0 ? `ahead ${Math.round(-pace)} s` : `behind ${Math.round(pace)} s`}
                 </span>
               </div>
               <p className="max-w-4xl text-[15px] leading-relaxed text-zinc-600">
@@ -648,7 +658,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
                     style={{ borderColor: k === i ? GOLD : '#e4e4e7' }}
                   >
                     <span className={`${MONO} text-sm text-zinc-400`}>
-                      {String(k + 1).padStart(2, '0')} · {mmss(s.from)}
+                      {String(k + 1).padStart(2, '0')}, {mmss(s.from)}
                     </span>
                     <span className="text-2xl font-semibold tracking-tight">{s.title}</span>
                   </button>
@@ -666,6 +676,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
         @keyframes pitch-spin { to { --pitch-a: 360deg; } }
         @media (prefers-reduced-motion: reduce) { .pitch-border-beam { animation: none; } }
       `}</style>
-    </div>
+    </div>,
+    host,
   );
 }

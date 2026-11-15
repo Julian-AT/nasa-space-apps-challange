@@ -16,7 +16,7 @@ import type { PitchData } from './pitch-data';
 
 type Finder = NonNullable<PitchData['finder']>;
 
-const f3 = (v: number | null | undefined) => (v === null || v === undefined ? '—' : v.toFixed(3));
+const f3 = (v: number | null | undefined) => (v === null || v === undefined ? 'n/a' : v.toFixed(3));
 
 export default function FinderDemo({ finder, step }: { readonly finder: Finder; readonly step: number }) {
   const [result, setResult] = useState<ProbeResult | null>(null);
@@ -79,7 +79,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
             <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-3xl leading-snug text-zinc-500">
               Click any spot on Earth.
               <br />
-              <span className="text-zinc-900">Real elevation → fingerprint, in seconds.</span>
+              <span className="text-zinc-900">Real elevation to fingerprint, in seconds.</span>
             </motion.p>
           ) : (
             <motion.div
@@ -94,7 +94,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
                   className="rounded-full px-3 py-1 text-sm font-medium"
                   style={isLive ? { background: '#FBF3E2', color: '#8A6418' } : { background: '#f4f4f5', color: '#52525b' }}
                 >
-                  {isLive ? `Measured live in your browser${ms === null ? '' : ` · ${(ms / 1000).toFixed(1)} s`}` : why === null ? 'Measuring live…' : 'From the evidence card'}
+                  {isLive ? `Measured live in your browser${ms === null ? '' : `, ${(ms / 1000).toFixed(1)} s`}` : why === null ? 'Measuring live…' : 'From the evidence card'}
                 </span>
                 <span className="font-mono text-sm text-zinc-400">
                   {finder.lat.toFixed(3)}°, {finder.lon.toFixed(3)}°
@@ -109,7 +109,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
                   <p className="font-mono text-5xl font-semibold tabular-nums" style={{ color: GOLD }}>
                     {f3(isLive ? relief : finder.relief)}
                   </p>
-                  <p className="mt-1 text-base text-zinc-500">relief distance · lower is closer</p>
+                  <p className="mt-1 text-base text-zinc-500">relief distance, lower is closer</p>
                 </div>
                 <div>
                   <p className="font-mono text-5xl font-semibold tabular-nums text-zinc-900">{f3(isLive ? texture : finder.texture)}</p>
@@ -119,12 +119,12 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
               {closer !== null ? (
                 <p className="text-xl text-zinc-700">
                   Closer than <span className="font-semibold">{closer}%</span> of candidate windows
-                  <span className="text-sm text-zinc-400">{closerFromCard ? ' · from the evidence card' : ' · live background'}</span>
+                  <span className="text-sm text-zinc-400">{closerFromCard ? ', from the evidence card' : ', live background'}</span>
                 </p>
               ) : null}
               <p className="text-xs text-zinc-400">
-                Derived (live) · Copernicus GLO-30 · terrain only, radar and encoder not shown
-                {why !== null && !isLive ? ` · live probe unavailable (${why})` : ''}
+                Derived (live), Copernicus GLO-30, terrain only
+                {why !== null && !isLive ? `, live probe unavailable (${why})` : ''}
               </p>
             </motion.div>
           )}
@@ -134,7 +134,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
           onClick={(e) => e.stopPropagation()}
           className="inline-flex w-fit items-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-lg font-medium text-white transition-colors hover:bg-zinc-700"
         >
-          Try it → /find
+          Try it on /find
         </a>
       </div>
     </div>

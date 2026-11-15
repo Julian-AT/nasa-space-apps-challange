@@ -32,13 +32,13 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Live finder',
     from: 34,
     to: 48,
-    text: "Here's the **finder**: click any spot, and we fetch **real elevation** and compute the fingerprint **right here in the browser**. *(Press →.)* **Rosamond Dry Lake** in California: relief **0.09** against **Jezero crater**, closer than **91 %** of all windows.",
+    text: "Here's the **finder**: click any spot, and we fetch **real elevation** and compute the fingerprint **right here in the browser**. *(Press the right arrow.)* **Rosamond Dry Lake** in California: relief **0.09** against **Jezero crater**, closer than **91 %** of all windows.",
   },
   {
     title: 'Our model: architecture',
     from: 48,
     to: 66,
-    text: "On top of that we trained **our own model**. It's a **ResNet terrain encoder**, trained **self-supervised** with VICReg. A **physics head** teaches it the fingerprint, and a **gradient-reversal adversary** pushes it to ignore which planet a window comes from. *(Press → to build the diagram: backbone → embedding → three heads.)*",
+    text: "On top of that we trained **our own model**. It's a **ResNet terrain encoder**, trained **self-supervised** with VICReg. A **physics head** teaches it the fingerprint, and a **gradient-reversal adversary** pushes it to ignore which planet a window comes from. *(Press the right arrow to build the diagram: backbone, embedding, three heads.)*",
   },
   {
     title: 'Model metrics',
@@ -68,5 +68,5 @@ export const NOTES: readonly SlideNote[] = [
 
 export const mmss = (s: number): string => {
   const a = Math.abs(Math.round(s));
-  return `${s < 0 ? '−' : ''}${Math.floor(a / 60)}:${String(a % 60).padStart(2, '0')}`;
+  return `${s < 0 ? '-' : ''}${Math.floor(a / 60)}:${String(a % 60).padStart(2, '0')}`;
 };
