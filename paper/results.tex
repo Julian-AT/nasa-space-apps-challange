@@ -37,7 +37,7 @@ probe gains at least \GFiveMorphGainMin{} in \Rsq{} over a ridge on the fingerpr
 Mars, a logistic body probe stays at or below a balanced accuracy of \GFiveBodyAccMax, the Spearman
 correlation between embedding and fingerprint distances reaches \GFiveRhoMin, the top twenty
 neighbours agree across seeds with a Jaccard index of at least \GFiveJaccardMin, and the encoder
-beats both frozen image baselines on the two probes. These thresholds were fixed in the
+beats both frozen image baselines on the two probes with paired bootstrap intervals that exclude zero, the morphology gain having a positive lower bound, and the exported model matches the training model within the parity tolerance. These thresholds were fixed in the
 configuration before training. Table~\ref{tab:probes} reports the probes from the evaluation
 record. The encoder promotion gate is \GateFiveStatus, so the encoder is reported as experimental
 and every ranking in this paper uses the fingerprint alone.
@@ -90,8 +90,7 @@ search, so the distance has not been set against the internal variation of the t
 The inspection recorded for the shortlist gate, which passed with status \GateFourStatus, examined
 this window as a counterexample. The target is one broad massif whose relief keeps growing with
 lag, while the candidate is a mostly flat plain crossed by narrow ridges and a trough, whose
-relief is close to the target's at the shortest lags but stops growing beyond a few hundred
-metres. Equation~\eqref{eq:distance} averages over lags and does not read the Hurst exponent, so a
+relief is close to the target's at the shortest lags but grows much more slowly with lag. Equation~\eqref{eq:distance} averages over lags and does not read the Hurst exponent, so a
 window that matches at short lags can rank first against a target that is rougher at long lags.
 The shortlisted window is therefore the nearest window in this terrain metric among the evaluated
 windows, a candidate window identified by this search, and not a morphological analog of
@@ -106,8 +105,7 @@ a relief distance of \FirstReliefDistance{} and a texture distance of \FirstText
 Hurst exponents of the lunar window, \MoonTargetReliefH{} for relief and \MoonTargetTextureH{} for
 texture, lie near the highland median of \citet{rosenburg2011}, although their baselines and
 estimator differ from ours. Removing the plane barely changes the lunar statistics, while it
-lowers the Holuhraun texture exponent to \EarthCardTextureH, so at the longer lags much of the
-lava field's relief comes from its regional tilt. Holuhraun lava facies have been studied with UAVSAR CPR as a measure of radar roughness \citep{tolometti2022holuhraun}, yet at the hectometre scale of this fingerprint it is
+lowers the Holuhraun texture exponent to \EarthCardTextureH, so at the longer lags much of this window's relief comes from its regional tilt. Holuhraun lava facies have been studied with UAVSAR CPR as a measure of radar roughness \citep{tolometti2022holuhraun}, yet at the hectometre scale of this fingerprint it is
 far smoother than the lunar target. Radar scattering and the fingerprint describe different scales
 of one surface, and this pilot ranks on the fingerprint only.
 
@@ -134,12 +132,11 @@ Figure~\ref{fig:hillshades} shows the two windows of the shortlist pair. The lun
 \HillMoonRelief\,m of relief in a cratered massif, and the Earth window spans \HillEarthRelief\,m
 at the edge of the Holuhraun region, with a flat floor between narrow ridges. The pair is the closest
 in the evaluated set by both distances, yet the hillshades differ in morphology, which is the kind
-of difference that a second order fingerprint cannot see and that the encoder is meant to test.
+of difference that a second order fingerprint does not capture and that the encoder is meant to test.
 
 \input{figures/hillshades}
 
-The Martian targets, a window at Jezero crater and one in Arcadia Planitia, were not frozen
-before the analysis cutoff, so no Mars retrieval is reported.
+The same gap holds across bodies. Over the windows that the search read, the relief $\ln \nu$ distributions of the lunar site and of Earth overlap with a coefficient of \OverlapEarthMoonNuShort{} at the shortest lag and \OverlapEarthMoonNuLong{} at the longest, while the Martian and Earth samples overlap at \OverlapEarthMarsNuShort{} and \OverlapEarthMarsNuLong{} (Appendix~\ref{sec:appendix-data-analysis}). For this target, the evaluated Earth windows are therefore all much smoother at hectometre lags, and the shortlist names the least different window rather than a similar one. The Martian targets, a window at Jezero crater and one in Arcadia Planitia, were not frozen before the analysis cutoff, so no Mars retrieval is reported.
 
 \subsection{Model variations}
 \label{sec:results-variations}
@@ -149,7 +146,7 @@ variations table, with the results that the evaluation record holds for each.
 
 \begin{table}[tbp]
 \centering
-\caption{Encoder variations on validation blocks. Physics, body and agreement as in
+\caption{Encoder variations, from the evaluation record where it exists. Physics, body and agreement as in
 Table~\ref{tab:probes}.}
 \label{tab:variations}
 \footnotesize
@@ -198,10 +195,8 @@ for spiny and \HoluhraunUndiffMedian{} for undifferentiated lava. The pairwise d
 overlaps are \HoluhraunOverlapRS\%, \HoluhraunOverlapRU\% and \HoluhraunOverlapSU\% (rubbly and
 spiny, rubbly and undifferentiated, spiny and undifferentiated). Applied to the published radar
 values of that study, the same overlap definition gives \PublishedOverlapRS\%,
-\PublishedOverlapRU\% and \PublishedOverlapSU\%. Our facies are therefore no better separated
-than the published ones, which is the plausibility condition of the check, but the overlaps
-differ in detail; the authors' mosaic combined two data takes, their bin and filter choices are
+\PublishedOverlapRU\% and \PublishedOverlapSU\%. Two of our three overlaps exceed the published comparators and one is slightly lower, so our facies are not markedly better separated than the published ones, which is the plausibility condition of the check, but the overlaps differ in detail; the authors' mosaic combined two data takes, their bin and filter choices are
 not stated, and the handedness convention is not verified against theirs. The literature check
-gate is \GateThreeStatus, and its record lists these reasons. The two sensors also differ in band, look geometry
+gate is \GateThreeStatus, and its record lists these reasons. Mini-RF and UAVSAR also differ in band, look geometry
 and processing, so even a completed comparison would show the signatures side by side rather than
 as a distance.

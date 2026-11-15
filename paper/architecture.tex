@@ -11,8 +11,7 @@ appears, and it enters no ranking unless the promotion gate of Section~\ref{sec:
 
 \paragraph{Input.} A window is resampled to \ConfigInputPx{} by \ConfigInputPx{} pixels at
 \ConfigInputSpacing\,m (Section~\ref{sec:data}) and a best fit plane is removed. The three channels
-are $\operatorname{asinh}(z / s)$ with $s = 50$\,m, which compresses large relief while staying
-linear near zero; the slope magnitude divided by 45 degrees; and the validity mask. The same code,
+are $\operatorname{asinh}(z / s)$ of the plane removed heights with $s = 50$\,m, which compresses large relief while staying linear near zero; the slope magnitude of the heights before plane removal, divided by 45 degrees; and the validity mask. The same code,
 in Python and in the browser, feeds training and the live probe.
 
 \paragraph{Backbone and heads.} The backbone is a ResNet-18 \citep{he2015} at half width, with

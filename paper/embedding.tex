@@ -15,24 +15,22 @@ the relief and texture structure function and the Hurst exponent at stated lags,
 invariant to rotation by construction of the isotropic summary. Two frozen image models serve as
 baselines: a ResNet-18 trained on ImageNet photographs \citep{he2015} and a Vision Transformer \citep{dosovitskiy2020} trained by DINO self distillation without labels \citep{caron2021}. Neither has seen
 elevation data, so they test whether generic visual features already carry the fingerprint. The
-encoder of Section~\ref{sec:architecture} is trained on elevation from the three bodies with an
-explicit physics target and an explicit penalty on body information.
+encoder of Section~\ref{sec:architecture} learns from elevation of the three bodies with an explicit physics target and an explicit penalty on body information.
 
 \begin{table}[tbp]
 \centering
 \caption{Representations compared in this study. The training signal and invariances are
-properties of the method. Measured parameter counts and cost per window are reported in
-Section~\ref{sec:results} from the model report.}
+properties of the method. Measured parameter counts and cost per window are reported only where the model report holds them.}
 \label{tab:representations}
 \footnotesize
 \begin{tabular}{@{}p{0.17\linewidth}p{0.24\linewidth}p{0.25\linewidth}p{0.24\linewidth}@{}}
 \toprule
 Representation & Encodes & Invariances & Use in the browser \\
 \midrule
-Fingerprint & $\ln \nu(L)$ of relief and texture at five lags; Hurst exponent & rotation by isotropic summary; height units by the log & exact, in the probe worker \\
+Fingerprint & $\ln \nu(L)$ of relief and texture at five lags; Hurst exponent & the two grid axes and their reflections; distances unchanged by a change of height units & exact, in the probe worker \\
 ImageNet ResNet-18 & features of natural photographs & those of photographic augmentation & baseline only, not shipped \\
 DINO ViT & self distilled features of natural images & those of its augmentations & baseline only, not shipped \\
-Terraluna encoder & elevation features trained on Moon, Mars and Earth & rotations and reflections by training; body information penalised & ONNX in the probe worker, labelled Predicted \\
+Terraluna encoder & elevation features trained on Moon, Mars and Earth & rotations and reflections by training; body information penalised & ONNX in the probe worker once exported, labelled Predicted \\
 \bottomrule
 \end{tabular}
 \end{table}

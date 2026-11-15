@@ -1154,6 +1154,123 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
         "/counts_by_body_split/earth/test",
         ",d",
     ),
+    ArtifactMacro(
+        "BodyMoonWindows", "analysis/a2_cross_body_overlap.json", "/bodies/moon/n_windows", "d"
+    ),
+    ArtifactMacro(
+        "BodyMoonGroups", "analysis/a2_cross_body_overlap.json", "/bodies/moon/groups", "count"
+    ),
+    ArtifactMacro(
+        "BodyMarsWindows", "analysis/a2_cross_body_overlap.json", "/bodies/mars/n_windows", "d"
+    ),
+    ArtifactMacro(
+        "BodyMarsGroups", "analysis/a2_cross_body_overlap.json", "/bodies/mars/groups", "count"
+    ),
+    ArtifactMacro(
+        "BodyEarthWindows", "analysis/a2_cross_body_overlap.json", "/bodies/earth/n_windows", "d"
+    ),
+    ArtifactMacro(
+        "BodyEarthGroups", "analysis/a2_cross_body_overlap.json", "/bodies/earth/groups", "count"
+    ),
+    ArtifactMacro(
+        "OverlapEarthMoonReliefH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/relief.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMoonTextureH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/texture.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMoonNuShort",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/log_relief.nu_m@270/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMoonNuLong",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/log_relief.nu_m@1080/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapMarsMoonReliefH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/mars|moon/relief.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapMarsMoonTextureH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/mars|moon/texture.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapMarsMoonNuShort",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/mars|moon/log_relief.nu_m@270/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapMarsMoonNuLong",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/mars|moon/log_relief.nu_m@1080/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMarsReliefH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|mars/relief.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMarsTextureH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|mars/texture.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMarsNuShort",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|mars/log_relief.nu_m@270/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMarsNuLong",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|mars/log_relief.nu_m@1080/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "BodyEarthHMedian",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/relief.H/median/0",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "BodyMoonHMedian",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/relief.H/median/1",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "BodyMarsHMedian",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/mars|moon/relief.H/median/0",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "MarsDtmsUsed", "outputs/ml/dataset/manifest.json", "/sampling/mars/dtms_used", "d"
+    ),
+    ArtifactMacro(
+        "MarsDtmsDropped",
+        "outputs/ml/dataset/manifest.json",
+        "/sampling/mars/dtms_dropped",
+        "count",
+    ),
     ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
     ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
     ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),

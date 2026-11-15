@@ -46,8 +46,7 @@ supported lags that span at least a factor of \ConfigLagSpan, and only if $\nu$ 
 every lag. Otherwise $H$ is unavailable with its reason; a zero is never offset to take its
 logarithm. Over our five lags $H$ describes the range from a few hundred metres to about a
 kilometre, the range in which \citet{rosenburg2011} report a breakover on the Moon, so
-Appendix~\ref{sec:appendix-data-analysis} tests for curvature in $\ln \nu$ rather than assuming a
-single exponent.
+Appendix~\ref{sec:appendix-data-analysis} tests for a break over a wider range of lags at the scale of the whole site rather than assuming a single exponent.
 
 \paragraph{Terrain distance.} Two windows $u$ and $w$ are compared on the lags $S_{uw}$ supported
 in both, separately for relief and texture:
@@ -62,10 +61,9 @@ each other, and in this study no radar distance exists to sum them with
 (Section~\ref{sec:results-radar}). Candidates are ordered by Pareto layers over the two distances,
 with the window identifier as a deterministic tie break; no single score is formed.
 
-\paragraph{Reference and uncertainty.} Each distance is shown with two references. The target
+\paragraph{Reference and uncertainty.} Each distance is meant to be read against two references, and Section~\ref{sec:results-retrieval} states which were computed. The target
 reference set is the spread of distances between the primary target window and the other eligible
-Site01 windows, which measures how much the target varies internally. The background is a fixed,
-seeded sample of \ConfigBackgroundSample{} eligible windows from the same search universe, against
+Site01 windows, which measures how much the target varies internally. The background is a fixed, seeded sample, configured at \ConfigBackgroundSample{} eligible windows from the same search universe, against
 which a candidate's distance is a percentile. For the Moon the provider's \ConfigClones{} error
 clones of the elevation model \citep{barker2021} are measured like the original, so each
 statistic has a spread under the published height error model. The clones represent that error

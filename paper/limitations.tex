@@ -9,16 +9,14 @@ at hectometre lags does not imply agreement at the scale of a boot or a wheel, a
 roughness spectrum is measured. No contact scale property, such as block size, soil strength or
 trafficability, is inferred.
 
-\paragraph{The lunar target is largely interpolated.} Only \MoonTargetObservedPct\% of the 5 m
-pixels of the target window hold a LOLA return; the rest is the provider's interpolation between
+\paragraph{The lunar target is largely interpolated.} For only \MoonTargetObservedPct\% of the target window's valid analysis cells does the nearest 5 m pixel hold a LOLA return; elsewhere the heights are the provider's interpolation between
 tracks \citep{barker2021}. At the \ConfigGridM\,m analysis grid almost every cell contains a
 return, but the short lag statistics of the target still depend on the interpolation. The
 provider's error clones measure this uncertainty under the published error model; they were
 propagated to the shortlist distances, but not to the background or to the encoder.
 
 \paragraph{Earth surface model.} Copernicus GLO-30 is a digital surface model, so canopy, buildings
-are part of the height \citep{airbus2022copernicus}, and so is any snow present when the elevation was acquired. The land cover mask removes windows
-that are mostly vegetated, built up or water, but it is a single year of a land cover product at
+are part of the height \citep{airbus2022copernicus}, and so is any snow present when the elevation was acquired. The land cover mask keeps windows that are mostly bare or sparse, grassland, shrubland, or snow and ice, so it removes forest, cropland, built up land and water but not low vegetation, and it is a single year of a land cover product at
 the analysis cell centres. Surface change since the elevation was acquired, seasonal snow and
 moisture were not checked.
 

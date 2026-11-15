@@ -55,6 +55,24 @@ kilometre baseline on the Moon; our break lies in the same range, but the site i
 massif, our lags come from a gridded and partly interpolated model rather than profiles, and the
 comparison is a sanity check, not a reproduction. The fingerprint's lags all lie below this break.
 
+\paragraph{Across bodies.} Table~\ref{tab:overlap} compares the three bodies in fingerprint space, using the windows that the search read: \BodyMoonWindows{} lunar windows of the target site, \BodyMarsWindows{} Martian windows from \BodyMarsGroups{} CTX models, and \BodyEarthWindows{} Earth windows from \BodyEarthGroups{} regions. The overlap coefficient is the summed minimum of the two normalised histograms on common bins, so it is one for identical distributions and zero for disjoint ones. The median relief Hurst exponent is \BodyMoonHMedian{} at the lunar site, \BodyMarsHMedian{} on Mars and \BodyEarthHMedian{} on Earth. The lunar site barely overlaps either other body at any lag, while the Martian and Earth samples overlap substantially. The samples are small, contiguous and not independent, so the table describes these windows and not the bodies.
+
+\begin{table}[h]
+\centering
+\caption{Overlap coefficients between the bodies' fingerprint distributions over the windows read by the search. Short and long are relief $\ln \nu$ at the shortest and longest configured lag.}
+\label{tab:overlap}
+\footnotesize
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Pair & relief $H$ & texture $H$ & relief $\ln \nu$ short & relief $\ln \nu$ long \\
+\midrule
+Earth and Moon & \OverlapEarthMoonReliefH & \OverlapEarthMoonTextureH & \OverlapEarthMoonNuShort & \OverlapEarthMoonNuLong \\
+Mars and Moon & \OverlapMarsMoonReliefH & \OverlapMarsMoonTextureH & \OverlapMarsMoonNuShort & \OverlapMarsMoonNuLong \\
+Earth and Mars & \OverlapEarthMarsReliefH & \OverlapEarthMarsTextureH & \OverlapEarthMarsNuShort & \OverlapEarthMarsNuLong \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \paragraph{Distances to the target.} Over the \ComparedCount{} compared Earth windows, relief
 distances to the target run from \ReliefDistanceMin{} to \ReliefDistanceMax{} (median
 \ReliefDistanceMedian) and texture distances from \TextureDistanceMin{} to \TextureDistanceMax{}
@@ -62,9 +80,4 @@ distances to the target run from \ReliefDistanceMin{} to \ReliefDistanceMax{} (m
 a terrain only control, these distances describe the evaluated windows and not the Earth as a
 whole.
 
-\paragraph{Analyses not yet available.} The per body distributions over the full search universe,
-the breakover test near the kilometre baseline, the dependence of the Martian distributions on the
-CTX quality threshold, roughness by land cover class and climate zone, the effect of the surface
-model mask, the target percentiles with clone spread, and the overlap of the three bodies in
-fingerprint and embedding space need the full window tables, the clone ensemble and the embedding
-export. Their records do not exist in this build, so they are not reported.
+\paragraph{Analyses not yet available.} Roughness by land cover class and climate zone, the effect of a surface model mask, the declared regions against a global background sample, the comparison with published Martian roughness, and the overlap of the bodies in embedding space with and without gradient reversal have no records in this build, so they are not reported.

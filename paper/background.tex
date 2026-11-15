@@ -28,7 +28,7 @@ scales.
 \subsection{Radar polarimetry and the circular polarization ratio}
 
 Radar adds information at the scale of its wavelength. Mini-RF on the Lunar Reconnaissance
-Orbiter is a hybrid polarity synthetic aperture radar that measures the Stokes parameters of the
+Orbiter is a synthetic aperture radar with a hybrid polarization architecture that measures the Stokes parameters of the
 echo \citep{nozette2010}. From them, the circular polarization ratio (CPR) of the same sense to
 the opposite sense return is formed, and the m-chi decomposition interprets the echo through the degree of polarization and the
 Poincar\'e ellipticity parameter \citep{raney2012}. CPR is sensitive to structure near the radar wavelength. Real CPR values above
@@ -61,9 +61,7 @@ lava flows are radar bright with CPR above one, like blocky terrestrial flows, b
 of 35 flows from HiRISE show that at metre scale they are smoother than blocky flows and closer to
 pahoehoe and rubbly flows \citep{rodriguezsanchezvahamonde2021}. Decimetre and metre roughness can
 thus point in different directions on one surface. Learned similarity has also been tried:
-\citet{meng2024} trained a convolutional network with a discriminative loss to bring Earth and
-Mars image patches of the same location together, and used it to select analog areas in the
-evaporite region of the Qaidam Basin. These studies treat an Earth surface as a candidate for
+\citet{meng2024} trained a convolutional similarity metric on Earth and Mars surface images with a discriminative loss, and applied it to selecting analog areas in the evaporite region of the Qaidam Basin. These studies treat an Earth surface as a candidate for
 interpreting a signature, a use that field work can then test.
 
 \subsection{Self-supervised and domain-adversarial learning}

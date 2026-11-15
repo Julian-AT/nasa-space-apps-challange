@@ -1,8 +1,7 @@
 \section{Data}
 \label{sec:data}
 
-Every product enters the study as elevation, except two radar products that are decoded for the
-radar availability audit of Section~\ref{sec:results-radar}. Table~\ref{tab:data} lists them. Each
+The study uses elevation products, one land cover product, and two radar products that are decoded for the radar availability audit of Section~\ref{sec:results-radar}. Table~\ref{tab:data} lists them. Each
 download is recorded with its provider URL, HTTP metadata and SHA-256 digest, and every derived
 number in this paper names the artifact it was read from.
 
@@ -36,15 +35,12 @@ fraction of each window beside its statistics. The Site01 extent is tiled with \
 windows at a \ConfigStrideM\,m stride, giving \MoonWindowsGenerated{} windows, of which
 \MoonWindowsEligible{} pass the coverage rule. The primary target window is the eligible window
 that contains the centroid of the union of the provider's region of interest polygons. Its height
-grid is \MoonTargetValidPct\% valid, but only \MoonTargetObservedPct\% of its 5 m pixels hold a LOLA
-return; the rest is the provider's interpolation. A permanent shadow fraction is not reported,
+grid is \MoonTargetValidPct\% valid, but for only \MoonTargetObservedPct\% of its valid analysis cells does the nearest 5 m pixel hold a LOLA return; elsewhere the 5 m heights are the provider's interpolation. A permanent shadow fraction is not reported,
 because no permanent shadow product was qualified for this window.
 
 \paragraph{Mars.} Martian terrain comes from the USGS Ames Stereo Pipeline CTX elevation models
 \citep{laura2021,beyer2018}, built from Context Camera stereo pairs \citep{malin2007}. Each model
-ships a quality file with the statistics of its height differences from MOLA altimetry \citep{smith2001} after ground control. Models whose standard deviation of that difference exceeds a threshold
-are dropped. The threshold starts at 10 m; Appendix~\ref{sec:appendix-data-analysis} reports how the
-distributions depend on it.
+ships a quality file with the statistics of its height differences from MOLA altimetry \citep{smith2001} after ground control. Models whose standard deviation of that difference exceeds 10 m are dropped; for the encoder dataset this left \MarsDtmsUsed{} models and dropped \MarsDtmsDropped.
 
 \paragraph{Earth.} Earth elevation is the Copernicus GLO-30 digital surface model, read as cloud
 optimised GeoTIFFs from its public bucket. It is a surface model, so canopy and buildings are part
