@@ -250,10 +250,10 @@ export default function Learn() {
             </div>
             <div className="flex justify-center lg:justify-end">
               <div className="hidden lg:block">
-                <Astronaut size={190} mood="happy" action="wave" say={t.astra} sayAlign="left" />
+                <Astronaut size={64} mood="happy" action="wave" say={t.astra} sayAlign="left" />
               </div>
               <div className="lg:hidden">
-                <Astronaut size={140} mood="happy" action="wave" />
+                <Astronaut size={64} mood="happy" action="wave" />
               </div>
             </div>
           </div>
@@ -297,7 +297,7 @@ export default function Learn() {
                 ))}
               </div>
             </div>
-            <Astronaut size={120} mood="sad" action="slump" />
+            <Astronaut size={64} mood="sad" action="slump" />
           </div>
         </section>
 
@@ -387,7 +387,7 @@ function Quiz({ lang }: { lang: Lang }) {
           </div>
         ) : done ? (
           <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="mt-10 flex flex-col items-center gap-5 rounded-3xl border border-line bg-panel p-10 text-center">
-            <Astronaut size={130} mood={points >= 4 ? "happy" : "thinking"} action={points >= 4 ? "celebrate" : "idle"} />
+            <Astronaut size={64} mood={points >= 4 ? "happy" : "thinking"} action={points >= 4 ? "celebrate" : "idle"} />
             <div className={clsx("text-[40px] font-medium", !bn && "tracking-[-0.03em]")}>
               {t.got} {num(String(points), lang)} {bn ? `(${num(String(ROUNDS.length), lang)} ${t.of})` : `${t.of} ${ROUNDS.length}`}
             </div>

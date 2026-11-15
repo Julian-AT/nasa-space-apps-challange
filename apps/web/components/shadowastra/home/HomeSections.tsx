@@ -440,7 +440,7 @@ function MeetAstra() {
                   {m.say}
                 </motion.p>
               </AnimatePresence>
-              <Astronaut size={240} mood={m.mood} action={m.action} />
+              <Astronaut size={64} mood={m.mood} action={m.action} />
             </div>
           </div>
         </div>
@@ -553,7 +553,7 @@ function FalseFriend() {
         </div>
         <div className="relative">
           <div className="absolute -top-28 right-6 z-10 hidden md:block">
-            <Astronaut size={104} {...astra[step]} sayAlign="left" />
+            <Astronaut size={64} {...astra[step]} sayAlign="left" />
           </div>
           <div className="surface rounded-2xl p-6 md:p-8">
             <div className="flex items-center justify-between font-mono text-[10px] tracking-widest text-dim uppercase">
@@ -920,7 +920,7 @@ function FinalCta() {
       <div className="relative mx-auto max-w-[1000px] text-center">
         <FromShadowAstra className="text-center" />
         <div className="mb-8 flex justify-center">
-          <Astronaut size={110} mood="happy" action="celebrate" />
+          <Astronaut size={64} mood="happy" action="celebrate" />
         </div>
         <h2 className="split-reveal text-4xl sm:text-5xl leading-[0.98] font-medium tracking-[-0.045em]">
           Find where Earth <span className="font-serif font-normal text-flare italic">can teach us.</span>

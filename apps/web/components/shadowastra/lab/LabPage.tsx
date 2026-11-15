@@ -447,7 +447,7 @@ function StageCoach() {
   };
   return (
     <div className="absolute bottom-16 left-4 z-[650] hidden items-end gap-2 md:flex">
-      <Astronaut size={70} mood="happy" action="wave" />
+      <Astronaut size={64} mood="happy" action="wave" />
       <div className="panel mb-6 max-w-[290px] rounded-2xl rounded-bl-sm p-3">
         <AnimatePresence mode="wait" initial={false}>
           <motion.p key={i} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.3 }} className="text-[12.5px] leading-snug text-platinum">
@@ -543,7 +543,7 @@ function SectionHead({
       <div className="flex items-end gap-6">
         {astra && (
           <div className="hidden md:block">
-            <Astronaut size={84} mood={astra.mood} action={astra.action} say={astra.say} sayAlign="left" />
+            <Astronaut size={64} mood={astra.mood} action={astra.action} say={astra.say} sayAlign="left" />
           </div>
         )}
         {aside}
@@ -626,7 +626,7 @@ function Loader({ label, progress }: { label: string; progress?: number }) {
   return (
     <div className="grid h-full place-items-center">
       <div className="flex flex-col items-center">
-        <Astronaut size={86} mood="focused" action="scan" />
+        <Astronaut size={64} mood="focused" action="scan" />
         <div className="mt-4 font-mono text-[11px] tracking-widest text-chrome uppercase">{label}</div>
         {progress !== undefined && (
           <div className="mt-3 h-px w-56 bg-line">
@@ -988,7 +988,7 @@ function EvidencePanel({
             </div>
           </div>
         </div>
-        <Astronaut size={96} mood={react.mood} action={react.action} />
+        <Astronaut size={64} mood={react.mood} action={react.action} />
       </div>
       <p className="mt-4 min-h-[40px] text-[14px] leading-snug text-platinum">{react.say}</p>
       <p className="mt-1 text-[12px] text-dim">

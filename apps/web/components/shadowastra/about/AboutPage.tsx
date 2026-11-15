@@ -10,7 +10,6 @@ import { motion } from "motion/react";
 import { ArrowRight, ArrowUpRight, Bot, FileText, Fingerprint, Radar, Sparkles } from "lucide-react";
 import { Github } from "../atlas/ui/Chrome";
 import { Astronaut } from "../chrome/Astronaut";
-import { useSectionProgress } from "../../../lib/shadowastra-learn/useSectionProgress";
 import "../shadowastra.css";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
