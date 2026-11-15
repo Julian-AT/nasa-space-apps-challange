@@ -18,7 +18,7 @@ import { DEM, earthVisible, IMAGERY, nativeKm, sampleImagery, sampleTerrain, typ
 
 const FOOTPRINT_KM = 40;
 const LOOP_SECONDS = 16;
-const GOLD = '#C8962E';
+const INK = '#09090b';
 
 interface Live {
   readonly km: number;
@@ -56,8 +56,8 @@ function Spark({ route, k }: { readonly route: readonly RoutePoint[]; readonly k
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="h-11 w-full" aria-hidden>
       <path d={d} fill="none" stroke="#d4d4d8" strokeWidth={1.5} />
-      <path d={done} fill="none" stroke={GOLD} strokeWidth={2.2} />
-      <circle cx={x(k)} cy={y(hs[k] ?? lo)} r={3.5} fill={GOLD} />
+      <path d={done} fill="none" stroke={INK} strokeWidth={2.2} />
+      <circle cx={x(k)} cy={y(hs[k] ?? lo)} r={3.5} fill={INK} />
     </svg>
   );
 }
@@ -66,7 +66,7 @@ function Hud({ title, route, live }: { readonly title: string; readonly route: r
   if (live === null) return null;
   const stat = (v: string, unit: string, label: string) => (
     <div className="flex flex-col">
-      <span className="text-2xl font-semibold tabular-nums text-[#0F172A]">
+      <span className="text-2xl font-semibold tabular-nums text-zinc-950">
         {v}
         <span className="ml-1 text-sm font-normal text-zinc-400">{unit}</span>
       </span>
@@ -74,7 +74,7 @@ function Hud({ title, route, live }: { readonly title: string; readonly route: r
     </div>
   );
   return (
-    <div className="pointer-events-none flex w-[23rem] flex-col gap-3 rounded-xl border border-[#E2E8F0] bg-white/85 p-4 backdrop-blur">
+    <div className="pointer-events-none flex w-[23rem] flex-col gap-3 rounded-xl border border-zinc-200 bg-white/85 p-4 backdrop-blur">
       <span className="text-sm font-semibold text-zinc-900">{title}</span>
       <div className="grid grid-cols-4 gap-3">
         {stat(live.km.toFixed(1), 'km', 'driven')}
@@ -202,7 +202,7 @@ export default function LabTwin({ earth, target, earthName, targetName }: { read
         <div className="flex w-64 flex-col items-center gap-3">
           <span>{error ? 'Elevation tiles could not be loaded.' : `Streaming real elevation tiles · ${Math.round(progress * 100)}%`}</span>
           <span className="h-px w-full bg-zinc-200">
-            <span className="block h-px bg-[#C8962E] transition-[width]" style={{ width: `${Math.max(4, progress * 100)}%` }} />
+            <span className="block h-px bg-zinc-950 transition-[width]" style={{ width: `${Math.max(4, progress * 100)}%` }} />
           </span>
         </div>
       </div>
