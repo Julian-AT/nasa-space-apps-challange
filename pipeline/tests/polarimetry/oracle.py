@@ -42,7 +42,6 @@ import re
 import shutil
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from types import ModuleType
 from typing import Any, Final, Literal
@@ -62,7 +61,6 @@ from terraluna_pipeline.polarimetry import (
     ObsState,
     StatedArray,
     Tolerance,
-    _git_state,
     angle_to_degrees,
     derive_circular,
     hybrid_stokes_from_covariance,
@@ -73,11 +71,15 @@ REPO_ROOT: Final = Path(__file__).resolve().parents[3]
 FIXTURES: Final = REPO_ROOT / "fixtures" / "polarimetry"
 TOLERANCE_PATH: Final = FIXTURES / "oracle_tolerance.json"
 """The comparison tolerance a person decided. The check fails until it exists."""
-TOLERANCE_PROPOSAL_PATH: Final = FIXTURES / "oracle_tolerance.proposal.json"
-"""A proposed tolerance with its derivation, undecided (``decided_by`` is null). It is never
-read by the check."""
 CONVENTIONS_PATH: Final = FIXTURES / "oracle_conventions.json"
 RUN_RECORD_PATH: Final = FIXTURES / "oracle_run.json"
+
+CODE_FILES: Final = (
+    "pipeline/src/terraluna_pipeline/polarimetry.py",
+    "pipeline/tests/polarimetry/oracle.py",
+    "pipeline/tests/test_polarimetry_oracle.py",
+)
+"""The code the run record names by sha256: our polarimetry, this helper and the test."""
 
 SCENE_ENV: Final = "TERRALUNA_UAVSAR_SCENE"
 """The environment variable naming the UAVSAR scene directory (open: T1 has not fixed a data
@@ -408,7 +410,9 @@ class Window:
             "col0": self.col0,
             "rows": self.rows,
             "cols": self.cols,
-            "indexing": "zero-based GRD row and column of the first pixel; rows and cols are counts",
+            "indexing": (
+                "zero-based GRD row and column of the first pixel; rows and cols are counts"
+            ),
             "first_pixel_centre_lat_deg": layout.upper_left_lat_deg
             + self.row0 * layout.lat_step_deg,
             "first_pixel_centre_lon_deg": layout.upper_left_lon_deg
@@ -624,13 +628,14 @@ def load_tolerance(path: Path, *, compared_fields: Sequence[str]) -> OracleToler
     if not path.is_file():
         raise ToleranceNotDeclared(
             f"tolerance not declared: {where} does not exist. A person decides the comparison "
-            "tolerance, with a written justification, before the comparison runs (T2-07); "
-            f"{_relative(TOLERANCE_PROPOSAL_PATH)} holds an undecided proposal."
+            "tolerance, with a written justification, before the comparison runs (T2-07)."
         )
     try:
         tolerance = OracleTolerance.model_validate_json(path.read_bytes())
     except ValidationError as error:
-        raise ToleranceNotDeclared(f"tolerance not declared: {where} is not valid: {error}") from error
+        raise ToleranceNotDeclared(
+            f"tolerance not declared: {where} is not valid: {error}"
+        ) from error
     if not (tolerance.decided_by or "").strip() or not (tolerance.decided_utc or "").strip():
         raise ToleranceNotDeclared(
             f"tolerance not declared: {where} names no person in decided_by and decided_utc"
@@ -992,9 +997,7 @@ def compare_field(
     )
 
 
-def allowance_for(
-    field: str, tolerance: OracleTolerance, side: OurSide
-) -> npt.NDArray[np.float64]:
+def allowance_for(field: str, tolerance: OracleTolerance, side: OurSide) -> npt.NDArray[np.float64]:
     group = tolerance.group_of(field)
     if group.scale == "span":
         return group.factor * side.span
@@ -1016,10 +1019,6 @@ class OracleRun:
         return [text for c in self.comparisons if (text := c.failure()) is not None]
 
 
-def _now() -> str:
-    return datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
-
-
 def _version(distribution: str) -> str | None:
     try:
         return importlib.metadata.version(distribution)
@@ -1036,15 +1035,20 @@ def run_oracle_check(
     gdal: ModuleType,
     work: Path,
 ) -> OracleRun:
-    """Compare our fields with polsartools' on the window and build the run record."""
-    started = _now()
+    """Compare our fields with polsartools' on the window and build the run record.
+
+    The record holds only what the run determines: the same code, declarations, software and
+    scene give the same bytes, so rerunning the check leaves the committed record unchanged.
+    It names the code by the sha256 of each file it ran (:data:`CODE_FILES`), not by a
+    commit, and holds no timestamp.
+    """
     window.check(scene.layout)
     check_polsartools_sources(polsartools, conventions)
     sums = stated_sums(scene.directory)
     files = []
-    for name, path in [
-        (f"grd{p}", scene.path(p)) for p in PRODUCTS
-    ] + [("annotation", scene.annotation_path)]:
+    for name, path in [(f"grd{p}", scene.path(p)) for p in PRODUCTS] + [
+        ("annotation", scene.annotation_path)
+    ]:
         digest = sha256_file(path)
         stated = sums.get(path.name)
         files.append(
@@ -1092,13 +1096,12 @@ def run_oracle_check(
         )
         for field in COMPARED_FIELDS
     )
-    commit, changes = _git_state(REPO_ROOT)
     outcome = "MATCH" if all(c.matches for c in comparisons) else "MISMATCH"
     record: dict[str, Any] = {
         "record_type": "terraluna polsartools oracle run (T2-07)",
-        "written_by": "pipeline/tests/test_polarimetry_oracle.py::test_real_scene_matches_polsartools",
-        "started_utc": started,
-        "finished_utc": _now(),
+        "written_by": (
+            "pipeline/tests/test_polarimetry_oracle.py::test_real_scene_matches_polsartools"
+        ),
         "outcome": outcome,
         "scene": {
             "scene_id": scene.scene_id,
@@ -1138,8 +1141,7 @@ def run_oracle_check(
         },
         "fields": {c.field: c.as_record() for c in comparisons},
         "failures": [text for c in comparisons if (text := c.failure()) is not None],
-        "commit": commit,
-        "uncommitted_changes": changes,
+        "code_sha256": {name: sha256_file(REPO_ROOT / name) for name in CODE_FILES},
         "g1_note": (
             "G1 may not be PASS before this check has run on a real scene and passed, unless a "
             "person decides otherwise (T2-07 for the story 6 scope statement)."
