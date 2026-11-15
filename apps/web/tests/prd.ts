@@ -4,6 +4,21 @@ import { join } from 'node:path';
 
 import { REPO_ROOT } from './helpers.ts';
 
+/** PRD.md section 8.12: the GateRecord field names, in the order the PRD lists them. */
+export function prd812GateFields(): string[] {
+  const prd = readFileSync(join(REPO_ROOT, 'PRD.md'), 'utf8');
+  const start = prd.indexOf('\n### 8.12 Records\n');
+  const end = prd.indexOf('\n### ', start + 1);
+  if (start < 0 || end < 0) throw new Error('PRD.md has no section 8.12');
+  const line = prd
+    .slice(start, end)
+    .split('\n')
+    .find((text) => text.startsWith('- **GateRecord:**'));
+  if (line === undefined) throw new Error('PRD 8.12 lists no GateRecord');
+  // Field names are the backticked words outside the parentheses that list the status values.
+  return [...line.replace(/\([^)]*\)/g, '').matchAll(/`([a-z_]+)`/g)].map((match) => match[1] ?? '');
+}
+
 /** PRD.md section 4: the "Title wording" cell of the A, B and C rows of the mode table. */
 export function prd4Titles(): Record<string, string> {
   const prd = readFileSync(join(REPO_ROOT, 'PRD.md'), 'utf8');
