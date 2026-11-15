@@ -81,7 +81,7 @@ function Stat({ label, children, unit, caption, d }: { label: string; children: 
   return (
     <In d={d} className="flex flex-col items-center gap-1 text-center">
       <span className="text-xl font-semibold">{label}</span>
-      <span className="text-6xl font-bold tracking-tight text-zinc-950">
+      <span className="text-6xl font-bold tracking-tight" style={{ color: ACCENT }}>
         {children}
       </span>
       <span className="mt-1 text-lg">{unit}</span>
