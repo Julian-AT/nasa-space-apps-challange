@@ -1,0 +1,118 @@
+{
+  "task_id": "T3-06",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "4eee75cae634db668f0136846e62fae606d5d7e7",
+    "head": "d1d6c500aa313967c0c135d4def9be9ec13052be",
+    "files": [
+      {
+        "path": "fixtures/terrain/README.md",
+        "sha256": "1d234fdb5cd2010be6b935eebd1c56251422390a4d323ae2de7cfaca62e6358d"
+      },
+      {
+        "path": "pipeline/tests/test_terrain_fractal.py",
+        "sha256": "762c3c6968fb921d399504dd0e08e16edead75b14d3dea30a61c4c7b5ad4a015"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:23:42Z",
+  "finished_utc": "2026-11-15T00:24:31Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T3-06 passes review round 1. Both checks pass (26 tests in the fractal file, 1474 in make test). The fractal test uses a seeded spectral fBm generator. It declares H_TOLERANCE = 0.1 and GENERATOR_RTOL = 0.03 in the test file, and the notes record the failing run and the observed H values. The chain test resamples a synthetic equirectangular source with resample_window and checks nu against a derived tolerance, and a nodata block drives the documented exclusion. No real DEM is read. Only the two in-scope files changed, plus the loop's own prd.json and progress.txt bookkeeping. I judged the tests by reading them and did not mutate the code.",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_terrain_fractal.py",
+      "command": "uv run pytest pipeline/tests/test_terrain_fractal.py",
+      "outcome": "PASS",
+      "evidence": "26 passed in 4.24s"
+    },
+    {
+      "criterion": "Check: make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "1474 passed in 17.80s"
+    },
+    {
+      "criterion": "Tests written and failing first; failing run recorded in notes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The T3-06 notes in prd.json record 24 failed and 2 passed at 286aeec, with the failures from NotImplementedError in the stubs. The commit order is test commit 286aeec, then generator commit 111abd0. I did not re-run the failing state."
+    },
+    {
+      "criterion": "Seeded fBm generator, H in 0.3/0.5/0.8, 5000 m window at 90 m, tolerance declared in the test file with reason; observed H and deviation recorded",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_terrain_fractal.py:140-158 declares H_TOLERANCE = 0.1 with its reason. :130-138 declares GENERATOR_RTOL. :333-343 asserts the mean over 8 seeds. The notes record observed H per seed, the mean deviations (-0.008, -0.004, -0.011) and the max per-seed deviation of 0.167 at H = 0.8. The tolerance is on the 8-seed mean, not on one window (a documented decision); the 0.167 per-window spread is disclosed."
+    },
+    {
+      "criterion": "Order test: recovered H monotone over the three H across at least 5 seeds",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_terrain_fractal.py:346-349 is parametrized over 8 seeds and asserts strict a<b<c. It passed."
+    },
+    {
+      "criterion": "Chain test: D29 resampler, 90 m grid, Moon radius, relief nu within a derived tolerance; nodata block lowers valid fraction and drives a documented exclusion",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Lines 486-497 derive the tolerance (about 0.0118 m). Lines 529-546 compare nu per direction and per rule. Lines 562-581 cover the 70-cell block lowering the valid fraction. Lines 584-608 cover the 748-cell block giving below_min_valid_fraction and window_excluded. The Mars sphere is tested as a contrast at :623-629. Window validity is cross-checked against an independent expected_valid mask."
+    },
+    {
+      "criterion": "Distances in metres on the body sphere; fingerprint has no radar or model fields",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Lines 611-629 check the metre offsets and the body sphere. Lines 674-691 walk the record tree against an exact set of owner types and a token blacklist."
+    },
+    {
+      "criterion": "No real DEM read; fixtures synthetic with README line",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "All inputs are generated in the test. fixtures/terrain/README.md:3-8 states they are synthetic. No data files were added."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/tests/test_terrain_fractal.py:105",
+      "claim": "The test module sets filterwarnings(\"error\") and its results depend on numpy's Generator stream, which can change across numpy feature releases.",
+      "evidence": "The module docstring and the notes disclose this, and uv.lock pins numpy. A numpy upgrade could shift the observed H values, and H_TOLERANCE must not be retuned then. Optional follow-up: store the exact array in the parity fixture (T3-07).",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect in this story. The dependence on numpy's Generator stream is disclosed in the module docstring and in the story notes, and numpy is pinned in uv.lock, so `make test` and the focused check are reproducible for the locked build. The assertions are statistical bounds over 8 seeds (mean H within 0.1, per-seed order), not exact values, so an upgrade only shifts draws; H_TOLERANCE is documented as not to be retuned. Storing exact arrays is parity-fixture work owned by T3-07 (fixtures/parity), as the finding itself suggests."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/tests/test_terrain_fractal.py:333",
+      "claim": "The H tolerance applies to the 8-seed mean, so one window at H = 0.8 can deviate by up to 0.167. The story text does not say whether H is recovered per window or as a mean.",
+      "evidence": "The notes disclose this as human decision (1). The order test is per seed. This is an interpretation for the orchestrator to confirm, not a defect.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The criterion leaves the tolerance to the author, to be declared before the first run with its reason. H_TOLERANCE and its definition as the mean over SEEDS were declared in 286aeec before any result existed (test_terrain_fractal.py H_TOLERANCE docstring), and the per-window spread (SD 0.04 to 0.11, max deviation 0.167 at H = 0.8) is recorded in the notes rather than hidden. The order criterion is checked per seed. The reviewer states this is an interpretation, not a defect; the notes keep it as decision (1) for the orchestrator."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t3-terrain/prd.json",
+      "claim": "prd.json and progress.txt changed, which are outside the story's files list.",
+      "evidence": "These are the loop's own bookkeeping files (review state, notes, progress log). They contain no result or gate values beyond the notes.",
+      "id": "claude-r1-3",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The Ralph author instructions allow changes to the batch's story list and progress log in addition to the story's files (section 2: 'Change only paths that match the story's files patterns, plus the story list and the progress log'). The changes to scripts/ralph/batches/t3-terrain/prd.json and progress.txt are the review-state request, notes and progress entry only."
+      }
+    }
+  ]
+}

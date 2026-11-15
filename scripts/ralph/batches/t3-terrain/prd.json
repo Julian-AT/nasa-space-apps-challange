@@ -319,16 +319,24 @@
       ],
       "codexPasses": 2,
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "passed",
+        "round": 1,
+        "base": "4eee75cae634db668f0136846e62fae606d5d7e7",
+        "head": "d1d6c500aa313967c0c135d4def9be9ec13052be",
+        "files": [
+          "reviews/T3-06-claude.json",
+          "reviews/T3-06-codex.json",
+          "reviews/T3-06-codex-2.json"
+        ],
+        "digests": {
+          "reviews/T3-06-claude.json": "b7ed21e3724e402635b2e6bf5a125bfd76480abb00b9ae222cc202c410b35b63",
+          "reviews/T3-06-codex.json": "8890d53ffe37c9a199b7466281e3bf84654e837b40368d7aac35c8b371f36085",
+          "reviews/T3-06-codex-2.json": "7dd697bc0792578948fe049f433969ba8b4ba056e2dd3db24cd858826f26c16b"
+        }
       },
-      "notes": ""
+      "notes": "Failing run (2026-11-15, commit 286aeec, before the generator and the source existed): `uv run pytest pipeline/tests/test_terrain_fractal.py` gave 24 failed, 2 passed. Every failure was NotImplementedError from the stubs draw_fbm_window, lattice_amplitude, tilt_sd and equirectangular_source. The two passes use only the config and the analytic references (test_fractal_runs_on_the_configured_window, test_chain_tolerance_is_tight_against_nu). Tolerances declared in that commit and not changed since: H_TOLERANCE = 0.1 on the mean relief H over 8 fixed seeds (0..7); GENERATOR_RTOL = 0.03 on the generator ensemble nu; chain nu tolerance 2 (E_interp + E_map + 1e-9 m) = 0.01184 m, with an H tolerance derived from it. After 111abd0, 26 passed on the first run. Observed relief H for seeds 0..7: H = 0.3: 0.307 0.229 0.368 0.312 0.304 0.264 0.289 0.266, mean 0.2924 (deviation -0.0076), SD 0.041, max |deviation| 0.071. H = 0.5: 0.550 0.408 0.563 0.535 0.571 0.457 0.468 0.418, mean 0.4962 (-0.0038), SD 0.066, max |deviation| 0.092. H = 0.8: 0.883 0.659 0.854 0.858 0.907 0.716 0.802 0.633, mean 0.7892 (-0.0108), SD 0.106, max |deviation| 0.167. Monotone for all 8 seeds. Texture H means (recorded, not asserted): 0.261, 0.424, 0.636; plane removal lowers H, most at 0.8. Generator ensemble nu against the power law: max |relative error| 0.0001, 0.0005, 0.0052; ensemble slopes 0.3000, 0.4997, 0.7984. Chain: max |nu - analytic| 0.0044 m against the 0.0118 m tolerance, analytic nu 12.7 to 38.2 m; relief H 0.79504 against analytic 0.79491 (tolerance 0.00105). Small nodata block: 70 cells invalid, 2955 / 3025 = 0.977, measured. Large block: 748 cells invalid, 2277 / 3025 = 0.753, below_min_valid_fraction. The same source on the Mars sphere gives nu 6.7 to 24.0 m. Scratch evidence (not committed): 5 of 5 mutants fail the tests: nearest-neighbour interpolation (4 tests), radius x 1.001 (4), H slope x 1.15 (2), y offset k + 1 (5), nodata sentinel ignored (3). Without the alias fold the ensemble slope at H = 0.3 is 0.364; without the tilt the ensemble nu at H = 0.8 is 9.6% low at 12 cells. Decisions for a human: (1) Recovered H is the mean over 8 fixed seeds, not one window. One window spreads with SD 0.04 to 0.11, so a per-window bound of 0.1 would fail at H = 0.8 (max deviation 0.167). The mean bound and the per-seed order test were declared before the first run. (2) The tolerance applies to relief H only; texture H is recorded, not bounded. (3) The generator lives in the test module, as the criterion allows. T3-07 needs an importable seeded fractal in terrain.py and should move it there or reuse it. (4) The chain window sits on the lunar equator with standard parallel 0, so the map error is second order (5.5 mm bound). A mid-latitude window would add a first-order equirectangular scale error (about 1 m at 20 deg), which is not covered here. numpy Generator streams are reproducible for one numpy build only (pinned in uv.lock)."
     },
     {
       "id": "T3-07",
@@ -369,14 +377,14 @@
       "priority": 7,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "4b3029a44eaae91a7feabd9759677589d35ace35",
         "head": null,
         "files": [],
         "digests": {}
       },
-      "notes": ""
+      "notes": "Failing run (192f98f, before the implementation): uv run pytest pipeline/tests/test_terrain_parity.py gave 46 failed, 3 errors (FileNotFoundError for fixtures/parity/*.json; AttributeError for terrain.DEFAULT_PARITY_DIR, ParityFixtureError, producing_commit, splitmix64). Flag for another owner: the `make parity` target (PRD 12 Commands) is not added; the Makefile is outside this story. It should run `uv run --locked python -m terraluna_pipeline.terrain` and then the TypeScript suite (T10). Decisions for a human or T10: (1) The fractal is a seeded Weierstrass-Mandelbrot sum (SplitMix64, integer arithmetic) rather than the T3-06 numpy fBm. test_terrain_structure.py forbids random number libraries in terrain.py (T3-04), so the T3-06 proposal to move that generator here was not followed and T3-06 is unchanged. The array is stored exactly either way. (2) producing_commit is the last commit to config.py, geometry.py and terrain.py, and the writer refuses to run while they are modified. A shallow CI clone (depth 1) would report HEAD instead, so CI needs fetch-depth 0 or the test fails. (3) Byte identity holds on one platform and numpy build: AEQD and sin go through numpy/libm, which may differ by an ulp on another OS or CPU. numpy_version is recorded; CI on Linux may need fixtures regenerated there, or a decision. (4) Tolerance fields: inverse lat/lon are compared as sphere distances against distance_m 1e-9. Half an ulp of a longitude near pi is already 1.4e-9 m on the Earth sphere, so T10 must allow that float64 floor or compare through the forward map. (5) Both isotropic rules are written, because the rule is still open (T3-04 decision 2). (6) terrain_synthetic.json is 940,875 bytes, under the 1,000,000-byte limit with 6% headroom; adding cases needs a smaller source or a second file."
     }
   ]
 }
