@@ -268,7 +268,7 @@ function Figures({ card, figures }: Pick<EvidenceCardViewProps, 'card' | 'figure
         const svg = f.path === null ? undefined : figures.get(f.path);
         return (
           <figure key={f.figure} data-figure={f.figure} className="m-0 flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4 shadow-xs">
-            <figcaption className="text-sm font-medium text-primary">Figure {f.figure}</figcaption>
+            <figcaption className="text-sm font-medium">Figure {f.figure}</figcaption>
             {svg !== undefined && f.path !== null ? (
               <>
                 <img src={dataUri(svg)} alt={f.alt} className="w-full rounded-lg bg-white" />
@@ -315,7 +315,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
   const marsLimits = card.target.body === 'mars';
   const t = card.target;
   return (
-    <article data-slot="evidence-card" className="flex min-w-0 flex-col gap-8 wrap-anywhere">
+    <article data-slot="evidence-card" className="font-sans flex min-w-0 flex-col gap-8 wrap-anywhere">
       {card.mock ? (
         <p role="status" className="rounded-lg bg-mock px-4 py-3 font-bold text-mock-foreground">
           MOCK PREVIEW: synthetic data, not production evidence
@@ -334,7 +334,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
             </Badge>
           </div>
           {visual === undefined ? null : (
-            <p className="text-base font-medium text-primary">{visual.headline}</p>
+            <p className="text-base font-medium text-muted-foreground">{visual.headline}</p>
           )}
           <h1 className="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">{card.title}</h1>
           <div className="flex flex-wrap gap-2 text-sm">

@@ -34,7 +34,7 @@ export function CardAtlas({ segments, items }: { readonly segments: readonly Atl
   const shown = items.filter((i) => active === 'all' || i.segment === active);
   const all: AtlasSegment = { id: 'all', label: 'All', colour: 'transparent' };
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 font-sans">
       <ToggleGroup
         type="single"
         variant="outline"

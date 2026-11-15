@@ -93,7 +93,7 @@ export function CompareLab({ card, pair, index, total, options, current, records
   const wa = findWindow(records, pair.a);
   const wb = findWindow(records, pair.b);
   return (
-    <div className="pb-24">
+    <div className="pb-24 font-sans">
       {card.mock ? (
         <div className="bg-mock">
           <p role="status" className="mx-auto max-w-[1400px] px-4 py-1.5 text-xs font-bold text-mock-foreground sm:px-6">
