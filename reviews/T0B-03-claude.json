@@ -1,0 +1,198 @@
+{
+  "task_id": "T0B-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "f6d8032045d33dac6c99bb8777221b1ac25d73f6",
+    "head": "6eb8c86305436bb94dc804983c8a8715d3a6e033",
+    "files": [
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "5457f3d41372bd1aa983326c84ecce8ebeb922457da2641383176927d5fc2567"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "cd755688eebb667e5feeb06ac6cc88b5edcf0f0770cf2c0dfd3592ce082b3b7d"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "b89df8bd80316f549467b6f84fbef928e333b8feb8771906c1a2e8289e8bdf27"
+      },
+      {
+        "path": "packages/schema/json/embedding-record.schema.json",
+        "sha256": "9af663d604943139cb959c70fae5809c667c0a66cf2201b52074213ca5494db6"
+      },
+      {
+        "path": "packages/schema/json/embeddings-index.schema.json",
+        "sha256": "158617a824b8eed978433f0f1c8c60973369046244f3c682fdea6f112fcc08d3"
+      },
+      {
+        "path": "packages/schema/json/metrics.schema.json",
+        "sha256": "6da1467f200d0ed5ac0c3d2a8f80efb0700c41187679eb1b347fd48f97edc4f9"
+      },
+      {
+        "path": "packages/schema/json/model-record.schema.json",
+        "sha256": "2025852c4ed01cbc7ab44b0eb46d1f89d1170d7f359dc780e1048b5f603a0726"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "e576ed156ba0bf94d320de01a8a6e177e14a6f0384c17328c142af141f8618f3"
+      },
+      {
+        "path": "packages/schema/src/generated/embedding-record.ts",
+        "sha256": "444a2d4993121ccb53e00b08e717e35b10a77853c40645014bb41e4736c5f5c5"
+      },
+      {
+        "path": "packages/schema/src/generated/embeddings-index.ts",
+        "sha256": "7553bdc21ec1d8a7f04ce81eb2db9f4aa06209bba670bec6c7afa945cb987e32"
+      },
+      {
+        "path": "packages/schema/src/generated/metrics.ts",
+        "sha256": "da781c9345989a7118a87f8df3dcf8c4c8716f3cece890b48b790733c05ce1fc"
+      },
+      {
+        "path": "packages/schema/src/generated/model-record.ts",
+        "sha256": "e0a453280b86126b8bc8d11c5e038f7fb5378eff7847db42a3ba9aba68adb186"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "63c6421bbcfb6da1674fa8b2a60075043a24a0129e7e81e7880a7759724b7aa2"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "a79c3d132789b94369e0bbf9c878968a2eb460ffa98a5da9f979338ccaf21bd0"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "51e74e19ac154046ed2c6c4435ad553b5293927e278ba8895e69d181c749ce5f"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "93e8e610fa43a32c859cf17d4faf3dad15933c6c113a7a7b655cd7c84a6ce3b1"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "3a369b1a92b49b320b42e451bc8d9d79d93a4ddbc8130bdf2e2c8c390dd2e739"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "2f88200efaca3850efc00330af4996eb9d7585a7911f3d7a1035ab95359f7e75"
+      },
+      {
+        "path": "pipeline/tests/test_schema_model.py",
+        "sha256": "c48879464dc5b60bb699e5a6018b881c180b47f3040a0067154cb47080e0a734"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:32:29Z",
+  "finished_utc": "2026-11-15T00:33:32Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T0B-03 passes review round 1. All five story checks pass when I run them, and the code in pipeline/src/terraluna_pipeline/schema.py matches every acceptance criterion I could judge from evidence. Reviewed at HEAD 6eb8c86305436bb94dc804983c8a8715d3a6e033 against base f6d8032045d33dac6c99bb8777221b1ac25d73f6. Reviewer: Sonnet 5.5 (claude-sonnet-5-5) in Claude Code, 2026-11-15. I did not hash the input artifacts. I could not verify that the failing test run is recorded in the story notes. The only out-of-scope paths are the Ralph bookkeeping files (progress.txt and prd.json).",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_schema_model.py",
+      "command": "uv run pytest pipeline/tests/test_schema_model.py",
+      "outcome": "PASS",
+      "evidence": "319 passed"
+    },
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_json_schema.py",
+      "command": "uv run pytest pipeline/tests/test_json_schema.py",
+      "outcome": "PASS",
+      "evidence": "901 passed"
+    },
+    {
+      "criterion": "Check: pnpm --filter @terraluna/schema test",
+      "command": "pnpm --filter @terraluna/schema test",
+      "outcome": "PASS",
+      "evidence": "3 files, 950 tests passed"
+    },
+    {
+      "criterion": "Check: make schema-check (no drift)",
+      "command": "make schema-check",
+      "outcome": "PASS",
+      "evidence": "Both lines reported a match: 'JSON Schemas match schema.py' and 'zod schemas match packages/schema/json'."
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check and format passed, mypy reported no issues in 17 files, and turbo ran lint and typecheck 4/4."
+    },
+    {
+      "criterion": "ModelRecord has exactly the PRD 8.12 fields, no mock field, g5_status is GateStatus, onnx_sha256 is Sha256 | None",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "schema.py class ModelRecord has exactly those fields and no mock. g5_status is typed GateStatus, so EXPERIMENTAL is rejected. Tests test_1_*, test_2_* and test_3_* in test_schema_model.py pass."
+    },
+    {
+      "criterion": "MetricRecord rules from review-ml #40",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The validator _missing_is_null_with_a_reason enforces the reason, n_blocks and n_bootstrap rules. _ordered enforces only ci_low <= ci_high. The JSON Schema _when conditional mirrors these rules. Tests 4 to 8 pass."
+    },
+    {
+      "criterion": "G5ConditionRecord and G5Component rules from review-ml #41",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The threshold is null only for condition 6, passed null needs a reason, and passed true needs an observed value or a component. Tests 9 to 11 pass."
+    },
+    {
+      "criterion": "MetricsFile and Ablation rules",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "MetricsFile and Ablation (unavailable requires a reason and empty metrics) match the contract. Test 13 passes. The contract Metrics maps to metrics.schema.json."
+    },
+    {
+      "criterion": "EmbeddingRecord and EmbeddingsIndex",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Embedding length is fixed at 256. Float16 exactness is checked with struct 'e' and no numpy. n_rows == len(rows) and row positions are enforced. Test 12 passes."
+    },
+    {
+      "criterion": "CONTRACTS updated, pinned list updated, shared cases added, generated files committed",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The four contracts are appended to CONTRACTS. cases.json has valid and invalid cases for each: ModelRecord 3 valid and 14 invalid, Metrics 5 and 12, EmbeddingRecord 2 and 4, EmbeddingsIndex 3 and 6. The pydantic, JSON Schema and zod tests all pass, and schema-check shows no drift."
+    },
+    {
+      "criterion": "Failing tests first, with the failing run recorded in notes",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The commit order shows the failing-tests commit a5a6caa came before the feature commit 6ba7698. I could not see the story notes or the recorded failing run, so I could not confirm that the failing run was recorded."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t0b-contracts/progress.txt and prd.json",
+      "claim": "Both files changed outside the story's files list.",
+      "evidence": "git diff --stat lists progress.txt (+11 lines) and prd.json (6 lines). This is the Ralph bookkeeping the loop itself requires, so I am not treating it as a violation.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/schema.py (MetricRecord, Ablation, EmbeddingRow)",
+      "claim": "Some rules are enforced only in pydantic and are not in the generated JSON Schema or zod.",
+      "evidence": "The notes say a rule conditioned on a boolean value (`passed: true`) stays pydantic-only. EmbeddingsIndex n_rows and row positions are also pydantic-only. docs/ralph/CONTRACTS.md was not in the worktree, so I read these only from the code. The story documents these rules as pydantic-only, so I count this as an accepted limitation.",
+      "id": "claude-r1-2",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "schema.py MetricRecord.n_blocks / n_bootstrap",
+      "claim": "n_blocks is typed PositiveCount, so a value of 0 is refused. The contract says only n_bootstrap >= 1.",
+      "evidence": "A metric with a value but zero blocks fails. This is stricter than the contract, defensible, and tested in test_7_value_set_with_n_blocks_0_or_null_fails.",
+      "id": "claude-r1-3",
+      "resolution": null
+    }
+  ]
+}

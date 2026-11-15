@@ -14,3 +14,21 @@
 {"ts":"2026-11-15T00:09:39Z","agent":"verifier","story":"T0B-02","event":"tool_use","tool":"Bash","input":"git diff --stat dd1f7f7431c0889bf4e6d41af64c064dda5b66f5 eb0cb54493aff923b836ed26be1b9f6f4ea13ba2 -- config PRD.md CONTRACTS.md docs"}
 {"ts":"2026-11-15T00:09:39Z","agent":"verifier","story":"T0B-02","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-15T00:09:40Z","agent":"verifier","story":"T0B-02","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":2}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_schema_model.py"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_json_schema.py"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"git rev-parse HEAD"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"pnpm --filter @terraluna/schema test"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"make schema-check"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"git diff f6d8032045d33dac6c99bb8777221b1ac25d73f6 6eb8c86305436bb94dc804983c8a8715d3a6e033 -- pipeline/src/terraluna_pipeline/schema.py"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Grep","input":"def test_|^class "}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"git diff --stat f6d8032045d33dac6c99bb8777221b1ac25d73f6 6eb8c86305436bb94dc804983c8a8715d3a6e033"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Grep","input":"\"contract\": \"(ModelRecord|Metrics|EmbeddingRecord|EmbeddingsIndex)\""}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"jq -r '[.cases[]? | .contract] | group_by(.) | map({c: .[0], n: length}) | .[] | select(.c|test(\"Model|Metrics|Embedding\"))' fixtures/schema-cases/cases.json"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"git diff f6d8032045d33dac6c99bb8777221b1ac25d73f6 6eb8c86305436bb94dc804983c8a8715d3a6e033 -- scripts/ralph/batches/t0b-contracts/progress.txt"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"jq -r '[.[] | select(.contract|test(\"ModelRecord|Metrics|EmbeddingRecord|EmbeddingsIndex\")) | \"\\(.contract) \\(.valid)\"] | group_by(.) | map(\"\\(.[0]) \\(length)\") | .[]' fixtures/schema-cases/cases.json"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"jq -c '.[0] | keys' fixtures/schema-cases/cases.json"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"jq -r '[.[] | select(.schema|test(\"model-record|metrics|embedding\")) | \"\\(.schema) \\(.valid)\"] | group_by(.) | map(\"\\(.[0]) \\(length)\") | .[]' fixtures/schema-cases/cases.json"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"Bash","input":"jq -r '[.[] | select((.schema|tostring)|test(\"odel|etrics|mbedding\")) | \"\\(.schema) \\(.valid)\"] | group_by(.) | map(\"\\(.[0]) \\(length)\") | .[]' fixtures/schema-cases/cases.json"}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-15T00:33:32Z","agent":"verifier","story":"T0B-03","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":3}
