@@ -46,6 +46,28 @@ function frameCrs(p: PaneLayer): L.CRS {
 const groundMpp = (p: PaneLayer, z: number): number => (p.mppZoomMin * 2 ** -(z - p.zoomMin)) / p.scaleFactor;
 const zoomForGround = (p: PaneLayer, mpp: number): number => p.zoomMin + Math.log2(p.mppZoomMin / (mpp * p.scaleFactor));
 
+/**
+ * The opening view: the window at about half the pane, but never zoomed out past the point where
+ * the bundle tile coverage still fills the whole pane, so no empty band shows around the tiles.
+ */
+function fitView(map: L.Map, pane: PaneLayer): void {
+  const [minX, minY, maxX, maxY] = pane.extent;
+  const cover = L.latLngBounds([minY, minX], [maxY, maxX]);
+  const ring = L.latLngBounds(pane.ring.map(([x, y]) => L.latLng(y, x)));
+  const el = map.getContainer();
+  const pad = L.point(Math.max(24, el.clientWidth / 4), Math.max(24, el.clientHeight / 4));
+  const z = Math.max(map.getBoundsZoom(ring, false, pad), map.getBoundsZoom(cover, true));
+  map.setView(ring.getCenter(), z, { animate: false });
+  const view = map.getBounds();
+  // Shift the centre so the view stays inside the tile coverage where it can.
+  const half = { x: (view.getEast() - view.getWest()) / 2, y: (view.getNorth() - view.getSouth()) / 2 };
+  const c = ring.getCenter();
+  const clamp = (v: number, lo: number, hi: number): number => (lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
+  const lng = clamp(c.lng, minX + half.x, maxX - half.x);
+  const lat = clamp(c.lat, minY + half.y, maxY - half.y);
+  map.setView(L.latLng(lat, lng), z, { animate: false });
+}
+
 export function HillshadeMap({ pane, label, onView, control }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -79,9 +101,9 @@ export function HillshadeMap({ pane, label, onView, control }: Props) {
       bounds: L.latLngBounds([minY, minX], [maxY, maxX]),
     }).addTo(map);
     const ring = pane.ring.map(([x, y]) => L.latLng(y, x));
-    L.polygon(ring, { color: '#f2c879', weight: 2, fill: false, interactive: false }).addTo(map);
+    L.polygon(ring, { color: '#f2c879', weight: 2, dashArray: '6 4', fill: false, interactive: false }).addTo(map);
     const fit = (): void => {
-      map.fitBounds(L.latLngBounds(ring), { padding: [Math.max(24, el.clientWidth / 3), Math.max(24, el.clientHeight / 3)], animate: false });
+      fitView(map, pane);
     };
     const emit = (): void => {
       if (silent.current) return;
@@ -130,9 +152,7 @@ export function HillshadeMap({ pane, label, onView, control }: Props) {
       reset: () => {
         const map = mapRef.current;
         if (map === null) return;
-        const ring = pane.ring.map(([x, y]) => L.latLng(y, x));
-        const el = map.getContainer();
-        map.fitBounds(L.latLngBounds(ring), { padding: [Math.max(24, el.clientWidth / 3), Math.max(24, el.clientHeight / 3)], animate: false });
+        fitView(map, pane);
       },
     }),
     [pane],
@@ -143,8 +163,7 @@ export function HillshadeMap({ pane, label, onView, control }: Props) {
       ref={host}
       role="region"
       aria-label={`${label} hillshade map. Arrow keys pan, plus and minus zoom.`}
-      className="size-full"
-      style={{ background: 'var(--void)' }}
+      className="size-full bg-muted outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
     />
   );
 }

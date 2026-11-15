@@ -1,80 +1,77 @@
 // Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
-// The compare lab for one card pair (PRD 8.6, 10), a server component: the pair header, the map
-// stage (client), the nu(L) curves of both windows in a framed panel, one stat tile per distance
-// family and the card's claim limits, then the full ComparisonRecord detail. Every number shown
-// is a stored bundle field; radar and model show their recorded reason, never a zero.
+// The compare page for one card pair (PRD 8.6, 10), a server component: header and map stage
+// (client), the two terrain distances with their evidence labels and the evidence card link, one
+// nu(L) chart card, and a collapsed Details section with mode, bundle version, the other distance
+// families' recorded reasons, claim limits and the stored nu(L) values. Every number shown is a
+// stored bundle field; a missing value shows its recorded reason, never a zero.
+import { ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import type { CardRecord } from '@terraluna/schema';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
 
-import { CompareView, namedSeries } from '@/components/charts/compare-view';
+import { namedSeries } from '@/components/charts/compare-view';
 import type { PairRecords } from '@/components/charts/compare-data';
 import { findWindow } from '@/components/charts/compare-data';
-import { NuChart } from '@/components/charts/nu-chart';
+import { NuTable } from '@/components/charts/nu-table';
 import type { NamedSeries } from '@/components/charts/series';
 import { EvidenceLabel, isEvidenceLabel } from '@/components/evidence-label';
-import { UnavailablePanel } from '@/components/model/unavailable-panel';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 import { CompareStage } from './compare-stage.tsx';
+import { CurvesCard } from './curves-card.tsx';
 import type { PairOption } from './kit.tsx';
 import type { LabPair } from './lab-data.ts';
 
 type Entry = CardRecord['distances_by_family']['terrain_relief'];
 
 const show = (v: number): string => String(Number(v.toPrecision(4)));
+const hasValue = (e: Entry): boolean => e.status === 'available' && e.value !== null && e.evidence_label !== 'Unavailable';
 
-function SectionHead({ n, kicker, title, text }: { readonly n: string; readonly kicker: string; readonly title: ReactNode; readonly text?: string }) {
+function DistanceCard({ name, hint, entry }: { readonly name: string; readonly hint: string; readonly entry: Entry }) {
+  const has = hasValue(entry);
   return (
-    <div className="mb-8">
-      <div className="flex flex-wrap items-center gap-4">
-        <span className="font-mono text-xs font-semibold text-primary">{n}</span>
-        <span aria-hidden="true" className="h-px w-8 bg-border" />
-        <span className="text-xs font-medium text-muted-foreground">{kicker}</span>
-      </div>
-      <h2 className="mt-3 max-w-[900px] text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">{title}</h2>
-      {text === undefined ? null : <p className="mt-3 max-w-[680px] text-sm leading-relaxed text-muted-foreground">{text}</p>}
-    </div>
-  );
-}
-
-function Em({ children }: { readonly children: ReactNode }) {
-  return <span className="font-normal text-muted-foreground">{children}</span>;
-}
-
-function StatTile({ name, entry, note }: { readonly name: string; readonly entry: Entry; readonly note?: string }) {
-  const has = entry.status === 'available' && entry.value !== null && entry.evidence_label !== 'Unavailable';
-  return (
-    <div className="min-w-0 rounded-lg bg-card p-5 ring-1 ring-foreground/10" data-family-stat={name}>
-      <p className="text-xs font-medium text-muted-foreground">{name}</p>
-      {has ? (
-        <>
-          <p className="mt-3 font-mono text-3xl leading-none text-foreground tabular-nums" title={String(entry.value)}>
-            {show(entry.value ?? Number.NaN)}
+    <Card size="sm" className="min-w-0" data-family-stat={name}>
+      <CardContent className="flex h-full flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium">{name}</p>
+            <p className="text-xs text-muted-foreground">{hint}</p>
+          </div>
+          {isEvidenceLabel(entry.evidence_label) ? <EvidenceLabel label={entry.evidence_label} /> : null}
+        </div>
+        {has ? (
+          <p className="mt-auto flex items-baseline gap-2">
+            <span className="text-4xl font-semibold tracking-tight tabular-nums" title={String(entry.value)}>
+              {show(entry.value ?? Number.NaN)}
+            </span>
+            <span className="text-sm text-muted-foreground">{entry.unit}</span>
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">{entry.unit}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-            {isEvidenceLabel(entry.evidence_label) ? <EvidenceLabel label={entry.evidence_label} /> : null}
-            {entry.background_percentile === null ? (
-              <span>percentile unavailable — {entry.background_percentile_reason ?? 'no reason recorded'}</span>
-            ) : (
-              <span title={String(entry.background_percentile)}>background percentile {show(entry.background_percentile)}</span>
-            )}
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="mt-3 text-lg leading-snug text-foreground">Unavailable</p>
-          <p className="mt-1 text-sm wrap-anywhere text-muted-foreground">— {entry.reason ?? entry.status}</p>
-          <div className="mt-3 text-xs">
-            <EvidenceLabel label="Unavailable" />
-          </div>
-        </>
-      )}
-      {note === undefined ? null : <p className="mt-3 text-xs text-muted-foreground">{note}</p>}
+        ) : (
+          <p className="mt-auto text-sm text-muted-foreground">No value in this card ({entry.reason ?? entry.status}).</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function Row({ k, children }: { readonly k: string; readonly children: React.ReactNode }) {
+  return (
+    <div className="grid gap-1 py-2.5 sm:grid-cols-[200px_1fr] sm:gap-4">
+      <dt className="text-sm text-muted-foreground">{k}</dt>
+      <dd className="min-w-0 text-sm wrap-anywhere">{children}</dd>
     </div>
   );
+}
+
+function familyText(e: Entry): string {
+  if (hasValue(e)) {
+    const pct = e.background_percentile === null ? `background percentile not recorded (${e.background_percentile_reason ?? 'no reason recorded'})` : `background percentile ${String(e.background_percentile)}`;
+    return `${String(e.value)} ${e.unit}, ${e.evidence_label}; ${pct}`;
+  }
+  return `No value (${e.reason ?? e.status}), ${e.evidence_label}`;
 }
 
 export interface CompareLabProps {
@@ -92,8 +89,11 @@ export function CompareLab({ card, pair, index, total, options, current, records
   const d = card.distances_by_family;
   const wa = findWindow(records, pair.a);
   const wb = findWindow(records, pair.b);
+  const seriesFor = (observable: 'relief' | 'texture'): NamedSeries[] =>
+    [namedSeries(pair.targetName, wa, pair.a, observable), namedSeries(pair.earthName, wb, pair.b, observable)].filter((s): s is NamedSeries => s !== null);
+  const series = { relief: seriesFor('relief'), texture: seriesFor('texture') };
   return (
-    <div className="pb-24 font-sans">
+    <div className="pb-24">
       {card.mock ? (
         <div className="bg-mock">
           <p role="status" className="mx-auto max-w-[1400px] px-4 py-1.5 text-xs font-bold text-mock-foreground sm:px-6">
@@ -101,108 +101,70 @@ export function CompareLab({ card, pair, index, total, options, current, records
           </p>
         </div>
       ) : null}
-      <header className="mx-auto max-w-[1400px] px-4 pt-8 pb-6 sm:px-6 sm:pt-12">
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-muted-foreground">
-          <span className="text-primary">Compare</span>
-          <span>
-            Card {String(index + 1).padStart(2, '0')} of {String(total).padStart(2, '0')}
-          </span>
-          <span>Mode {card.shipping_mode}</span>
-          <span className="font-mono wrap-anywhere">Bundle {bundleVersion}</span>
-        </p>
-        <h1 className="mt-4 text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">
-          <span className="inline-flex items-center gap-3">
-            <span aria-hidden="true" className="size-3 rounded-full" style={{ background: `var(--${pair.body})` }} />
-            {pair.targetName}
-          </span>{' '}
-          <Em>↔</Em>{' '}
-          <span className="inline-flex items-center gap-3">
-            <span aria-hidden="true" className="size-3 rounded-full" style={{ background: 'var(--earth)' }} />
-            {pair.earthName}
-          </span>
-        </h1>
-        <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{card.wording}</p>
-        <p className="mt-2 font-mono text-[11px] wrap-anywhere text-muted-foreground">
-          {pair.a} · {pair.b}
-        </p>
-      </header>
+      <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 pt-8 sm:px-6 sm:pt-10">
+        <div>
+          <CompareStage pair={pair} current={current} options={options} />
+        </div>
 
-      <CompareStage pair={pair} current={current} options={options} />
+        <div className="grid gap-4 md:grid-cols-3">
+          <DistanceCard name="Relief distance" hint="Shape of the height field" entry={d.terrain_relief} />
+          <DistanceCard name="Texture distance" hint="Fine surface roughness" entry={d.terrain_texture} />
+          <Card size="sm" className="min-w-0">
+            <CardContent className="flex h-full flex-col gap-3">
+              <div>
+                <p className="text-sm font-medium">Evidence card</p>
+                <p className="text-xs text-muted-foreground">{card.wording}</p>
+              </div>
+              <Link href={`/site/${card.card_id}`} className={cn(buttonVariants({ size: 'lg' }), 'mt-auto w-full no-underline')}>
+                Open evidence card
+                <HugeiconsIcon icon={ArrowRight01Icon} size={16} aria-hidden="true" />
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
 
-      <div className="mx-auto max-w-[1400px] space-y-16 px-4 pt-16 sm:px-6">
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          3D terrain twins are not shown: this release bundle ships hillshade images, not height arrays, for these windows, and a 3D
-          surface would need heights the bundle does not hold.
-        </p>
+        <CurvesCard targetName={pair.targetName} earthName={pair.earthName} series={series} />
 
-        <section id="curves" aria-labelledby="curves-title" className="scroll-mt-32">
-          <SectionHead
-            n="01"
-            kicker="Structure function"
-            title={
-              <span id="curves-title">
-                Roughness across scales, <Em>ν(L) for both windows.</Em>
-              </span>
-            }
-            text="Log-log axes. Solid blue with circles is the target; dashed orange with squares is the Earth window. Dotted vertical lines mark lags without a value; the reason is in the table."
-          />
-          <div className="grid gap-6 rounded-lg bg-card p-4 ring-1 ring-foreground/10 sm:p-6 lg:grid-cols-2 [&>*]:min-w-0">
-            {(['relief', 'texture'] as const).map((observable) => {
-              const series = [namedSeries('Target', wa, pair.a, observable), namedSeries('Earth candidate', wb, pair.b, observable)].filter(
-                (s): s is NamedSeries => s !== null,
-              );
-              return series.length === 0 ? (
-                <UnavailablePanel key={observable} title={`${observable} ν(L) curves`}>
-                  <p>Neither window has a terrain fingerprint in the bundle (windows/&lt;body&gt;.json).</p>
-                </UnavailablePanel>
-              ) : (
-                <NuChart key={observable} name={`${observable === 'relief' ? 'Relief' : 'Texture'} ν(L), ${pair.targetName} and ${pair.earthName}`} series={series} />
-              );
-            })}
-          </div>
-        </section>
-
-        <section id="distances" aria-labelledby="distances-title" className="scroll-mt-32">
-          <SectionHead
-            n="02"
-            kicker="Distances by family"
-            title={
-              <span id="distances-title">
-                Four families, <Em>never summed.</Em>
-              </span>
-            }
-            text="Each family keeps its own unit and evidence label. Terrain distances come from the card; radar and model show the reason they are unavailable."
-          />
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatTile name="Terrain relief" entry={d.terrain_relief} />
-            <StatTile name="Terrain texture" entry={d.terrain_texture} />
-            <StatTile name="Radar CPR" entry={d.radar_cpr} />
-            <StatTile name="Model embedding" entry={d.model_embedding} note="Experimental" />
-          </div>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Link href={`/site/${card.card_id}`} className={cn(buttonVariants({ size: 'lg' }), 'no-underline')}>
-              Open the evidence card
-            </Link>
-            <span className="font-mono text-[11px] wrap-anywhere text-muted-foreground">{card.card_id}</span>
-          </div>
-          <div className="mt-8 rounded-lg bg-card p-5 ring-1 ring-foreground/10">
-            <h3 className="text-sm font-semibold">Claim limits</h3>
-            {card.claim_limits.length === 0 ? (
-              <p className="mt-2 text-sm text-muted-foreground">The card lists no claim limits.</p>
-            ) : (
-              <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[13.5px] leading-relaxed text-muted-foreground">
-                {card.claim_limits.map((limit) => (
-                  <li key={limit}>{limit}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </section>
-
-        <section id="record" aria-labelledby="record-title" className="scroll-mt-32">
-          <SectionHead n="03" kicker="Full record" title={<span id="record-title">The comparison record, <Em>field by field.</Em></span>} />
-          <CompareView records={records} a={pair.a} b={pair.b} detailOnly />
-        </section>
+        <Accordion type="single" collapsible className="rounded-xl bg-card px-4 ring-1 ring-foreground/10 sm:px-6">
+          <AccordionItem value="details" className="border-b-0">
+            <AccordionTrigger>Details</AccordionTrigger>
+            <AccordionContent>
+              <dl className="divide-y">
+                <Row k="Card">
+                  {String(index + 1)} of {String(total)} · {card.card_id}
+                </Row>
+                <Row k="Mode · bundle">
+                  Mode {card.shipping_mode} · {bundleVersion}
+                </Row>
+                <Row k="Windows">
+                  {pair.a} ↔ {pair.b}
+                </Row>
+                <Row k="Relief">{familyText(d.terrain_relief)}</Row>
+                <Row k="Texture">{familyText(d.terrain_texture)}</Row>
+                <Row k="Radar CPR">{familyText(d.radar_cpr)}</Row>
+                <Row k="Model embedding (experimental)">{familyText(d.model_embedding)}</Row>
+                <Row k="Map frames">
+                  {pair.target?.units ?? 'no target tiles'}; {pair.earth?.units ?? 'no Earth tiles'}
+                </Row>
+                <Row k="Claim limits">
+                  {card.claim_limits.length === 0 ? (
+                    'None listed.'
+                  ) : (
+                    <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
+                      {card.claim_limits.map((limit) => (
+                        <li key={limit}>{limit}</li>
+                      ))}
+                    </ul>
+                  )}
+                </Row>
+              </dl>
+              <div className="mt-4 grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+                {series.relief.length > 0 ? <NuTable caption="Relief ν(L): stored values" series={series.relief} /> : null}
+                {series.texture.length > 0 ? <NuTable caption="Texture ν(L): stored values" series={series.texture} /> : null}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </div>
   );
