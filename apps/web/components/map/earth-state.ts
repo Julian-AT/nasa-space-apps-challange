@@ -1,6 +1,6 @@
 // Earth view state in the query string: `family` (one distance family at a time) and `target`.
 // An invalid value falls back to the default; parsing never throws.
-import { FAMILIES, type Family } from './explore-data.ts';
+import { type Candidate, type DistanceEntry, FAMILIES, type Family } from './explore-data.ts';
 
 export interface EarthView {
   readonly family: Family;
@@ -49,4 +49,36 @@ export function focusOn(points: readonly (readonly [number, number])[]): GlobeFo
     latitude: (Math.max(...lats) + Math.min(...lats)) / 2,
     zoom,
   };
+}
+
+export interface MarkerScale {
+  /** "percentile" when every available entry stores a background percentile, else "value". */
+  readonly mode: 'percentile' | 'value';
+  readonly min: number;
+  readonly max: number;
+  readonly unit: string | null;
+  /** Number of candidates with a stored value in this family. */
+  readonly n: number;
+}
+
+/** The colour scale of one family across the records: stored percentiles when present, else the stored distances. */
+export function markerScale(candidates: readonly Candidate[], family: Family): MarkerScale {
+  const entries = candidates.map((c) => c.distances[family]).filter((e) => e.status === 'available' && e.value !== null);
+  const usePercentile = entries.length > 0 && entries.every((e) => e.background_percentile !== null);
+  const values = entries.map((e) => (usePercentile ? (e.background_percentile as number) : (e.value as number)));
+  return {
+    mode: usePercentile ? 'percentile' : 'value',
+    min: usePercentile ? 0 : values.length === 0 ? 0 : Math.min(...values),
+    max: usePercentile ? 100 : values.length === 0 ? 0 : Math.max(...values),
+    unit: entries[0]?.unit ?? null,
+    n: entries.length,
+  };
+}
+
+/** Position 0..1 on the scale, or null when the entry has no stored value (drawn grey, never zero). */
+export function markerT(entry: DistanceEntry, scale: MarkerScale): number | null {
+  if (entry.status !== 'available' || entry.value === null) return null;
+  const v = scale.mode === 'percentile' ? entry.background_percentile : entry.value;
+  if (v === null) return null;
+  return scale.max === scale.min ? 0.5 : (v - scale.min) / (scale.max - scale.min);
 }
