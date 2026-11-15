@@ -9,7 +9,7 @@ import pytest
 
 from helpers_report import make_run, make_shards, standin_loaders
 from terraluna_ml import evaluate, g5, report, shards
-from terraluna_pipeline.schema import MetricsFile, ModelRecord
+from terraluna_pipeline.schema import CurvesFile, ExamplesFile, MetricsFile, ModelRecord
 
 CONFIG = Path(__file__).resolve().parents[2] / "config" / "run.yaml"
 
@@ -74,16 +74,19 @@ def test_report_files_validate_and_are_deterministic(tmp_path: Path) -> None:
 
 def test_curves_aggregate_seeds_and_tradeoff(tmp_path: Path) -> None:
     ev, runs, _ = _build(tmp_path)
-    curves = report.build_curves(ev, runs)
-    grp = next(g for g in curves["loss_curves"] if g["group"] == "lambda_1")
+    groups, gpu = report.loss_curves(runs)
+    grp = next(g for g in groups if g["group"] == "lambda_1")
     term = grp["terms"]["loss_total"]
     expected = [np.mean([3.0 / (e + 1) + 0.01 * s for s in (0, 1, 2)]) for e in range(3)]
     assert term["mean"] == pytest.approx(expected) and term["n_seeds"] == [3, 3, 3]
     assert term["min"][0] == pytest.approx(3.0) and term["max"][0] == pytest.approx(3.02)
-    assert curves["gpu_hours"]["total"] == pytest.approx(1.0) and not curves["gpu_hours"]["partial"]
-    assert curves["tradeoff"]["chance_body_accuracy"] == pytest.approx(1 / 3)
-    by_lam = {p["lambda_max"]: p["status"] for p in curves["tradeoff"]["points"]}
+    assert gpu["total"] == pytest.approx(1.0) and not gpu["partial"]
+    curves = CurvesFile.model_validate(report.build_curves(ev, runs))
+    assert curves.chance_level_body_probe == pytest.approx(1 / 3)
+    assert curves.gpu_hours.total_hours == pytest.approx(1.0)
+    by_lam = {p.lambda_max: p.status for p in curves.tradeoff}
     assert by_lam[0.1] == "unavailable" and by_lam[1.0] == "available"
+    assert curves.validation_probe_metrics.status == "unavailable"
 
 
 def test_missing_epoch_and_gpu_hours_are_not_filled(tmp_path: Path) -> None:
@@ -93,12 +96,24 @@ def test_missing_epoch_and_gpu_hours_are_not_filled(tmp_path: Path) -> None:
     doc["epochs"] = doc["epochs"][:2]
     del doc["gpu_hours"]
     m.write_text(json.dumps(doc))
-    curves = report.build_curves(ev, runs)
-    grp = next(g for g in curves["loss_curves"] if g["group"] == "lambda_1")
+    groups, _ = report.loss_curves(runs)
+    grp = next(g for g in groups if g["group"] == "lambda_1")
     assert grp["terms"]["loss_total"]["n_seeds"] == [3, 3, 2]
-    assert curves["gpu_hours"]["partial"] is True
-    assert curves["gpu_hours"]["total"] == pytest.approx(0.75)
-    assert any(r["gpu_hours"] is None and r["reason"] for r in curves["gpu_hours"]["per_run"])
+    curves = CurvesFile.model_validate(report.build_curves(ev, runs))
+    assert curves.gpu_hours.partial is True
+    assert curves.gpu_hours.total_hours == pytest.approx(0.75)
+    assert any(r.hours is None and r.reason for r in curves.gpu_hours.runs)
+
+
+def test_window_ids_take_their_bundle_form() -> None:
+    assert report.bundle_window_id("mars-G20_025906_2242_XN_44N-1011-00115") == (
+        "mars-g20-025906-2242-xn-44n-1011-00115"
+    )
+    assert report.bundle_window_id("earth-N34_00_W119_00_-5004-00598") == (
+        "earth-n34-00-w119-00-5004-00598"
+    )
+    with pytest.raises(report.ReportError):
+        report.bundle_window_id("venus-1")
 
 
 def test_different_seed_free_configs_in_a_group_raise(tmp_path: Path) -> None:
@@ -129,16 +144,14 @@ def test_hygiene_and_g5_copy(tmp_path: Path) -> None:
 
 def test_examples_layout_and_cli(tmp_path: Path) -> None:
     ev, runs, manifest = _build(tmp_path)
-    ex = report.build_examples(ev)
-    assert len(ex["gallery"]) == 4
-    g = ex["gallery"][0]
-    assert g["encoder_top5"]["evidence_label"] == "Predicted"
-    assert g["encoder_top5"]["distance_family"] == "encoder"
-    assert len(g["encoder_top5"]["windows"]) == 5
-    assert g["deterministic_top5"]["status"] == "unavailable"
-    assert len(ex["failure_cases"]["cases"]) == 20
-    d = [c["rank_disagreement"] for c in ex["failure_cases"]["cases"]]
-    assert d == sorted(d, reverse=True)
+    ex = ExamplesFile.model_validate(report.build_examples(ev))
+    assert len(ex.retrieval_gallery) == 4
+    g = ex.retrieval_gallery[0]
+    assert len(g.encoder_top5) == 5 and g.deterministic_top5 == []
+    assert g.shortfall_reason == "deterministic_ranking_not_an_input"
+    assert all(e.evidence_label == "Predicted" for e in g.encoder_top5)
+    assert len(ex.failure_cases.entries) == 20
+    assert all(h.data_b64 is None and h.unavailable_reason for h in ex.hillshades)
     out = tmp_path / "cli"
     code = report.main(
         [

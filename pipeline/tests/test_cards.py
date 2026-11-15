@@ -858,3 +858,60 @@ def test_written_records_are_world_readable(tmp_path: Path) -> None:
     path = tmp_path / "outputs" / "comparisons" / f"{TARGET_ID}.json"
     write_comparisons(path, [comparison("C")])
     assert path.stat().st_mode & 0o777 == 0o644
+
+
+# --- Data-driven wording (final bundle) ---------------------------------------------------------
+
+
+def _with_relief(relief: float, earth_id: str = EARTH_WINDOW) -> ComparisonRecord:
+    return ComparisonRecord.model_validate(comparison("C", relief=relief, earth_window_id=earth_id))
+
+
+def test_distance_beyond_the_reference_max_is_stated_not_close() -> None:
+    record = _with_relief(0.5)  # reference max in the fixture is 0.0987654321
+    limits = default_card_limits(record, "moon")
+    assert "exceeds" in limits.interpretation and "not a close neighbour" in limits.interpretation
+    assert "0.5" in limits.interpretation and "0.09877" in limits.interpretation
+    assert "could help investigate" not in limits.interpretation
+    assert any(
+        "not a close neighbour" in text and "0.09877" in text for text in limits.claim_limits
+    )
+
+
+def test_distance_inside_the_reference_max_keeps_the_plain_interpretation() -> None:
+    limits = default_card_limits(_with_relief(0.05), "moon")
+    assert "could help investigate" in limits.interpretation
+    assert not limits.claim_limits
+
+
+def test_not_shortlisted_pair_uses_pilot_wording_with_the_relief_rank() -> None:
+    peers = [_with_relief(v, f"earth-utm27n-e{i}-n1") for i, v in enumerate([0.01, 0.02, 0.9])]
+    record = _with_relief(0.5)
+    limits = default_card_limits(record, "moon", peers=[*peers, record], shortlisted=False)
+    assert limits.wording == "Pilot pairing (G0-05); not shortlisted (relief rank 3 of 4)"
+    assert "candidate window identified by this search" not in limits.interpretation
+
+
+def test_pilot_card_drops_the_search_claim_and_validates(tmp_path: Path) -> None:
+    record = _with_relief(0.5)
+    peers = [record]
+    card = export_card(
+        windows_map(),
+        ComparisonRecord.model_validate(
+            {
+                **comparison("C", relief=0.5),
+                "claim_limits": [CARD_WORDING_TEXT + "; not a proven analog"],
+            }
+        ),
+        [ProductRecord.model_validate(p) for p in sources()],
+        default_card_limits(record, "moon", peers=peers, shortlisted=False),
+        gates("FAIL"),
+        target=TargetRecord.model_validate(target("C")),
+        config_path=config(tmp_path),
+    )
+    assert card.wording.startswith("Pilot pairing (G0-05); not shortlisted")
+    assert not any(text.startswith(CARD_WORDING_TEXT) for text in card.claim_limits)
+    assert any("(G5 FAIL) and takes no part in any ranking" in t for t in card.claim_limits)
+
+
+CARD_WORDING_TEXT = "candidate window identified by this search"

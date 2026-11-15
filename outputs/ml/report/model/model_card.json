@@ -1,0 +1,1344 @@
+{
+  "architecture": "ResNet-18 layout (BasicBlock, [2, 2, 2, 2]) at half width (32, 64, 128, 256); 3 x 3 stem at stride 2 (a CPU-scope deviation from the stride-1 stem of PRD 11.3); global average pool to a 256-d embedding, L2-normalised for retrieval",
+  "g5_status": "FAIL",
+  "intended_use": "A second opinion only. The encoder embeds 5 km windows at 78 m sampling of Moon, Mars and Earth terrain into 256 numbers and offers a third, always Predicted, distance family beside the deterministic terrain fingerprint. It is EXPERIMENTAL, stays outside every ranking until gate G5 passes, and never replaces the fingerprint on any card.",
+  "licence": "Apache-2.0",
+  "limitations": "Every encoder statistic is Predicted, a model output and not an observation. The model makes no claim about radar, trafficability, regolith mechanics or ice, and a close embedding is not evidence of an analog. It was evaluated only on 5 km windows at 78 m sampling from spatially held-out blocks; results do not transfer to other scales. The morphology probe is Unavailable because no crater labels exist in this dataset. Frozen ImageNet ResNet-18 and DINO ViT-S/8 baselines are Unavailable until their weights are fetched. Windows overlapping a target footprint are excluded by the dataset build. Training ran at a reduced CPU scope (no GPU) that departs from the PRD training recipe in data volume, epochs, batch size, precision and stem stride; each departure is listed per run in report/curves.json.",
+  "metrics_with_ci": [
+    {
+      "baselines": [
+        {
+          "ci_high": 0.971952699357804,
+          "ci_low": 0.9366407140136279,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.00820212025111017,
+          "paired_diff_ci_low": -0.010916411639856485,
+          "unavailable_reason": null,
+          "value": 0.9691986530096416
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9673803703117905,
+      "ci_low": 0.9436878161361877,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.965846356486989
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9511061091700527,
+      "ci_low": 0.9344313818035412,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9435032854402973
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_relief_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_relief_270",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9628485074033287,
+      "ci_low": 0.6094009588829121,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9537904854719156
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9705072431658694,
+          "ci_low": 0.9416478026016031,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.006653337535877149,
+          "paired_diff_ci_low": -0.02103459882783037,
+          "unavailable_reason": null,
+          "value": 0.9687829436413694
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9646448096227959,
+      "ci_low": 0.9389730614353847,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.959983061539762
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9524426634415575,
+      "ci_low": 0.9370234796398252,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9457433780038933
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_relief_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_relief_360",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9593001239850976,
+      "ci_low": 0.6123147582883806,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9507727745836664
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9677510340730812,
+          "ci_low": 0.944653400814429,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.001775286696958563,
+          "paired_diff_ci_low": -0.042854070644557395,
+          "unavailable_reason": null,
+          "value": 0.9661192013954925
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9650338868272603,
+      "ci_low": 0.9078223160486164,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9459819843247061
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.949720170020789,
+      "ci_low": 0.9352491392730521,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9441631035786756
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_relief_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_relief_540",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9614722262248608,
+      "ci_low": 0.5694634506208636,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9518362368427599
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9656839884841176,
+          "ci_low": 0.9440430231046232,
+          "name": "random_init",
+          "paired_diff_ci_high": -0.0018420129609251882,
+          "paired_diff_ci_low": -0.05053351303292614,
+          "unavailable_reason": null,
+          "value": 0.9633430049942843
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9606403018583672,
+      "ci_low": 0.8938669216519354,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9383130909866998
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9453155046938662,
+      "ci_low": 0.9303674042773373,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9398902270193656
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_relief_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_relief_720",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9524561021435097,
+      "ci_low": 0.550787723523378,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9422414692185312
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9613081825679756,
+          "ci_low": 0.9337904168694728,
+          "name": "random_init",
+          "paired_diff_ci_high": -0.006800092561462676,
+          "paired_diff_ci_low": -0.05979571094210806,
+          "unavailable_reason": null,
+          "value": 0.9573737733818465
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9503154741731126,
+      "ci_low": 0.8738821469525818,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9262770224377734
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9353832642811593,
+      "ci_low": 0.9197530255421382,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9300056805161546
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_relief_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_relief_1080",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9305841655128447,
+      "ci_low": 0.48511842664387606,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9183721334996924
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.950488905892967,
+          "ci_low": 0.883241932183264,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.011898363018106716,
+          "paired_diff_ci_low": -0.054983610324042045,
+          "unavailable_reason": null,
+          "value": 0.943751484986821
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.953022727208451,
+      "ci_low": 0.828408479322016,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9371743908608469
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.8380504966601727,
+      "ci_low": 0.809420604460833,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.8270450191834562
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_texture_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_texture_270",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9499127418873671,
+      "ci_low": 0.5617742280226962,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9417602707098671
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9612117590744637,
+          "ci_low": 0.9050689998933956,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.008536360472481505,
+          "paired_diff_ci_low": -0.0425073577480564,
+          "unavailable_reason": null,
+          "value": 0.9564871596677937
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9640640537240581,
+      "ci_low": 0.862755593839192,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9524043092443858
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.8728134915059845,
+      "ci_low": 0.8449626460124976,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.8621226549668874
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_texture_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_texture_360",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9568992442229273,
+      "ci_low": 0.5679249776228177,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.949407420660084
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9729544718701919,
+          "ci_low": 0.9257083998645443,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.00408823997600628,
+          "paired_diff_ci_low": -0.02456159485604893,
+          "unavailable_reason": null,
+          "value": 0.9684394455637232
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9737829717655703,
+      "ci_low": 0.9023881002317801,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9662276718219486
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9117451141456993,
+      "ci_low": 0.8870393070817681,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9021836551109813
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_texture_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_texture_540",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9656662520955468,
+      "ci_low": 0.5840180255028793,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9587974260099307
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9781183292967683,
+          "ci_low": 0.9378984318495804,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.0027782015653189224,
+          "paired_diff_ci_low": -0.015511548557657198,
+          "unavailable_reason": null,
+          "value": 0.974156087705032
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9787419574397976,
+      "ci_low": 0.9247643567874978,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9731569242855179
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9329370765470572,
+      "ci_low": 0.9104491676703433,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9243512839826057
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_texture_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_texture_720",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9711318736681727,
+      "ci_low": 0.6140576668098714,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9647862678502264
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9831973336308367,
+          "ci_low": 0.9516550453088102,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.002640475174180675,
+          "paired_diff_ci_low": -0.005714156253870606,
+          "unavailable_reason": null,
+          "value": 0.9797395752368517
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9838406903980099,
+      "ci_low": 0.9474896758331113,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.980110297086265
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9547874246334621,
+      "ci_low": 0.9367635067198673,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9479136762930178
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_texture_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_texture_1080",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9757151208703705,
+      "ci_low": 0.6769297486099289,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9702644399523238
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.8246454454162551,
+          "ci_low": 0.6636158302307872,
+          "name": "random_init",
+          "paired_diff_ci_high": -0.0951480642100992,
+          "paired_diff_ci_low": -0.2203650945982977,
+          "unavailable_reason": null,
+          "value": 0.8133066272204306
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.727834937308115,
+      "ci_low": 0.4461415582190906,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "H_relief",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.7100487170868888
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.6690160002184925,
+      "ci_low": 0.3592265573270552,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "H_relief",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.55384290038585
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "H_relief",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for H_relief",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.17603571485822844,
+      "ci_low": -0.10402451683005065,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "H_relief",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": -0.039261447105384706
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "fingerprint_only_ridge",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "crater labels do not exist in this dataset: no Robbins catalogue is ingested, so no log crater density can be formed for Moon or Mars windows",
+          "value": null
+        }
+      ],
+      "body": null,
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2_gain_over_fingerprint_ridge",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": null,
+      "test_id": "morphology_probe",
+      "unavailable_reason": "crater labels do not exist in this dataset: no Robbins catalogue is ingested, so no log crater density can be formed for Moon or Mars windows",
+      "value": null
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.8492146627553249,
+          "ci_low": 0.6178125240816351,
+          "name": "lambda_0",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": null,
+          "value": 0.7208404140536292
+        },
+        {
+          "ci_high": 0.9085200844950031,
+          "ci_low": 0.7827847393657126,
+          "name": "random_init",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": null,
+          "value": 0.8657780436695021
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "chance",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "1 over the number of training bodies",
+          "value": 0.3333333333333333
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.8468193365903072,
+      "ci_low": 0.5835224565110707,
+      "evidence_label": "Predicted",
+      "measure": "balanced_accuracy",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": null,
+      "test_id": "body_invariance",
+      "unavailable_reason": null,
+      "value": 0.707647609232532
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.8788403671689141,
+          "ci_low": 0.8047334993882084,
+          "name": "random_init",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": null,
+          "value": 0.8474213164130533
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.3613689543019368,
+      "ci_low": 0.0764086625279221,
+      "evidence_label": "Predicted",
+      "measure": "spearman_rho",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "rms_log_nu_10",
+      "test_id": "physics_agreement",
+      "unavailable_reason": null,
+      "value": 0.19778943660997358
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.8511977386860283,
+          "ci_low": 0.7899708905601742,
+          "name": "random_init",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": null,
+          "value": 0.8246054151650135
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.35456860184858474,
+      "ci_low": 0.0678233295464359,
+      "evidence_label": "Predicted",
+      "measure": "spearman_rho",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "rms_log_nu_relief_5",
+      "test_id": "physics_agreement",
+      "unavailable_reason": null,
+      "value": 0.18981757539504393
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.8455296481069916,
+          "ci_low": 0.7716543433100348,
+          "name": "random_init",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": null,
+          "value": 0.8173446154308616
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.3462757668702747,
+      "ci_low": 0.09073712377585998,
+      "evidence_label": "Predicted",
+      "measure": "spearman_rho",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "rms_log_nu_texture_5",
+      "test_id": "physics_agreement",
+      "unavailable_reason": null,
+      "value": 0.2027326392508316
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "random_ranking",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "the deterministic M0 Earth ranking of T4 is not an input of this build",
+          "value": null
+        }
+      ],
+      "body": "earth",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "jaccard_at_20",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": null,
+      "test_id": "target_retrieval",
+      "unavailable_reason": "the deterministic M0 Earth ranking of T4 is not an input of this build",
+      "value": null
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "random_ranking",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "exact hypergeometric expectation",
+          "value": 0.04373929747135997
+        }
+      ],
+      "body": "earth",
+      "ci_high": 0.37026394210302255,
+      "ci_low": 0.31832611832611835,
+      "evidence_label": "Predicted",
+      "measure": "jaccard_at_20_mean",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "earth_top20",
+      "test_id": "seed_stability",
+      "unavailable_reason": null,
+      "value": 0.31832611832611835
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": null,
+      "test_id": "held_out_body",
+      "unavailable_reason": "no Moon+Earth-only run was supplied",
+      "value": null
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "training_expectation",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "99th percentile of training distances",
+          "value": 0.01
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.10103654804735827,
+      "ci_low": 0.003737212859679405,
+      "evidence_label": "Predicted",
+      "measure": "fraction_above_train_p99",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "mahalanobis",
+      "test_id": "out_of_distribution",
+      "unavailable_reason": null,
+      "value": 0.043255694906577935
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "training_expectation",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "99th percentile of training distances",
+          "value": 0.01
+        }
+      ],
+      "body": "moon",
+      "ci_high": 0.025913010747654376,
+      "ci_low": 0.002256590458724975,
+      "evidence_label": "Predicted",
+      "measure": "fraction_above_train_p99",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "mahalanobis",
+      "test_id": "out_of_distribution",
+      "unavailable_reason": null,
+      "value": 0.010214504596527068
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "training_expectation",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "99th percentile of training distances",
+          "value": 0.01
+        }
+      ],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "fraction_above_train_p99",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "mahalanobis",
+      "test_id": "out_of_distribution",
+      "unavailable_reason": "fewer than 2 spatial blocks",
+      "value": null
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "training_expectation",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "99th percentile of training distances",
+          "value": 0.01
+        }
+      ],
+      "body": "earth",
+      "ci_high": 0.010752688172043012,
+      "ci_low": 0.006622516556291391,
+      "evidence_label": "Predicted",
+      "measure": "fraction_above_train_p99",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "mahalanobis",
+      "test_id": "out_of_distribution",
+      "unavailable_reason": null,
+      "value": 0.00819672131147541
+    }
+  ],
+  "model_id": "terraluna-encoder-experimental",
+  "objectives_and_weights": {
+    "alpha_phys": 1.0,
+    "lambda_max": 0.3,
+    "schedule": "see the run's config.json",
+    "vicreg": {
+      "covariance": 1.0,
+      "invariance": 25.0,
+      "variance": 25.0
+    }
+  },
+  "onnx_sha256": "931bfc36393a35ca76a61b84a2681057a055043845bb5d254200c45516e47f21",
+  "parameter_count": 2795040,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "training_data": {
+    "bodies": [
+      "moon",
+      "mars",
+      "earth"
+    ],
+    "product_ids": [
+      "copernicus_glo30:Copernicus_DSM_COG_10_N34_00_W115_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N34_00_W116_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N34_00_W119_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N35_00_W115_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N35_00_W116_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N36_00_W117_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N36_00_W118_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N37_00_W117_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N37_00_W118_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N38_00_W111_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N38_00_W112_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N42_00_W113_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N42_00_W114_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N43_00_W113_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N43_00_W114_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N64_00_W016_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N64_00_W017_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N64_00_W018_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N64_00_W019_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N65_00_W016_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N65_00_W017_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N65_00_W018_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N65_00_W019_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N75_00_W091_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S23_00_W069_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S23_00_W070_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S23_00_W071_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S24_00_W069_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S24_00_W070_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S24_00_W071_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S25_00_W069_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S25_00_W070_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S25_00_W071_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S26_00_W069_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S26_00_W070_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S26_00_W071_00_DEM",
+      "ctx_dtm:B18_016650_2206_XN_40N174W__D21_035427_2205_XN_40N174W",
+      "ctx_dtm:D04_028795_2302_XN_50N185W__F03_037155_2303_XN_50N185W",
+      "ctx_dtm:D15_033146_2247_XN_44N176W__D15_033225_2247_XN_44N176W",
+      "ctx_dtm:D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W",
+      "ctx_dtm:D18_034187_2276_XN_47N156W__D19_034622_2276_XN_47N156W",
+      "ctx_dtm:D22_035981_2253_XN_45N176W__F01_036337_2234_XN_43N175W",
+      "ctx_dtm:F18_042930_2210_XN_41N158W__F19_043220_2210_XN_41N158W",
+      "ctx_dtm:G03_019590_2280_XI_48N163W__G05_020078_2267_XN_46N163W",
+      "ctx_dtm:G20_025906_2242_XN_44N155W__F19_043299_2242_XN_44N155W",
+      "lola_pgda90:LDEM_80S_20MPP_ADJ",
+      "pgda78:Site01_final_adj_5mpp_surf"
+    ],
+    "split_groups": {
+      "earth": "spatial blocks (eval_block); train/val/test by block",
+      "mars": "spatial blocks (eval_block); train/val/test by block",
+      "moon": "spatial blocks (eval_block); train/val/test by block"
+    },
+    "window_counts": {
+      "earth": {
+        "test": 244,
+        "train": 11147,
+        "val": 2760
+      },
+      "mars": {
+        "test": 726,
+        "train": 1398,
+        "val": 364
+      },
+      "moon": {
+        "test": 2937,
+        "train": 6848,
+        "val": 2418
+      }
+    }
+  },
+  "version": "0.1.0-experimental"
+}

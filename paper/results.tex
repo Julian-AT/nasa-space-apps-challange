@@ -9,8 +9,7 @@ validation record.
 
 \begin{table}[tbp]
 \centering
-\caption{Release gates as recorded in the validation record. A gate that has not been executed is
-NOT\_RUN, never a pass.}
+\caption{Release gates as recorded in the validation record. A gate that has not been executed is NOT\_RUN, never a pass.}
 \label{tab:gates}
 \footnotesize
 \begin{tabular}{@{}llW@{}}
@@ -39,9 +38,11 @@ correlation between embedding and fingerprint distances reaches \GFiveRhoMin, th
 neighbours agree across seeds with a Jaccard index of at least \GFiveJaccardMin, and the encoder
 beats both frozen image baselines on the two probes with paired bootstrap intervals that exclude zero, the morphology gain having a positive lower bound, and the exported model matches the training model within the parity tolerance. These thresholds were fixed in the
 configuration before training. Table~\ref{tab:probes} reports the probes from the evaluation
-record. The encoder promotion gate is \GateFiveStatus, so the encoder is reported as experimental and every ranking in this paper uses the fingerprint alone. The model report is built in the model card form of \citet{mitchell2019}, with intended use, evaluation conditions and limitations stated beside the metrics.
+record. The encoder promotion gate is \GateFiveStatus, so the encoder is reported as experimental and every ranking in this paper uses the fingerprint alone.
 
-The browser export can already be checked. An ONNX export of the backbone (opset \OnnxOpset), taken from an \OnnxSourceStatus{} after epoch \OnnxSnapshotEpoch{} of \OnnxSnapshotOf{} of the first main run, reproduces the training model on \OnnxParityN{} validation windows with a largest absolute difference of \OnnxFpDiff{} in single precision (tolerance \OnnxFpThreshold) and a smallest cosine similarity of \OnnxHalfCosine{} in half precision (tolerance \OnnxHalfThreshold), for a half precision file of \OnnxHalfBytes{} bytes. This shows that the exported graph computes the same function; it says nothing about the quality of the embedding. The web probe's own check runs the half precision file in ONNX Runtime Web \WasmOrtVersion{} under \WasmRuntime{} with \WasmThreads{} thread on \WasmWindows{} windows, with a smallest cosine similarity to the single precision Python model of \WasmMinCosine{} (tolerance \WasmThreshold) and \WasmMs{} ms per window; that timing comes from Node.js, not from a browser on a typical laptop.
+The probes explain the verdict. The physics probe passes its threshold: the smallest lower bound of the relief \Rsq{} over the lags is \EncoderPhysRReliefMin. But an untrained copy of the same network reaches a smallest lower bound of \RandomPhysRReliefMin, so a linear readout of the fingerprint from these windows does not show that training added anything. The body probe classifies the body with a balanced accuracy of \EncoderBodyAcc{} (interval \EncoderBodyAccLow{} to \EncoderBodyAccHigh), above the threshold of \GFiveBodyAccMax{} and close to the \NoAdvBodyAcc{} of the run without gradient reversal, so the adversarial head at the trained weight did not remove body information. Agreement between embedding distances and fingerprint distances is \EncoderAgreementRho{} (interval \EncoderAgreementLow{} to \EncoderAgreementHigh), against \RandomAgreementRho{} for the untrained network: training moved the embedding away from the physics that the fingerprint measures. The top twenty Earth neighbours agree across seeds with a mean Jaccard index of \EncoderSeedJaccard, above the \RandomSeedJaccard{} of a random ranking but below the threshold. The morphology probe and the comparison with the ImageNet and DINO baselines could not be run, because no crater labels were ingested and the baseline weights were not fetched. At this reduced scope the encoder is therefore a negative result, and the paper makes no claim for learned similarity. The model report is built in the model card form of \citet{mitchell2019}, with intended use, evaluation conditions and limitations stated beside the metrics.
+
+The browser export can already be checked. An ONNX export of the backbone of the first main run (opset \OnnxOpset; training run status in the export record: \OnnxSourceStatus) reproduces the training model on \OnnxParityN{} validation windows with a largest absolute difference of \OnnxFpDiff{} in single precision (tolerance \OnnxFpThreshold) and a smallest cosine similarity of \OnnxHalfCosine{} in half precision (tolerance \OnnxHalfThreshold), for a half precision file of \OnnxHalfBytes{} bytes. This shows that the exported graph computes the same function; it says nothing about the quality of the embedding. The web probe's own check runs the half precision file in ONNX Runtime Web \WasmOrtVersion{} under \WasmRuntime{} with \WasmThreads{} thread on \WasmWindows{} windows, with a smallest cosine similarity to the single precision Python model of \WasmMinCosine{} (tolerance \WasmThreshold) and \WasmMs{} ms per window; that timing comes from Node.js, not from a browser on a typical laptop.
 
 \begin{table}[tbp]
 \centering
@@ -55,7 +56,7 @@ distances on cross body pairs.}
 \toprule
 Representation & Physics & Morphology & Body & Agreement \\
 \midrule
-Random initialisation & \RandomPhysRReliefMin{} & & & \\
+Random initialisation & \RandomPhysRReliefMin{} & & \RandomBodyAcc{} & \RandomAgreementRho{} \\
 ImageNet ResNet & \ResNetPhysRReliefMin{} & & & \\
 DINO & \DinoPhysRReliefMin{} & & & \\
 Terraluna encoder & \EncoderPhysRReliefMin{} & \EncoderMorphGain{} & \EncoderBodyAcc{} & \EncoderAgreementRho{} \\
@@ -85,7 +86,7 @@ cover rule is tightened moderately or only the Holuhraun region is searched; whe
 cell must be in an allowed class, or only Rosamond Dry Lake is searched, the window leaves the
 evaluated set. This stability is a frequency over the published height error model, not a
 probability that the window is an analog. It mostly shows that the clones move the target's
-statistics very little. The relief distance lies at the \BestBackgroundPercentile{}th percentile of the Earth background, which holds only the \MoonBackgroundN{} windows of the search universe rather than the \MoonBackgroundRequested{} requested. The target reference set, the distances between the target and the other \BestReferenceSpreadN{} eligible windows of its site, has a median of \MoonRefReliefMedian{} and a maximum of \MoonRefReliefMax{} in relief, so the nearest Earth window is farther from the target than every other window of the target site.
+statistics very little. The relief distance has a percentile of \BestBackgroundPercentile{} in the Earth background, which holds only the \MoonBackgroundN{} windows of the search universe rather than the \MoonBackgroundRequested{} requested. The target reference set, the distances between the target and the other \BestReferenceSpreadN{} eligible windows of its site, has a median of \MoonRefReliefMedian{} and a maximum of \MoonRefReliefMax{} in relief, so the nearest Earth window is farther from the target than every other window of the target site.
 
 Figure~\ref{fig:candidate-distances} shows the two distances for every compared window.
 
