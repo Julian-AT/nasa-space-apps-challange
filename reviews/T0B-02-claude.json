@@ -162,7 +162,11 @@
       "claim": "A numeric legend requires min < max, which CONTRACTS a.4 does not state. A constant-valued layer (min == max) would be refused.",
       "evidence": "The validator raises when not self.min < self.max. The story only specifies kind, min, max, scale and unit. The rule is documented in the docstring.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The min < max rule follows from what a numeric legend is: PRD 8.10 asks for colour-blind-safe scales (viridis, cividis) with numeric legends, and the browser maps a value v to the scale position (v - min) / (max - min). With min == max that division is by zero and the legend ramp shows no range, so a record that allowed it would move the failure into the app. The legend range is a display stretch chosen by the tile writer, not the data range, so a constant-valued layer is still writable: the writer widens the stretch around the constant (or uses a classes legend) and the legend stays honest. The rule is documented in the NumericLegend docstring (schema.py:1051), in the pydantic-only list in packages/schema/README.md, in fixtures/schema-cases/README.md and in the story notes, and it is tested: test_schema_cards.py refuses min == max and min > max (lines 1061-1062), and test_json_schema.py::test_card_and_target_rules_inside_a_document_are_checked_by_pydantic_only (numeric-legend-min-above-max) shows pydantic refuses what JSON Schema accepts. IncidenceRange (T0B-01) accepts min == max because a single incidence angle is a real observation; a legend with no range is not."
+      }
     },
     {
       "severity": "low",
@@ -170,7 +174,11 @@
       "claim": "Several rules beyond the acceptance criteria are enforced in pydantic only: q5 ties equal the distances' tied and tie_group, comparison_ref.path equals comparisons/<target_id>.json, a Mode B or C card has no available radar_cpr, and each figure letter appears once. The generated JSON Schema and zod do not enforce them, and ComparisonRecord has no matching Mode B/C rule.",
       "evidence": "The schema.py comment lists them as pydantic-only. 16 pydantic-only rule tests exist. progress.txt proposes a follow-up for ComparisonRecord and asks the orchestrator to copy the rules into CONTRACTS.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "These rules are intended and documented as pydantic-only, which is the established schema.py convention (progress Codebase Patterns: rules that compare values inside one document stay pydantic-only; each touches the model_validator, the schema.py comment at line 369, a param in test_json_schema.py (for these card rules, test_card_and_target_rules_inside_a_document_are_checked_by_pydantic_only, 16 params), packages/schema/README.md and fixtures/schema-cases/README.md). Equality between two values in one document (q5 ties against distances_by_family, comparison_ref.path against target_id, distinct figure letters) cannot be written in the JSON Schema subset generate-zod.ts translates, and Python writes every bundle file through the pydantic models, with validate_bundle the authoritative check (packages/schema/README.md), so a producer cannot emit a document that breaks them. The story acceptance criteria do not ask for them in JSON Schema or zod. The ComparisonRecord Mode B/C rule belongs to T0B-01 (already passed) and lies outside T0B-02; it is proposed to the orchestrator in the progress log (Proposed instruction changes, 2026-11-15T00:45Z), as is copying these rules into CONTRACTS.md, which is outside this batch."
+      }
     }
   ]
 }

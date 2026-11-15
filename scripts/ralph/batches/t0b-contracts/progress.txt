@@ -135,3 +135,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: none new; pytest and the repository's own CONTRACTS only.
 - Learnings: the loop's state change from blocked to pending came with an orchestrator note and a widened files list. Read the newest `ralph orchestrator` line in notes first. It overrides the unblock route proposed in the BLOCKED text.
 ---
+
+## 2026-11-15T01:20Z · T0B-02 · resolve
+- Done: resolved the two round 1 findings (both low, both claude; codex had none, verdict NOT_RUN because it was told not to run checks). claude-r1-1 rebutted: a numeric legend maps v to (v - min) / (max - min) on a viridis or cividis ramp (PRD 8.10), so min == max divides by zero and the ramp has no range; the legend range is the tile writer's display stretch, so a constant layer stays writable with a widened stretch or a classes legend. IncidenceRange keeps min == max because one incidence angle is a real observation. claude-r1-2 rebutted: rules that compare values inside one document are pydantic-only by the schema.py convention, documented in all five places, and Python writes every bundle file through the models; the ComparisonRecord Mode B/C rule is T0B-01 scope and already proposed to the orchestrator. No code changed. Review digests checked unchanged after writing the resolutions.
+- Commits: this chore(ralph) resolve commit only.
+- Checks (TURBO_FORCE=true, exit codes read without pipes): uv run pytest pipeline/tests/test_schema_cards.py: 454 passed, exit 0. uv run pytest pipeline/tests/test_json_schema.py: 779 passed, exit 0. pnpm --filter @terraluna/schema test: 877 passed, exit 0. make schema-check: JSON Schemas and zod match, exit 0. make check: exit 0 (turbo 4/4, 0 cached).
+- Docs used: none; no library interface touched.
+- Learnings: when a rebuttal cites a test, grep for its exact name first. The card and target pydantic-only rules live in test_card_and_target_rules_inside_a_document_are_checked_by_pydantic_only, not in the T0B-01 test_rules_inside_a_document_are_checked_by_pydantic_only.
+---
