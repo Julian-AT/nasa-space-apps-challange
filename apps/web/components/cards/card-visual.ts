@@ -44,7 +44,7 @@ export function buildCardVisual(bundle: PulledBundle, card: CardRecord): CardVis
   const version = bundle.manifest.bundle_version;
   const targets = bundle.records.targets ?? [];
   const rec = targets.find((t) => t.target_id === card.target.target_id);
-  const layers: readonly TileLayerGeo[] = (rec?.tile_layers ?? []) as readonly TileLayerGeo[];
+  const layers: readonly TileLayerGeo[] = (rec?.tile_layers ?? []);
   const exists = tileExistsFn(version);
   const targetName = shortName(rec?.name ?? card.target.target_id);
   const earthName = earthRegionName(card.earth.search_region_id ?? card.earth.earth_window_id);
