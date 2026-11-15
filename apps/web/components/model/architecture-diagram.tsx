@@ -4,11 +4,13 @@
 // and the paper share one source; its numbers come from paper/generated/numbers.tex and the model
 // code. The model facts stay in the props so the caller keeps one interface.
 import type { ModelFacts } from '@/components/home/model-facts';
+import { Card } from '@/components/ui/card';
 
 export function ArchitectureDiagram({ facts }: { readonly facts: ModelFacts }) {
   const dim = facts.embeddingDim.ok ? facts.embeddingDim.value : null;
   return (
-    <figure className="flex flex-col gap-4 rounded-xl border bg-card p-5 text-card-foreground sm:p-6">
+    <Card>
+    <figure className="flex flex-col gap-4 px-6">
       <figcaption className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-sm font-semibold">Encoder architecture</span>
         <span className="text-xs text-muted-foreground">paper Figure 2, drawn from the model code</span>
@@ -28,5 +30,6 @@ export function ArchitectureDiagram({ facts }: { readonly facts: ModelFacts }) {
         gradient reversal layer so the embedding is pushed not to encode the body.
       </p>
     </figure>
+    </Card>
   );
 }

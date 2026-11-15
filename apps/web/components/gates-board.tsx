@@ -11,6 +11,7 @@ import { type GateRecord, GateRecordSchema, type Validation } from '@terraluna/s
 
 import { LabelledValue } from '@/components/labelled-value';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 export type GateField = keyof GateRecord;
@@ -121,7 +122,9 @@ const IDENTIFIER: ReadonlySet<GateField> = new Set(['evidence_path', 'run_id', '
 
 function GatePanel({ gateId, record }: { readonly gateId: GateId; readonly record: GateRecord | undefined }) {
   return (
-    <li data-gate={gateId} className="rounded-xl border bg-card p-5 text-card-foreground sm:p-6">
+    <li data-gate={gateId}>
+      <Card>
+      <CardContent>
       <div className="flex flex-wrap items-center gap-3">
         <h3 data-field="gate_id" className="font-mono text-lg">
           {gateId}
@@ -151,6 +154,8 @@ function GatePanel({ gateId, record }: { readonly gateId: GateId; readonly recor
           </details>
         </>
       )}
+      </CardContent>
+      </Card>
     </li>
   );
 }

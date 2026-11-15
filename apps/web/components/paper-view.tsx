@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { Section } from '@/components/section';
 import { UnavailablePanel } from '@/components/model/unavailable-panel';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 import type { PaperFiles } from './paper-data.ts';
 
@@ -53,9 +54,11 @@ export function PaperView({ paper }: { readonly paper: PaperFiles }) {
             </p>
           </UnavailablePanel>
         ) : (
-          <pre tabIndex={0} aria-label="BibTeX entry" className="overflow-x-auto rounded-xl border bg-muted/40 p-4 font-mono text-xs leading-relaxed">
+          <Card className="py-0">
+          <pre tabIndex={0} aria-label="BibTeX entry" className="overflow-x-auto p-4 font-mono text-xs leading-relaxed">
             <code>{paper.bibtex}</code>
           </pre>
+          </Card>
         )}
       </Section>
     </>

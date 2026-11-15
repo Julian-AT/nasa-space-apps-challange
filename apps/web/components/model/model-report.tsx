@@ -138,10 +138,12 @@ function ConditionsTable({ metrics }: { readonly metrics: Metrics }) {
       <TabsContent value="cards" forceMount className="data-[state=inactive]:hidden">
       <ol aria-label="G5 conditions at a glance" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {g5.conditions.map((c: Condition) => (
-          <li
-            key={`card-${String(c.condition)}-${c.test_id}`}
-            className={`flex flex-col gap-3 rounded-xl border bg-card p-5 text-card-foreground ${c.passed === true ? 'border-status-pass/50' : c.passed === false ? 'border-status-fail/50' : 'border-dashed border-status-not-run/50'}`}
+          <li key={`card-${String(c.condition)}-${c.test_id}`} className="flex">
+          <Card
+            size="sm"
+            className={`w-full ${c.passed === true ? 'ring-status-pass/50' : c.passed === false ? 'ring-status-fail/50' : 'ring-status-not-run/40'}`}
           >
+          <CardContent className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-medium text-muted-foreground">Condition {c.condition}</span>
               <Badge variant={c.passed === null ? 'not-run' : c.passed ? 'pass' : 'fail'}>
@@ -155,6 +157,8 @@ function ConditionsTable({ metrics }: { readonly metrics: Metrics }) {
               {c.threshold === null ? null : <N v={c.threshold} />}
             </p>
             {c.reason === null || c.reason === undefined ? null : <p className="text-xs text-muted-foreground">{c.reason}</p>}
+          </CardContent>
+          </Card>
           </li>
         ))}
       </ol>
@@ -283,7 +287,8 @@ function Field({ name, children }: { readonly name: string; readonly children: R
 function CardFields({ card }: { readonly card: ModelRecord }) {
   const t = card.training_data;
   return (
-    <dl data-slot="model-card" className="rounded-xl border bg-card px-5 py-2 text-sm text-card-foreground">
+    <Card className="py-2">
+    <dl data-slot="model-card" className="px-5 text-sm">
       <Field name="model_id">{card.model_id}</Field>
       <Field name="version">{card.version}</Field>
       <Field name="architecture">{card.architecture}</Field>
@@ -311,6 +316,7 @@ function CardFields({ card }: { readonly card: ModelRecord }) {
         {card.onnx_sha256 === null ? <LabelledValue label="Unavailable" reason="no ONNX export in the record" /> : <code>{card.onnx_sha256}</code>}
       </Field>
     </dl>
+    </Card>
   );
 }
 
@@ -404,7 +410,7 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
                 </p>
               </UnavailablePanel>
             ) : (
-              <Accordion type="single" collapsible className="rounded-xl border bg-card px-4">
+              <Accordion type="single" collapsible className="rounded-xl bg-card px-4 ring-1 ring-foreground/10">
                 <AccordionItem value="metrics" className="border-b-0">
                   <AccordionTrigger className="text-sm font-medium">
                     Show all {metrics.tests.length} test metrics (Predicted, 95% intervals)
@@ -430,7 +436,7 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
                     {run.status === 'unavailable' ? (
                       <LabelledValue label="Unavailable" reason={run.reason ?? 'no reason in the record'} source="report/metrics.json" />
                     ) : (
-                      <Accordion type="single" collapsible className="rounded-xl border bg-card px-4">
+                      <Accordion type="single" collapsible className="rounded-xl bg-card px-4 ring-1 ring-foreground/10">
                         <AccordionItem value={run.run_name} className="border-b-0">
                           <AccordionTrigger className="text-sm font-medium">Show {run.metrics.length} metrics of {run.run_name}</AccordionTrigger>
                           <AccordionContent forceMount className="data-[state=closed]:hidden">
@@ -442,7 +448,8 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
                   </div>
                 ))
               )}
-              <dl data-slot="run-record" className="rounded-xl border bg-card px-5 py-2 text-sm text-card-foreground">
+              <Card className="py-2">
+              <dl data-slot="run-record" className="px-5 text-sm">
                 <Field name="hardware">{metrics.run_record.hardware}</Field>
                 <Field name="GPU hours">
                   {metrics.run_record.gpu_hours_total === null ? (
@@ -457,6 +464,7 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
                 <Field name="evaluation run_id">{metrics.run_id ?? 'not recorded'}</Field>
                 {metrics.mock ? <Field name="mock">This metrics file is marked mock.</Field> : null}
               </dl>
+              </Card>
             </Section>
           )}
         </>

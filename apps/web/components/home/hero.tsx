@@ -48,29 +48,13 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
   const selectedId = card?.windowId ?? null;
 
   return (
-    <section data-full-bleed className="relative isolate min-h-[820px] overflow-hidden bg-background md:min-h-[680px] md:h-[calc(100dvh-7.5rem)] md:max-h-[860px]">
-      <div className="absolute inset-0 -z-10">
-        <Globe
-          body="earth"
-          variant="hero"
-          pins={pins}
-          selectedId={selectedId}
-          onSelect={(id) => {
-            const i = cards.findIndex((c) => c.windowId === id);
-            if (i >= 0) {
-              setIndex(i);
-              setPaused(true);
-            }
-          }}
-        />
-      </div>
-      <div className="pointer-events-none absolute inset-0 -z-0 bg-[linear-gradient(90deg,var(--background)_0%,color-mix(in_oklab,var(--background)_60%,transparent)_38%,transparent_62%)] max-md:bg-[linear-gradient(180deg,transparent_0%,transparent_34%,var(--background)_52%)]" />
-      <div className="pointer-events-none relative z-10 mx-auto flex h-full min-h-[inherit] max-w-[1400px] flex-col justify-end gap-8 px-4 pt-[360px] pb-10 sm:px-6 md:justify-center md:pt-0 md:pb-0">
-        <div className="pointer-events-auto max-w-[760px]">
-          <Badge variant="outline" className="mb-6 bg-background/60 backdrop-blur">
+    <section className="pt-10 pb-6 sm:pt-14">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-12">
+        <div className="max-w-[760px] lg:pt-6">
+          <Badge variant="outline" className="mb-6">
             {eyebrow}
           </Badge>
-          <h1 className="text-[clamp(40px,min(6vw,8.2vh),84px)] leading-[1] font-semibold tracking-tight text-balance text-foreground">
+          <h1 className="text-[clamp(38px,5vw,64px)] leading-[1.05] font-semibold tracking-tight text-balance text-foreground">
             <span className="block">Find the Moon and Mars</span>
             <span className="block text-primary">on Earth.</span>
           </h1>
@@ -89,7 +73,7 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
               </Button>
             </li>
             <li>
-              <Button asChild size="lg" variant="outline" className="bg-background/60 backdrop-blur">
+              <Button asChild size="lg" variant="outline">
                 <Link href="/site" className="no-underline">
                   Browse evidence cards
                 </Link>
@@ -104,10 +88,27 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
             </li>
           </ul>
         </div>
+        <div className="flex flex-col gap-4">
+        <Card className="overflow-hidden py-0">
+          <div className="mx-auto aspect-square w-full max-w-[420px]">
+            <Globe
+              body="earth"
+              pins={pins}
+              selectedId={selectedId}
+              onSelect={(id) => {
+                const i = cards.findIndex((c) => c.windowId === id);
+                if (i >= 0) {
+                  setIndex(i);
+                  setPaused(true);
+                }
+              }}
+            />
+          </div>
+        </Card>
         {card === undefined ? null : (
-          <div className="pointer-events-auto w-full max-w-[380px] md:absolute md:right-6 md:bottom-8">
+          <div className="w-full">
           <aside aria-label="Featured evidence card">
-          <Card className="w-full bg-card/90 backdrop-blur">
+          <Card className="w-full">
             <CardHeader>
             <p className="flex items-center justify-between gap-2 text-xs font-medium text-muted-foreground">
               <span>Candidate window</span>
@@ -158,6 +159,7 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
           </aside>
           </div>
         )}
+        </div>
       </div>
     </section>
   );
