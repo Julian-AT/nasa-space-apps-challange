@@ -41,6 +41,8 @@ beats both frozen image baselines on the two probes with paired bootstrap interv
 configuration before training. Table~\ref{tab:probes} reports the probes from the evaluation
 record. The encoder promotion gate is \GateFiveStatus, so the encoder is reported as experimental and every ranking in this paper uses the fingerprint alone. The model report is built in the model card form of \citet{mitchell2019}, with intended use, evaluation conditions and limitations stated beside the metrics.
 
+The browser export can already be checked. An ONNX export of the backbone (opset \OnnxOpset), taken from an \OnnxSourceStatus{} after epoch \OnnxSnapshotEpoch{} of \OnnxSnapshotOf{} of the first main run, reproduces the training model on \OnnxParityN{} validation windows with a largest absolute difference of \OnnxFpDiff{} in single precision (tolerance \OnnxFpThreshold) and a smallest cosine similarity of \OnnxHalfCosine{} in half precision (tolerance \OnnxHalfThreshold), for a half precision file of \OnnxHalfBytes{} bytes. This shows that the exported graph computes the same function; it says nothing about the quality of the embedding, and parity in the browser runtime is recorded separately by the web probe.
+
 \begin{table}[tbp]
 \centering
 \caption{Probes on test blocks. Physics: the smallest lower bound of the probe \Rsq{} over the
