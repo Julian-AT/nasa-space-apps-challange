@@ -1,0 +1,81 @@
+{
+  "task_id": "T3-06",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4eee75cae634db668f0136846e62fae606d5d7e7",
+    "head": "d1d6c500aa313967c0c135d4def9be9ec13052be",
+    "files": [
+      {
+        "path": "fixtures/terrain/README.md",
+        "sha256": "1d234fdb5cd2010be6b935eebd1c56251422390a4d323ae2de7cfaca62e6358d"
+      },
+      {
+        "path": "pipeline/tests/test_terrain_fractal.py",
+        "sha256": "762c3c6968fb921d399504dd0e08e16edead75b14d3dea30a61c4c7b5ad4a015"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:23:42Z",
+  "finished_utc": "2026-11-15T00:26:48Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No concrete defects found in the scoped changes by static review. Execution-dependent criteria and historical failing-run evidence remain unverified under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests precede implementation and a failing run is recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The 286aeec→111abd0 diff shows generator/source stubs replaced after tests were added. No failing execution was independently observed; checks were prohibited in this read-only sandbox."
+    },
+    {
+      "criterion": "AC2: Seeded fBm at H=0.3, 0.5, 0.8 on a 5000 m / 90 m window, with frozen tolerance and recorded observations.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_terrain_fractal.py:119 fixes H values and eight seeds; :140 declares tolerance 0.1 with its rationale; :238 implements spectral generation; :303 asserts window/grid settings; :333 bounds mean recovered H across seeds. The implementation diff preserves the declared tolerance. Numerical recovery and reported observations cannot be verified without execution."
+    },
+    {
+      "criterion": "AC3: Recovered H is monotone across generating H for at least five seeds.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_terrain_fractal.py:346 parametrizes eight seeds and asserts strict ordering of actual fingerprint H values. The assertion was not executed because checks are prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC4: Synthetic equirectangular source passes through D29 resampling and fingerprinting, matches analytic nu, and propagates nodata into exclusion.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_terrain_fractal.py:384 constructs the synthetic source; :436 calls resample_window; :449 passes its values and mask to terrain_fingerprint. Independent analytic differences and derived tolerance are implemented at :464 and :486; comparison and nodata/exclusion assertions appear at :530, :563 and :584. Numerical outcomes require execution, prohibited here."
+    },
+    {
+      "criterion": "AC5: Terrain distances use metres on the body sphere and the fingerprint has no radar/model fields.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_terrain_fractal.py:611 checks metre offsets and sensitivity to the selected body; :674 recursively checks fingerprint fields. geometry.py:1204 selects the body's radius before inverse AEQD. Static wiring is consistent, but the behavioral assertions were not executed under the read-only restriction."
+    },
+    {
+      "criterion": "AC6: Inputs are synthetic, no real DEM is read, and fixtures are labelled synthetic.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_terrain_fractal.py:245 generates Gaussian inputs in memory; :391 generates the source raster from arrays. The invoked geometry and terrain paths operate on supplied arrays; config.py:197 reads only the YAML configuration. fixtures/terrain/README.md:3 explicitly labels all fixtures synthetic."
+    },
+    {
+      "criterion": "Required focused check",
+      "command": "uv run pytest pipeline/tests/test_terrain_fractal.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prohibits dependency/cache writes."
+    },
+    {
+      "criterion": "Required full check",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prohibits dependency/cache writes."
+    }
+  ],
+  "findings": []
+}

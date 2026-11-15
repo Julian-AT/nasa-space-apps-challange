@@ -1,0 +1,90 @@
+{
+  "task_id": "T3-06",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4eee75cae634db668f0136846e62fae606d5d7e7",
+    "head": "d1d6c500aa313967c0c135d4def9be9ec13052be",
+    "files": [
+      {
+        "path": "fixtures/terrain/README.md",
+        "sha256": "1d234fdb5cd2010be6b935eebd1c56251422390a4d323ae2de7cfaca62e6358d"
+      },
+      {
+        "path": "pipeline/tests/test_terrain_fractal.py",
+        "sha256": "762c3c6968fb921d399504dd0e08e16edead75b14d3dea30a61c4c7b5ad4a015"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:23:42Z",
+  "finished_utc": "2026-11-15T00:28:14Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static numerical review found one minor error in the tolerance rationale. No executable-code defect identified. Execution-dependent criteria and both checks remain NOT_RUN under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "1. Tests fail before implementation, with the failing run recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Historical source at 286aeec contains tests and NotImplementedError stubs before their replacement in 111abd0. This establishes code ordering, but no failing execution was independently observed. Checks are prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "2. Seeded fBm surfaces recover H within a predeclared, unchanged tolerance; observations are recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_terrain_fractal.py:119 fixes H values and eight seeds; :140 sets the seed-mean tolerance to 0.1; :238 performs spectral synthesis; :333 asserts recovery. Historical diff preserves the tolerance. Notes contain H/deviations at scripts/ralph/batches/t3-terrain/prd.json:331, but these results were not independently verified. Execution is prohibited."
+    },
+    {
+      "criterion": "3. Recovered H is monotone across the three generating values for at least five seeds.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_terrain_fractal.py:346 parametrizes eight fixed seeds and asserts strict monotonicity per seed. The assertion was not executed because the sandbox is read-only."
+    },
+    {
+      "criterion": "4. D29 synthetic-source chain matches analytic relief nu and propagates nodata into exclusion.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static derivation agrees with the signed pair differences at pipeline/tests/test_terrain_fractal.py:464 and the approximately 0.01184 m error bound at :486. Independently derived mask counts are 70 and 748, matching assertions at :566 and :587. Actual resampling, measurements and exclusion assertions were not executed under the read-only restriction."
+    },
+    {
+      "criterion": "5. Terrain distances remain metres on the body sphere, and fingerprint fields exclude radar/model data.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_terrain_fractal.py:611 checks metric offsets and body-radius sensitivity; :674 inspects fingerprint record fields. geometry.py:33 and :1204 use the PRD radii, and terrain.py:624 declares metric fields. Runtime assertions remain unexecuted because checks are prohibited."
+    },
+    {
+      "criterion": "6. Inputs are synthetic and no real DEM is read.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/tests/test_terrain_fractal.py:245 generates seeded noise; :391 generates the source raster arithmetically. The only file input is configuration through load_terrain_config. fixtures/terrain/README.md:3 labels the inputs synthetic; that directory contains only this README."
+    },
+    {
+      "criterion": "Focused story check",
+      "command": "uv run pytest pipeline/tests/test_terrain_fractal.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not invoked: user explicitly prohibits checks because dependency synchronization and test caches require writes unavailable in the read-only sandbox."
+    },
+    {
+      "criterion": "Full test suite",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not invoked under the explicit read-only restriction. Makefile routes this target to uv run --locked pytest."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/tests/test_terrain_fractal.py:136",
+      "claim": "The stated 0.04 worst-case slope-error bound uses an endpoint slope, whereas H uses five-point least squares. Correct the rationale while retaining the declared tolerances.",
+      "evidence": "The executable generator check at :324 permits independent ±3% errors at each lag. For OLS weights w_i=(ln L_i−mean(ln L))/sum((ln L−mean(ln L))²), ratios (0.97, 0.97, 1.03, 1.03, 1.03) satisfy that check but shift H by ln(1.03/0.97)·sum(w_i>0) ≈ 0.0524. terrain.py:690–700 implements this OLS estimator.",
+      "id": "codex2-r1-1",
+      "resolution": null
+    }
+  ]
+}
