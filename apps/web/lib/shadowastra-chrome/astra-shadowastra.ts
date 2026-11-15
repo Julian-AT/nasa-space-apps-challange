@@ -1,0 +1,407 @@
+// @ts-nocheck
+// Copied from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
+/**
+ * Astra's brain: a small, transparent question-answering engine over our own data.
+ * No language model and no internet, every answer is built from the catalogue,
+ * the solar-geometry model and the distance maths, so it can never invent a fact.
+ */
+import { EARTH_SITES, REALITY_GAPS, TARGETS, TASKS, type EarthSite, type TargetSite, type TaskId, type World } from "@/lib/shadowastra/data/sites";
+import { lightTwin } from "@/lib/shadowastra/sun";
+import { greatCircleKm, HOME_BASES, tripCo2Tonnes } from "@/lib/shadowastra/scoring";
+import { loadGrid, rankPlaces, scoreAll, searchGrid, type Grid } from "@/lib/shadowastra/grid";
+
+export interface AstraLink {
+  label: string;
+  to: string;
+}
+export interface AstraReply {
+  text: string;
+  mood: "happy" | "thinking" | "sad" | "wow" | "neutral";
+  links?: AstraLink[];
+  suggestions?: string[];
+}
+
+const norm = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9 ]/g, " ");
+
+const SITE_ALIASES: Record<string, string[]> = {
+  "dry-valleys": ["dry valley", "mcmurdo", "antarctica"],
+  haughton: ["haughton", "devon island"],
+  atacama: ["atacama", "yungay", "chile"],
+  "mauna-kea": ["mauna kea", "hawaii"],
+  "lava-beds": ["lava beds"],
+  lanzarote: ["lanzarote", "la corona", "canary"],
+  "rio-tinto": ["rio tinto"],
+  svalbard: ["svalbard", "bockfjord", "norway"],
+  mdrs: ["mdrs", "mars desert research", "utah"],
+  "meteor-crater": ["meteor crater", "arizona crater"],
+  "black-point": ["black point"],
+  askja: ["askja", "holuhraun", "iceland"],
+  pilbara: ["pilbara", "dresser", "australia"],
+  ries: ["ries", "nordlinger"],
+  sudbury: ["sudbury"],
+  dallol: ["dallol", "danakil", "ethiopia"],
+  "death-valley": ["death valley"],
+};
+const TARGET_ALIASES: Record<string, string[]> = {
+  shackleton: ["shackleton", "south pole", "moon base", "lunar base", "artemis"],
+  malapert: ["malapert"],
+  haworth: ["haworth"],
+  "mons-mouton": ["mons mouton", "mouton", "viper"],
+  nobile: ["nobile"],
+  "de-gerlache": ["gerlache"],
+  cabeus: ["cabeus", "lcross"],
+  "marius-pit": ["marius"],
+  "tranquillitatis-pit": ["tranquillitatis"],
+  hadley: ["hadley", "apollo 15"],
+  jezero: ["jezero", "perseverance"],
+  gale: ["gale", "curiosity", "mount sharp"],
+  arcadia: ["arcadia"],
+  deuteronilus: ["deuteronilus"],
+  arsia: ["arsia"],
+  meridiani: ["meridiani", "opportunity"],
+  utopia: ["utopia", "zhurong"],
+  mawrth: ["mawrth"],
+};
+const TASK_WORDS: Record<TaskId, string[]> = {
+  base: ["base", "habitat", "live", "crew", "outpost"],
+  traverse: ["rover", "traverse", "drive", "driving", "walk", "eva", "mobility"],
+  isru: ["isru", "regolith", "soil", "oxygen", "mining", "excavat", "brick"],
+  ice: ["ice", "water", "frozen", "volatile", "permafrost"],
+  caves: ["cave", "lava tube", "tube", "skylight", "pit"],
+  astrobio: ["life", "astrobio", "fossil", "biosignature", "microb"],
+  impact: ["impact", "crater geology", "meteor", "breccia"],
+  polar: ["polar", "low sun", "shadow", "dark", "cold", "light"],
+  landing: ["landing", "land", "lander", "touchdown", "touch down", "descent"],
+};
+
+function findSite(q: string): EarthSite | undefined {
+  return EARTH_SITES.find((s) => (SITE_ALIASES[s.id] ?? [s.name.toLowerCase()]).some((a) => q.includes(a)));
+}
+function findTarget(q: string): TargetSite | undefined {
+  return TARGETS.find((t) => (TARGET_ALIASES[t.id] ?? [t.name.toLowerCase()]).some((a) => q.includes(a)));
+}
+function findTask(q: string): TaskId | undefined {
+  let best: TaskId | undefined;
+  let hits = 0;
+  for (const [id, words] of Object.entries(TASK_WORDS) as [TaskId, string[]][]) {
+    const n = words.filter((w) => q.includes(w)).length;
+    if (n > hits) {
+      hits = n;
+      best = id;
+    }
+  }
+  return best;
+}
+function findWorld(q: string): World | undefined {
+  if (/\b(moon|lunar|artemis)\b/.test(q)) return "moon";
+  if (/\b(mars|martian)\b/.test(q)) return "mars";
+  return undefined;
+}
+function findHome(q: string) {
+  return HOME_BASES.find((h) => q.includes(h.name.toLowerCase().split(/[ ,(]/)[0])) ?? HOME_BASES[0];
+}
+const lab = (e: string, t: string, task?: TaskId) => `/compare?earth=${e}&target=${t}${task ? `&task=${task}` : ""}`;
+const taskLabel = (id: TaskId) => TASKS.find((t) => t.id === id)!.label.toLowerCase();
+
+const FACTS = [
+  "At the Moon's south pole the Sun never climbs more than about 1.5° above the horizon. Shadows there are hundreds of metres long.",
+  "Some craters near the lunar south pole have not seen sunlight for billions of years. They are colder than Pluto's surface.",
+  "In 2009 NASA's LCROSS probe hit Cabeus crater and found water ice in the plume.",
+  "Apollo astronauts trained in Iceland in 1965 and 1967 because its fresh lava fields look like the Moon.",
+  "Mars has 38% of Earth's gravity. No place on Earth can copy that, so we always show it as a gap.",
+  "The Atacama Desert is so dry that some weather stations have never recorded rain.",
+  "Haughton Crater on Devon Island is 23 km wide and hosts the Haughton-Mars Project field station.",
+  "Curiosity has been climbing Mount Sharp inside Gale crater since 2014.",
+  "A day on Mars (a sol) is 24 h 39 min. A day at the Moon's poles lasts about 29.5 Earth days.",
+  "Lava tubes may shelter future crews from radiation, temperature swings and tiny meteorites.",
+];
+
+export const STARTERS = ["How Mars-like is Dhaka?", "Best new site for Jezero crater?", "Where can I practise for a Moon base?", "How is the score made?", "Tell me a space fact"];
+
+export function pageGreeting(path: string): AstraReply {
+  if (path.startsWith("/find"))
+    return {
+      text: "This map scores every land area on Earth for the job and place you pick. Click any land, or ask me about a town.",
+      mood: "happy",
+      suggestions: ["How Mars-like is Cairo?", "Best new site for Shackleton?", "What do the colours mean?", "How was the model tested?"],
+    };
+  if (path.startsWith("/compare"))
+    return {
+      text: "This is Compare. Pick ① an Earth place, ② a Moon or Mars place and ③ a job. I'll score the match. Ask me anything about it.",
+      mood: "happy",
+      suggestions: ["What does the score mean?", "What is the shadow map?", "Best new site for Gale crater?", "Closest site to Dhaka for the Moon"],
+    };
+  if (path.startsWith("/explore"))
+    return {
+      text: "These are the maps. Click a pin on the globe to see a site, or pick a job on the left to filter.",
+      mood: "happy",
+      suggestions: ["Which sites are good for lava tubes?", "Where can I practise for a Moon base?", "What maps can I see?"],
+    };
+  if (path.startsWith("/methods"))
+    return { text: "This page shows our data and maths. Ask me to explain any part in simple words.", mood: "neutral", suggestions: ["How is the score made?", "Which NASA data do you use?", "How was the model tested?"] };
+  if (path.startsWith("/about")) return { text: "We are team ShadowAstra from Dhaka. Ask me about the team or the name.", mood: "happy", suggestions: ["Who is on the team?", "Why the name ShadowAstra?", "Tell me a space fact"] };
+  return { text: "Hi, I'm Astra, your field-test astronaut. I can check any town, or find Earth places to practise Moon and Mars missions. What do you want to test?", mood: "happy", suggestions: STARTERS };
+}
+
+export function astraAnswer(raw: string): AstraReply {
+  const q = ` ${norm(raw)} `;
+  const site = findSite(q);
+  const target = findTarget(q);
+  const task = findTask(q);
+  const world = findWorld(q) ?? target?.body;
+
+  if (/\b(hi|hello|hey|salam|assalamu)\b/.test(q) && q.trim().split(" ").length <= 3)
+    return { text: "Hello! Tell me a Moon or Mars place, or a task like “lava tubes” or “rover driving”, and I'll find Earth places to practise.", mood: "happy", suggestions: STARTERS };
+
+  if (/fact|fun|trivia|surprise/.test(q)) return { text: FACTS[Math.floor(Math.random() * FACTS.length)], mood: "wow", suggestions: ["Another fact", "Where can I practise for a Moon base?"] };
+
+  if (/team|who (are|made|built)|member/.test(q))
+    return {
+      text: "Team ShadowAstra is six people from Dhaka: Abdullah Rubab (team lead), Tanvir Hossin (planetary terrain), Md. Tanvir Hasan (science checks), Mohammad Saniul Alam (experience design), Tasnuva Arif (development & testing) and Mohammed Mahmud Parvez (film).",
+      mood: "happy",
+      links: [{ label: "Meet the team", to: "/methods" }],
+    };
+
+  if (/name|shadowastra mean|why shadow/.test(q))
+    return { text: "“Shadow” is for the dark craters at the Moon's south pole, where ice hides. “Astra” means stars. We study the shadows so crews can walk in the light.", mood: "happy" };
+
+  if (/(what is|what s|define|meaning of).*(analog|analogue)|^ analog /.test(q))
+    return {
+      text: "An analog is a place on Earth that is similar to a place on the Moon or Mars in a useful way. Teams test rovers, tools and plans there before they fly. A good analog depends on the task: a place can be great for driving tests but useless for ice tests.",
+      mood: "neutral",
+      suggestions: ["How is the score made?", "Where can I practise for a Moon base?"],
+    };
+
+  if (/score|calculat|how .*(work|made|compute)|weight|formula/.test(q))
+    return {
+      text: "The match score goes from 0 to 1. We measure five things for every land area: ground shape, rocks and craters, cold and heat, sunlight angle, and bare, dry ground. The job you pick decides how much each one counts. A model that learned from 38 places experts already use counts for 60% by default, because our tests showed it finds hidden test sites best. Radiation can never be copied on Earth, so we show it but never count it. 0.75 or more is a high match.",
+      mood: "thinking",
+      links: [{ label: "See the full method", to: "/methods" }],
+    };
+
+  if (/colou?r|heat ?map|legend/.test(q))
+    return {
+      text: "On the Find map, brighter means a better match for your job and destination. Dark or no colour means a poor match. Numbered pins are the best new places, and hollow rings are sites teams already use.",
+      mood: "neutral",
+      links: [{ label: "Open the map", to: "/find" }],
+    };
+
+  if (/test(ed)?|valid|accura|proof|prove|how good/.test(q))
+    return {
+      text: "We hid each known test site, plus every other known site within 300 km, retrained the model, and checked where the hidden site ranked. With the learned model alone, hidden Moon sites typically land in the top 0.5% of all land and Mars sites in the top 2.4%. 28 sites it never saw typically land in the top 18% as the site scores them. A simple hand-made rule only reached about the top 31 to 35%.",
+      mood: "wow",
+      links: [{ label: "See the test", to: "/methods" }],
+    };
+
+  if (/demo|real|fake|computed|honest/.test(q))
+    return {
+      text: "Green “Computed” values are measured from NASA and open data. Blue “Learned” values come from our model trained on 38 known sites. Red “Earth can't copy” items are shown but never scored. Grey “Demo” values only appear while data loads, and the few rough estimates from published studies are labelled as such.",
+      mood: "neutral",
+    };
+
+  if (/shadow|sunlight|illuminat/.test(q) && !target && !site)
+    return {
+      text: "The shadow map puts a very low Sun around both places, like at the Moon's south pole. It finds ground that never gets light. Those dark spots are where ice can survive, so a good Moon-base rehearsal site needs some of them too.",
+      mood: "wow",
+      links: [{ label: "Try it: Dry Valleys vs Shackleton", to: lab("dry-valleys", "shackleton", "polar") }],
+    };
+
+  if (/gap|cannot|can t|gravity|radiation|vacuum|atmosphere|limit|break(s)? down|analog(y|ue)? (fail|break)|differ|not like|weak/.test(q)) {
+    const w = world ?? "moon";
+    return {
+      text: `No place on Earth can copy these ${w === "moon" ? "Moon" : "Mars"} conditions: ${REALITY_GAPS[w].join(", ")}. Every place report also lists where that place itself falls short, from its own numbers: snow cover, rock type, minerals, cold and light.`,
+      mood: "sad",
+    };
+  }
+
+  if (/\blend\b|neutron|hydrogen|mini ?rf|radar|\bcpr\b/.test(q))
+    return {
+      text: "Two LRO instruments look for the ice itself. LEND counts neutrons: hydrogen slows them down, so icy ground sends fewer up. Most south-pole targets show a clear dip, the deepest at Cabeus, but LEND's view is blurry. Mini-RF is a radar: rough rock and clean ice both give a high CPR, so it is a hint, not proof. Both are shown as facts and never change a score.",
+      mood: "thinking",
+      links: [{ label: "See the clues for Cabeus", to: `${lab("dry-valleys", "cabeus", "polar")}#gaps` }],
+    };
+
+  if (/data|dataset|nasa|source|satellite|map/.test(q))
+    return {
+      text: "For Earth: NASA POWER climate, MODIS ground temperature, plants and snow from NASA GIBS, SRTM heights, the Smithsonian volcano list and impact craters. Minerals from NASA EMIT on the space station. For the Moon and Mars: full-precision LOLA and MOLA heights, LRO Diviner ground temperatures at all ten Moon targets and ice at the south pole, LRO LEND neutrons and Mini-RF radar at all ten Moon targets (from NASA's 2026 challenge resources), Lunar Prospector iron and titanium, Mars Odyssey water, Mars cave candidates and lunar pits, plus LROC, Viking and THEMIS images.",
+      mood: "neutral",
+      links: [{ label: "Open the source list", to: "/methods" }],
+    };
+
+  if (/model|ai|machine learning|train|kaggle/.test(q))
+    return {
+      text: "Three models (tuned XGBoost, LightGBM and a simple linear model) learned together what 38 known test sites have in common, using only physical measurements like cold, bare ground, volcanoes and roughness. We picked them out of nine on Kaggle with a fair test. A terrain AI, a vision transformer trained on Kaggle GPUs with heights from all three worlds, also finds Earth twins for any spot on the Moon or Mars.",
+      mood: "thinking",
+      links: [{ label: "Read the model plan", to: "/methods" }],
+    };
+
+  if (/closest|nearest|near me|from |close to/.test(q)) {
+    const home = findHome(q);
+    const w = world ?? "mars";
+    const list = EARTH_SITES.filter((s) => s.worlds.includes(w))
+      .map((s) => ({ s, km: greatCircleKm(home.lat, home.lon, s.lat, s.lon) }))
+      .sort((a, b) => a.km - b.km)
+      .slice(0, 3);
+    return {
+      text: `From ${home.name}, the closest ${w === "moon" ? "Moon" : "Mars"} analogs are: ${list.map((x) => `${x.s.name} (${Math.round(x.km).toLocaleString()} km, about ${tripCo2Tonnes(x.km, 4).toFixed(1)} t CO₂ for 4 people)`).join("; ")}.`,
+      mood: "happy",
+      links: list.slice(0, 2).map((x) => ({ label: `Open ${x.s.name.split(",")[0]}`, to: lab(x.s.id, x.s.pairs.find((p) => TARGETS.find((t) => t.id === p)?.body === w) ?? x.s.pairs[0]) })),
+    };
+  }
+
+  if (/when|month|season|best time/.test(q) && (site || target)) {
+    const s = site ?? EARTH_SITES.find((e) => e.pairs.includes(target!.id))!;
+    const t = target ?? TARGETS.find((x) => x.id === s.pairs[0])!;
+    const lt = lightTwin(s.lat, t.body, t.lat);
+    return {
+      text: `Go to ${s.name} in ${lt.best.join(" or ")}. That is when its Sun angles look most like ${t.name} (lighting score ${lt.score.toFixed(2)}).`,
+      mood: "wow",
+      links: [{ label: "See the calendar", to: lab(s.id, t.id) }],
+    };
+  }
+
+  if (target) {
+    const grounds = EARTH_SITES.filter((s) => s.pairs.includes(target.id));
+    if (!grounds.length)
+      return { text: `We don't have a catalogued Earth analog for ${target.name} yet. That makes it a good target for our new-analog screening.`, mood: "sad", links: [{ label: "Open the Atlas", to: "/explore/earth" }] };
+    const ranked = grounds.map((s) => ({ s, l: lightTwin(s.lat, target.body, target.lat) })).sort((a, b) => b.l.score - a.l.score);
+    return {
+      text: `${target.name} (${target.body === "moon" ? "Moon" : "Mars"}): ${target.why} On Earth you can practise for it at ${ranked.map((r) => r.s.name.split(",")[0]).join(", ")}. The best light match is ${ranked[0].s.name.split(",")[0]}, in ${ranked[0].l.best.join(" or ")}.`,
+      mood: "happy",
+      links: ranked.slice(0, 2).map((r) => ({ label: `${r.s.name.split(",")[0]} → ${target.name}`, to: lab(r.s.id, target.id) })),
+    };
+  }
+
+  if (site) {
+    const pairs = site.pairs.map((p) => TARGETS.find((t) => t.id === p)!.name);
+    return {
+      text: `${site.name} (${site.country}): ${site.summary} It can be used to practise for ${pairs.join(", ")}. What Earth can't copy there: ${site.gaps.join("; ").toLowerCase()}.`,
+      mood: "happy",
+      links: [{ label: "Compare in 3D", to: lab(site.id, site.pairs[0]) }],
+    };
+  }
+
+  if (task) {
+    const w = world;
+    const list = EARTH_SITES.filter((s) => s.tasks.includes(task) && (!w || s.worlds.includes(w)));
+    if (list.length)
+      return {
+        text: `For ${taskLabel(task)}${w ? ` on the ${w === "moon" ? "Moon" : "Mars"}` : ""}, try: ${list.map((s) => s.name.split(",")[0]).join(", ")}.`,
+        mood: "happy",
+        links: list.slice(0, 2).map((s) => ({ label: `Open ${s.name.split(",")[0]}`, to: lab(s.id, s.pairs[0], task) })),
+      };
+  }
+
+  if (world === "moon" || /moon base|lunar/.test(q))
+    return {
+      text: "The first Moon base will likely sit near the lunar south pole, around Shackleton crater. On Earth, McMurdo Dry Valleys and Svalbard copy its cold and low Sun best. Black Point Lava Flow is good for driving and walking tests.",
+      mood: "happy",
+      links: [{ label: "Dry Valleys → Shackleton", to: lab("dry-valleys", "shackleton", "polar") }],
+    };
+  if (world === "mars")
+    return {
+      text: "For Mars, Atacama and Death Valley are great for rover driving, Pilbara for searching for ancient life, and Svalbard for ice. Pick a Mars place and I'll be more exact.",
+      mood: "happy",
+      links: [{ label: "Atacama → Gale crater", to: lab("atacama", "gale", "traverse") }],
+    };
+
+  return {
+    text: "Hmm, I'm not sure about that one. Try a place (like “Gale crater” or “Atacama”), a task (like “lava tubes”) or ask how the score works.",
+    mood: "thinking",
+    suggestions: STARTERS,
+  };
+}
+
+/* ---------------------------------------------------------------- live answers from the global grid */
+
+const STOP = new Set(["how", "is", "are", "the", "a", "an", "of", "in", "for", "to", "like", "mars", "moon", "lunar", "martian", "check", "my", "town", "city", "place", "what", "about", "and", "it", "best", "new", "site", "sites", "spot", "find", "top", "earth", "near", "me"]);
+
+function findPlace(grid: Grid, q: string) {
+  const words = q.split(" ").filter((w) => w.length > 1 && !STOP.has(w));
+  for (let n = Math.min(3, words.length); n >= 1; n--)
+    for (let i = 0; i + n <= words.length; i++) {
+      const phrase = words.slice(i, i + n).join(" ");
+      const hit = searchGrid(grid, phrase, 4).find((h) => norm(h.label).trim() === phrase || norm(h.label).startsWith(phrase + " "));
+      if (hit) return hit;
+    }
+  return null;
+}
+
+const at = (lat: number, lon: number) => `${lat.toFixed(2)},${lon.toFixed(2)}`;
+
+function likeReply(grid: Grid, raw: string, q: string): AstraReply | null {
+  const hit = findPlace(grid, q);
+  if (!hit) return null;
+  const world = findWorld(` ${q} `);
+  let k = -1;
+  if (hit.lat !== undefined && hit.lon !== undefined) k = grid.cellAt(hit.lat, hit.lon, 4);
+  else if (hit.field && hit.value !== undefined) {
+    const a = grid.arr(hit.field);
+    let bv = -1;
+    for (let c = 0; c < grid.n; c++)
+      if (a[c] === hit.value) {
+        const v = grid.model(world ?? "mars", c);
+        if (v > bv) {
+          bv = v;
+          k = c;
+        }
+      }
+  }
+  if (k < 0) return { text: `I couldn't find land data for ${hit.label}. Try a nearby town.`, mood: "thinking" };
+  const moon = grid.model("moon", k);
+  const mars = grid.model("mars", k);
+  const night = grid.value("f_lst_night_min", k);
+  const rain = grid.value("f_precip", k);
+  const best = Math.max(moon, mars);
+  const pct = (x: number) => Math.round(x * 100);
+  const area = hit.lat === undefined ? `the most ${world === "moon" ? "Moon" : "Mars"}-like spot in ${hit.label} (${grid.name(k).title})` : hit.label;
+  const verdict = best >= 0.9 ? "That is a strong practice ground!" : best >= 0.6 ? "Some useful features, but there are better places." : "Too green or wet for real practice.";
+  return {
+    text: `${area}: more Moon-like than ${pct(moon)}% of land and more Mars-like than ${pct(mars)}%. Coldest night about ${night === null ? "n/a" : Math.round(night)} °C, about ${rain === null ? "n/a" : Math.round(rain)} mm of rain a year. ${verdict}`,
+    mood: best >= 0.9 ? "wow" : best >= 0.6 ? "thinking" : "sad",
+    links: [{ label: "Open the full report", to: `/find?target=${mars >= moon ? "jezero" : "shackleton"}&task=${mars >= moon ? "astrobio" : "base"}&at=${at(grid.lat(k), grid.lon(k))}` }],
+    suggestions: [`Best new site for ${mars >= moon ? "Jezero crater" : "Shackleton"}?`, "How was the model tested?"],
+  };
+  void raw;
+}
+
+function bestReply(grid: Grid, q: string): AstraReply | null {
+  const target = findTarget(` ${q} `);
+  const world = findWorld(` ${q} `);
+  const t = target ?? (world === "moon" ? TARGETS.find((x) => x.id === "shackleton")! : world === "mars" ? TARGETS.find((x) => x.id === "jezero")! : null);
+  if (!t) return null;
+  const gt = grid.targets[t.id];
+  if (!gt) return null;
+  const task = findTask(` ${q} `) ?? t.tasks[0];
+  const top = rankPlaces(grid, scoreAll(grid, { target: gt, task }), { count: 3, onlyNew: true });
+  if (!top.length) return null;
+  const list = top.map((c, i) => `${i + 1}. ${grid.name(c.k).title} (${c.score.toFixed(2)})`).join("  ");
+  return {
+    text: `Best new places to practise “${taskLabel(task)}” for ${t.name}: ${list}. None of them is within 150 km of a known test site.`,
+    mood: "happy",
+    links: top.slice(0, 2).map((c) => ({ label: `Open ${grid.name(c.k).title}`, to: `/find?target=${t.id}&task=${task}&at=${at(c.lat, c.lon)}` })),
+    suggestions: ["How was the model tested?", "What do the colours mean?"],
+  };
+}
+
+/** Like astraAnswer, but can look things up in the global data (loads it if needed). */
+export async function astraAnswerAsync(raw: string): Promise<AstraReply> {
+  const q = norm(raw).replace(/\s+/g, " ").trim();
+  const wantsLike = /(mars|moon|lunar|martian)[ -]?like|like (the )?(moon|mars)|^check /.test(q);
+  const wantsBest = /\b(best|top|new|good)\b.*\b(site|sites|place|places|spot|analog)\b/.test(q);
+  if (wantsLike || wantsBest) {
+    try {
+      const grid = await loadGrid();
+      const r = wantsLike ? likeReply(grid, raw, q) : bestReply(grid, q);
+      if (r) return r;
+    } catch {
+      /* fall back to the catalogue answer */
+    }
+  }
+  return astraAnswer(raw);
+}
