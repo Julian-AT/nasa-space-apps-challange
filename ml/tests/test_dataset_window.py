@@ -779,6 +779,21 @@ def test_resampler_names_come_only_from_terraluna_pipeline_geometry(name: str) -
             assert node.name not in RESAMPLER_NAMES
 
 
+def test_the_production_sampler_imports_nothing_from_the_mock_module() -> None:
+    # dataset.py is the production path; synthetic.py is mock only, so the DemSource protocol
+    # lives in dataset.py and synthetic.py depends on it, never the other way round.
+    tree = module_tree("dataset.py")
+    assert tree is not None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            assert all(not alias.name.startswith("terraluna_ml.synthetic") for alias in node.names)
+        if isinstance(node, ast.ImportFrom):
+            assert node.module is None or not node.module.startswith("terraluna_ml.synthetic")
+            if node.module == "terraluna_ml":
+                assert all(alias.name != "synthetic" for alias in node.names)
+    assert isinstance(vars(dataset).get("DemSource"), type)
+
+
 def test_dataset_imports_the_resampler_from_terraluna_pipeline_geometry() -> None:
     tree = module_tree("dataset.py")
     assert tree is not None

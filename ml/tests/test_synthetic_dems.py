@@ -17,10 +17,10 @@ import numpy as np
 import pytest
 
 from terraluna_ml import synthetic
+from terraluna_ml.dataset import DemSource
 from terraluna_ml.synthetic import (
     MOCK_LABEL,
     NODATA_SENTINEL,
-    DemSource,
     SyntheticDem,
     SyntheticDemError,
     fbm_dem,
@@ -113,6 +113,9 @@ def test_the_dem_source_protocol_supplies_only_a_raster_and_its_metadata() -> No
     assert typing.get_type_hints(DemSource) == {}
     source: DemSource = small_dems(0)[1]
     assert (source.body, source.nodata, source.mock) == ("earth", NODATA_SENTINEL, True)
+    # The protocol is defined once, in the production module, not in the mock module.
+    assert DemSource.__module__ == "terraluna_ml.dataset"
+    assert "DemSource" not in vars(synthetic)
 
 
 def test_a_plane_dem_is_a_plane_in_the_window_frame_about_its_centre() -> None:
