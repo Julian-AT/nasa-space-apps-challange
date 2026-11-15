@@ -1,0 +1,472 @@
+{
+  "evaluated_split": "val",
+  "examples": {
+    "distance_family": "encoder",
+    "evidence_label": "Predicted",
+    "failure_basis": "RMS distance over the 10 log-nu values (not the deterministic M0 ranking)",
+    "failure_cases": [
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7877773521208933,
+        "encoder_rank": 2727,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2701,
+        "rms_log_nu_distance": 0.10653948075619404,
+        "rms_log_nu_rank": 26,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-S25_00_W071_00_-5037-00553"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7821535795499068,
+        "encoder_rank": 2713,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2693,
+        "rms_log_nu_distance": 0.09827456329449805,
+        "rms_log_nu_rank": 20,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-S25_00_W071_00_-5037-00461"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7845539122520662,
+        "encoder_rank": 2719,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2683,
+        "rms_log_nu_distance": 0.11644802681136077,
+        "rms_log_nu_rank": 36,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-S25_00_W071_00_-5037-00313"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.785504857688952,
+        "encoder_rank": 2723,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2677,
+        "rms_log_nu_distance": 0.12701531169457672,
+        "rms_log_nu_rank": 46,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N36_00_W118_00_-5010-00144"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7662877089588319,
+        "encoder_rank": 2660,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2620,
+        "rms_log_nu_distance": 0.12167829865486902,
+        "rms_log_nu_rank": 40,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N36_00_W118_00_-5010-00070"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7796357863150191,
+        "encoder_rank": 2704,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2615,
+        "rms_log_nu_distance": 0.14389010516198467,
+        "rms_log_nu_rank": 89,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-S25_00_W071_00_-5037-00489"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.8198972849697237,
+        "encoder_rank": 2757,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2596,
+        "rms_log_nu_distance": 0.16877273269605048,
+        "rms_log_nu_rank": 161,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-S25_00_W071_00_-5037-00369"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7791234731001428,
+        "encoder_rank": 2701,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2557,
+        "rms_log_nu_distance": 0.16432631959820115,
+        "rms_log_nu_rank": 144,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N37_00_W118_00_-5012-00488"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.777376873546053,
+        "encoder_rank": 2698,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2552,
+        "rms_log_nu_distance": 0.16652169395373223,
+        "rms_log_nu_rank": 146,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N36_00_W118_00_-5010-00573"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7704377760746698,
+        "encoder_rank": 2674,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2542,
+        "rms_log_nu_distance": 0.1589337160086911,
+        "rms_log_nu_rank": 132,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N36_00_W118_00_-5010-00590"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7809956670883773,
+        "encoder_rank": 2709,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2538,
+        "rms_log_nu_distance": 0.1712921388492123,
+        "rms_log_nu_rank": 171,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N36_00_W118_00_-5010-00339"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7687540425840207,
+        "encoder_rank": 2667,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2515,
+        "rms_log_nu_distance": 0.16767085621962155,
+        "rms_log_nu_rank": 152,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-S25_00_W071_00_-5037-00003"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7565714428923687,
+        "encoder_rank": 2616,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2506,
+        "rms_log_nu_distance": 0.15065845140975945,
+        "rms_log_nu_rank": 110,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N36_00_W117_00_-5009-00110"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7860506218625605,
+        "encoder_rank": 2724,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2506,
+        "rms_log_nu_distance": 0.1869283182856686,
+        "rms_log_nu_rank": 218,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N36_00_W117_00_-5009-00442"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.38851073501161437,
+        "encoder_rank": 27,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2504,
+        "rms_log_nu_distance": 2.622328834919344,
+        "rms_log_nu_rank": 2531,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N37_00_W117_00_-5011-00069"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.8112189024630023,
+        "encoder_rank": 2750,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2502,
+        "rms_log_nu_distance": 0.200149042239506,
+        "rms_log_nu_rank": 248,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N37_00_W118_00_-5012-00285"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7557973534521214,
+        "encoder_rank": 2605,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2490,
+        "rms_log_nu_distance": 0.1536199876736307,
+        "rms_log_nu_rank": 115,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N36_00_W117_00_-5009-00210"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.803910440836349,
+        "encoder_rank": 2741,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2463,
+        "rms_log_nu_distance": 0.21080042406136937,
+        "rms_log_nu_rank": 278,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-N36_00_W118_00_-5010-00550"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7436259235073588,
+        "encoder_rank": 2526,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2461,
+        "rms_log_nu_distance": 0.13687720525027014,
+        "rms_log_nu_rank": 65,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-S25_00_W071_00_-5037-00205"
+      },
+      {
+        "distance_family": "encoder",
+        "encoder_cosine_distance": 0.7904790988336775,
+        "encoder_rank": 2734,
+        "evidence_label": "Predicted",
+        "rank_disagreement": 2460,
+        "rms_log_nu_distance": 0.2097399692337699,
+        "rms_log_nu_rank": 274,
+        "target_window_id": "moon-sps-x2-y2",
+        "window_id": "earth-S26_00_W071_00_-5040-00052"
+      }
+    ],
+    "failure_shortfall": null,
+    "failure_sort_rule": "descending |encoder rank - RMS log-nu rank|, ties by Earth window_id then target window_id",
+    "model": "EXPERIMENTAL",
+    "n_earth_candidates": 2760,
+    "n_targets": 1,
+    "ood_examples": [
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 26.77519719031524,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00051"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 26.418722697769432,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00308"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 26.352842023187097,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00370"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 26.350209130488928,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00356"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 26.140033623004282,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00104"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 25.801744574276437,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00256"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 25.747647532636325,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00225"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 25.67285929715864,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00209"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 25.108866984527577,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00159"
+      },
+      {
+        "body": "moon",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 24.85488652602608,
+        "threshold": 23.024499616277797,
+        "window_id": "moon-lola80s-007985"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 24.846753519735408,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00409"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 24.824575462502438,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00268"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 24.775114292457957,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00094"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 24.72260842482095,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00179"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 24.665879598400622,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00172"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 24.287159400624372,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00068"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 24.07467018662031,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00326"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 23.99202519045782,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00295"
+      },
+      {
+        "body": "moon",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 23.859123313823062,
+        "threshold": 23.024499616277797,
+        "window_id": "moon-lola80s-004882"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 23.586968078631386,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00213"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 23.48843372389762,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00367"
+      },
+      {
+        "body": "moon",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 23.470591912147167,
+        "threshold": 23.024499616277797,
+        "window_id": "moon-lola80s-001742"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 23.15862865504862,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00333"
+      },
+      {
+        "body": "mars",
+        "label": "Predicted-model diagnostic, not an observation",
+        "mahalanobis": 23.061785054948782,
+        "threshold": 23.024499616277797,
+        "window_id": "mars-G03_019590_2280_XI_48N-1009-00261"
+      }
+    ],
+    "top5_by_target": [
+      {
+        "distance_family": "encoder",
+        "evidence_label": "Predicted",
+        "shortfall": null,
+        "target_window_id": "moon-sps-x2-y2",
+        "windows": [
+          {
+            "cosine_distance": 0.02187870935212166,
+            "lat_deg": 36.42722222222223,
+            "lon_deg": -117.75,
+            "rank": 1,
+            "window_id": "earth-N36_00_W118_00_-5010-00220"
+          },
+          {
+            "cosine_distance": 0.0680257352570448,
+            "lat_deg": 36.41638888888889,
+            "lon_deg": -117.73194444444444,
+            "rank": 2,
+            "window_id": "earth-N36_00_W118_00_-5010-00502"
+          },
+          {
+            "cosine_distance": 0.1347092793530975,
+            "lat_deg": 36.38722222222223,
+            "lon_deg": -117.54833333333335,
+            "rank": 3,
+            "window_id": "earth-N36_00_W118_00_-5010-00545"
+          },
+          {
+            "cosine_distance": 0.13865563023020877,
+            "lat_deg": 36.4275,
+            "lon_deg": -117.75861111111111,
+            "rank": 4,
+            "window_id": "earth-N36_00_W118_00_-5010-00073"
+          },
+          {
+            "cosine_distance": 0.1738119139211547,
+            "lat_deg": 36.81027777777778,
+            "lon_deg": -117.46333333333332,
+            "rank": 5,
+            "window_id": "earth-N36_00_W118_00_-5010-00387"
+          }
+        ]
+      }
+    ]
+  },
+  "format": "terraluna-ml-evaluation/1",
+  "mock": false,
+  "sweep": [
+    {
+      "arm": "lambda_0.3",
+      "lambda_max": 0.3,
+      "runs": [
+        "lambda_0.3/seed0",
+        "lambda_0.3/seed1",
+        "lambda_0.3/seed2"
+      ],
+      "use_phys_head": true
+    },
+    {
+      "arm": "random_init",
+      "lambda_max": null,
+      "runs": [
+        "random_init/seed0"
+      ],
+      "use_phys_head": null
+    }
+  ]
+}

@@ -7,7 +7,7 @@ The encoder (Figure~\ref{fig:encoder}) asks whether a learned representation of 
 trained on all three bodies and supervised by the fingerprint, can reproduce the fingerprint on
 held out regions, carry morphology that the fingerprint lacks, and give cross body neighbours that
 agree with it. It is a second opinion beside the fingerprint, labelled Predicted wherever it
-appears, and it enters no ranking unless the promotion gate of Section~\ref{sec:results} passes.
+appears, and it enters no ranking unless it meets the acceptance criteria of Section~\ref{sec:results-ml}.
 
 \paragraph{Input.} A window is resampled to \ConfigInputPx{} by \ConfigInputPx{} pixels at
 \ConfigInputSpacing\,m (Section~\ref{sec:data}) and a best fit plane is removed. The three channels
@@ -15,7 +15,7 @@ are $\operatorname{asinh}(z / s)$ of the plane removed heights with $s = 50$\,m,
 in Python and in the browser, feeds training and the live probe.
 
 \paragraph{Backbone and heads.} The backbone is a ResNet-18 \citep{he2015} at half width, with
-stages of 32, 64, 128 and 256 channels, batch normalisation \citep{ioffe2015} and a three by three stem without max pooling for the small input. The specified stem stride is one; a stride of two, which reduces the spatial computation of the backbone and leaves the parameter count unchanged, is allowed as a recorded deviation for training on CPUs. Global average pooling gives the embedding $h \in \mathbb{R}^{256}$, which is
+stages of 32, 64, 128 and 256 channels, batch normalisation \citep{ioffe2015} and a three by three stem without max pooling for the small input. The specified stem stride is one; a stride of two, which reduces the spatial computation of the backbone and leaves the parameter count unchanged, is used in every reported run and recorded as a deviation. Global average pooling gives the embedding $h \in \mathbb{R}^{256}$, which is
 L2 normalised for retrieval. A three layer projector of width 2048 maps $h$ to $z$ for the VICReg
 loss. A two layer physics head predicts the eleven standardised physics targets: $\ln \nu$ of
 relief and texture at the five lags and the relief Hurst exponent. A two layer body head predicts

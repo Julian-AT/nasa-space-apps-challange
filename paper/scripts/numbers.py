@@ -2105,6 +2105,96 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
         "/deviations_from_prd/stem_stride/used",
         "?d",
     ),
+    *(
+        ArtifactMacro(
+            f"Val{label}{kind}",
+            f"outputs/ml/evaluation/{split}/evaluation_metrics.json",
+            f"/arms/{arm}/runs/{arm}~1seed{seed}/records/{selector}",
+            fmt,
+        )
+        for label, split, arm, seed in (
+            ("LamZeroS", "val-mps-sweep", "lambda_0", 0),
+            ("LamTenthS", "val-mps-sweep", "lambda_0.1", 0),
+            ("LamThreeSA", "val-mps-sweep", "lambda_0.3", 0),
+            ("LamThreeSB", "val-mps-sweep", "lambda_0.3", 1),
+            ("LamThreeSC", "val-mps-sweep", "lambda_0.3", 2),
+            ("LamOneSA", "val-mps-sweep", "lambda_1", 0),
+            ("LamOneSB", "val-mps-sweep", "lambda_1", 1),
+            ("LamOneSC", "val-mps-sweep", "lambda_1", 2),
+            ("NoPhysS", "val-mps-sweep", "no_phys_head", 0),
+            ("RandomS", "val-mps-sweep", "random_init", 0),
+            ("FortyA", "val-mps-40ep", "lambda_0.3", 0),
+            ("FortyB", "val-mps-40ep", "lambda_0.3", 1),
+            ("FortyC", "val-mps-40ep", "lambda_0.3", 2),
+        )
+        for kind, selector, fmt in (
+            (
+                "Phys",
+                "[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low",
+                "min:.2f",
+            ),
+            ("Body", "[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value", ".2f"),
+            (
+                "Rho",
+                "[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value",
+                ".2f",
+            ),
+        )
+    ),
+    ArtifactMacro(
+        "ValSweepJaccard",
+        "outputs/ml/evaluation/val-mps-sweep/evaluation_metrics.json",
+        "/details/seed_stability/mean",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "ValSweepJaccardArm",
+        "outputs/ml/evaluation/val-mps-sweep/evaluation_metrics.json",
+        "/main_arm",
+        "text",
+    ),
+    ArtifactMacro(
+        "ValFortyJaccard",
+        "outputs/ml/evaluation/val-mps-40ep/evaluation_metrics.json",
+        "/details/seed_stability/mean",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "ValSweepRandomJaccard",
+        "outputs/ml/evaluation/val-mps-sweep/evaluation_metrics.json",
+        "/details/seed_stability/random_expectation",
+        ".3f",
+    ),
+    ArtifactMacro(
+        "ValSweepParams",
+        "outputs/ml/evaluation/val-mps-sweep/evaluation_metrics.json",
+        "/model/parameter_count",
+        ",d",
+    ),
+    *(
+        ArtifactMacro(
+            f"Thru{label}{stat.capitalize()}",
+            f"outputs/ml/runs/{run}/metrics.json",
+            "/epochs/*/throughput_windows_per_s_measured",
+            f"{stat}:.0f",
+        )
+        for label, run in (
+            ("Cpu", "main_seed0"),
+            ("MpsTwelve", "lambda_1_seed1"),
+            ("MpsForty", "mps-40ep/main_seed0"),
+        )
+        for stat in ("min", "median", "max")
+    ),
+    ArtifactMacro("ThruCpuCount", "outputs/ml/runs/main_seed0/metrics.json", "/hardware/cpu_count", "d"),
+    ArtifactMacro(
+        "ThruMpsFortyEpochs", "outputs/ml/runs/mps-40ep/main_seed0/metrics.json", "/config/epochs", "d"
+    ),
+    ArtifactMacro(
+        "ThruMpsFortyWallSeconds",
+        "outputs/ml/runs/mps-40ep/main_seed0/metrics.json",
+        "/wall_clock_s",
+        ".0f",
+    ),
     ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
     ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
     ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),

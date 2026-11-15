@@ -27,7 +27,11 @@
 % Artifact outputs/ml/model/export_record.json sha256 4487c0b41ce3cd511832468cdd470f4d02b79eed734c7a21fc55758aa19d2f4a.
 % Artifact outputs/probe/wasm-parity.json sha256 e0b0386023476622440b85c538a5663aa7a9e5f99cd44116456d96887c21025b.
 % Artifact outputs/ml/evaluation/test/evaluation_curves.json sha256 dfa76c011014f969dc8e05c13baed66875d0323df7f5c60fb782ae40a6bbc66e.
-% Artifact outputs/validation.json sha256 d260d41faa1fc6bdda112a330bf6187aef33dedab299c11cba75d6f2c3ff6101.
+% Artifact outputs/ml/evaluation/val-mps-sweep/evaluation_metrics.json sha256 673ce54dbbdeaa5f5b7bad6e2d9a210863fd43295f315ab7a4b494494c00e563.
+% Artifact outputs/ml/evaluation/val-mps-40ep/evaluation_metrics.json sha256 b09bd1edf2b894717fd52eae7bb50950140dd8ca3883ba481cc8192c5553d057.
+% Artifact outputs/ml/runs/lambda_1_seed1/metrics.json sha256 5711bd923ceb3267694a7199845ffc41cf150323c648afa2baf8205fac4aee5a.
+% Artifact outputs/ml/runs/mps-40ep/main_seed0/metrics.json sha256 e33561bf57f1a1c82c2d282be0f1362709921a2105303417d2a574f7457157b3.
+% Artifact outputs/validation.json sha256 5728d0b2cfcc46776d450bd35f743382b5113c48b24cd67a76e7423f9e1afdac.
 % Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/vicreg_only/runs/vicreg_only~1seed0/records/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low absent.
 % Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/vicreg_only/runs/vicreg_only~1seed0/records/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value absent.
 % Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/vicreg_only/runs/vicreg_only~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value absent.
@@ -424,6 +428,62 @@
 \newcommand{\PlannedBatch}{1024}
 \newcommand{\PlannedStemStride}{1}
 \newcommand{\UsedStemStride}{2}
+\newcommand{\ValLamZeroSPhys}{0.93}
+\newcommand{\ValLamZeroSBody}{0.66}
+\newcommand{\ValLamZeroSRho}{0.46}
+\newcommand{\ValLamTenthSPhys}{0.92}
+\newcommand{\ValLamTenthSBody}{0.65}
+\newcommand{\ValLamTenthSRho}{0.46}
+\newcommand{\ValLamThreeSAPhys}{0.92}
+\newcommand{\ValLamThreeSABody}{0.65}
+\newcommand{\ValLamThreeSARho}{0.47}
+\newcommand{\ValLamThreeSBPhys}{0.90}
+\newcommand{\ValLamThreeSBBody}{0.66}
+\newcommand{\ValLamThreeSBRho}{0.47}
+\newcommand{\ValLamThreeSCPhys}{0.92}
+\newcommand{\ValLamThreeSCBody}{0.63}
+\newcommand{\ValLamThreeSCRho}{0.39}
+\newcommand{\ValLamOneSAPhys}{0.92}
+\newcommand{\ValLamOneSABody}{0.65}
+\newcommand{\ValLamOneSARho}{0.26}
+\newcommand{\ValLamOneSBPhys}{0.89}
+\newcommand{\ValLamOneSBBody}{0.65}
+\newcommand{\ValLamOneSBRho}{0.36}
+\newcommand{\ValLamOneSCPhys}{0.90}
+\newcommand{\ValLamOneSCBody}{0.64}
+\newcommand{\ValLamOneSCRho}{0.21}
+\newcommand{\ValNoPhysSPhys}{0.92}
+\newcommand{\ValNoPhysSBody}{0.65}
+\newcommand{\ValNoPhysSRho}{0.20}
+\newcommand{\ValRandomSPhys}{0.93}
+\newcommand{\ValRandomSBody}{0.76}
+\newcommand{\ValRandomSRho}{0.81}
+\newcommand{\ValFortyAPhys}{0.93}
+\newcommand{\ValFortyABody}{0.65}
+\newcommand{\ValFortyARho}{0.34}
+\newcommand{\ValFortyBPhys}{0.90}
+\newcommand{\ValFortyBBody}{0.64}
+\newcommand{\ValFortyBRho}{0.32}
+\newcommand{\ValFortyCPhys}{0.92}
+\newcommand{\ValFortyCBody}{0.62}
+\newcommand{\ValFortyCRho}{0.28}
+\newcommand{\ValSweepJaccard}{0.77}
+\newcommand{\ValSweepJaccardArm}{lambda\_1}
+\newcommand{\ValFortyJaccard}{0.60}
+\newcommand{\ValSweepRandomJaccard}{0.004}
+\newcommand{\ValSweepParams}{2,795,040}
+\newcommand{\ThruCpuMin}{7}
+\newcommand{\ThruCpuMedian}{34}
+\newcommand{\ThruCpuMax}{44}
+\newcommand{\ThruMpsTwelveMin}{997}
+\newcommand{\ThruMpsTwelveMedian}{1157}
+\newcommand{\ThruMpsTwelveMax}{1392}
+\newcommand{\ThruMpsFortyMin}{875}
+\newcommand{\ThruMpsFortyMedian}{1077}
+\newcommand{\ThruMpsFortyMax}{1362}
+\newcommand{\ThruCpuCount}{8}
+\newcommand{\ThruMpsFortyEpochs}{40}
+\newcommand{\ThruMpsFortyWallSeconds}{391}
 \newcommand{\GateZeroStatus}{PASS}
 \newcommand{\GateOneStatus}{PASS}
 \newcommand{\GateTwoStatus}{NOT\_RUN}

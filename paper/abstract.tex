@@ -1,10 +1,18 @@
 We compare the terrain of Connecting Ridge, a candidate Artemis landing region at the lunar south
-pole, and of two Martian sites, Jezero crater and Arcadia Planitia, with Earth surfaces. A deterministic fingerprint of relief
-and texture, the structure function at hectometre lags and its Hurst exponent, ranks
-\ComparedCount{} Earth windows from two declared regions for each target. The closest Earth window
-to the lunar target lies at a relief distance of \BestReliefDistance{} in root mean square log
-units, farther from the target than any other window of the lunar site is, and an inspection shows it to be a nearest
-neighbour in this metric rather than a morphological analog. The Martian shortlists lie at relief
-distances from \JezeroShortReliefMin{} to \JezeroShortReliefMax{} for Jezero and
-\ArcadiaShortReliefMin{} to \ArcadiaShortReliefMax{} for Arcadia, below the median internal distance of those sites. No radar pair was qualified, so the radar comparison was not completed. A terrain encoder with a physics target and gradient reversal against the body, trained at a reduced scope, fails a promotion rule fixed before training (\GateFiveStatus): an untrained copy of the network matches its physics probe. It stays experimental and outside the ranking.
-All numbers are generated from committed artifacts.
+pole, and of two Martian sites, Jezero crater and Arcadia Planitia, with Earth surfaces, using
+elevation data alone. A deterministic fingerprint of relief and texture, the structure function
+$\nu(L)$ at hectometre lags and its Hurst exponent, ranks \ComparedCount{} Earth windows from two
+declared regions for each target, and the same code computes it in Python and in a browser within
+stated numerical tolerances. The closest Earth window to the lunar target lies at a relief distance
+of \BestReliefDistance{} in root mean square log units, farther from the target than any other
+window of the lunar site, and an inspection shows it to be a nearest neighbour in this metric rather
+than a morphological analog. The Martian shortlists lie at relief distances from
+\JezeroShortReliefMin{} to \JezeroShortReliefMax{} for Jezero and \ArcadiaShortReliefMin{} to
+\ArcadiaShortReliefMax{} for Arcadia, below the median internal distance of those sites. No radar
+comparison was completed. We also benchmark a self-supervised terrain encoder of \EncoderParams{}
+parameters trained with VICReg, a physics head and a gradient reversal body adversary on
+\DatasetWindows{} windows. It fails acceptance criteria fixed before training: on test blocks an
+untrained copy of the network matches its physics probe and agrees better with the fingerprint, and
+the body remains decodable. A validation sweep on a laptop accelerator gives the same picture at
+every adversarial weight, and longer training lowers the agreement further. The encoder stays
+outside every ranking. All numbers are generated from recorded artifacts.

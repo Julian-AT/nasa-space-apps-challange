@@ -1,8 +1,6 @@
 \section{Introduction}
 \label{sec:introduction}
 
-\input{figures/system-overview}
-
 Crews and rovers rehearse on Earth before they work on the Moon or Mars, and the value of a
 rehearsal depends on how well the Earth site stands in for the target. Connecting Ridge, one of
 the candidate Artemis III landing regions near the lunar south pole \citep{nasa2022artemis}, has elevation models at 5 m per pixel built from laser altimetry alone \citep{barker2021}. The
@@ -16,12 +14,11 @@ differences grow with lag and do not determine whether a surface is cratered, ri
 
 We take up both routes for one lunar target, under one set of declared rules: every distance names
 its observable and its supported lags, missing evidence is never read as zero, and every number in
-this paper is generated from a committed artifact. The system that produces the artifacts
-(Figure~\ref{fig:system-overview}) runs the heavy science offline in Python and is designed to hand a single versioned, checksummed release bundle to a web application, where a browser worker computes the
-same fingerprint for any Earth location on request. This paper is about the measurements and the
-encoder, not the application. Its contributions are two measured results and one evaluation protocol fixed in advance.
+this paper is generated from a recorded artifact. The fingerprint is computed by one Python
+implementation offline and by a TypeScript port that runs in a browser worker, and the two are held
+to stated numerical tolerances (Section~\ref{sec:benchmarks}). The contributions are as follows.
 First, a deterministic fingerprint of relief and texture compares the Connecting Ridge target
 window with \ComparedCount{} eligible Earth windows and returns a shortlist of
 \ShortlistCount{} candidate window, with the closest relief distance \BestReliefDistance{} against a median of \ReliefDistanceMedian{} (Section~\ref{sec:results-retrieval}); the same comparison for the Jezero and Arcadia windows returns shortlists of \JezeroShortlistSize{} and \ArcadiaShortlistSize{} windows whose distances lie below the median internal distance of each Martian site (Section~\ref{sec:results-mars}). Second, a radar availability audit decodes the
 Mini-RF mosaic over the site and a UAVSAR scene over Holuhraun, and records why a radar comparison
-could not be qualified within the study (Section~\ref{sec:results-radar}). Third, a terrain encoder for Moon, Mars and Earth elevation with a physics head and a gradient reversal body head is held to a promotion rule fixed before training; trained at a reduced scope on CPUs, it does not pass (gate status \GateFiveStatus), and an untrained copy of the network matches it on the physics probe (Section~\ref{sec:results-ml}).
+could not be qualified within the study (Section~\ref{sec:results-radar}). Third, a terrain encoder for Moon, Mars and Earth elevation with a physics head and a gradient reversal body head is held to acceptance criteria fixed before training; trained at a reduced scope, it does not meet them, and an untrained copy of the network matches it on the physics probe (Section~\ref{sec:results-ml}). Fourth, a benchmark section reports a validation sweep over the adversarial weight and training length, training throughput on a CPU server and a laptop accelerator, and the numerical parity of the browser implementations (Section~\ref{sec:benchmarks}).

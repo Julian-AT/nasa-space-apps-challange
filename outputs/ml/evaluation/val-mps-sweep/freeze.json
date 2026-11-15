@@ -1,0 +1,74 @@
+{
+  "checkpoint_sha256s": {
+    "lambda_0.1/seed0": {
+      "backbone.pt": "c8f4560f48786632e22ddc2b01cbb8f4927c13c122dec731d011915e0df0415c",
+      "checkpoint.pt": "9fec669a54947b84e769efff3f4851c1926f4ced323697df68496030a872c30a"
+    },
+    "lambda_0.3/seed0": {
+      "backbone.pt": "3b271713c195c8746b72fc41e4c21a1ef4f4685ce4792be206a6525a7a925c73"
+    },
+    "lambda_0.3/seed1": {
+      "backbone.pt": "2c3510d6024dcd725f386a3c82575c356b6496c9d7007bb5c1d4656145e7e475"
+    },
+    "lambda_0.3/seed2": {
+      "backbone.pt": "492df56f7fad53b100472340bbc579f53a7639043911ab987f3844f4bfec7139"
+    },
+    "lambda_0/seed0": {
+      "backbone.pt": "52ccb9b4e62bb748c41026fec90c12acaf891b5b3c6e0ab5a721b2dbc9b1d4e4"
+    },
+    "lambda_1/seed0": {
+      "backbone.pt": "97876abcbd7b95c2c1420a082d3179a958f921c589d83f84cc1753a00dbc6f27"
+    },
+    "lambda_1/seed1": {
+      "backbone.pt": "52d1e09cc2232ccf9bd9aad9ff5b390be01f27c7b0b3121b7f30656814a77ac7",
+      "checkpoint.pt": "fe359dc88595c40842593516b43e73349bcbc7f8bf3ff08cabb231470d5b65ff"
+    },
+    "lambda_1/seed2": {
+      "backbone.pt": "b847d8d9c5d457ae57cea99ac4b8e82ba2494c2897303965c1ffee0e5853431c",
+      "checkpoint.pt": "8a4a22e7253f9af8f61e16d700299db85bfcfa7ac0a32585c3c94375d244b9d2"
+    },
+    "no_phys_head/seed0": {
+      "backbone.pt": "d02fd347bd66964b5a60c83f24f486a7683aba0e9d40553c6cfcdad5ad925e27"
+    },
+    "random_init/seed0": {
+      "random_init_weights": "8a1e558a87924a246876c6be418b48d0d30eb69e3e98c13b7b4d00c8539b23c1"
+    }
+  },
+  "config_sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
+  "data_manifest_sha256": "53f0c2614945436ba7e89460ed365d1aefa7e86b55ed34c9a58f0a65d5227b3e",
+  "format": "terraluna-ml-freeze/1",
+  "ml_g5_thresholds": {
+    "agreement_rho_min": 0.5,
+    "body_acc_max": 0.6,
+    "morph_gain_min": 0.1,
+    "phys_r2_min": 0.8,
+    "seed_jaccard20_min": 0.5
+  },
+  "probe_hyperparameters": {
+    "agreement_seed": 11,
+    "logistic_cs": [
+      0.001,
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "max_train_rows": 20000,
+    "n_agreement_pairs": 20000,
+    "n_bootstrap": 1000,
+    "ood_percentile": 99.0,
+    "ood_regularisation": 0.001,
+    "ridge_alphas": [
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0
+    ],
+    "standardisation": "StandardScaler fitted on training embeddings only",
+    "top_k": 20,
+    "train_subsample_seed": 0
+  },
+  "split_map_sha256": "e99bed11b9b18791bb89f996eb99c396850513a8dd998e118eed3ac7216eb6da"
+}

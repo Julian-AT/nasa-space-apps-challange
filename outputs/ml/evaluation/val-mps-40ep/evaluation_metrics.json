@@ -1,0 +1,2818 @@
+{
+  "arms": {
+    "lambda_0.3": {
+      "lambda_max": 0.3,
+      "runs": {
+        "lambda_0.3/seed0": {
+          "alphas": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0
+          ],
+          "checkpoint_sha256s": {
+            "backbone.pt": "0fe0a41e6d965de329d5d2893cccaf591416c0fcb57cfd3b1ebedbbb537f1c29",
+            "checkpoint.pt": "4935cff90d96359d19ef80bc902038f127ad491cb5392148fdcce75b26eb1d71"
+          },
+          "gpu_hours": 0.0,
+          "logistic_c": 10.0,
+          "records": [
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.979474161251708,
+              "ci_low": 0.9496633766751895,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_270",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9727853804038433
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9753224504866262,
+              "ci_low": 0.9519320803102783,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_360",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9715092608580752
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9692981894001053,
+              "ci_low": 0.9480939351851753,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_540",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.967075387602777
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.964645775667856,
+              "ci_low": 0.9413306793389171,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_720",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9620657453677373
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9562143307615592,
+              "ci_low": 0.9284847573701738,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_1080",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9523952588157297
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9621119943779601,
+              "ci_low": 0.840898770551781,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_270",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9476368543472394
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9715619428813774,
+              "ci_low": 0.8734982844793324,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_360",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9567858696735358
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9799102482750157,
+              "ci_low": 0.9099228832903112,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_540",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9674752944719992
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9840069972149746,
+              "ci_low": 0.9295689241043097,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_720",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9735653732600236
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9882479097852999,
+              "ci_low": 0.9488441368537222,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_1080",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9799250510485923
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.6374395787618727,
+              "ci_low": 0.33739353840186515,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "H_relief",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.5286004984187171
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.853027280003362,
+              "ci_low": 0.5063740527148115,
+              "evidence_label": "Predicted",
+              "measure": "balanced_accuracy",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": null,
+              "test_id": "body_invariance",
+              "unavailable_reason": null,
+              "value": 0.648157110148695
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.366826004601392,
+              "ci_low": 0.2956389365585489,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_10",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.3413772707699432
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.35479310983643736,
+              "ci_low": 0.29502681302934514,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_relief_5",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.33394514464286285
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.33928686360850246,
+              "ci_low": 0.27827323667184106,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_texture_5",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.3202613914151535
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "pooled",
+              "ci_high": 0.01627087879799103,
+              "ci_low": 0.0001972314371841605,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.004330566582461205
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "moon",
+              "ci_high": 0.002116894975530648,
+              "ci_low": 0.0003920466208972926,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 9,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.0012406947890818859
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "mars",
+              "ci_high": null,
+              "ci_low": null,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": null,
+              "n_bootstrap": null,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": "fewer than 2 spatial blocks",
+              "value": null
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "earth",
+              "ci_high": 0.0,
+              "ci_low": 0.0,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 2,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.0
+            }
+          ],
+          "seconds": {
+            "body_probe": 2.880998417007504,
+            "extract_embeddings": 56.56945391697809,
+            "ood": 1.8901271669892594,
+            "physics_agreement": 5.581110833998537,
+            "physics_probe": 0.5073837919917423
+          },
+          "seed": 0
+        },
+        "lambda_0.3/seed1": {
+          "alphas": [
+            100.0,
+            100.0,
+            10.0,
+            10.0,
+            10.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "checkpoint_sha256s": {
+            "backbone.pt": "f2920b47136cffb2e46b8b92e7dc4c2964098a914f44386eb7dc85afcba86f6c",
+            "checkpoint.pt": "9ae9e910811b89acceccb551088ccee85d64a6c61b72d1e8a2094e0d125ee3d4"
+          },
+          "gpu_hours": 0.0,
+          "logistic_c": 1.0,
+          "records": [
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9787702491733953,
+              "ci_low": 0.9542159790516853,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_270",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9733831759973819
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9743653428534998,
+              "ci_low": 0.9531716451325943,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_360",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9716001580756567
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9679014327723175,
+              "ci_low": 0.9405105160659937,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_540",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9660793301020609
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9625629829017341,
+              "ci_low": 0.9279210578071312,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_720",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.959922345344639
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9523689389944061,
+              "ci_low": 0.9048543946731662,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_1080",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9478653493227118
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.961067423002882,
+              "ci_low": 0.8206477736151996,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_270",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9407009223481553
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9692480385633104,
+              "ci_low": 0.8539988150769557,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_360",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.950707125182282
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9774851822524152,
+              "ci_low": 0.8964352822415134,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_540",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9628991850780858
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9818419521479433,
+              "ci_low": 0.9194880622752136,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_720",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9700558469318727
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9861150764126313,
+              "ci_low": 0.9422852816186084,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_1080",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.97757099999192
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.6243555410944731,
+              "ci_low": 0.2409774068897022,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "H_relief",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.48102847951092564
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.8564945958525472,
+              "ci_low": 0.5024006520297987,
+              "evidence_label": "Predicted",
+              "measure": "balanced_accuracy",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": null,
+              "test_id": "body_invariance",
+              "unavailable_reason": null,
+              "value": 0.6415798865307982
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.33793398058457724,
+              "ci_low": 0.2860924174766268,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_10",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.31965197823862995
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.3342209741743216,
+              "ci_low": 0.28674223185745046,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_relief_5",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.31826385931265966
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.3132524700244809,
+              "ci_low": 0.2668405041149881,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_texture_5",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.299146396499366
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "pooled",
+              "ci_high": 0.014296096053625909,
+              "ci_low": 0.0,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.004150126308191988
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "moon",
+              "ci_high": 0.0023915582559858846,
+              "ci_low": 0.0,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 9,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.0008271298593879239
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "mars",
+              "ci_high": null,
+              "ci_low": null,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": null,
+              "n_bootstrap": null,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": "fewer than 2 spatial blocks",
+              "value": null
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "earth",
+              "ci_high": 0.0014097744360902255,
+              "ci_low": 0.0,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 2,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.0010869565217391304
+            }
+          ],
+          "seconds": {
+            "body_probe": 2.811859415989602,
+            "extract_embeddings": 63.914515249984106,
+            "ood": 1.967935166991083,
+            "physics_agreement": 5.839908124995418,
+            "physics_probe": 0.48531233399990015
+          },
+          "seed": 1
+        },
+        "lambda_0.3/seed2": {
+          "alphas": [
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            100.0,
+            10.0
+          ],
+          "checkpoint_sha256s": {
+            "backbone.pt": "ad1774c37c22d48c721fed181dbd76a4066c15567da7f66c3be8bdb5eb343973",
+            "checkpoint.pt": "5985d306fef2571dd384131ec7ec6c779435a37f0b21826434e99f515de5cf60"
+          },
+          "gpu_hours": 0.0,
+          "logistic_c": 10.0,
+          "records": [
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.979595727287103,
+              "ci_low": 0.9470023973004985,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_270",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9727894998144004
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9758894877710008,
+              "ci_low": 0.9495627378767371,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_360",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9718528793622981
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9699201927673949,
+              "ci_low": 0.9444502946957158,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_540",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9674129229465916
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.964785366565432,
+              "ci_low": 0.93625660823885,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_720",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9619412386690921
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9553613013634358,
+              "ci_low": 0.9185379483248479,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_1080",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9508743175345157
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9570069640721862,
+              "ci_low": 0.8114335276582398,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_270",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9429964541679283
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9674212533932379,
+              "ci_low": 0.8506830754881498,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_360",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.953205490293016
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9774812818103439,
+              "ci_low": 0.8933689700876334,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_540",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9652148571365334
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9822551629198731,
+              "ci_low": 0.9175837935535276,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_720",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9720329156285538
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9874477818674695,
+              "ci_low": 0.9435765890833093,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_1080",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9790960428795961
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.605244577231416,
+              "ci_low": 0.26056535222304106,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "H_relief",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.4853148377564135
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.8414416071187724,
+              "ci_low": 0.4739538062386071,
+              "evidence_label": "Predicted",
+              "measure": "balanced_accuracy",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": null,
+              "test_id": "body_invariance",
+              "unavailable_reason": null,
+              "value": 0.6227542482451318
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.31974848281042,
+              "ci_low": 0.23448259784380113,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_10",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.2798541179436353
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.3125526552479375,
+              "ci_low": 0.23899687504639047,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_relief_5",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.2774283700610709
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.27900870001651695,
+              "ci_low": 0.2082996188851317,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_texture_5",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.24961139367302848
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "pooled",
+              "ci_high": 0.019374819205149815,
+              "ci_low": 0.0008517567283932213,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.0063154095994225916
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "moon",
+              "ci_high": 0.0028409764110297287,
+              "ci_low": 0.0,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 9,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.0012406947890818859
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "mars",
+              "ci_high": null,
+              "ci_low": null,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": null,
+              "n_bootstrap": null,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": "fewer than 2 spatial blocks",
+              "value": null
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "earth",
+              "ci_high": 0.003289473684210526,
+              "ci_low": 0.0015822784810126582,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 2,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.002898550724637681
+            }
+          ],
+          "seconds": {
+            "body_probe": 3.086756458011223,
+            "extract_embeddings": 58.87986987500335,
+            "ood": 2.122072666999884,
+            "physics_agreement": 5.663721874996554,
+            "physics_probe": 0.4358432090084534
+          },
+          "seed": 2
+        }
+      },
+      "use_phys_head": true
+    },
+    "random_init": {
+      "lambda_max": null,
+      "runs": {
+        "random_init/seed0": {
+          "alphas": [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            10.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          "checkpoint_sha256s": {
+            "random_init_weights": "8a1e558a87924a246876c6be418b48d0d30eb69e3e98c13b7b4d00c8539b23c1"
+          },
+          "gpu_hours": 0.0,
+          "logistic_c": 10.0,
+          "records": [
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9816294436997914,
+              "ci_low": 0.9352560211764406,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_270",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9654879755941309
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9808425836663498,
+              "ci_low": 0.9360059451464205,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_360",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9657934887822943
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9797326598617563,
+              "ci_low": 0.9343531846702339,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_540",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9646674226026525
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9782115445707005,
+              "ci_low": 0.932000174840317,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_720",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9627313985825076
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9746632067306569,
+              "ci_low": 0.9254274549026402,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_relief_1080",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9575959479767353
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9677929099562917,
+              "ci_low": 0.8955899938219518,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_270",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9528584725139161
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9741902315589642,
+              "ci_low": 0.9143838763098288,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_360",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9583196417465702
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9807817602176142,
+              "ci_low": 0.9297031020828113,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_540",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9649341537806041
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9841715123765172,
+              "ci_low": 0.9368311553439014,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_720",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9690203570819911
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.9879425905953702,
+              "ci_low": 0.9456949766409559,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "log_nu_texture_1080",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.9737720175380029
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.7837413161807947,
+              "ci_low": 0.48134374448079964,
+              "evidence_label": "Predicted",
+              "measure": "r2",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "H_relief",
+              "test_id": "physics_probe",
+              "unavailable_reason": null,
+              "value": 0.6625768288919114
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.931809727555415,
+              "ci_low": 0.6448325620339173,
+              "evidence_label": "Predicted",
+              "measure": "balanced_accuracy",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": null,
+              "test_id": "body_invariance",
+              "unavailable_reason": null,
+              "value": 0.7572350316038956
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.8434320022706387,
+              "ci_low": 0.7942605035050594,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_10",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.813079234404198
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.8350339811180661,
+              "ci_low": 0.7862069052969796,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_relief_5",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.8043624185034061
+            },
+            {
+              "baselines": [],
+              "body": "pooled",
+              "ci_high": 0.8172111881542338,
+              "ci_low": 0.7399196043708806,
+              "evidence_label": "Predicted",
+              "measure": "spearman_rho",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "rms_log_nu_texture_5",
+              "test_id": "physics_agreement",
+              "unavailable_reason": null,
+              "value": 0.7713469180568673
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "pooled",
+              "ci_high": 0.034300761093058775,
+              "ci_low": 0.0022823731668120523,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 12,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.02201371346084446
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "moon",
+              "ci_high": 0.006628944959069367,
+              "ci_low": 0.0005005035873656966,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 9,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.0033085194375516956
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "mars",
+              "ci_high": null,
+              "ci_low": null,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": null,
+              "n_bootstrap": null,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": "fewer than 2 spatial blocks",
+              "value": null
+            },
+            {
+              "baselines": [
+                {
+                  "ci_high": null,
+                  "ci_low": null,
+                  "name": "training_expectation",
+                  "paired_diff_ci_high": null,
+                  "paired_diff_ci_low": null,
+                  "unavailable_reason": "99th percentile of training distances",
+                  "value": 0.01
+                }
+              ],
+              "body": "earth",
+              "ci_high": 0.044172932330827065,
+              "ci_low": 0.030063291139240507,
+              "evidence_label": "Predicted",
+              "measure": "fraction_above_train_p99",
+              "n_blocks": 2,
+              "n_bootstrap": 1000,
+              "target": "mahalanobis",
+              "test_id": "out_of_distribution",
+              "unavailable_reason": null,
+              "value": 0.040942028985507244
+            }
+          ],
+          "seconds": {
+            "body_probe": 4.330304958013585,
+            "extract_embeddings": 126.76753991597798,
+            "ood": 2.0599014170002192,
+            "physics_agreement": 5.903481791989179,
+            "physics_probe": 0.4481165419856552
+          },
+          "seed": 0
+        }
+      },
+      "use_phys_head": null
+    }
+  },
+  "details": {
+    "agreement": {
+      "n_pairs_dropped_masked": 0,
+      "n_pairs_used": 20000,
+      "pair_seed": 11
+    },
+    "block_unit": "eval_block",
+    "ood": {
+      "n_train": 19393,
+      "percentile": 99.0,
+      "regularisation": 0.001,
+      "threshold": 23.024499616277797
+    },
+    "probe_alpha_selection": "validation rows (the same rows as the evaluated split: optimistic dry run)",
+    "seed_stability": {
+      "mean": 0.6017094017094017,
+      "min": 0.5384615384615384,
+      "n_blocks": 2,
+      "n_candidates": 2760,
+      "n_seeds": 3,
+      "n_targets": 1,
+      "per_pair_mean": {
+        "0-1": 0.6666666666666666,
+        "0-2": 0.5384615384615384,
+        "1-2": 0.6
+      },
+      "random_expectation": 0.003728926945386958
+    },
+    "target_exclusion": "enforced by the dataset build (split=='target' rows never enter a probe set); not re-verified here",
+    "train_subsample": {
+      "n_available": 19393,
+      "n_used": 19393,
+      "seed": 0
+    }
+  },
+  "environment": {
+    "device": "cpu",
+    "python": "3.12.13",
+    "torch": "2.15.0"
+  },
+  "evaluated_split": "val",
+  "evidence_label": "Predicted",
+  "format": "terraluna-ml-evaluation/1",
+  "freeze": {
+    "path": "/Users/julianschmidt/terraluna-ml-data/eval-val-B/freeze.json",
+    "sha256": "f48615047ae6e9e9d9a8272431259948c3ca8d15d79626ae7539b1d3c232d873",
+    "written_before_test_read": true
+  },
+  "main_arm": "lambda_0.3",
+  "main_run": "lambda_0.3/seed0",
+  "main_selection": "lambda_max>0 physics-head group with most seeds; point values from its lowest seed",
+  "ml_g5_thresholds_at_freeze": {
+    "agreement_rho_min": 0.5,
+    "body_acc_max": 0.6,
+    "morph_gain_min": 0.1,
+    "phys_r2_min": 0.8,
+    "seed_jaccard20_min": 0.5
+  },
+  "mock": false,
+  "model": {
+    "architecture": "Encoder",
+    "config": {
+      "alpha_phys": 1.0,
+      "base_lr_per_1024": 0.001,
+      "batch_size": 128,
+      "bodies_included": [
+        "moon",
+        "mars",
+        "earth"
+      ],
+      "epochs": 40,
+      "lambda_max": 0.3,
+      "name": "main",
+      "precision": "fp32",
+      "seed": 0,
+      "stem_stride": 2,
+      "sub_crop_m": null,
+      "use_body_head": true,
+      "use_phys_head": true,
+      "use_vicreg": true,
+      "warmup_epochs": 2,
+      "weight_decay": 0.05,
+      "windows_per_epoch": 10000
+    },
+    "parameter_count": 2795040,
+    "seeds": [
+      0,
+      1,
+      2
+    ]
+  },
+  "model_id": "terraluna-encoder-experimental",
+  "run_record": {
+    "checkpoint_sha256s": [
+      "0fe0a41e6d965de329d5d2893cccaf591416c0fcb57cfd3b1ebedbbb537f1c29",
+      "4935cff90d96359d19ef80bc902038f127ad491cb5392148fdcce75b26eb1d71",
+      "5985d306fef2571dd384131ec7ec6c779435a37f0b21826434e99f515de5cf60",
+      "8a1e558a87924a246876c6be418b48d0d30eb69e3e98c13b7b4d00c8539b23c1",
+      "9ae9e910811b89acceccb551088ccee85d64a6c61b72d1e8a2094e0d125ee3d4",
+      "ad1774c37c22d48c721fed181dbd76a4066c15567da7f66c3be8bdb5eb343973",
+      "f2920b47136cffb2e46b8b92e7dc4c2964098a914f44386eb7dc85afcba86f6c"
+    ],
+    "config_hash": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
+    "data_manifest_sha256": "53f0c2614945436ba7e89460ed365d1aefa7e86b55ed34c9a58f0a65d5227b3e",
+    "git_sha": "2b519a5b92ed0758fd3d11b22d3850fece5033e9",
+    "gpu_hours_partial": false,
+    "gpu_hours_total": 0.0,
+    "hardware": "macOS-26.5.2-arm64-arm-64bit; arm64; arm; accelerator=mps",
+    "split_map_sha256": "e99bed11b9b18791bb89f996eb99c396850513a8dd998e118eed3ac7216eb6da",
+    "uv_lock_sha256": "9078b42d24697bb1f199a8850829283fc95436d18063bfde9ce4330b296382f5"
+  },
+  "status": "EXPERIMENTAL",
+  "tests": [
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9816294436997914,
+          "ci_low": 0.9352560211764406,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.017454191141223926,
+          "paired_diff_ci_low": -0.0031036320757534095,
+          "unavailable_reason": null,
+          "value": 0.9654879755941309
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.979474161251708,
+      "ci_low": 0.9496633766751895,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9727853804038433
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9569557044308656,
+      "ci_low": 0.9396479416044353,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9499290326397818
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_relief_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_relief_270",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9703374668707773,
+      "ci_low": 0.9623374118009279,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9703374668707773
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9808425836663498,
+          "ci_low": 0.9360059451464205,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.017778216013680705,
+          "paired_diff_ci_low": -0.006790926650111878,
+          "unavailable_reason": null,
+          "value": 0.9657934887822943
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9753224504866262,
+      "ci_low": 0.9519320803102783,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9715092608580752
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9602100023581693,
+      "ci_low": 0.9430455865222126,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9532467911294087
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_relief_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_relief_360",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9695653995466175,
+      "ci_low": 0.9578545518845671,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9695653995466175
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9797326598617563,
+          "ci_low": 0.9343531846702339,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.014862069441690523,
+          "paired_diff_ci_low": -0.012247055133342299,
+          "unavailable_reason": null,
+          "value": 0.9646674226026525
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9692981894001053,
+      "ci_low": 0.9480939351851753,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.967075387602777
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9599122671363066,
+      "ci_low": 0.9411661610679857,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9522434278687476
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_relief_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_relief_540",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9651568605100772,
+      "ci_low": 0.942566435491681,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9650175651604291
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9782115445707005,
+          "ci_low": 0.932000174840317,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.011394437157767287,
+          "paired_diff_ci_low": -0.016612487458146967,
+          "unavailable_reason": null,
+          "value": 0.9627313985825076
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.964645775667856,
+      "ci_low": 0.9413306793389171,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9620657453677373
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9569712248258256,
+      "ci_low": 0.9366828878514597,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.948544940009691
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_relief_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_relief_720",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9597966824429092,
+      "ci_low": 0.9248479116045439,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9590432739933511
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9746632067306569,
+          "ci_low": 0.9254274549026402,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.007191778339568538,
+          "paired_diff_ci_low": -0.022131807217998963,
+          "unavailable_reason": null,
+          "value": 0.9575959479767353
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9562143307615592,
+      "ci_low": 0.9284847573701738,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9523952588157297
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9495591633070367,
+      "ci_low": 0.9270881474728825,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9405500513599536
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_relief_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_relief_1080",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9482583332596002,
+      "ci_low": 0.8882480941150878,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_relief_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9462011280903823
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9677929099562917,
+          "ci_low": 0.8955899938219518,
+          "name": "random_init",
+          "paired_diff_ci_high": -0.001201930498141824,
+          "paired_diff_ci_low": -0.055758279104964684,
+          "unavailable_reason": null,
+          "value": 0.9528584725139161
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9621119943779601,
+      "ci_low": 0.840898770551781,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9476368543472394
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.8496114816809839,
+      "ci_low": 0.8120573695485923,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.8363267477917513
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_texture_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_texture_270",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9508097823230219,
+      "ci_low": 0.9078995011902851,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_270",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9505358617969756
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9741902315589642,
+          "ci_low": 0.9143838763098288,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.0020451790066238124,
+          "paired_diff_ci_low": -0.040959555779776384,
+          "unavailable_reason": null,
+          "value": 0.9583196417465702
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9715619428813774,
+      "ci_low": 0.8734982844793324,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9567858696735358
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.8795796026039632,
+      "ci_low": 0.852554937108036,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.8704715464796754
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_texture_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_texture_360",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9573929335873407,
+      "ci_low": 0.9224829382459895,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_360",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9573929335873407
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9807817602176142,
+          "ci_low": 0.9297031020828113,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.005785765996279804,
+          "paired_diff_ci_low": -0.02128083577887201,
+          "unavailable_reason": null,
+          "value": 0.9649341537806041
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9799102482750157,
+      "ci_low": 0.9099228832903112,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9674752944719992
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9156568460539768,
+      "ci_low": 0.8970539745217453,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.908620482380337
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_texture_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_texture_540",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9663219582527969,
+      "ci_low": 0.9400328815540919,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_540",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9663219582527969
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9841715123765172,
+          "ci_low": 0.9368311553439014,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.00807341104416936,
+          "paired_diff_ci_low": -0.010822066963992738,
+          "unavailable_reason": null,
+          "value": 0.9690203570819911
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9840069972149746,
+      "ci_low": 0.9295689241043097,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9735653732600236
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9355100071572392,
+      "ci_low": 0.9195488147986753,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9289669619721347
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_texture_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_texture_720",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9718125823157947,
+      "ci_low": 0.9500440250208534,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_720",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9718125823157947
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.9879425905953702,
+          "ci_low": 0.9456949766409559,
+          "name": "random_init",
+          "paired_diff_ci_high": 0.010158776216855769,
+          "paired_diff_ci_low": -0.0022593933824051754,
+          "unavailable_reason": null,
+          "value": 0.9737720175380029
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.9882479097852999,
+      "ci_low": 0.9488441368537222,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9799250510485923
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.9553485966206757,
+      "ci_low": 0.9419191655142313,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9496268034045305
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "log_nu_texture_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for log_nu_texture_1080",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.9776445919081038,
+      "ci_low": 0.9592011840188827,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "log_nu_texture_1080",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.9776445919081038
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.7837413161807947,
+          "ci_low": 0.48134374448079964,
+          "name": "random_init",
+          "paired_diff_ci_high": -0.11595435132531388,
+          "paired_diff_ci_low": -0.25993459509469075,
+          "unavailable_reason": null,
+          "value": 0.6625768288919114
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.6374395787618727,
+      "ci_low": 0.33739353840186515,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "H_relief",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.5286004984187171
+    },
+    {
+      "baselines": [],
+      "body": "moon",
+      "ci_high": 0.4890236453422916,
+      "ci_low": 0.1618816629893967,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "H_relief",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.3679356720759558
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "H_relief",
+      "test_id": "physics_probe",
+      "unavailable_reason": "fewer than 2 spatial test blocks for H_relief",
+      "value": null
+    },
+    {
+      "baselines": [],
+      "body": "earth",
+      "ci_high": 0.0657436067413204,
+      "ci_low": -0.314507304079233,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "H_relief",
+      "test_id": "physics_probe",
+      "unavailable_reason": null,
+      "value": 0.02130734273063517
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "imagenet_resnet18",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "dino_vits8",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+          "value": null
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "fingerprint_only_ridge",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "crater labels do not exist in this dataset: no Robbins catalogue is ingested, so no log crater density can be formed for Moon or Mars windows",
+          "value": null
+        }
+      ],
+      "body": null,
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2_gain_over_fingerprint_ridge",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": null,
+      "test_id": "morphology_probe",
+      "unavailable_reason": "crater labels do not exist in this dataset: no Robbins catalogue is ingested, so no log crater density can be formed for Moon or Mars windows",
+      "value": null
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "lambda_0",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "no lambda_0 run was supplied",
+          "value": null
+        },
+        {
+          "ci_high": 0.931809727555415,
+          "ci_low": 0.6448325620339173,
+          "name": "random_init",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": null,
+          "value": 0.7572350316038956
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "chance",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "1 over the number of training bodies",
+          "value": 0.3333333333333333
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.853027280003362,
+      "ci_low": 0.5063740527148115,
+      "evidence_label": "Predicted",
+      "measure": "balanced_accuracy",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": null,
+      "test_id": "body_invariance",
+      "unavailable_reason": null,
+      "value": 0.648157110148695
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.8434320022706387,
+          "ci_low": 0.7942605035050594,
+          "name": "random_init",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": null,
+          "value": 0.813079234404198
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.366826004601392,
+      "ci_low": 0.2956389365585489,
+      "evidence_label": "Predicted",
+      "measure": "spearman_rho",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "rms_log_nu_10",
+      "test_id": "physics_agreement",
+      "unavailable_reason": null,
+      "value": 0.3413772707699432
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.8350339811180661,
+          "ci_low": 0.7862069052969796,
+          "name": "random_init",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": null,
+          "value": 0.8043624185034061
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.35479310983643736,
+      "ci_low": 0.29502681302934514,
+      "evidence_label": "Predicted",
+      "measure": "spearman_rho",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "rms_log_nu_relief_5",
+      "test_id": "physics_agreement",
+      "unavailable_reason": null,
+      "value": 0.33394514464286285
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": 0.8172111881542338,
+          "ci_low": 0.7399196043708806,
+          "name": "random_init",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": null,
+          "value": 0.7713469180568673
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.33928686360850246,
+      "ci_low": 0.27827323667184106,
+      "evidence_label": "Predicted",
+      "measure": "spearman_rho",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "rms_log_nu_texture_5",
+      "test_id": "physics_agreement",
+      "unavailable_reason": null,
+      "value": 0.3202613914151535
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "random_ranking",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "the deterministic M0 Earth ranking of T4 is not an input of this build",
+          "value": null
+        }
+      ],
+      "body": "earth",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "jaccard_at_20",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": null,
+      "test_id": "target_retrieval",
+      "unavailable_reason": "the deterministic M0 Earth ranking of T4 is not an input of this build",
+      "value": null
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "random_ranking",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "exact hypergeometric expectation",
+          "value": 0.003728926945386958
+        }
+      ],
+      "body": "earth",
+      "ci_high": 0.6017094017094017,
+      "ci_low": 0.36507936507936506,
+      "evidence_label": "Predicted",
+      "measure": "jaccard_at_20_mean",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "earth_top20",
+      "test_id": "seed_stability",
+      "unavailable_reason": null,
+      "value": 0.6017094017094017
+    },
+    {
+      "baselines": [],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "r2",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": null,
+      "test_id": "held_out_body",
+      "unavailable_reason": "no Moon+Earth-only run was supplied",
+      "value": null
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "training_expectation",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "99th percentile of training distances",
+          "value": 0.01
+        }
+      ],
+      "body": "pooled",
+      "ci_high": 0.01627087879799103,
+      "ci_low": 0.0001972314371841605,
+      "evidence_label": "Predicted",
+      "measure": "fraction_above_train_p99",
+      "n_blocks": 12,
+      "n_bootstrap": 1000,
+      "target": "mahalanobis",
+      "test_id": "out_of_distribution",
+      "unavailable_reason": null,
+      "value": 0.004330566582461205
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "training_expectation",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "99th percentile of training distances",
+          "value": 0.01
+        }
+      ],
+      "body": "moon",
+      "ci_high": 0.002116894975530648,
+      "ci_low": 0.0003920466208972926,
+      "evidence_label": "Predicted",
+      "measure": "fraction_above_train_p99",
+      "n_blocks": 9,
+      "n_bootstrap": 1000,
+      "target": "mahalanobis",
+      "test_id": "out_of_distribution",
+      "unavailable_reason": null,
+      "value": 0.0012406947890818859
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "training_expectation",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "99th percentile of training distances",
+          "value": 0.01
+        }
+      ],
+      "body": "mars",
+      "ci_high": null,
+      "ci_low": null,
+      "evidence_label": "Predicted",
+      "measure": "fraction_above_train_p99",
+      "n_blocks": null,
+      "n_bootstrap": null,
+      "target": "mahalanobis",
+      "test_id": "out_of_distribution",
+      "unavailable_reason": "fewer than 2 spatial blocks",
+      "value": null
+    },
+    {
+      "baselines": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "name": "training_expectation",
+          "paired_diff_ci_high": null,
+          "paired_diff_ci_low": null,
+          "unavailable_reason": "99th percentile of training distances",
+          "value": 0.01
+        }
+      ],
+      "body": "earth",
+      "ci_high": 0.0,
+      "ci_low": 0.0,
+      "evidence_label": "Predicted",
+      "measure": "fraction_above_train_p99",
+      "n_blocks": 2,
+      "n_bootstrap": 1000,
+      "target": "mahalanobis",
+      "test_id": "out_of_distribution",
+      "unavailable_reason": null,
+      "value": 0.0
+    }
+  ],
+  "training_data": {
+    "bodies": [
+      "moon",
+      "mars",
+      "earth"
+    ],
+    "counts_by_body_split": {
+      "earth": {
+        "test": 244,
+        "train": 11147,
+        "val": 2760
+      },
+      "mars": {
+        "test": 726,
+        "train": 1398,
+        "val": 364
+      },
+      "moon": {
+        "target": 1,
+        "test": 2937,
+        "train": 6848,
+        "val": 2418
+      }
+    },
+    "product_ids": [
+      "copernicus_glo30:Copernicus_DSM_COG_10_N34_00_W115_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N34_00_W116_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N34_00_W119_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N35_00_W115_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N35_00_W116_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N36_00_W117_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N36_00_W118_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N37_00_W117_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N37_00_W118_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N38_00_W111_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N38_00_W112_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N42_00_W113_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N42_00_W114_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N43_00_W113_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N43_00_W114_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N64_00_W016_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N64_00_W017_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N64_00_W018_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N64_00_W019_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N65_00_W016_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N65_00_W017_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N65_00_W018_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N65_00_W019_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_N75_00_W091_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S23_00_W069_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S23_00_W070_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S23_00_W071_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S24_00_W069_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S24_00_W070_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S24_00_W071_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S25_00_W069_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S25_00_W070_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S25_00_W071_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S26_00_W069_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S26_00_W070_00_DEM",
+      "copernicus_glo30:Copernicus_DSM_COG_10_S26_00_W071_00_DEM",
+      "ctx_dtm:B18_016650_2206_XN_40N174W__D21_035427_2205_XN_40N174W",
+      "ctx_dtm:D04_028795_2302_XN_50N185W__F03_037155_2303_XN_50N185W",
+      "ctx_dtm:D15_033146_2247_XN_44N176W__D15_033225_2247_XN_44N176W",
+      "ctx_dtm:D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W",
+      "ctx_dtm:D18_034187_2276_XN_47N156W__D19_034622_2276_XN_47N156W",
+      "ctx_dtm:D22_035981_2253_XN_45N176W__F01_036337_2234_XN_43N175W",
+      "ctx_dtm:F18_042930_2210_XN_41N158W__F19_043220_2210_XN_41N158W",
+      "ctx_dtm:G03_019590_2280_XI_48N163W__G05_020078_2267_XN_46N163W",
+      "ctx_dtm:G20_025906_2242_XN_44N155W__F19_043299_2242_XN_44N155W",
+      "lola_pgda90:LDEM_80S_20MPP_ADJ",
+      "pgda78:Site01_final_adj_5mpp_surf"
+    ]
+  },
+  "unavailable": {
+    "held_out_body": "no Moon+Earth-only run was supplied",
+    "imagenet_resnet18_and_dino_vits8": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched",
+    "morphology_probe": "crater labels do not exist in this dataset: no Robbins catalogue is ingested, so no log crater density can be formed for Moon or Mars windows",
+    "target_retrieval": "the deterministic M0 Earth ranking of T4 is not an input of this build"
+  },
+  "wall_clock_s": {
+    "lambda_0.3/seed0:body_probe": 2.881,
+    "lambda_0.3/seed0:extract_embeddings": 56.569,
+    "lambda_0.3/seed0:ood": 1.89,
+    "lambda_0.3/seed0:physics_agreement": 5.581,
+    "lambda_0.3/seed0:physics_probe": 0.507,
+    "lambda_0.3/seed1:body_probe": 2.812,
+    "lambda_0.3/seed1:extract_embeddings": 63.915,
+    "lambda_0.3/seed1:ood": 1.968,
+    "lambda_0.3/seed1:physics_agreement": 5.84,
+    "lambda_0.3/seed1:physics_probe": 0.485,
+    "lambda_0.3/seed2:body_probe": 3.087,
+    "lambda_0.3/seed2:extract_embeddings": 58.88,
+    "lambda_0.3/seed2:ood": 2.122,
+    "lambda_0.3/seed2:physics_agreement": 5.664,
+    "lambda_0.3/seed2:physics_probe": 0.436,
+    "random_init/seed0:body_probe": 4.33,
+    "random_init/seed0:extract_embeddings": 126.768,
+    "random_init/seed0:ood": 2.06,
+    "random_init/seed0:physics_agreement": 5.903,
+    "random_init/seed0:physics_probe": 0.448,
+    "total": 353.291
+  }
+}
