@@ -673,7 +673,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
                     style={{ borderColor: k === i ? GOLD : '#e4e4e7' }}
                   >
                     <span className={`${MONO} text-sm text-zinc-400`}>
-                      {String(k + 1).padStart(2, '0')}, {mmss(s.from)}
+                      {String(k + 1).padStart(2, '0')}<span className="ml-4">{mmss(s.from)}</span>
                     </span>
                     <span className="text-2xl font-semibold tracking-tight">{s.title}</span>
                   </button>
