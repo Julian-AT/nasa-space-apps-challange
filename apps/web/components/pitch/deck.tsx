@@ -2,7 +2,7 @@
 
 // The /pitch deck: white full-viewport slides over the site chrome. Keys: → / d / Space next
 // (steps through build-ups first), ← / a back, Home / End; N speaker notes + 2:00 timer + pace,
-// P overview, F full screen, Esc closes panels. Click and swipe also move. The hash (#5 or #5.2)
+// P overview, F full screen, Esc closes panels. Only the keyboard moves slides. The hash (#5 or #5.2)
 // keeps place. Every number on a slide is read from the bundle (pitch-data.ts).
 import { AnimatePresence, motion } from 'motion/react';
 import dynamic from 'next/dynamic';
@@ -29,7 +29,6 @@ const FinderDemo = dynamic(() => import('./finder'), { ssr: false, loading: () =
 const SITE = 'nasa.julianschmidt.cv';
 const MONO = 'font-mono';
 
-const BODY = { moon: 'Moon', mars: 'Mars' } as const;
 
 function Unavailable({ reason }: { reason: string }) {
   return <span className="text-base font-normal text-zinc-400">Unavailable ({reason})</span>;
@@ -144,14 +143,6 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
                 </div>
               ))}
               <div className="h-3" />
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="mr-2 text-sm" style={{ color: FAINT }}>Targets</span>
-              {d.targets.map((t) => (
-                <span key={t.name} className="rounded-full border bg-white px-4 py-1.5 text-base" style={{ borderColor: LINE, color: MUTED }}>
-                  {t.name}, {BODY[t.body]}
-                </span>
-              ))}
             </div>
           </div>
         </Frame>
@@ -286,7 +277,6 @@ export function Deck({ data, bench, results, search, curves, qr, fonts = '' }: {
   const [t0, setT0] = useState<number | null>(null);
   const [now, setNow] = useState(0);
   const [labMounted, setLabMounted] = useState(false);
-  const touch = useRef<number | null>(null);
   const { i, step } = pos;
   const labIndex = list.findIndex((s) => s.id === 'lab');
   // portal to <body>: the site layout has transformed ancestors that would clip a fixed overlay
@@ -384,17 +374,6 @@ export function Deck({ data, bench, results, search, curves, qr, fonts = '' }: {
       role="region"
       aria-roledescription="slide deck"
       aria-label="Terraluna pitch"
-      onClick={(e) => (e.clientX < window.innerWidth * 0.25 ? prev() : next())}
-      onTouchStart={(e) => (touch.current = e.touches[0]?.clientX ?? null)}
-      onTouchEnd={(e) => {
-        const x0 = touch.current;
-        const x1 = e.changedTouches[0]?.clientX;
-        if (x0 !== null && x1 !== undefined && Math.abs(x1 - x0) > 50) {
-          if (x1 < x0) next();
-          else prev();
-        }
-        touch.current = null;
-      }}
     >
       {data.mock ? (
         <div role="alert" className="absolute inset-x-0 top-0 z-20 bg-amber-100 px-6 py-2 text-center text-sm font-medium text-amber-900">
