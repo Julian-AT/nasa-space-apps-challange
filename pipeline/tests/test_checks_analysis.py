@@ -135,3 +135,12 @@ def test_verify_records_detects_mismatch_and_mock(tmp_path: Path) -> None:
 def test_log_values_are_natural_log() -> None:
     assert checks.LOG_BASE == "natural"
     assert math.log(math.e) == 1.0
+
+
+def test_clone_percentile_spread_reranks_within_the_same_clone() -> None:
+    target = {"0001": 2.0, "0002": 3.0, "0003": None}
+    dists = {"0001": [1.0, 2.0, 3.0, 4.0], "0002": [1.0, 2.0, 3.0, 4.0], "0003": [1.0]}
+    result = checks.clone_percentile_spread(target, dists)
+    assert result is not None
+    assert (result["min"], result["max"], result["n"], result["n_skipped"]) == (50.0, 75.0, 2, 1)
+    assert checks.clone_percentile_spread({"0001": None}, {"0001": [1.0]}) is None

@@ -274,6 +274,37 @@ def target_percentile(
     return result
 
 
+def clone_percentile_spread(
+    target_by_clone: Mapping[str, float | None],
+    distribution_by_clone: Mapping[str, Sequence[float]],
+) -> dict[str, Any] | None:
+    """Spread of the target percentile when every window is re-measured on the same clone.
+
+    For each clone, the target's value on that clone is ranked within the values of all windows
+    on that same clone, so the clone moves the target and its background together. Clones where
+    the target or the distribution is unavailable are skipped and counted.
+    """
+    values: list[float] = []
+    skipped = 0
+    for cid, value in target_by_clone.items():
+        dist = np.asarray(distribution_by_clone.get(cid, ()), dtype=np.float64)
+        if value is None or dist.size == 0:
+            skipped += 1
+            continue
+        values.append(float(100.0 * np.count_nonzero(dist <= value) / dist.size))
+    if not values:
+        return None
+    array = np.asarray(values)
+    return {
+        "min": float(array.min()),
+        "median": float(np.median(array)),
+        "max": float(array.max()),
+        "n": int(array.size),
+        "n_skipped": skipped,
+        "method": "target re-ranked within all windows of the same clone",
+    }
+
+
 # --- verify-records ----------------------------------------------------------------------------
 
 
@@ -439,17 +470,33 @@ def run_moon_distributions(root: Path, argv: Sequence[str]) -> int:
     )
     target = per_window[target_id]
     percentiles: dict[str, Any] = {}
+    clone_ids = list(target["per_clone"])
     for name, entry in target["descriptors"].items():
-        distribution = [row[name] for row in rows if row.get(name) is not None]
-        clone_values = [
-            values[name] for values in target["per_clone"].values() if values.get(name) is not None
-        ]
         transform = math.log if ".nu_m@" in name else float
-        percentiles[name] = target_percentile(
+        distribution = [transform(v) for row in rows if (v := row.get(name)) is not None]
+        result = target_percentile(
             None if entry["base"] is None else transform(entry["base"]),
-            [transform(v) for v in distribution if v is not None],
-            clone_values=[transform(v) for v in clone_values],
+            distribution,
+            clone_values=[],
         )
+        if result["status"] == "available":
+            result["clone_spread"] = clone_percentile_spread(
+                {
+                    cid: (
+                        None if (v := target["per_clone"][cid].get(name)) is None else transform(v)
+                    )
+                    for cid in clone_ids
+                },
+                {
+                    cid: [
+                        transform(v)
+                        for spread in per_window.values()
+                        if (v := spread["per_clone"].get(cid, {}).get(name)) is not None
+                    ]
+                    for cid in clone_ids
+                },
+            )
+        percentiles[name] = result
     _write(
         root / "analysis" / "a1_target_percentiles.json",
         {
