@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "EmbeddingRow": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "ood_score": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "ood_score"
+            ]
+          },
+          "then": {
+            "properties": {
+              "ood_flag": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One row of model/embeddings.f16.bin: a test window (PRD 11.8). ``ood_flag`` is null\nwithout an ``ood_score``, and also while the 99th-percentile threshold is unset.",
+      "properties": {
+        "row": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Row",
+          "type": "integer"
+        },
+        "window_id": {
+          "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+          "title": "Window Id",
+          "type": "string"
+        },
+        "body": {
+          "enum": [
+            "moon",
+            "mars",
+            "earth"
+          ],
+          "title": "Body",
+          "type": "string"
+        },
+        "split": {
+          "const": "test",
+          "title": "Split",
+          "type": "string"
+        },
+        "input_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "valid_fraction": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Valid Fraction",
+          "type": "number"
+        },
+        "ood_score": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ood Score"
+        },
+        "ood_flag": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ood Flag"
+        }
+      },
+      "required": [
+        "row",
+        "window_id",
+        "body",
+        "split",
+        "input_hash",
+        "valid_fraction",
+        "ood_score",
+        "ood_flag"
+      ],
+      "title": "EmbeddingRow",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "model/embeddings.index.json: the layout of model/embeddings.f16.bin (PRD 8.4, 11.8).\n\nThe binary holds ``n_rows`` rows of ``dim`` little-endian float16 values. ``n_rows`` equals\nthe number of rows, and row i describes binary row i (an engineering choice, CONTRACTS a.4).",
+  "properties": {
+    "model_id": {
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "onnx_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Onnx Sha256"
+    },
+    "mock": {
+      "title": "Mock",
+      "type": "boolean"
+    },
+    "dim": {
+      "const": 256,
+      "title": "Dim",
+      "type": "integer"
+    },
+    "dtype": {
+      "const": "float16",
+      "title": "Dtype",
+      "type": "string"
+    },
+    "byte_order": {
+      "const": "little",
+      "title": "Byte Order",
+      "type": "string"
+    },
+    "n_rows": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "N Rows",
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/EmbeddingRow"
+      },
+      "title": "Rows",
+      "type": "array"
+    }
+  },
+  "required": [
+    "model_id",
+    "onnx_sha256",
+    "mock",
+    "dim",
+    "dtype",
+    "byte_order",
+    "n_rows",
+    "rows"
+  ],
+  "title": "EmbeddingsIndex",
+  "type": "object"
+}

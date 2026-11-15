@@ -1,0 +1,559 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "MetricBaseline": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "A baseline compared with the encoder on one test (PRD 11.6), with the paired bootstrap\ninterval of the difference. A missing value is null with its reason; a baseline with a\nvalue may still give a reason, for example for a paired interval that was not computed.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci High"
+        },
+        "paired_diff_ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Paired Diff Ci Low"
+        },
+        "paired_diff_ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Paired Diff Ci High"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unavailable Reason"
+        }
+      },
+      "required": [
+        "name",
+        "value",
+        "ci_low",
+        "ci_high",
+        "paired_diff_ci_low",
+        "paired_diff_ci_high",
+        "unavailable_reason"
+      ],
+      "title": "MetricBaseline",
+      "type": "object"
+    },
+    "MetricRecord": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "null"
+              },
+              "n_blocks": {
+                "type": "integer"
+              },
+              "n_bootstrap": {
+                "type": "integer"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "string"
+              },
+              "n_blocks": {
+                "type": "null"
+              },
+              "n_bootstrap": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One measured test result with its 95% bootstrap interval over spatial blocks (PRD 11.6;\nreview-ml #40). Always Predicted.\n\n``value`` is null exactly when ``unavailable_reason`` is set, so missing is never zero, and\n``n_blocks`` and ``n_bootstrap`` are null exactly when ``value`` is; a value comes from at\nleast one block and one resample. Only ``ci_low <= ci_high`` is checked: a percentile\ninterval may exclude the point estimate.",
+      "properties": {
+        "test_id": {
+          "enum": [
+            "physics_probe",
+            "morphology_probe",
+            "body_invariance",
+            "physics_agreement",
+            "target_retrieval",
+            "seed_stability",
+            "held_out_body",
+            "out_of_distribution"
+          ],
+          "title": "Test Id",
+          "type": "string"
+        },
+        "measure": {
+          "minLength": 1,
+          "title": "Measure",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target"
+        },
+        "body": {
+          "anyOf": [
+            {
+              "enum": [
+                "moon",
+                "mars",
+                "earth",
+                "pooled"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Body"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci High"
+        },
+        "n_blocks": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Blocks"
+        },
+        "n_bootstrap": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Bootstrap"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unavailable Reason"
+        },
+        "evidence_label": {
+          "const": "Predicted",
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "baselines": {
+          "items": {
+            "$ref": "#/$defs/MetricBaseline"
+          },
+          "title": "Baselines",
+          "type": "array"
+        }
+      },
+      "required": [
+        "test_id",
+        "measure",
+        "target",
+        "body",
+        "value",
+        "ci_low",
+        "ci_high",
+        "n_blocks",
+        "n_bootstrap",
+        "unavailable_reason",
+        "evidence_label",
+        "baselines"
+      ],
+      "title": "MetricRecord",
+      "type": "object"
+    },
+    "ObjectivesAndWeights": {
+      "additionalProperties": false,
+      "description": "The ModelRecord's objectives and loss weights (PRD 8.12, 11.4). ``vicreg`` is null for a\nrun without the VICReg terms.",
+      "properties": {
+        "vicreg": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VicregWeights"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "alpha_phys": {
+          "minimum": 0,
+          "title": "Alpha Phys",
+          "type": "number"
+        },
+        "lambda_max": {
+          "minimum": 0,
+          "title": "Lambda Max",
+          "type": "number"
+        },
+        "schedule": {
+          "minLength": 1,
+          "title": "Schedule",
+          "type": "string"
+        }
+      },
+      "required": [
+        "vicreg",
+        "alpha_phys",
+        "lambda_max",
+        "schedule"
+      ],
+      "title": "ObjectivesAndWeights",
+      "type": "object"
+    },
+    "TrainingData": {
+      "additionalProperties": false,
+      "description": "The ModelRecord's training data (PRD 8.12): bodies, product IDs, window counts per body\nand split (null when not counted) and the split grouping of each body.",
+      "properties": {
+        "bodies": {
+          "items": {
+            "enum": [
+              "moon",
+              "mars",
+              "earth"
+            ],
+            "type": "string"
+          },
+          "title": "Bodies",
+          "type": "array"
+        },
+        "product_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Product Ids",
+          "type": "array"
+        },
+        "window_counts": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "propertyNames": {
+              "enum": [
+                "train",
+                "val",
+                "test"
+              ]
+            },
+            "type": "object"
+          },
+          "propertyNames": {
+            "enum": [
+              "moon",
+              "mars",
+              "earth"
+            ]
+          },
+          "title": "Window Counts",
+          "type": "object"
+        },
+        "split_groups": {
+          "additionalProperties": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "propertyNames": {
+            "enum": [
+              "moon",
+              "mars",
+              "earth"
+            ]
+          },
+          "title": "Split Groups",
+          "type": "object"
+        }
+      },
+      "required": [
+        "bodies",
+        "product_ids",
+        "window_counts",
+        "split_groups"
+      ],
+      "title": "TrainingData",
+      "type": "object"
+    },
+    "VicregWeights": {
+      "additionalProperties": false,
+      "description": "The VICReg term weights (PRD 11.4). A weight is at least 0.",
+      "properties": {
+        "invariance": {
+          "minimum": 0,
+          "title": "Invariance",
+          "type": "number"
+        },
+        "variance": {
+          "minimum": 0,
+          "title": "Variance",
+          "type": "number"
+        },
+        "covariance": {
+          "minimum": 0,
+          "title": "Covariance",
+          "type": "number"
+        }
+      },
+      "required": [
+        "invariance",
+        "variance",
+        "covariance"
+      ],
+      "title": "VicregWeights",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "model/model_card.json: exactly the PRD 8.12 ModelRecord fields. ``mock`` lives in the\nmanifest. ``g5_status`` is a gate status; EXPERIMENTAL is ModelSummary.status.",
+  "properties": {
+    "model_id": {
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "version": {
+      "minLength": 1,
+      "title": "Version",
+      "type": "string"
+    },
+    "architecture": {
+      "minLength": 1,
+      "title": "Architecture",
+      "type": "string"
+    },
+    "parameter_count": {
+      "maximum": 9007199254740991,
+      "minimum": 1,
+      "title": "Parameter Count",
+      "type": "integer"
+    },
+    "training_data": {
+      "$ref": "#/$defs/TrainingData"
+    },
+    "objectives_and_weights": {
+      "$ref": "#/$defs/ObjectivesAndWeights"
+    },
+    "seeds": {
+      "items": {
+        "maximum": 9007199254740991,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "title": "Seeds",
+      "type": "array"
+    },
+    "metrics_with_ci": {
+      "items": {
+        "$ref": "#/$defs/MetricRecord"
+      },
+      "title": "Metrics With Ci",
+      "type": "array"
+    },
+    "g5_status": {
+      "enum": [
+        "NOT_RUN",
+        "PASS",
+        "FAIL",
+        "PARTIAL",
+        "NOT_APPLICABLE"
+      ],
+      "title": "G5 Status",
+      "type": "string"
+    },
+    "intended_use": {
+      "minLength": 1,
+      "title": "Intended Use",
+      "type": "string"
+    },
+    "limitations": {
+      "minLength": 1,
+      "title": "Limitations",
+      "type": "string"
+    },
+    "licence": {
+      "minLength": 1,
+      "title": "Licence",
+      "type": "string"
+    },
+    "onnx_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Onnx Sha256"
+    }
+  },
+  "required": [
+    "model_id",
+    "version",
+    "architecture",
+    "parameter_count",
+    "training_data",
+    "objectives_and_weights",
+    "seeds",
+    "metrics_with_ci",
+    "g5_status",
+    "intended_use",
+    "limitations",
+    "licence",
+    "onnx_sha256"
+  ],
+  "title": "ModelRecord",
+  "type": "object"
+}

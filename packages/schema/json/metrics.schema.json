@@ -1,0 +1,816 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Ablation": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "reason": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              },
+              "metrics": {
+                "items": {
+                  "type": "null"
+                },
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One ablation run (PRD 11.9 item 5). An unavailable run says why and has no metrics; an\navailable one has no reason.",
+      "properties": {
+        "run_name": {
+          "minLength": 1,
+          "title": "Run Name",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "available",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/MetricRecord"
+          },
+          "title": "Metrics",
+          "type": "array"
+        }
+      },
+      "required": [
+        "run_name",
+        "status",
+        "reason",
+        "metrics"
+      ],
+      "title": "Ablation",
+      "type": "object"
+    },
+    "G5Component": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "passed": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "passed"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One part of a G5 condition, such as ``relief_lag_270`` or ``dino:morph_gain`` (review-ml\n#41). ``passed`` null needs a reason.",
+      "properties": {
+        "component": {
+          "minLength": 1,
+          "title": "Component",
+          "type": "string"
+        },
+        "observed": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Observed"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci High"
+        },
+        "passed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Passed"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "component",
+        "observed",
+        "ci_low",
+        "ci_high",
+        "passed",
+        "reason"
+      ],
+      "title": "G5Component",
+      "type": "object"
+    },
+    "G5ConditionRecord": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "threshold": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "threshold"
+            ]
+          },
+          "then": {
+            "properties": {
+              "condition": {
+                "const": 6,
+                "type": "integer"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "passed": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "passed"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One G5 condition as evaluated (PRD 11.7; review-ml #41).\n\n``threshold`` is copied from config ml.g5 and is null only for condition 6, which compares\npaired intervals with 0. ``passed`` is stored as evaluation found it, the 11.7 conjunction or\ndisjunction of its components, and is not recomputed here. ``passed`` null needs a reason,\nand a pass names its evidence: an observed value or at least one component.",
+      "properties": {
+        "condition": {
+          "maximum": 6,
+          "minimum": 1,
+          "title": "Condition",
+          "type": "integer"
+        },
+        "test_id": {
+          "minLength": 1,
+          "title": "Test Id",
+          "type": "string"
+        },
+        "statistic": {
+          "enum": [
+            "lower_95",
+            "point",
+            "paired_interval"
+          ],
+          "title": "Statistic",
+          "type": "string"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Threshold"
+        },
+        "observed": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Observed"
+        },
+        "passed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Passed"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "components": {
+          "items": {
+            "$ref": "#/$defs/G5Component"
+          },
+          "title": "Components",
+          "type": "array"
+        }
+      },
+      "required": [
+        "condition",
+        "test_id",
+        "statistic",
+        "threshold",
+        "observed",
+        "passed",
+        "reason",
+        "components"
+      ],
+      "title": "G5ConditionRecord",
+      "type": "object"
+    },
+    "G5Summary": {
+      "additionalProperties": false,
+      "description": "The G5 verdict in report/metrics.json, copied unchanged from the G5 GateRecord and the\nevaluation's g5_conditions.json (CONTRACTS a.4).",
+      "properties": {
+        "status": {
+          "enum": [
+            "NOT_RUN",
+            "PASS",
+            "FAIL",
+            "PARTIAL",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "conditions": {
+          "items": {
+            "$ref": "#/$defs/G5ConditionRecord"
+          },
+          "title": "Conditions",
+          "type": "array"
+        },
+        "failed_tests": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Failed Tests",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status",
+        "conditions",
+        "failed_tests"
+      ],
+      "title": "G5Summary",
+      "type": "object"
+    },
+    "MetricBaseline": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "A baseline compared with the encoder on one test (PRD 11.6), with the paired bootstrap\ninterval of the difference. A missing value is null with its reason; a baseline with a\nvalue may still give a reason, for example for a paired interval that was not computed.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci High"
+        },
+        "paired_diff_ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Paired Diff Ci Low"
+        },
+        "paired_diff_ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Paired Diff Ci High"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unavailable Reason"
+        }
+      },
+      "required": [
+        "name",
+        "value",
+        "ci_low",
+        "ci_high",
+        "paired_diff_ci_low",
+        "paired_diff_ci_high",
+        "unavailable_reason"
+      ],
+      "title": "MetricBaseline",
+      "type": "object"
+    },
+    "MetricRecord": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "null"
+              },
+              "n_blocks": {
+                "type": "integer"
+              },
+              "n_bootstrap": {
+                "type": "integer"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "string"
+              },
+              "n_blocks": {
+                "type": "null"
+              },
+              "n_bootstrap": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One measured test result with its 95% bootstrap interval over spatial blocks (PRD 11.6;\nreview-ml #40). Always Predicted.\n\n``value`` is null exactly when ``unavailable_reason`` is set, so missing is never zero, and\n``n_blocks`` and ``n_bootstrap`` are null exactly when ``value`` is; a value comes from at\nleast one block and one resample. Only ``ci_low <= ci_high`` is checked: a percentile\ninterval may exclude the point estimate.",
+      "properties": {
+        "test_id": {
+          "enum": [
+            "physics_probe",
+            "morphology_probe",
+            "body_invariance",
+            "physics_agreement",
+            "target_retrieval",
+            "seed_stability",
+            "held_out_body",
+            "out_of_distribution"
+          ],
+          "title": "Test Id",
+          "type": "string"
+        },
+        "measure": {
+          "minLength": 1,
+          "title": "Measure",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target"
+        },
+        "body": {
+          "anyOf": [
+            {
+              "enum": [
+                "moon",
+                "mars",
+                "earth",
+                "pooled"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Body"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci High"
+        },
+        "n_blocks": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Blocks"
+        },
+        "n_bootstrap": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Bootstrap"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unavailable Reason"
+        },
+        "evidence_label": {
+          "const": "Predicted",
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "baselines": {
+          "items": {
+            "$ref": "#/$defs/MetricBaseline"
+          },
+          "title": "Baselines",
+          "type": "array"
+        }
+      },
+      "required": [
+        "test_id",
+        "measure",
+        "target",
+        "body",
+        "value",
+        "ci_low",
+        "ci_high",
+        "n_blocks",
+        "n_bootstrap",
+        "unavailable_reason",
+        "evidence_label",
+        "baselines"
+      ],
+      "title": "MetricRecord",
+      "type": "object"
+    },
+    "RunRecord": {
+      "additionalProperties": false,
+      "description": "The evaluation run behind report/metrics.json: hashes, hardware and compute cost.",
+      "properties": {
+        "config_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Hash",
+          "type": "string"
+        },
+        "data_manifest_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Data Manifest Sha256"
+        },
+        "split_map_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Split Map Sha256"
+        },
+        "checkpoint_sha256s": {
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Checkpoint Sha256S",
+          "type": "array"
+        },
+        "git_sha": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Git Sha"
+        },
+        "uv_lock_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Uv Lock Sha256",
+          "type": "string"
+        },
+        "hardware": {
+          "minLength": 1,
+          "title": "Hardware",
+          "type": "string"
+        },
+        "gpu_hours_total": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Gpu Hours Total"
+        },
+        "gpu_hours_partial": {
+          "title": "Gpu Hours Partial",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "config_hash",
+        "data_manifest_sha256",
+        "split_map_sha256",
+        "checkpoint_sha256s",
+        "git_sha",
+        "uv_lock_sha256",
+        "hardware",
+        "gpu_hours_total",
+        "gpu_hours_partial"
+      ],
+      "title": "RunRecord",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "report/metrics.json (PRD 8.4, 11.9): every test of PRD 11.6 with its interval, the G5\nverdict, the ablations and the run record. Contract name Metrics.",
+  "properties": {
+    "mock": {
+      "title": "Mock",
+      "type": "boolean"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Run Id"
+    },
+    "model_id": {
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "evaluated_split": {
+      "enum": [
+        "val",
+        "test"
+      ],
+      "title": "Evaluated Split",
+      "type": "string"
+    },
+    "g5": {
+      "$ref": "#/$defs/G5Summary"
+    },
+    "tests": {
+      "items": {
+        "$ref": "#/$defs/MetricRecord"
+      },
+      "title": "Tests",
+      "type": "array"
+    },
+    "ablations": {
+      "items": {
+        "$ref": "#/$defs/Ablation"
+      },
+      "title": "Ablations",
+      "type": "array"
+    },
+    "run_record": {
+      "$ref": "#/$defs/RunRecord"
+    }
+  },
+  "required": [
+    "mock",
+    "run_id",
+    "model_id",
+    "evaluated_split",
+    "g5",
+    "tests",
+    "ablations",
+    "run_record"
+  ],
+  "title": "MetricsFile",
+  "type": "object"
+}

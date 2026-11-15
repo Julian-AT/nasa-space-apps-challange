@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One window's encoder embedding: exactly the PRD 8.12 EmbeddingRecord fields. The values\nare Predicted (PRD 11.10). ``ood_score`` is the Mahalanobis distance to the training\nembeddings (PRD 11.6), null when not computed.",
+  "properties": {
+    "window_id": {
+      "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+      "title": "Window Id",
+      "type": "string"
+    },
+    "body": {
+      "enum": [
+        "moon",
+        "mars",
+        "earth"
+      ],
+      "title": "Body",
+      "type": "string"
+    },
+    "model_id": {
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "embedding_f16": {
+      "items": {
+        "type": "number"
+      },
+      "maxItems": 256,
+      "minItems": 256,
+      "title": "Embedding F16",
+      "type": "array"
+    },
+    "input_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Input Hash",
+      "type": "string"
+    },
+    "valid_fraction": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Valid Fraction",
+      "type": "number"
+    },
+    "ood_score": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Ood Score"
+    }
+  },
+  "required": [
+    "window_id",
+    "body",
+    "model_id",
+    "embedding_f16",
+    "input_hash",
+    "valid_fraction",
+    "ood_score"
+  ],
+  "title": "EmbeddingRecord",
+  "type": "object"
+}

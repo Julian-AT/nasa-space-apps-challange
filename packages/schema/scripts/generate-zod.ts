@@ -114,6 +114,30 @@ export const CONTRACTS: readonly Contract[] = [
     schemaName: 'CardRecordSchema',
     typeName: 'CardRecord',
   },
+  {
+    json: 'model-record.schema.json',
+    module: 'model-record.ts',
+    schemaName: 'ModelRecordSchema',
+    typeName: 'ModelRecord',
+  },
+  {
+    json: 'metrics.schema.json',
+    module: 'metrics.ts',
+    schemaName: 'MetricsSchema',
+    typeName: 'Metrics',
+  },
+  {
+    json: 'embedding-record.schema.json',
+    module: 'embedding-record.ts',
+    schemaName: 'EmbeddingRecordSchema',
+    typeName: 'EmbeddingRecord',
+  },
+  {
+    json: 'embeddings-index.schema.json',
+    module: 'embeddings-index.ts',
+    schemaName: 'EmbeddingsIndexSchema',
+    typeName: 'EmbeddingsIndex',
+  },
 ];
 
 /** The JSON Schema could not be translated faithfully, or is missing or malformed. */
