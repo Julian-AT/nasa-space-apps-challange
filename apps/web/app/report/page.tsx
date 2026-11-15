@@ -10,8 +10,10 @@ export const metadata: Metadata = { title: `Site report · ${SITE_TITLE}` };
 
 export default function Page() {
   return (
-    <Suspense fallback={<p className="m-6">Loading the report…</p>}>
+    <div data-full-bleed>
+      <Suspense fallback={<p className="m-6">Loading the report…</p>}>
       <ReportPage />
     </Suspense>
+    </div>
   );
 }

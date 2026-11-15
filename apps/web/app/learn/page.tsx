@@ -13,8 +13,10 @@ export const metadata: Metadata = { title: `Learn · ${SITE_TITLE}` };
 
 export default function Page() {
   return (
-    <Suspense fallback={<p className="m-6">Loading the lesson…</p>}>
+    <div data-full-bleed>
+      <Suspense fallback={<p className="m-6">Loading the lesson…</p>}>
       <LearnPage />
     </Suspense>
+    </div>
   );
 }

@@ -220,7 +220,9 @@ export default function Home() {
       </Numbered>
 
       {/* ShadowAstra Atlas's home sections (MIT, Team ShadowAstra), each labelled as theirs. */}
-      <HomeSections />
+      <div data-full-bleed>
+        <HomeSections />
+      </div>
     </>
   );
 }

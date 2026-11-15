@@ -10,8 +10,10 @@ export const metadata: Metadata = { title: `Compare in 3D · ${SITE_TITLE}` };
 
 export default function Page() {
   return (
-    <Suspense fallback={<p className="m-6">Loading the 3D comparison…</p>}>
+    <div data-full-bleed>
+      <Suspense fallback={<p className="m-6">Loading the 3D comparison…</p>}>
       <LabClient />
     </Suspense>
+    </div>
   );
 }

@@ -36,8 +36,10 @@ export default function Page() {
     cards,
   };
   return (
-    <Suspense fallback={<p className="m-6">Loading the find flow…</p>}>
+    <div data-full-bleed>
+      <Suspense fallback={<p className="m-6">Loading the find flow…</p>}>
       <FindPage probe={props} />
     </Suspense>
+    </div>
   );
 }
