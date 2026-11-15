@@ -1,0 +1,73 @@
+{
+  "description": "The polsartools 0.13 conventions the T2-07 oracle check compares under, read from the polsartools source before any comparison ran. Resolving a convention difference means changing this declaration with its derivation, never flipping a sign until numbers agree.",
+  "polsartools_version": "0.13",
+  "polsartools_sources_sha256": {
+    "polsartools/sensors/uavsar.py": "c029c8a0103397e3c726066d99a336f5123e82bb7ef4f02d75aa90b7efa3cdf0",
+    "polsartools/preprocess/simulate_CP.py": "e3f519cba81e4853d5c203d8bd566cd2e5df57eb127c94b7f7bcba93eb7e7a78",
+    "polsartools/polsar/cp/m_chi.py": "698856edf1011a28473dd507c302b958fa41aed5d01f9c56eedf0fdcf8a7889a",
+    "polsartools/preprocess/clip.py": "0fbe87bc95ee678ac23139c78e436f5d12567eef167df351a369ba8381fc3bd4",
+    "polsartools/utils/proc_utils.py": "f8fee1060d5daa2b2a7ddfaa08c09ab1756e7865a569ec7a88dae4fff696e932",
+    "polsartools/preprocess/fp_infiles.py": "5125bfc2646c43a8455b05c5fa1451bd8222f2834e5c416481280f3dda3e95b6",
+    "polsartools/polsar/cp/cp_infiles.py": "85f06764d5f6036a3414e56f43c0a6196f4a4088af30c1654acce59c0f3f3c77"
+  },
+  "declared_utc": "2026-11-15T00:31:20Z",
+  "declared_before_any_comparison": true,
+  "c3_ordering": "HH_SQRT2HV_VV",
+  "c3_derivation": "sensors/uavsar.py import_uavsar_grd writes C11 = grdHHHH, C22 = 2 * grdHVHV, C33 = grdVVVV, C12 = sqrt(2) * grdHHHV, C13 = grdHHVV and C23 = sqrt(2) * grdHVVV as float32 GeoTIFFs: the covariance of the lexicographic vector (HH, sqrt2 HV, VV). The UAVSAR products are A = <HH HH*>, V = <HV HV*>, B = <VV VV*>, D = <HH HV*>, C = <HH VV*>, E = <HV VV*> (PRD 6.2), which our side reads in the (HH, HV, VV) ordering (COVARIANCE_HH_HV_VV).",
+  "ellipticity": [
+    {
+      "polsartools_chi_deg": 45.0,
+      "terraluna_chi_tx_deg": -45.0,
+      "transmit_jones_hv": [
+        "1/sqrt2",
+        "-i/sqrt2"
+      ],
+      "terraluna_handedness": "NEISH_SC_LL_TX_1_MINUS_I"
+    },
+    {
+      "polsartools_chi_deg": -45.0,
+      "terraluna_chi_tx_deg": 45.0,
+      "transmit_jones_hv": [
+        "1/sqrt2",
+        "+i/sqrt2"
+      ],
+      "terraluna_handedness": "SC_OPP_TX_1_PLUS_I"
+    }
+  ],
+  "ellipticity_derivation": "preprocess/simulate_CP.py process_chunk_sim_cp with psi = 0 gives CP11 = (C11 + C22/2 - sqrt2 sin(2 chi) Im C12)/2 (cos(2 chi) is 6.1e-17 at chi = +-45 degrees), which in UAVSAR terms is (A + V - 2 sin(2 chi) Im D)/2. For a transmit t = (1, tau)/sqrt2 the received power <|E_H|^2> = <|HH + tau HV|^2>/2 = (A + V + 2 Re(conj(tau) D))/2, which equals CP11 for tau = -i sin(2 chi); CP12 = (C12/sqrt2 + C23/sqrt2 + i sin(2 chi)(C13 - C22/2))/2 equals <E_H conj(E_V)> for the same tau, and CP22 = <|E_V|^2>. So polsartools chi transmits t = (1, -i sin(2 chi))/sqrt2: its chi = +45 is our chi_tx = -45, t = (1, -i)/sqrt2 (TRANSMIT_ELLIPTICITIES, t(chi) = (cos chi, i sin chi)), and its chi = -45 is our chi_tx = +45, t = (1, +i)/sqrt2. polsartools' C2 is then our J = A R A^H for the paired transmit. The signs of the two chi parameterizations are opposite; the simulate_CP docstring calls +45 right circular.",
+  "stokes": [
+    {
+      "terraluna": "s1",
+      "polsartools": "s0",
+      "sign": 1
+    },
+    {
+      "terraluna": "s2",
+      "polsartools": "s1",
+      "sign": 1
+    },
+    {
+      "terraluna": "s3",
+      "polsartools": "s2",
+      "sign": 1
+    },
+    {
+      "terraluna": "s4",
+      "polsartools": "s3",
+      "sign": -1
+    }
+  ],
+  "stokes_derivation": "polsar/cp/m_chi.py process_chunk_mchi forms s0 = C11 + C22, s1 = C11 - C22, s2 = 2 Re C12 and s3 = -2 Im C12 for chi >= 0 or +2 Im C12 for chi < 0, that is s3 = -sign(chi_pst) 2 Im C12. Ours (HybridStokes) are S1 = J_HH + J_VV, S2 = J_HH - J_VV, S3 = 2 Re J_HV and S4 = -2 sin(2 chi_tx) Im J_HV (OC - SC relative to the transmit, the Mini-RF SIS convention). With chi_tx = -chi_pst and J = C2, S4 = sign(chi_pst) 2 Im C12 = -s3. So S1, S2, S3 are s0, s1, s2 and S4 is -s3 at both ellipticities. The helper polsartools_stokes recomputes s0..s3 from polsartools' C2 rasters with exactly these definitions, because m_chi writes m, chi and the decomposition powers but not the Stokes parameters.",
+  "circular_from_stokes": "polsartools has no SC, OC or base_SC output. The oracle's SC and OC are formed from its mapped Stokes parameters by PRD 6.2 (SIS): SC = (S1 - S4)/2 and OC = (S1 + S4)/2, at our chi_tx = -45 for SC_LL and OC under NEISH_SC_LL_TX_1_MINUS_I and at chi_tx = +45 under SC_OPP_TX_1_PLUS_I; base_SC = (SC_LL + SC_opp)/2 as PRD 6.2 defines it. They are compared with derive_circular on the 3x3 covariance, so the check ties our covariance-to-circular conversion to polsartools' compact-pol synthesis.",
+  "m_derivation": "polsar/cp/m_chi.py writes m_cp = sqrt(s1^2 + s2^2 + s3^2) / s0 from its C2, computed in float32; ours is m = sqrt(S2^2 + S3^2 + S4^2) / S1 (PRD 6.2), which is the same quantity under the mapping above and does not depend on the sign of S4.",
+  "processing": {
+    "psi_deg": 0.0,
+    "win": 1,
+    "block_size": [
+      512,
+      512
+    ],
+    "fmt": "tif",
+    "derivation": "psi = 0 is the orientation of a circular transmit (simulate_CP and m_chi docstrings). win = 1 skips the conv2d boxcar in both process_chunk_sim_cp and process_chunk_mchi (if window_size > 1), so every output is pixelwise and comparable with ours pixel by pixel. block_size is the polsartools default (512, 512); fmt tif writes uncompressed float32 GeoTIFFs (comp False), which store float32 values without loss."
+  }
+}

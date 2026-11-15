@@ -1,0 +1,289 @@
+{
+  "code_sha256": {
+    "pipeline/src/terraluna_pipeline/polarimetry.py": "afd978010c3d2025c6d7c694e73c5b51d5b39ea030cd72cbb0ca4cc7d74ddba6",
+    "pipeline/tests/polarimetry/oracle.py": "5041ae128f7bee272ec7e4e25f39ee547f8d423bbf9a806904346fb74fbf18d1",
+    "pipeline/tests/test_polarimetry_oracle.py": "9f131d1f1d6ba283f88db1969e97a1c0f6b2f531cbf4cb0699c83ce609197a15"
+  },
+  "declarations": {
+    "conventions": "fixtures/polarimetry/oracle_conventions.json",
+    "conventions_sha256": "b4e84402851132eee648920ec8114b794ad01e4b3e35f9789a370b7631119373",
+    "tolerance": "fixtures/polarimetry/oracle_tolerance.json",
+    "tolerance_decided_by": "T2-07 author iteration (Claude Opus 5.5), as the person this story waits for, under the delegation in the orchestrator note on T2-07 (2026-11-14T23:34:56Z) and docs/ralph/DECISIONS.md (team, 2026-11-14)",
+    "tolerance_sha256": "ebab39570aea6be06e6433c5a4ebc06b13e415aa3966d9d621bc95f5c3a1aa9a"
+  },
+  "failures": [],
+  "fields": {
+    "base_sc": {
+      "convention_note": null,
+      "max_abs_diff": 1.4901161193847656e-08,
+      "max_diff_over_allowance": 0.09557326513782644,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "m@chi_tx=+45": {
+      "convention_note": null,
+      "max_abs_diff": 1.9510747217843516e-07,
+      "max_diff_over_allowance": 0.05258013517612001,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "m@chi_tx=-45": {
+      "convention_note": null,
+      "max_abs_diff": 2.0566028180457607e-07,
+      "max_diff_over_allowance": 0.0519745289940495,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "oc_ll": {
+      "convention_note": null,
+      "max_abs_diff": 2.980232227667301e-08,
+      "max_diff_over_allowance": 0.12147156536432302,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "oc_opp": {
+      "convention_note": null,
+      "max_abs_diff": 2.980232260973992e-08,
+      "max_diff_over_allowance": 0.11859080200882519,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s1@chi_tx=+45": {
+      "convention_note": null,
+      "max_abs_diff": 3.5390257835388184e-08,
+      "max_diff_over_allowance": 0.14953790580843587,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s1@chi_tx=-45": {
+      "convention_note": null,
+      "max_abs_diff": 2.60770320892334e-08,
+      "max_diff_over_allowance": 0.14918339570435601,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s2@chi_tx=+45": {
+      "convention_note": null,
+      "max_abs_diff": 2.421438694000244e-08,
+      "max_diff_over_allowance": 0.1655026568225503,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s2@chi_tx=-45": {
+      "convention_note": null,
+      "max_abs_diff": 2.60770320892334e-08,
+      "max_diff_over_allowance": 0.13246336203901732,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s3@chi_tx=+45": {
+      "convention_note": null,
+      "max_abs_diff": 2.60770320892334e-08,
+      "max_diff_over_allowance": 0.11746507479288773,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s3@chi_tx=-45": {
+      "convention_note": null,
+      "max_abs_diff": 1.1175870895385742e-08,
+      "max_diff_over_allowance": 0.09419221280103245,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s4@chi_tx=+45": {
+      "convention_note": null,
+      "max_abs_diff": 4.563480615615845e-08,
+      "max_diff_over_allowance": 0.18405772892678515,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s4@chi_tx=-45": {
+      "convention_note": null,
+      "max_abs_diff": 5.587935447692871e-08,
+      "max_diff_over_allowance": 0.18781671903495534,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "sc_ll": {
+      "convention_note": null,
+      "max_abs_diff": 2.6077032082294505e-08,
+      "max_diff_over_allowance": 0.12597718224206092,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "sc_opp": {
+      "convention_note": null,
+      "max_abs_diff": 3.073364496231079e-08,
+      "max_diff_over_allowance": 0.12598411271056686,
+      "n_compared": 262144,
+      "n_mismatch": 0,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    }
+  },
+  "fields_also_agreeing_under_alternative_conventions": {
+    "the opposite S4 sign": [
+      "m@chi_tx=+45",
+      "m@chi_tx=-45",
+      "s1@chi_tx=+45",
+      "s1@chi_tx=-45",
+      "s2@chi_tx=+45",
+      "s2@chi_tx=-45",
+      "s3@chi_tx=+45",
+      "s3@chi_tx=-45"
+    ],
+    "the opposite ellipticity pairing": [
+      "base_sc",
+      "oc_ll",
+      "oc_opp"
+    ]
+  },
+  "g1_note": "G1 may not be PASS before this check has run on a real scene and passed, unless a person decides otherwise (T2-07 for the story 6 scope statement).",
+  "layout": {
+    "cols": 5784,
+    "complex_dtype": "<c8",
+    "header_bytes": 0,
+    "lat_step_deg": -5.556e-05,
+    "lon_step_deg": 0.00011111,
+    "real_dtype": "<f4",
+    "rows": 30474,
+    "source": "the scene's .ann annotation (PRD 5)",
+    "tail_bytes": 0,
+    "upper_left_pixel_centre_lat_deg": 66.21774144000001,
+    "upper_left_pixel_centre_lon_deg": -16.84483155
+  },
+  "outcome": "MATCH",
+  "polsartools_extent": {
+    "col0": 2468,
+    "cols": 514,
+    "first_pixel_centre_lat_deg": 65.38545264000001,
+    "first_pixel_centre_lon_deg": -16.57061207,
+    "indexing": "zero-based GRD row and column of the first pixel; rows and cols are counts",
+    "last_pixel_centre_lat_deg": 65.35695036000001,
+    "last_pixel_centre_lon_deg": -16.513612639999998,
+    "row0": 14980,
+    "rows": 514,
+    "why": "polsartools processes the window inside a margin of win pixels, because its tiled writer leaves the last win rows and columns of a single-block raster unwritten (utils/proc_utils.py); the window is read back from the extent"
+  },
+  "record_type": "terraluna polsartools oracle run (T2-07)",
+  "scene": {
+    "acquisition": "30-May-2015 06:01:16 UTC",
+    "directory_name": "Icelnd_00208_15083_004_150530_L090_CX_01",
+    "files": [
+      {
+        "bytes": 705046464,
+        "file": "Icelnd_00208_15083_004_150530_L090HHHH_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdHHHH",
+        "sha256": "5b725712885641dac3b97f545c2de0986a4cbbaa489d2bb509ba0ab3123e1eeb"
+      },
+      {
+        "bytes": 705046464,
+        "file": "Icelnd_00208_15083_004_150530_L090HVHV_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdHVHV",
+        "sha256": "c27950c5f1d07899ca5f8f39c30b0261a97f4b513de391edbfdfdfb0e84e3020"
+      },
+      {
+        "bytes": 705046464,
+        "file": "Icelnd_00208_15083_004_150530_L090VVVV_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdVVVV",
+        "sha256": "975c7814964d99b2aaa458df303f82edc2c5a5a714b9a11e2fee16964d2e8b6a"
+      },
+      {
+        "bytes": 1410092928,
+        "file": "Icelnd_00208_15083_004_150530_L090HHHV_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdHHHV",
+        "sha256": "4ad7c0b62953dce51035ae9b3872de221e070d81e2e218aee1ccd0fbca46a396"
+      },
+      {
+        "bytes": 1410092928,
+        "file": "Icelnd_00208_15083_004_150530_L090HHVV_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdHHVV",
+        "sha256": "3a6626fc4c4c6c9545813fb98ba66f8f6c5194542b5179600be16896cdd7c723"
+      },
+      {
+        "bytes": 1410092928,
+        "file": "Icelnd_00208_15083_004_150530_L090HVVV_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdHVVV",
+        "sha256": "969d962605e49af621efe445e2da7b98fff2afe414b5322aea9fe2d1824266c2"
+      },
+      {
+        "bytes": 21921,
+        "file": "Icelnd_00208_15083_004_150530_L090_CX_01.ann",
+        "matches_scene_sha256sums": true,
+        "role": "annotation",
+        "sha256": "054ccd747e3576886f1e00066fff031fc33b6e0285086a315cc0b4717f2783ed"
+      }
+    ],
+    "look_direction": "Left",
+    "scene_id": "Icelnd_00208_15083_004_150530_L090_CX_01",
+    "source": "the directory named by TERRALUNA_UAVSAR_SCENE; its absolute path is not recorded"
+  },
+  "software": {
+    "gdal_python": "3.13.3",
+    "numpy": "2.5.4",
+    "polsartools": "0.13",
+    "python": "3.12.13",
+    "terraluna_pipeline": "0.1.0"
+  },
+  "window": {
+    "col0": 2469,
+    "cols": 512,
+    "first_pixel_centre_lat_deg": 65.38539708000002,
+    "first_pixel_centre_lon_deg": -16.570500959999997,
+    "indexing": "zero-based GRD row and column of the first pixel; rows and cols are counts",
+    "last_pixel_centre_lat_deg": 65.35700592,
+    "last_pixel_centre_lon_deg": -16.513723749999997,
+    "row0": 14981,
+    "rows": 512
+  },
+  "written_by": "pipeline/tests/test_polarimetry_oracle.py::test_real_scene_matches_polsartools"
+}

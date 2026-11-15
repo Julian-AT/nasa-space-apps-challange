@@ -22,3 +22,9 @@ dev = [
     "mpmath>=1.4,<2",
     "types-pyyaml>=6.0.12,<7",
 ]
+# Development-only test oracle (PRD 12, D19). polsartools is GPL-3.0 and never a runtime
+# dependency: no module under pipeline/src imports it (pipeline/tests/test_polarimetry_oracle.py
+# checks this). The group is opt-in, because polsartools needs the GDAL Python bindings, which
+# build only against a system GDAL of the same version (gdal-config on PATH). Install with
+# `uv sync --locked --group oracle`.
+oracle = ["polsartools==0.13"]

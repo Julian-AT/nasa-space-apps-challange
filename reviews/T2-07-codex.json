@@ -1,0 +1,56 @@
+{
+  "task_id": "T2-07",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "44752e38ef14ff2b222e6572b46466bac75ec1da",
+    "head": "6bac538702d586daaf93de3ea778cd0f177e583f",
+    "files": [
+      {
+        "path": "fixtures/polarimetry/g1-record.json",
+        "sha256": "4c9311d8f07d17c989ec7854ff37410d192346f14f3f48391661d4f11f1eb286"
+      },
+      {
+        "path": "fixtures/polarimetry/oracle_conventions.json",
+        "sha256": "b4e84402851132eee648920ec8114b794ad01e4b3e35f9789a370b7631119373"
+      },
+      {
+        "path": "fixtures/polarimetry/oracle_run.json",
+        "sha256": "b3dd0a07e236c31ddaf1d88215821cbcc4e277b3aa4322e467b8cc1bfc666698"
+      },
+      {
+        "path": "fixtures/polarimetry/oracle_tolerance.json",
+        "sha256": "ebab39570aea6be06e6433c5a4ebc06b13e415aa3966d9d621bc95f5c3a1aa9a"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "cb820eb48188a4bb84a9e3ddc4d94f5b08c7beb3d3ad151acb7a399b1daea3e3"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/oracle.py",
+        "sha256": "5041ae128f7bee272ec7e4e25f39ee547f8d423bbf9a806904346fb74fbf18d1"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_oracle.py",
+        "sha256": "9f131d1f1d6ba283f88db1969e97a1c0f6b2f531cbf4cb0699c83ce609197a15"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "71d407a356f93edd049cb318af02c68e045e18a648b17f9896bc7d68b0c5ce58"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:42:36Z",
+  "finished_utc": "2026-11-15T00:45:14Z",
+  "status": "NOT_RUN",
+  "not_run_reason": "codex exited 0: /Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/t2-polarimetry/scripts/ralph/review.sh: line 40: 43790 Terminated: 15          perl -e 'alarm shift; exec @ARGV or die \"exec failed: $!\\n\"' \"$s\" \"$@\" ",
+  "verdict": "NOT_RUN",
+  "summary": null,
+  "checks": [],
+  "findings": []
+}
