@@ -140,7 +140,7 @@ function EntryList({ title, entries }: { readonly title: string; readonly entrie
       ) : (
         <ol className="flex flex-col gap-1">
           {entries.map((e) => (
-            <li key={`${e.rank}-${e.window_id}`} className="flex flex-wrap items-center gap-2">
+            <li key={`${String(e.rank)}-${e.window_id}`} className="flex flex-wrap items-center gap-2">
               <span className="font-mono">{e.rank}.</span> <span className="wrap-anywhere">{e.window_id}</span>
               {isEvidenceLabel(e.evidence_label) ? <EvidenceLabel label={e.evidence_label} /> : null}
               <span className="text-sm text-muted-foreground">
