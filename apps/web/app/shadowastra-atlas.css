@@ -532,3 +532,10 @@ body:has(.sa-ui, .sa-atlas)::before {
 .sa-atlas .rounded-\[28px\] {
   border-radius: calc(var(--radius) + 6px);
 }
+/* Pill-shaped select wrappers (lab pickers) follow the shadcn input shape. */
+.sa-ui :is(label, div).rounded-full.border:has(select),
+.sa-atlas :is(label, div).rounded-full.border:has(select) {
+  border-radius: calc(var(--radius) - 2px);
+  border-color: var(--input);
+  background-color: color-mix(in oklab, var(--input) 30%, transparent);
+}
