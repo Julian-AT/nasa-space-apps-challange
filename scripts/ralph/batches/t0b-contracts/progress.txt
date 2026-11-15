@@ -154,3 +154,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: none new. pydantic 2.14.3, zod 4.6.7, json-schema-to-zod 2.8.1 and jsonschema 4.26.0 as installed and recorded above; Python struct 'e' format (stdlib, IEEE 754 binary16, raises OverflowError beyond 65504).
 - Learnings: see the three new Codebase Patterns lines. CONTRACTS.md lives at docs/ralph/CONTRACTS.md in the integration worktree, not in this branch; read a.3 and a.4 there for contract names and file names.
 ---
+
+## 2026-11-15T00:39Z · T0B-03 · resolve
+- Done: resolved round 1. Codex found nothing. Claude raised three low findings and all three are rebutted: claude-r1-1 (the prd.json and progress.txt changes are Ralph bookkeeping that ralph.sh WORK_SPEC excludes), claude-r1-2 (pydantic-only rules already documented in story notes (d) and tested by test_model_rules_inside_a_document_are_checked_by_pydantic_only), claude-r1-3 (n_blocks >= 1 is documented in notes (c) and the schema README, and a block-bootstrap value needs at least one block). No code changed.
+- Commits: chore(ralph): resolve review findings for t0b-03
+- Checks: uv run pytest pipeline/tests/test_schema_model.py 319 passed; uv run pytest pipeline/tests/test_json_schema.py 901 passed; pnpm --filter @terraluna/schema test 950 passed; make schema-check: both match; make check: ruff, format, mypy clean, turbo 4/4 (cached, as no inputs changed). All exit 0.
+- Docs used: none (no library interfaces touched).
+- Learnings: export.validate_bundle currently runs pydantic on the manifest and gate records only, not on report/metrics.json or model/embeddings.index.json. When a later story adds those files to bundles, it should validate them with the pydantic contracts too, because the JSON Schema and zod do not carry the pydantic-only rules.
+---

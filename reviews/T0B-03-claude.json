@@ -176,7 +176,11 @@
       "claim": "Both files changed outside the story's files list.",
       "evidence": "git diff --stat lists progress.txt (+11 lines) and prd.json (6 lines). This is the Ralph bookkeeping the loop itself requires, so I am not treating it as a violation.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a scope violation. The Ralph author prompt (section 2) allows changing the story list scripts/ralph/batches/t0b-contracts/prd.json and the progress log progress.txt in addition to the story's files, and ralph.sh's scope check exempts them; the reviewer itself notes this is required bookkeeping. No other path outside the files list changed between base f6d8032 and head 6eb8c86."
+      }
     },
     {
       "severity": "low",
@@ -184,7 +188,11 @@
       "claim": "Some rules are enforced only in pydantic and are not in the generated JSON Schema or zod.",
       "evidence": "The notes say a rule conditioned on a boolean value (`passed: true`) stays pydantic-only. EmbeddingsIndex n_rows and row positions are also pydantic-only. docs/ralph/CONTRACTS.md was not in the worktree, so I read these only from the code. The story documents these rules as pydantic-only, so I count this as an accepted limitation.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Accepted limitation, already documented, not a defect. The story notes item (d) list exactly these pydantic-only rules (ordered intervals, float16 exactness, EmbeddingsIndex n_rows and row positions, a passed G5 condition naming its evidence) with the reason: they compare values inside one document or need a boolean if-test plus an array-length test the generator does not translate. The Codebase Patterns record the same convention from T0-03/T0B-01, and pipeline/tests/test_json_schema.py test_model_rules_inside_a_document_are_checked_by_pydantic_only proves JSON Schema accepts them while every other combination agrees across pydantic, JSON Schema and zod. pydantic in schema.py is the source of truth the pipeline writes these records through; the JSON Schema and zod are generated views that accept a superset only for these listed rules. The review reports the same conclusion."
+      }
     },
     {
       "severity": "low",
@@ -192,7 +200,11 @@
       "claim": "n_blocks is typed PositiveCount, so a value of 0 is refused. The contract says only n_bootstrap >= 1.",
       "evidence": "A metric with a value but zero blocks fails. This is stricter than the contract, defensible, and tested in test_7_value_set_with_n_blocks_0_or_null_fails.",
       "id": "claude-r1-3",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Intended and documented, not a defect. The AC says n_blocks and n_bootstrap are null exactly when value is null, and n_bootstrap >= 1 otherwise; it does not allow n_blocks 0. A non-null value is a block-bootstrap estimate (PRD 11.6), which needs at least one block, so n_blocks = 0 with a value is an impossible record. The extra bound is recorded in the story notes item (c) and in packages/schema/README.md ('n_blocks and n_bootstrap are at least 1 when set'), carried by the JSON Schema and zod (PositiveCount), and tested in test_7. Making the schema looser would admit a value with no supporting blocks."
+      }
     }
   ]
 }
