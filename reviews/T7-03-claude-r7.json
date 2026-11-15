@@ -154,7 +154,11 @@
       "claim": "AC2 says 'Bundle <bundle_version>', but the footer reads 'Bundle version: <v> · Schema <v>'.",
       "evidence": "This follows the recorded orchestrator decision and T0-05's smoke assertion, which make web-smoke passes. It is a literal-reading difference only and was rebutted in earlier rounds.",
       "id": "claude-r7-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The footer wording follows the ralph orchestrator decision recorded in the story notes on 2026-11-14T21:24:28Z: keep T0-05's 'Bundle version: <bundle_version>' (shellText in apps/web/lib/shell.ts, asserted by make web-smoke and not owned by this story) and append ' · Schema <schema_version>'. That is how AC2's 'Bundle <bundle_version>' is read. The finding itself says it matches that decision and that make web-smoke passes; nothing to change."
+      }
     },
     {
       "severity": "low",
@@ -162,7 +166,11 @@
       "claim": "The gzip -9 measurement of the initial JavaScript (author's figure: 177,190 B, +3,216 B over the 173,974 B baseline) was not reproduced.",
       "evidence": "The command needs a loop or pipe, which the review permissions forbid. The build shows / as static, and site-header.tsx is the only 'use client' file in layout.tsx or the components I read.",
       "id": "claude-r7-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "This is not a defect; the reviewer could not run the measurement. Reproduced at f9264cf after make web-build: the unique <script src> files in apps/web/.next/server/app/index.html, each run through gzip -9 -c | wc -c, give 6 scripts and 177,190 B in total. That matches the figure in the notes: 3,216 B over the T0 baseline of 173,974 B and within the PRD 8.10 budget of 250 kB. Command: grep -o '<script src=\"[^\"]*\"' .next/server/app/index.html | sed 's/<script src=\"\\/_next\\///;s/\"$//' | sort -u | while read -r f; do gzip -9 -c \".next/$f\" | wc -c; done | awk '{n++; t+=$1} END {print n, t}'."
+      }
     }
   ]
 }

@@ -280,3 +280,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: parse5 8.0.1, from the official API docs at parse5.js.org (parse, ParserOptions: scriptingEnabled defaults to true) and the installed dist/*.d.ts (DefaultTreeAdapterTypes, defaultTreeAdapter.isTextNode and isElementNode, Template.content, html.NS). Context7's parse5 entry only had the obsolete 1.x Parser class API. Parsing rules follow the HTML Living Standard: in-body handling of html, head and title start tags, a block start tag closing an open p, comment tokenizer states, and foreign content.
 - Learnings: six rounds closed one tokenizer or tree-construction gap at a time. A check that decides what a reader sees must parse the way a browser does, so use a spec-compliant parser from the start, not regexes. Count and compare on one representation of the text: here visibleText split words at inline tags while the block tree joined them, and that mismatch was codex-r6-2.
 ---
+
+## 2026-11-15T00:15Z · T7-03 · resolve
+- Done: round 7. codex-r7-1 fixed: checkBanner in apps/web/scripts/page-check.ts ignores blocks in the document head (title, head noscript) when it looks for banner holders, so a banner whose text sits only in <title> is reported as missing. claude-r7-1 rebutted: the footer wording is the orchestrator decision. claude-r7-2 rebutted: gzip -9 figure reproduced, 6 scripts, 177,190 B.
+- Commits: 30fd55a test(t7-03): cover banners whose text sits only in the document title; bd80e87 test(t7-03): cover a mock banner held only in a noscript in the document head; f9264cf fix(t7-03): ignore the document head when finding banners (codex-r7-1)
+- Checks: make check 0; make test 0; vitest run components/mode-banner.test.tsx 0 (14 passed); make web-build 0 (/ static); make web-smoke 0
+- Docs used: none new. parse5 behaviour (noscript in head is raw text when scripting is enabled) was confirmed by the failing test.
+- Learnings: zsh does not word-split $var in for loops. Measure the initial JS with grep | sort -u | while read -r f; do gzip -9 -c ...; done | awk.
+---

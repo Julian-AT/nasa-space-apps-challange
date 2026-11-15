@@ -178,7 +178,11 @@
       "claim": "Exclude document metadata from required banner detection. A missing visible mock or mode banner can currently pass, weakening AC7's preserved T0 protection.",
       "evidence": "By inspection, MOCK_PAGE.replace('<title>Terraluna</title>', '<title>Mock bundle — placeholder data, not results</title>').replace(MOCK_P, '') is accepted. The title becomes a banner holder at line 217; bannerParts promotes it to head, whose full text equals the expected warning. Main, footer and mode checks remain satisfied, so pageProblems returns no problems despite there being no visible mock warning. The same substitution works for the shipping-mode banner. Existing missing-banner tests cover script payloads, not document titles. Require banners within the rendered body, exclude metadata from page-text counting, and add both regressions.",
       "id": "codex-r7-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "f9264cfdfb18a617c923b0a47b0f4b2261a7acdf",
+        "reason": "checkBanner now ignores every block in the document head (the head of the one html element, its title included) when it looks for banner holders, so a missing visible mock or mode banner is reported as missing even when the <title> or a head <noscript> holds its text. Regression tests come first: 30fd55a (title holds the mock banner, title holds the mode B banner) and bd80e87 (a head noscript holds the mock banner). Each failed before the fix. The page-text count is unchanged and stricter: title text still counts toward the mock-on-a-real-bundle and the mode-line-once checks, and no banner, mode, footer or <main> assertion is weakened."
+      }
     }
   ]
 }
