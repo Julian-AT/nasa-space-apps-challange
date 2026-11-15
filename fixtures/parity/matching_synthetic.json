@@ -1,0 +1,423 @@
+{
+  "background_percentile": [
+    {
+      "bin_edges": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "counts": [
+        2,
+        3,
+        5
+      ],
+      "d": 1.5,
+      "expected": {
+        "reason": null,
+        "value": 35.0
+      },
+      "name": "inside"
+    },
+    {
+      "bin_edges": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "counts": [
+        2,
+        3,
+        5
+      ],
+      "d": 1.0,
+      "expected": {
+        "reason": null,
+        "value": 20.0
+      },
+      "name": "interior_edge"
+    },
+    {
+      "bin_edges": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "counts": [
+        2,
+        3,
+        5
+      ],
+      "d": 0.0,
+      "expected": {
+        "reason": null,
+        "value": 0.0
+      },
+      "name": "first_edge"
+    },
+    {
+      "bin_edges": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "counts": [
+        2,
+        3,
+        5
+      ],
+      "d": 3.0,
+      "expected": {
+        "reason": null,
+        "value": 100.0
+      },
+      "name": "last_edge"
+    },
+    {
+      "bin_edges": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "counts": [
+        2,
+        3,
+        5
+      ],
+      "d": -1.0,
+      "expected": {
+        "reason": null,
+        "value": 0.0
+      },
+      "name": "below"
+    },
+    {
+      "bin_edges": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "counts": [
+        2,
+        3,
+        5
+      ],
+      "d": 4.0,
+      "expected": {
+        "reason": null,
+        "value": 100.0
+      },
+      "name": "above"
+    },
+    {
+      "bin_edges": [
+        0.0,
+        0.1,
+        0.25,
+        0.7,
+        1.9
+      ],
+      "counts": [
+        7,
+        0,
+        11,
+        3
+      ],
+      "d": 0.3,
+      "expected": {
+        "reason": null,
+        "value": 39.15343915343915
+      },
+      "name": "uneven_bins"
+    },
+    {
+      "bin_edges": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "counts": [
+        0,
+        0,
+        0
+      ],
+      "d": 1.5,
+      "expected": {
+        "reason": "background_empty",
+        "value": null
+      },
+      "name": "empty_histogram"
+    }
+  ],
+  "config_sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "data_kind": "synthetic",
+  "description": "Python reference outputs of matching.terrain_distance (RMS of log nu over the shared supported lags, relief and texture separately) and matching.background_percentile (linear_within_bin_v1, smaller_is_closer). Null marks an unavailable value with its reason, never 0.",
+  "generator": "python -m terraluna_pipeline.matching parity",
+  "git_commit": "bba3b58ab82a84c50623aa113a3ad1532187d5bf",
+  "producing_source": "pipeline/src/terraluna_pipeline/matching.py",
+  "schema_version": 1,
+  "terrain_distance": [
+    {
+      "a": {
+        "nu_m": {
+          "270": 1.0,
+          "360": 2.718281828459045,
+          "540": 7.3890560989306495
+        },
+        "supported_lags_m": [
+          270.0,
+          360.0,
+          540.0
+        ]
+      },
+      "b": {
+        "nu_m": {
+          "270": 1.0,
+          "360": 1.0,
+          "540": 1.0
+        },
+        "supported_lags_m": [
+          270.0,
+          360.0,
+          540.0
+        ]
+      },
+      "expected": {
+        "reason": null,
+        "shared_lags_m": [
+          270.0,
+          360.0,
+          540.0
+        ],
+        "unit": "RMS of log nu",
+        "value": 1.2909944487358056
+      },
+      "family": "terrain_relief",
+      "name": "hand_case"
+    },
+    {
+      "a": {
+        "nu_m": {
+          "270": 1.0,
+          "360": 2.718281828459045,
+          "540": 7.3890560989306495
+        },
+        "supported_lags_m": [
+          270.0,
+          360.0,
+          540.0
+        ]
+      },
+      "b": {
+        "nu_m": {
+          "270": 1.0,
+          "360": 1.0,
+          "540": 1.0
+        },
+        "supported_lags_m": [
+          270.0,
+          360.0,
+          540.0
+        ]
+      },
+      "expected": {
+        "reason": null,
+        "shared_lags_m": [
+          270.0,
+          360.0,
+          540.0
+        ],
+        "unit": "RMS of log nu",
+        "value": 1.2909944487358056
+      },
+      "family": "terrain_texture",
+      "name": "hand_case_texture"
+    },
+    {
+      "a": {
+        "nu_m": {
+          "270": 1.5,
+          "360": 2.0,
+          "540": 2.5,
+          "720": 3.0
+        },
+        "supported_lags_m": [
+          270.0,
+          360.0,
+          540.0,
+          720.0
+        ]
+      },
+      "b": {
+        "nu_m": {
+          "270": 1.5,
+          "360": 2.0,
+          "540": 2.5,
+          "720": 3.0
+        },
+        "supported_lags_m": [
+          270.0,
+          360.0,
+          540.0,
+          720.0
+        ]
+      },
+      "expected": {
+        "reason": null,
+        "shared_lags_m": [
+          270.0,
+          360.0,
+          540.0,
+          720.0
+        ],
+        "unit": "RMS of log nu",
+        "value": 0.0
+      },
+      "family": "terrain_relief",
+      "name": "identical"
+    },
+    {
+      "a": {
+        "nu_m": {
+          "270": 1.0,
+          "360": 2.718281828459045,
+          "540": 5.0
+        },
+        "supported_lags_m": [
+          270.0,
+          360.0,
+          540.0
+        ]
+      },
+      "b": {
+        "nu_m": {
+          "360": 1.0,
+          "540": 1.0,
+          "720": 7.0
+        },
+        "supported_lags_m": [
+          360.0,
+          540.0,
+          720.0
+        ]
+      },
+      "expected": {
+        "reason": null,
+        "shared_lags_m": [
+          360.0,
+          540.0
+        ],
+        "unit": "RMS of log nu",
+        "value": 1.339830286637124
+      },
+      "family": "terrain_relief",
+      "name": "shared_lag_intersection"
+    },
+    {
+      "a": {
+        "nu_m": {
+          "1080": 4.0,
+          "270": 0.75,
+          "360": 1.25,
+          "540": 2.5
+        },
+        "supported_lags_m": [
+          270.0,
+          360.0,
+          540.0,
+          1080.0
+        ]
+      },
+      "b": {
+        "nu_m": {
+          "1080": 3.5,
+          "360": 1.5
+        },
+        "supported_lags_m": [
+          360.0,
+          1080.0
+        ]
+      },
+      "expected": {
+        "reason": null,
+        "shared_lags_m": [
+          360.0,
+          1080.0
+        ],
+        "unit": "RMS of log nu",
+        "value": 0.15979953518082524
+      },
+      "family": "terrain_texture",
+      "name": "shared_lag_intersection_texture"
+    },
+    {
+      "a": {
+        "nu_m": {
+          "270": 1.0
+        },
+        "supported_lags_m": [
+          270.0
+        ]
+      },
+      "b": {
+        "nu_m": {
+          "360": 1.0
+        },
+        "supported_lags_m": [
+          360.0
+        ]
+      },
+      "expected": {
+        "reason": "no_shared_lags",
+        "shared_lags_m": [],
+        "unit": "RMS of log nu",
+        "value": null
+      },
+      "family": "terrain_relief",
+      "name": "no_shared_lags"
+    },
+    {
+      "a": {
+        "nu_m": {
+          "270": 0.0,
+          "360": 1.0
+        },
+        "supported_lags_m": [
+          270.0,
+          360.0
+        ]
+      },
+      "b": {
+        "nu_m": {
+          "270": 1.0,
+          "360": 1.0
+        },
+        "supported_lags_m": [
+          270.0,
+          360.0
+        ]
+      },
+      "expected": {
+        "reason": "nu_zero",
+        "shared_lags_m": [
+          270.0,
+          360.0
+        ],
+        "unit": "RMS of log nu",
+        "value": null
+      },
+      "family": "terrain_texture",
+      "name": "nu_zero"
+    }
+  ],
+  "tolerance": {
+    "atol": 1e-09,
+    "rtol": 0.0
+  }
+}
