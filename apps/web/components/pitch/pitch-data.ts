@@ -92,6 +92,8 @@ export interface PitchData {
     readonly fingerprints: ProbeTargetFingerprint[];
     readonly bundleVersion: string;
   } | null;
+  /** The Training slide: report/curves.json loss terms, mean over seeds per epoch. */
+  readonly training: { readonly mock: boolean; readonly terms: readonly { readonly term: string; readonly points: readonly { epoch: number; mean: number }[] }[] } | null;
   /** The Lab slide: an Earth window centre ("@lat,lon") and the Lab's target site id. */
   readonly lab: { readonly earth: string; readonly earthName: string; readonly target: string; readonly targetName: string } | null;
 }
@@ -280,6 +282,17 @@ export function buildPitchData(bundle: PulledBundle): PitchData {
 
   const paper = join(process.cwd(), 'public/paper/terraluna-paper.pdf');
 
+  const cv = records.curves;
+  const training: PitchData['training'] =
+    cv === null
+      ? null
+      : {
+          mock: cv.mock,
+          terms: cv.loss_terms
+            .map((t) => ({ term: t.term, points: t.epochs.filter((e) => e.mean > 0).map((e) => ({ epoch: e.epoch, mean: e.mean })) }))
+            .filter((t) => t.points.length >= 2),
+        };
+
   return {
     bundleVersion: manifest.bundle_version,
     mock: manifest.mock,
@@ -307,6 +320,7 @@ export function buildPitchData(bundle: PulledBundle): PitchData {
     targets,
     results,
     finder,
+    training,
     lab,
   };
 }
