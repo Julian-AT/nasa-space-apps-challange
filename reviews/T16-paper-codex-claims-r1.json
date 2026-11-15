@@ -1,0 +1,30 @@
+{
+  "task_id": "T16-paper-codex-claims",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "head_reviewed": "working tree before fd49bef",
+    "files": []
+  },
+  "started_utc": null,
+  "finished_utc": null,
+  "status": "DONE",
+  "not_run_reason": null,
+  "verdict": "changes requested; resolved",
+  "summary": "Claims audit against PRD 3, 4 (Mode C), 11 and the generated numbers. Title claimed body invariance; encoder described as trained and evaluated; observed fraction misdefined; Holuhraun overlap comparison wording; CTX filter and appendix list stale; limitations stale after G1 PASS and the clone propagation.",
+  "checks": [
+    "read-only codex exec, report only"
+  ],
+  "findings": [
+    {
+      "count": 40,
+      "severity": "mixed",
+      "resolution": "Fixed in fd49bef; findings against superseded text were already resolved.",
+      "fixed_in": "fd49bef"
+    }
+  ]
+}
