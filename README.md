@@ -1,6 +1,6 @@
 # Terraluna
 
-**Gradient Descent · NASA Space Apps 2026**
+**Team Terraluna · NASA Space Apps 2026**
 
 Terrain-fingerprint analog candidates for Connecting Ridge, Jezero and Arcadia. Radar comparison not completed (Mode C); the terrain encoder is experimental (G5 FAIL) and unranked.
 
