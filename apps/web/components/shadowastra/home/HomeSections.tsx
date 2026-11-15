@@ -433,7 +433,6 @@ function MeetAstra() {
     <Section id="meet-astra">
       <div className="grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr]">
         <div data-theme="dark" className="relative overflow-hidden rounded-3xl border border-line bg-void">
-          <div className="absolute inset-x-0 bottom-0 h-28 bg-[url(/textures/moon_lroc_1k.webp)] bg-[length:200%] bg-[position:30%_60%] opacity-30 [mask-image:linear-gradient(to_top,black,transparent)]" />
           <div className="relative grid min-h-[460px] place-items-center p-8">
             <div className="flex flex-col items-center">
               <AnimatePresence mode="wait">
