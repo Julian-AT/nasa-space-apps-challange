@@ -30,6 +30,8 @@ export default function ProbePage() {
           targets={targets.fingerprints}
           targetsReason={targets.reason}
           bundleVersion={bundle.manifest.bundle_version}
+          // The bundle ships no exported encoder yet: the encoder distance stays Unavailable.
+          encoder={null}
         />
       </Suspense>
     </>

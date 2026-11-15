@@ -148,6 +148,9 @@ describe('the web shell stays light (PRD 8.10, D35)', () => {
       '@deck.gl/layers',
       '@deck.gl/react',
       '@observablehq/plot',
+      // The live probe's encoder (T13-03): imported only by lib/probe/embedding.ts, dynamically,
+      // inside the probe Web Worker, so it never enters a page's initial JavaScript.
+      'onnxruntime-web',
     ]);
   });
 
@@ -157,15 +160,22 @@ describe('the web shell stays light (PRD 8.10, D35)', () => {
     }
   });
 
-  it('loads no webfont', () => {
-    // The page code only: the tests themselves name what they look for.
+  it('self-hosts its fonts: next/font/google only, no external font host or @font-face in the page code', () => {
+    // The page code only: the tests themselves name what they look for. next/font/google downloads
+    // the files at build time and serves them from this origin, so the CSP stays 'self'.
     const pageCode = ownFiles().filter(
-      (path) => /\.(tsx?|css)$/.test(path) && !path.startsWith('tests/'),
+      (path) => /\.(tsx?|css)$/.test(path) && !path.startsWith('tests/') && !/\.test\.tsx?$/.test(path),
     );
     expect(pageCode).toContain('app/globals.css');
     for (const file of pageCode) {
       const text = readFileSync(join(WEB_DIR, file), 'utf8');
-      expect(text, file).not.toMatch(/next\/font|fonts\.googleapis|@font-face/);
+      expect(text, file).not.toMatch(/fonts\.googleapis|fonts\.gstatic|@font-face|<link[^>]+font/);
+      if (file !== 'app/layout.tsx' && !file.endsWith('.css')) expect(text, file).not.toMatch(/next\/font/);
+    }
+    const layout = readFileSync(join(WEB_DIR, 'app', 'layout.tsx'), 'utf8');
+    expect(layout).toMatch(/from 'next\/font\/google'/);
+    for (const family of ['Geist', 'Geist_Mono', 'Instrument_Serif', 'Michroma']) {
+      expect(layout, family).toContain(family);
     }
   });
 

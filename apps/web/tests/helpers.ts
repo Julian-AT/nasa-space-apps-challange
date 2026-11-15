@@ -43,14 +43,29 @@ export function toBytes(value: unknown): Buffer {
 }
 
 export function gate(gateId: string, status = 'NOT_RUN'): Record<string, unknown> {
-  return {
+  const base = {
+    command: null,
+    config_version: null,
     consequence: null,
     evidence_path: null,
     gate_id: gateId,
+    input_hashes: [],
     result: null,
     run_id: null,
     scope: null,
     status,
+  };
+  if (status === 'NOT_RUN') return base;
+  // Every other status needs the evidence fields the GateRecord schema requires (PRD 8.13).
+  return {
+    ...base,
+    command: 'uv run test-command',
+    config_version: 'a'.repeat(64),
+    evidence_path: 'evidence/test-gate.json',
+    input_hashes: [{ path: 'config/run.yaml', sha256: 'b'.repeat(64) }],
+    result: 'synthetic test result',
+    run_id: `sha256:${'c'.repeat(64)}`,
+    scope: 'synthetic test scope',
   };
 }
 

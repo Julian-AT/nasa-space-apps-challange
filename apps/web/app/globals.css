@@ -1,10 +1,15 @@
+/*
+ * Adapted from ShadowAstra_Atlas (MIT, (c) 2026 Team ShadowAstra), https://github.com/ABRUBAB/ShadowAstra_Atlas
+ */
 @import "tailwindcss" source(none);
 
 /*
- * Terraluna design tokens (PRD 8.2, 8.10, D35). One high-contrast light theme: every text pair
+ * Terraluna design tokens (PRD 8.2, 8.10, D35). Dark "observatory" theme, adapted from the
+ * ShadowAstra palette: warm blacks, bone-white text, one sunlight accent. Standard shadcn token
+ * names, plus evidence-label tokens (PRD 3) and gate-status tokens (PRD 9, 10). Every text pair
  * meets WCAG 2.2 AA (4.5:1) and the focus ring and borders meet 3:1, checked by
  * tests/theme.test.ts. The system font stack is used, so no webfont is downloaded, and nothing
- * here loads an image.
+ * here loads an image: depth comes from CSS gradients only.
  *
  * Classes are read only from the app's own code; tests, scripts and bundle data are not scanned.
  */
@@ -12,23 +17,67 @@
 @source "../components";
 
 :root {
-  color-scheme: light;
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --primary: #171717;
-  --primary-foreground: #fafafa;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f4f4f5;
-  --muted-foreground: #3f3f46;
-  --accent: #e4e4e7;
-  --accent-foreground: #18181b;
-  --border: #71717a;
-  --input: #71717a;
-  --ring: #1d4ed8;
-  /* Reserved for the mock-bundle banner (PRD 8.4, 8.6). No other token or component is red. */
+  color-scheme: dark;
+  /* ShadowAstra "observatory" palette (void to platinum); the shadcn tokens below point at it. */
+  --void: #07080a;
+  --ink: #0b0c0f;
+  --panel: #101114;
+  --panel-2: #16171b;
+  --line-2: #2f3035;
+  --platinum: #edeae4;
+  --chrome: #a8a59e;
+  --dim: #8a8882;
+  --flare: #f2c879;
+  --moon: #c9c5bc;
+  --mars: #e08a5f;
+  --earth: #8fb4ea;
+
+  --background: #07080a;
+  --foreground: #edeae4;
+  --card: #101114;
+  --card-foreground: #edeae4;
+  --popover: #16171b;
+  --popover-foreground: #edeae4;
+  --primary: #f2c879;
+  --primary-foreground: #07080a;
+  --secondary: #16171b;
+  --secondary-foreground: #edeae4;
+  --muted: #16171b;
+  --muted-foreground: #a8a59e;
+  --accent: #1f2025;
+  --accent-foreground: #edeae4;
+  /* Component borders and inputs: 3:1 against the page (WCAG 1.4.11). */
+  --border: #6b6962;
+  --input: #6b6962;
+  --ring: #f2c879;
+  /* Decorative hairlines only (card chrome, dividers); never the sole boundary of a control. */
+  --line: #2a2b31;
+  --destructive: #f08a74;
+  --destructive-foreground: #07080a;
+  /* Mock-bundle banner (PRD 8.4, 8.6): shown only when manifest.mock is true. */
   --mock: #b91c1c;
   --mock-foreground: #ffffff;
+
+  /* Evidence labels (PRD 3): text colour on a 15% tint of itself over the card. */
+  --evidence-observed: #8fb4ea;
+  --evidence-derived: #7cc8a0;
+  --evidence-predicted: #b7aee3;
+  --evidence-assumed: #e3b35e;
+  --evidence-unavailable: #a8a59e;
+
+  /* Gate statuses (PRD 9): always shown with their literal text. */
+  --status-pass: #7cc8a0;
+  --status-fail: #f08a74;
+  --status-partial: #e3b35e;
+  --status-not-run: #a8a59e;
+  --status-not-applicable: #8fb4ea;
+
+  /* Worlds, used for map and card accents only. */
+  --world-moon: #c9c5bc;
+  --world-mars: #e08a5f;
+  --world-earth: #8fb4ea;
+
+  --radius: 1.25rem;
 }
 
 @theme inline {
@@ -36,8 +85,32 @@
   --color-red-*: initial;
   --color-rose-*: initial;
 
+  /* next/font/google (app/layout.tsx) self-hosts these at build time and sets the variables. */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, "Times New Roman", serif;
+  --font-wide: var(--font-michroma), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+
+  --color-void: var(--void);
+  --color-ink: var(--ink);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line-2: var(--line-2);
+  --color-platinum: var(--platinum);
+  --color-chrome: var(--chrome);
+  --color-dim: var(--dim);
+  --color-flare: var(--flare);
+  --color-moon: var(--moon);
+  --color-mars: var(--mars);
+  --color-earth: var(--earth);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -49,18 +122,55 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-line: var(--line);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-mock: var(--mock);
   --color-mock-foreground: var(--mock-foreground);
+
+  --color-evidence-observed: var(--evidence-observed);
+  --color-evidence-derived: var(--evidence-derived);
+  --color-evidence-predicted: var(--evidence-predicted);
+  --color-evidence-assumed: var(--evidence-assumed);
+  --color-evidence-unavailable: var(--evidence-unavailable);
+
+  --color-status-pass: var(--status-pass);
+  --color-status-fail: var(--status-fail);
+  --color-status-partial: var(--status-partial);
+  --color-status-not-run: var(--status-not-run);
+  --color-status-not-applicable: var(--status-not-applicable);
+
+  --color-world-moon: var(--world-moon);
+  --color-world-mars: var(--world-mars);
+  --color-world-earth: var(--world-earth);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
 @layer base {
   * {
-    border-color: var(--border);
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 80px;
   }
 
   body {
     background-color: var(--background);
     color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--flare) 35%, transparent);
+    color: #fff;
   }
 
   /* One visible focus indicator for every focusable element; components must not hide it. */
@@ -76,21 +186,127 @@
   }
 
   /* Preflight sets headings to body size; keep the page outline visible. */
+  /*
+   * The root layout's main is full width so the explorer can bleed. Every other page's top-level
+   * blocks are centred in a 1400px column with the page padding; a route that wants the full width
+   * marks its root element data-full-bleed.
+   */
+  main > :not([data-full-bleed]) {
+    width: 100%;
+    max-width: 1400px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  main > :not([data-full-bleed]):first-child {
+    padding-top: 3rem;
+  }
+  main > :not([data-full-bleed]):last-child {
+    padding-bottom: 3rem;
+  }
+  @media (min-width: 40rem) {
+    main > :not([data-full-bleed]) {
+      padding-inline: 1.5rem;
+    }
+  }
+
   h1 {
     font-size: var(--text-3xl);
     line-height: var(--text-3xl--line-height);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: -0.04em;
+    line-height: 1.02;
   }
 
   h2 {
     font-size: var(--text-2xl);
     line-height: var(--text-2xl--line-height);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: -0.03em;
   }
 
   h3 {
     font-size: var(--text-xl);
     line-height: var(--text-xl--line-height);
     font-weight: var(--font-weight-semibold);
+  }
+}
+
+@layer utilities {
+  /* Starfield and glow drawn with CSS gradients only (no raster image, D35). */
+  .bg-observatory {
+    background-image:
+      radial-gradient(60rem 30rem at 85% -10%, rgb(143 180 234 / 0.09), transparent 60%),
+      radial-gradient(40rem 24rem at 0% 0%, rgb(242 200 121 / 0.06), transparent 60%);
+    background-repeat: no-repeat;
+  }
+
+  /* Hairline grid used behind sections. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in oklab, var(--line) 60%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--line) 60%, transparent) 1px, transparent 1px);
+    background-size: 72px 72px;
+  }
+
+  /* The standard card surface: panel colour, a faint top light and an inner highlight. */
+  .surface {
+    position: relative;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--platinum) 3%, transparent), transparent 42%),
+      var(--panel);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--platinum) 5%, transparent),
+      0 26px 44px -34px rgb(0 0 0 / 0.75);
+    transition:
+      border-color 0.4s var(--ease-out-quint),
+      transform 0.5s var(--ease-out-quint);
+  }
+  @media (hover: hover) {
+    .surface:hover {
+      border-color: var(--line-2);
+    }
+    .surface.lift:hover {
+      transform: translateY(-3px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .surface,
+    .surface.lift:hover {
+      transition: none;
+      transform: none;
+    }
+  }
+
+  /* Floating glass for the header. */
+  .glass {
+    background: color-mix(in oklab, var(--panel) 78%, transparent);
+    border: 1px solid color-mix(in oklab, var(--platinum) 12%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+  }
+
+  /* Primary pill button: bone fill; a sunlight edge slides across on hover. */
+  .btn-primary {
+    position: relative;
+    overflow: hidden;
+    background: var(--platinum);
+    color: var(--void);
+  }
+  .btn-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, color-mix(in oklab, var(--flare) 55%, transparent) 50%, transparent 70%);
+    transform: translateX(-110%);
+    transition: transform 0.7s var(--ease-out-quint);
+  }
+  .btn-primary:hover::after {
+    transform: translateX(110%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-primary::after {
+      transition: none;
+    }
   }
 }

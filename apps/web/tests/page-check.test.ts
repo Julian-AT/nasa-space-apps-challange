@@ -338,8 +338,20 @@ describe('pageProblems', () => {
     expect(pageProblems(html, MOCK)).toStrictEqual([]);
   });
 
-  it('accepts every layout label outside <main>: the skip link and the seven navigation links', () => {
-    expect(LAYOUT_LABELS).toStrictEqual(['Skip to content', 'Home', 'Moon', 'Mars', 'Earth', 'Model', 'Methods', 'Data']);
+  it('accepts every layout label outside <main>: the skip link, the wordmark and the nine navigation links', () => {
+    expect(LAYOUT_LABELS).toStrictEqual([
+      'Skip to content',
+      'Home',
+      'Moon',
+      'Mars',
+      'Earth',
+      'Model',
+      'Methods',
+      'Data',
+      'Paper',
+      'API docs',
+      'Terraluna',
+    ]);
     const items = LAYOUT_LABELS.slice(1).map((label) => `<li><a href="/">${label}</a></li>`).join('');
     const html = MOCK_PAGE.replace(/<ul>[\s\S]*<\/ul>/, `<ul>${items}</ul>`);
     expect(pageProblems(html, MOCK)).toStrictEqual([]);
@@ -487,17 +499,22 @@ describe('pageProblems', () => {
 
   it('reports a <main> without the factual line', () => {
     const html = MOCK_PAGE.replace(`<p>${HOME_LINE}</p>`, '');
-    expect(pageProblems(html, MOCK).join('\n')).toMatch(/only/);
+    expect(pageProblems(html, MOCK).join('\n')).toMatch(/must show/);
+  });
+
+  it('accepts a richer <main> that keeps the title and the factual line', () => {
+    const html = MOCK_PAGE.replace('<h1>Terraluna</h1>', '<h1>Terraluna</h1><p>Evidence cards: 3</p>');
+    expect(pageProblems(html, MOCK)).toStrictEqual([]);
   });
 
   it.each([
-    { name: 'a number', extra: '<p>CPR 3.2</p>' },
-    { name: 'a target', extra: '<p>moon-cr-site01-w000</p>' },
-    { name: 'a claim', extra: '<p>Best Earth analog found</p>' },
-    { name: 'a banner moved into it', extra: '<p>Mock bundle — placeholder data, not results</p>' },
-  ])('reports $name in <main> beyond the title and the factual line', ({ extra }) => {
+    { name: 'a banner moved into it', extra: '<p>Mock bundle — placeholder data, not results</p>', message: /must not repeat a banner/ },
+    { name: 'the shipping-mode line', extra: '<p>Shipping mode: C</p>', message: /must not repeat a banner/ },
+    { name: 'a best-analog claim', extra: '<p>Best Earth analog found</p>', message: /stronger than any shipping mode/ },
+    { name: 'a verified claim', extra: '<p>A verified analog</p>', message: /stronger than any shipping mode/ },
+  ])('reports $name in <main>', ({ extra, message }) => {
     const html = MOCK_PAGE.replace('<h1>Terraluna</h1>', `<h1>Terraluna</h1>${extra}`);
-    expect(pageProblems(html, MOCK).join('\n')).toMatch(/<main> must show only/);
+    expect(pageProblems(html, MOCK).join('\n')).toMatch(message);
   });
 
   it('states no numbers, targets or claims in the factual line', () => {

@@ -47,7 +47,7 @@ from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Final, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -68,7 +68,7 @@ from terraluna_pipeline.config import TerrainConfig, load_run_config
 from terraluna_pipeline.geometry import aeqd_inverse, body_radius_m, resample_window, window_grid
 from terraluna_pipeline.terrain import terrain_fingerprint
 
-ISOTROPIC_RULE = "direction_mean"
+ISOTROPIC_RULE: Final = "direction_mean"
 """The isotropic summary used for the targets (terrain.py offers two; recorded)."""
 LEAKAGE_BUFFER_M = 10_000.0
 WINDOW_HALF_DIAGONAL_M = 2500.0 * math.sqrt(2.0)
@@ -337,7 +337,7 @@ def _valid_centres(
         return []
     pick = rng.choice(idx, size=min(n, idx.size), replace=False)
     rr, cc = np.unravel_index(pick, inner.shape)
-    lat, lon = source.lookup.from_pixel(cc + margin_px, rr + margin_px)  # type: ignore[union-attr]
+    lat, lon = source.lookup.from_pixel(cc + margin_px, rr + margin_px)
     return [(float(np.degrees(a)), float(np.degrees(b))) for a, b in zip(lat, lon, strict=True)]
 
 
@@ -346,18 +346,14 @@ def _task_raster(args: tuple[Context, dict[str, Any]]) -> list[Any]:
     source = open_dem(Path(job["path"]), job["body"], job["source_id"])
     rng = np.random.default_rng([ctx.seed, int(job["index"])])
     pixel = abs(float(getattr(source.lookup, "pixel_width_m", 30.0)))
-    margin = int(math.ceil(2600.0 / pixel)) if job["body"] == "mars" else 90
+    margin = math.ceil(2600.0 / pixel) if job["body"] == "mars" else 90
     good = np.isfinite(source.raster)
     if source.nodata is not None:
         good &= source.raster != np.float32(source.nodata)
     valid_km2 = (
         float(np.count_nonzero(good)) * (pixel / 1000.0) ** 2 if job["body"] == "mars" else None
     )
-    n = (
-        int(job["n"])
-        if valid_km2 is None
-        else int(math.ceil(valid_km2 / 25.0 * float(job["density"])))
-    )
+    n = int(job["n"]) if valid_km2 is None else math.ceil(valid_km2 / 25.0 * float(job["density"]))
     out = []
     for k, (lat, lon) in enumerate(_valid_centres(source, n, rng, margin)):
         if job["body"] == "earth":
@@ -418,7 +414,7 @@ def moon_target(raw: Path, ctx: Context) -> tuple[Footprint, RasterDemSource, fl
     y0 = y_top + lk.pixel_height_m * src.raster.shape[0]  # type: ignore[union-attr]
     stride, size = 2500.0, 5000.0
     cx, cy = x0 + 2 * stride + size / 2, y0 + 2 * stride + size / 2
-    lat, lon = lk.unproject(np.array([cx]), np.array([cy]))  # type: ignore[union-attr]
+    lat, lon = lk.unproject(np.array([cx]), np.array([cy]))
     lat_d, lon_d = float(np.degrees(lat[0])), float(np.degrees(lon[0]))
     fp = Footprint("moon-sps-x2-y2", "moon", lat_d, lon_d, WINDOW_HALF_DIAGONAL_M)
     return fp, src, lat_d, lon_d
@@ -457,7 +453,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 3
     raw: Path = args.raw
     jezero = None
-    for t in run.value("targets.mars") or []:  # type: ignore[union-attr]
+    for t in cast(list[dict[str, Any]], run.value("targets.mars") or []):
         if t.get("bbox"):
             b = t["bbox"]
             jezero = Footprint(f"mars-{t['name']}-bbox", "mars", bbox=(b[0], b[1], b[2], b[3]))
@@ -473,7 +469,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     footprints = tuple(f for f in (moon_fp, jezero) if f is not None)
     unset_footprints = [
         f"mars-{t['name']}: bbox and primary_window_id unset, leakage not checkable"
-        for t in (run.value("targets.mars") or [])  # type: ignore[union-attr]
+        for t in cast(list[dict[str, Any]], run.value("targets.mars") or [])
         if not t.get("bbox") and not t.get("primary_window_id")
     ]
     ctx = Context(**{**ctx0.__dict__, "footprints": footprints})
@@ -484,7 +480,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     mars_jobs: list[dict[str, Any]] = []
     ctx_dropped: dict[str, str] = {}
-    import rasterio
+    import rasterio  # type: ignore[import-untyped]
 
     mars_tiles: dict[str, list[tuple[int, int]]] = {}
     for d in ctx_dirs:
@@ -526,6 +522,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     cop_dirs = sorted(p for p in (raw / "copernicus_glo30").iterdir() if p.is_dir())
     earth_jobs: list[dict[str, Any]] = []
     earth_blocks: set[str] = set()
+    lat: int | npt.NDArray[np.float64]
+    lon: int | npt.NDArray[np.float64]
     for d in cop_dirs:
         m = re.search(r"_([NS])(\d\d)_00_([EW])(\d\d\d)_00_DEM$", d.name)
         if not m:
@@ -586,7 +584,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         r = r_max * math.sqrt(float(rng.uniform()))
         th = float(rng.uniform(0, 2 * math.pi))
         x, y = r * math.cos(th), r * math.sin(th)
-        lat, lon = _LOLA.lookup.unproject(np.array([x]), np.array([y]))  # type: ignore[union-attr]
+        lat, lon = _LOLA.lookup.unproject(np.array([x]), np.array([y]))
         lat_d, lon_d = float(np.degrees(lat[0])), float(np.degrees(lon[0]))
         role = roles[moon_block(lon_d)]
         k += 1
@@ -597,7 +595,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     moon_chunks = [moon_items[i : i + 200] for i in range(0, len(moon_items), 200)]
 
     print(
-        f"jobs: moon {len(moon_items)} windows, mars {len(mars_jobs)} DTMs, earth {len(earth_jobs)} tiles; workers {args.workers}",
+        f"jobs: moon {len(moon_items)} windows, mars {len(mars_jobs)} DTMs, "
+        f"earth {len(earth_jobs)} tiles; workers {args.workers}",
         flush=True,
     )
     results: list[tuple[dict[str, Any], Any]] = []
@@ -611,7 +610,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         done = 0
         for part in it_m:
             results.extend(part)
-            done += 1
+            done += 1  # noqa: SIM113
             if done % 10 == 0:
                 print(
                     f"moon chunks {done}/{len(moon_chunks)} {time.time() - started:.0f}s",
@@ -620,7 +619,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         done = 0
         for part in it_r:
             results.extend(part)
-            done += 1
+            done += 1  # noqa: SIM113
             if done % 10 == 0:
                 print(f"raster jobs {done}/{len(jobs_r)} {time.time() - started:.0f}s", flush=True)
 
@@ -732,7 +731,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             "isotropic_rule": ISOTROPIC_RULE,
             "h_variant": "relief (PRD-06)",
             "terrain_config": str(run.terrain),
-            "masked_reason": "lag unsupported, nu zero, or H Unavailable (terrain.py rules); masked count per body and target in masked_counts",
+            "masked_reason": (
+                "lag unsupported, nu zero, or H Unavailable (terrain.py rules); "
+                "masked count per body and target in masked_counts"
+            ),
             "masked_counts": mask_counts,
         },
         "requested_prd_counts": {
@@ -766,13 +768,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         "leakage": {
             "buffer_m": LEAKAGE_BUFFER_M,
-            "rule": "exclude if centre distance < 10 km + window half-diagonal + target half-diagonal (bbox: distance to bbox < 10 km + window half-diagonal); applied to every split; checked again before writing",
+            "rule": (
+                "exclude if centre distance < 10 km + window half-diagonal + target half-diagonal "
+                "(bbox: distance to bbox < 10 km + window half-diagonal); "
+                "applied to every split; checked again before writing"
+            ),
             "footprints": [f.__dict__ for f in footprints],
             "unset": unset_footprints,
             "check": "pass",
         },
         "rejections": rejection_counts,
-        "eval_block_rule": "bootstrap unit: Mars DTM-group block, Earth 2-degree block, Moon sector x 3 latitude bands x 3 longitude thirds (engineering choice)",
+        "eval_block_rule": (
+            "bootstrap unit: Mars DTM-group block, Earth 2-degree block, "
+            "Moon sector x 3 latitude bands x 3 longitude thirds (engineering choice)"
+        ),
         "split_map_sha256": split_map.as_dict()["content_sha256"],
         "targets": [
             {
@@ -787,7 +796,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.out, windows=windows, meta=meta, split_map=split_map.as_dict(), manifest_extra=extra
     )
     print(
-        f"wrote {n} windows to {args.out}; rejected {len(rejected)}; data_manifest_sha256 {sha}; {elapsed:.0f}s"
+        f"wrote {n} windows to {args.out}; rejected {len(rejected)}; "
+        f"data_manifest_sha256 {sha}; {elapsed:.0f}s"
     )
     return 0
 

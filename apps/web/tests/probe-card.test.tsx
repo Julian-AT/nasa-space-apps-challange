@@ -34,6 +34,8 @@ const success: ProbeResult = {
     {
       target_id: 'moon-x',
       target_window_id: 'w',
+      target_relief_nu_m: { '270': 40 },
+      target_texture_nu_m: null,
       terrain_relief: { status: 'available', value: 3.372, unit: 'RMS of log nu', label: DERIVED_LIVE_LABEL, shared_lags_m: [270], reason: null },
       terrain_texture: unavailable('RMS of log nu', 'texture_unavailable'),
       radar: unavailable('CPR Wasserstein-1', RADAR_UNAVAILABLE_REASON),
@@ -46,6 +48,8 @@ const success: ProbeResult = {
   timings: { dem_read_ms: 400, resample_ms: 3, fingerprint_ms: 10, model_load_ms: null, inference_ms: null, total_ms: 413 },
   bundle_version: 'b',
   model_id: null,
+  model_status: null,
+  g5_status: null,
 };
 
 describe('ProbeCard', () => {

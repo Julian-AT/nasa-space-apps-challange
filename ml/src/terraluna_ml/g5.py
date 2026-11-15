@@ -27,6 +27,8 @@ the frozen checkpoints and, for each of ``python`` and ``wasm``: ``model_sha256`
 from __future__ import annotations
 
 import json
+import os
+import shlex
 import numbers
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -34,15 +36,18 @@ from pathlib import Path
 from typing import Any, Final
 
 from terraluna_pipeline.config import load_run_config
+from terraluna_pipeline.provenance import config_version
 from terraluna_pipeline.schema import (
     G5Component,
     G5ConditionRecord,
     G5Summary,
     GateRecord,
     GateStatus,
+    InputHash,
     MetricRecord,
 )
 
+REPO_ROOT: Final = Path(__file__).resolve().parents[3]
 LAGS_M: Final = (270, 360, 540, 720, 1080)
 THRESHOLD_KEYS: Final = (
     "phys_r2_min",
@@ -435,6 +440,9 @@ def to_gate_record(
     *,
     evidence_path: str | None,
     run_id: str | None = None,
+    command: str | None = None,
+    config_version: str | None = None,
+    input_hashes: Sequence[InputHash] = (),
 ) -> GateRecord:
     return GateRecord(
         gate_id="G5",
@@ -444,7 +452,17 @@ def to_gate_record(
         scope="encoder on spatial test blocks",
         result=result,
         consequence=None if summary.status == "PASS" else CONSEQUENCE,
+        command=command,
+        config_version=config_version,
+        input_hashes=list(input_hashes),
     )
+
+
+def _repo_relative(path: Path) -> str | None:
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return None
 
 
 def canonical_json(document: object) -> str:
@@ -462,13 +480,38 @@ def write_g5(
     parity: Mapping[str, Any] | None = None,
     checkpoint_sha256s: Sequence[str] = (),
     run_id: str | None = None,
+    command: str | None = None,
+    config_path: Path = REPO_ROOT / "config" / "run.yaml",
+    input_paths: Sequence[Path] = (),
 ) -> GateRecord:
-    """Write ``g5_conditions.json`` (a G5Summary) and the GateRecord JSON."""
+    """Write ``g5_conditions.json`` (a G5Summary) and the GateRecord JSON.
+
+    The record names its ``command``, the SHA-256 of ``config_path`` (the thresholds' source) and
+    the hashes of that config plus every ``input_paths`` file inside the repository (PRD 8.12;
+    paths are repo-relative, so a file outside the repository cannot be listed). ``evidence_path``
+    is repo-relative, or, for a scratch output outside the repository, relative to the gate file.
+    """
     summary, result = summarise(metrics, thresholds, parity, checkpoint_sha256s)
     out_dir.mkdir(parents=True, exist_ok=True)
     conditions_path = out_dir / "g5_conditions.json"
     conditions_path.write_text(canonical_json(summary.model_dump(mode="json")), encoding="utf-8")
-    gate = to_gate_record(summary, result, evidence_path=str(conditions_path), run_id=run_id)
+    inputs: dict[str, Path] = {}
+    for path in (config_path, *input_paths):
+        relative = _repo_relative(path)
+        if relative is not None:
+            inputs[relative] = path
+    gate = to_gate_record(
+        summary,
+        result,
+        evidence_path=_repo_relative(conditions_path)
+        or os.path.relpath(conditions_path, gate_path.parent).replace(os.sep, "/"),
+        run_id=run_id,
+        command=command or shlex.join(["python", "-m", "terraluna_ml.evaluate", "g5"]),
+        config_version=config_version(config_path),
+        input_hashes=[
+            InputHash(path=name, sha256=config_version(inputs[name])) for name in sorted(inputs)
+        ],
+    )
     gate_path.parent.mkdir(parents=True, exist_ok=True)
     gate_path.write_text(canonical_json(gate.model_dump(mode="json")), encoding="utf-8")
     return gate
