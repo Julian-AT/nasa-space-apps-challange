@@ -21,6 +21,8 @@ export const PRD_DEM_BUDGET_BYTES = 4 * 1024 * 1024;
  * straddles internal tiles can need more than the PRD budget; that is reported, not hidden.
  */
 export const DEM_BYTE_CAP = 12 * 1024 * 1024;
+/** Retries of a request that met a 502, 503 or 504 or a network failure. */
+export const DEM_TRANSIENT_RETRIES = 1;
 /** Per-request timeout. */
 export const DEM_REQUEST_TIMEOUT_MS = 20_000;
 
@@ -151,18 +153,27 @@ class MeteredRangeClient extends BaseClient {
       throw new ReaderError('dem_byte_cap_exceeded', `reading ${String(length)} more bytes would pass the ${String(meter.cap)} byte cap`);
     }
     const doFetch = this.config.fetch ?? fetch;
-    let response: Response;
-    try {
-      response = await doFetch(this.url, {
-        headers: { Range: `bytes=${String(start)}-${String(end)}` },
-        signal: linkSignals(outer ?? undefined),
-      });
-    } catch (error) {
-      const name = (error as { name?: string }).name;
-      if (name === 'TimeoutError') throw new ReaderError('timeout', `DEM request timed out after ${String(DEM_REQUEST_TIMEOUT_MS)} ms`);
-      if (name === 'AbortError') throw new ReaderError('aborted', 'the probe was aborted');
-      throw new ReaderError('network_error', `the DEM request failed (network or CORS): ${(error as Error).message}`);
+    let response: Response | null = null;
+    // One retry, after a short pause, for a transient gateway answer or network failure.
+    for (let attempt = 0; attempt <= DEM_TRANSIENT_RETRIES; attempt += 1) {
+      if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 250));
+      try {
+        response = await doFetch(this.url, {
+          headers: { Range: `bytes=${String(start)}-${String(end)}` },
+          signal: linkSignals(outer ?? undefined),
+        });
+      } catch (error) {
+        const name = (error as { name?: string }).name;
+        if (name === 'TimeoutError') throw new ReaderError('timeout', `DEM request timed out after ${String(DEM_REQUEST_TIMEOUT_MS)} ms`);
+        if (name === 'AbortError') throw new ReaderError('aborted', 'the probe was aborted');
+        if (attempt < DEM_TRANSIENT_RETRIES) continue;
+        throw new ReaderError('network_error', `the DEM request failed (network or CORS): ${(error as Error).message}`);
+      }
+      if (![502, 503, 504].includes(response.status) || attempt === DEM_TRANSIENT_RETRIES) break;
+      meter.requests += 1;
+      await response.body?.cancel();
     }
+    if (response === null) throw new ReaderError('network_error', 'the DEM request failed');
     meter.requests += 1;
     if (response.status === 404) {
       await response.body?.cancel();
