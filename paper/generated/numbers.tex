@@ -3,14 +3,14 @@
 % Artifact outputs/g0/windows-evidence.json sha256 670a8083ffae28dafd7f709a2c58e0c9bb98c0ae9e6b7c64ae0ff8f5c5f2ecff.
 % Artifact outputs/g0/earth-radar-roi.json sha256 b6b4d32cf3aabf475de896f6608a3194f5bd4ba41611c5e014c654f662194d69.
 % Artifact outputs/pilot/minirf_mosaic.json sha256 7ca9debe596749ff41004f89d5e0023a5ca51d0f28d25d029cefcf3ebd2833f7.
-% Artifact config/run.yaml sha256 e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e.
+% Artifact config/run.yaml sha256 9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675.
 % Artifact outputs/ml/dataset/manifest.json sha256 53f0c2614945436ba7e89460ed365d1aefa7e86b55ed34c9a58f0a65d5227b3e.
 % Artifact outputs/ml/evaluation/test/evaluation_metrics.json: not present.
 % Artifact outputs/ml/evaluation/test/g5_conditions.json: not present.
-% Artifact outputs/search/targets.json sha256 6ab65f388126b3b1f4bbfe5cb59bc3b158ef623199b5222663500e1c9c0ec9d9.
-% Artifact outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json sha256 a6277dce20e6661fee19c52d9508a10743d166e9fd49369f5c9f734119f11712.
-% Artifact outputs/cards/moon-sps-x2-y2__earth-utm27n-e280-n2880.json sha256 4e561811d40ad359986d17e752fbaacd2f5d4c936cf52ecf80ec6dea11c27845.
-% Artifact outputs/comparisons/moon-cr-site01-w000.json sha256 8a5c12462d0d5564584ce3fdaea9a3c00ca6c6f001e8ddde4c715bb793871e07.
+% Artifact outputs/search/targets.json sha256 140aa37f13d5c5ea22b69017ef0a22d7c3c135ae4f2f34ae01c8d847f670aa3c.
+% Artifact outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json sha256 98cbfce9b88c94e269231c3ced6ed510af78eb0cfe2fe1a91d25f9cd762d713d.
+% Artifact outputs/cards/moon-sps-x2-y2__earth-utm27n-e280-n2880.json sha256 e5dd8702229d71b4e6fc9b5c56921139947bbde8c5f9f419418c668c4dd5171a.
+% Artifact outputs/comparisons/moon-cr-site01-w000.json sha256 1ba3d0bb527229d8d8f459165cf792e98bde8c624b9a4c918b5462d45adf7b9d.
 % Artifact paper/figures/generated/hillshades.json sha256 1d983c3b510bce3b4fca921a73284bfc8be2d9856329df9aaf1915102d70fc13.
 % Artifact analysis/g4_candidates.json sha256 dfcfbe3409dc8176a248e77e71f8639158f51f1bac59c189de8c87a006ef1045.
 % Artifact analysis/a1_body_distributions.json sha256 bb2968acbbf2f76a1e9cc429cbaddeaaf416bfa9e5ce82f92bb554f1bbaba07a.
@@ -18,7 +18,12 @@
 % Artifact analysis/a1_target_percentiles.json sha256 c771de00dc64dee389500b1e4b8624a02b68df135534dd8a866786a4be8bca6e.
 % Artifact analysis/holuhraun_reproduction.json sha256 018b9b27b622606931380535403c77de7db38171751f4229b3525c516a3f294c.
 % Artifact analysis/a2_cross_body_overlap.json sha256 be8a158abc661ff9bedce8e234755c8697fde03a25f2c7c8de1f7e70466c7f19.
-% Artifact outputs/validation.json sha256 fb81558cb83bb5f0cab12a83317b9edfea0c9efa9a17a4c325627680f0b66394.
+% Artifact outputs/search/summary_moon-cr-site01-w000.json sha256 0fbd82f1ec422876e38ca25c539c5e92af1bf038404a69105507003f1413c800.
+% Artifact outputs/search/summary_mars-jezero-w000.json sha256 3de9c88e9319f68487b843ac734963e7d16e715904b10185efdf33322e89b207.
+% Artifact outputs/comparisons/mars-jezero-w000.json sha256 a750d3900da10395a54b15364094bb534b3ca54c626313855455b85bf434ea52.
+% Artifact outputs/search/summary_mars-arcadia-w000.json sha256 d9aefbd566da37997226bfec3d09712263d832abc2693d4e0818dc8038e791b2.
+% Artifact outputs/comparisons/mars-arcadia-w000.json sha256 401c9ef6a6d9af693da026a3ae21dfba1bd916cfaf84621ed4733959b2159ebe.
+% Artifact outputs/validation.json sha256 0cc735047c39ccaf3fdb26d68e35dfb049e4ab27ec9931f333e459373e3f7d9e.
 \newcommand{\MoonWindowsGenerated}{25}
 \newcommand{\MoonWindowsEligible}{25}
 \newcommand{\MoonTargetValidPct}{100}
@@ -131,8 +136,8 @@
 \newcommand{\TextureDistanceMedian}{2.21}
 \newcommand{\TextureDistanceMax}{4.92}
 \newcommand{\CardShippingMode}{C}
-\newcommand{\BestBackgroundPercentile}{\NotAvailable}
-\newcommand{\BestReferenceSpread}{\NotAvailable}
+\newcommand{\BestBackgroundPercentile}{3.1}
+\newcommand{\BestReferenceSpread}{0.17}
 \newcommand{\VarMainPhysR}{\NotAvailable}
 \newcommand{\VarMainBodyAcc}{\NotAvailable}
 \newcommand{\VarMainRho}{\NotAvailable}
@@ -301,6 +306,61 @@
 \newcommand{\CurveEarthFiveMed}{2.7236}
 \newcommand{\CurveEarthFiveLo}{1.7804}
 \newcommand{\CurveEarthFiveHi}{3.2968}
+\newcommand{\BestReferenceSpreadMax}{0.44}
+\newcommand{\BestReferenceSpreadN}{24}
+\newcommand{\BestTextureBackgroundPercentile}{2.9}
+\newcommand{\FirstBackgroundPercentile}{89.8}
+\newcommand{\MoonCompared}{71}
+\newcommand{\MoonShortlistSize}{1}
+\newcommand{\MoonTargetGenerated}{25}
+\newcommand{\MoonTargetEligible}{25}
+\newcommand{\MoonRefReliefMedian}{0.17}
+\newcommand{\MoonRefReliefMax}{0.44}
+\newcommand{\MoonRefTextureMedian}{0.37}
+\newcommand{\MoonBackgroundN}{71}
+\newcommand{\MoonBackgroundRequested}{1,000}
+\newcommand{\MoonShortReliefMin}{0.679}
+\newcommand{\MoonShortReliefMax}{0.679}
+\newcommand{\MoonShortTextureMin}{0.658}
+\newcommand{\MoonShortTextureMax}{0.658}
+\newcommand{\MoonReliefMedian}{2.05}
+\newcommand{\MoonReliefMax}{4.95}
+\newcommand{\MoonTextureMedian}{2.21}
+\newcommand{\MoonBgPctMin}{3.1}
+\newcommand{\JezeroCompared}{71}
+\newcommand{\JezeroShortlistSize}{3}
+\newcommand{\JezeroTargetGenerated}{234}
+\newcommand{\JezeroTargetEligible}{195}
+\newcommand{\JezeroRefReliefMedian}{0.93}
+\newcommand{\JezeroRefReliefMax}{2.70}
+\newcommand{\JezeroRefTextureMedian}{0.83}
+\newcommand{\JezeroBackgroundN}{71}
+\newcommand{\JezeroBackgroundRequested}{1,000}
+\newcommand{\JezeroShortReliefMin}{0.054}
+\newcommand{\JezeroShortReliefMax}{0.094}
+\newcommand{\JezeroShortTextureMin}{0.040}
+\newcommand{\JezeroShortTextureMax}{0.108}
+\newcommand{\JezeroReliefMedian}{0.80}
+\newcommand{\JezeroReliefMax}{2.44}
+\newcommand{\JezeroTextureMedian}{0.90}
+\newcommand{\JezeroBgPctMin}{5.0}
+\newcommand{\ArcadiaCompared}{71}
+\newcommand{\ArcadiaShortlistSize}{2}
+\newcommand{\ArcadiaTargetGenerated}{199}
+\newcommand{\ArcadiaTargetEligible}{164}
+\newcommand{\ArcadiaRefReliefMedian}{0.39}
+\newcommand{\ArcadiaRefReliefMax}{1.33}
+\newcommand{\ArcadiaRefTextureMedian}{0.35}
+\newcommand{\ArcadiaBackgroundN}{71}
+\newcommand{\ArcadiaBackgroundRequested}{1,000}
+\newcommand{\ArcadiaShortReliefMin}{0.185}
+\newcommand{\ArcadiaShortReliefMax}{0.289}
+\newcommand{\ArcadiaShortTextureMin}{0.059}
+\newcommand{\ArcadiaShortTextureMax}{0.209}
+\newcommand{\ArcadiaReliefMedian}{1.16}
+\newcommand{\ArcadiaReliefMax}{2.30}
+\newcommand{\ArcadiaTextureMedian}{0.94}
+\newcommand{\ArcadiaBgPctMin}{2.6}
 \newcommand{\GateZeroStatus}{PASS}
 \newcommand{\GateOneStatus}{PASS}
 \newcommand{\GateTwoStatus}{NOT\_RUN}

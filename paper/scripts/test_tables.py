@@ -5,14 +5,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.tables import HEADER, OUT, distance_plot
+from scripts.tables import HEADER, PAPER, TARGETS, distance_plot
 
 
 def write(root: Path, records: list[dict[str, object]], shortlist: list[str]) -> None:
     (root / "outputs" / "search").mkdir(parents=True)
     (root / "outputs" / "comparisons").mkdir(parents=True)
     target = {"target_id": "moon-t", "shortlist": {"earth_window_ids": shortlist}}
-    (root / "outputs" / "search" / "targets.json").write_text(json.dumps([target]))
+    other = {"target_id": "mars-t", "shortlist": {"earth_window_ids": []}}
+    (root / "outputs" / "search" / "targets.json").write_text(json.dumps([other, target]))
     (root / "outputs" / "comparisons" / "moon-t.json").write_text(json.dumps(records))
 
 
@@ -36,8 +37,8 @@ def test_distance_plot_is_deterministic_and_skips_missing(tmp_path: Path) -> Non
         ],
         ["earth-utm27n-a"],
     )
-    text = distance_plot(tmp_path)
-    assert text == distance_plot(tmp_path)
+    text = distance_plot(tmp_path, "moon-t")
+    assert text == distance_plot(tmp_path, "moon-t")
     assert text.startswith(HEADER + "\n")
     assert "% Windows without both distances, left out: 1." in text
     assert "(0.5000,0.6000)" in text and "(2.0000,2.5000)" in text
@@ -45,5 +46,7 @@ def test_distance_plot_is_deterministic_and_skips_missing(tmp_path: Path) -> Non
     assert text.count("\\addplot") == 3
 
 
-def test_committed_distance_plot_is_current() -> None:
-    assert OUT.read_text("utf-8") == distance_plot()
+def test_committed_distance_plots_are_current() -> None:
+    for target_id, stem in TARGETS:
+        committed = (PAPER / "generated" / f"{stem}.tex").read_text("utf-8")
+        assert committed == distance_plot(target_id=target_id)

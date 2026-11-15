@@ -1,15 +1,28 @@
 \begin{figure}[tbp]
 \centering
 \begin{tikzpicture}
-\begin{axis}[tlplot, width=0.55\linewidth, height=0.42\linewidth,
-  xlabel={relief distance (RMS of $\ln \nu$)}, ylabel={texture distance (RMS of $\ln \nu$)},
-  xmin=0, ymin=0, legend pos=outer north east, legend cell align=left]
+\begin{axis}[tlplot, name=moon, width=0.37\linewidth, height=0.34\linewidth, title={Moon, Connecting Ridge},
+  title style={font=\footnotesize}, xlabel={relief distance}, ylabel={texture distance}, xmin=0, ymin=0,
+  legend to name=distlegend, legend columns=3, legend style={font=\footnotesize, draw=none}]
 \input{generated/distance-plot}
+\legend{Holuhraun, Rosamond Dry Lake, first Pareto layer}
 \end{axis}
+\begin{axis}[tlplot, name=jezero, at={($(moon.east)+(0.9cm,0)$)}, anchor=west, width=0.37\linewidth,
+  height=0.34\linewidth, title={Mars, Jezero}, title style={font=\footnotesize}, xlabel={relief distance},
+  xmin=0, ymin=0]
+\input{generated/distance-plot-jezero}
+\end{axis}
+\begin{axis}[tlplot, at={($(jezero.east)+(0.9cm,0)$)}, anchor=west, width=0.37\linewidth,
+  height=0.34\linewidth, title={Mars, Arcadia}, title style={font=\footnotesize}, xlabel={relief distance},
+  xmin=0, ymin=0]
+\input{generated/distance-plot-arcadia}
+\end{axis}
+\node[anchor=north] at ([yshift=-1.1cm]jezero.south) {\pgfplotslegendfromname{distlegend}};
 \end{tikzpicture}
-\caption{Derived relief and texture distances of the \ComparedCount{} compared Earth windows to the
-lunar target window, by search region, from the comparison record of the target. The circled window
-forms the first Pareto layer. Smaller is closer in each distance; the two are never summed. Drawn by
+\caption{Derived relief and texture distances, in RMS of $\ln \nu$, of the \ComparedCount{}
+compared Earth windows to each target window, by search region, from the comparison records of the
+three targets. Circled windows form the first Pareto layer of each target. Smaller is closer in each
+distance; the two are never summed. The axes differ between panels. Drawn by
 \texttt{paper/scripts/tables.py} from the committed comparison and target records.}
 \label{fig:candidate-distances}
 \end{figure}

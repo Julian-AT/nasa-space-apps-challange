@@ -39,7 +39,7 @@ because no permanent shadow product was qualified for this window.
 
 \paragraph{Mars.} Martian terrain comes from the USGS Ames Stereo Pipeline CTX elevation models
 \citep{laura2021,beyer2018}, built from Context Camera stereo pairs \citep{malin2007}. Each model
-ships a quality file with the statistics of its height differences from MOLA altimetry \citep{smith2001} after ground control. Models whose standard deviation of that difference exceeds 10\,m are dropped; for the encoder dataset this left \MarsDtmsUsed{} models and dropped \MarsDtmsDropped.
+ships a quality file with the statistics of its height differences from MOLA altimetry \citep{smith2001} after ground control. Models whose standard deviation of that difference exceeds 10\,m are dropped; for the encoder dataset this left \MarsDtmsUsed{} models and dropped \MarsDtmsDropped. Two Martian target sites are declared, a box at Jezero crater and a box in Arcadia Planitia; each target site is one CTX model that passes the threshold, tiled with the same windows as on the Moon, and Section~\ref{sec:results-mars} gives the rules that fix the target windows.
 
 \paragraph{Earth.} Earth elevation is the Copernicus GLO-30 digital surface model, read as cloud
 optimised GeoTIFFs from its public bucket. It is a surface model, so canopy and buildings are part
