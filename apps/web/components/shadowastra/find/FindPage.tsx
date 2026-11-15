@@ -288,9 +288,9 @@ export default function Find({ probe }: { probe: TerralunaProbeProps }) {
             sel !== null && step === "results" ? "xl:w-[600px]" : "xl:w-[460px]",
           )}
         >
-          <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
+          <div className="flex items-center justify-between gap-2 border-b px-3 py-3">
             <StepRail step={step} onStep={(s) => (s === "results" ? goResults() : setStep(s))} done={{ results: !!result }} />
-            <button onClick={() => setStep("start")} title="Start over" aria-label="Start over" className="grid size-8 shrink-0 place-items-center rounded-full border border-line-2 text-chrome hover:text-platinum">
+            <button onClick={() => setStep("start")} title="Start over" aria-label="Start over" className="grid size-8 shrink-0 place-items-center rounded-md border text-muted-foreground hover:bg-muted hover:text-foreground">
               <RotateCcw size={13} />
             </button>
           </div>
@@ -848,22 +848,22 @@ function ResultCard({ grid, c, rank, m, onOpen, picked, onPick, full }: { grid: 
         disabled={full && !picked}
         aria-pressed={picked}
         title={picked ? "Remove from the comparison" : full ? "Up to 4 places" : "Add to the comparison"}
-        className={clsx("absolute right-2.5 bottom-2.5 z-10 min-h-6 rounded-full border px-2.5 py-1 text-[10.5px] transition-colors disabled:opacity-30", picked ? "border-flare bg-flare text-void" : "border-line-2 bg-void/60 text-chrome hover:border-flare/60 hover:text-platinum")}
+        className={clsx("absolute right-2.5 bottom-2.5 z-10 min-h-6 rounded-full border px-2.5 py-1 text-[10.5px] transition-colors disabled:opacity-30", picked ? "border-primary bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:border-primary/60 hover:text-foreground")}
       >
         {picked ? "Comparing" : "+ Compare"}
       </button>
       <button onClick={onOpen} className={clsx("surface lift group flex w-full gap-3 overflow-hidden rounded-2xl p-2.5 text-left", picked && "!border-flare/60")}>
-        <div className="relative size-[86px] shrink-0 overflow-hidden rounded-xl bg-ink">
+        <div className="relative size-[86px] shrink-0 overflow-hidden rounded-xl bg-muted">
           {thumb ? <motion.img src={thumb} alt="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="size-full object-cover" /> : <div className="shimmer size-full" />}
-          <span className="absolute top-1 left-1 grid size-6 place-items-center rounded-full bg-void/80 font-mono text-[11px] text-platinum">{rank}</span>
+          <span className="absolute top-1 left-1 grid size-6 place-items-center rounded-full border bg-background/90 text-[11px] font-medium tabular-nums text-foreground">{rank}</span>
         </div>
         <div className="min-w-0 flex-1 py-0.5">
           <div className="flex items-start justify-between gap-2">
-            <span className="truncate text-[14.5px] font-medium text-platinum">{nm.title}</span>
-            <span className="shrink-0 font-mono text-[14px] text-flare">{c.score.toFixed(2)}</span>
+            <span className="truncate text-[15px] font-medium text-foreground">{nm.title}</span>
+            <span className="shrink-0 text-[15px] font-semibold tabular-nums text-primary">{c.score.toFixed(2)}</span>
           </div>
-          <div className="truncate text-[11.5px] text-dim">{nm.subtitle || formatCoord(c.lat, c.lon)}</div>
-          <div className="mt-2 flex flex-wrap gap-1">
+          <div className="truncate text-xs text-muted-foreground">{nm.subtitle || formatCoord(c.lat, c.lon)}</div>
+          <div className="mt-2 flex flex-wrap gap-1 pr-[5.5rem]">
             <Chip className="!px-2 !py-0.5 !text-[10.5px]">Best at: {best.f.label.toLowerCase()}</Chip>
             {needLines(grid, m, c.k)
               .slice(0, 1)

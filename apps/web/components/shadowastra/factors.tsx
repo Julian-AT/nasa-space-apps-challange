@@ -17,7 +17,7 @@ export const FACTOR_PROVENANCE = "ShadowAstra Atlas (MIT)";
 
 export function FactorProvenance({ className }: { className?: string }) {
   return (
-    <p className={clsx("font-mono text-[10px] leading-snug tracking-wide text-dim", className)} data-provenance="shadowastra">
+    <p className={clsx("text-[11px] leading-snug text-muted-foreground", className)} data-provenance="shadowastra">
       {FACTOR_PROVENANCE}
     </p>
   );

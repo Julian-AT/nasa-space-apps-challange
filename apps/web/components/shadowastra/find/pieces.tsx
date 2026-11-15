@@ -75,13 +75,13 @@ import type { StepId } from "@/lib/shadowastra/missionUrl";
 export function StepRail({ step, onStep, done }: { step: StepId; onStep: (s: StepId) => void; done: Record<string, boolean> }) {
   const idx = STEPS.findIndex((s) => s.id === step);
   return (
-    <ol className="flex items-center gap-1" aria-label="Mission steps">
+    <ol className="flex min-w-0 items-center gap-0.5" aria-label="Mission steps">
       {STEPS.map((s, i) => {
         const on = s.id === step;
         const ok = i < idx || done[s.id];
         const can = i <= idx || ok;
         return (
-          <li key={s.id} className="flex items-center gap-1">
+          <li key={s.id} className="flex items-center">
             <button
               disabled={!can}
               onClick={() => onStep(s.id)}
@@ -94,8 +94,7 @@ export function StepRail({ step, onStep, done }: { step: StepId; onStep: (s: Ste
               </span>
               <span className="sr-only sm:not-sr-only sm:relative sm:whitespace-nowrap">{s.label}</span>
             </button>
-            {i < STEPS.length - 1 && <span className="h-px w-2 bg-border sm:w-3" />}
-          </li>
+                      </li>
         );
       })}
     </ol>
