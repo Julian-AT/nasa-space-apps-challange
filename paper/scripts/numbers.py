@@ -2035,45 +2035,51 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ),
     ArtifactMacro(
         "GalleryOneDist",
-        "outputs/ml/report/report/examples.json",
-        "/gallery/0/encoder_top5/windows/[rank=1]/cosine_distance",
+        "outputs/ml/evaluation/test/evaluation_curves.json",
+        "/examples/top5_by_target/[target_window_id=moon-sps-x2-y2]/windows/[rank=1]/cosine_distance",
         "?.2f",
     ),
     ArtifactMacro(
         "GalleryFiveDist",
-        "outputs/ml/report/report/examples.json",
-        "/gallery/0/encoder_top5/windows/[rank=5]/cosine_distance",
+        "outputs/ml/evaluation/test/evaluation_curves.json",
+        "/examples/top5_by_target/[target_window_id=moon-sps-x2-y2]/windows/[rank=5]/cosine_distance",
         "?.2f",
     ),
     ArtifactMacro(
         "GalleryOneLat",
-        "outputs/ml/report/report/examples.json",
-        "/gallery/0/encoder_top5/windows/[rank=1]/lat_deg",
+        "outputs/ml/evaluation/test/evaluation_curves.json",
+        "/examples/top5_by_target/[target_window_id=moon-sps-x2-y2]/windows/[rank=1]/lat_deg",
         "?.2f",
     ),
     ArtifactMacro(
         "GalleryOneLon",
-        "outputs/ml/report/report/examples.json",
-        "/gallery/0/encoder_top5/windows/[rank=1]/lon_deg",
+        "outputs/ml/evaluation/test/evaluation_curves.json",
+        "/examples/top5_by_target/[target_window_id=moon-sps-x2-y2]/windows/[rank=1]/lon_deg",
         "?.2f",
     ),
     ArtifactMacro(
-        "FailureCount", "outputs/ml/report/report/examples.json", "/failure_cases/cases", "?count"
+        "FailureCount",
+        "outputs/ml/evaluation/test/evaluation_curves.json",
+        "/examples/failure_cases",
+        "?count",
     ),
     ArtifactMacro(
         "FailureMaxDisagreement",
-        "outputs/ml/report/report/examples.json",
-        "/failure_cases/cases/*/rank_disagreement",
+        "outputs/ml/evaluation/test/evaluation_curves.json",
+        "/examples/failure_cases/*/rank_disagreement",
         "?max:.0f",
     ),
     ArtifactMacro(
         "FailureMinDisagreement",
-        "outputs/ml/report/report/examples.json",
-        "/failure_cases/cases/*/rank_disagreement",
+        "outputs/ml/evaluation/test/evaluation_curves.json",
+        "/examples/failure_cases/*/rank_disagreement",
         "?min:.0f",
     ),
     ArtifactMacro(
-        "OodExamples", "outputs/ml/report/report/examples.json", "/ood_examples", "?count"
+        "OodExamples",
+        "outputs/ml/evaluation/test/evaluation_curves.json",
+        "/examples/ood_examples",
+        "?count",
     ),
     ArtifactMacro(
         "PlannedEpochs",
@@ -2104,7 +2110,7 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),
     ArtifactMacro("GateThreeStatus", "outputs/validation.json", "/3/status", "text"),
     ArtifactMacro("GateFourStatus", "outputs/validation.json", "/4/status", "text"),
-    ArtifactMacro("GateFiveStatus", "outputs/gates/G5.json", "/status", "text"),
+    ArtifactMacro("GateFiveStatus", "outputs/validation.json", "/5/status", "text"),
     ArtifactMacro("GateSixStatus", "outputs/validation.json", "/6/status", "text"),
 )
 

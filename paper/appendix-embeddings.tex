@@ -4,21 +4,21 @@
 All values in this appendix are Predicted, from the experimental encoder that failed its promotion
 gate (status \GateFiveStatus), and none enters a ranking.
 
-\paragraph{Nearest Earth neighbours of the lunar target.} The model report lists the encoder's five
+\paragraph{Nearest Earth neighbours of the lunar target.} The evaluation record lists the encoder's five
 nearest Earth windows to the lunar target among the encoder's own test windows. Their cosine
 distances run from \GalleryOneDist{} to \GalleryFiveDist, and the nearest lies at latitude
 $\GalleryOneLat$ and longitude $\GalleryOneLon$ degrees, in the Copernicus tile that also holds the
 Rosamond region. The deterministic ranking was not an input of that evaluation, so the report gives
 no side by side comparison with the fingerprint shortlist.
 
-\paragraph{Failure cases.} The report lists the \FailureCount{} largest disagreements between the
+\paragraph{Failure cases.} The evaluation record lists the \FailureCount{} largest disagreements between the
 encoder's ranking of Earth windows for the lunar target and the ranking by the root mean square
 difference of the ten $\ln \nu$ values. Their rank differences run from
 \FailureMinDisagreement{} to \FailureMaxDisagreement{} places, so windows that are close to the
 target in the fingerprint can be far from it in the embedding and the reverse, which is the same
 weak agreement that the physics agreement test of Section~\ref{sec:results-ml} measures. A fraction
 of \OodFraction{} of the pooled test windows lies beyond the ninety ninth percentile of the
-Mahalanobis distance of the training embeddings, and the report keeps \OodExamples{} of them as
+Mahalanobis distance of the training embeddings, and the record keeps \OodExamples{} of them as
 out of distribution examples.
 
 \paragraph{Not shown.} The UMAP projections \citep{mcinnes2018} of test embeddings coloured by body,
