@@ -17,7 +17,7 @@ import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
 import { SslExplainer, SSL_STEPS } from './ssl-explainer';
 
-const LabTwin = dynamic(() => import('./lab-twin'), { ssr: false, loading: () => <div className="size-full" /> });
+const FigLab = dynamic(() => import('./fig-lab'), { ssr: false, loading: () => <div className="size-full" /> });
 const FinderDemo = dynamic(() => import('./finder'), { ssr: false, loading: () => null });
 
 const GITHUB = 'github.com/Julian-AT/nasa-space-apps-challange';
@@ -474,13 +474,12 @@ export function Deck({ data, qr, fonts = '' }: { data: PitchData; qr: string | n
       {/* the Lab's 3D stage: mounted one slide early, shown only on the Lab slide */}
       {labMounted && data.lab ? (
         <motion.div
-          className="absolute bottom-[9vh] left-[6vw] right-[6vw] top-[23vh] overflow-hidden rounded-xl border border-zinc-200 bg-white"
+          className="absolute bottom-[8vh] left-[6vw] right-[6vw] top-[20vh]"
           style={{ opacity: i === labIndex ? 1 : 0, pointerEvents: i === labIndex ? 'auto' : 'none', visibility: i === labIndex || i === labIndex - 1 ? 'visible' : 'hidden' }}
           onClick={(e) => e.stopPropagation()}
           aria-hidden={i !== labIndex}
         >
-          <LabTwin earth={data.lab.earth} target={data.lab.target} earthName={data.lab.earthName} targetName={data.lab.targetName} />
-          <span className="pointer-events-none absolute bottom-5 left-6 text-sm text-zinc-400">Figure 6. Terrain twin, 40 km blocks of real elevation, same rover route, same scale. Drag to orbit.</span>
+          <FigLab earth={data.lab.earth} target={data.lab.target} earthName={data.lab.earthName} targetName={data.lab.targetName} />
         </motion.div>
       ) : null}
 
