@@ -543,6 +543,174 @@ def summarize_uncertainty(
     }
 
 
+# --- annotate (T6-09): uncertainty into the comparisons ---------------------------------------
+
+STALE_CLAIM: Final = (
+    "PGDA78 error spatial correlation is not propagated: the uncertainty components (clones, "
+    "scenarios) have not been run."
+)
+CLONE_CLAIM: Final = (
+    "PGDA78 clone measurement error is propagated for the lunar target window only (clone "
+    "counts in uncertainty_components); no Earth DEM error model is applied, and ties are not "
+    "set in distances_by_family because the target has no reference set (schema: tied needs a "
+    "reference spread); clone-based ties are listed in analysis/g4_candidates.json."
+)
+TERRAIN: Final = ("terrain_relief", "terrain_texture")
+
+
+def _rank_in(rows: Sequence[Mapping[str, Any]], window_id: str, family: str) -> int | None:
+    values = {r["window_id"]: r[family]["base"] for r in rows if r[family]["base"] is not None}
+    if window_id not in values:
+        return None
+    return 1 + sum(1 for v in values.values() if v < values[window_id])
+
+
+def annotated_components(g4: Mapping[str, Any], window_id: str) -> dict[str, Any]:
+    """UncertaintyComponents for one candidate from the G4 clone and scenario results."""
+    rows = {r["window_id"]: r for r in g4["candidates"]}
+    row = rows.get(window_id)
+    het = _unavailable(
+        "heterogeneity_not_computed",
+        note="Within-window spread of the distance is not computed for this slice.",
+    )
+    prediction = _unavailable("no_predictor_evaluated", note="no predictor evaluated")
+    if row is None:
+        reason = "window_not_eligible"
+        return {
+            "heterogeneity": het,
+            "measurement_error": _unavailable(reason),
+            "statistical_prediction_error": prediction,
+            "scenario_sensitivity": _unavailable(reason),
+        }
+    sensitivity = g4["rank_sensitivity"]
+    by_family = {}
+    for family in TERRAIN:
+        entry = row[family]
+        if entry.get("n"):
+            by_family[family] = {
+                "spread_min": entry["min"],
+                "spread_median": entry["median"],
+                "spread_max": entry["max"],
+                "n": entry["n"],
+            }
+    measurement = (
+        {
+            "status": "available",
+            "evidence_label": "Derived",
+            "reason": None,
+            "note": CLONE_LIMITS_NOTE
+            + " Spread of this candidate's distance when the target is replaced by each clone.",
+            "by_family": by_family,
+            "n_requested": sensitivity["n_requested"],
+            "n_used": sensitivity["n_runs"],
+            "scenarios": None,
+            "rank_frequency": None,
+        }
+        if by_family
+        else _unavailable("clone_results_missing")
+    )
+    table = g4["candidates"]
+    scenarios = []
+    for scenario in g4["scenario_sensitivity"]:
+        name = scenario["name"]
+        if name == "pipeline":
+            kept = table
+        elif name.startswith("worldcover_allowed_ge_"):
+            threshold = float(name.removeprefix("worldcover_allowed_ge_"))
+            kept = [
+                r
+                for r in table
+                if (r["valid_fraction_by_observable"].get("worldcover_allowed") or 0.0) >= threshold
+            ]
+        elif name.startswith("region_") and name.endswith("_only"):
+            region = name.removeprefix("region_").removesuffix("_only")
+            kept = [r for r in table if r["search_region_id"] == region]
+        else:
+            continue
+        present = any(r["window_id"] == window_id for r in kept)
+        scenarios.append(
+            {
+                "name": name,
+                "change": scenario["change"],
+                "values_by_family": {f: (row[f]["base"] if present else None) for f in TERRAIN},
+                "rank_by_family": {f: _rank_in(kept, window_id, f) for f in TERRAIN},
+            }
+        )
+    freq = row.get("rank_frequency") or {}
+    rank_frequency = {f: dict(freq[f"rank_1_{f}"]) for f in TERRAIN if freq.get(f"rank_1_{f}")}
+    scen = {
+        "status": "available",
+        "evidence_label": "Derived",
+        "reason": None,
+        "note": (
+            "Named mask and region scenarios with the rank by family in each; rank_frequency is "
+            "how often this candidate ranked first by that family over the PGDA78 clone runs, a "
+            "frequency and never a probability (PRD 6.6). Mode C: no radar scenario."
+        ),
+        "by_family": None,
+        "n_requested": None,
+        "n_used": None,
+        "scenarios": scenarios,
+        "rank_frequency": rank_frequency or None,
+    }
+    return {
+        "heterogeneity": het,
+        "measurement_error": measurement,
+        "statistical_prediction_error": prediction,
+        "scenario_sensitivity": scen,
+    }
+
+
+def annotate_records(
+    records: Sequence[Mapping[str, Any]], g4: Mapping[str, Any]
+) -> list[dict[str, Any]]:
+    """Comparison records with uncertainty_components filled; order and other fields kept."""
+    from terraluna_pipeline.schema import UncertaintyComponents
+
+    out = []
+    for record in records:
+        updated = dict(record)
+        components = annotated_components(g4, str(record["earth_window_id"]))
+        UncertaintyComponents.model_validate(components)
+        updated["uncertainty_components"] = components
+        limits = [CLONE_CLAIM if line == STALE_CLAIM else line for line in record["claim_limits"]]
+        if CLONE_CLAIM not in limits:
+            limits.append(CLONE_CLAIM)
+        updated["claim_limits"] = limits
+        out.append(updated)
+    return out
+
+
+def _annotate(args: argparse.Namespace, *, check: bool) -> int:
+    import json
+
+    from terraluna_pipeline.export import write_comparisons
+
+    root = Path(args.root)
+    path = root / "outputs" / "comparisons" / f"{args.target_id}.json"
+    g4_path = root / "analysis" / "g4_candidates.json"
+    missing = [str(p) for p in (path, g4_path) if not p.is_file()]
+    if missing:
+        print(f"blocked: missing {', '.join(missing)}")
+        return EXIT_BLOCKED
+    records = json.loads(path.read_text(encoding="utf-8"))
+    g4 = json.loads(g4_path.read_text(encoding="utf-8"))
+    annotated = annotate_records(records, g4)
+    if check:
+        from terraluna_pipeline.schema import ComparisonRecord
+
+        expected = canonical_json(
+            [ComparisonRecord.model_validate(r).model_dump(mode="json") for r in annotated]
+        )
+        if expected != path.read_bytes():
+            print(f"check failed: {path} differs from the annotation of its inputs")
+            return EXIT_CHECK_FAILED
+        print(f"{path.name} matches its annotation")
+        return EXIT_OK
+    write_comparisons(path, annotated)
+    return EXIT_OK
+
+
 # --- CLI ---------------------------------------------------------------------------------------
 
 DEFAULT_CONFIG: Final = Path("config/run.yaml")
@@ -654,8 +822,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     run.add_argument("--out-dir", default=str(DEFAULT_OUT))
     run.add_argument("--window-id", action="append", default=None)
     run.add_argument("--n-clones", type=int, default=100)
+    for name, text in (
+        ("annotate", "write uncertainty into the comparisons"),
+        ("verify", "offline twin"),
+    ):
+        command = sub.add_parser(name, help=text)
+        command.add_argument("--target-id", default="moon-cr-site01-w000")
+        command.add_argument("--root", default=".")
     args = parser.parse_args(arguments)
     args.argv = arguments
+    if args.command in ("annotate", "verify"):
+        return _annotate(args, check=args.command == "verify")
     if args.command == "fetch-clones":
         return _fetch_clones(args)
     return _run_clones(args)

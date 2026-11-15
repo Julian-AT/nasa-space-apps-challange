@@ -11,11 +11,11 @@
   "input_hashes": [
     {
       "path": "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
-      "sha256": "db275be2226cdf7e3ed066dbe9b88ba2dee2487602c81a0c9b58e1995531ad5d"
+      "sha256": "a6277dce20e6661fee19c52d9508a10743d166e9fd49369f5c9f734119f11712"
     },
     {
       "path": "outputs/comparisons/moon-cr-site01-w000.json",
-      "sha256": "56d8951018afc3a1b0b073ac0d258d6ea1c06517b998686d164b7304a65420f3"
+      "sha256": "8a5c12462d0d5564584ce3fdaea9a3c00ca6c6f001e8ddde4c715bb793871e07"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
