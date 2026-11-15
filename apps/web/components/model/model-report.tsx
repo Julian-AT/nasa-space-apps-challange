@@ -290,7 +290,7 @@ function CardFields({ card }: { readonly card: ModelRecord }) {
       <Field name="parameter_count">{card.parameter_count}</Field>
       <Field name="g5_status">{card.g5_status}</Field>
       <Field name="training bodies">{t.bodies.join(', ')}</Field>
-      <Field name="training products">{t.product_ids.join(', ')}</Field>
+      <Field name="training products"><span className="font-mono text-xs leading-relaxed">{t.product_ids.join(", ")}</span></Field>
       <Field name="window counts per body and split">
         {Object.entries(t.window_counts)
           .map(([body, splits]) =>
