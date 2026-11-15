@@ -1,5 +1,6 @@
 'use client';
-// The Moon and Mars explorer (PRD 8.6, 8.10, 10): a full-width map panel and a side panel. The map
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
+// The Moon and Mars explorer (PRD 8.6, 8.10, 10): the Atlas three-column layout around the map. The map
 // is deck.gl, loaded through deck-loader.tsx only; everything around it (controls, URL state,
 // keyboard, side panel, Unavailable panels) renders on the server and works before deck.gl loads.
 // The view state lives in the query string (view-state.ts) and the keyboard reducer is pure.
@@ -9,8 +10,9 @@ import { Button } from '@/components/ui/button';
 
 import { DeckCanvas } from './deck-loader.tsx';
 import type { BodyData, MapTarget } from './explore-data.ts';
-import { Chip, ResultsPanel } from './results-panel.tsx';
-import { LayersPanel, NuPanel, ProductsPanel, TargetInfo, WindowsPanel } from './target-panels.tsx';
+import { AtlasShell, FilterChip, PanelHeading } from './atlas-shell.tsx';
+import { ELIGIBILITY_TONES, type EligibilityStatus, summariseWindows } from './eligibility.ts';
+import { LayersPanel, NuPanel, ProductsPanel, TargetInfo, WindowList, WindowsPanel } from './target-panels.tsx';
 import {
   extentToWorld,
   fitZoom,
@@ -68,6 +70,7 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
   const [view, setView] = useState<ViewState>(DEFAULT_VIEW);
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 960, h: 560 });
   const [tileErrors, setTileErrors] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<EligibilityStatus | 'all'>('all');
   const stage = useRef<HTMLDivElement | null>(null);
   const writeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -105,23 +108,26 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
   const resolved = useMemo(() => (target === undefined ? null : resolveLayers(target.layers)), [target]);
   const title = body === 'moon' ? 'Moon' : 'Mars';
 
+  const empty = (reason: string, missing: string) => (
+    <AtlasShell
+      world={body}
+      title={title}
+      subtitle={`Bundle ${data.bundleVersion}`}
+      leftLabel="Layers and filters"
+      rightLabel="Windows"
+      left={<p className="text-sm text-dim">No layers: the bundle holds no {body} target.</p>}
+      right={<p className="text-sm text-dim">No windows: the bundle holds no {body} target.</p>}
+    >
+      <div className="flex h-full items-center justify-center p-6 pt-40">
+        <UnavailablePanel className="max-w-xl" title={`${title} map`} reason={reason} missing={missing} />
+      </div>
+    </AtlasShell>
+  );
   if (data.targetsMissing) {
-    return (
-      <UnavailablePanel
-        title={`${title} map`}
-        reason="The map needs target records, projections and tile layers, and this bundle holds none."
-        missing="targets.json"
-      />
-    );
+    return empty('The map needs target records, projections and tile layers, and this bundle holds none.', 'targets.json');
   }
   if (target === undefined || resolved === null) {
-    return (
-      <UnavailablePanel
-        title={`${title} map`}
-        reason={`targets.json lists no ${body} target.`}
-        missing={`a ${body} TargetRecord in targets.json`}
-      />
-    );
+    return empty(`targets.json lists no ${body} target.`, `a ${body} TargetRecord in targets.json`);
   }
 
   const { drawable } = resolved;
@@ -191,108 +197,62 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
     missingReason = 'No layer is switched on.';
   }
 
-  return (
-    <div className="grid gap-4 lg:grid-cols-[26rem_minmax(0,1fr)]" data-slot="explorer">
-      <ResultsPanel
-        label="Target details"
-        title={target.windowsFilePresent ? `${String(target.windows.length)} ${target.windows.length === 1 ? 'window' : 'windows'}` : target.name}
-        chips={[
-          <Chip key="t">{target.name}</Chip>,
-          <Chip key="v">Bundle {data.bundleVersion}</Chip>,
-          <Chip key="p">{target.projectionKind.replaceAll('_', ' ')}</Chip>,
-          ...(target.shippingMode === null ? [] : [<Chip key="m">Mode {target.shippingMode}</Chip>]),
-        ]}
-      >
-        <TargetInfo target={target} />
-        <NuPanel nu={target.nu} />
-        <WindowsPanel target={target} />
-        <LayersPanel body={body} target={target} active={active} onToggle={toggleLayer} />
-        <ProductsPanel target={target} />
-      </ResultsPanel>
-      <div className="flex min-w-0 flex-col gap-3">
-        {data.targets.length > 1 ? (
-          <div className="flex items-center gap-2 text-sm">
-            <label htmlFor="target-select" className="font-medium">
-              Target
-            </label>
-            <select
-              id="target-select"
-              value={target.id}
-              onChange={(e) => { commit({ ...DEFAULT_VIEW, target: e.target.value }); }}
-              className="h-8 rounded-md border border-border bg-background px-2"
+  const summary = summariseWindows(target.windows);
+  const shownWindows = statusFilter === 'all' ? target.windows : target.windows.filter((w) => w.status === statusFilter);
+  const subtitle = [
+    `${String(data.targets.length)} ${data.targets.length === 1 ? 'target' : 'targets'}`,
+    target.windowsFilePresent ? `${String(summary.total)} windows (${String(summary.byStatus.eligible)} eligible)` : 'windows unavailable',
+    `${String(target.layers.length)} ${target.layers.length === 1 ? 'layer' : 'layers'}`,
+    `bundle ${data.bundleVersion}`,
+  ].join(' \u00b7 ');
+  const modeNote = target.shippingMode === 'C' ? 'Mode C: terrain only; radar comparison not completed' : body === 'mars' ? 'Terrain only; no radar comparison on Mars' : null;
+
+  const left = (
+    <>
+      <div className="flex flex-col gap-3">
+        <PanelHeading>Target</PanelHeading>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Target">
+          {data.targets.map((t) => (
+            <FilterChip
+              key={t.id}
+              active={t.id === target.id}
+              onClick={() => {
+                setStatusFilter('all');
+                commit({ ...DEFAULT_VIEW, target: t.id });
+              }}
             >
-              {data.targets.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
-
-        <div
-          ref={stage}
-          role="group"
-          aria-label={`Map of ${target.name}. ${HELP}`}
-          aria-describedby="map-help"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (isMapKey(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
-              e.preventDefault();
-              apply(e.key);
-            }
-          }}
-          className="relative h-[34rem] min-h-80 lg:h-[calc(100dvh-8rem)] overflow-hidden rounded-2xl border border-border bg-black/70 shadow-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
-          data-slot="map-stage"
-        >
-          {canDraw && camera !== null ? (
-            <DeckCanvas
-              frame={frame}
-              layers={activeLayers}
-              windows={target.windows}
-              showWindows
-              assetBase={assetBase ?? ''}
-              zoomRange={range}
-              bundleVersion={data.bundleVersion}
-              target={centreWorld}
-              zoom={camera.zoom}
-              onViewChange={onViewChange}
-              onTileError={onTileError}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center p-6">
-              <UnavailablePanel
-                className="max-w-xl"
-                title={`${target.name} map`}
-                reason={missingReason}
-                missing={missingFile}
-              />
-            </div>
-          )}
-          {canDraw && activeLayers.length === 0 ? (
-            <p role="status" className="pointer-events-none absolute top-3 left-3 rounded-md border border-border bg-card/90 px-2 py-1 text-xs text-card-foreground">
-              {target.layers.length === 0
-                ? 'No tile layers in this bundle (TargetRecord.tile_layers is empty); only the window grid is drawn.'
-                : 'No tile layer is switched on; only the window grid is drawn.'}
-            </p>
-          ) : null}
-          <p className="pointer-events-none absolute bottom-2 left-2 rounded bg-background/80 px-2 py-1 text-xs text-foreground">
-            Bundle {data.bundleVersion}
-            {camera === null ? '' : `; centre ${camera.x.toFixed(0)}, ${camera.y.toFixed(0)} m; zoom ${camera.zoom.toFixed(2)}`}
-          </p>
+              {t.name}
+            </FilterChip>
+          ))}
         </div>
-
-        <p id="map-help" className="text-sm text-muted-foreground">
+      </div>
+      <div className="flex flex-col gap-3">
+        <PanelHeading>Windows shown</PanelHeading>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Window eligibility filter">
+          <FilterChip active={statusFilter === 'all'} onClick={() => { setStatusFilter('all'); }}>
+            All {String(summary.total)}
+          </FilterChip>
+          {(['eligible', 'rejected', 'unknown'] as const).map((status) => (
+            <FilterChip key={status} active={statusFilter === status} onClick={() => { setStatusFilter(status); }}>
+              {ELIGIBILITY_TONES[status].label.replace(' (excluded)', '')} {String(summary.byStatus[status])}
+            </FilterChip>
+          ))}
+        </div>
+      </div>
+      <LayersPanel body={body} target={target} active={active} onToggle={toggleLayer} />
+      <div className="flex flex-col gap-2 border-t border-line pt-4">
+        <PanelHeading>Map controls</PanelHeading>
+        <p id="map-help" className="text-[12px] leading-relaxed text-dim">
           {HELP} Drag to pan and scroll to zoom with a pointer. The view is kept in the address bar so it can be shared.
         </p>
-
-        <div role="toolbar" aria-label="Map controls" className="flex flex-wrap gap-2">
+        <div role="toolbar" aria-label="Map controls" className="flex flex-wrap gap-1.5">
           {CONTROLS.map(([label, key]) => (
             <Button
               key={key}
               type="button"
               variant="outline"
               size="sm"
+              className="rounded-full border-line-2 text-[12px]"
               disabled={camera === null}
               onClick={() => { apply(key); }}
             >
@@ -306,7 +266,78 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
           </p>
         ) : null}
       </div>
+      <WindowsPanel target={target} hideList />
+      <ProductsPanel target={target} />
+    </>
+  );
 
-    </div>
+  const right = (
+    <>
+      <div className="flex flex-col gap-3">
+        <PanelHeading count={target.windowsFilePresent ? String(shownWindows.length) : undefined}>Windows</PanelHeading>
+        <div className="flex flex-wrap gap-1.5 text-[11px]">
+          <span className="rounded-full border border-line-2 px-2.5 py-1 text-chrome">{target.name}</span>
+          {target.shippingMode === null ? null : <span className="rounded-full border border-line-2 px-2.5 py-1 text-chrome">Mode {target.shippingMode}</span>}
+          <span className="rounded-full border border-line-2 px-2.5 py-1 text-chrome">{target.projectionKind.replaceAll('_', ' ')}</span>
+        </div>
+        {modeNote === null ? null : (
+          <p role="note" className="rounded-xl border border-flare/30 bg-flare/5 px-3 py-2 text-[12px] text-platinum">{modeNote}</p>
+        )}
+        <WindowList target={target} windows={shownWindows} />
+      </div>
+      <TargetInfo target={target} />
+      <NuPanel nu={target.nu} />
+    </>
+  );
+
+  return (
+    <AtlasShell world={body} title={title} subtitle={subtitle} left={left} right={right} leftLabel="Layers and filters" rightLabel="Target details and windows">
+      <div
+        ref={stage}
+        role="group"
+        aria-label={`Map of ${target.name}. ${HELP}`}
+        aria-describedby="map-help"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (isMapKey(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            apply(e.key);
+          }
+        }}
+        className="absolute inset-0 overflow-hidden outline-offset-[-3px] focus-visible:outline-2 focus-visible:outline-ring"
+        data-slot="map-stage"
+      >
+        {canDraw && camera !== null ? (
+          <DeckCanvas
+            frame={frame}
+            layers={activeLayers}
+            windows={shownWindows}
+            showWindows
+            assetBase={assetBase ?? ''}
+            zoomRange={range}
+            bundleVersion={data.bundleVersion}
+            target={centreWorld}
+            zoom={camera.zoom}
+            onViewChange={onViewChange}
+            onTileError={onTileError}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center p-6 pt-40">
+            <UnavailablePanel className="max-w-xl" title={`${target.name} map`} reason={missingReason} missing={missingFile} />
+          </div>
+        )}
+        {canDraw && activeLayers.length === 0 ? (
+          <p role="status" className="pointer-events-none absolute right-3 bottom-10 rounded-full border border-line-2 bg-void/80 px-3 py-1 text-xs text-chrome">
+            {target.layers.length === 0
+              ? 'No tile layers in this bundle (TargetRecord.tile_layers is empty); only the window grid is drawn.'
+              : 'No tile layer is switched on; only the window grid is drawn.'}
+          </p>
+        ) : null}
+        <p className="pointer-events-none absolute bottom-3 left-3 rounded-full border border-line bg-void/75 px-3 py-1 font-mono text-[11px] text-chrome backdrop-blur-xl">
+          Bundle {data.bundleVersion}
+          {camera === null ? '' : `; centre ${camera.x.toFixed(0)}, ${camera.y.toFixed(0)} m; zoom ${camera.zoom.toFixed(2)}`}
+        </p>
+      </div>
+    </AtlasShell>
   );
 }
