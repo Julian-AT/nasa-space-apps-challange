@@ -13,7 +13,7 @@ import { CommandPalette, type PaletteCard } from "./CommandPalette";
 export function SiteChrome({ cards, ctx }: Readonly<{ cards: readonly PaletteCard[]; ctx: AstraContext }>) {
   const pathname = usePathname() ?? "/";
   // The printable report and paper stay clean: no floating buttons over their text.
-  const clean = pathname.startsWith("/report") || pathname.startsWith("/paper");
+  const clean = pathname.startsWith("/report") || pathname.startsWith("/paper") || pathname.startsWith("/pitch");
   return (
     <>
       {!clean && <AskAstra ctx={ctx} />}

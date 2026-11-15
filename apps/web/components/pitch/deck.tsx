@@ -63,7 +63,7 @@ function slides(d: PitchData): { id: string; body: ReactNode }[] {
       id: 'title',
       body: (
         <div className="flex h-full flex-col justify-center gap-8">
-          <Kicker>NASA Space Apps 2026 · Gradient Descent</Kicker>
+          <Kicker>NASA Space Apps 2026 · Team Terraluna</Kicker>
           <h1 className="text-[10rem] font-semibold leading-none tracking-tighter">
             Terra<span className="text-[var(--primary)]">luna</span>
           </h1>
@@ -205,7 +205,7 @@ function slides(d: PitchData): { id: string; body: ReactNode }[] {
       body: (
         <div className="flex h-full flex-col justify-center gap-12">
           <div className="flex flex-col gap-4">
-            <Kicker>Results · bundle {d.bundleVersion}</Kicker>
+            <Kicker>Results</Kicker>
             <h2 className="text-6xl font-semibold tracking-tight">
               <CountUp value={d.cardCount} duration={0.8} /> evidence cards
             </h2>
@@ -298,7 +298,7 @@ export function Deck({ data }: { data: PitchData }) {
   const slide = list[i];
   return (
     <div
-      className="fixed inset-0 z-50 overflow-hidden bg-white font-sans text-zinc-900"
+      className="fixed inset-0 z-[1000] overflow-hidden bg-white font-sans text-zinc-900"
       role="region"
       aria-roledescription="slide deck"
       aria-label="Terraluna pitch"
@@ -333,7 +333,7 @@ export function Deck({ data }: { data: PitchData }) {
       </AnimatePresence>
       <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-6 px-[7vw] pb-6 text-sm text-zinc-400">
         <span className="font-mono">
-          Terraluna · bundle {data.bundleVersion} · mode {data.shippingMode ?? 'unset'}
+          Terraluna · terraluna-lovat.vercel.app
         </span>
         <span className="font-mono tabular-nums" aria-live="polite">
           {String(i + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}
