@@ -183,7 +183,8 @@ describe('labels and worker safety', () => {
     for (const dir of ['lib/probe', 'workers']) {
       for (const f of readdirSync(join(root, dir))) {
         const p = join(root, dir, f);
-        if (statSync(p).isFile() && /\.ts$/.test(f) && !/\.test\.ts$/.test(f)) files.push(p);
+        // targets.ts is server-side (it reads the bundle at build time), not part of the worker graph.
+        if (statSync(p).isFile() && /\.ts$/.test(f) && !/\.test\.ts$/.test(f) && f !== 'targets.ts') files.push(p);
       }
     }
     expect(files.length).toBeGreaterThan(0);

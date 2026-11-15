@@ -161,7 +161,7 @@ class MeteredRangeClient extends BaseClient {
       const name = (error as { name?: string }).name;
       if (name === 'TimeoutError') throw new ReaderError('timeout', `DEM request timed out after ${String(DEM_REQUEST_TIMEOUT_MS)} ms`);
       if (name === 'AbortError') throw new ReaderError('aborted', 'the probe was aborted');
-      throw new ReaderError('network_error', 'the DEM request failed (network or CORS)');
+      throw new ReaderError('network_error', `the DEM request failed (network or CORS): ${(error as Error).message}`);
     }
     meter.requests += 1;
     if (response.status === 404) {

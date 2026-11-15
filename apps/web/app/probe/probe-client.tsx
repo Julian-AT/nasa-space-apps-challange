@@ -1,0 +1,126 @@
+'use client';
+
+// The /probe form and worker host. lat and lon live in the URL query, so a probe link is
+// shareable and round-trips. The worker (workers/probe.worker.ts) does all reading and maths;
+// this module only renders its plain-data results. A newer request supersedes an older one.
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+import { COP30_MODE } from '../../lib/probe/mode.ts';
+import { type ProbeResult, type ProbeTargetFingerprint, isProbeResult } from '../../lib/probe/result.ts';
+import { ProbeCard } from './probe-card.tsx';
+
+type Target = ProbeTargetFingerprint & { name: string };
+
+function parseCoordinate(value: string | null, limit: number): number | null {
+  if (value === null || value.trim() === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) && Math.abs(n) <= limit ? n : null;
+}
+
+export function ProbeClient({
+  targets,
+  targetsReason,
+  bundleVersion,
+}: Readonly<{ targets: Target[]; targetsReason: string | null; bundleVersion: string }>) {
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const lat = parseCoordinate(params.get('lat'), 90);
+  const lon = parseCoordinate(params.get('lon'), 180);
+  const [latText, setLatText] = useState(params.get('lat') ?? '');
+  const [lonText, setLonText] = useState(params.get('lon') ?? '');
+  const [result, setResult] = useState<ProbeResult | null>(null);
+  const [running, setRunning] = useState(false);
+  const [workerError, setWorkerError] = useState<string | null>(null);
+  const worker = useRef<Worker | null>(null);
+  const nextId = useRef(1);
+  const latest = useRef(0);
+  const names = useMemo(() => Object.fromEntries(targets.map((t) => [t.target_id, t.name])), [targets]);
+
+  useEffect(() => {
+    let w: Worker;
+    try {
+      w = new Worker(new URL('../../workers/probe.worker.ts', import.meta.url), { type: 'module' });
+    } catch {
+      setWorkerError('The live probe needs Web Workers, which this browser does not provide.');
+      return;
+    }
+    w.onmessage = (event: MessageEvent<unknown>) => {
+      const data = event.data;
+      if (!isProbeResult(data) || data.request_id !== latest.current) return;
+      setResult(data);
+      setRunning(false);
+    };
+    w.onerror = () => {
+      setWorkerError('The probe worker failed to start.');
+      setRunning(false);
+    };
+    w.postMessage({ type: 'init', mode: COP30_MODE, targets, targetsReason, bundleVersion: bundleVersion });
+    worker.current = w;
+    return () => {
+      w.terminate();
+      worker.current = null;
+    };
+  }, [targets, targetsReason, bundleVersion]);
+
+  useEffect(() => {
+    if (lat === null || lon === null || worker.current === null) return;
+    const id = nextId.current++;
+    latest.current = id;
+    setRunning(true);
+    setResult(null);
+    worker.current.postMessage({ type: 'probe', id, latDeg: lat, lonDeg: lon });
+  }, [lat, lon]);
+
+  const invalid = (params.get('lat') !== null && lat === null) || (params.get('lon') !== null && lon === null);
+
+  return (
+    <div className="mt-4">
+      <form
+        className="flex flex-wrap items-end gap-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const q = new URLSearchParams({ lat: latText.trim(), lon: lonText.trim() });
+          router.replace(`${pathname}?${q.toString()}`);
+        }}
+      >
+        <label className="flex flex-col text-sm">
+          Latitude (°N)
+          <input
+            className="rounded border px-2 py-1"
+            inputMode="decimal"
+            name="lat"
+            required
+            value={latText}
+            onChange={(e) => {
+              setLatText(e.target.value);
+            }}
+          />
+        </label>
+        <label className="flex flex-col text-sm">
+          Longitude (°E)
+          <input
+            className="rounded border px-2 py-1"
+            inputMode="decimal"
+            name="lon"
+            required
+            value={lonText}
+            onChange={(e) => {
+              setLonText(e.target.value);
+            }}
+          />
+        </label>
+        <button type="submit" className="rounded border px-3 py-1">
+          Probe
+        </button>
+      </form>
+      {invalid ? <p role="alert">Latitude must lie in [-90, 90] and longitude in [-180, 180].</p> : null}
+      {workerError === null ? null : <p role="alert">{workerError}</p>}
+      <div aria-live="polite" className="mt-4">
+        {running ? <p>Reading the window and measuring it in your browser…</p> : null}
+        {result === null ? null : <ProbeCard result={result} names={names} />}
+      </div>
+    </div>
+  );
+}
