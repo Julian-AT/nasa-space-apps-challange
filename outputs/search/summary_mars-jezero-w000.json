@@ -21,7 +21,7 @@
     "unknown": 0,
     "unknown_by_reason": {}
   },
-  "elapsed_s_total_run": 45.2,
+  "elapsed_s_total_run": 42.3,
   "isotropic_rule": "direction_mean",
   "mock": false,
   "n_compared": 71,

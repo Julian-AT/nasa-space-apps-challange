@@ -200,6 +200,5 @@
     "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif"
   ],
   "statement": "empirical background comparison, not a physical truth test",
-  "target_id": "moon-cr-site01-w000",
-  "target_window_id": "moon-sps-x2-y2"
+  "target_id": "moon-cr-site01-w000"
 }

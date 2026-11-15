@@ -858,7 +858,6 @@ def search_target(
         "source_ids": sample_sources,
         "families": families_bg,
         "family_reasons": family_reasons,
-        "target_window_id": primary.grid.window_id,
     }
     top = [
         {

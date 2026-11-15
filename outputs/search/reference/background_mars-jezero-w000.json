@@ -200,6 +200,5 @@
     "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif"
   ],
   "statement": "empirical background comparison, not a physical truth test",
-  "target_id": "mars-jezero-w000",
-  "target_window_id": "mars-jezero-d12-031871-x2-y9"
+  "target_id": "mars-jezero-w000"
 }
