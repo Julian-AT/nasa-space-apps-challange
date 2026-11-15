@@ -133,7 +133,7 @@ function Hero({ grid, values, progress, v }: { grid: Grid | null; values: Float3
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} className="flex items-center gap-4 font-mono text-[11px] tracking-[0.24em] text-chrome uppercase">
           <span className="h-px w-8 bg-chrome/50" /> How it works
         </motion.div>
-        <h2 className="mt-7 max-w-[760px] text-[clamp(44px,7vw,108px)] leading-[0.95] font-medium tracking-[-0.05em]">
+        <h2 className="mt-7 max-w-[760px] text-4xl sm:text-5xl leading-[0.95] font-medium tracking-[-0.05em]">
           <RevealWords text="Open data in." />
           <br />
           <span className="font-serif font-normal tracking-[-0.02em] text-flare italic">
@@ -166,7 +166,7 @@ function Hero({ grid, values, progress, v }: { grid: Grid | null; values: Float3
         ).map(([n, l]) => (
           <div key={l} className="flex flex-col-reverse border-line/70 px-4 py-6 sm:px-6 [&:not(:last-child)]:border-r">
             <dt className="mt-2 text-[12.5px] text-dim">{l}</dt>
-            <dd className="font-mono text-[clamp(28px,3.2vw,44px)] leading-none font-light">
+            <dd className="font-mono text-2xl sm:text-3xl leading-none font-light">
               <Counter value={n} />
             </dd>
           </div>
@@ -367,7 +367,7 @@ function Factors({ grid }: { grid: Grid | null }) {
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <Kicker n="01">Four questions</Kicker>
-            <h2 className="mt-6 max-w-[860px] text-[clamp(32px,4.4vw,64px)] leading-[1.02] font-medium tracking-[-0.04em]">
+            <h2 className="mt-6 max-w-[860px] text-3xl sm:text-4xl leading-[1.02] font-medium tracking-[-0.04em]">
               The challenge names four things. <span className="font-serif font-normal text-chrome italic">We measure each one.</span>
             </h2>
           </div>
@@ -424,7 +424,7 @@ function StoryStep({ i, active, onActive }: { i: number; active: boolean; onActi
     <div ref={ref} className="flex min-h-[78vh] items-center py-10 lg:min-h-[86vh]">
       <motion.div animate={{ opacity: active || reduce ? 1 : 0.45, x: active || reduce ? 0 : -6 }} transition={{ duration: 0.5, ease: EASE }} className="max-w-[420px] rounded-3xl border border-line bg-panel/70 p-6 backdrop-blur-md lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
         <div className="font-mono text-[12px] text-flare">{String(i + 1).padStart(2, "0")}</div>
-        <h3 className="mt-2 text-[clamp(26px,2.8vw,40px)] leading-[1.05] font-medium tracking-[-0.03em]">{s.t}</h3>
+        <h3 className="mt-2 text-2xl sm:text-3xl leading-[1.05] font-medium tracking-[-0.03em]">{s.t}</h3>
         <p className="mt-3 text-[15px] leading-relaxed text-chrome">{s.d}</p>
         <div className="mt-5 flex flex-wrap items-center gap-3 text-[12px] text-dim">
           {s.lo && (
@@ -449,7 +449,7 @@ function Story({ grid, layers }: { grid: Grid | null; layers: Layers | null }) {
     <section data-theme="dark" className="relative border-t border-line bg-void px-4 text-platinum sm:px-6">
       <div className="mx-auto max-w-[1400px] pt-28">
         <Kicker n="02">One mission, step by step</Kicker>
-        <h2 className="mt-6 max-w-[880px] text-[clamp(32px,4.4vw,64px)] leading-[1.02] font-medium tracking-[-0.04em]">
+        <h2 className="mt-6 max-w-[880px] text-3xl sm:text-4xl leading-[1.02] font-medium tracking-[-0.04em]">
           Where on Earth is like Jezero crater? <span className="font-serif font-normal text-chrome italic">Watch the planet answer.</span>
         </h2>
       </div>
@@ -496,7 +496,7 @@ function StatTile({ value, label, sub, delay = 0 }: { value: ReactNode; label: s
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: EASE, delay }} className="surface rounded-2xl p-6">
       <div className="text-[13px] text-chrome">{label}</div>
-      <div className="mt-2 text-[clamp(36px,4vw,52px)] leading-none font-medium tracking-[-0.03em] text-platinum">{value}</div>
+      <div className="mt-2 text-3xl sm:text-4xl leading-none font-medium tracking-[-0.03em] text-platinum">{value}</div>
       {sub && <div className="mt-2 text-[12px] leading-snug text-dim">{sub}</div>}
     </motion.div>
   );
@@ -564,7 +564,7 @@ function Proof({ v, grid }: { v: Validation | null; grid: Grid | null }) {
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
             <Kicker n="03">The proof</Kicker>
-            <h2 className="mt-6 max-w-[900px] text-[clamp(32px,4.4vw,64px)] leading-[1.02] font-medium tracking-[-0.04em]">
+            <h2 className="mt-6 max-w-[900px] text-3xl sm:text-4xl leading-[1.02] font-medium tracking-[-0.04em]">
               We tested it on places <span className="font-serif font-normal text-flare italic">it never saw.</span>
             </h2>
           </div>
@@ -855,7 +855,7 @@ function Sources() {
     <section className="border-t border-line px-4 py-28 sm:px-6">
       <div className="mx-auto max-w-[1400px]">
         <Kicker n="05">Every dataset</Kicker>
-        <h2 className="mt-6 max-w-[900px] text-[clamp(32px,4.4vw,64px)] leading-[1.02] font-medium tracking-[-0.04em]">
+        <h2 className="mt-6 max-w-[900px] text-3xl sm:text-4xl leading-[1.02] font-medium tracking-[-0.04em]">
           NASA first, <span className="font-serif font-normal text-chrome italic">checked against other agencies.</span>
         </h2>
         <p className="mt-6 max-w-[760px] text-[15px] leading-relaxed text-chrome">
@@ -958,7 +958,7 @@ function Closing() {
     <section ref={ref} className="relative overflow-hidden px-4 py-32 sm:px-6">
       <div className="relative mx-auto flex max-w-[1400px] flex-col items-center text-center">
         <Astronaut size={96} mood="happy" action="wave" />
-        <h2 className="mt-6 text-[clamp(32px,4.6vw,68px)] leading-[1] font-medium tracking-[-0.04em]">
+        <h2 className="mt-6 text-3xl sm:text-4xl leading-[1] font-medium tracking-[-0.04em]">
           See it run <span className="font-serif font-normal text-flare italic">on your mission.</span>
         </h2>
         <div className="mt-9 flex flex-wrap justify-center gap-3">

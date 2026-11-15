@@ -106,7 +106,7 @@ export function StepTitle({ kicker, title, text }: { kicker: string; title: stri
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }}>
       <div className="font-mono text-[10px] tracking-[0.24em] text-flare uppercase">{kicker}</div>
-      <h2 className="mt-2 text-[clamp(24px,2.4vw,32px)] leading-[1.08] font-medium tracking-[-0.03em]">{title}</h2>
+      <h2 className="mt-2 text-2xl leading-[1.08] font-medium tracking-[-0.03em]">{title}</h2>
       {text && <p className="mt-2 text-[13.5px] leading-relaxed text-chrome">{text}</p>}
     </motion.div>
   );

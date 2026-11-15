@@ -101,7 +101,7 @@ function FromShadowAstra({ className }: { className?: string }) {
 }
 
 function H2({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <h2 className={`split-reveal text-[clamp(30px,4.2vw,62px)] leading-[1.03] font-medium tracking-[-0.038em] ${className ?? ""}`}>{children}</h2>;
+  return <h2 className={`split-reveal text-3xl sm:text-4xl leading-[1.03] font-medium tracking-[-0.038em] ${className ?? ""}`}>{children}</h2>;
 }
 
 function Em({ children }: { children: React.ReactNode }) {
@@ -198,7 +198,7 @@ function Numbers() {
             <GlyphTile>
               <s.icon size={18} strokeWidth={1.5} />
             </GlyphTile>
-            <div className="mt-7 font-mono text-[clamp(34px,4.4vw,64px)] leading-none font-light tracking-tight text-platinum">
+            <div className="mt-7 font-mono text-3xl sm:text-4xl leading-none font-light tracking-tight text-platinum">
               <Counter value={s.n} decimals={s.d} suffix={s.s} duration={1.8} />
             </div>
             <div className="mt-3 text-sm text-platinum">{s.label}</div>
@@ -545,7 +545,7 @@ function FalseFriend() {
                 className={`group block w-full border-l pl-6 text-left transition-colors duration-700 ease-[cubic-bezier(.22,1,.36,1)] ${step === k ? "border-flare" : "border-line"}`}
               >
                 <div className={`font-mono text-xs ${step === k ? "text-flare" : "text-dim"}`}>{s.k}</div>
-                <div className={`mt-1 text-[clamp(22px,2.4vw,34px)] leading-tight font-medium tracking-tight transition-colors duration-700 ${step === k ? "text-platinum" : "text-chrome group-hover:text-platinum"}`}>{s.title}</div>
+                <div className={`mt-1 text-2xl leading-tight font-medium tracking-tight transition-colors duration-700 ${step === k ? "text-platinum" : "text-chrome group-hover:text-platinum"}`}>{s.title}</div>
                 <p className={`mt-2 max-w-md text-[15px] leading-relaxed transition-colors duration-700 ${step === k ? "text-chrome" : "text-dim"}`}>{s.text}</p>
               </button>
             ))}
@@ -922,7 +922,7 @@ function FinalCta() {
         <div className="mb-8 flex justify-center">
           <Astronaut size={110} mood="happy" action="celebrate" />
         </div>
-        <h2 className="split-reveal text-[clamp(36px,6vw,92px)] leading-[0.98] font-medium tracking-[-0.045em]">
+        <h2 className="split-reveal text-4xl sm:text-5xl leading-[0.98] font-medium tracking-[-0.045em]">
           Find where Earth <span className="font-serif font-normal text-flare italic">can teach us.</span>
         </h2>
         <div data-reveal className="mt-10 flex flex-wrap justify-center gap-3">

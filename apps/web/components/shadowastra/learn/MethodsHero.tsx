@@ -31,7 +31,7 @@ export function MethodsHero({ title, lead }: { title: string; lead: string }) {
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} className="flex items-center gap-4 font-mono text-[11px] tracking-[0.24em] text-chrome uppercase">
           <span aria-hidden="true" className="h-px w-8 bg-chrome/50" /> Terraluna · how the release is checked
         </motion.p>
-        <h1 className="mt-7 max-w-[760px] text-[clamp(44px,7vw,108px)] leading-[0.95] font-medium tracking-[-0.05em]">{title}</h1>
+        <h1 className="mt-7 max-w-[760px] text-4xl sm:text-5xl leading-[0.95] font-medium tracking-[-0.05em]">{title}</h1>
         <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 0.2 }} className="mt-7 max-w-[560px] text-[17px] leading-relaxed text-chrome">
           {lead}
         </motion.p>

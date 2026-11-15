@@ -230,7 +230,7 @@ export default function Learn() {
                 <LangSwitch lang={lang} setLang={setLang} />
               </div>
               <AnimatePresence mode="wait">
-                <motion.h1 key={lang} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.6, ease: EASE }} className={clsx("mt-7 font-medium", bn ? "text-[clamp(38px,6vw,76px)] leading-[1.15]" : "text-[clamp(44px,7vw,100px)] leading-[0.95] tracking-[-0.05em]")}>
+                <motion.h1 key={lang} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.6, ease: EASE }} className={clsx("mt-7 font-medium", bn ? "text-4xl sm:text-5xl leading-[1.15]" : "text-4xl sm:text-5xl leading-[0.95] tracking-[-0.05em]")}>
                   {t.h1a}
                   <br />
                   <span className={clsx("text-flare", !bn && "font-serif font-normal tracking-[-0.02em] italic")}>{t.h1b}</span>

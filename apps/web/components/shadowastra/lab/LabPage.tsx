@@ -537,7 +537,7 @@ function SectionHead({
           <span className="font-mono text-[11px] tracking-[0.24em] text-chrome uppercase">{kicker}</span>
           {kind && <KindBadge kind={kind} />}
         </div>
-        <h2 className="mt-6 max-w-[900px] text-[clamp(30px,3.8vw,56px)] leading-[1.03] font-medium tracking-[-0.038em]">{title}</h2>
+        <h2 className="mt-6 max-w-[900px] text-3xl sm:text-4xl leading-[1.03] font-medium tracking-[-0.038em]">{title}</h2>
         {text && <p className="mt-4 max-w-[680px] text-[15px] leading-relaxed text-chrome">{text}</p>}
       </div>
       <div className="flex items-end gap-6">

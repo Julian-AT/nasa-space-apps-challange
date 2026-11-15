@@ -367,7 +367,7 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
     <section data-theme="dark" className="relative overflow-hidden bg-void">
       <div className="relative mx-auto max-w-[1180px] px-4 pt-20 pb-24 sm:px-6 md:pt-28">
         <div className="flex flex-col items-center text-center">
-          <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 0.1 }} className="mt-6 text-[clamp(38px,6vw,84px)] leading-[0.98] font-medium tracking-[-0.045em] text-platinum">
+          <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 0.1 }} className="mt-6 text-4xl sm:text-5xl leading-[0.98] font-medium tracking-[-0.045em] text-platinum">
             Where should we test?
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 0.2 }} className="mt-5 max-w-[620px] text-[17px] leading-relaxed text-chrome">

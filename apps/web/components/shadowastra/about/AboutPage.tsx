@@ -78,7 +78,7 @@ export default function AboutPage() {
       <Disclosure />
       <section className="relative overflow-hidden border-t border-line px-4 py-32 sm:px-6">
         <div className="relative mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-8">
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="text-[clamp(30px,4vw,60px)] leading-[1.02] font-medium tracking-[-0.04em]">
+          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="text-3xl sm:text-4xl leading-[1.02] font-medium tracking-[-0.04em]">
             Read the method <span className="font-serif font-normal text-flare italic">in full.</span>
           </motion.h2>
           <div className="flex flex-wrap gap-3">
@@ -119,7 +119,7 @@ function Hero() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} className="flex items-center gap-4 font-mono text-[11px] tracking-[0.24em] text-chrome uppercase">
           <span className="h-px w-8 bg-chrome/50" /> About Terraluna
         </motion.div>
-        <h1 className="mt-8 max-w-[900px] text-[clamp(40px,6vw,92px)] leading-[0.98] font-medium tracking-[-0.045em]">
+        <h1 className="mt-8 max-w-[900px] text-4xl sm:text-5xl leading-[0.98] font-medium tracking-[-0.045em]">
           <Words text="Team Terraluna." />
           <br />
           <Words text="Earth terrain, measured against the Moon and Mars." className="font-serif font-normal tracking-[-0.02em] text-flare italic" delay={0.3} />
@@ -143,7 +143,7 @@ function Crew() {
     <section className="border-b border-line px-4 py-28 sm:px-6">
       <div className="mx-auto max-w-[1400px]">
         <Kicker n="01">Team Terraluna</Kicker>
-        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="mt-6 text-[clamp(30px,4vw,58px)] leading-[1.03] font-medium tracking-[-0.038em]">
+        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="mt-6 text-3xl sm:text-4xl leading-[1.03] font-medium tracking-[-0.038em]">
           The crew, <span className="font-serif font-normal text-chrome italic">names to be added.</span>
         </motion.h2>
         <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-chrome">These cards are placeholders. The member names and roles will be filled in by the team.</p>
@@ -205,7 +205,7 @@ function Credits() {
       <div className="mx-auto grid max-w-[1400px] gap-14 lg:grid-cols-[0.75fr_1.25fr]">
         <div className="lg:sticky lg:top-28 lg:self-start">
           <Kicker n="03">Credits</Kicker>
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="mt-6 text-[clamp(28px,3.4vw,50px)] leading-[1.04] font-medium tracking-[-0.035em]">
+          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="mt-6 text-2xl sm:text-3xl leading-[1.04] font-medium tracking-[-0.035em]">
             Built on open work, <span className="font-serif font-normal text-chrome italic">credited by name.</span>
           </motion.h2>
           <p className="mt-5 max-w-md text-[15px] leading-relaxed text-chrome">
