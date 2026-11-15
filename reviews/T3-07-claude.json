@@ -1,0 +1,130 @@
+{
+  "task_id": "T3-07",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "4b3029a44eaae91a7feabd9759677589d35ace35",
+    "head": "d04ee6a45d97ae5200c983e66bb8fcd21eb29993",
+    "files": [
+      {
+        "path": "fixtures/parity/README.md",
+        "sha256": "763b14f6690f7b40fb96b6937a595ed3fd1dbd480d02ce4498c7b5d15b764c35"
+      },
+      {
+        "path": "fixtures/parity/geometry_synthetic.json",
+        "sha256": "c44c94d269229cbc81528d1e79fd9bd9f8e55bb1b6312c5aeb54a343f30244fa"
+      },
+      {
+        "path": "fixtures/parity/terrain_synthetic.json",
+        "sha256": "ece81960a0e8b15847ccd5af55c5f9612c464fa02f7f868a8df29ba24c8a1b9e"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/terrain.py",
+        "sha256": "ccfae24b776e32a571b4a42dc5050c17135c858f0efa812dc9a933c5aa17d695"
+      },
+      {
+        "path": "pipeline/tests/test_terrain_parity.py",
+        "sha256": "5a309f36caefe344ef0d750a9ada0f4992a6aee64d451eba664c5247fb3368ec"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:43:54Z",
+  "finished_utc": "2026-11-15T00:44:35Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T3-07 passes. All three listed checks exit 0: test_terrain_parity.py runs 49 tests, make check is clean, and make test runs 1523 tests. Both fixtures carry the required header fields and the PRD 8.8 tolerances, and both are under 1 MB (940,875 and 230,650 bytes). The fixture commit, config sha256 and byte-identity regeneration are enforced by tests I saw pass. I found no changes to config/run.yaml, uv.lock or pyproject.toml. I did not re-run the failing-first step, and I ran only the story's checks and no extra mutation checks.",
+  "checks": [
+    {
+      "criterion": "Failing-first run recorded in notes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The commit order shows 192f98f (tests) before 1644ed8 (implementation). progress.txt records 46 failed, 3 errors at 192f98f. I did not re-run that commit."
+    },
+    {
+      "criterion": "uv run pytest pipeline/tests/test_terrain_parity.py",
+      "command": "uv run pytest pipeline/tests/test_terrain_parity.py",
+      "outcome": "PASS",
+      "evidence": "49 passed in 1.26s"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed (15 files), mypy strict reported no issues in 15 source files."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "1523 passed in 15.16s"
+    },
+    {
+      "criterion": "Generator in terrain.py, callable from tests and via python -m; the six cases and the AEQD round-trip cases for each body",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_module_entry_point_writes_the_same_files, test_terrain_cases_and_patterns, test_aeqd_cases_cover_every_body, test_fingerprint_values_equal_a_recomputation and test_structure_function_equals_a_recomputation are in the 49 passing tests. The make parity flag is recorded in the notes."
+    },
+    {
+      "criterion": "Header fields: schema_version, data_kind=synthetic, producing commit, config sha256, sha256 of each input, lossless floats",
+      "command": "jq -c '{schema_version,data_kind,...}' on both fixture files",
+      "outcome": "PASS",
+      "evidence": "Both files have schema_version 1, data_kind synthetic and the same config_sha256. producing_commit is 1644ed85..., checked by test against git log of the source files. test_inputs_match_their_sha256 and test_every_float_is_its_shortest_round_trip_repr pass. The top-level key is producing_commit, not git_commit; the jq git_commit field is null only because I queried the wrong name."
+    },
+    {
+      "criterion": "Byte-identical regeneration; reasons are T3-05 strings; unavailable values are null, never 0",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_regeneration_is_byte_identical_to_the_committed_file, test_every_reason_is_a_t3_machine_readable_string and test_unavailable_values_are_null_never_zero all pass."
+    },
+    {
+      "criterion": "Tolerances per PRD 8.8 stored in the file",
+      "command": "jq on the tolerances key",
+      "outcome": "PASS",
+      "evidence": "resampled_grid rtol 1e-9; log_nu, H and distance_m atol 1e-9. test_tolerances_follow_prd_8_8_and_are_stored passes."
+    },
+    {
+      "criterion": "Each file under 1 MB",
+      "command": "wc -c fixtures/parity/*.json",
+      "outcome": "PASS",
+      "evidence": "terrain_synthetic.json is 940875 bytes and geometry_synthetic.json is 230650 bytes. The terrain file is close to the limit."
+    },
+    {
+      "criterion": "No changes to config/run.yaml, uv.lock or pyproject.toml",
+      "command": "git diff --name-only over config, uv.lock and pipeline/pyproject.toml",
+      "outcome": "PASS",
+      "evidence": "The diff returned no output."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "fixtures/parity/terrain_synthetic.json",
+      "claim": "The terrain fixture is 940,875 bytes against the 1 MB limit, so adding a case or lag would break the size criterion.",
+      "evidence": "wc -c reports 940875. test_files_are_small enforces the limit.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "fixtures/parity/README.md and terrain.py producing_commit",
+      "claim": "Byte-identity depends on git history: producing_commit is the last commit touching the three source files. CI needs a full checkout, and any edit to those files requires regenerating and committing the fixtures.",
+      "evidence": "test_header_carries_provenance compares producing_commit to git log -1 over the source files. The notes flag the fetch-depth requirement.",
+      "id": "claude-r1-2",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t3-terrain/prd.json, progress.txt",
+      "claim": "Two paths outside the story's files list are in the diff. They are orchestration bookkeeping (review state and progress log), not product code.",
+      "evidence": "git diff --stat lists prd.json and progress.txt.",
+      "id": "claude-r1-3",
+      "resolution": null
+    }
+  ]
+}

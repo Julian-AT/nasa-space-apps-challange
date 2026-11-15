@@ -7,3 +7,16 @@
 {"ts":"2026-11-15T00:24:31Z","agent":"verifier","story":"T3-06","event":"tool_use","tool":"Bash","input":"git diff 4eee75cae634db668f0136846e62fae606d5d7e7 d1d6c500aa313967c0c135d4def9be9ec13052be -- scripts/ralph/batches/t3-terrain/prd.json"}
 {"ts":"2026-11-15T00:24:31Z","agent":"verifier","story":"T3-06","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-15T00:24:31Z","agent":"verifier","story":"T3-06","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":3}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Bash","input":"git diff --stat 4b3029a44eaae91a7feabd9759677589d35ace35 d04ee6a45d97ae5200c983e66bb8fcd21eb29993"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests/test_terrain_parity.py"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Bash","input":"make test"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Bash","input":"git diff --name-only 4b3029a44eaae91a7feabd9759677589d35ace35 d04ee6a45d97ae5200c983e66bb8fcd21eb29993 -- config uv.lock pipeline/pyproject.toml"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Bash","input":"wc -c fixtures/parity/terrain_synthetic.json fixtures/parity/geometry_synthetic.json"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Bash","input":"jq -c '{schema_version,data_kind,git_commit,config_sha256,tolerances,keys:keys}' fixtures/parity/terrain_synthetic.json"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Bash","input":"jq -c '{schema_version,data_kind,git_commit,config_sha256,tolerances,keys:keys}' fixtures/parity/geometry_synthetic.json"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Bash","input":"jq -c '{producing_commit,producing_sources,numpy_version,exact_fields,sha256_rule}' fixtures/parity/terrain_synthetic.json"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Grep","input":"producing_commit|def test_|git_commit"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"Bash","input":"git diff 4b3029a44eaae91a7feabd9759677589d35ace35 d04ee6a45d97ae5200c983e66bb8fcd21eb29993 -- scripts/ralph/batches/t3-terrain/progress.txt"}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-15T00:44:35Z","agent":"verifier","story":"T3-07","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":3}
