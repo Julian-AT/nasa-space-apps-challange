@@ -114,6 +114,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "mock": False,
         "model_source": "trained",
         "source_run": args.run.name,
+        "source_run_status": run_metrics.get("status"),
+        "interim_snapshot": run_metrics.get("interim_snapshot"),
         "source_checkpoint_sha256": sha256_path(args.run / "backbone.pt"),
         "config_hash": run_metrics["config_hash"],
         "data_manifest_sha256": shards.data_manifest_sha256,
