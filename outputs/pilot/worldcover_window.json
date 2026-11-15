@@ -1,0 +1,342 @@
+{
+  "area": {
+    "centre": {
+      "latitude": 64.85,
+      "longitude": -16.83
+    },
+    "cop30_product_id": "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+    "cop30_tile": "Copernicus_DSM_COG_10_N64_00_W017_00_DEM",
+    "geographic_bounds_deg": {
+      "east": -16.775827411011576,
+      "north": 64.87306071610783,
+      "south": 64.82692184916675,
+      "west": -16.884260229365424
+    },
+    "source": "outputs/pilot/cop30_range_read.json"
+  },
+  "classes": {
+    "bare_ground_caveat": "a pixel of the bare/sparse vegetation class does not establish dry bare mineral soil on the radar acquisition date (PRD 5 row 12): the class is the map's label for the pinned year, and says nothing about moisture, snow on the radar date or surface change since",
+    "legend": [
+      {
+        "code": 10,
+        "name": "Tree cover"
+      },
+      {
+        "code": 20,
+        "name": "Shrubland"
+      },
+      {
+        "code": 30,
+        "name": "Grassland"
+      },
+      {
+        "code": 40,
+        "name": "Cropland"
+      },
+      {
+        "code": 50,
+        "name": "Built-up"
+      },
+      {
+        "code": 60,
+        "name": "Bare/sparse vegetation"
+      },
+      {
+        "code": 70,
+        "name": "Snow and ice"
+      },
+      {
+        "code": 80,
+        "name": "Permanent water bodies"
+      },
+      {
+        "code": 90,
+        "name": "Herbaceous wetland"
+      },
+      {
+        "code": 95,
+        "name": "Mangroves"
+      },
+      {
+        "code": 100,
+        "name": "Moss and lichen"
+      }
+    ],
+    "legend_as_stated": "10  Tree cover\n20  Shrubland\n30  Grassland\n40  Cropland\n50  Built-up\n60  Bare/sparse vegetation\n70  Snow and ice\n80  Permanent water bodies\n90  Herbaceous wetland\n95  Mangroves\n100 Moss and lichen\n",
+    "method": "numpy.unique over the decoded window's pixels that are not the declared nodata value; names only as the map file's legend tag states them, null for a code the legend does not state",
+    "nodata_pixels": 0,
+    "nodata_value": 0,
+    "present": [
+      {
+        "code": 30,
+        "in_legend": true,
+        "name": "Grassland",
+        "pixels": 11
+      },
+      {
+        "code": 60,
+        "in_legend": true,
+        "name": "Bare/sparse vegetation",
+        "pixels": 260882
+      },
+      {
+        "code": 70,
+        "in_legend": true,
+        "name": "Snow and ice",
+        "pixels": 1245
+      },
+      {
+        "code": 100,
+        "in_legend": true,
+        "name": "Moss and lichen",
+        "pixels": 6
+      }
+    ],
+    "total_pixels": 262144
+  },
+  "crs": {
+    "epsg_identified": 4326,
+    "name": "WGS 84",
+    "stated_by": "the COG's GeoTIFF keys, as GDAL reads them",
+    "wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST],AUTHORITY[\"EPSG\",\"4326\"]]"
+  },
+  "description": "One window of one ESA WorldCover land cover map read by HTTP range requests from the public AWS bucket, server-side, around the T1-06 Copernicus GLO-30 probe window (PRD 5 row 12; 8.7 step 4; 15 architecture review: WorldCover COG paths). Raw observations only: no eligibility mask is applied, the CORS evidence is outputs/pilot/cors_check.json, and the G0 status is a human checkpoint (PRD 23.6).",
+  "documents": [
+    {
+      "bytes_received": 2830,
+      "content_type": "text/html",
+      "file_name": "readme.html",
+      "final_url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/readme.html",
+      "http_status": 200,
+      "last_modified": "Tue, 25 Oct 2022 13:30:55 GMT",
+      "local_path": "data/raw/worldcover/readme.html",
+      "retrieved_at": "2026-11-15T00:34:28Z",
+      "role": "bucket_readme",
+      "sha256": "7614889d6578d1d84fa2787dd8db09cb7434091d9d00f64b4cafeccce431f7b5",
+      "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/readme.html"
+    },
+    {
+      "bytes_received": 543674,
+      "content_type": "binary/octet-stream",
+      "file_name": "esa_worldcover_grid_v200_2021.geojson",
+      "final_url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/esa_worldcover_grid.geojson",
+      "http_status": 200,
+      "last_modified": "Mon, 06 Mar 2023 13:18:28 GMT",
+      "local_path": "data/raw/worldcover/esa_worldcover_grid_v200_2021.geojson",
+      "retrieved_at": "2026-11-15T00:34:28Z",
+      "role": "tile_grid",
+      "sha256": "eeb5074bf182c411b3872b2494f6514401ecd9ba8ba0c353fe282f1e2b822f5b",
+      "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/esa_worldcover_grid.geojson"
+    }
+  ],
+  "field_notes": {
+    "acquisition_time": "the map file's time_start and time_end: the reference year of the map",
+    "effective_resolution": "unknown: the file states none and none is derived",
+    "units": "class codes; their names are the legend tag of the map file",
+    "window": "a window of at most max_window_pixels per side inside the T1-06 area, so it covers fraction_of_area_window of it, not all of it"
+  },
+  "header": {
+    "block_shapes": [
+      [
+        1024,
+        1024
+      ]
+    ],
+    "count": 1,
+    "crs_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST],AUTHORITY[\"EPSG\",\"4326\"]]",
+    "descriptions": [
+      null
+    ],
+    "dtypes": [
+      "uint8"
+    ],
+    "height": 36000,
+    "image_structure": {
+      "COMPRESSION": "DEFLATE",
+      "INTERLEAVE": "BAND",
+      "LAYOUT": "COG"
+    },
+    "nodata": [
+      0.0
+    ],
+    "offsets": [
+      0.0
+    ],
+    "overviews": [
+      2,
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "pixel_size": {
+      "unit": "degree",
+      "x": 8.333333333333333e-05,
+      "y": 8.333333333333333e-05
+    },
+    "scales": [
+      1.0
+    ],
+    "tags": {
+      "AREA_OR_POINT": "Area",
+      "algorithm_version": "V2.0.0",
+      "copyright": "ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+      "creation_time": "2022-10-24 12:37:50.971960",
+      "legend": "10  Tree cover\n20  Shrubland\n30  Grassland\n40  Cropland\n50  Built-up\n60  Bare/sparse vegetation\n70  Snow and ice\n80  Permanent water bodies\n90  Herbaceous wetland\n95  Mangroves\n100 Moss and lichen\n",
+      "license": "CC-BY 4.0 - https://creativecommons.org/licenses/by/4.0/",
+      "product_crs": "EPSG:4326",
+      "product_grid": "3x3 degree tiling grid",
+      "product_tile": "N63W018",
+      "product_type": "LandCover Map",
+      "product_version": "V2.0.0",
+      "reference": "https://esa-worldcover.org",
+      "time_end": "2021-12-31T23:59:59Z",
+      "time_start": "2021-01-01T00:00:00Z",
+      "title": "ESA WorldCover product at 10m resolution for year 2021"
+    },
+    "transform": [
+      8.333333333333333e-05,
+      0.0,
+      -18.0,
+      0.0,
+      -8.333333333333333e-05,
+      66.0
+    ],
+    "units": [
+      null
+    ],
+    "width": 36000
+  },
+  "licence": {
+    "file_copyright": "ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium",
+    "file_license": "CC-BY 4.0 - https://creativecommons.org/licenses/by/4.0/",
+    "license_or_attribution": "licence as the map file states: 'CC-BY 4.0 - https://creativecommons.org/licenses/by/4.0/'; attribution as the map file states: 'ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium'"
+  },
+  "open_g0_items": [
+    "Whether the WorldCover COGs are CORS-readable from a browser (PRD 8.7 step 4) is recorded as header evidence in outputs/pilot/cors_check.json, not here",
+    "No snow, water or bare-ground eligibility mask is derived (PRD 5 row 12, D31)",
+    "The G0 status and the shipping mode are a human checkpoint (PRD 23.6)"
+  ],
+  "range_read": {
+    "bytes_received": 524288,
+    "bytes_requested": 524288,
+    "content_range": "bytes 0-262143/38079044",
+    "content_type": "binary/octet-stream",
+    "etag": "\"042d6956a4963f356b4b6dddb0316e80-5\"",
+    "exchanges": [
+      {
+        "bytes_received": 262144,
+        "content_range": "bytes 0-262143/38079044",
+        "http_status": 206,
+        "phase": "header",
+        "requested_range": "bytes=0-262143",
+        "retrieved_at": "2026-11-15T00:34:29Z"
+      },
+      {
+        "bytes_received": 262144,
+        "content_range": "bytes 29622272-29884415/38079044",
+        "http_status": 206,
+        "phase": "window",
+        "requested_range": "bytes=29622272-29884415",
+        "retrieved_at": "2026-11-15T00:34:29Z"
+      }
+    ],
+    "final_url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif",
+    "http_status": 206,
+    "internal_tiles_touched": 1,
+    "last_modified": "Wed, 26 Oct 2022 13:03:03 GMT",
+    "local_path": "data/raw/worldcover/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif.ranges",
+    "local_sha256": "f09fd29db6ae00713f9dfb1f69197809a9ca31bd872c2e8be295d3e682688066",
+    "object_size_bytes": 38079044,
+    "range_block_bytes": 262144,
+    "range_requests": 2,
+    "ranges": [
+      [
+        0,
+        262143
+      ],
+      [
+        29622272,
+        29884415
+      ]
+    ],
+    "retrieved_at": "2026-11-15T00:34:29Z",
+    "s3_uri": "s3://esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif",
+    "sha256_note": "the map was not downloaded whole, so its SHA-256 is unknown; local_sha256 is that of the fetched byte ranges held in local_path, at the positions listed in ranges",
+    "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif",
+    "whole_file_downloaded": false
+  },
+  "record": "worldcover_window",
+  "retrieval": {
+    "command": "python -m terraluna_pipeline.pilot fetch wc",
+    "fetch_metadata": "data/raw/worldcover/fetch.json",
+    "first_retrieved_at": "2026-11-15T00:34:28Z",
+    "last_retrieved_at": "2026-11-15T00:34:29Z"
+  },
+  "source": "wc",
+  "tile_choice": {
+    "grid": "data/raw/worldcover/esa_worldcover_grid_v200_2021.geojson",
+    "grid_url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/esa_worldcover_grid.geojson",
+    "product_tile_matches": true,
+    "product_tile_tag": "N63W018",
+    "rule": "the tile of the pinned release's tiling grid (esa_worldcover_grid.geojson, saved by fetch) whose 3 x 3 degree square holds the T1-06 window centre, west and south edges inclusive; the T1-06 window's geographic bounds must lie inside it, because the pilot reads one tile",
+    "tile": "N63W018",
+    "tile_bounds_deg": {
+      "east": -15.0,
+      "north": 66.0,
+      "south": 63.0,
+      "west": -18.0
+    },
+    "tiles_in_grid": 2651,
+    "url_rule": "https://<bucket>.s3.<region>.amazonaws.com/<version>/<year>/map/ESA_WorldCover_10m_<year>_<version>_<tile>_Map.tif, the key layout the bucket lists under <version>/<year>/map/"
+  },
+  "tool_versions": {
+    "gdal": "3.12.2",
+    "numpy": "2.5.4",
+    "pillow": "13.0.0",
+    "pydantic": "2.14.3",
+    "pyshp": "3.1.8",
+    "python": "3.12.13",
+    "rasterio": "1.5.2",
+    "terraluna-pipeline": "0.1.0"
+  },
+  "verification": {
+    "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif": {
+      "basis": "a 512 x 512 pixel window read through 2 HTTP range requests (524288 of the 38079044 bytes; the map is not downloaded whole), header and window decoded and class pixels counted; not plotted, so the PRD 5 entry rule is not complete",
+      "status": "PARTIAL"
+    }
+  },
+  "window": {
+    "area_pixel_window": {
+      "col_off": 13388,
+      "height": 554,
+      "row_off": 13523,
+      "width": 1303
+    },
+    "fraction_of_area_window": 0.3631497433027365,
+    "geographic_bounds_deg": {
+      "east": -16.808666666666667,
+      "north": 64.87133333333334,
+      "south": 64.82866666666666,
+      "west": -16.851333333333333
+    },
+    "max_window_pixels": 512,
+    "pixel_window": {
+      "col_off": 13784,
+      "height": 512,
+      "row_off": 13544,
+      "width": 512
+    },
+    "rule": "area_pixel_window holds every map pixel whose cell, as the COG's geotransform defines it, intersects the T1-06 window's geographic bounds. The read window takes at most max_window_pixels columns and rows of it: centred on the T1-06 centre's pixel (offset by half the window side, rounded down) and shifted, if needed, to stay inside area_pixel_window. fraction_of_area_window is the pixel count read over the pixel count of area_pixel_window"
+  },
+  "year_pin": {
+    "file_algorithm_version": "V2.0.0",
+    "file_product_version": "V2.0.0",
+    "file_time_end": "2021-12-31T23:59:59Z",
+    "file_time_start": "2021-01-01T00:00:00Z",
+    "reason": "v200 (2021) is pinned: the bucket holds two releases, v100 (2020) and v200 (2021), and the pilot reads the later one. PRD 5 row 12 asks for one pinned year; the pin is a pilot choice. Neither year is the date of a radar acquisition (the Holuhraun UAVSAR scene of PRD 5 is from May 2015), so the map states land cover in 2021, not on any radar date",
+    "version": "v200",
+    "year": 2021
+  }
+}

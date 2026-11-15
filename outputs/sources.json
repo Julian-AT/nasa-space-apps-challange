@@ -712,5 +712,26 @@
     "units": "meters",
     "verification_status": "PARTIAL",
     "version": "unknown"
+  },
+  {
+    "acquisition_time": "2021-01-01T00:00:00Z to 2021-12-31T23:59:59Z (time_start and time_end as the map file states; the map's reference year, not a per-pixel observation time)",
+    "body": "earth",
+    "calibration_type": null,
+    "checksum": "f09fd29db6ae00713f9dfb1f69197809a9ca31bd872c2e8be295d3e682688066",
+    "crs_and_frame": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST],AUTHORITY[\"EPSG\",\"4326\"]]",
+    "effective_resolution": "unknown",
+    "frequency_or_wavelength": null,
+    "incidence_source": null,
+    "license_or_attribution": "licence as the map file states: 'CC-BY 4.0 - https://creativecommons.org/licenses/by/4.0/'; attribution as the map file states: 'ESA WorldCover project 2021 / Contains modified Copernicus Sentinel data (2021) processed by ESA WorldCover consortium'",
+    "local_path": "data/raw/worldcover/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif.ranges",
+    "native_grid": "width=36000 height=36000 transform=(8.333333333333333e-05, 0.0, -18.0, 0.0, -8.333333333333333e-05, 66.0)",
+    "product_id": "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif",
+    "provider": "ESA WorldCover; AWS Open Data bucket s3://esa-worldcover (eu-central-1)",
+    "qa_definition": "nodata 0.0 as the map file declares it; the InputQuality layer is not read, and a bare/sparse vegetation pixel does not establish dry bare mineral soil on the radar date (PRD 5 row 12)",
+    "source_url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif",
+    "transmit_receive_convention": null,
+    "units": "land cover class codes (dimensionless), named by the legend the map file states",
+    "verification_status": "PARTIAL",
+    "version": "v200 2021, product_version V2.0.0 as the map file states"
   }
 ]
