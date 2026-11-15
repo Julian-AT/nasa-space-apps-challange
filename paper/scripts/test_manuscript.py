@@ -34,7 +34,12 @@ OPTIONAL_THIRD_APPENDIX = "Exploratory quantum experiment"
 
 # Stems of the figures/*.tex files the manuscript inputs. figures/styles.tex is style code that
 # the preamble inputs (22.5), not a figure.
-PLANNED_FIGURES: tuple[str, ...] = ()
+PLANNED_FIGURES: tuple[str, ...] = (
+    "encoder-architecture",
+    "hillshades",
+    "structure-functions",
+    "system-overview",
+)
 FIGURE_STYLES = "styles"
 
 ABSTRACT_WORD_LIMIT = 200
@@ -664,3 +669,96 @@ def test_generated_files_carry_their_comment() -> None:
         if (problems := generated_file_problems(path.name, path.read_bytes().decode("utf-8")))
     }
     assert found == {}
+
+
+# --- Rule 7: citations and the generated bibliography (T16-03) ----------------------------------
+
+
+def manuscript_citations() -> list[tuple[str, Path, int]]:
+    from scripts.references import citations, manuscript_files
+
+    return citations(manuscript_files(PAPER))
+
+
+def test_every_cited_key_has_a_verified_record() -> None:
+    from scripts.references import load
+
+    record, errors = load()
+    assert record is not None
+    assert errors == []
+    bad = [
+        f"{path.name}:{line}: {key}"
+        for key, path, line in manuscript_citations()
+        if key not in record.references or record.references[key].status != "verified"
+    ]
+    assert bad == []
+
+
+def test_refs_bib_is_the_generator_output_for_the_cited_keys() -> None:
+    from scripts.references import bib_text, load
+
+    record, _ = load()
+    assert record is not None
+    text, errors = bib_text(record, manuscript_citations())
+    assert errors == []
+    committed = (PAPER / "refs.bib").read_text(encoding="utf-8")
+    assert committed == text
+    bib_keys = set(re.findall(r"^@[a-z]+\{([^,]+),$", committed, flags=re.MULTILINE))
+    assert bib_keys == {key for key, _, _ in manuscript_citations()}
+
+
+def bibliography_commands(main_tex: str) -> bool:
+    text = strip_comments(main_tex)
+    return "\\bibliographystyle{plainnat}" in text and "\\bibliography{refs}" in text
+
+
+@pytest.mark.parametrize(
+    ("text", "present"),
+    [
+        ("\\bibliographystyle{plainnat}\n\\bibliography{refs}\n", True),
+        ("% \\bibliographystyle{plainnat}\n\\bibliography{refs}\n", False),
+        ("\\bibliography{refs}\n", False),
+    ],
+)
+def test_bibliography_command_rule(text: str, present: bool) -> None:
+    assert bibliography_commands(text) is present
+
+
+def test_main_has_a_bibliography_exactly_when_something_is_cited() -> None:
+    main_tex = (PAPER / "main.tex").read_text(encoding="utf-8")
+    assert bibliography_commands(main_tex) is bool(manuscript_citations())
+
+
+# --- Rule 8: Background numbers are literature values with a citation (T16-06) ------------------
+
+SENTENCE_END = re.compile(r"(?<=[.!])\s+(?=[A-Z\\])")
+
+
+def uncited_number_sentences(text: str) -> list[str]:
+    """Background sentences with a digit outside key arguments and no \\cite-family command."""
+    found = []
+    raw = strip_comments(text)
+    for sentence in SENTENCE_END.split(raw.replace("\n", " ")):
+        if re.search(r"\d", blank_key_arguments(sentence)) and not re.search(
+            r"\\[Cc]ite[a-z]*", sentence
+        ):
+            found.append(sentence.strip())
+    return found
+
+
+@pytest.mark.parametrize(
+    ("text", "count"),
+    [
+        ("Breakover occurs near 1 km.", 1),
+        ("Breakover occurs near 1 km \\citep{rosenburg2011}.", 0),
+        ("See Section~\\ref{sec:data}. The deviogram is defined \\citep{shepard2001}.", 0),
+        ("A first claim. A second with 3 values.", 1),
+    ],
+)
+def test_uncited_number_rule(text: str, count: int) -> None:
+    assert len(uncited_number_sentences(text)) == count
+
+
+def test_background_numbers_carry_a_citation() -> None:
+    text = (PAPER / "background.tex").read_text(encoding="utf-8")
+    assert uncited_number_sentences(text) == []

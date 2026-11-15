@@ -1,0 +1,51 @@
+% Shared TikZ styles for the paper diagrams (PRD 22.5). Input once from the main.tex preamble.
+% Flat fills with thin dark outlines. The four fills differ in lightness as well as hue,
+% so the workloads stay distinct in grayscale. No icons, gradients, shadows or images.
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,calc,arrows.meta}
+
+\definecolor{fillPython}{HTML}{DCEBFA}  % offline Python, light blue
+\definecolor{fillBundle}{HTML}{F4D77A}  % release bundle, saturated yellow, darkest
+\definecolor{fillHosting}{HTML}{CDE8C6} % hosting, light green
+\definecolor{fillBrowser}{HTML}{F2C3C3} % browser, pink
+\definecolor{fillExternal}{HTML}{F2F2F2}% external product
+\definecolor{lineDark}{HTML}{2B2B2B}
+
+\tikzset{
+  box/.style = {
+    draw=lineDark, line width=0.5pt, rounded corners=1.5pt,
+    font=\footnotesize, align=center, text=black,
+    inner sep=3.5pt, minimum height=0.9cm, text width=#1
+  },
+  box/.default = 5.6cm,
+  python/.style   = {box=#1, fill=fillPython},
+  bundle/.style   = {box=#1, fill=fillBundle},
+  hosting/.style  = {box=#1, fill=fillHosting},
+  browser/.style  = {box=#1, fill=fillBrowser},
+  external/.style = {box=#1, fill=fillExternal},
+  python/.default = 5.6cm, bundle/.default = 5.6cm, hosting/.default = 5.6cm,
+  browser/.default = 5.6cm, external/.default = 5.6cm,
+  notdone/.style  = {dashed, dash pattern=on 3pt off 2pt},
+  group/.style = {
+    draw=lineDark, line width=0.4pt, rounded corners=2pt, inner sep=5pt
+  },
+  flow/.style = {-{Stealth[length=5pt,width=4pt]}, line width=0.6pt, draw=lineDark},
+  flowdashed/.style = {flow, dashed, dash pattern=on 3pt off 2pt},
+  flowlabel/.style = {font=\footnotesize, fill=white, inner sep=1.5pt, align=center}
+}
+
+% Plots (PRD 22.5): pgfplots reading generated number macros; colour-blind-safe Okabe-Ito hues.
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\definecolor{okblue}{HTML}{0072B2}
+\definecolor{okorange}{HTML}{E69F00}
+\definecolor{okgreen}{HTML}{009E73}
+\definecolor{okvermilion}{HTML}{D55E00}
+\pgfplotsset{
+  tlplot/.style={
+    width=0.48\linewidth, height=0.36\linewidth,
+    tick label style={font=\footnotesize}, label style={font=\footnotesize},
+    legend style={font=\footnotesize, draw=none, fill=none},
+    axis lines=left, tick align=outside,
+  },
+}

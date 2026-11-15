@@ -1,2 +1,10 @@
 \section{Embedding visualisations}
 \label{sec:appendix-embeddings}
+
+The planned visualisations of the encoder are a UMAP projection \citep{mcinnes2018} of test block
+embeddings coloured by body, the same projection for the run without gradient reversal, galleries
+of the nearest Earth neighbours of each target with their hillshades, and the twenty largest
+disagreements between the encoder and the fingerprint as failure cases. They are drawn only from
+the embedding export of a frozen model, and the encoder promotion gate is \GateFiveStatus. No
+embedding export exists in this build, so no visualisation is shown; none is drawn from an
+untrained or mock model.

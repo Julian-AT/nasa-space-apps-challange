@@ -1,2 +1,59 @@
 \section{Model architecture}
 \label{sec:architecture}
+
+\input{figures/encoder-architecture}
+
+The encoder (Figure~\ref{fig:encoder}) asks whether a learned representation of elevation,
+trained on all three bodies and supervised by the fingerprint, can reproduce the fingerprint on
+held out regions, carry morphology that the fingerprint lacks, and give cross body neighbours that
+agree with it. It is a second opinion beside the fingerprint, labelled Predicted wherever it
+appears, and it enters no ranking unless the promotion gate of Section~\ref{sec:results} passes.
+
+\paragraph{Input.} A window is resampled to \ConfigInputPx{} by \ConfigInputPx{} pixels at
+\ConfigInputSpacing\,m (Section~\ref{sec:data}) and a best fit plane is removed. The three channels
+are $\operatorname{asinh}(z / s)$ with $s = 50$\,m, which compresses large relief while staying
+linear near zero; the slope magnitude divided by 45 degrees; and the validity mask. The same code,
+in Python and in the browser, feeds training and the live probe.
+
+\paragraph{Backbone and heads.} The backbone is a ResNet-18 \citep{he2015} at half width, with
+stages of 32, 64, 128 and 256 channels, batch normalisation \citep{ioffe2015} and a stride one stem
+for the small input. Global average pooling gives the embedding $h \in \mathbb{R}^{256}$, which is
+L2 normalised for retrieval. A three layer projector of width 2048 maps $h$ to $z$ for the VICReg
+loss. A two layer physics head predicts the eleven standardised physics targets: $\ln \nu$ of
+relief and texture at the five lags and the relief Hurst exponent. A two layer body head predicts
+which of the three bodies a window came from, behind a gradient reversal layer \citep{ganin2015}.
+
+\paragraph{Objective.} For two augmented views of one window with projections $z, z'$ over a
+batch of $n$ windows and dimension $d$, the VICReg loss \citep{bardes2021} is
+\begin{align}
+  \mathcal{L}_{\mathrm{V}} &= \lambda_{\mathrm{inv}}\, \frac{1}{n} \sum_{i} \lVert z_i - z'_i \rVert_2^2
+  + \lambda_{\mathrm{var}}\,\bigl(v(z) + v(z')\bigr) + \lambda_{\mathrm{cov}}\,\bigl(c(z) + c(z')\bigr),
+  \label{eq:vicreg}\\
+  v(z) &= \frac{1}{d} \sum_{j=1}^{d} \max\bigl(0,\, 1 - \sqrt{\operatorname{Var}(z_{\cdot j}) + \epsilon}\bigr),
+  \qquad
+  c(z) = \frac{1}{d} \sum_{j \neq k} \operatorname{Cov}(z)_{jk}^2,
+  \nonumber
+\end{align}
+with the published coefficients $\lambda_{\mathrm{inv}} = \lambda_{\mathrm{var}} = 25$ and
+$\lambda_{\mathrm{cov}} = 1$. The physics loss is a masked mean squared error over the targets $y$
+that exist for a window, for both views,
+\begin{equation}
+  \mathcal{L}_{\mathrm{phys}} = \frac{\sum_{k} m_k\, \bigl(\hat y_k - y_k\bigr)^2}{\sum_k m_k},
+  \label{eq:phys}
+\end{equation}
+so a lag without a supported value contributes nothing instead of a zero target. The body loss is
+the cross entropy of the body head. Gradient reversal multiplies its gradient by $-\lambda$ on the
+way into the backbone, so the total objective
+\begin{equation}
+  \mathcal{L} = \mathcal{L}_{\mathrm{V}} + \alpha\, \mathcal{L}_{\mathrm{phys}} + \mathcal{L}_{\mathrm{body}},
+  \qquad \lambda(p) = \lambda_{\max} \Bigl(\frac{2}{1 + e^{-10 p}} - 1\Bigr),
+  \label{eq:total}
+\end{equation}
+trains the head to recognise the body while the backbone is pushed not to encode it. Here $p$ is
+the fraction of training completed, $\alpha = \ConfigAlphaPhys$, and $\lambda_{\max}$ is swept over
+\ConfigLambdas.
+
+\paragraph{Views.} The two views of a window differ by one of the eight rotations and reflections,
+Gaussian height noise of 1 m mapped through the local derivative of the asinh channel, and up to
+10\% extra nodata holes. Amplitude and scale changes are excluded, because they change the physics
+targets that the views must share. Each batch draws a third of its windows from each body.
