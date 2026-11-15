@@ -52,3 +52,5 @@ export {
   windowFingerprint,
 } from './probe.ts';
 export type { ProbeQuality } from './probe.ts';
+export { MATCHING_REASONS, backgroundPercentile, familyPercentile, sharedLags, terrainDistance } from './matching.ts';
+export type { BackgroundHistogram, DistanceVariant, Family, MatchingReason, Outcome } from './matching.ts';
