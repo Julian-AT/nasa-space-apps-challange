@@ -1,2 +1,50 @@
 \section{Data analysis}
 \label{sec:appendix-data-analysis}
+
+This appendix reports the distributions behind the fingerprint. Every value is generated from the
+windows evidence record of the data pilot, the comparison record of the lunar target and the
+configuration; analyses whose records do not exist yet are named as such.
+
+\paragraph{Site and region distributions.} Table~\ref{tab:distributions} summarises the
+fingerprints of all \DistSiteReliefHCount{} windows of the lunar target site and all \DistHoluhraunReliefHCount{}
+Holuhraun windows. The lunar windows have relief Hurst exponents from \DistSiteReliefHMin{} to
+\DistSiteReliefHMax{} with a median of \DistSiteReliefHMedian, so the primary target window, at
+\MoonTargetReliefH, is typical of its site. The Holuhraun windows span a much wider range, from
+\DistHoluhraunReliefHMin{} to \DistHoluhraunReliefHMax, and their median relief $\nu$ at the
+longest lag, \DistHoluhraunReliefNuLongMedian\,m, is more than an order of magnitude below the
+target site median of \DistSiteReliefNuLongMedian\,m. The Hurst exponents of the target site windows lie
+close to the highland median that \citet{rosenburg2011} report from LOLA, although our lags,
+grid and estimator differ from theirs, so the agreement is a sanity check and not a
+reproduction.
+
+\begin{table}[h]
+\centering
+\caption{Fingerprint distributions per site, over the eligible windows of each site. $\nu$ values
+are medians over windows, in metres, at the shortest and longest configured lag.}
+\label{tab:distributions}
+\footnotesize
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+Site & Variant & windows & $H$ min & $H$ median & $H$ max & median $\nu$ short, long \\
+\midrule
+Moon, target site & relief & \DistSiteReliefHCount & \DistSiteReliefHMin & \DistSiteReliefHMedian & \DistSiteReliefHMax & \DistSiteReliefNuShortMedian, \DistSiteReliefNuLongMedian \\
+Moon, target site & texture & \DistSiteTextureHCount & \DistSiteTextureHMin & \DistSiteTextureHMedian & \DistSiteTextureHMax & \DistSiteTextureNuShortMedian, \DistSiteTextureNuLongMedian \\
+Earth, Holuhraun & relief & \DistHoluhraunReliefHCount & \DistHoluhraunReliefHMin & \DistHoluhraunReliefHMedian & \DistHoluhraunReliefHMax & \DistHoluhraunReliefNuShortMedian, \DistHoluhraunReliefNuLongMedian \\
+Earth, Holuhraun & texture & \DistHoluhraunTextureHCount & \DistHoluhraunTextureHMin & \DistHoluhraunTextureHMedian & \DistHoluhraunTextureHMax & \DistHoluhraunTextureNuShortMedian, \DistHoluhraunTextureNuLongMedian \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Distances to the target.} Over the \ComparedCount{} compared Earth windows, relief
+distances to the target run from \ReliefDistanceMin{} to \ReliefDistanceMax{} (median
+\ReliefDistanceMedian) and texture distances from \TextureDistanceMin{} to \TextureDistanceMax{}
+(median \TextureDistanceMedian). Because the two regions were chosen for radar availability and as
+a terrain only control, these distances describe the evaluated windows and not the Earth as a
+whole.
+
+\paragraph{Analyses not yet available.} The per body distributions over the full search universe,
+the breakover test near the kilometre baseline, the dependence of the Martian distributions on the
+CTX quality threshold, roughness by land cover class and climate zone, the effect of the surface
+model mask, the target percentiles with clone spread, and the overlap of the three bodies in
+fingerprint and embedding space need the full window tables, the clone ensemble and the embedding
+export. Their records do not exist in this build, so they are not reported.

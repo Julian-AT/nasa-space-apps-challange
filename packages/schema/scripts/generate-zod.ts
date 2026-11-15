@@ -138,6 +138,30 @@ export const CONTRACTS: readonly Contract[] = [
     schemaName: 'EmbeddingsIndexSchema',
     typeName: 'EmbeddingsIndex',
   },
+  {
+    json: 'curves.schema.json',
+    module: 'curves.ts',
+    schemaName: 'CurvesSchema',
+    typeName: 'Curves',
+  },
+  {
+    json: 'umap-header.schema.json',
+    module: 'umap-header.ts',
+    schemaName: 'UmapHeaderSchema',
+    typeName: 'UmapHeader',
+  },
+  {
+    json: 'examples.schema.json',
+    module: 'examples.ts',
+    schemaName: 'ExamplesSchema',
+    typeName: 'Examples',
+  },
+  {
+    json: 'background.schema.json',
+    module: 'background.ts',
+    schemaName: 'BackgroundSchema',
+    typeName: 'Background',
+  },
 ];
 
 /** The JSON Schema could not be translated faithfully, or is missing or malformed. */

@@ -41,7 +41,7 @@ import pytest
 from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
-from terraluna_pipeline import polarimetry
+from terraluna_pipeline import polarimetry, provenance
 from terraluna_pipeline.polarimetry import (
     G1_FAILURE_ACTION,
     G1_REQUIRED_TESTS_PATH,
@@ -56,6 +56,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 TESTS_DIR = REPO_ROOT / "pipeline" / "tests"
 REQUIRED_PATH = REPO_ROOT / "fixtures" / "polarimetry" / "g1_required_tests.json"
 COMMITTED_RECORD = REPO_ROOT / "fixtures" / "polarimetry" / "g1-record.json"
+CONFIG_PATH = REPO_ROOT / "config" / "run.yaml"
+G1_RECORD = "fixtures/polarimetry/g1-record.json"
+REQUIRED_NAME = "fixtures/polarimetry/g1_required_tests.json"
 ORACLE_FILE = "pipeline/tests/test_polarimetry_oracle.py"
 
 REQUIRED = load_g1_required_tests()
@@ -236,6 +239,15 @@ def result_of(record: GateRecord) -> dict[str, Any]:
 def written(code: int, record: GateRecord | None) -> GateRecord:
     assert record is not None, f"no record written (exit {code})"
     return record
+
+
+def expected_run_id(junit: Path) -> str:
+    """PRD 8.13: the hash of the config and the checksums of the two inputs G1 is read from."""
+    products = [
+        (REQUIRED_NAME, hashlib.sha256(REQUIRED_PATH.read_bytes()).hexdigest()),
+        ("g1-junit-report", hashlib.sha256(junit.read_bytes()).hexdigest()),
+    ]
+    return provenance.run_id(CONFIG_PATH, products)
 
 
 # --- The list of required tests ---------------------------------------------------------------
@@ -697,7 +709,7 @@ def test_record_validates_against_the_gate_record_model_and_nulls_stay_null(
     data = json.loads(text)
     assert set(data) == set(GateRecord.model_fields)
     assert data["gate_id"] == "G1"
-    assert data["run_id"] is None
+    assert data["run_id"] == expected_run_id(tmp_path / "junit.xml")
     assert data["consequence"] is None
 
 
@@ -719,15 +731,35 @@ def test_consequence_is_the_prd_failure_action_unless_pass(
     assert "No quantitative CPR output until fixed" in G1_FAILURE_ACTION
 
 
-def test_run_id_is_recorded_only_when_supplied(tmp_path: Path) -> None:
-    code, record = record_from(tmp_path, all_passed(), "--run-id", "run-2026-11-14-a")
-    assert written(code, record).run_id == "run-2026-11-14-a"
+@pytest.mark.parametrize("cases", [all_passed(), all_passed(real_scene=None), {}])
+def test_run_id_is_the_prd_8_13_hash_of_the_config_and_the_inputs(
+    tmp_path: Path, cases: dict[str, str]
+) -> None:
+    record = written(*record_from(tmp_path, cases))
+    assert record.run_id == expected_run_id(tmp_path / "junit.xml")
 
 
-def test_an_empty_run_id_is_refused_and_nothing_is_written(tmp_path: Path) -> None:
-    code, record = record_from(tmp_path, all_passed(), "--run-id", "")
-    assert code == 2
-    assert record is None
+def test_a_run_id_is_not_taken_from_the_command_line(tmp_path: Path) -> None:
+    with pytest.raises(SystemExit) as error:
+        record_from(tmp_path, all_passed(), "--run-id", "sha256:" + "0" * 64)
+    assert error.value.code == 2
+    assert not (tmp_path / "g1-record.json").exists()
+
+
+def test_record_names_its_command_config_version_and_input_hashes(tmp_path: Path) -> None:
+    """T0B-05 (PRD 8.12 as amended by PRD-01): provenance from provenance.py."""
+    record = written(*record_from(tmp_path, all_passed()))
+    junit = tmp_path / "junit.xml"
+    assert record.command == provenance.command_line(
+        "terraluna_pipeline.polarimetry",
+        ["record-g1", "--junit", str(junit), "--out", str(tmp_path / "g1-record.json")],
+    )
+    assert record.command == result_of(record)["notes"]["command"]
+    assert record.config_version == provenance.config_version(CONFIG_PATH)
+    assert [entry.model_dump() for entry in record.input_hashes] == [
+        {"path": "config/run.yaml", "sha256": provenance.config_version(CONFIG_PATH)},
+        {"path": REQUIRED_NAME, "sha256": hashlib.sha256(REQUIRED_PATH.read_bytes()).hexdigest()},
+    ]
 
 
 def test_result_holds_counts_per_fixture_and_per_story(tmp_path: Path) -> None:
@@ -773,7 +805,9 @@ def test_result_records_the_command_and_the_hashes_of_its_inputs(tmp_path: Path)
     assert result["junit_timestamps"] == ["2026-11-14T00:00:00.000000+00:00"]
     assert result["required_tests"] == "fixtures/polarimetry/g1_required_tests.json"
     assert result["required_tests_sha256"] == hashlib.sha256(REQUIRED_PATH.read_bytes()).hexdigest()
-    assert record.evidence_path == str(junit)
+    # A report outside the repository is no repository path: the evidence is the committed G1
+    # record, whose result holds the report's sha256 and counts.
+    assert record.evidence_path == G1_RECORD
 
 
 def test_record_is_a_function_of_its_inputs(tmp_path: Path) -> None:
@@ -793,7 +827,7 @@ def test_record_g1_returns_the_record_it_wrote(tmp_path: Path) -> None:
     junit = tmp_path / "junit.xml"
     out = tmp_path / "out.json"
     junit.write_bytes(junit_xml(all_passed().items()))
-    record = record_g1(junit, out, command="record-g1 (in-process test)", run_id=None)
+    record = record_g1(junit, out, command="record-g1 (in-process test)")
     assert GateRecord.model_validate_json(out.read_text(encoding="utf-8")) == record
     assert result_of(record)["notes"]["command"] == "record-g1 (in-process test)"
     assert result_of(record)["notes"]["pytest_command"] is None
@@ -810,6 +844,12 @@ def test_evidence_inside_the_repository_is_recorded_relative_to_it(
     assert main(["record-g1", "--junit", str(junit), "--out", str(out)]) == 0
     record = GateRecord.model_validate_json(out.read_text(encoding="utf-8"))
     assert record.evidence_path == "fixtures/polarimetry/junit.xml"
+    assert [entry.path for entry in record.input_hashes] == [
+        "config/run.yaml",
+        "fixtures/polarimetry/g1_required_tests.json",
+        "fixtures/polarimetry/junit.xml",
+    ]
+    assert record.input_hashes[2].sha256 == hashlib.sha256(junit.read_bytes()).hexdigest()
 
 
 def test_evidence_inside_the_repository_outside_fixtures_is_refused(
@@ -1326,7 +1366,14 @@ def test_committed_record_follows_the_rules_from_its_own_result() -> None:
     assert notes["command"].startswith("python -m terraluna_pipeline.polarimetry record-g1 ")
     assert "--out fixtures/polarimetry/g1-record.json" in notes["command"]
     assert "--junitxml" in notes["pytest_command"]
-    assert str(record.evidence_path) in notes["pytest_command"]
+    words = shlex.split(notes["command"])
+    junit = words[words.index("--junit") + 1]
+    assert junit in notes["pytest_command"]
+    assert record.evidence_path in {G1_RECORD, junit}
+    assert record.command == notes["command"]
+    assert record.config_version is not None
+    assert [entry.path for entry in record.input_hashes][:2] == ["config/run.yaml", REQUIRED_NAME]
+    assert record.input_hashes[1].sha256 == hashlib.sha256(REQUIRED_PATH.read_bytes()).hexdigest()
     assert f"--pytest-command {shlex.quote(notes['pytest_command'])}" in notes["command"]
     assert SHA.fullmatch(notes["commit"])
     assert set(notes["uncommitted_changes"]) <= {"fixtures/polarimetry/g1-record.json"}

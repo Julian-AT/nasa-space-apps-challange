@@ -100,3 +100,37 @@ web-smoke: web-build
 web-dev:
 	$(WEB) bundle:pull
 	$(WEB) dev
+
+# t4-logic T4L-08
+# The real release bundle (CONTRACTS c.1): stage every bundle path, then assemble release/<v>/.
+# BUNDLE_UTC defaults to the current UTC minute and BUNDLE_SHA to the short HEAD; override both
+# to rebuild a version, e.g. make bundle BUNDLE_UTC=2026-11-15T0900Z BUNDLE_SHA=3f9c2a1.
+BUNDLE_UTC ?= $(shell date -u +%Y-%m-%dT%H%MZ)
+BUNDLE_SHA ?= $(shell git rev-parse --short=7 HEAD)
+BUNDLE_STAGING ?= data/processed/bundle-staging
+RELEASE_DIR ?= release
+.PHONY: bundle
+bundle:
+	$(EXPORT) stage --out $(BUNDLE_STAGING)
+	v=$$($(EXPORT) bundle-version --utc $(BUNDLE_UTC) --sha $(BUNDLE_SHA)) && \
+	$(EXPORT) assemble --staging $(BUNDLE_STAGING) --bundle-version "$$v" --release-dir $(RELEASE_DIR)
+
+# --- fast/uncert block (T6): uncertainty, G3/G4 checks and Appendix A records ----------------
+# uncert-refresh rewrites the comparisons, cards, figures and the G4 record from the committed
+# clone and G4 inputs (needs the data/processed caches); rerun it whenever the comparisons are
+# regenerated. uncert-verify is offline and writes nothing.
+.PHONY: uncert-refresh uncert-verify
+uncert-refresh:
+	uv run python -m terraluna_pipeline.checks g4
+	uv run python -m terraluna_pipeline.uncertainty annotate
+	uv run python -m terraluna_pipeline.export cards
+	uv run python -m terraluna_pipeline.export cards --target-window moon-sps-x2-y2 --earth-window earth-utm27n-e280-n2880
+	uv run python -m terraluna_pipeline.figures cards
+	uv run python -m terraluna_pipeline.checks g4
+
+uncert-verify:
+	uv run python -m terraluna_pipeline.uncertainty verify
+	uv run python -m terraluna_pipeline.checks verify-records
+	uv run python -m terraluna_pipeline.gates verify
+	uv run python -m terraluna_pipeline.holuhraun check
+	uv run python -m terraluna_pipeline.lunar_context check

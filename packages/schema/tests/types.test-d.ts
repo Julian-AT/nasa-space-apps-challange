@@ -62,6 +62,10 @@ expectTypeOf<GateRecord>().toEqualTypeOf<{
   scope: string | null;
   result: string | null;
   consequence: string | null;
+  // PRD-01 (Option A): the provenance fields of the amended PRD 8.12 GateRecord.
+  command: string | null;
+  config_version: string | null;
+  input_hashes: { path: string; sha256: string }[];
 }>();
 
 expectTypeOf<Validation>().toEqualTypeOf<GateRecord[]>();

@@ -1,7 +1,228 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "InputHash": {
+      "additionalProperties": false,
+      "description": "The SHA-256 of one file a gate's producer read, by its repository path.",
+      "properties": {
+        "path": {
+          "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*)*$",
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "InputHash",
+      "type": "object"
+    }
+  },
   "additionalProperties": false,
-  "description": "One release gate's state in validation.json (PRD 8.12, section 9).",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "PASS"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "config_version": {
+            "type": "string"
+          },
+          "evidence_path": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "input_hashes": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "sha256": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "sha256"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "run_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "FAIL"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "config_version": {
+            "type": "string"
+          },
+          "evidence_path": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "input_hashes": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "sha256": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "sha256"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "PARTIAL"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "config_version": {
+            "type": "string"
+          },
+          "evidence_path": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "input_hashes": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "sha256": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "sha256"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "NOT_APPLICABLE"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "config_version": {
+            "type": "string"
+          },
+          "evidence_path": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "input_hashes": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "sha256": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "sha256"
+              ],
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        }
+      }
+    }
+  ],
+  "description": "One release gate's state in validation.json (PRD 8.12, section 9).\n\nA gate that was run (PASS, FAIL, PARTIAL or NOT_APPLICABLE) names its ``command``,\n``config_version``, ``evidence_path`` and ``scope`` and lists at least one input; PASS also\nneeds the PRD 8.13 ``run_id``. NOT_RUN may leave every nullable field null with no inputs.\n``input_hashes`` is sorted by path with no path twice, so `gates verify` can re-hash it.\nThere are no wall-clock fields, so re-recording a gate is byte-identical.",
   "properties": {
     "gate_id": {
       "enum": [
@@ -30,25 +251,27 @@
     "evidence_path": {
       "anyOf": [
         {
-          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*)*$",
           "type": "string"
         },
         {
           "type": "null"
         }
       ],
+      "description": "The committed evidence file.",
       "title": "Evidence Path"
     },
     "run_id": {
       "anyOf": [
         {
-          "minLength": 1,
+          "pattern": "^sha256:[0-9a-f]{64}$",
           "type": "string"
         },
         {
           "type": "null"
         }
       ],
+      "description": "PRD 8.13 run_id; required for PASS.",
       "title": "Run Id"
     },
     "scope": {
@@ -86,6 +309,40 @@
         }
       ],
       "title": "Consequence"
+    },
+    "command": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The shlex-joined argv of the command that produced the record.",
+      "title": "Command"
+    },
+    "config_version": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "SHA-256 of config/run.yaml as read.",
+      "title": "Config Version"
+    },
+    "input_hashes": {
+      "description": "Every file the producer read, sorted by path, each path once.",
+      "items": {
+        "$ref": "#/$defs/InputHash"
+      },
+      "title": "Input Hashes",
+      "type": "array"
     }
   },
   "required": [
@@ -95,7 +352,10 @@
     "run_id",
     "scope",
     "result",
-    "consequence"
+    "consequence",
+    "command",
+    "config_version",
+    "input_hashes"
   ],
   "title": "GateRecord",
   "type": "object"

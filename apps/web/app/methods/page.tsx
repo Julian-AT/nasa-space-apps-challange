@@ -4,6 +4,8 @@
 // text: every status and result on it comes from the records.
 import type { Metadata } from 'next';
 
+import { PageHeader } from '../../components/page-header.tsx';
+import { Section } from '../../components/section.tsx';
 import { GatesBoard } from '../../components/gates-board.tsx';
 import { loadBundle } from '../../lib/bundle.ts';
 import { SITE_TITLE } from '../../lib/shell.ts';
@@ -17,13 +19,10 @@ export default function Methods() {
   const { validation } = loadBundle();
   return (
     <>
-      <h1>Methods</h1>
-      <section aria-labelledby="validation-board" className="mt-6">
-        <h2 id="validation-board">Validation board</h2>
-        <div className="mt-2">
-          <GatesBoard validation={validation} />
-        </div>
-      </section>
+      <PageHeader title="Methods" />
+      <Section title="Validation board" id="validation-board">
+        <GatesBoard validation={validation} />
+      </Section>
     </>
   );
 }

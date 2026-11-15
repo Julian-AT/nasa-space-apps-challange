@@ -1,2 +1,75 @@
 \section{Physics fingerprint}
 \label{sec:fingerprint}
+
+The fingerprint is the deterministic description of a window that every ranking in this paper
+uses. It follows the root mean square deviation and Hurst exponent of \citet{shepard2001} and the
+baseline conventions of \citet{rosenburg2011}, measured with one code path on every body.
+
+\paragraph{Structure function.} Let $z$ be the elevation of a window on the analysis grid, with
+validity mask $m$. For a lag $L$ along a direction $d$, let $P_d(L)$ be the set of cell pairs
+$(a, b)$ with $b = a + L\,\hat d$ and both cells valid. The structure function is
+\begin{equation}
+  \nu_d(L) = \Bigl(\frac{1}{\lvert P_d(L)\rvert} \sum_{(a,b) \in P_d(L)}
+  \bigl(z(b) - z(a)\bigr)^2\Bigr)^{1/2}.
+  \label{eq:nu}
+\end{equation}
+It is measured along both grid axes and both diagonals. A lag is used along a direction only if
+it is a whole number of steps there to arithmetic tolerance; lags are never rounded to a nearby
+offset and cells are never interpolated. On the \ConfigGridM\,m grid no diagonal offset equals a
+configured lag, so the diagonals are recorded as unsupported and the isotropic value rests on the
+two axes. The isotropic summary weights the supported directions $\mathcal{D}(L)$ equally,
+\begin{equation}
+  \nu(L) = \Bigl(\frac{1}{\lvert \mathcal{D}(L)\rvert} \sum_{d \in \mathcal{D}(L)} \nu_d(L)^2\Bigr)^{1/2},
+  \label{eq:isotropic}
+\end{equation}
+and the per direction values are kept beside it. The configured lags are \ConfigLags\,m: at least
+three analysis cells and at most a quarter of the \ConfigWindowM\,m window. A window is measured
+only if at least \ConfigMinValidPct\% of its cells are valid, and an unsupported lag has no value,
+never a value of zero.
+
+\paragraph{Relief and texture.} Each window is measured twice. Relief is
+Equation~\eqref{eq:nu} on the raw heights, tilt included. Texture is the same statistic on the
+residual $z - (a + b x + c y)$ after the least squares plane over the valid cells is removed, with
+$x$ east and $y$ north in metres from the window centre. The plane is solved exactly over the
+stored values, so an exact plane leaves a texture of exactly zero rather than rounding noise. Both
+variants are named in every record, because removing the plane can erase the very property being
+compared.
+
+\paragraph{Hurst exponent.} $H$ is the ordinary least squares slope of $\ln \nu(L)$ against
+$\ln L$ over the supported lags,
+\begin{equation}
+  H = \frac{\sum_k (\ell_k - \bar\ell)(n_k - \bar n)}{\sum_k (\ell_k - \bar\ell)^2},
+  \qquad \ell_k = \ln L_k,\quad n_k = \ln \nu(L_k),
+  \label{eq:hurst}
+\end{equation}
+which equals the exponent for $\nu = c L^H$. It is fitted only with at least \ConfigMinLagsH{}
+supported lags that span at least a factor of \ConfigLagSpan, and only if $\nu$ is positive at
+every lag. Otherwise $H$ is unavailable with its reason; a zero is never offset to take its
+logarithm. Over our five lags $H$ describes the range from a few hundred metres to about a
+kilometre, the range in which \citet{rosenburg2011} report a breakover on the Moon, so
+Appendix~\ref{sec:appendix-data-analysis} tests for curvature in $\ln \nu$ rather than assuming a
+single exponent.
+
+\paragraph{Terrain distance.} Two windows $u$ and $w$ are compared on the lags $S_{uw}$ supported
+in both, separately for relief and texture:
+\begin{equation}
+  D(u, w) = \Bigl(\frac{1}{\lvert S_{uw}\rvert} \sum_{L \in S_{uw}}
+  \bigl(\ln \nu_u(L) - \ln \nu_w(L)\bigr)^2\Bigr)^{1/2}.
+  \label{eq:distance}
+\end{equation}
+A difference of $\ln \nu$ is a ratio of relief, so $D$ does not depend on the units of height and
+weighs a factor of two the same at every lag. Relief and texture distances are never summed with
+each other, and in this study no radar distance exists to sum them with
+(Section~\ref{sec:results-radar}). Candidates are ordered by Pareto layers over the two distances,
+with the window identifier as a deterministic tie break; no single score is formed.
+
+\paragraph{Reference and uncertainty.} Each distance is shown with two references. The target
+reference set is the spread of distances between the primary target window and the other eligible
+Site01 windows, which measures how much the target varies internally. The background is a fixed,
+seeded sample of \ConfigBackgroundSample{} eligible windows from the same search universe, against
+which a candidate's distance is a percentile. For the Moon the provider's \ConfigClones{} error
+clones of the elevation model \citep{barker2021} are measured like the original, so each
+statistic has a spread under the published height error model. The clones represent that error
+model only; they say nothing about rocks below the grid or about radar. Candidates whose distances
+differ by less than their combined spread are reported as tied, and the stability of a rank across
+clones is a frequency, never the probability that a site is a valid analog.

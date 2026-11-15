@@ -1,2 +1,77 @@
 \section{Data}
 \label{sec:data}
+
+Every product enters the study as elevation, except two radar products that are decoded for the
+radar availability audit of Section~\ref{sec:results-radar}. Table~\ref{tab:data} lists them. Each
+download is recorded with its provider URL, HTTP metadata and SHA-256 digest, and every derived
+number in this paper names the artifact it was read from.
+
+\begin{table}[tbp]
+\centering
+\caption{Data inventory. Grid spacing is the provider's stated posting. The role column says how
+each product is used; no product is used outside its stated role.}
+\label{tab:data}
+\footnotesize
+\begin{tabular}{@{}lp{0.30\linewidth}p{0.12\linewidth}p{0.17\linewidth}p{0.22\linewidth}@{}}
+\toprule
+Body & Product & Posting & Frame & Role \\
+\midrule
+Moon & PGDA product 78, Site01 \citep{barker2021} & 5 m & south polar stereographic & target windows, error clones \\
+Mars & USGS CTX DTMs \citep{laura2021} & 20 m & equirectangular & encoder training \\
+Earth & Copernicus GLO-30 \citep{airbus2022copernicus} & 1 arcsec & geographic & search windows, probe \\
+Earth & ESA WorldCover v200 \citep{zanaga2022} & 10 m & geographic & land cover mask \\
+Earth & UAVSAR Holuhraun scene \citep{rosen2006} & multilooked & slant range and ground range & radar audit \\
+Moon & Mini-RF south polar CPR mosaic \citep{nozette2010} & mosaic & south polar stereographic & radar audit \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Moon.} The lunar target is Site01 of the high resolution LOLA site products of
+\citet{barker2021}, the site that the provider names Connecting ridge. The product gives surface
+height at 5 m per pixel in south polar stereographic metres, the number of LOLA returns per pixel,
+the total height uncertainty, and 100 error clones of the elevation model. Pixels without a
+LOLA return are filled by interpolation in the provider's surface height, so we carry the observed
+fraction of each window beside its statistics. The Site01 extent is tiled with \ConfigWindowM\,m
+windows at a \ConfigStrideM\,m stride, giving \MoonWindowsGenerated{} windows, of which
+\MoonWindowsEligible{} pass the coverage rule. The primary target window is the eligible window
+that contains the centroid of the union of the provider's region of interest polygons. Its height
+grid is \MoonTargetValidPct\% valid, but only \MoonTargetObservedPct\% of its 5 m pixels hold a LOLA
+return; the rest is the provider's interpolation. A permanent shadow fraction is not reported,
+because no permanent shadow product was qualified for this window.
+
+\paragraph{Mars.} Martian terrain comes from the USGS Ames Stereo Pipeline CTX elevation models
+\citep{laura2021,beyer2018}, built from Context Camera stereo pairs \citep{malin2007}. Each model
+ships a quality file with the statistics of its CTX minus MOLA height differences after ground
+control \citep{smith2001}. Models whose standard deviation of that difference exceeds a threshold
+are dropped. The threshold starts at 10 m; Appendix~\ref{sec:appendix-data-analysis} reports how the
+distributions depend on it.
+
+\paragraph{Earth.} Earth elevation is the Copernicus GLO-30 digital surface model, read as cloud
+optimised GeoTIFFs from its public bucket. It is a surface model, so canopy and buildings are part
+of the height. We therefore keep only windows whose land cover in ESA WorldCover v200
+\citep{zanaga2022} is at least \ConfigMinAllowedPct\% bare or sparse vegetation, snow and ice,
+grassland or shrubland, with permanent water excluded. Land cover is sampled as the nearest class
+at the centres of the \ConfigGridM\,m analysis cells. Two regions are declared. The Holuhraun lava
+field in Iceland is clipped to the footprint of the UAVSAR scene and gives
+\HoluhraunWindowsGenerated{} windows, \HoluhraunWindowsEligible{} of them eligible. Rosamond Dry
+Lake in California is a terrain only region with \RosamondWindowsGenerated{} windows, of which
+\RosamondWindowsEligible{} are eligible and \RosamondWindowsRejected{} fail the land cover rule.
+Earth windows are cut in the local UTM zone with the same width and stride as on the Moon.
+
+\paragraph{Windows and resampling.} Every statistic is computed in metres inside each body's own
+frame, and lunar, Martian and terrestrial coordinates are never mixed. A window is resampled onto a
+square grid about its centre with an inverse spherical azimuthal equidistant projection
+\citep{snyder1987}. Pixel centres sit at $x_i = (i + \tfrac12)\Delta - W/2$ and
+$y_j = W/2 - (j + \tfrac12)\Delta$ for width $W$ and spacing $\Delta$. The spheres have the mean
+radii of the Moon, Mars and Earth (1737400, 3396190 and 6371008.8\,m). Each output
+pixel is a bilinear interpolation of its four source neighbours and is nodata if any neighbour is
+nodata. No other resampling is used, and the same code runs in Python and in the browser, where a
+parity test holds the two implementations to floating point error. The fingerprint uses a
+\ConfigGridM\,m grid; the encoder uses \ConfigInputPx{} by \ConfigInputPx{} pixels at
+\ConfigInputSpacing\,m.
+
+\paragraph{Splits.} Encoder data are split by space, never at random. The Moon is divided into
+longitude sectors, Martian models are grouped by 10 degree tiles, and Earth by 2 degree
+blocks. Training blocks that touch a test block are dropped, and every window that overlaps a
+target footprint or its 10 km buffer is excluded from training and from every probe. The split
+counts are reported with the dataset manifest in Section~\ref{sec:training}.

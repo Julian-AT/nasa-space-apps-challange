@@ -39,9 +39,10 @@ Conventions that hold for every function here:
   ``role = "context"``. No cross-band comparison is offered here.
 - Gate G1 (PRD 9) is recorded from pytest's own junit report by :func:`record_g1`, run as
   ``python -m terraluna_pipeline.polarimetry record-g1 --junit <path> --out <path>
-  [--pytest-command <command>] [--run-id <id>]``. The required tests are listed in
+  [--pytest-command <command>]``. The required tests are listed in
   ``fixtures/polarimetry/g1_required_tests.json``; no record is written by hand, and its notes
-  name the commands and the commit.
+  name the commands and the commit. The command, config version, input hashes and run_id
+  come from :mod:`terraluna_pipeline.provenance`.
 """
 
 from __future__ import annotations
@@ -67,7 +68,8 @@ import numpy as np
 import numpy.typing as npt
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
-from terraluna_pipeline.schema import GateRecord, GateStatus
+from terraluna_pipeline import provenance
+from terraluna_pipeline.schema import GateRecord, GateStatus, InputHash
 
 __all__ = [
     "ARITHMETIC_TOLERANCE",
@@ -2864,6 +2866,12 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 
 _G1_FIXTURES_DIR: Final = "fixtures/polarimetry"
 _G1_REQUIRED_TESTS: Final = "fixtures/polarimetry/g1_required_tests.json"
+_G1_RECORD: Final = "fixtures/polarimetry/g1-record.json"
+_CONFIG: Final = "config/run.yaml"
+_G1_JUNIT_PRODUCT: Final = "g1-junit-report"
+
+G1_CONFIG_PATH: Final = _REPO_ROOT / _CONFIG
+"""config/run.yaml, hashed into the record's ``config_version`` and ``run_id`` (PRD 8.13)."""
 
 G1_REQUIRED_TESTS_PATH: Final = _REPO_ROOT / _G1_REQUIRED_TESTS
 """The tests G1 requires, as function-level pytest node ids (read by :func:`record_g1`)."""
@@ -3177,7 +3185,7 @@ def _g1_scope(real_scene: Mapping[str, int]) -> str:
 
 
 def _g1_evidence_path(junit: Path) -> str:
-    """The junit path to record: relative inside the repository, absolute outside it.
+    """The junit path for the notes: relative inside the repository, absolute outside it.
 
     Inside the repository the report must lie under ``fixtures/polarimetry/``, the only place
     there that this gate's evidence may be kept.
@@ -3264,8 +3272,8 @@ def record_g1(
     out: str | os.PathLike[str],
     *,
     command: str,
-    run_id: str | None = None,
     pytest_command: str | None = None,
+    config_path: str | os.PathLike[str] = G1_CONFIG_PATH,
 ) -> GateRecord:
     """Write the G1 :class:`GateRecord` for a pytest junit report to ``out`` and return it.
 
@@ -3275,9 +3283,18 @@ def record_g1(
     required test that is absent, failed, skipped, xfailed or missing a listed case never gives
     PASS. ``command`` is this command's line to record, ``pytest_command`` the pytest command
     line that wrote the report (it must name the report with ``--junitxml``; null when not
-    given), and ``run_id`` stays null unless given.
+    given), and ``config_path`` is config/run.yaml.
 
-    The record holds ``gate_id`` G1, the status, ``evidence_path`` (the junit report), the
+    Provenance (PRD 8.12 as amended by PRD-01; PRD 8.13), all from :mod:`provenance`:
+    ``command``; ``config_version``, the SHA-256 of ``config_path`` as read;
+    ``input_hashes``, every repository file read (config/run.yaml, the required list and the
+    report when it lies under ``fixtures/polarimetry/``), sorted by path; and ``run_id``,
+    ``provenance.run_id`` over the config and the checksums of the required list and the
+    report. ``evidence_path`` is the report when it is a repository path, otherwise the
+    committed G1 record ``fixtures/polarimetry/g1-record.json``, whose ``result`` holds the
+    report's SHA-256 and counts; a report outside the repository is no repository path.
+
+    The record holds ``gate_id`` G1, the status, ``evidence_path``, the
     scope (stating whether the real-scene check was included), ``consequence`` (PRD 9's failure
     action unless PASS, else null) and ``result``. GateRecord has no notes field and its
     ``result`` is a string, so ``result`` holds a JSON object. Its ``notes`` are the
@@ -3296,8 +3313,6 @@ def record_g1(
     Raises :class:`G1InputError`, writing nothing, if an input cannot be read or trusted, and
     OSError if ``out`` cannot be written.
     """
-    if run_id is not None and (type(run_id) is not str or not run_id):
-        raise G1InputError("a run id must be a non-empty string")
     if type(command) is not str or not command:
         raise G1InputError("the command to record must be a non-empty string")
     junit_path = Path(junit)
@@ -3309,7 +3324,8 @@ def record_g1(
             f"the pytest command {pytest_command!r} does not write the junit report"
             f" {junit_path} (name it with --junitxml=<path>)"
         )
-    evidence_path = _g1_evidence_path(junit_path)
+    junit_name = _g1_evidence_path(junit_path)
+    junit_in_repository = not os.path.isabs(junit_name)
     if out_path.resolve() in {junit_path.resolve(), G1_REQUIRED_TESTS_PATH.resolve()}:
         raise G1InputError(f"the output path {out_path} would overwrite an input")
     if not out_path.parent.is_dir():
@@ -3324,6 +3340,21 @@ def record_g1(
     def ids_with(outcome: _G1Outcome) -> list[str]:
         return [nodeid for nodeid, (found, _) in outcomes.items() if found == outcome]
 
+    try:
+        config_version = provenance.config_version(Path(config_path))
+    except OSError as error:
+        raise G1InputError(f"cannot read the config {config_path}: {error}") from error
+    required_sha256 = hashlib.sha256(required_bytes).hexdigest()
+    junit_sha256 = hashlib.sha256(junit_bytes).hexdigest()
+    hashes = {_CONFIG: config_version, _G1_REQUIRED_TESTS: required_sha256}
+    if junit_in_repository:
+        hashes[junit_name] = junit_sha256
+    input_hashes = [InputHash(path=path, sha256=hashes[path]) for path in sorted(hashes)]
+    run_id = provenance.run_id(
+        Path(config_path),
+        [(_G1_REQUIRED_TESTS, required_sha256), (_G1_JUNIT_PRODUCT, junit_sha256)],
+    )
+
     commit, uncommitted_changes = _git_state(_REPO_ROOT)
     result = {
         "notes": {
@@ -3332,10 +3363,10 @@ def record_g1(
             "commit": commit,
             "uncommitted_changes": uncommitted_changes,
         },
-        "junit_sha256": hashlib.sha256(junit_bytes).hexdigest(),
+        "junit_sha256": junit_sha256,
         "junit_timestamps": timestamps,
         "required_tests": _G1_REQUIRED_TESTS,
-        "required_tests_sha256": hashlib.sha256(required_bytes).hexdigest(),
+        "required_tests_sha256": required_sha256,
         "fixtures": {key: _g1_counts(required.fixtures[key], outcomes) for key in _G1_FIXTURE_IDS},
         **{
             name: {key: _g1_counts(group[key], outcomes) for key in _G1_STORIES}
@@ -3353,11 +3384,14 @@ def record_g1(
     record = GateRecord(
         gate_id="G1",
         status=status,
-        evidence_path=evidence_path,
+        evidence_path=junit_name if junit_in_repository else _G1_RECORD,
         run_id=run_id,
         scope=_g1_scope(real_scene),
         result=json.dumps(result),
         consequence=None if status == "PASS" else G1_FAILURE_ACTION,
+        command=command,
+        config_version=config_version,
+        input_hashes=input_hashes,
     )
     out_path.write_text(record.model_dump_json(indent=2) + "\n", encoding="utf-8")
     return record
@@ -3391,7 +3425,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         help=f"pytest junit XML report, outside the repository or under {_G1_FIXTURES_DIR}/",
     )
     record.add_argument("--out", required=True, help="path of the GateRecord JSON to write")
-    record.add_argument("--run-id", default=None, help="run id to record (null when omitted)")
     record.add_argument(
         "--pytest-command",
         default=None,
@@ -3401,13 +3434,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         ),
     )
     args = parser.parse_args(arguments)
-    command = shlex.join(["python", "-m", "terraluna_pipeline.polarimetry", *arguments])
+    command = provenance.command_line("terraluna_pipeline.polarimetry", arguments)
     try:
         gate = record_g1(
             args.junit,
             args.out,
             command=command,
-            run_id=args.run_id,
             pytest_command=args.pytest_command,
         )
     except (G1InputError, OSError) as error:

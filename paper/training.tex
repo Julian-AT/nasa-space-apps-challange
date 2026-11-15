@@ -1,2 +1,33 @@
 \section{Training}
 \label{sec:training}
+
+This section describes the training protocol and reports the training record. Every number in it
+is a generated macro; a value that the training record does not contain yet is printed as
+\NotAvailable{} rather than estimated.
+
+\paragraph{Data and batching.} Training windows are drawn from the training blocks of the spatial
+split of Section~\ref{sec:data}, with each batch balanced so that each body contributes a third of
+its windows. The dataset manifest lists \DatasetMoonWindows{} lunar, \DatasetMarsWindows{}
+Martian and \DatasetEarthWindows{} terrestrial windows, and \DatasetTestWindows{} windows in the
+test blocks. Physics targets are computed for every window by the same fingerprint code that ranks
+candidates (Section~\ref{sec:fingerprint}) and standardised with statistics of the training blocks
+only. Morphology labels, the crater densities of the lunar and Martian crater catalogues
+\citep{robbins2019,robbins2012}, are used by the probes only and never in training.
+
+\paragraph{Hardware and schedule.} No GPU cluster was available. Training ran on one
+\TrainDevice{} at a reduced scope, for \TrainEpochs{} epochs with batches of \TrainBatch{}
+windows, and took \TrainHours{} hours of wall clock time as logged by the training run. The
+planned grid covers seeds \ConfigSeeds{} of the main configuration and the adversarial weights
+\ConfigLambdas; Section~\ref{sec:results-variations} lists which runs exist.
+
+\paragraph{Optimiser.} We use AdamW \citep{loshchilov2017} with a learning rate scaled linearly
+with the batch size after a warm up \citep{goyal2017}, cosine decay \citep{loshchilov2016} and
+decoupled weight decay. The adversarial weight follows the schedule of Equation~\eqref{eq:total}.
+Model selection uses validation blocks only; the test blocks are read once, after the
+configuration is frozen, by a logged command.
+
+\paragraph{Augmentation and regularisation.} The views of Section~\ref{sec:architecture} are the
+only augmentation. They contain no amplitude or scale change, because the physics targets must be
+identical for both views of a window. VICReg's variance and covariance terms regularise the
+embedding against collapse \citep{bardes2021}, and the masked physics loss acts as a supervised
+regulariser that ties the embedding to the fingerprint.

@@ -1,0 +1,5 @@
+ne_110m_land.geojson: Natural Earth 110m physical vectors, "Land" (public domain).
+Original provider: https://www.naturalearthdata.com/downloads/110m-physical-vectors/110m-land/
+Fetched as GeoJSON from Natural Earth's own repository:
+https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_land.geojson
+Used only to draw coastlines on the Earth candidate globe (no third-party basemap).

@@ -14,7 +14,9 @@
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p server/api",
     "test": "vitest run",
-    "test:parity": "vitest run --config vitest.parity.config.ts"
+    "test:parity": "vitest run --config vitest.parity.config.ts",
+    "e2e:install": "playwright install chromium",
+    "e2e": "node scripts/bundle-pull.ts && next build && playwright test"
   },
   "dependencies": {
     "@deck.gl/core": "9.4.1",

@@ -52,6 +52,9 @@ def gate(gate_id: str = "G0", **overrides: Any) -> dict[str, Any]:
         "scope": None,
         "result": None,
         "consequence": None,
+        "command": None,
+        "config_version": None,
+        "input_hashes": [],
     }
     record.update(overrides)
     return record
@@ -608,7 +611,7 @@ def test_missing_validation_json_is_reported(tmp_path: Path) -> None:
 
 
 def test_gate_listed_twice_is_reported(tmp_path: Path) -> None:
-    records = [*gates(), gate("G3", status="PASS")]
+    records = [*gates(), gate("G3", scope="a second G3 record")]
     bundle = make_bundle(tmp_path, files({"validation.json": records}))
     errors = validate_bundle(bundle, production=False)
     assert codes(errors) == [("gate_listed_twice", "validation.json")]

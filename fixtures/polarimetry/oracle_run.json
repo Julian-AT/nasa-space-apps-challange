@@ -1,8 +1,8 @@
 {
   "code_sha256": {
-    "pipeline/src/terraluna_pipeline/polarimetry.py": "afd978010c3d2025c6d7c694e73c5b51d5b39ea030cd72cbb0ca4cc7d74ddba6",
+    "pipeline/src/terraluna_pipeline/polarimetry.py": "5dac1c5d14c10639d2159d7c0a19ab43845fdaafc221a9e55ad63d558be5eace",
     "pipeline/tests/polarimetry/oracle.py": "5041ae128f7bee272ec7e4e25f39ee547f8d423bbf9a806904346fb74fbf18d1",
-    "pipeline/tests/test_polarimetry_oracle.py": "9f131d1f1d6ba283f88db1969e97a1c0f6b2f531cbf4cb0699c83ce609197a15"
+    "pipeline/tests/test_polarimetry_oracle.py": "b124908c056ce5f1b934ca7f49b2b145a5afea1d2d28f4fecc07151d8cda6952"
   },
   "declarations": {
     "conventions": "fixtures/polarimetry/oracle_conventions.json",

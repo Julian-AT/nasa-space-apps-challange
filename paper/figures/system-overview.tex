@@ -1,0 +1,36 @@
+\begin{figure}[tbp]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  % Offline Python
+  \node[python=6.0cm] (pipe) at (-4.4,0) {\texttt{terraluna\_pipeline}\\fingerprints, comparisons, cards, tiles};
+  \node[python=6.0cm] (ml) at (4.4,0) {\texttt{terraluna\_ml}\\encoder ONNX, embeddings, metrics};
+  \node[group, fit=(pipe)(ml), label={[font=\footnotesize,anchor=south west]north west:offline Python}] (pygrp) {};
+
+  % Release bundle
+  \node[bundle=8.4cm] (bundle) at (0,-2.5) {release bundle\\versioned, checksummed};
+
+  % Hosting
+  \node[hosting=6.0cm] (store) at (-4.4,-4.7) {object storage and CDN};
+  \node[hosting=6.0cm, notdone] (hf) at (4.4,-4.7) {Hugging Face Hub mirror\\(model and dataset, cut)};
+  \node[hosting=6.0cm] (vercel) at (-4.4,-6.9) {Next.js 16 on Vercel\\pages, Hono \texttt{/api/v1}, \texttt{/api/docs}};
+  \node[external=4.6cm] (cop) at (4.4,-6.9) {Copernicus GLO-30\\COG range reads};
+
+  % Browser
+  \node[browser=3.8cm] (deck) at (-4.4,-9.6) {\texttt{deck.gl} maps};
+  \node[browser=3.8cm, notdone] (r3f) at (0,-9.6) {React Three Fiber\\twins (cut)};
+  \node[browser=3.8cm] (work) at (4.4,-9.6) {Web Worker\\\texttt{@terraluna/core},\\ONNX Runtime Web};
+  \node[group, fit=(deck)(r3f)(work), label={[font=\footnotesize,anchor=north west]south west:visitor's browser}] (brgrp) {};
+
+  % Arrows
+  \draw[flow] (pipe.south) -- ++(0,-0.5) -| ([xshift=-1.5cm]bundle.north);
+  \draw[flow] (ml.south) -- ++(0,-0.5) -| ([xshift=1.5cm]bundle.north);
+  \draw[flow] ([xshift=-1.5cm]bundle.south) -- ++(0,-0.5) -| (store.north);
+  \draw[flowdashed] ([xshift=1.5cm]bundle.south) -- ++(0,-0.5) -| (hf.north);
+  \draw[flow] (store.south) -- node[flowlabel, right=2pt] {reads bundle} (vercel.north);
+  \draw[flow] (vercel.south) -- node[flowlabel, right=2pt] {pages and API} (deck.north);
+  \draw[flow] (cop.west) -- node[flowlabel, above=1pt] {via \texttt{/api/v1/dem}} (vercel.east);
+  \draw[flow] (work.north) -- node[flowlabel, right=2pt] {direct} (cop.south);
+\end{tikzpicture}
+\caption{System overview. The offline Python stages \texttt{terraluna\_pipeline} and \texttt{terraluna\_ml} write one versioned, checksummed release bundle, which is the only interface between them and the web. The bundle is published to object storage and a content delivery network, and Next.js 16 on Vercel reads it. No Python runs in the request path. The visitor's browser shows maps and runs the live probe in a Web Worker, which reads Copernicus GLO-30 cloud optimized GeoTIFF ranges directly or through the \texttt{/api/v1/dem} proxy. Solid arrows show data flow. Dashed outlines mark components that are not done: the Hugging Face Hub mirror (cut: its publication is a human checkpoint that did not happen) and the React Three Fiber twins (cut).}
+\label{fig:system-overview}
+\end{figure}

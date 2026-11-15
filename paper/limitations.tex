@@ -1,2 +1,43 @@
 \section{Limitations}
 \label{sec:limitations}
+
+\paragraph{Scale range.} The fingerprint covers lags of \ConfigLags\,m inside
+\ConfigWindowM\,m windows on a \ConfigGridM\,m grid. It says nothing about the decimetre to metre
+roughness that governs walking, driving or radar scattering, and the Hurst exponent describes only
+that range of lags. Roughness is scale dependent \citep{shepard2001,kreslavsky2013}, so agreement
+at hectometre lags does not imply agreement at the scale of a boot or a wheel, and no continuous
+roughness spectrum is measured. No contact scale property, such as block size, soil strength or
+trafficability, is inferred.
+
+\paragraph{The lunar target is largely interpolated.} Only \MoonTargetObservedPct\% of the 5 m
+pixels of the target window hold a LOLA return; the rest is the provider's interpolation between
+tracks \citep{barker2021}. At the \ConfigGridM\,m analysis grid almost every cell contains a
+return, but the short lag statistics of the target still depend on the interpolation. The
+provider's error clones measure this uncertainty, and they were not yet propagated to the
+distances reported here.
+
+\paragraph{Earth surface model.} Copernicus GLO-30 is a digital surface model, so canopy, buildings
+and snow are part of the height \citep{airbus2022copernicus}. The land cover mask removes windows
+that are mostly vegetated, built up or water, but it is a single year of a land cover product at
+the analysis cell centres. Surface change since the elevation was acquired, seasonal snow and
+moisture were not checked.
+
+\paragraph{Mars.} The Martian elevation models are stereo products whose quality varies
+\citep{beyer2018}; models are filtered by their CTX minus MOLA height differences, and stereo
+artefacts that survive the filter can mimic roughness. The Martian target windows were not frozen
+in time, so no Mars retrieval is reported.
+
+\paragraph{Radar.} The radar comparison was not completed. The Mini-RF mosaic mixes viewing
+geometries and states no transmit handedness, the UAVSAR handedness convention is not verified, and
+the conversion gate is partial. Even a completed comparison would face a band difference and the
+ambiguity that CPR is not monotonic with rock abundance \citep{riveravalentin2026}.
+
+\paragraph{Search universe and independence.} Two regions were searched, and overlapping windows
+on a half window stride are not independent samples. A short distance makes an Earth window a
+candidate for interpreting the lunar signature under these observables, not a confirmed analog,
+and a window that was not evaluated is not a negative.
+
+\paragraph{The encoder.} No GPU cluster was available, so the encoder is limited to the reduced
+scope of Section~\ref{sec:training}, and its promotion gate is \GateFiveStatus. It is reported as experimental, labelled
+Predicted, and kept out of every ranking. Its probes test agreement with our own fingerprint and
+with crater densities; they do not show that it captures geology.

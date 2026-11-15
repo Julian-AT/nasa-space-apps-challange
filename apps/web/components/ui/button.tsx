@@ -13,7 +13,7 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap no-underline transition-colors select-none motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap no-underline transition-colors select-none motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -27,10 +27,10 @@ const buttonVariants = cva(
         link: 'text-primary underline underline-offset-4',
       },
       size: {
-        default: 'h-8 px-2.5',
-        xs: 'h-6 gap-1 rounded-md px-2 text-xs',
-        sm: 'h-7 gap-1 rounded-md px-2.5 text-[0.8rem]',
-        lg: 'h-9 px-2.5',
+        default: 'h-9 px-4',
+        xs: 'h-6 gap-1 px-2.5 text-xs',
+        sm: 'h-8 gap-1 px-3 text-[0.8rem]',
+        lg: 'h-11 px-6',
       },
     },
     defaultVariants: {

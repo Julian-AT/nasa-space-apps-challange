@@ -32,6 +32,17 @@ make web-dev            # Next.js dev server on the pulled bundle
 actionlint .github/workflows/ci.yml
 ```
 
+The real evidence cards and bundle (Mode C, terrain only) were built with these commands on 15 November 2026. `TERRALUNA_RAW_DIR` points at the raw downloads (PGDA78 Site01, Copernicus GLO-30 and WorldCover tiles), kept outside the repository:
+
+```
+TERRALUNA_RAW_DIR=<raw dir> uv run python -m terraluna_pipeline.realcard search --also-card earth-utm27n-e280-n2880
+uv run python -m terraluna_pipeline.gates merge        # the only writer of outputs/validation.json
+uv run python -m terraluna_pipeline.export cards       # plus --target-window/--earth-window for the G0-05 pair
+uv run python -m terraluna_pipeline.figures cards      # figures A to C, then export cards again
+make bundle                                            # stage, version and assemble release/<version>/ from a clean tree
+uv run python -m terraluna_pipeline.export validate release/<version> --production --contracts
+```
+
 [CI](.github/workflows/ci.yml) runs the jobs `py` (`make setup-py check-py test-py`), `ts` (`make setup-ts check-ts test-ts`), `schema` (`make schema-check mock-bundle-check`) and `commitlint` (the pull request's commits) on pull requests and on pushes to `main`. CI has not run on GitHub yet. [apps/web/README.md](apps/web/README.md) explains how the web app selects its bundle and how the Vercel preview is deployed.
 
 ## Optional references

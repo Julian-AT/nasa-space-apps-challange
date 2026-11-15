@@ -1,0 +1,735 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "GpuHours": {
+      "additionalProperties": false,
+      "description": "GPU hours per run. When any run's hours are null, the total is null or marked partial.",
+      "properties": {
+        "runs": {
+          "items": {
+            "$ref": "#/$defs/GpuRun"
+          },
+          "title": "Runs",
+          "type": "array"
+        },
+        "total_hours": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Total Hours"
+        },
+        "partial": {
+          "title": "Partial",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "runs",
+        "total_hours",
+        "partial"
+      ],
+      "title": "GpuHours",
+      "type": "object"
+    },
+    "GpuRun": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "hours": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "hours"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "GPU hours of one run; null hours need a reason (missing is never 0).",
+      "properties": {
+        "run_name": {
+          "minLength": 1,
+          "title": "Run Name",
+          "type": "string"
+        },
+        "hours": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Hours"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "run_name",
+        "hours",
+        "reason",
+        "source"
+      ],
+      "title": "GpuRun",
+      "type": "object"
+    },
+    "IntervalValue": {
+      "additionalProperties": false,
+      "description": "A value with its 95% interval; all three null when unavailable.",
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci High"
+        }
+      },
+      "required": [
+        "value",
+        "ci_low",
+        "ci_high"
+      ],
+      "title": "IntervalValue",
+      "type": "object"
+    },
+    "LossEpoch": {
+      "additionalProperties": false,
+      "description": "One epoch of one loss term, over the seeds: mean, min and max of the per-seed values.",
+      "properties": {
+        "epoch": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Epoch",
+          "type": "integer"
+        },
+        "mean": {
+          "title": "Mean",
+          "type": "number"
+        },
+        "min": {
+          "title": "Min",
+          "type": "number"
+        },
+        "max": {
+          "title": "Max",
+          "type": "number"
+        },
+        "n_seeds": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "title": "N Seeds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "epoch",
+        "mean",
+        "min",
+        "max",
+        "n_seeds"
+      ],
+      "title": "LossEpoch",
+      "type": "object"
+    },
+    "LossTerm": {
+      "additionalProperties": false,
+      "description": "The curve of one loss term, epochs strictly increasing.",
+      "properties": {
+        "term": {
+          "minLength": 1,
+          "title": "Term",
+          "type": "string"
+        },
+        "epochs": {
+          "items": {
+            "$ref": "#/$defs/LossEpoch"
+          },
+          "title": "Epochs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "term",
+        "epochs"
+      ],
+      "title": "LossTerm",
+      "type": "object"
+    },
+    "MetricBaseline": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "A baseline compared with the encoder on one test (PRD 11.6), with the paired bootstrap\ninterval of the difference. A missing value is null with its reason; a baseline with a\nvalue may still give a reason, for example for a paired interval that was not computed.",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci High"
+        },
+        "paired_diff_ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Paired Diff Ci Low"
+        },
+        "paired_diff_ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Paired Diff Ci High"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unavailable Reason"
+        }
+      },
+      "required": [
+        "name",
+        "value",
+        "ci_low",
+        "ci_high",
+        "paired_diff_ci_low",
+        "paired_diff_ci_high",
+        "unavailable_reason"
+      ],
+      "title": "MetricBaseline",
+      "type": "object"
+    },
+    "MetricRecord": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "null"
+              },
+              "n_blocks": {
+                "type": "integer"
+              },
+              "n_bootstrap": {
+                "type": "integer"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          },
+          "then": {
+            "properties": {
+              "unavailable_reason": {
+                "type": "string"
+              },
+              "n_blocks": {
+                "type": "null"
+              },
+              "n_bootstrap": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One measured test result with its 95% bootstrap interval over spatial blocks (PRD 11.6;\nreview-ml #40). Always Predicted.\n\n``value`` is null exactly when ``unavailable_reason`` is set, so missing is never zero, and\n``n_blocks`` and ``n_bootstrap`` are null exactly when ``value`` is; a value comes from at\nleast one block and one resample. Only ``ci_low <= ci_high`` is checked: a percentile\ninterval may exclude the point estimate.",
+      "properties": {
+        "test_id": {
+          "enum": [
+            "physics_probe",
+            "morphology_probe",
+            "body_invariance",
+            "physics_agreement",
+            "target_retrieval",
+            "seed_stability",
+            "held_out_body",
+            "out_of_distribution"
+          ],
+          "title": "Test Id",
+          "type": "string"
+        },
+        "measure": {
+          "minLength": 1,
+          "title": "Measure",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Target"
+        },
+        "body": {
+          "anyOf": [
+            {
+              "enum": [
+                "moon",
+                "mars",
+                "earth",
+                "pooled"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Body"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "ci_low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci Low"
+        },
+        "ci_high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ci High"
+        },
+        "n_blocks": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Blocks"
+        },
+        "n_bootstrap": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Bootstrap"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unavailable Reason"
+        },
+        "evidence_label": {
+          "const": "Predicted",
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "baselines": {
+          "items": {
+            "$ref": "#/$defs/MetricBaseline"
+          },
+          "title": "Baselines",
+          "type": "array"
+        }
+      },
+      "required": [
+        "test_id",
+        "measure",
+        "target",
+        "body",
+        "value",
+        "ci_low",
+        "ci_high",
+        "n_blocks",
+        "n_bootstrap",
+        "unavailable_reason",
+        "evidence_label",
+        "baselines"
+      ],
+      "title": "MetricRecord",
+      "type": "object"
+    },
+    "TradeoffPoint": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "reason": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "One lambda_max of the physics/body-probe tradeoff curve (PRD 11.9).",
+      "properties": {
+        "lambda_max": {
+          "minimum": 0,
+          "title": "Lambda Max",
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "available",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "body_probe_balanced_accuracy": {
+          "$ref": "#/$defs/IntervalValue"
+        },
+        "physics_r2": {
+          "$ref": "#/$defs/IntervalValue"
+        }
+      },
+      "required": [
+        "lambda_max",
+        "status",
+        "reason",
+        "body_probe_balanced_accuracy",
+        "physics_r2"
+      ],
+      "title": "TradeoffPoint",
+      "type": "object"
+    },
+    "ValidationProbeMetrics": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "reason": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unavailable"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "string"
+              },
+              "metrics": {
+                "items": {
+                  "type": "null"
+                },
+                "maxItems": 0,
+                "type": "array"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Probe metrics on the validation split; Unavailable with a reason and no metrics.",
+      "properties": {
+        "status": {
+          "enum": [
+            "available",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/MetricRecord"
+          },
+          "title": "Metrics",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status",
+        "reason",
+        "metrics"
+      ],
+      "title": "ValidationProbeMetrics",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "report/curves.json (PRD 11.9; contract name Curves). Ablations live in MetricsFile.",
+  "properties": {
+    "mock": {
+      "title": "Mock",
+      "type": "boolean"
+    },
+    "run_id": {
+      "anyOf": [
+        {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Run Id"
+    },
+    "loss_terms": {
+      "items": {
+        "$ref": "#/$defs/LossTerm"
+      },
+      "title": "Loss Terms",
+      "type": "array"
+    },
+    "gpu_hours": {
+      "$ref": "#/$defs/GpuHours"
+    },
+    "tradeoff": {
+      "items": {
+        "$ref": "#/$defs/TradeoffPoint"
+      },
+      "title": "Tradeoff",
+      "type": "array"
+    },
+    "chance_level_body_probe": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Chance Level Body Probe",
+      "type": "number"
+    },
+    "validation_probe_metrics": {
+      "$ref": "#/$defs/ValidationProbeMetrics"
+    }
+  },
+  "required": [
+    "mock",
+    "run_id",
+    "loss_terms",
+    "gpu_hours",
+    "tradeoff",
+    "chance_level_body_probe",
+    "validation_probe_metrics"
+  ],
+  "title": "CurvesFile",
+  "type": "object"
+}

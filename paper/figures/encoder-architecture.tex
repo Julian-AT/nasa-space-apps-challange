@@ -1,0 +1,30 @@
+\begin{figure}[tbp]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \node[external=3.0cm] (in) at (0,0) {window, three channels\\$\operatorname{asinh}(z/s)$, slope, valid mask};
+  \node[python=3.0cm] (stem) at (0,-1.45) {stem convolution\\stride one};
+  \node[python=3.0cm] (stages) at (0,-2.9) {four residual stages\\widths 32, 64, 128, 256};
+  \node[python=3.0cm] (pool) at (0,-4.35) {global average pooling};
+  \node[bundle=3.0cm] (emb) at (0,-5.8) {embedding $h$\\L2 normalised for retrieval};
+  \node[hosting=3.3cm] (proj) at (-4.6,-7.6) {projector MLP\\VICReg loss $\mathcal{L}_{\mathrm{V}}$};
+  \node[hosting=3.3cm] (phys) at (0,-7.6) {physics head MLP\\masked loss $\mathcal{L}_{\mathrm{phys}}$};
+  \node[browser=3.3cm] (grl) at (4.6,-5.8) {gradient reversal\\scale $\lambda$};
+  \node[hosting=3.3cm] (body) at (4.6,-7.6) {body head MLP\\cross entropy $\mathcal{L}_{\mathrm{body}}$};
+  \node[group, fit=(stem)(stages)(pool)(emb), label={[font=\footnotesize,anchor=south west]north west:exported backbone}] {};
+  \draw[flow] (in) -- (stem);
+  \draw[flow] (stem) -- (stages);
+  \draw[flow] (stages) -- (pool);
+  \draw[flow] (pool) -- (emb);
+  \draw[flow] (emb.south) -- ++(0,-0.35) -| (proj.north);
+  \draw[flow] (emb.south) -- (phys.north);
+  \draw[flow] (emb.east) -- (grl.west);
+  \draw[flow] (grl) -- (body);
+\end{tikzpicture}
+\caption{Encoder architecture. A ResNet style backbone at half width maps a
+\ConfigInputPx{} by \ConfigInputPx{} window with three channels to a \ConfigEmbeddingDim{} value
+embedding. Three heads train it: a projector for the VICReg loss on two views of one window, a
+physics head that regresses the fingerprint of Section~\ref{sec:fingerprint}, and a body head
+behind a gradient reversal layer that is trained to predict the body while the backbone is pushed
+not to encode it. Only the backbone is exported; the heads are used in training only.}
+\label{fig:encoder}
+\end{figure}

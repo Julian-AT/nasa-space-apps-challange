@@ -7,12 +7,15 @@ import { describe, expect, it } from 'vitest';
 import type { ZodType } from 'zod';
 
 import {
+  BackgroundSchema,
   BundleManifestSchema,
   CardRecordSchema,
   ComparisonRecordSchema,
   ComparisonsSchema,
+  CurvesSchema,
   EmbeddingRecordSchema,
   EmbeddingsIndexSchema,
+  ExamplesSchema,
   FingerprintRecordSchema,
   GateRecordSchema,
   MetricsSchema,
@@ -20,6 +23,7 @@ import {
   ProductRecordSchema,
   SourcesSchema,
   TargetsSchema,
+  UmapHeaderSchema,
   ValidationSchema,
   WindowRecordSchema,
   WindowsSchema,
@@ -56,6 +60,10 @@ const SCHEMAS: ReadonlyMap<string, ZodType> = new Map<string, ZodType>([
   ['Metrics', MetricsSchema],
   ['EmbeddingRecord', EmbeddingRecordSchema],
   ['EmbeddingsIndex', EmbeddingsIndexSchema],
+  ['Curves', CurvesSchema],
+  ['UmapHeader', UmapHeaderSchema],
+  ['Examples', ExamplesSchema],
+  ['Background', BackgroundSchema],
 ]);
 
 const CASE_KEYS = ['name', 'schema', 'valid', 'value'];
