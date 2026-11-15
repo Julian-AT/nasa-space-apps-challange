@@ -1,9 +1,13 @@
 import type { NextConfig } from 'next';
 
+import { securityHeaders } from './lib/headers.ts';
+
 const nextConfig: NextConfig = {
   // @terraluna/schema exports its TypeScript source (packages/schema/src/index.ts).
   transpilePackages: ['@terraluna/schema'],
   poweredByHeader: false,
+  // CSP on every route; COOP and COEP on /probe and /explore/earth only (lib/headers.ts).
+  headers: () => Promise.resolve(securityHeaders(process.env)),
   reactStrictMode: true,
   // next dev otherwise writes apps/web/AGENTS.md when it detects a coding agent. The repository's
   // agent instructions are the root CLAUDE.md and AGENTS.md (PRD 23).
@@ -16,7 +20,7 @@ const nextConfig: NextConfig = {
   // Next 16 docs (next.config.js output, outputFileTracingIncludes); the values are globs from
   // this project's directory. Only the API route gets them: the / page is static.
   outputFileTracingIncludes: {
-    '/api/\\[\\[\\.\\.\\.route\\]\\]': ['./data/**/*.json'],
+    '/api/\\[\\[\\.\\.\\.route\\]\\]': ['./data/**/*.json', './data/**/*.svg'],
   },
 };
 
