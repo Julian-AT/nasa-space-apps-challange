@@ -132,7 +132,9 @@ describe('determinism and worker safety', () => {
       const text = readFileSync(join(dir, file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
       expect(text, file).not.toMatch(/from ['"](node:|fs|path|process)/);
       expect(text, file).not.toMatch(/\b(window|document|localStorage|process)\./);
-      expect(text, file).not.toMatch(/Float32Array/);
+      // encoder.ts casts to float32 once, in toOnnxInput, for the ONNX input tensor only.
+      if (file !== 'encoder.ts') expect(text, file).not.toMatch(/Float32Array/);
+      else expect(text.match(/Float32Array/g)).toHaveLength(2);
     }
   });
 });
