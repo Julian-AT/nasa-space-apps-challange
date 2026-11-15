@@ -131,7 +131,8 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                 { big: 'By eye', unit: 'how analogs are picked', caption: 'Chosen by experience, not by one shared terrain measure.' },
                 { big: 'Any', unit: 'point on Earth', caption: 'Terraluna measures it live in the browser, in seconds.' },
               ].map((c, k) => (
-                <In key={c.unit} d={0.2 + k * 0.08} className="flex flex-col gap-2 border-t pt-5" >
+                <In key={c.unit} d={0.2 + k * 0.08} className="flex flex-col gap-2 border-t pt-5">
+                  <span className="mb-2 size-2 rounded-full" style={{ background: [C.orange, C.green, C.blue][k] }} />
                   <span className="text-[3.5rem] font-medium leading-none tracking-[-0.03em]">{c.big}</span>
                   <span className="mt-1 text-lg">{c.unit}</span>
                   <span className="max-w-[22rem] text-base leading-snug" style={{ color: FAINT }}>{c.caption}</span>
