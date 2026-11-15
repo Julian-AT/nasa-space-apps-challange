@@ -375,15 +375,26 @@ def _source(name: str, sources: Mapping[str, Source] | None) -> Source:
     return registry[name]
 
 
+def raw_directory(source: Source) -> str:
+    """The directory under data/raw/ that holds a source's fetch.
+
+    A source may name it with a ``raw_directory`` attribute (wc: ``worldcover``); otherwise it
+    is the source's name.
+    """
+    return _safe_file_name(str(getattr(source, "raw_directory", source.name)), "a pilot source")
+
+
 def _raw_dir(root: Path, name: str) -> Path:
     return root / RAW_DIR / name
 
 
-def _require_raw(root: Path, name: str) -> Path:
-    raw_dir = _raw_dir(root, name)
+def _require_raw(root: Path, source: Source) -> Path:
+    directory = raw_directory(source)
+    raw_dir = _raw_dir(root, directory)
     if not (raw_dir / FETCH_METADATA).is_file():
         raise MissingRawDataError(
-            f"data/raw/{name}/ holds no complete fetch; run: {COMMAND} fetch {name} first"
+            f"data/raw/{directory}/ holds no complete fetch; run: {COMMAND} fetch "
+            f"{source.name} first"
         )
     return raw_dir
 
@@ -397,9 +408,9 @@ def fetch(
     read_range: RangeFetcher | None = None,
     now: Clock | None = None,
 ) -> None:
-    """Download ``name``'s files into data/raw/<name>/; the only command using the network."""
+    """Download ``name``'s files into its data/raw/ directory; the only networked command."""
     source = _source(name, sources)
-    raw_dir = _raw_dir(Path.cwd() if root is None else root, name)
+    raw_dir = _raw_dir(Path.cwd() if root is None else root, raw_directory(source))
     source.fetch(
         raw_dir,
         fetch_file if download is None else download,
@@ -459,7 +470,7 @@ def expected_outputs(
     """
     base = Path.cwd() if root is None else root
     source = _source(name, sources)
-    build = source.build(_require_raw(base, name), base)
+    build = source.build(_require_raw(base, source), base)
     files = dict(build.files)
     sources_path = base / SOURCES_PATH
     existing = sources_path.read_bytes() if sources_path.is_file() else None
@@ -544,6 +555,7 @@ def main(
     parser.add_argument("source", choices=sorted(registry))
     args = parser.parse_args(argv)
     command, name = str(args.command), str(args.source)
+    raw = f"data/raw/{raw_directory(registry[name])}/"
     try:
         if command == "fetch":
             fetch(
@@ -554,25 +566,24 @@ def main(
                 read_range=read_range,
                 now=now,
             )
-            print(f"{name}: fetched into data/raw/{name}/")
+            print(f"{name}: fetched into {raw}")
         elif command == "record":
             changed = record(name, root=root, sources=registry)
             base = Path.cwd() if root is None else root
             for path in changed:
                 print(f"wrote {path.relative_to(base).as_posix()}")
-            print(f"{name}: outputs recorded from data/raw/{name}/ ({len(changed)} changed)")
+            print(f"{name}: outputs recorded from {raw} ({len(changed)} changed)")
         else:
             differences = check(name, root=root, sources=registry)
             if differences:
                 for difference in differences:
                     print(difference, file=sys.stderr)
                 print(
-                    f"{name}: committed outputs differ from data/raw/{name}/; "
-                    f"run: {COMMAND} record {name}",
+                    f"{name}: committed outputs differ from {raw}; run: {COMMAND} record {name}",
                     file=sys.stderr,
                 )
                 return 1
-            print(f"{name}: committed outputs match data/raw/{name}/")
+            print(f"{name}: committed outputs match {raw}")
     except (PilotError, DownloadError, RangeReadError, OSError, ValueError) as error:
         print(f"{command} {name}: {error}", file=sys.stderr)
         return 1
@@ -5780,11 +5791,694 @@ class Cop30Source:
         }
 
 
+# --- wc: ESA WorldCover, one window around the T1-06 area -------------------------------------
+
+_WORLDCOVER_PREFIX: Final = "WorldCover/"
+WORLDCOVER_MAX_WINDOW_PIXELS: Final = 512
+"""The largest side, in pixels, of the WorldCover window this story reads (T1-07)."""
+_WORLDCOVER_TILE: Final = re.compile(r"[NS][0-9]{2}[EW][0-9]{3}")
+_GEOJSON_MAGIC: Final = (b"{",)
+_LEGEND_LINE: Final = re.compile(r"([0-9]+)\s+(\S.*?)\s*")
+_WORLDCOVER_YEAR_REASON: Final = (
+    "v200 (2021) is pinned: the bucket holds two releases, v100 (2020) and v200 (2021), and the "
+    "pilot reads the later one. PRD 5 row 12 asks for one pinned year; the pin is a pilot choice. "
+    "Neither year is the date of a radar acquisition (the Holuhraun UAVSAR scene of PRD 5 is from "
+    "May 2015), so the map states land cover in 2021, not on any radar date"
+)
+_WORLDCOVER_TILE_RULE: Final = (
+    "the tile of the pinned release's tiling grid (esa_worldcover_grid.geojson, saved by fetch) "
+    "whose 3 x 3 degree square holds the T1-06 window centre, west and south edges inclusive; "
+    "the T1-06 window's geographic bounds must lie inside it, because the pilot reads one tile"
+)
+_WORLDCOVER_WINDOW_RULE: Final = (
+    "area_pixel_window holds every map pixel whose cell, as the COG's geotransform defines it, "
+    "intersects the T1-06 window's geographic bounds. The read window takes at most "
+    "max_window_pixels columns and rows of it: centred on the T1-06 centre's pixel (offset by "
+    "half the window side, rounded down) and shifted, if needed, to stay inside "
+    "area_pixel_window. fraction_of_area_window is the pixel count read over the pixel count of "
+    "area_pixel_window"
+)
+_BARE_GROUND_CAVEAT: Final = (
+    "a pixel of the bare/sparse vegetation class does not establish dry bare mineral soil on the "
+    "radar acquisition date (PRD 5 row 12): the class is the map's label for the pinned year, "
+    "and says nothing about moisture, snow on the radar date or surface change since"
+)
+
+
+def parse_worldcover_legend(text: str) -> list[dict[str, Any]]:
+    """The class codes and names of a WorldCover ``legend`` tag, in the order it states them.
+
+    Each non-blank line is a code, whitespace and the name. Raises PilotError on any other line
+    or a repeated code, so a name is never guessed.
+    """
+    legend: list[dict[str, Any]] = []
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        match = _LEGEND_LINE.fullmatch(line.strip())
+        if match is None:
+            raise PilotError(f"the legend line {line!r} is not a class code and a name")
+        legend.append({"code": int(match[1]), "name": match[2]})
+    codes = [entry["code"] for entry in legend]
+    if len(set(codes)) != len(codes):
+        raise PilotError("the legend states a class code more than once")
+    return legend
+
+
+def worldcover_grid_tiles(data: Any) -> dict[str, tuple[float, float, float, float]]:
+    """The tiles of a WorldCover tiling grid GeoJSON: ``ll_tile`` -> (west, south, east, north).
+
+    Every feature must be a Polygon whose ring is an axis-aligned rectangle (the grid's 3 x 3
+    degree squares) with a tile name such as ``N63W018``; anything else raises PilotError.
+    """
+    if not isinstance(data, dict) or not isinstance(data.get("features"), list):
+        raise PilotError("the WorldCover grid is not a GeoJSON FeatureCollection")
+    tiles: dict[str, tuple[float, float, float, float]] = {}
+    for feature in data["features"]:
+        try:
+            name = feature["properties"]["ll_tile"]
+            geometry = feature["geometry"]
+            (ring,) = geometry["coordinates"]
+            points = [(float(x), float(y)) for x, y in ring]
+        except (KeyError, TypeError, ValueError) as error:
+            raise PilotError(f"a WorldCover grid feature cannot be read ({error!r})") from error
+        if not isinstance(name, str) or _WORLDCOVER_TILE.fullmatch(name) is None:
+            raise PilotError(f"the WorldCover grid names a tile {name!r}")
+        xs, ys = {x for x, _ in points}, {y for _, y in points}
+        corners = {(x, y) for x in xs for y in ys}
+        if (
+            geometry.get("type") != "Polygon"
+            or len(xs) != 2
+            or len(ys) != 2
+            or points[0] != points[-1]
+            or set(points) != corners
+        ):
+            raise PilotError(f"the grid tile {name} is not an axis-aligned rectangle")
+        if name in tiles:
+            raise PilotError(f"the WorldCover grid lists {name} more than once")
+        tiles[name] = (min(xs), min(ys), max(xs), max(ys))
+    return tiles
+
+
+@dataclass(frozen=True)
+class _WcArea:
+    """The T1-06 window this source follows, as its committed record states it."""
+
+    centre: tuple[float, float]
+    """(latitude, longitude)"""
+    bounds: tuple[float, float, float, float]
+    """(west, south, east, north) in degrees of EPSG:4326"""
+    cop30_tile: str
+    cop30_product_id: str
+
+    def entry(self, source: str) -> dict[str, Any]:
+        west, south, east, north = self.bounds
+        return {
+            "source": source,
+            "centre": {"latitude": self.centre[0], "longitude": self.centre[1]},
+            "geographic_bounds_deg": {"west": west, "south": south, "east": east, "north": north},
+            "cop30_tile": self.cop30_tile,
+            "cop30_product_id": self.cop30_product_id,
+        }
+
+
+@dataclass(frozen=True)
+class WorldcoverWindow:
+    """The window read from one WorldCover map, inside the pixels of the T1-06 area."""
+
+    col_off: int
+    row_off: int
+    width: int
+    height: int
+    area: tuple[int, int, int, int]
+    """(col_off, row_off, width, height) of every pixel touching the area's bounds"""
+
+    @property
+    def window(self) -> Window:
+        return Window(self.col_off, self.row_off, self.width, self.height)
+
+    def pixel_window(self) -> dict[str, int]:
+        return {
+            "col_off": self.col_off,
+            "row_off": self.row_off,
+            "width": self.width,
+            "height": self.height,
+        }
+
+
+def worldcover_window(
+    header: GeoTiffHeader,
+    centre: tuple[float, float],
+    bounds: tuple[float, float, float, float],
+    max_pixels: int,
+) -> WorldcoverWindow:
+    """The window of at most ``max_pixels`` per side around ``centre`` inside ``bounds``.
+
+    ``centre`` is (latitude, longitude) and ``bounds`` (west, south, east, north), both in
+    EPSG:4326. Raises PilotError if the map is not a north-up EPSG:4326 raster or the area
+    leaves it.
+    """
+    if max_pixels < 1:
+        raise PilotError(f"max_pixels must be at least 1, got {max_pixels}")
+    if header.crs is None or pyproj.CRS.from_wkt(header.crs).to_epsg() != 4326:
+        raise PilotError("the WorldCover map's CRS as read is not EPSG:4326")
+    t = header.transform
+    if t is None or t.b != 0 or t.d != 0 or t.a <= 0 or t.e >= 0:
+        raise PilotError("the WorldCover map has no north-up geotransform")
+    west, south, east, north = bounds
+    col0, col1 = math.floor((west - t.c) / t.a), math.ceil((east - t.c) / t.a)
+    row0, row1 = math.floor((t.f - north) / -t.e), math.ceil((t.f - south) / -t.e)
+    if col0 < 0 or row0 < 0 or col1 > header.width or row1 > header.height:
+        raise PilotError(
+            f"the T1-06 area (pixel columns {col0} to {col1 - 1}, rows {row0} to {row1 - 1}) "
+            f"leaves the {header.width} x {header.height} WorldCover map; the pilot reads one tile"
+        )
+    latitude, longitude = centre
+    centre_col = math.floor((longitude - t.c) / t.a)
+    centre_row = math.floor((t.f - latitude) / -t.e)
+    width, height = min(max_pixels, col1 - col0), min(max_pixels, row1 - row0)
+    col_off = min(max(centre_col - width // 2, col0), col1 - width)
+    row_off = min(max(centre_row - height // 2, row0), row1 - height)
+    return WorldcoverWindow(
+        col_off=col_off,
+        row_off=row_off,
+        width=width,
+        height=height,
+        area=(col0, row0, col1 - col0, row1 - row0),
+    )
+
+
+@dataclass(frozen=True)
+class WorldcoverSource:
+    """ESA WorldCover, the pinned year (PRD 5 row 12; 8.7 step 4; 15 architecture review).
+
+    fetch downloads the bucket readme and the pinned release's tiling grid, finds the tile
+    holding the T1-06 window (read from the committed outputs/pilot/cop30_range_read.json) and
+    reads a window of at most ``max_window_pixels`` per side of that tile's land cover map
+    through HTTP range requests; only the byte ranges read are stored, with every request's
+    HTTP metadata. The bucket is read anonymously over HTTPS. record reads only those files and
+    the T1-06 record, and refuses a T1-06 window that differs from the one fetch used.
+    """
+
+    bucket: str = "esa-worldcover"
+    region: str = "eu-central-1"
+    endpoint: str | None = None
+    version: str = "v200"
+    year: int = 2021
+    area_record: str = "outputs/pilot/cop30_range_read.json"
+    max_window_pixels: int = WORLDCOVER_MAX_WINDOW_PIXELS
+    range_block_bytes: int = RANGE_BLOCK_BYTES
+    whole_file_limit_bytes: int = WHOLE_FILE_LIMIT_BYTES
+
+    @property
+    def name(self) -> str:
+        return "wc"
+
+    @property
+    def raw_directory(self) -> str:
+        return "worldcover"
+
+    @property
+    def base_url(self) -> str:
+        """The bucket's S3 virtual-hosted-style HTTPS endpoint in its region (or a test stub)."""
+        if self.endpoint is not None:
+            return self.endpoint.rstrip("/")
+        return f"https://{self.bucket}.s3.{self.region}.amazonaws.com"
+
+    def map_key(self, tile: str) -> str:
+        return (
+            f"{self.version}/{self.year}/map/"
+            f"ESA_WorldCover_10m_{self.year}_{self.version}_{tile}_Map.tif"
+        )
+
+    def map_url(self, tile: str) -> str:
+        return f"{self.base_url}/{self.map_key(tile)}"
+
+    def _documents(self) -> tuple[tuple[str, str, str], ...]:
+        return (
+            ("bucket_readme", f"{self.base_url}/readme.html", "readme.html"),
+            (
+                "tile_grid",
+                f"{self.base_url}/{self.version}/{self.year}/esa_worldcover_grid.geojson",
+                f"esa_worldcover_grid_{self.version}_{self.year}.geojson",
+            ),
+        )
+
+    def _local(self, file_name: str) -> str:
+        return f"{RAW_DIR.as_posix()}/{self.raw_directory}/{file_name}"
+
+    def _refetch(self, what: str) -> PilotError:
+        return PilotError(f"{what}; run: {COMMAND} fetch {self.name}")
+
+    def _area(self, root: Path) -> _WcArea:
+        path = root / self.area_record
+        try:
+            dem = json.loads(path.read_bytes())["dem"]
+            window = dem["window"]
+            bounds = window["geographic_bounds_deg"]
+            return _WcArea(
+                centre=(
+                    float(window["centre"]["latitude"]),
+                    float(window["centre"]["longitude"]),
+                ),
+                bounds=(
+                    float(bounds["west"]),
+                    float(bounds["south"]),
+                    float(bounds["east"]),
+                    float(bounds["north"]),
+                ),
+                cop30_tile=str(dem["tile"]),
+                cop30_product_id=str(dem["product_id"]),
+            )
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            raise PilotError(
+                f"{self.area_record} does not state the T1-06 window (dem.window.centre and "
+                f"geographic_bounds_deg, dem.tile, dem.product_id): {error!r}; run: {COMMAND} "
+                "record cop30 first"
+            ) from error
+
+    def _tile(self, grid_path: Path, area: _WcArea) -> tuple[str, tuple[float, ...], int]:
+        tiles = worldcover_grid_tiles(_strict_json(grid_path))
+        latitude, longitude = area.centre
+        holding = [
+            name
+            for name, (west, south, east, north) in tiles.items()
+            if west <= longitude < east and south <= latitude < north
+        ]
+        if len(holding) != 1:
+            raise PilotError(
+                f"no tile of the WorldCover grid holds the T1-06 centre ({latitude}, {longitude})"
+                if not holding
+                else f"several WorldCover grid tiles hold the T1-06 centre: {sorted(holding)}"
+            )
+        (tile,) = holding
+        west, south, east, north = tiles[tile]
+        a_west, a_south, a_east, a_north = area.bounds
+        if not (west <= a_west and a_east <= east and south <= a_south and a_north <= north):
+            raise PilotError(f"the T1-06 window leaves the WorldCover grid tile {tile}")
+        return tile, tiles[tile], len(tiles)
+
+    # -- fetch --
+
+    def fetch(
+        self, raw_dir: Path, download: Downloader, read_range: RangeFetcher, now: Clock
+    ) -> None:
+        root = raw_dir.parent.parent.parent
+        area = self._area(root)
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=raw_dir, prefix=".fetch-") as staging_name:
+            staging = Path(staging_name)
+            documents: list[dict[str, Any]] = []
+            for role, url, file_name in self._documents():
+                magic = _GEOJSON_MAGIC if role == "tile_grid" else ()
+                fetched = download(
+                    url, staging / file_name, max_bytes=self.whole_file_limit_bytes, magic=magic
+                )
+                documents.append(_fetch_entry(fetched, now(), role=role))
+            tile, _, _ = self._tile(staging / documents[1]["file_name"], area)
+            provider_name = self.map_key(tile).rsplit("/", 1)[1]
+            remote = read_remote_cog_window(
+                self.map_url(tile),
+                lambda header: (
+                    worldcover_window(
+                        header, area.centre, area.bounds, self.max_window_pixels
+                    ).window
+                ),
+                fetch=read_range,
+                block_bytes=self.range_block_bytes,
+                max_bytes=self.whole_file_limit_bytes,
+                now=now,
+            )
+            local_name = f"{provider_name}{_RANGES_SUFFIX}"
+            (staging / local_name).write_bytes(remote.ranges.data)
+            files = [
+                _window_entry(
+                    remote,
+                    local_name,
+                    now(),
+                    role="landcover_window",
+                    tile=tile,
+                    s3_uri=f"s3://{self.bucket}/{self.map_key(tile)}",
+                    provider_file_name=provider_name,
+                    range_block_bytes=self.range_block_bytes,
+                    exchanges=[_phased_exchange_entry(e) for e in remote.exchanges],
+                )
+            ]
+            metadata = {
+                "source": self.name,
+                "command": f"{COMMAND} fetch {self.name}",
+                "bucket": self.bucket,
+                "region": self.region,
+                "base_url": self.base_url,
+                "version": self.version,
+                "year": self.year,
+                "area": area.entry(self.area_record),
+                "max_window_pixels": self.max_window_pixels,
+                "whole_file_limit_bytes": self.whole_file_limit_bytes,
+                "documents": documents,
+                "files": files,
+            }
+            (raw_dir / FETCH_METADATA).unlink(missing_ok=True)
+            for entry in [*documents, *files]:
+                os.replace(staging / entry["file_name"], raw_dir / entry["file_name"])
+            _write_atomically(raw_dir / FETCH_METADATA, canonical_json(metadata))
+
+    # -- build --
+
+    def build(self, raw_dir: Path, root: Path) -> Build:
+        fetched = _load_fetch(raw_dir, self.name)
+        try:
+            return self._build(raw_dir, root, fetched)
+        except (KeyError, TypeError, ValueError) as error:
+            if isinstance(error, PilotError):
+                raise
+            raise self._refetch(
+                f"data/raw/{self.raw_directory}/{FETCH_METADATA} lacks an expected entry or "
+                f"value ({error!r})"
+            ) from error
+
+    def _build(self, raw_dir: Path, root: Path, fetched: Mapping[str, Any]) -> Build:
+        documents = {entry["role"]: entry for entry in fetched["documents"]}
+        for role, url, file_name in self._documents():
+            if documents[role]["url"] != url or documents[role]["file_name"] != file_name:
+                raise self._refetch(f"fetch.json's {role} is not {url}")
+        if (fetched["version"], fetched["year"]) != (self.version, self.year) or fetched[
+            "max_window_pixels"
+        ] != self.max_window_pixels:
+            raise self._refetch("fetch.json was fetched for another release or window size")
+        area = self._area(root)
+        if fetched["area"] != area.entry(self.area_record):
+            raise self._refetch(
+                f"the T1-06 window in {self.area_record} differs from the one the fetch used"
+            )
+        grid_entry = documents["tile_grid"]
+        tile, tile_bounds, tiles_in_grid = self._tile(raw_dir / grid_entry["file_name"], area)
+
+        (entry,) = fetched["files"]
+        url = self.map_url(tile)
+        provider_name = self.map_key(tile).rsplit("/", 1)[1]
+        if (
+            entry["role"] != "landcover_window"
+            or entry["tile"] != tile
+            or entry["url"] != url
+            or not _is_window_read(entry)
+            or _provider_name(entry) != provider_name
+        ):
+            raise self._refetch(f"fetch.json's map window is not a window read of {url}")
+        path = raw_dir / entry["file_name"]
+        ranges = ByteRanges(
+            name=provider_name,
+            size=int(entry["remote_bytes"]),
+            ranges=tuple((int(first), int(last)) for first, last in entry["ranges"]),
+            data=path.read_bytes(),
+        )
+        if ranges.covers_whole_file:
+            raise self._refetch(
+                f"the byte ranges in {path.name} hold every byte of {url}, so the map was "
+                "downloaded whole, not read by window"
+            )
+        header = read_geotiff_header(path, ranges=ranges)
+        chosen = worldcover_window(header, area.centre, area.bounds, self.max_window_pixels)
+        if entry["window"] != chosen.pixel_window():
+            raise self._refetch(
+                f"fetch.json's window {entry['window']} is not the window {chosen.pixel_window()} "
+                "that the saved header and the T1-06 area give"
+            )
+        exchanges = entry["exchanges"]
+        received = sum(int(exchange["bytes_received"]) for exchange in exchanges)
+        requested = 0
+        for exchange in exchanges:
+            match = _REQUESTED_RANGE.fullmatch(str(exchange["requested_range"]))
+            if match is None:
+                raise self._refetch("fetch.json's range request log cannot be read")
+            requested += int(match[2]) - int(match[1]) + 1
+        if (
+            not exchanges
+            or len(exchanges) != entry["range_requests"]
+            or received != entry["bytes_received"]
+            or received != len(ranges.data)
+        ):
+            raise self._refetch("fetch.json's range request log does not match the stored ranges")
+
+        tags = header.tags
+        legend_text = tags.get("legend")
+        legend = [] if legend_text is None else parse_worldcover_legend(legend_text)
+        names = {item["code"]: item["name"] for item in legend}
+        licence, copyright_ = tags.get("license"), tags.get("copyright")
+        attribution_parts = []
+        if licence is not None:
+            attribution_parts.append(f"licence as the map file states: '{licence}'")
+        if copyright_ is not None:
+            attribution_parts.append(f"attribution as the map file states: '{copyright_}'")
+        attribution = "; ".join(attribution_parts) if attribution_parts else UNKNOWN
+        time_start, time_end = tags.get("time_start"), tags.get("time_end")
+        acquisition = (
+            f"{time_start} to {time_end} (time_start and time_end as the map file states; the "
+            "map's reference year, not a per-pixel observation time)"
+            if time_start is not None and time_end is not None
+            else UNKNOWN
+        )
+        product_version = tags.get("product_version")
+        version = f"{self.version} {self.year}" + (
+            f", product_version {product_version} as the map file states"
+            if product_version is not None
+            else ""
+        )
+        nodata = header.nodata[0] if header.nodata else None
+        metadata: ProductMetadata = {
+            "body": "earth",
+            "provider": (
+                f"ESA WorldCover; AWS Open Data bucket s3://{self.bucket} ({self.region})"
+            ),
+            "version": version,
+            "source_url": url,
+            "acquisition_time": acquisition,
+            "frequency_or_wavelength": None,
+            "transmit_receive_convention": None,
+            "units": (
+                "land cover class codes (dimensionless), named by the legend the map file states"
+                if legend
+                else UNKNOWN
+            ),
+            "calibration_type": None,
+            "effective_resolution": UNKNOWN,
+            "incidence_source": None,
+            "qa_definition": (
+                (
+                    f"nodata {_json_number(nodata)} as the map file declares it"
+                    if nodata is not None
+                    else "the map file declares no nodata value"
+                )
+                + "; the InputQuality layer is not read, and a bare/sparse vegetation pixel does "
+                "not establish dry bare mineral soil on the radar date (PRD 5 row 12)"
+            ),
+            "license_or_attribution": attribution,
+        }
+        product_id = f"{_WORLDCOVER_PREFIX}{self.bucket}/{self.map_key(tile)}"
+        bands, product = read_product(
+            product_id, [path], metadata, root=root, window=chosen.window, ranges=ranges
+        )
+        values = bands[0].array
+        if nodata is not None:
+            is_nodata = values == np.asarray(nodata).astype(values.dtype)
+        else:
+            is_nodata = np.zeros(values.shape, dtype=bool)
+        codes, counts = np.unique(values[~is_nodata], return_counts=True)
+        present = [
+            {
+                "code": int(code),
+                "name": names.get(int(code)),
+                "in_legend": int(code) in names,
+                "pixels": int(count),
+            }
+            for code, count in zip(codes, counts, strict=True)
+        ]
+        layout = read_cog_layout(path, chosen.window, ranges=ranges)
+        crs = pyproj.CRS.from_wkt(header.crs) if header.crs is not None else None
+        t = header.transform
+        assert t is not None
+        col_off, row_off = chosen.col_off, chosen.row_off
+        a_col, a_row, a_width, a_height = chosen.area
+        w_west, w_north = t @ (col_off, row_off)
+        w_east, w_south = t @ (col_off + chosen.width, row_off + chosen.height)
+        retrieved = sorted(e["retrieved_at"] for e in [*fetched["documents"], *fetched["files"]])
+        west, south, east, north = tile_bounds
+        result = {
+            "record": "worldcover_window",
+            "description": (
+                "One window of one ESA WorldCover land cover map read by HTTP range requests "
+                "from the public AWS bucket, server-side, around the T1-06 Copernicus GLO-30 "
+                "probe window (PRD 5 row 12; 8.7 step 4; 15 architecture review: WorldCover COG "
+                "paths). Raw observations only: no eligibility mask is applied, the CORS "
+                "evidence is outputs/pilot/cors_check.json, and the G0 status is a human "
+                "checkpoint (PRD 23.6)."
+            ),
+            "source": self.name,
+            "year_pin": {
+                "version": self.version,
+                "year": self.year,
+                "reason": _WORLDCOVER_YEAR_REASON,
+                "file_product_version": product_version,
+                "file_algorithm_version": tags.get("algorithm_version"),
+                "file_time_start": time_start,
+                "file_time_end": time_end,
+            },
+            "area": area.entry(self.area_record),
+            "tile_choice": {
+                "rule": _WORLDCOVER_TILE_RULE,
+                "grid": self._local(grid_entry["file_name"]),
+                "grid_url": grid_entry["url"],
+                "tiles_in_grid": tiles_in_grid,
+                "tile": tile,
+                "tile_bounds_deg": {"west": west, "south": south, "east": east, "north": north},
+                "product_tile_tag": tags.get("product_tile"),
+                "product_tile_matches": tags.get("product_tile") == tile,
+                "url_rule": (
+                    "https://<bucket>.s3.<region>.amazonaws.com/<version>/<year>/map/"
+                    "ESA_WorldCover_10m_<year>_<version>_<tile>_Map.tif, the key layout the "
+                    "bucket lists under <version>/<year>/map/"
+                ),
+            },
+            "window": {
+                "max_window_pixels": self.max_window_pixels,
+                "pixel_window": chosen.pixel_window(),
+                "area_pixel_window": {
+                    "col_off": a_col,
+                    "row_off": a_row,
+                    "width": a_width,
+                    "height": a_height,
+                },
+                "fraction_of_area_window": chosen.width * chosen.height / (a_width * a_height),
+                "geographic_bounds_deg": {
+                    "west": float(w_west),
+                    "south": float(w_south),
+                    "east": float(w_east),
+                    "north": float(w_north),
+                },
+                "rule": _WORLDCOVER_WINDOW_RULE,
+            },
+            "range_read": {
+                "url": url,
+                "s3_uri": entry["s3_uri"],
+                "final_url": entry["final_url"],
+                "http_status": exchanges[0]["http_status"],
+                "content_range": exchanges[0]["content_range"],
+                "content_type": entry["content_type"],
+                "etag": entry["etag"],
+                "last_modified": entry["last_modified"],
+                "object_size_bytes": entry["remote_bytes"],
+                "range_requests": entry["range_requests"],
+                "bytes_requested": requested,
+                "bytes_received": received,
+                "range_block_bytes": entry["range_block_bytes"],
+                "ranges": entry["ranges"],
+                "exchanges": exchanges,
+                "whole_file_downloaded": ranges.covers_whole_file,
+                "internal_tiles_touched": len(layout.blocks),
+                "local_path": product.local_path,
+                "local_sha256": product.checksum,
+                "sha256_note": (
+                    "the map was not downloaded whole, so its SHA-256 is unknown; local_sha256 is "
+                    "that of the fetched byte ranges held in local_path, at the positions listed "
+                    "in ranges"
+                ),
+                "retrieved_at": entry["retrieved_at"],
+            },
+            "header": _header_entry(header),
+            "crs": {
+                "wkt": header.crs,
+                "name": None if crs is None else crs.name,
+                "epsg_identified": None if crs is None else crs.to_epsg(),
+                "stated_by": "the COG's GeoTIFF keys, as GDAL reads them",
+            },
+            "classes": {
+                "method": (
+                    "numpy.unique over the decoded window's pixels that are not the declared "
+                    "nodata value; names only as the map file's legend tag states them, null "
+                    "for a code the legend does not state"
+                ),
+                "legend_as_stated": legend_text,
+                "legend": legend,
+                "present": present,
+                "nodata_value": None if nodata is None else int(nodata),
+                "nodata_pixels": int(np.sum(is_nodata)),
+                "total_pixels": int(values.size),
+                "bare_ground_caveat": _BARE_GROUND_CAVEAT,
+            },
+            "licence": {
+                "license_or_attribution": attribution,
+                "file_license": licence,
+                "file_copyright": copyright_,
+            },
+            "documents": [
+                {
+                    key: doc[key]
+                    for key in (
+                        "role",
+                        "file_name",
+                        "url",
+                        "final_url",
+                        "http_status",
+                        "content_type",
+                        "bytes_received",
+                        "sha256",
+                        "last_modified",
+                        "retrieved_at",
+                    )
+                }
+                | {"local_path": self._local(doc["file_name"])}
+                for doc in fetched["documents"]
+            ],
+            "retrieval": {
+                "first_retrieved_at": retrieved[0],
+                "last_retrieved_at": retrieved[-1],
+                "fetch_metadata": self._local(FETCH_METADATA),
+                "command": fetched["command"],
+            },
+            "verification": {
+                product.product_id: {
+                    "status": product.verification_status,
+                    "basis": (
+                        f"a {chosen.width} x {chosen.height} pixel window read through "
+                        f"{entry['range_requests']} HTTP range requests ({received} of the "
+                        f"{entry['remote_bytes']} bytes; the map is not downloaded whole), "
+                        "header and window decoded and class pixels counted; not plotted, so "
+                        "the PRD 5 entry rule is not complete"
+                    ),
+                }
+            },
+            "open_g0_items": [
+                "Whether the WorldCover COGs are CORS-readable from a browser (PRD 8.7 step 4) "
+                "is recorded as header evidence in outputs/pilot/cors_check.json, not here",
+                "No snow, water or bare-ground eligibility mask is derived (PRD 5 row 12, D31)",
+                "The G0 status and the shipping mode are a human checkpoint (PRD 23.6)",
+            ],
+            "field_notes": {
+                "acquisition_time": (
+                    "the map file's time_start and time_end: the reference year of the map"
+                ),
+                "effective_resolution": "unknown: the file states none and none is derived",
+                "units": "class codes; their names are the legend tag of the map file",
+                "window": (
+                    "a window of at most max_window_pixels per side inside the T1-06 area, so "
+                    "it covers fraction_of_area_window of it, not all of it"
+                ),
+            },
+            "tool_versions": tool_versions(),
+        }
+        return Build(
+            files={"outputs/pilot/worldcover_window.json": canonical_json(result)},
+            records=(product,),
+            record_prefix=_WORLDCOVER_PREFIX,
+        )
+
+
 SOURCES: Mapping[str, Source] = {
     "pgda78": Pgda78Source(),
     "minirf": MinirfSource(),
     "ctx": CtxSource(),
     "cop30": Cop30Source(),
+    "wc": WorldcoverSource(),
 }
 """The registered pilot sources, by the name used on the command line."""
 
