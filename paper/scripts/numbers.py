@@ -55,11 +55,226 @@ class Macro:
 MACROS: tuple[Macro, ...] = ()
 
 
+@dataclass(frozen=True)
+class ArtifactMacro:
+    r"""One macro read from a committed artifact in the repository working tree.
+
+    path: repository-relative JSON file, for example outputs/g0/earth-radar-roi.json. pointer: a
+    JSON pointer. format_spec: a Python format specification for a number, the same prefixed
+    with % for a fraction shown in percent, "count" for the length of an array or object, or
+    "text" for a string, which is escaped for LaTeX.
+
+    An artifact that does not exist yet, or a null value (missing evidence), renders as
+    \NotAvailable, never as 0. A pointer that is absent from an existing file, a non-finite
+    number or a value of the wrong type is an error, because it is a spec bug, not a missing
+    result. Each artifact read is named with its SHA-256 in a comment line.
+    """
+
+    name: str
+    path: str
+    pointer: str
+    format_spec: str
+
+
+NOT_AVAILABLE = "\\NotAvailable"
+LATEX_SPECIAL = {
+    "\\": "\\textbackslash{}",
+    "&": "\\&",
+    "%": "\\%",
+    "$": "\\$",
+    "#": "\\#",
+    "_": "\\_",
+    "{": "\\{",
+    "}": "\\}",
+    "~": "\\textasciitilde{}",
+    "^": "\\textasciicircum{}",
+}
+
+ROOT = PAPER.parent
+# Read from the artifacts that the pipeline, search, uncertainty and ml packages commit.
+ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
+    ArtifactMacro(
+        "MoonWindowsGenerated", "outputs/g0/windows-evidence.json", "/g0_02_moon/n_generated", "d"
+    ),
+    ArtifactMacro(
+        "MoonWindowsEligible", "outputs/g0/windows-evidence.json", "/g0_02_moon/n_eligible", "d"
+    ),
+    ArtifactMacro(
+        "MoonTargetValidPct",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/dem_valid_fraction",
+        "%.0f",
+    ),
+    ArtifactMacro(
+        "MoonTargetObservedPct",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/observed_fraction_nearest_5m_pixel",
+        "%.1f",
+    ),
+    ArtifactMacro(
+        "MoonTargetReliefH",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/relief/H",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "MoonTargetTextureH",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/texture/H",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "MoonTargetReliefNuShort",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/relief/nu_m/0",
+        ".1f",
+    ),
+    ArtifactMacro(
+        "MoonTargetReliefNuLong",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/relief/nu_m/4",
+        ".1f",
+    ),
+    ArtifactMacro(
+        "MoonTargetTextureNuShort",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/texture/nu_m/0",
+        ".1f",
+    ),
+    ArtifactMacro(
+        "MoonTargetTextureNuLong",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/texture/nu_m/4",
+        ".1f",
+    ),
+    ArtifactMacro(
+        "MoonTargetDirMeanReliefH",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/relief/H",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "HoluhraunWindowsGenerated",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/n_generated",
+        "d",
+    ),
+    ArtifactMacro(
+        "HoluhraunWindowsEligible",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/n_eligible",
+        "d",
+    ),
+    ArtifactMacro(
+        "RosamondWindowsGenerated",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/rosamond/n_generated",
+        "d",
+    ),
+    ArtifactMacro(
+        "RosamondWindowsEligible",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/rosamond/n_eligible",
+        "d",
+    ),
+    ArtifactMacro(
+        "RosamondWindowsRejected",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/rosamond/n_rejected",
+        "d",
+    ),
+    ArtifactMacro(
+        "EarthCardReliefH",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/relief/H",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "EarthCardTextureH",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/texture/H",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "EarthCardReliefNuShort",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/relief/nu_m/0",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "EarthCardReliefNuLong",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/relief/nu_m/4",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "EarthCardTextureNuShort",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/texture/nu_m/0",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "EarthCardTextureNuLong",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/texture/nu_m/4",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "EarthCardAllowedPct",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/land_cover/allowed_fraction",
+        "%.0f",
+    ),
+    ArtifactMacro(
+        "UavsarCprMedian", "outputs/g0/earth-radar-roi.json", "/statistics/cpr/median", ".2f"
+    ),
+    ArtifactMacro("UavsarCprLow", "outputs/g0/earth-radar-roi.json", "/statistics/cpr/p05", ".2f"),
+    ArtifactMacro("UavsarCprHigh", "outputs/g0/earth-radar-roi.json", "/statistics/cpr/p95", ".2f"),
+    ArtifactMacro("UavsarPixels", "outputs/g0/earth-radar-roi.json", "/statistics/cpr/n", ",d"),
+    ArtifactMacro(
+        "UavsarHandednessRatioMedian",
+        "outputs/g0/earth-radar-roi.json",
+        "/statistics/handedness_ratio_to_base_sc/median",
+        ".3f",
+    ),
+    ArtifactMacro(
+        "UavsarIncidenceMedian", "outputs/g0/earth-radar-roi.json", "/incidence/median_deg", ".1f"
+    ),
+    ArtifactMacro(
+        "UavsarLooks", "outputs/g0/earth-radar-roi.json", "/looks/nominal_looks_per_pixel", "d"
+    ),
+    ArtifactMacro("UavsarRoiSide", "outputs/g0/earth-radar-roi.json", "/roi/nominal_side_m", ".0f"),
+    ArtifactMacro(
+        "MiniRFCprMedian", "outputs/pilot/minirf_mosaic.json", "/cpr_statistics/median", ".2f"
+    ),
+    ArtifactMacro("MiniRFCprMax", "outputs/pilot/minirf_mosaic.json", "/cpr_statistics/max", ".2f"),
+    ArtifactMacro(
+        "MiniRFValidPixels",
+        "outputs/pilot/minirf_mosaic.json",
+        "/cpr_statistics/positive_pixels",
+        ",d",
+    ),
+    ArtifactMacro(
+        "MiniRFNodataPixels",
+        "outputs/pilot/minirf_mosaic.json",
+        "/cpr_statistics/invalid_by_reason/nodata",
+        ",d",
+    ),
+    ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
+    ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
+    ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),
+    ArtifactMacro("GateThreeStatus", "outputs/validation.json", "/3/status", "text"),
+    ArtifactMacro("GateFourStatus", "outputs/validation.json", "/4/status", "text"),
+    ArtifactMacro("GateFiveStatus", "outputs/validation.json", "/5/status", "text"),
+    ArtifactMacro("GateSixStatus", "outputs/validation.json", "/6/status", "text"),
+)
+
+
 class MacroError(Exception):
     """A macro whose value cannot be read or rendered."""
 
 
-def spec_errors(macros: Sequence[Macro]) -> list[str]:
+def spec_errors(macros: Sequence[Macro | ArtifactMacro]) -> list[str]:
     errors = []
     seen: set[str] = set()
     for macro in macros:
@@ -160,6 +375,63 @@ def bundle_lines(bundle: Path, macros: Sequence[Macro]) -> tuple[list[str], list
     return lines, errors
 
 
+def escape_text(value: str) -> str:
+    return "".join(LATEX_SPECIAL.get(char, char) for char in value)
+
+
+def render_artifact(value: object, format_spec: str) -> str:
+    if value is None:
+        return NOT_AVAILABLE
+    if format_spec == "text":
+        if not isinstance(value, str) or not value.strip():
+            raise MacroError(f"the value {value!r} is not a non-empty string")
+        return escape_text(value)
+    if format_spec == "count":
+        if not isinstance(value, list | dict):
+            raise MacroError(f"the value {value!r} is not an array or object")
+        return str(len(value))
+    if format_spec.startswith("%"):
+        # A fraction shown in percent: the value times 100, under the rest of the spec.
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            raise MacroError(f"the value {value!r} is not a number")
+        return render(value * 100, format_spec[1:])
+    return render(value, format_spec)
+
+
+def artifact_lines(
+    root: Path, macros: Sequence[ArtifactMacro]
+) -> tuple[list[str], list[str], list[str]]:
+    """(source comment lines, macro lines, errors) for macros read from repository artifacts."""
+    sources: dict[str, str] = {}
+    documents: dict[str, object] = {}
+    lines: list[str] = []
+    errors: list[str] = []
+    for macro in macros:
+        path = root / macro.path
+        try:
+            if macro.path not in sources:
+                if not path.is_file():
+                    sources[macro.path] = f"% Artifact {macro.path}: not present."
+                else:
+                    data = path.read_bytes()
+                    sources[macro.path] = f"% Artifact {macro.path} sha256 {sha256(data)}."
+                    try:
+                        documents[macro.path] = json.loads(data, object_pairs_hook=unique_keys)
+                    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+                        raise MacroError(f"{macro.path} is not JSON: {error}") from None
+            if macro.path in documents:
+                value = render_artifact(
+                    resolve(documents[macro.path], macro.pointer), macro.format_spec
+                )
+            else:
+                value = NOT_AVAILABLE
+        except MacroError as error:
+            errors.append(f"\\{macro.name}: {macro.path}#{macro.pointer}: {error}")
+            continue
+        lines.append(f"\\newcommand{{\\{macro.name}}}{{{value}}}")
+    return list(sources.values()), lines, errors
+
+
 def write_atomic(path: Path, text: str) -> None:
     """Replace path with text in one step, so a failed run never leaves a partial file."""
     fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
@@ -173,14 +445,19 @@ def write_atomic(path: Path, text: str) -> None:
         raise
 
 
-def main(argv: Sequence[str] | None = None, macros: Sequence[Macro] = MACROS) -> int:
+def main(
+    argv: Sequence[str] | None = None,
+    macros: Sequence[Macro] = MACROS,
+    artifacts: Sequence[ArtifactMacro] = ARTIFACT_MACROS,
+    root: Path = ROOT,
+) -> int:
     parser = argparse.ArgumentParser(description="Write the generated number macros.")
     parser.add_argument("--bundle", type=Path, help="release bundle directory to read")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help="output .tex file")
     args = parser.parse_args(argv)
     out: Path = args.out
 
-    errors = spec_errors(macros)
+    errors = spec_errors([*macros, *artifacts])
     lines = [HEADER]
     if args.bundle is None:
         if macros:
@@ -190,13 +467,16 @@ def main(argv: Sequence[str] | None = None, macros: Sequence[Macro] = MACROS) ->
         body, bundle_errors = bundle_lines(args.bundle, macros)
         errors += bundle_errors
         lines += body
+    artifact_sources, artifact_macros, artifact_errors = artifact_lines(root, artifacts)
+    errors += artifact_errors
+    lines += artifact_sources + artifact_macros
     if errors:
         for error in errors:
             print(f"numbers.py: {error}", file=sys.stderr)
         print(f"numbers.py: {len(errors)} errors; {out} is unchanged", file=sys.stderr)
         return 1
     write_atomic(out, "\n".join(lines) + "\n")
-    print(f"numbers.py: wrote {out} with {len(macros)} macros")
+    print(f"numbers.py: wrote {out} with {len(macros) + len(artifacts)} macros")
     return 0
 
 

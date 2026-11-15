@@ -20,9 +20,9 @@ PYTHON = $(UV_RUN) python -P
 PYTHON_MODULE = PYTHONPATH=. $(PYTHON) -m
 NUMBERS_ARGS = $(if $(BUNDLE_VERSION),--bundle ../release/$(BUNDLE_VERSION))
 
-.PHONY: all numbers numbers-check lint overlap test check pdf
+.PHONY: all numbers numbers-check bib refs refs-check lint overlap test check pdf
 
-all: numbers lint overlap test pdf
+all: numbers bib refs lint overlap test pdf
 
 numbers:
 	$(PYTHON) scripts/numbers.py $(NUMBERS_ARGS) --out generated/numbers.tex
@@ -36,6 +36,25 @@ numbers-check:
 		echo "numbers-check: generated/numbers.tex is current"; \
 	else \
 		echo "numbers-check: generated/numbers.tex drifted; run make -C paper numbers" >&2; \
+		exit 1; \
+	fi
+
+# refs.bib from reference-verification.json, for exactly the cited keys (PRD 22.6 check 3).
+bib:
+	$(PYTHON_MODULE) scripts.references bib
+
+refs:
+	$(PYTHON_MODULE) scripts.references check
+
+# Validates the record and fails with the diff if refs.bib drifted from the generator output.
+refs-check: refs
+	@tmp=$$(mktemp) || exit 1; \
+	trap 'rm -f "$$tmp"' EXIT; \
+	$(PYTHON_MODULE) scripts.references bib --out "$$tmp" >/dev/null || exit 1; \
+	if diff -u refs.bib "$$tmp"; then \
+		echo "refs-check: refs.bib is current"; \
+	else \
+		echo "refs-check: refs.bib drifted; run make -C paper bib" >&2; \
 		exit 1; \
 	fi
 

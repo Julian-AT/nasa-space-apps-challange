@@ -1,3 +1,4 @@
 {
+  "method": "Each reference is read at a primary source: the publisher landing page through https://doi.org/<doi> or the publisher-deposited Crossref record, the arXiv abstract page, NASA ADS, or the data provider's own page. Author, title, venue, year, volume, pages and the identifier are compared with that page and listed in verifiedFields. The abstract is copied verbatim from the page named in abstractSource. Each supports entry states, in the checker's own words with a location, a claim that the source itself makes. Records that could not be read at an allowed source are unresolved with the reason and are never cited.",
   "references": {}
 }
