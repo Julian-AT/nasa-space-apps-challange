@@ -113,3 +113,14 @@ def test_snapshot_loads_like_a_final_backbone(tmp_path: Path) -> None:
     x = torch.randn(2, 3, 64, 64)
     assert torch.equal(a(x), b(x))
     assert json.loads((snap / "metrics.json").read_text())["interim_snapshot"]["epoch"] == 0
+
+
+def test_cli_device_flag_reaches_the_run_record(tmp_path: Path) -> None:
+    manifest = make_mock_shards(tmp_path / "s", per_body_split=8)
+    out = tmp_path / "run"
+    argv = ["run", "--manifest", str(manifest), "--name", "dev", "--seed", "0", "--epochs", "1"]
+    argv += ["--batch-size", "12", "--stem-stride", "2", "--threads", "1", "--out", str(out)]
+    assert train.main([*argv, "--device", "cpu"]) == 0
+    hw = json.loads((out / "metrics.json").read_text())["hardware"]
+    assert hw["device"] == "cpu"
+    assert "CPU only" in hw["accelerator"]

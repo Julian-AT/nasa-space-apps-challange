@@ -207,7 +207,9 @@ def run(
             "reason": "probes run once after training in evaluate.py (reduced scope)",
         },
         "gpu_hours": 0.0,
-        "gpu_hours_note": "measured: 0 GPU hours, CPU only",
+        "gpu_hours_note": "measured: 0 GPU hours, CPU only"
+        if device == "cpu"
+        else f"no discrete GPU; {device} wall-clock hours are in accelerator_wall_hours",
         "cpu_core_hours": 0.0,
         "wall_clock_s": 0.0,
     }
@@ -288,6 +290,8 @@ def run(
         metrics["epochs"].append(entry)
         metrics["wall_clock_s"] = round(time.time() - started, 1)
         metrics["cpu_core_hours"] = round(metrics["wall_clock_s"] * threads / 3600, 4)
+        if device != "cpu":
+            metrics["accelerator_wall_hours"] = round(metrics["wall_clock_s"] / 3600, 4)
         _atomic_write(out_dir / "metrics.json", canonical_json(metrics))
         torch.save(
             {
@@ -381,6 +385,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     r.add_argument("--stem-stride", type=int, default=1)
     r.add_argument("--precision", choices=("bf16", "fp32"), default="fp32")
     r.add_argument("--threads", type=int, default=os.cpu_count() or 1)
+    r.add_argument("--device", choices=("cpu", "mps"), default="cpu")
     r.add_argument("--out", type=Path)
     r.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
@@ -419,7 +424,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("a real run needs --manifest pointing at existing shards", file=sys.stderr)
         return 3
     out = args.out or Path("ml/checkpoints") / f"{config.name}_seed{config.seed}"
-    run(config, args.manifest, out, threads=args.threads)
+    run(config, args.manifest, out, threads=args.threads, device=args.device)
     return 0
 
 
