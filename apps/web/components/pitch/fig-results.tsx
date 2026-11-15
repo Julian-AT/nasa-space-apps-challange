@@ -301,9 +301,7 @@ export function FigResults({ data }: { data: ResultsData }) {
         </div>
 
         <p style={{ margin: '20px 0 0', fontSize: 12, lineHeight: 1.5, color: MUTED }}>
-          Terrain distances only, in {data.unit ?? 'card units'}; {data.groups[0]?.rows[0]?.evidenceLabel ?? 'Derived'} evidence. Shipping mode{' '}
-          {data.shippingModes.join(', ')}: radar comparison not completed, encoder experimental and outside the ranking. Similarity is not a
-          claim about soil strength, buried structure or mobility.
+          Terrain fingerprint distances in {data.unit ?? 'card units'}, {data.groups[0]?.rows[0]?.evidenceLabel ?? 'Derived'} from NASA and ESA elevation data.
         </p>
       </div>
       <figcaption style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', gap: 16, fontSize: 13, color: SECOND }}>
@@ -312,7 +310,7 @@ export function FigResults({ data }: { data: ResultsData }) {
           <span style={{ fontFamily: MONO, fontSize: 12, color: MUTED }}>{data.bundleVersion}</span>.
         </span>
         <span style={{ color: MUTED }}>
-          Open all cards: <span style={{ fontFamily: MONO, fontSize: 12, color: SECOND }}>terraluna-lovat.vercel.app/site</span>
+          Open all cards: <span style={{ fontFamily: MONO, fontSize: 12, color: SECOND }}>nasa.julianschmidt.cv/site</span>
         </span>
       </figcaption>
     </figure>

@@ -12,6 +12,7 @@ import { createPortal } from 'react-dom';
 import { ACCENT, EASE, FAINT, INK, LINE, MUTED, PAPER } from './bits';
 import { C, FigureCard, LineFigure, type LineSeries } from './figure';
 import { FigBenchmarks, type BenchData } from './fig-benchmarks';
+import { FigResults, type ResultsData } from './fig-results';
 import { FigTraining, type CurvesJson } from './fig-training';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
@@ -73,7 +74,7 @@ interface Slide {
 
 export interface QrLink { readonly label: string; readonly url: string; readonly svg: string }
 
-function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: CurvesJson | null): Slide[] {
+function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: CurvesJson | null, results: ResultsData): Slide[] {
   const m = d.model;
   // the Jezero and Rosamond Dry Lake card: the finder and fingerprint story
   const jr = d.results.find((r) => r.targetName.includes('Jezero')) ?? null;
@@ -243,32 +244,9 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
       id: 'results',
       steps: 1,
       body: () => (
-        <Frame title="Results" sub={<><A>{d.cardCount} evidence cards</A> in the release bundle. Two of them:</>}>
-          <div className="grid grid-cols-2 items-start gap-6 pt-[4vh]">
-            {d.results.map((r, k) => (
-              <In key={r.cardId} d={0.15 + k * 0.1} className="h-full">
-                <FigureCard
-                  title={<>{r.targetName} <span style={{ color: FAINT }}>and</span> {r.earthName.split(',')[0]}</>}
-                  sub={`${BODY[r.body]} vs Earth, ${r.label}`}
-                  caption="Candidate windows found by this search."
-                >
-                  <div className="mt-2 grid grid-cols-2 gap-8">
-                    <div className="flex flex-col gap-2">
-                      <p className="text-[2.75rem] font-medium leading-none tracking-[-0.03em] tabular-nums" style={{ color: k === 0 ? ACCENT : INK }}>{r.relief.toFixed(3)}</p>
-                      <p className="text-lg">relief distance</p>
-                      <p className="text-sm" style={{ color: FAINT }}>{r.unit}, lower is closer</p>
-                    </div>
-                    {r.closerThan !== null ? (
-                      <div className="flex flex-col gap-2">
-                        <p className="text-[2.75rem] font-medium leading-none tracking-[-0.03em] tabular-nums">{r.closerThan}%</p>
-                        <p className="text-lg">closer than</p>
-                        <p className="text-sm" style={{ color: FAINT }}>of candidate windows searched</p>
-                      </div>
-                    ) : null}
-                  </div>
-                </FigureCard>
-              </In>
-            ))}
+        <Frame title="Results" sub={<><A>{d.cardCount} evidence cards</A>, best Earth match per target.</>}>
+          <div className="pt-[2vh]">
+            <FigResults data={results} />
           </div>
         </Frame>
       ),
@@ -318,8 +296,8 @@ function Script({ text }: { text: string }) {
   );
 }
 
-export function Deck({ data, bench, curves, qr, fonts = '' }: { data: PitchData; bench: BenchData; curves: CurvesJson | null; qr: readonly QrLink[]; fonts?: string }) {
-  const list = slides(data, qr, bench, curves);
+export function Deck({ data, bench, results, curves, qr, fonts = '' }: { data: PitchData; bench: BenchData; results: ResultsData; curves: CurvesJson | null; qr: readonly QrLink[]; fonts?: string }) {
+  const list = slides(data, qr, bench, curves, results);
   const n = list.length;
   const [pos, setPos] = useState({ i: 0, step: 0, dir: 1 });
   const [notes, setNotes] = useState(false);

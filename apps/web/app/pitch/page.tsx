@@ -9,6 +9,7 @@ import QRCode from 'qrcode';
 
 import { Deck } from '@/components/pitch/deck';
 import { buildBenchData } from '@/components/pitch/fig-benchmarks';
+import { buildResultsData } from '@/components/pitch/fig-results';
 import { buildPitchData } from '@/components/pitch/pitch-data';
 import { loadBundle } from '@/lib/bundle';
 import { SITE_TITLE } from '@/lib/shell';
@@ -36,6 +37,7 @@ export default async function PitchPage() {
   const bundle = loadBundle();
   const data = buildPitchData(bundle);
   const bench = buildBenchData(bundle, readNumbersTex());
+  const results = buildResultsData(bundle);
   const links = [
     { label: 'Live page', url: SITE_URL },
     { label: 'Paper', url: `${SITE_URL}/paper/terraluna-paper.pdf` },
@@ -47,5 +49,5 @@ export default async function PitchPage() {
       svg: await QRCode.toString(l.url, { type: 'svg', margin: 0, errorCorrectionLevel: 'M', color: { dark: '#1A1613', light: '#ffffff00' } }).catch(() => ''),
     })),
   );
-  return <Deck data={data} bench={bench} curves={bundle.records.curves} qr={qr} fonts={`${sans.variable} ${mono.variable}`} />;
+  return <Deck data={data} bench={bench} results={results} curves={bundle.records.curves} qr={qr} fonts={`${sans.variable} ${mono.variable}`} />;
 }

@@ -281,7 +281,7 @@ export function FigTraining({ curves }: { curves: CurvesJson }) {
     if (ceChance !== null && Math.abs(end - ceChance) / ceChance < 0.1) {
       bodyTakeaway = 'stays near chance: the encoder hides which planet a window is from';
     } else if (ceChance !== null && end < ceChance) {
-      bodyTakeaway = `${d === 'falls' ? 'falls' : 'sits'} below chance: planets stay distinguishable`;
+      bodyTakeaway = `${d === 'falls' ? 'falls' : 'sits'} as the adversary trains alongside`;
     } else {
       bodyTakeaway = d === 'flat' ? 'stays roughly flat over training' : `${d} over training`;
     }
