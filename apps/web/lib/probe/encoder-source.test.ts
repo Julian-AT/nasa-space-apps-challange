@@ -32,4 +32,13 @@ describe('probeEncoder', () => {
     const other = probeEncoder(bundle({ id: 'm', status: 'EXPERIMENTAL', g5: 'NOT_RUN' }, [{ path: 'model/encoder.fp16.onnx', sha256: 'b'.repeat(64), bytes: 1 }]), dir);
     expect(other.reason).toContain('disagree');
   });
+  it('reads a final export whose record has interim_snapshot null, with the failed G5 status', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'probe-model-final-'));
+    writeFileSync(join(dir, 'encoder.fp16.onnx'), 'x');
+    writeFileSync(join(dir, 'export_record.json'), JSON.stringify({ model_id: 'm', status: 'EXPERIMENTAL', interim_snapshot: null, input_name: 'windows', output_name: 'embedding', l2_normalized: true, mock: false, files: { 'encoder.fp16.onnx': { sha256: sha } } }));
+    const out = probeEncoder(bundle({ id: 'm', status: 'EXPERIMENTAL', g5: 'FAIL' }, [{ path: 'model/encoder.fp16.onnx', sha256: sha, bytes: 1 }]), dir);
+    expect(out.reason).toBeNull();
+    expect(out.encoder?.spec).toMatchObject({ model_id: 'm', status: 'EXPERIMENTAL', g5_status: 'FAIL' });
+    expect(out.encoder?.spec.snapshot_note ?? null).toBeNull();
+  });
 });

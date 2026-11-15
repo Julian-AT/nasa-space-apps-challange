@@ -20,7 +20,7 @@ const MODEL_PATH = 'model/encoder.fp16.onnx';
 const ExportRecord = z.object({
   model_id: z.string(),
   status: z.literal('EXPERIMENTAL'),
-  interim_snapshot: z.object({ epoch: z.number(), of_epochs: z.number() }).optional(),
+  interim_snapshot: z.object({ epoch: z.number(), of_epochs: z.number() }).nullish(),
   input_name: z.string(),
   output_name: z.string(),
   l2_normalized: z.boolean(),
