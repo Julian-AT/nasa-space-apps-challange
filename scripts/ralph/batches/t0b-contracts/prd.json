@@ -224,14 +224,14 @@
       "priority": 4,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "f6d8032045d33dac6c99bb8777221b1ac25d73f6",
         "head": null,
         "files": [],
         "digests": {}
       },
-      "notes": ""
+      "notes": "Failing runs before the implementation: test_schema_model.py failed at collection (ImportError: cannot import name Ablation from terraluna_pipeline.schema; commit a5a6caa). Contract pin and shared cases (6edcbd0): pytest test_json_schema.py 74 failed | 827 passed with the four new JSON Schemas moved aside; Vitest 62 failed | 864 passed before generate-zod.ts listed the contracts and index.ts exported them. Engineering choices, as the AC asks: (a) EmbeddingsIndex n_rows == len(rows), and also rows[i].row == i, since row is the position in embeddings.f16.bin (pydantic-only). (b) Model reasons (unavailable_reason, reason) are NonEmptyStr, not ReasonCode, because CONTRACTS a.4 types them str. (c) Rules beyond the AC, each documented in packages/schema/README.md: n_blocks is also at least 1 when set; a MetricBaseline with a null value needs an unavailable_reason (a baseline with a value may still give one, for a paired interval not computed); a G5Component with passed null needs a reason; an available ablation has a null reason; an EmbeddingRow without ood_score has a null ood_flag; ci_low <= ci_high is also enforced in baselines (both intervals) and components; parameter_count >= 1; loss weights, gpu_hours_total and ood_score >= 0. (d) Pydantic-only rules (JSON Schema accepts them, test_model_rules_inside_a_document_are_checked_by_pydantic_only): the ordered intervals, the float16 check (struct e packing), n_rows and row positions, and a passed G5 condition naming its evidence (observed or a component), which would need a boolean if-test and an array length the generator does not translate. (e) passed is stored, not recomputed: condition 2 holds on the Moon or Mars (PRD 11.7), so it is not always the conjunction of its components. (f) The ablation then-branch uses metrics {type: array, items: null, maxItems: 0}, which admits only the empty array. A scratch three-way check of 382 combination documents found zod, pydantic and JSON Schema agreeing on every conditional; the 8 differences were all the pass-needs-evidence rule."
     },
     {
       "id": "T0B-04",
