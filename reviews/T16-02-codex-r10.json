@@ -142,7 +142,11 @@
       "claim": "Unconditional star removal after formatting commands deletes printed punctuation and can bypass the overlap check.",
       "evidence": "Static trace, not executed: \\textit has one text argument and no starred form, so 'We measure the roughness of lunar\\textit*and martian terrain at baselines from' prints lunar*and and tokenizes to the existing test abstract's first 12 words. _prose_command nevertheless consumes the star and adds no separator for textit, extracting lunarand and leaving only 11 tokens. The same deletion turns seam\\textit*less into seamless, producing a false banned-word finding. Existing literal-star regressions at test_tex_prose.py:288 cover key commands only. Preserve literal stars after unstarred formatting commands and add extraction and consumer regressions.",
       "id": "codex-r10-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "b4ce6b6",
+        "reason": "Reproduced: lunar\\textit*and gave the prose lunarand and seam\\textit*less gave seamless. \\textit, like every formatting command, declaration and accent defined in tex_prose.py, has no starred form in bundle v33, so TeX reads the * as its argument or as text and prints it. b4ce6b6 adds reads_star(): pass 2 (_prose_command) and argument_breaks drop an adjacent * only after STARRED_KEY_COMMANDS and commands whose definition is not known here (such as \\section), which write a word break anyway. lunar\\textit*and now gives lunar*and (two tokens), seam\\textit*less no longer reports a banned word, \\emph*{seamless} still does, and the reviewer's 12-word run is found. Regressions in e1f78e9 for extraction, the banned-word rule and the overlap run; all five checks pass (886 tests)."
+      }
     }
   ]
 }
