@@ -106,7 +106,7 @@ export function OneSlide({ data, qr, fonts }: { data: OneSlideData; qr: readonly
         )}
 
         {/* left two thirds */}
-        <div style={{ position: 'absolute', left: 120, top: 112, width: 1100, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'absolute', left: 120, top: 100, width: 1100, display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 22, color: MUTED, letterSpacing: '0.01em', display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ width: 8, height: 8, borderRadius: 8, background: ACCENT, display: 'inline-block' }} />
             NASA Space Apps 2026, Team Terraluna
@@ -120,14 +120,14 @@ export function OneSlide({ data, qr, fonts }: { data: OneSlideData; qr: readonly
             the browser.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 0.8fr 1fr 1.2fr', gap: 18, marginTop: 64 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 0.8fr 1fr 1.2fr', gap: 18, marginTop: 50 }}>
             <Metric value={relief} label={reliefLabel} sub="Relief distance, lower is closer" />
             <Metric value={String(data.cardCount)} label="Evidence cards" sub="In the release bundle" />
-            <Metric value={params} label="Encoder parameters" sub="Experimental" />
+            <Metric value={params} label="Encoder parameters" sub="Self-supervised, experimental, runs in the browser" />
             <Metric value={parity} label="Browser parity" sub={data.parityTolerance === null ? 'Lowest cosine, ONNX in WASM' : `Lowest cosine, tolerance ${data.parityTolerance}`} />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, marginTop: 56 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 40 }}>
             <Feature icon={Location01Icon} color={ACCENT} text="Live finder: any point on Earth in seconds" />
             <Feature icon={Route01Icon} color={GREEN} text="Lab: same rover route on real Earth and Mars elevation" />
             <Feature icon={Pdf01Icon} color={BLUE} text="Paper with benchmarks" />
@@ -168,10 +168,9 @@ export function OneSlide({ data, qr, fonts }: { data: OneSlideData; qr: readonly
             color: MUTED,
           }}
         >
-          <span>Terrain similarity of elevation statistics only, not geology, composition or habitability.{data.jezeroLabel === null ? '' : ` Evidence label: ${data.jezeroLabel}.`}</span>
-          <span style={{ fontFamily: MONO }}>
-            bundle {data.bundleVersion}
-            {data.shippingModes.length ? `, mode ${data.shippingModes.join(' ')}` : ''}
+          <span>Terrain fingerprint distances from NASA and ESA elevation data.</span>
+          <span>
+            nasa.julianschmidt.cv<span style={{ fontFamily: MONO, marginLeft: 16 }}>bundle {data.bundleVersion}</span>
           </span>
         </div>
       </div>
