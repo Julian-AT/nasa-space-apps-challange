@@ -27,7 +27,7 @@ describe('view state in the URL', () => {
       family: 'terrain_texture',
       target: 'mars-test',
     });
-    expect(parseEarthView('family=score').family).toBe('radar_cpr');
+    expect(parseEarthView('family=score').family).toBe('terrain_relief');
   });
 });
 

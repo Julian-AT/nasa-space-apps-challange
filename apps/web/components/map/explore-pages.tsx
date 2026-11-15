@@ -37,40 +37,37 @@ const LEAD: Readonly<Record<'moon' | 'mars', string>> = {
 export function ExploreBodyPage({ body, bundle }: { readonly body: 'moon' | 'mars'; readonly bundle: LoadedBundle }) {
   const data = buildBodyData(bundle, body);
   return (
-    <>
-      <PageHeader eyebrow="Explore" title={body === 'moon' ? 'Moon explorer' : 'Mars explorer'} lead={LEAD[body]} />
+    <div data-full-bleed className="px-4 pb-8 sm:px-6">
+      <h1 className="sr-only">{body === 'moon' ? 'Moon explorer' : 'Mars explorer'}</h1>
+      <p className="sr-only">{LEAD[body]}</p>
       <StatusLine bundle={bundle} />
-      <Section title="Map" className="mt-6">
+      <div className="mt-3">
         <ExplorerMap data={data} body={body} assetBase={assetBase()} />
-      </Section>
+      </div>
       <Section title="Evidence labels">
         <EvidenceLegend headingLevel={3} />
       </Section>
-    </>
+    </div>
   );
 }
 
 export function ExploreEarthPage({ bundle }: { readonly bundle: LoadedBundle }) {
   const data = buildEarthData(bundle);
   return (
-    <>
-      <PageHeader
-        eyebrow="Explore"
-        title="Earth candidates"
-        lead="Earth windows compared with a Moon or Mars target. Each distance family is a separate column; nothing is combined into one score."
-      />
+    <div data-full-bleed className="px-4 pb-8 sm:px-6">
+      <h1 className="sr-only">Earth candidates</h1>
       <StatusLine bundle={bundle} />
-      <Section title="Candidate windows" className="mt-6">
+      <div className="mt-3">
         <EarthExplorer
           data={data}
           mapsEnabled={process.env.NEXT_PUBLIC_MAPS_ENABLED !== '0'}
           probeEnabled={process.env.NEXT_PUBLIC_PROBE_ENABLED === '1'}
         />
-      </Section>
+      </div>
       <Section title="Evidence labels">
         <EvidenceLegend headingLevel={3} />
       </Section>
-    </>
+    </div>
   );
 }
 

@@ -10,7 +10,7 @@ import { scaleGradient } from './colour-scales.ts';
 import { EarthCards } from './earth-cards.tsx';
 import { CandidateTable, FAMILY_TITLES, modelIsRanked, visibleFamilies } from './earth-table.tsx';
 import { Chip, ResultsPanel } from './results-panel.tsx';
-import { DEFAULT_EARTH_VIEW, type EarthView, parseEarthView, serializeEarthView } from './earth-state.ts';
+import { DEFAULT_EARTH_VIEW, type EarthView, focusOn, parseEarthView, serializeEarthView } from './earth-state.ts';
 import { EarthCanvas } from './earth-loader.tsx';
 import type { EarthData } from './explore-data.ts';
 import { UnavailablePanel } from './unavailable-panel.tsx';
@@ -24,6 +24,7 @@ export interface EarthExplorerProps {
 export function EarthExplorer({ data, mapsEnabled, probeEnabled }: EarthExplorerProps) {
   const [view, setView] = useState<EarthView>(DEFAULT_EARTH_VIEW);
   const [selected, setSelected] = useState<number | null>(null);
+  const [region, setRegion] = useState<string | null>(null);
 
   useEffect(() => {
     setView(parseEarthView(window.location.search));
@@ -58,6 +59,17 @@ export function EarthExplorer({ data, mapsEnabled, probeEnabled }: EarthExplorer
   const family = families.includes(view.family) ? view.family : DEFAULT_EARTH_VIEW.family;
   const ranked = modelIsRanked(data.g5);
   const drawable = target.candidates.some((c) => c.centroidLonLat !== null);
+  const regions = [...new Set(target.candidates.flatMap((c) => (c.regionId === null ? [] : [c.regionId])))];
+  const placed = target.candidates.flatMap((c, i) => (c.centroidLonLat === null ? [] : [{ i, c }]));
+  const selectedPoint = selected === null ? undefined : placed.find((p) => p.i === selected)?.c.centroidLonLat;
+  const focus =
+    selectedPoint !== undefined && selectedPoint !== null
+      ? focusOn([selectedPoint])
+      : focusOn(
+          placed
+            .filter((p) => region === null || p.c.regionId === region)
+            .flatMap((p) => (p.c.centroidLonLat === null ? [] : [p.c.centroidLonLat])),
+        );
   const sortRule = target.candidates.find((c) => c.sortRule !== null)?.sortRule ?? null;
   const mode = target.candidates.find((c) => c.shippingMode !== null)?.shippingMode ?? null;
 
@@ -115,6 +127,26 @@ export function EarthExplorer({ data, mapsEnabled, probeEnabled }: EarthExplorer
               ))}
             </div>
           </div>
+          {regions.length < 2 ? null : (
+            <div role="group" aria-label="Region" className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium">Zoom to</span>
+              {[null, ...regions].map((r) => (
+                <Button
+                  key={r ?? 'all'}
+                  type="button"
+                  size="sm"
+                  variant={r === region ? 'default' : 'outline'}
+                  aria-pressed={r === region}
+                  onClick={() => {
+                    setSelected(null);
+                    setRegion(r);
+                  }}
+                >
+                  {r ?? 'All regions'}
+                </Button>
+              ))}
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
             Order: as stored in the comparisons file{sortRule === null ? ' (no sort_rule is stored)' : `, sort_rule: ${sortRule}`}. No combined
             score exists; each family is shown on its own.
@@ -134,15 +166,15 @@ export function EarthExplorer({ data, mapsEnabled, probeEnabled }: EarthExplorer
           )}
         </ResultsPanel>
 
-        <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex min-w-0 flex-col gap-2 lg:sticky lg:top-4 lg:self-start">
           <div
             role="img"
             aria-label={`Globe with ${String(target.candidates.filter((c) => c.centroidLonLat !== null).length)} numbered candidate markers for ${target.name}, coloured by ${FAMILY_TITLES[family]} background percentile. The result cards list the same windows.`}
-            className="relative h-[34rem] overflow-hidden rounded-2xl border border-border bg-black/70 lg:h-[calc(100dvh-9rem)]"
+            className="relative h-[34rem] overflow-hidden rounded-2xl border border-border bg-black/70 lg:h-[calc(100dvh-8rem)]"
             data-slot="earth-map"
           >
             {mapsEnabled && drawable ? (
-              <EarthCanvas candidates={target.candidates} family={family} selected={selected} onSelect={setSelected} />
+              <EarthCanvas candidates={target.candidates} family={family} selected={selected} focus={focus} onSelect={setSelected} />
             ) : (
               <div className="flex h-full items-center justify-center p-6">
                 <UnavailablePanel
@@ -184,7 +216,12 @@ export function EarthExplorer({ data, mapsEnabled, probeEnabled }: EarthExplorer
         </div>
       </div>
 
-      {target.comparisonsPresent ? (
+      {target.comparisonsPresent && target.candidates.length > 0 ? (
+        <details className="rounded-2xl border border-border bg-card p-4">
+          <summary className="cursor-pointer text-base font-semibold">
+            All {String(target.candidates.length)} candidates, per-family table
+          </summary>
+          <div className="mt-4">
         <CandidateTable
           targetName={target.name}
           candidates={target.candidates}
@@ -192,6 +229,8 @@ export function EarthExplorer({ data, mapsEnabled, probeEnabled }: EarthExplorer
           g5={data.g5}
           modelInBundle={data.modelInBundle}
         />
+          </div>
+        </details>
       ) : null}
 
       {probeEnabled ? (

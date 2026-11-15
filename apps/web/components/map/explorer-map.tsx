@@ -225,7 +225,7 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
               apply(e.key);
             }
           }}
-          className="relative h-[34rem] min-h-80 lg:h-[calc(100dvh-9rem)] overflow-hidden rounded-2xl border border-border bg-black/70 shadow-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
+          className="relative h-[34rem] min-h-80 lg:h-[calc(100dvh-8rem)] overflow-hidden rounded-2xl border border-border bg-black/70 shadow-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
           data-slot="map-stage"
         >
           {assetBase !== null && frame !== null && camera !== null && activeLayers.length > 0 ? (

@@ -29,7 +29,7 @@ export function ResultsPanel({ title, chips = [], children, label }: ResultsPane
   return (
     <aside
       aria-label={label}
-      className="flex min-w-0 flex-col gap-4 overflow-y-auto rounded-2xl border border-border bg-card/95 p-4 text-card-foreground shadow-lg lg:max-h-[calc(100dvh-9rem)]"
+      className="flex min-w-0 flex-col gap-4 overflow-y-auto rounded-2xl border border-border bg-card/95 p-4 text-card-foreground shadow-lg lg:h-[calc(100dvh-8rem)]"
     >
       <header className="flex flex-col gap-2">
         <p className="font-mono text-[0.7rem] font-semibold tracking-[0.22em] text-primary uppercase">Results</p>

@@ -15,6 +15,8 @@ export interface EarthCanvasProps {
   readonly candidates: readonly Candidate[];
   readonly family: Family;
   readonly selected: number | null;
+  /** Where to point the globe: set by the region buttons, the selected card or the candidate extent. */
+  readonly focus: { readonly longitude: number; readonly latitude: number; readonly zoom: number };
   readonly onSelect: (index: number) => void;
 }
 
@@ -51,7 +53,7 @@ function graticule(): [number, number][][] {
 
 const GRID = graticule();
 
-export default function EarthCanvas({ candidates, family, selected, onSelect }: EarthCanvasProps) {
+export default function EarthCanvas({ candidates, family, selected, focus, onSelect }: EarthCanvasProps) {
   const markers = useMemo<Marker[]>(
     () =>
       candidates.flatMap((c, index) =>
@@ -61,14 +63,10 @@ export default function EarthCanvas({ candidates, family, selected, onSelect }: 
       ),
     [candidates, family],
   );
-  const home = useMemo(() => {
-    const m = markers.find((k) => k.index === selected) ?? markers[0];
-    return m === undefined ? { longitude: 0, latitude: 20 } : { longitude: m.position[0], latitude: m.position[1] };
-  }, [markers, selected]);
-  const [viewState, setViewState] = useState({ ...home, zoom: 1 });
+  const [viewState, setViewState] = useState({ ...focus });
   useEffect(() => {
-    setViewState((v) => ({ ...v, ...home }));
-  }, [home]);
+    setViewState({ longitude: focus.longitude, latitude: focus.latitude, zoom: focus.zoom });
+  }, [focus.longitude, focus.latitude, focus.zoom]);
 
   const layers = useMemo(
     () => [
