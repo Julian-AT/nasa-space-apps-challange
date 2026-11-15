@@ -336,12 +336,18 @@
       "priority": 7,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "19b8108b4506711d339b384b5a667e4d1ee862f2",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "7c5ab9b3dc4ab4f00e91fed5db16bd71d4b04af7",
+        "files": [
+          "reviews/T1-07-claude.json",
+          "reviews/T1-07-codex.json"
+        ],
+        "digests": {
+          "reviews/T1-07-claude.json": "83bb104b41188c806656fcf27f7268e36f6fb6a69c74f2316adb1bc7c20bafc3",
+          "reviews/T1-07-codex.json": "2aed2549bc46eba984d866e4a184aab4bb431394e1b95b157fdd92335c8e756b"
+        }
       },
       "notes": "Reviewer findings applied. cors and wc are two sources of the same CLI (fetch cors, fetch wc). The real browser-origin CORS and range evidence is not produced by this story; it is a separate pilot step and T1-09 treats header evidence as partial."
     },

@@ -22,3 +22,23 @@
 {"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"git diff 2f821413ccedd5a8085836739a897cae006093fe 115fa5fd16eb2eaf4624486383c55874162fd33e --stat -- config PRD.md"}
 {"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":2}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"uv run python -m terraluna_pipeline.pilot check cors"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"uv run python -m terraluna_pipeline.pilot check wc"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"git diff --stat 19b8108b4506711d339b384b5a667e4d1ee862f2 7c5ab9b3dc4ab4f00e91fed5db16bd71d4b04af7"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"git diff --stat 19b8108b4506711d339b384b5a667e4d1ee862f2 7c5ab9b3dc4ab4f00e91fed5db16bd71d4b04af7 -- config"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Grep","input":"cop30_mode"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"jq -c 'del(.requests, .urls) | .' outputs/pilot/cors_check.json"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"jq -c '.urls[] | {url, cors_evidence_supports, reqs: [.origins[]? | {o: .origin, r: [.requests[]? | {k: .request, s: .status_code}]}]}' outputs/pilot/cors_check.json"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"jq -c '.urls[0] | keys' outputs/pilot/cors_check.json"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"jq -c '.urls[0].origins[0] | del(.. | .raw_headers?)' outputs/pilot/cors_check.json"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"jq -c 'del(.. | .raw_headers?)' outputs/pilot/worldcover_window.json"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"git diff 19b8108b4506711d339b384b5a667e4d1ee862f2 7c5ab9b3dc4ab4f00e91fed5db16bd71d4b04af7 -- outputs/sources.json"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"jq -c '[.[].product_id]' outputs/sources.json"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Bash","input":"git diff 19b8108b4506711d339b384b5a667e4d1ee862f2 7c5ab9b3dc4ab4f00e91fed5db16bd71d4b04af7 -- scripts/ralph/batches/t1-pilot/prd.json"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Grep","input":"cop30_mode"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Grep","input":"^def test_|^    def test_"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"Grep","input":"^def test_|^    def test_"}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-15T00:42:14Z","agent":"verifier","story":"T1-07","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":2}

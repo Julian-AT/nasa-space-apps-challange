@@ -1,0 +1,134 @@
+{
+  "task_id": "T1-07",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "19b8108b4506711d339b384b5a667e4d1ee862f2",
+    "head": "7c5ab9b3dc4ab4f00e91fed5db16bd71d4b04af7",
+    "files": [
+      {
+        "path": "outputs/pilot/cors_check.json",
+        "sha256": "39784bf700dc729395a7497439005700ac6e6c49f823333e5997901c1e3f1fb6"
+      },
+      {
+        "path": "outputs/pilot/worldcover_window.json",
+        "sha256": "22d542b755a81afda0684895915437144659259780e1ebae84fc068e179306b7"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "7b891fd305ee6a0abc66254240faea00e3b024c33681ce60f40a7459061effae"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "1bd5623ee1166903d8efc413c20c4364694ae4dec7fb666d3a87e05e07787517"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "c54f7a517c82939c4029c8453460a347ccb17770065ff72767b888e6482e0ff8"
+      },
+      {
+        "path": "pipeline/tests/test_io_http_exchange.py",
+        "sha256": "5696346de9f9816c5be51131f53047b0b3a9ed8a10de2eb108a9e4bac8f85d2b"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_cors.py",
+        "sha256": "2dc51000b27970ba341d5c2cc9a3f1cf7c3ec74a41d2d3262e68fc22cc621256"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_wc.py",
+        "sha256": "cc8b44097b3e12dc1d48e9ce3ad048241a4ee568ab4b0321dedb5197d693de69"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:41:06Z",
+  "finished_utc": "2026-11-15T00:44:38Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Two blocker findings violate acceptance criterion 6: WorldCover omits raw HTTP evidence, and replay depends on upstream outputs. Required commands were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Send OPTIONS preflight and Origin-header Range GET for both tile URLs, using stated non-identifying origins.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:6654 defines https://example.org and http://localhost:3000; pilot.py:6669 constructs the required requests; pilot.py:6714 sends them. data/raw/cors/fetch.json records all eight exchanges and their request headers."
+    },
+    {
+      "criterion": "AC2: Record statuses, response headers, absent headers, Range GET 206 observations and exposed-header observations.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "outputs/pilot/cors_check.json contains per-request status and response_headers, all nine headers_that_matter, and explicit absent states. Range GET observations at lines 244, 483, 746 and 985 report returned_206=true and both exposed-header checks=false."
+    },
+    {
+      "criterion": "AC3: State server-side limitations, derive cors_evidence_supports with reasons, and leave cop30_mode for the team at G0.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "outputs/pilot/cors_check.json:3 states the team decision; line 21 records proxy_needed with preceding reasons; line 55 states this is not a browser fetch. The new Build results target outputs only (pilot.py:6473 and :6918); config/run.yaml:64 remains cop30_mode: null."
+    },
+    {
+      "criterion": "AC4: Read a pinned-year WorldCover window over the T1-06 area and record CRS, provider class counts, received bytes and fetched-range SHA-256.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static implementation and artifact reviewed: worldcover_window.json records v200 2021, a 512 x 512 window, EPSG:4326, class counts, 524288 received bytes and a range checksum. Independent decoding and numerical reproduction require execution, which the user prohibited for this read-only review."
+    },
+    {
+      "criterion": "AC5: Upsert sorted ProductRecords referencing exact fetched bytes; report unreachable URLs non-zero while treating missing CORS headers as observations.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "outputs/sources.json:716 contains the WorldCover ProductRecord and raw range path. pilot.py:343 sorts/upserts records; io.py:660 checks stored-byte identity. Error and missing-header tests contain substantive assertions, but byte identity and exit behavior were not executed because the user prohibited checks in the read-only sandbox."
+    },
+    {
+      "criterion": "AC6: Preserve raw HTTP exchanges for cors and wc and rebuild/check committed outputs solely from saved raw inputs.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pilot.py:6126 serializes WorldCover exchanges through a helper that omits raw status lines and response-header lists; data/raw/worldcover/fetch.json:55 confirms their absence. pilot.py:6169 and :6780 also read upstream outputs during rebuild instead of using only the saved raw snapshots."
+    },
+    {
+      "criterion": "Required check: pipeline tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks: the sandbox is read-only and dependency/cache writes fail."
+    },
+    {
+      "criterion": "Required check: offline CORS reproduction",
+      "command": "uv run python -m terraluna_pipeline.pilot check cors",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: offline WorldCover reproduction",
+      "command": "uv run python -m terraluna_pipeline.pilot check wc",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks: the sandbox is read-only and dependency/cache writes fail."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/pilot.py:6126",
+      "claim": "WorldCover fetch does not preserve the raw status lines and response headers required by AC6.",
+      "evidence": "The WorldCover path uses _phased_exchange_entry, whose underlying serializer at pilot.py:3653 retains only requested_range, http_status, content_range, bytes_received and retrieved_at, plus phase. data/raw/worldcover/fetch.json:55 contains exactly that reduced evidence for both range responses; document entries also retain only selected fields. The missing raw evidence cannot be reconstructed offline. Preserve it for the actual WorldCover requests and extend test_pilot_wc.py:363 to assert it.",
+      "id": "codex-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/pilot.py:6169",
+      "claim": "Record and check require upstream generated outputs as inputs, violating AC6's raw-only replay contract.",
+      "evidence": "WorldcoverSource._build calls _area(root), which reads outputs/pilot/cop30_range_read.json at pilot.py:6038. CorsSource._build similarly calls _urls(root) at :6780, reading both upstream output records at :6687. Consequently, complete saved raw inputs cannot reproduce these records when an upstream output is missing or changed. The fetch metadata already saves the area and URL snapshots; rebuild from those snapshots and test replay without upstream output dependencies.",
+      "id": "codex-r1-2",
+      "resolution": null
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "task_id": "T1-07",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "19b8108b4506711d339b384b5a667e4d1ee862f2",
+    "head": "7c5ab9b3dc4ab4f00e91fed5db16bd71d4b04af7",
+    "files": [
+      {
+        "path": "outputs/pilot/cors_check.json",
+        "sha256": "39784bf700dc729395a7497439005700ac6e6c49f823333e5997901c1e3f1fb6"
+      },
+      {
+        "path": "outputs/pilot/worldcover_window.json",
+        "sha256": "22d542b755a81afda0684895915437144659259780e1ebae84fc068e179306b7"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "7b891fd305ee6a0abc66254240faea00e3b024c33681ce60f40a7459061effae"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "1bd5623ee1166903d8efc413c20c4364694ae4dec7fb666d3a87e05e07787517"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "c54f7a517c82939c4029c8453460a347ccb17770065ff72767b888e6482e0ff8"
+      },
+      {
+        "path": "pipeline/tests/test_io_http_exchange.py",
+        "sha256": "5696346de9f9816c5be51131f53047b0b3a9ed8a10de2eb108a9e4bac8f85d2b"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_cors.py",
+        "sha256": "2dc51000b27970ba341d5c2cc9a3f1cf7c3ec74a41d2d3262e68fc22cc621256"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_wc.py",
+        "sha256": "cc8b44097b3e12dc1d48e9ce3ad048241a4ee568ab4b0321dedb5197d693de69"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:41:06Z",
+  "finished_utc": "2026-11-15T00:42:14Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T1-07 passes on the evidence I saw. All four story checks exit 0. The cors and wc records match their raw files offline, and the recorded observations are consistent with the raw responses. `config/run.yaml` is untouched and still has `cop30_mode: null`. One low-severity note: the story's commits also touch `scripts/ralph/batches/t1-pilot/prd.json` and `progress.txt`, which are outside the files list.",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "1466 passed, 2 xfailed. The xfails are the T1-01 schema-case fixtures. test_pilot_cors.py (19 tests), test_pilot_wc.py (22) and test_io_http_exchange.py (14) all pass."
+    },
+    {
+      "criterion": "Check: uv run python -m terraluna_pipeline.pilot check cors",
+      "command": "uv run python -m terraluna_pipeline.pilot check cors",
+      "outcome": "PASS",
+      "evidence": "cors: committed outputs match data/raw/cors/"
+    },
+    {
+      "criterion": "Check: uv run python -m terraluna_pipeline.pilot check wc",
+      "command": "uv run python -m terraluna_pipeline.pilot check wc",
+      "outcome": "PASS",
+      "evidence": "wc: committed outputs match data/raw/worldcover/"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check reported 27 files already formatted, and mypy reported no issues in 27 source files."
+    },
+    {
+      "criterion": "AC1: OPTIONS preflight and Range GET with Origin for GLO-30 and WorldCover URLs; origins stated; no project or personal data sent",
+      "command": "jq on outputs/pilot/cors_check.json",
+      "outcome": "PASS",
+      "evidence": "There are two URLs (GLO-30 N64W017 and WorldCover N63W018) and two origins (https://example.org and http://localhost:3000). Request headers are limited to Host, Accept-Encoding, Origin, Access-Control-Request-Method: GET, Access-Control-Request-Headers: range, and Range: bytes=0-1023. method.client states that no User-Agent, cookie, credential or project identifier is sent."
+    },
+    {
+      "criterion": "AC2: per-URL, per-request status and headers recorded; observations; absent headers recorded as absent",
+      "command": "jq on outputs/pilot/cors_check.json",
+      "outcome": "PASS",
+      "evidence": "The GLO-30 preflight has status 403 and the body quotes 'CORS is not enabled for this bucket'. Its nine headers_that_matter entries each have state absent or present with values. The Range GET has status 206 and observations returned_206 true, expose_headers_lists_content_range false and expose_headers_lists_accept_ranges false. Absent Access-Control-* headers are recorded as absent with allows_origin false."
+    },
+    {
+      "criterion": "AC3: server-side limitation stated; cors_evidence_supports with reasons; cop30_mode note; cop30_mode not written anywhere",
+      "command": "jq on outputs/pilot/cors_check.json; Grep cop30_mode in config/run.yaml; git diff -- config",
+      "outcome": "PASS",
+      "evidence": "method.statement says this is a server-side request, not a real browser fetch, and that the header evidence implies but does not replace a browser run. cors_evidence_supports is proxy_needed, with 14 reasons and a derivation_rule. cop30_mode_note says the team chooses cop30_mode at G0. config/run.yaml:64 still reads `cop30_mode: null` and the diff touches nothing under config."
+    },
+    {
+      "criterion": "AC4: WorldCover tile for the T1-06 area, pinned year with reason, window <=512x512 by range read, path, CRS, class counts with legend names, bytes, sha256, bare-ground caveat",
+      "command": "jq on outputs/pilot/worldcover_window.json",
+      "outcome": "PASS",
+      "evidence": "Tile is N63W018, v200 2021, with year_pin.reason recorded. The pixel window is 512x512 and was read through 2 range requests. The record gives the .ranges local_path, bytes_received 524288, local_sha256 f09fd29d…, and EPSG:4326 CRS WKT. Classes 30, 60, 70 and 100 have pixel counts, with names taken from the file's legend. classes.bare_ground_caveat says a bare/sparse class does not establish dry bare mineral soil."
+    },
+    {
+      "criterion": "AC5: ProductRecord upserted by product_id, sorted; local_path under data/raw/worldcover; unreachable bucket exits non-zero naming URL; missing CORS header is not a failure",
+      "command": "jq '[.[].product_id]' outputs/sources.json; read test names",
+      "outcome": "PASS",
+      "evidence": "The WorldCover product_id sorts last (COP30 < CTX < MINIRF < PGDA78 < WorldCover) and local_path is data/raw/worldcover/…Map.tif.ranges, whose sha256 is the record checksum. Tests test_unreachable_bucket_exits_non_zero_naming_the_url exist in both the cors and wc test files and pass. The cors check records the 403 preflight as an observation and does not fail."
+    },
+    {
+      "criterion": "AC6: fetch saves raw status lines, headers, bytes and times; record and check read only raw files and verify byte-for-byte offline",
+      "command": "uv run python -m terraluna_pipeline.pilot check cors; check wc",
+      "outcome": "PASS",
+      "evidence": "Both check commands pass. The records point at data/raw/cors/ and data/raw/worldcover/ files and carry status_line, response_headers, requested_at and retrieved_at. Tests such as test_check_passes_offline_and_fails_on_changes, test_record_refuses_altered_raw_bytes and test_record_refuses_a_url_that_changed_since_fetch cover the offline and tamper behaviour."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t1-pilot/prd.json, scripts/ralph/batches/t1-pilot/progress.txt",
+      "claim": "The story's commit range also changes the Ralph bookkeeping files, which are not in the story's files list.",
+      "evidence": "git diff --stat shows prd.json (review state pending→requested, base set) and progress.txt (+13 lines). The prd.json change matches the 'chore(ralph): request review' commit, so this is orchestration bookkeeping and no story code or data lies outside the list.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "outputs/pilot/cors_check.json (top-level cors_evidence_supports)",
+      "claim": "The top-level proxy_needed value reflects only the GLO-30 URL and the evidence is a single server-side run; the record flags this limit itself.",
+      "evidence": "cors_evidence_scope and method.statement say the value is the GLO-30 URL's and that a browser run is not replaced. The G0 human decision and cop30_mode remain unset. This is informational, not a defect.",
+      "id": "claude-r1-2",
+      "resolution": null
+    }
+  ]
+}
