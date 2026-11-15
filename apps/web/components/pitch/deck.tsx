@@ -123,7 +123,7 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
         <Frame title="Where on Earth should astronauts practise?" sub="Analog sites are chosen by experience. We measure them.">
           <div className="flex h-full flex-col justify-center gap-8 pb-[4vh]">
             <div className="overflow-hidden rounded-xl border bg-white" style={{ borderColor: LINE }}>
-              <div className="grid grid-cols-[14rem_1fr_1fr] px-10 pt-8 pb-5 text-lg font-medium">
+              <div className="grid grid-cols-[14.5rem_1fr_1.1fr] px-10 pt-8 pb-5 text-lg font-medium">
                 <span />
                 <span style={{ color: INK }}>Today</span>
                 <span style={{ color: ACCENT }}>With Terraluna</span>
@@ -133,9 +133,9 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
                 ['What you can compare', 'A handful of known analog sites', 'Any point on Earth, in seconds'],
                 ['Evidence', 'Descriptions and photos', 'An evidence card with distances and figures'],
               ].map(([label, today, ours]) => (
-                <div key={label} className="mx-10 grid grid-cols-[14rem_1fr_1fr] items-baseline border-t py-7" style={{ borderColor: LINE }}>
+                <div key={label} className="mx-10 grid grid-cols-[14.5rem_1fr_1.1fr] items-baseline border-t py-7" style={{ borderColor: LINE }}>
                   <span className="text-sm font-medium uppercase tracking-[0.06em]" style={{ color: FAINT }}>{label}</span>
-                  <span className="pr-8 text-[1.375rem] leading-snug" style={{ color: MUTED }}>{today}</span>
+                  <span className="pr-6 text-[1.375rem] leading-snug" style={{ color: MUTED }}>{today}</span>
                   <span className="flex items-baseline gap-3 text-[1.375rem] leading-snug" style={{ color: INK }}>
                     <HugeiconsIcon icon={Tick02Icon} size={20} color={C.green} strokeWidth={2} className="shrink-0 translate-y-[3px]" />
                     {ours}
