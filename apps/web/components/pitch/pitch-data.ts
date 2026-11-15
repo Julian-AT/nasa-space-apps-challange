@@ -174,10 +174,15 @@ export function buildPitchData(bundle: PulledBundle): PitchData {
       n: s.values.length,
     }));
 
-  // nu(L) relief curves of the best card's two windows, from windows/<body>.json
+  // nu(L) relief curves of the finder story's card (Jezero and Rosamond Dry Lake, the closest such
+  // card; the overall best card if there is none), from windows/<body>.json
+  const jezRos = cards
+    .filter((c) => c.target.target_id === 'mars-jezero-w000' && c.earth.search_region_id === 'rosamond-dry-lake' && c.distances_by_family.terrain_relief.value !== null)
+    .sort((a, b) => (a.distances_by_family.terrain_relief.value ?? 0) - (b.distances_by_family.terrain_relief.value ?? 0))[0];
+  const curveCard = jezRos ?? bestCard;
   const curves: NuCurve[] = [];
   let curvesFrom: string | null = null;
-  if (bestCard !== null) {
+  if (curveCard !== null) {
     const pick = (body: string, windowId: string, role: string) => {
       const list = records.windows.get(body);
       const entry = list?.find((e) => e.window.window_id === windowId);
@@ -186,8 +191,8 @@ export function buildPitchData(bundle: PulledBundle): PitchData {
       const pts = buildNuSeries(variant).points.filter((p) => p.nu > 0 && p.lag_m > 0);
       if (pts.length >= 2) curves.push({ id: windowId, role, points: pts.map((p) => ({ lag_m: p.lag_m, nu: p.nu })) });
     };
-    pick(bestCard.target.body, bestCard.target.target_window_id, targetName(bestCard.target.target_id));
-    pick('earth', bestCard.earth.earth_window_id, regionName(bestCard.earth.search_region_id ?? 'earth'));
+    pick(curveCard.target.body, curveCard.target.target_window_id, targetName(curveCard.target.target_id));
+    pick('earth', curveCard.earth.earth_window_id, regionName(curveCard.earth.search_region_id ?? 'earth'));
     curvesFrom = curves.length ? 'windows/<body>.json, relief nu_m' : null;
   }
   const lags = [...new Set(curves.flatMap((c) => c.points.map((p) => p.lag_m)))].sort((a, b) => a - b);

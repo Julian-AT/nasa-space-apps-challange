@@ -9,7 +9,12 @@ import type { TileView } from '@/components/cards/card-visual';
 
 import type { NuCurve } from './pitch-data';
 
-export const GOLD = '#C8962E';
+/** Neutral shadcn palette: ink, muted captions, hairlines. Emphasis is weight, not colour. */
+export const INK = '#09090b';
+export const MUTED = '#71717a';
+export const LINE = '#e4e4e7';
+/** The only data colours: world tints, used where two series must be told apart. */
+export const WORLD = { mars: '#D4876A', moon: '#71717a', earth: '#5B84C4' } as const;
 
 export const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -38,7 +43,7 @@ const W = 640;
 const H = 360;
 const PAD = { l: 64, r: 24, t: 24, b: 52 };
 
-export function NuChart({ curves, lags }: { curves: readonly NuCurve[]; lags: readonly number[] }) {
+export function NuChart({ curves, lags, colors = [WORLD.mars, WORLD.earth] }: { curves: readonly NuCurve[]; lags: readonly number[]; colors?: readonly string[] }) {
   const all = curves.flatMap((c) => c.points);
   const xs = all.map((p) => Math.log10(p.lag_m));
   const ys = all.map((p) => Math.log10(p.nu));
@@ -49,7 +54,6 @@ export function NuChart({ curves, lags }: { curves: readonly NuCurve[]; lags: re
   const y1 = Math.max(...ys) + yPad;
   const sx = (lag: number) => PAD.l + ((Math.log10(lag) - x0) / (x1 - x0)) * (W - PAD.l - PAD.r);
   const sy = (nu: number) => H - PAD.b - ((Math.log10(nu) - y0) / (y1 - y0)) * (H - PAD.t - PAD.b);
-  const colors = [GOLD, '#18181b'];
   const [hover, setHover] = useState<number | null>(null);
   const onMove = (e: PointerEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -90,7 +94,7 @@ export function NuChart({ curves, lags }: { curves: readonly NuCurve[]; lags: re
       </text>
       {curves.map((c, k) => {
         const d = c.points.map((p, i) => `${i ? 'L' : 'M'}${sx(p.lag_m).toFixed(1)},${sy(p.nu).toFixed(1)}`).join(' ');
-        const color = colors[k % colors.length];
+        const color = colors[k % colors.length] ?? INK;
         return (
           <g key={c.id}>
             <motion.path
@@ -132,8 +136,8 @@ export function NuChart({ curves, lags }: { curves: readonly NuCurve[]; lags: re
             const left = sx(hl) > W * 0.62;
             return (
               <g key={c.id}>
-                <circle cx={sx(hl)} cy={sy(p.nu)} r={7} fill={colors[k % colors.length]} />
-                <text x={sx(hl) + (left ? -12 : 12)} y={sy(p.nu) + (k === 0 ? -12 : 20)} textAnchor={left ? 'end' : 'start'} fontSize={14} className="font-mono" fill={colors[k % colors.length]}>
+                <circle cx={sx(hl)} cy={sy(p.nu)} r={7} fill={colors[k % colors.length] ?? INK} />
+                <text x={sx(hl) + (left ? -12 : 12)} y={sy(p.nu) + (k === 0 ? -12 : 20)} textAnchor={left ? 'end' : 'start'} fontSize={14} className="font-mono" fill={colors[k % colors.length] ?? INK}>
                   {`ν(${hl} m) = ${p.nu.toPrecision(3)} m`}
                 </text>
               </g>
@@ -147,7 +151,7 @@ export function NuChart({ curves, lags }: { curves: readonly NuCurve[]; lags: re
 
 const pct = (n: number): string => `${String(n * 100)}%`;
 
-/** A bundle hillshade view (Derived) as a clean rounded image, window outlined in gold. */
+/** A bundle hillshade view (Derived) as a clean rounded image, window outlined in white. */
 export function HillTile({ tile, className = '' }: { tile: TileView | null; className?: string }) {
   return (
     <div className={`relative aspect-square overflow-hidden rounded-2xl bg-zinc-100 ${className}`}>
@@ -173,10 +177,43 @@ export function HillTile({ tile, className = '' }: { tile: TileView | null; clas
           <span
             aria-hidden
             className="absolute rounded-[4px] border-2"
-            style={{ borderColor: GOLD, left: pct(tile.pick.box.left), top: pct(tile.pick.box.top), width: pct(tile.pick.box.width), height: pct(tile.pick.box.height) }}
+            style={{ borderColor: 'rgba(255,255,255,0.95)', boxShadow: '0 0 0 1px rgba(9,9,11,0.35)', left: pct(tile.pick.box.left), top: pct(tile.pick.box.top), width: pct(tile.pick.box.width), height: pct(tile.pick.box.height) }}
           />
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * Schematic elevation profile (an illustration, not data) with brackets for the stored lags:
+ * the fingerprint asks how much height changes over each distance.
+ */
+export function LagProfile({ lags }: { lags: readonly number[] }) {
+  const PW = 560;
+  const PH = 300;
+  const span = Math.max(...lags, 1) * 2.2;
+  const xs = Array.from({ length: 121 }, (_, i) => (i / 120) * span);
+  const h = (x: number) => 46 * Math.sin(x / 260) + 22 * Math.sin(x / 97 + 1.3) + 9 * Math.sin(x / 31 + 0.4);
+  const sx = (x: number) => 16 + (x / span) * (PW - 32);
+  const sy = (v: number) => 120 - v;
+  const d = xs.map((x, i) => `${i ? 'L' : 'M'}${sx(x).toFixed(1)},${sy(h(x)).toFixed(1)}`).join(' ');
+  const shown = lags.slice(0, 4);
+  return (
+    <svg viewBox={`0 0 ${PW} ${PH}`} className="h-auto w-full" role="img" aria-label={`Schematic terrain profile with brackets of ${shown.join(', ')} metres`}>
+      <path d={`${d} L${sx(span)},200 L${sx(0)},200 Z`} fill="#f4f4f5" />
+      <motion.path d={d} fill="none" stroke={INK} strokeWidth={2.5} strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.4, delay: 0.3, ease: EASE }} />
+      {shown.map((lag, k) => {
+        const x0 = sx(span * 0.06);
+        const x1 = sx(span * 0.06 + lag);
+        const y = 222 + k * 26;
+        return (
+          <motion.g key={lag} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 + k * 0.2, duration: 0.4 }}>
+            <path d={`M${x0},${y - 6} V${y} H${x1} V${y - 6}`} fill="none" stroke={INK} strokeWidth={1.6} />
+            <text x={x1 + 10} y={y + 4} fontSize={15} className="font-mono" fill={INK}>{`${lag} m`}</text>
+          </motion.g>
+        );
+      })}
+    </svg>
   );
 }

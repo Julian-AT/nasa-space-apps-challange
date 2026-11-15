@@ -12,7 +12,7 @@ import { EASE } from './bits';
 const INK = '#27272a';
 const SUB = '#71717a';
 const LINE = '#a1a1aa';
-const GOLD = '#C8962E';
+const PULSE = '#09090b';
 const CY = 300;
 
 interface BoxProps {
@@ -59,7 +59,7 @@ function Edge({ d, delay = 0 }: { readonly d: string; readonly delay?: number })
       <path
         d={d}
         fill="none"
-        stroke={GOLD}
+        stroke={PULSE}
         strokeWidth={3.5}
         strokeLinecap="round"
         pathLength={1}
@@ -93,9 +93,9 @@ const STAGES = [
 const HEAD_X = 1250;
 const HEAD_W = 230;
 const HEADS = [
-  { cy: 120, fill: '#FBE4EC', stroke: '#E3A3B9', lines: ['Projector', '256-2048-2048-2048', 'VICReg loss'] },
-  { cy: 300, fill: '#E0F0F8', stroke: '#93C4DD', lines: ['Physics head', '256-256-11', 'masked MSE'] },
-  { cy: 480, fill: '#ECE5F8', stroke: '#B7A3DE', lines: ['Body head', '256-256-3', 'cross-entropy'] },
+  { cy: 120, fill: '#fafafa', stroke: '#d4d4d8', lines: ['Projector', '256-2048-2048-2048', 'VICReg loss'] },
+  { cy: 300, fill: '#fafafa', stroke: '#d4d4d8', lines: ['Physics head', '256-256-11', 'masked MSE'] },
+  { cy: 480, fill: '#fafafa', stroke: '#d4d4d8', lines: ['Body head', '256-256-3', 'cross-entropy'] },
 ] as const;
 
 export function ArchDiagram({ step }: { readonly step: number }) {
@@ -116,7 +116,7 @@ export function ArchDiagram({ step }: { readonly step: number }) {
       <Reveal show>
         <g>
           {[2, 1, 0].map((k) => (
-            <rect key={k} x={40 + k * 14} y={222 + k * 14} width={92} height={92} rx={8} fill={['#DCEAFB', '#E6F0FC', '#F0F6FE'][k]} stroke="#8FB3E0" strokeWidth={1.4} />
+            <rect key={k} x={40 + k * 14} y={222 + k * 14} width={92} height={92} rx={8} fill={['#e4e4e7', '#f4f4f5', '#fafafa'][k]} stroke="#d4d4d8" strokeWidth={1.4} />
           ))}
           <text x={100} y={190} textAnchor="middle" fontSize={17} fontWeight={600} fill={INK}>
             Input window
@@ -138,15 +138,15 @@ export function ArchDiagram({ step }: { readonly step: number }) {
             RESNET BACKBONE, 4 STAGES
           </text>
           <Edge d={`M168,${CY} H188`} />
-          <Box x={190} w={124} h={120} fill="#FBE6D6" stroke="#E5B08A" lines={['Stem', 'conv 3x3', '32, stride 2']} />
+          <Box x={190} w={124} h={120} fill="#fafafa" stroke="#d4d4d8" lines={['Stem', 'conv 3x3', '32, stride 2']} />
           {STAGES.map((s, k) => (
             <g key={s.ch}>
               <Edge d={`M${k === 0 ? 314 : (STAGES[k - 1]?.x ?? 0) + 124},${CY} H${s.x - 2}`} delay={0.15 * (k + 1)} />
-              <Box x={s.x} w={124} h={s.h} fill="#FCF0D2" stroke="#E2C27A" lines={[`Stage ${k + 1}`, '2 x BasicBlock', `${s.ch} ch`]} />
+              <Box x={s.x} w={124} h={s.h} fill="#fafafa" stroke="#d4d4d8" lines={[`Stage ${k + 1}`, '2 x BasicBlock', `${s.ch} ch`]} />
             </g>
           ))}
           <Edge d={`M898,${CY} H918`} delay={0.75} />
-          <Box x={920} w={84} h={120} fill="#ECECF4" stroke="#B4B4CC" lines={['GAP', 'global', 'avg pool']} />
+          <Box x={920} w={84} h={120} fill="#fafafa" stroke="#d4d4d8" lines={['GAP', 'global', 'avg pool']} />
         </g>
       </Reveal>
 
@@ -154,7 +154,7 @@ export function ArchDiagram({ step }: { readonly step: number }) {
       <Reveal show={step >= 2}>
         <g>
           <Edge d={`M1004,${CY} H1018`} delay={0.9} />
-          <rect x={1020} y={CY - 140} width={90} height={280} rx={12} fill="#DDF2E3" stroke={GOLD} strokeWidth={2} />
+          <rect x={1020} y={CY - 140} width={90} height={280} rx={12} fill="#fafafa" stroke={PULSE} strokeWidth={2} />
           <text x={1065} y={CY - 30} textAnchor="middle" fontSize={26} fontWeight={700} fill={INK}>
             256
           </text>
@@ -173,7 +173,7 @@ export function ArchDiagram({ step }: { readonly step: number }) {
           <Edge d={`M1110,${CY} H1135 V${HEADS[0].cy} H${HEAD_X - 2}`} delay={1.05} />
           <Edge d={`M1110,${CY} H${HEAD_X - 2}`} delay={1.15} />
           <Edge d={`M1135,${CY} V${HEADS[2].cy} H1148`} delay={1.25} />
-          <rect x={1150} y={HEADS[2].cy - 30} width={76} height={60} rx={10} fill="#FFF7E3" stroke={GOLD} strokeWidth={1.4} strokeDasharray="5 4" />
+          <rect x={1150} y={HEADS[2].cy - 30} width={76} height={60} rx={10} fill="#fafafa" stroke={PULSE} strokeWidth={1.4} strokeDasharray="5 4" />
           <text x={1188} y={HEADS[2].cy - 7} textAnchor="middle" fontSize={14} fontWeight={600} fill={INK}>
             GRL
           </text>

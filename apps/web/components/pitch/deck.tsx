@@ -12,11 +12,11 @@ import { EarthIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 
 import { ArchDiagram, ARCH_STEPS } from './arch';
-import { CountUp, EASE, GOLD, HillTile, NuChart } from './bits';
+import { CountUp, EASE, HillTile, INK, LagProfile, LINE, MUTED, NuChart, WORLD } from './bits';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
 
-const LabTwin = dynamic(() => import('./lab-twin'), { ssr: false, loading: () => <div className="size-full bg-[#0b0c0f]" /> });
+const LabTwin = dynamic(() => import('./lab-twin'), { ssr: false, loading: () => <div className="size-full bg-white" /> });
 const FinderDemo = dynamic(() => import('./finder'), { ssr: false, loading: () => null });
 
 const GITHUB = 'github.com/Julian-AT/nasa-space-apps-challange';
@@ -43,46 +43,20 @@ function In({ d = 0, children, className }: { d?: number; children: ReactNode; c
   );
 }
 
-/** A word that swaps on a timer with a blur flip (after Aceternity's FlipWords, MIT). */
-function FlipWord({ words }: { words: readonly string[] }) {
-  const [k, setK] = useState(0);
-  useEffect(() => {
-    const id = window.setInterval(() => setK((v) => (v + 1) % words.length), 2400);
-    return () => window.clearInterval(id);
-  }, [words.length]);
-  const w = words[k] ?? '';
-  return (
-    <span className="relative inline-block min-w-[4.6ch] text-left font-semibold" style={{ color: GOLD }}>
-      <AnimatePresence mode="popLayout" initial={false}>
-        <motion.span
-          key={w}
-          className="inline-block"
-          initial={{ opacity: 0, y: 14, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: -18, filter: 'blur(8px)' }}
-          transition={{ duration: 0.5, ease: EASE }}
-        >
-          {w}
-        </motion.span>
-      </AnimatePresence>
-    </span>
-  );
-}
-
-const INK = '#0F172A';
-const MUTED = '#64748B';
-
-/** Accent words. */
+/** Emphasis by weight, never by colour. */
 function A({ children }: { children: ReactNode }) {
-  return <span style={{ color: GOLD }}>{children}</span>;
+  return <span className="font-semibold text-zinc-950">{children}</span>;
 }
 
 /** The brand mark and wordmark, large on the title and closing slides. */
-function Brand() {
+function Brand({ size = 'lg' }: { size?: 'lg' | 'xl' }) {
+  const big = size === 'xl';
   return (
-    <div className="flex items-center gap-5">
-      <HugeiconsIcon icon={EarthIcon} strokeWidth={2.2} className="size-20" style={{ color: INK }} aria-hidden />
-      <span className="text-[6.5rem] font-semibold leading-none tracking-[-0.045em]" style={{ color: INK }}>
+    <div className={`flex items-center ${big ? 'gap-7' : 'gap-5'}`}>
+      <span className={`grid shrink-0 place-items-center bg-zinc-950 ${big ? 'size-28 rounded-[1.75rem]' : 'size-20 rounded-2xl'}`}>
+        <HugeiconsIcon icon={EarthIcon} strokeWidth={1.8} className={big ? 'size-16' : 'size-11'} style={{ color: '#ffffff' }} aria-hidden />
+      </span>
+      <span className={`${big ? 'text-[8.5rem]' : 'text-[6.5rem]'} font-bold leading-none tracking-[-0.05em]`} style={{ color: INK }}>
         Terraluna
       </span>
     </div>
@@ -107,7 +81,7 @@ function Stat({ label, children, unit, caption, d }: { label: string; children: 
   return (
     <In d={d} className="flex flex-col items-center gap-1 text-center">
       <span className="text-xl font-semibold">{label}</span>
-      <span className="text-6xl font-semibold tracking-tight" style={{ color: GOLD }}>
+      <span className="text-6xl font-bold tracking-tight text-zinc-950">
         {children}
       </span>
       <span className="mt-1 text-lg">{unit}</span>
@@ -116,14 +90,15 @@ function Stat({ label, children, unit, caption, d }: { label: string; children: 
   );
 }
 
-/** A stacked item: heading with an accent phrase and a grey line. */
-function Item({ head, accent, line, d }: { head: string; accent: string; line: string; d: number }) {
+/** One numbered step of the fingerprint slide: number, title, visual. */
+function Step({ n, title, d, children }: { n: number; title: string; d: number; children: ReactNode }) {
   return (
-    <In d={d} className="flex flex-col gap-1">
-      <span className="text-2xl font-medium tracking-tight">
-        {head} <A>{accent}</A>
-      </span>
-      <span className="text-base" style={{ color: MUTED }}>{line}</span>
+    <In d={d} className="flex h-full flex-col gap-5 rounded-3xl border border-zinc-200 bg-zinc-50 p-6">
+      <div className="flex items-center gap-3">
+        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-zinc-950 text-sm font-bold text-white">{n}</span>
+        <span className="text-xl font-semibold leading-tight tracking-tight">{title}</span>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">{children}</div>
     </In>
   );
 }
@@ -138,50 +113,56 @@ interface Slide {
 
 function slides(d: PitchData, qr: string | null): Slide[] {
   const m = d.model;
-  const jezT = d.targets.find((t) => t.targetId.includes('jezero'));
-  const arcT = d.targets.find((t) => t.targetId.includes('arcadia'));
-  const last = d.lags[d.lags.length - 1] ?? 0;
-  const lagText = d.lags.length ? `${d.lags[0]} m to ${last >= 1000 ? `${(last / 1000).toFixed(1)} km` : `${last} m`},` : 'Multi-scale,';
-  const caption: Record<string, string> = { 'moon-cr-site01-w000': 'lunar south pole', 'mars-jezero-w000': 'Perseverance landing site', 'mars-arcadia-w000': 'mid-latitude plains' };
+  // the Jezero and Rosamond Dry Lake card: the finder and fingerprint story
+  const jr = d.results.find((r) => r.targetName.includes('Jezero')) ?? null;
+  const moonT = d.targets.find((t) => t.body === 'moon');
+  const opening = [
+    { key: 'moon', body: 'Moon target', name: moonT?.name ?? 'Moon', tile: moonT?.tile ?? null },
+    { key: 'mars', body: 'Mars target', name: jr?.targetName ?? 'Jezero crater', tile: jr?.targetTile ?? null },
+    { key: 'earth', body: 'Earth match', name: jr?.earthName.split(',')[0] ?? 'Earth', tile: jr?.earthTile ?? null },
+  ];
   return [
     {
       id: 'title',
       steps: 1,
       bare: true,
       body: () => (
-        <div className="relative grid h-full grid-cols-[1.3fr_1fr] items-center gap-12">
-          <div className="flex flex-col gap-6">
+        <div className="relative grid h-full grid-cols-[1.1fr_1fr] items-center gap-16">
+          <div className="flex flex-col gap-10">
             <In>
-              <Brand />
+              <Brand size="xl" />
             </In>
-            <In d={0.15}>
-              <p className="text-3xl font-semibold tracking-tight">
-                Find <FlipWord words={['the Moon', 'Mars']} /> on Earth.
-              </p>
-            </In>
-            <In d={0.25}>
-              <p className="max-w-2xl text-xl" style={{ color: MUTED }}>
-                Measured Earth analogs for NASA&apos;s Moon and Mars sites, computed from real elevation, live in your browser.
-              </p>
-            </In>
+            <div className="flex flex-col gap-4">
+              <In d={0.15}>
+                <p className="text-5xl font-bold tracking-tight">Find the Moon and Mars on Earth.</p>
+              </In>
+              <In d={0.25}>
+                <p className="max-w-xl text-2xl leading-snug" style={{ color: MUTED }}>
+                  A physics model and a learned encoder that measure terrain, live in the browser.
+                </p>
+              </In>
+            </div>
           </div>
-          <div className="relative flex items-center justify-center">
-            {[jezT, arcT, d.targets[0]].map((t, k) =>
-              t ? (
-                <motion.div
-                  key={t.targetId}
-                  initial={{ opacity: 0, scale: 0.9, rotate: 0 }}
-                  animate={{ opacity: 1, scale: 1, rotate: [-8, 4, -2][k] ?? 0 }}
-                  transition={{ duration: 0.9, delay: 0.3 + k * 0.15, ease: EASE }}
-                  className="absolute w-[46%] shadow-[0_30px_60px_-30px_rgba(15,23,42,0.45)]"
-                  style={{ left: `${[2, 30, 54][k]}%`, top: `${[-28, -2, -36][k]}%` }}
-                >
-                  <HillTile tile={t.tile} />
-                </motion.div>
-              ) : null,
-            )}
+          <div className="grid grid-cols-3 gap-4">
+            {opening.map((o, k) => (
+              <motion.figure
+                key={o.key}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: k === 1 ? -36 : 0 }}
+                transition={{ duration: 0.9, delay: 0.3 + k * 0.12, ease: EASE }}
+                className="flex flex-col gap-3"
+              >
+                <HillTile tile={o.tile} className="aspect-[3/5] w-full shadow-[0_24px_48px_-28px_rgba(9,9,11,0.5)]" />
+                <figcaption className="flex flex-col">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: MUTED }}>{o.body}</span>
+                  <span className="text-lg font-semibold tracking-tight">{o.name}</span>
+                </figcaption>
+              </motion.figure>
+            ))}
           </div>
-          <p className="absolute bottom-0 left-0 text-sm">NASA Space Apps 2026, Gradient Descent</p>
+          <p className="absolute bottom-0 left-0 text-sm" style={{ color: MUTED }}>
+            <span className="font-semibold text-zinc-950">NASA Space Apps 2026</span>, Gradient Descent, November 2026
+          </p>
         </div>
       ),
     },
@@ -189,52 +170,104 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       id: 'problem',
       steps: 1,
       body: () => (
-        <Frame title="The problem" sub={<>Earth analog sites are picked from <A>experience</A>. We <A>measure</A> them.</>}>
-          <div className="grid h-full grid-cols-3 gap-12">
-            {d.targets.map((t, k) => (
-              <In key={t.targetId} d={0.2 + k * 0.12} className="flex flex-col items-center gap-4 text-center">
-                <span className="text-xl font-semibold">{BODY[t.body]}</span>
-                <HillTile tile={t.tile} className="w-full max-w-[22rem]" />
-                <span className="text-2xl font-semibold tracking-tight" style={{ color: GOLD }}>{t.name}</span>
-                <span className="-mt-3 text-sm" style={{ color: MUTED }}>{caption[t.targetId] ?? ''}</span>
+        <div className="flex h-full flex-col gap-10">
+          <In className="flex flex-col gap-4">
+            <h2 className="text-[3.25rem] font-bold leading-tight tracking-tight">Which place on Earth matches the Moon or Mars?</h2>
+            <p className="flex flex-wrap items-center gap-2 text-base" style={{ color: MUTED }}>
+              NASA candidate sites:
+              {d.targets.map((t) => (
+                <span key={t.targetId} className="rounded-full border border-zinc-200 bg-white px-3 py-0.5 text-sm font-medium text-zinc-950">
+                  {t.name}, {BODY[t.body]}
+                </span>
+              ))}
+            </p>
+          </In>
+          <div className="grid min-h-0 flex-1 grid-cols-2 gap-6">
+            {[
+              { head: 'Today', items: ['Analog sites are chosen by experience', 'Few known sites, no common measure', 'Hard to compare Moon, Mars and Earth terrain'], dark: false },
+              { head: 'Terraluna', items: ['One terrain fingerprint for every body', 'Any point on Earth, measured live', 'An evidence card for every match'], dark: true },
+            ].map((col, c) => (
+              <In key={col.head} d={0.2 + c * 0.15} className="h-full">
+                <div className="flex h-full flex-col gap-10 rounded-3xl border border-zinc-200 bg-zinc-50 p-10">
+                  <span className={`w-fit rounded-full px-4 py-1 text-base font-semibold ${col.dark ? 'bg-zinc-950 text-white' : 'border border-zinc-300 bg-white text-zinc-950'}`}>{col.head}</span>
+                  <ol className="relative flex flex-1 flex-col justify-between">
+                    <span aria-hidden className="absolute bottom-4 left-[11px] top-4 w-px bg-zinc-300" />
+                    {col.items.map((it, k) => (
+                      <li key={it} className="relative flex items-center gap-6">
+                        <span className={`relative z-10 grid size-6 shrink-0 place-items-center rounded-full border-2 ${col.dark ? 'border-zinc-950 bg-zinc-950' : 'border-zinc-400 bg-white'}`}>
+                          <span className={`size-2 rounded-full ${col.dark ? 'bg-white' : 'bg-zinc-400'}`} />
+                        </span>
+                        <span className={`text-[1.7rem] leading-snug tracking-tight ${col.dark ? 'font-semibold text-zinc-950' : 'font-medium text-zinc-600'}`}>
+                          <span className="mr-3 font-mono text-base text-zinc-400">{String(k + 1).padStart(2, '0')}</span>
+                          {it}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
               </In>
             ))}
           </div>
-        </Frame>
+        </div>
       ),
     },
     {
       id: 'physics',
       steps: 1,
       body: () => (
-        <div className="grid h-full grid-cols-[0.85fr_1.15fr] items-center gap-16">
-          <div className="flex flex-col gap-10">
-            <In className="flex flex-col gap-2">
-              <h2 className="text-[2.75rem] font-semibold leading-tight tracking-tight">Physics fingerprint</h2>
-              <p className="text-xl" style={{ color: MUTED }}>
-                The structure function <span className="font-serif italic">ν(L)</span> of every 5 km window.
-              </p>
-            </In>
-            <div className="flex flex-col gap-7">
-              <Item d={0.25} head={lagText} accent="multi-scale" line="how much the ground rises and falls at each lag" />
-              <Item d={0.35} head="Relief and texture," accent="two fingerprints" line="each distance kept separate, lower is closer" />
-              <Item d={0.45} head="Same code," accent="in your browser" line="Python and TypeScript with tested parity" />
-            </div>
-          </div>
-          <In d={0.2} className="flex flex-col gap-3">
-            {d.curves.length ? <NuChart curves={d.curves} lags={d.lags} /> : <Unavailable reason="no fingerprint curve in bundle" />}
-            <div className="flex items-center justify-between gap-6 text-base" style={{ color: MUTED }}>
-              <div className="flex gap-6">
-                {d.curves.map((c, k) => (
-                  <span key={c.id} className="flex items-center gap-2">
-                    <span className="h-1 w-6 rounded" style={{ background: k === 0 ? GOLD : INK }} />
-                    {c.role}
-                  </span>
-                ))}
-              </div>
-              <span className="text-sm">hover to read values, Derived from the bundle</span>
-            </div>
+        <div className="flex h-full flex-col gap-8">
+          <In className="flex flex-col gap-2">
+            <h2 className="text-[2.75rem] font-bold leading-tight tracking-tight">Physics fingerprint</h2>
+            <p className="text-xl" style={{ color: MUTED }}>Three steps, the same code in Python and in your browser.</p>
           </In>
+          <div className="grid min-h-0 flex-1 grid-cols-[1fr_0.9fr_1.25fr] gap-6">
+            <Step n={1} title="Take a 5 km window" d={0.15}>
+              <div className="grid grid-cols-2 gap-3">
+                {jr ? (
+                  [
+                    { t: jr.targetTile, name: jr.targetName, body: BODY[jr.body] },
+                    { t: jr.earthTile, name: jr.earthName.split(',')[0] ?? jr.earthName, body: 'Earth' },
+                  ].map((w) => (
+                    <figure key={w.body} className="flex flex-col gap-2">
+                      <HillTile tile={w.t} className="w-full" />
+                      <figcaption className="text-sm leading-tight">
+                        <span className="block font-semibold">{w.name}</span>
+                        <span style={{ color: MUTED }}>{w.body}</span>
+                      </figcaption>
+                    </figure>
+                  ))
+                ) : (
+                  <Unavailable reason="no Jezero and Rosamond card" />
+                )}
+              </div>
+            </Step>
+            <Step n={2} title="Measure the bumps at three scales" d={0.3}>
+              {d.lags.length ? <LagProfile lags={d.lags} /> : <Unavailable reason="no lags in bundle" />}
+              <p className="text-base" style={{ color: MUTED }}>how much the height changes over each distance</p>
+            </Step>
+            <Step n={3} title="Compare the two curves" d={0.45}>
+              {d.curves.length ? <NuChart curves={d.curves} lags={d.lags} /> : <Unavailable reason="no fingerprint curve in bundle" />}
+              <div className="flex items-end justify-between gap-4">
+                <div className="flex flex-col gap-1.5 text-sm" style={{ color: MUTED }}>
+                  {d.curves.map((c, k) => (
+                    <span key={c.id} className="flex items-center gap-2">
+                      <span className="h-1 w-5 rounded" style={{ background: k === 0 ? WORLD.mars : WORLD.earth }} />
+                      {c.role}
+                    </span>
+                  ))}
+                </div>
+                {jr ? (
+                  <div className="text-right">
+                    <p className="text-5xl font-black tracking-tight tabular-nums">{jr.relief.toFixed(3)}</p>
+                    <p className="text-sm font-semibold">relief distance</p>
+                    <p className="text-sm" style={{ color: MUTED }}>
+                      lower = more alike{jr.closerThan !== null ? `, closer than ${jr.closerThan}% of windows` : ''}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </Step>
+          </div>
         </div>
       ),
     },
@@ -254,10 +287,10 @@ function slides(d: PitchData, qr: string | null): Slide[] {
         <Frame title="Our model" sub={<>A ResNet terrain encoder, trained <A>self-supervised</A>, that learns the physics.</>}>
           <div className="relative flex h-full flex-col justify-between gap-6">
             <ArchDiagram step={Math.min(step, 3)} />
-            <ol className="grid grid-cols-4 gap-6 border-t pt-5" style={{ borderColor: '#E2E8F0' }}>
+            <ol className="grid grid-cols-4 gap-6 border-t pt-5" style={{ borderColor: LINE }}>
               {ARCH_STEPS.map((s, k) => (
                 <li key={s.key} className="flex items-start gap-3 transition-opacity duration-500" style={{ opacity: k <= step ? 1 : 0.35 }}>
-                  <span className="mt-1.5 size-3.5 shrink-0 rounded-full border-2" style={{ borderColor: k <= step ? GOLD : '#94A3B8', background: k === Math.min(step, 3) ? GOLD : 'transparent' }} />
+                  <span className="mt-1.5 size-3.5 shrink-0 rounded-full border-2" style={{ borderColor: k <= step ? INK : '#a1a1aa', background: k === Math.min(step, 3) ? INK : 'transparent' }} />
                   <span className="flex flex-col">
                     <span className="text-lg font-semibold">{s.label}</span>
                     <span className="text-sm" style={{ color: MUTED }}>{s.hint}</span>
@@ -272,7 +305,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, ease: EASE }}
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#F8FAFC]"
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white"
                 >
                   <img src="/figures/encoder-architecture.svg" alt="Paper figure: encoder architecture with ResNet backbone, VICReg projector, physics head and gradient-reversal body adversary" className="max-h-full w-full rounded-xl bg-white object-contain p-4" />
                   <figcaption className="text-sm" style={{ color: MUTED }}>Full figure from the paper</figcaption>
@@ -340,9 +373,9 @@ function slides(d: PitchData, qr: string | null): Slide[] {
             {d.results.map((r, k) => (
               <In key={r.cardId} d={0.2 + k * 0.15} className="h-full">
                 <div className="h-full">
-                  <div className="flex h-full flex-col gap-5 rounded-2xl bg-[#F1F5F9] p-7">
+                  <div className="flex h-full flex-col gap-5 rounded-2xl border border-zinc-200 bg-zinc-50 p-7">
                     <p className="text-2xl font-semibold tracking-tight">
-                      <A>{r.targetName}</A> and {r.earthName.split(',')[0]}
+                      {r.targetName} and {r.earthName.split(',')[0]}
                     </p>
                     <div className="grid grid-cols-2 gap-3">
                       <HillTile tile={r.targetTile} className="max-h-[28vh]" />
@@ -350,7 +383,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                     </div>
                     <div className="grid grid-cols-2 gap-6">
                       <div>
-                        <p className="text-5xl font-semibold tracking-tight" style={{ color: GOLD }}>
+                        <p className="text-5xl font-bold tracking-tight text-zinc-950">
                           <CountUp value={Number(r.relief.toPrecision(3))} digits={Math.max(0, 2 - Math.floor(Math.log10(r.relief)))} delay={0.5 + k * 0.15} />
                         </p>
                         <p className="text-base">relief distance</p>
@@ -358,7 +391,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                       </div>
                       {r.closerThan !== null ? (
                         <div>
-                          <p className="text-5xl font-semibold tracking-tight" style={{ color: GOLD }}>{r.closerThan}%</p>
+                          <p className="text-5xl font-bold tracking-tight text-zinc-950">{r.closerThan}%</p>
                           <p className="text-base">closer than</p>
                           <p className="text-sm" style={{ color: MUTED }}>of candidate windows</p>
                         </div>
@@ -389,10 +422,10 @@ function slides(d: PitchData, qr: string | null): Slide[] {
               </p>
             </In>
             <In d={0.25} className="flex flex-col gap-2 text-xl" >
-              <a href={`https://${SITE}`} onClick={(e) => e.stopPropagation()} className="font-medium underline decoration-slate-300 underline-offset-8">
+              <a href={`https://${SITE}`} onClick={(e) => e.stopPropagation()} className="font-medium underline decoration-zinc-300 underline-offset-8">
                 {SITE}
               </a>
-              <a href={`https://${GITHUB}`} onClick={(e) => e.stopPropagation()} className="text-base underline decoration-slate-200 underline-offset-8" style={{ color: MUTED }}>
+              <a href={`https://${GITHUB}`} onClick={(e) => e.stopPropagation()} className="text-base underline decoration-zinc-200 underline-offset-8" style={{ color: MUTED }}>
                 {GITHUB}
               </a>
             </In>
@@ -537,7 +570,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
   if (host === null) return <div className="fixed inset-0 z-[1000] bg-white" />;
   return createPortal(
     <div
-      className="fixed inset-0 z-[1000] overflow-hidden bg-[#F8FAFC] font-sans text-[#0F172A] antialiased"
+      className="fixed inset-0 z-[1000] overflow-hidden bg-white font-sans text-zinc-950 antialiased"
       role="region"
       aria-roledescription="slide deck"
       aria-label="Terraluna pitch"
@@ -561,7 +594,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
 
       {/* slim progress line */}
       <div className="absolute inset-x-0 top-0 z-10 h-[3px] bg-zinc-100">
-        <motion.div className="h-full" style={{ background: GOLD }} animate={{ width: `${((i + 1) / n) * 100}%` }} transition={{ duration: 0.5, ease: EASE }} />
+        <motion.div className="h-full" style={{ background: INK }} animate={{ width: `${((i + 1) / n) * 100}%` }} transition={{ duration: 0.5, ease: EASE }} />
       </div>
 
       <AnimatePresence mode="wait" custom={pos.dir}>
@@ -582,7 +615,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
       {/* the Lab's 3D stage: mounted one slide early, shown only on the Lab slide */}
       {labMounted && data.lab ? (
         <motion.div
-          className="absolute bottom-[9vh] left-[6vw] right-[6vw] top-[23vh] overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white"
+          className="absolute bottom-[9vh] left-[6vw] right-[6vw] top-[23vh] overflow-hidden rounded-2xl border border-zinc-200 bg-white"
           initial={false}
           animate={{ opacity: i === labIndex ? 1 : 0, scale: i === labIndex ? 1 : 0.985 }}
           transition={{ duration: 0.6, delay: i === labIndex ? 0.25 : 0, ease: EASE }}
@@ -601,9 +634,9 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
 
       {/* footer: hairline, label left, site right */}
       {slide?.bare ? null : (
-        <div className="pointer-events-none absolute inset-x-[6vw] bottom-0 flex h-[6vh] items-center justify-between border-t border-[#E2E8F0] text-sm" aria-live="polite">
+        <div className="pointer-events-none absolute inset-x-[6vw] bottom-0 flex h-[6vh] items-center justify-between border-t border-zinc-200 text-sm" aria-live="polite">
           <span>
-            Pitch Deck <span className="ml-3 tabular-nums text-[#94A3B8]">{String(i + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}</span>
+            Pitch Deck <span className="ml-3 tabular-nums text-zinc-400">{String(i + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}</span>
           </span>
           <span>{SITE}</span>
         </div>
@@ -626,7 +659,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
                 <div className="absolute inset-y-0 bg-zinc-300" style={{ left: `${(note.from / TOTAL_S) * 100}%`, width: `${((note.to - note.from) / TOTAL_S) * 100}%` }} />
                 <div
                   className="absolute inset-y-0 left-0"
-                  style={{ width: `${Math.min(100, (elapsed / TOTAL_S) * 100)}%`, background: pace === null || pace === 0 ? GOLD : pace < 0 ? '#16a34a' : '#dc2626' }}
+                  style={{ width: `${Math.min(100, (elapsed / TOTAL_S) * 100)}%`, background: pace === null || pace === 0 ? INK : pace < 0 ? '#16a34a' : '#dc2626' }}
                 />
               </div>
             </div>
@@ -669,8 +702,8 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
                       jump(k);
                       setOverview(false);
                     }}
-                    className="flex aspect-[16/7] w-full flex-col justify-between rounded-2xl border bg-white p-5 text-left transition-colors hover:border-[#C8962E]"
-                    style={{ borderColor: k === i ? GOLD : '#e4e4e7' }}
+                    className="flex aspect-[16/7] w-full flex-col justify-between rounded-2xl border bg-white p-5 text-left transition-colors hover:border-zinc-950"
+                    style={{ borderColor: k === i ? INK : LINE }}
                   >
                     <span className={`${MONO} text-sm text-zinc-400`}>
                       {String(k + 1).padStart(2, '0')}<span className="ml-4">{mmss(s.from)}</span>
@@ -685,7 +718,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
       </AnimatePresence>
 
       <style>{`
-        .pitch-border-beam { padding: 1.5px; background: conic-gradient(from var(--pitch-a, 0deg), transparent 0deg, ${GOLD} 40deg, transparent 90deg) border-box;
+        .pitch-border-beam { padding: 1.5px; background: conic-gradient(from var(--pitch-a, 0deg), transparent 0deg, #a1a1aa 40deg, transparent 90deg) border-box;
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: pitch-spin 6s linear infinite; }
         @property --pitch-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
         @keyframes pitch-spin { to { --pitch-a: 360deg; } }
