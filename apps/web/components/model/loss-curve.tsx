@@ -32,8 +32,14 @@ export function LossCurve({ term, epochs }: { readonly term: string; readonly ep
   const name = `Loss term ${term}: mean over seeds with min to max band, ${String(epochs.length)} epochs`;
   return (
     <figure data-loss-term={term} className="flex flex-col gap-2 rounded-xl border border-line bg-card p-4">
-      <figcaption className="font-mono text-xs tracking-[0.14em] text-muted-foreground uppercase">{term}</figcaption>
-      <svg role="img" aria-label={name} viewBox={`0 0 ${String(W)} ${String(H)}`} className="w-full max-w-md">
+      <figcaption className="flex items-baseline justify-between gap-2 font-mono text-xs tracking-[0.14em] text-muted-foreground uppercase">
+        <span className="text-platinum">{term}</span>
+        <span className="text-[10px] tracking-normal normal-case">
+          epochs {epochs[0]?.epoch}–{epochs[epochs.length - 1]?.epoch} · {Number(Math.min(...epochs.map((e) => e.min)).toPrecision(3))} to{' '}
+          {Number(Math.max(...epochs.map((e) => e.max)).toPrecision(3))}
+        </span>
+      </figcaption>
+      <svg role="img" aria-label={name} viewBox={`0 0 ${String(W)} ${String(H)}`} className="h-auto w-full">
         <path d={band} fill="currentColor" className="text-evidence-predicted" opacity={0.2} />
         <path data-series="mean" d={d(g.mean)} fill="none" stroke="currentColor" strokeWidth={2} className="text-evidence-predicted" />
       </svg>

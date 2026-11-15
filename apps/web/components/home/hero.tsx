@@ -69,22 +69,23 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
             <span className="block">Find the Moon and Mars</span>
             <span className="block font-serif font-normal tracking-[-0.02em] text-flare italic">on Earth.</span>
           </h1>
-          <p className="mt-6 max-w-[560px] text-[17px] leading-relaxed text-chrome">
-            Terraluna compares the relief and texture fingerprints of NASA and ESA elevation models to find Earth terrain that
-            resembles lunar and Martian targets. It is a terrain-only pilot (Mode C): the radar comparison was not completed.
+          <p className="mt-6 max-w-[580px] text-[17px] leading-relaxed text-chrome">
+            <span className="text-platinum">Our own physics model, measured live:</span> Terraluna computes a relief and texture
+            fingerprint of NASA and ESA elevation models, in your browser for any Earth point, to find terrain that resembles lunar
+            and Martian targets. Terrain only (Mode C): the radar comparison was not completed.
           </p>
           <ul className="mt-8 flex flex-wrap gap-3">
             <li>
-              <Link href="/site" className="btn-primary inline-flex h-11 items-center rounded-full px-6 text-sm font-semibold no-underline">
-                <span className="relative z-10">Browse evidence cards</span>
+              <Link href="/find" className="btn-primary inline-flex h-11 items-center rounded-full px-6 text-sm font-semibold no-underline">
+                <span className="relative z-10">Measure any point live</span>
               </Link>
             </li>
             <li>
               <Link
-                href="/probe"
+                href="/site"
                 className="inline-flex h-11 items-center rounded-full border border-border px-6 text-sm font-medium no-underline transition-colors hover:bg-platinum/5"
               >
-                Probe any point
+                Browse evidence cards
               </Link>
             </li>
             <li>

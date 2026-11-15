@@ -10,6 +10,8 @@ import type { ReactNode } from 'react';
 import { earthRegionName } from '../components/cards/card-geo.ts';
 import { LabelledValue } from '../components/labelled-value.tsx';
 import { Hero, type HeroCard } from '../components/home/hero.tsx';
+import { readModelFacts } from '../components/home/model-facts.ts';
+import { ModelSection } from '../components/home/model-section.tsx';
 import { ringCentroid, type GlobePin } from '../components/globe/index.ts';
 import { Badge } from '../components/ui/badge.tsx';
 import { loadBundle } from '../lib/bundle.ts';
@@ -88,6 +90,7 @@ export default function Home() {
     ),
   ];
   const g5 = bundle.validation.find((g) => g.gate_id === 'G5') ?? null;
+  const modelFacts = readModelFacts(bundle);
 
   // Pins: the centroid of each Earth window's polygon ring (one pin per window), read from the cards.
   const pinById = new Map<string, GlobePin>();
@@ -129,6 +132,7 @@ export default function Home() {
         cards={heroCards}
         bundleVersion={bundle.manifest.bundle_version}
       />
+      <ModelSection facts={modelFacts} />
       <p className="mt-8 max-w-2xl text-sm text-muted-foreground">{HOME_LINE}</p>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         Earth candidates come only from the declared regions{regions.length === 0 ? '' : `: ${regions.join(' and ')}`}. The Moon target is
@@ -200,7 +204,7 @@ export default function Home() {
             </EntryCard>
           )}
           <EntryCard href="/model" kicker="Model" title="Model">
-            The experimental encoder and its evaluation status.
+            Our encoder: architecture, training curves and the G5 verdict.
           </EntryCard>
           <EntryCard href="/methods" kicker="Validation" title="Methods">
             The validation board: every release gate with its status.

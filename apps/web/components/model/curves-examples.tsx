@@ -31,7 +31,7 @@ export function CurvesSection({ curves }: { readonly curves: Curves | null }) {
       {curves.loss_terms.length === 0 ? (
         <LabelledValue label="Unavailable" reason="curves.json lists no loss term" source="report/curves.json" />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {curves.loss_terms.map((t) => (
             <LossCurve key={t.term} term={t.term} epochs={t.epochs} />
           ))}
