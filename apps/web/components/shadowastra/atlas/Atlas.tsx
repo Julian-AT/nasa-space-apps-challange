@@ -515,7 +515,7 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
               {!sel && body === "earth" && earthFocus && twinFrom && (
                 <div className="space-y-4 p-5">
                   <TwinTitle body={twinFrom.body} lat={earthFocus.lat} lon={earthFocus.lon} onClose={() => setEarthFocus(null)} />
-                  <p className="text-[13px] leading-relaxed text-muted-foreground">The gold pin marks the middle of the place. Twins are matched on ground shape only, so check its cold, light and rocks in Find new sites before planning a trip.</p>
+                  <p className="text-[13px] leading-relaxed text-muted-foreground">The white pin marks the middle of the place. Twins are matched on ground shape only, so check its cold, light and rocks in Find new sites before planning a trip.</p>
                   <button
                     onClick={() => {
                       setBody(twinFrom.body);

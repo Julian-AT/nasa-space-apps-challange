@@ -434,7 +434,7 @@ export function FieldPanel({ ft, earthName, targetName, targetBody, compact, cla
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <h3 className="font-mono text-[11px] tracking-[0.24em] text-flare uppercase">Field test</h3>
           <Badge />
-          <span className="text-[12.5px] text-chrome">One straight route across both blocks, west to east along the gold line, at the same scale.</span>
+          <span className="text-[12.5px] text-chrome">One straight route across both blocks, west to east along the white line, at the same scale.</span>
         </div>
         <button type="button" onClick={onClose} aria-label="Close the field test" className="grid size-8 shrink-0 place-items-center rounded-full border border-line-2 text-chrome transition-colors hover:text-platinum">
           <X size={14} aria-hidden />

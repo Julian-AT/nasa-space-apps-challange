@@ -238,7 +238,7 @@ export default function Lab() {
                 Real terrain, <Em>cut to the same size.</Em>
               </>
             }
-            text={`Both blocks show the same ${footprint} × ${footprint} km of real ground, at the same scale, with real satellite images on top. The gold line marks the slice shown below.`}
+            text={`Both blocks show the same ${footprint} × ${footprint} km of real ground, at the same scale, with real satellite images on top. The white line marks the slice shown below.`}
             kind="computed"
             astra={{ mood: "focused", action: "scan", say: "Drag to turn the view. Try “Light & shadow”, then “Turn the Sun”." }}
             aside={

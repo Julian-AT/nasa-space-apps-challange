@@ -131,8 +131,8 @@ export default function Find({ probe }: { probe: TerralunaProbeProps }) {
       const ctx = heat.getContext("2d", { willReadFrequently: true })!; // same options as paintScores
       const img = ctx.createImageData(cols, rows);
       const px = new Uint32Array(img.data.buffer);
-      const blue = new Uint32Array(new Uint8Array([143, 180, 234, 150]).buffer)[0]; // byte order safe
-      for (let k = 0; k < grid.n; k++) if (screening.pass[k]) px[grid.row[k] * cols + grid.col[k]] = blue;
+      const pass = new Uint32Array(new Uint8Array([255, 255, 255, 38]).buffer)[0]; // byte order safe; a light neutral wash, no blue
+      for (let k = 0; k < grid.n; k++) if (screening.pass[k]) px[grid.row[k] * cols + grid.col[k]] = pass;
       ctx.putImageData(img, 0, 0);
     }
     setHeatVersion((v) => v + 1);
@@ -769,7 +769,7 @@ function StageLegend({ step, range, m }: { step: StepId; range: { lo: number; hi
         {step === "needs" ? (
           <>
             <div className="flex items-center gap-2">
-              <span className="size-2.5 rounded-sm bg-[#8fb4ea]" /> Places that meet your needs
+              <span className="size-2.5 rounded-sm bg-neutral-200 ring-1 ring-neutral-400" /> Places that meet your needs
             </div>
             <div className="mt-1.5 flex items-center gap-2">
               <span className="size-2.5 rounded-full border-2 border-flare" /> {m.home.name}
