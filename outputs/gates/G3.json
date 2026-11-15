@@ -1,0 +1,21 @@
+{
+  "command": "python -m terraluna_pipeline.holuhraun run",
+  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "consequence": "G3 cannot be PASS: lunar shadow behaviour and impact-melt context are not recorded. The Holuhraun plausibility check is inside the archived tolerance; partial G3.",
+  "evidence_path": "analysis/holuhraun_reproduction.json",
+  "gate_id": "G3",
+  "input_hashes": [
+    {
+      "path": "analysis/holuhraun_protocol.json",
+      "sha256": "7e7d416428536f80b4d065f134d0853a05dfbbe9315bebdafbd2273e97a8113a"
+    },
+    {
+      "path": "analysis/holuhraun_reproduction.json",
+      "sha256": "018b9b27b622606931380535403c77de7db38171751f4229b3525c516a3f294c"
+    }
+  ],
+  "result": "Pairwise facies CPR overlap 91.8% to 95.6% against 88-89% (Tolometti et al. 2022); outcome consistent under the archived rule. Neish et al. 2017 values not compared (region mismatch).",
+  "run_id": "sha256:c2efccfd842ed68286503e66ca3b8e71584c503ef5e218209165fe51dc89c94e",
+  "scope": "Holuhraun UAVSAR CPR facies reproduction only; lunar shadow behaviour and impact-melt context (T6-06) are not part of this record",
+  "status": "PARTIAL"
+}

@@ -1,0 +1,436 @@
+{
+  "discrepancies": {
+    "measured_overlaps": {
+      "rubbly|spiny": 0.9564504595586669,
+      "rubbly|undifferentiated": 0.9319645733329133,
+      "spiny|undifferentiated": 0.9181843115620112
+    },
+    "neish_2017": {
+      "applicability": {
+        "mismatches": [
+          "region",
+          "convention",
+          "incidence_band"
+        ],
+        "status": "Unavailable"
+      },
+      "note": "Reported values are not compared with the Neish targets: see mismatches.",
+      "targets": {
+        "incidence_deg": [
+          50,
+          53
+        ],
+        "mean_pixelwise_cpr": 0.51,
+        "ratio_of_mean_powers": 0.47
+      }
+    },
+    "plausibility": {
+      "level_gap_cpr": {
+        "rubbly": 0.05697433207892022,
+        "spiny": 0.040506918557051186,
+        "undifferentiated": 0.03934553862331569
+      },
+      "levels_within_tolerance": true,
+      "lowest_overlap": 0.9181843115620112,
+      "outcome": "consistent"
+    },
+    "possible_reasons": [
+      "Tolometti et al. used a 5 m/pixel CPR mosaic (DT 4 and DT 5); this run uses the native GRD spacing of DT 4 only.",
+      "The bin rule of the published overlap is not stated; ours is an engineering choice.",
+      "Where Tolometti's 3x3 low-pass filter acts (CPR or covariance) is not stated.",
+      "Their CPR values come from the JPL UAVSAR products processed by their own scripts (not available as code); handedness and basis conventions are not verified against ours.",
+      "Polygon registration to the scene is assumed; polygons are drawn on orthophotos.",
+      "The pixel sets differ: Mendeley rubbly CSV has 648,509 rows while the paper states n = 1,048,575 (the Excel row limit), so published n is not a reliable reference."
+    ],
+    "published_mean_cpr": {
+      "rubbly": 0.47,
+      "spiny": 0.45,
+      "undifferentiated": 0.47
+    },
+    "published_overlap_range": [
+      0.88,
+      0.89
+    ]
+  },
+  "evidence_labels": {
+    "cpr_values": "Derived (UAVSAR covariance, T2 conversion)",
+    "facies_polygons": "Observed (published mapping, Voigt et al. 2021)",
+    "incidence": "Observed (UAVSAR local incidence angle, radians per the JPL format page, converted to degrees; the annotation does not state this unit)",
+    "polygon_to_scene_registration": "Assumed (no shift applied; no co-registration check)",
+    "published_targets": "Observed (literature), compared as plausibility only"
+  },
+  "g3_status": "PARTIAL",
+  "incidence_deg": {
+    "max_applied": 65.0,
+    "range_over_all_polygon_pixels": [
+      44.83395593842149,
+      65.5472695776722
+    ],
+    "unit": "degrees",
+    "valid_range_over_primary_variant": [
+      44.83395593842149,
+      64.99998701004658
+    ]
+  },
+  "input_hashes": [
+    {
+      "path": "/Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/fast-uncert/analysis/holuhraun_protocol.json",
+      "sha256": "7e7d416428536f80b4d065f134d0853a05dfbbe9315bebdafbd2273e97a8113a"
+    }
+  ],
+  "neish_2017_applicability": {
+    "mismatches": [
+      "region",
+      "convention",
+      "incidence_band"
+    ],
+    "status": "Unavailable"
+  },
+  "primary_variant": "boxcar3x3",
+  "protocol_commit": "007dd0d4ccf9d19be1d4fd58522432455cb75c84",
+  "protocol_path": "analysis/holuhraun_protocol.json",
+  "protocol_sha256": "7e7d416428536f80b4d065f134d0853a05dfbbe9315bebdafbd2273e97a8113a",
+  "published_values_definition_check": {
+    "label": "Observed (published values) with Derived overlap",
+    "n": {
+      "rubbly": 648509,
+      "spiny": 648509,
+      "undifferentiated": 240200
+    },
+    "overlaps": {
+      "rubbly|spiny": 0.8275027794525596,
+      "rubbly|undifferentiated": 0.8866687244730614,
+      "spiny|undifferentiated": 0.936964941655464
+    },
+    "raw_inputs_sha256": {
+      "LavaFacieRubbly_RadarValues.csv": "7df61dc7ad9b4df6e9fff64888900a1c0b61a5a07dc7b944103544b3d99c38b4",
+      "LavaFacieSpiny_RadarValues.csv": "a1db517a5feb4e44282a4b9836e854b14b8a94ecb8f2be2423910a193ea37e30",
+      "LavaFacieUndiff_RadarValues.csv": "57fc4bcebd28b5477c18204e08dc62e9540901dffdb786c44bdc0fe8cf6e1e83"
+    },
+    "status": "computed"
+  },
+  "raw_inputs_sha256": {
+    "Icelnd_00208_15083_004_150530_L090HHHH_CX_01.grd": "5b725712885641dac3b97f545c2de0986a4cbbaa489d2bb509ba0ab3123e1eeb",
+    "Icelnd_00208_15083_004_150530_L090HHHV_CX_01.grd": "4ad7c0b62953dce51035ae9b3872de221e070d81e2e218aee1ccd0fbca46a396",
+    "Icelnd_00208_15083_004_150530_L090HHVV_CX_01.grd": "3a6626fc4c4c6c9545813fb98ba66f8f6c5194542b5179600be16896cdd7c723",
+    "Icelnd_00208_15083_004_150530_L090HVHV_CX_01.grd": "c27950c5f1d07899ca5f8f39c30b0261a97f4b513de391edbfdfdfb0e84e3020",
+    "Icelnd_00208_15083_004_150530_L090HVVV_CX_01.grd": "969d962605e49af621efe445e2da7b98fff2afe414b5322aea9fe2d1824266c2",
+    "Icelnd_00208_15083_004_150530_L090VVVV_CX_01.grd": "975c7814964d99b2aaa458df303f82edc2c5a5a714b9a11e2fee16964d2e8b6a",
+    "Icelnd_00208_15083_004_150530_L090_CX_01.ann": "054ccd747e3576886f1e00066fff031fc33b6e0285086a315cc0b4717f2783ed",
+    "Icelnd_00208_15083_004_150530_L090_CX_01.inc": "f110064acbc04f41aaa5e109a5a1baa4ce2056f261f5b5ab7ee53428a3759281",
+    "Rubbly_facies.geojson": "cf68c2615f980f93f49236197064050e5b5949d722bb40e09dfe750a63dfc0b7",
+    "Spiny_facies.geojson": "394a37d492e94b48e971434539bc4c31ee75f2bcc20551246634784343560c36",
+    "Undifferentiated_facies.geojson": "a99b3d4b6051ec73c67c0787c28bc6047a77b08a6f78bee06057b3f5f9d77697"
+  },
+  "record_type": "terraluna holuhraun reproduction (G3, T6-05)",
+  "scene": {
+    "grd_cols": 5784,
+    "grd_rows": 30474,
+    "look_direction": "Left",
+    "pixel_spacing_deg": {
+      "lat": -5.556e-05,
+      "lon": 0.00011111
+    },
+    "spacing_unit": {
+      "col_mult": "deg/pixel",
+      "row_mult": "deg/pixel"
+    },
+    "window_cols": [
+      0,
+      3000
+    ],
+    "window_rows": [
+      23061,
+      24771
+    ]
+  },
+  "scene_id": "Icelnd_00208_15083_004_150530_L090_CX_01",
+  "valid_pixels_primary_variant": 2168388,
+  "variants": {
+    "as_delivered": {
+      "comparison": {
+        "label": "Derived",
+        "overlaps": {
+          "rubbly|spiny": 0.989056514499824,
+          "rubbly|undifferentiated": 0.9635001290843367,
+          "spiny|undifferentiated": 0.9540410415506438
+        },
+        "status": "computed"
+      },
+      "per_facies": {
+        "rubbly": {
+          "aggregation": {
+            "label": "Derived",
+            "mean_pixelwise_cpr": 0.4503151208248336,
+            "n": 1339331,
+            "ratio_of_mean_powers": 0.4086031580261026
+          },
+          "cpr": {
+            "fraction_above_1": 0.029088403090796824,
+            "iqr": 0.2710205112283458,
+            "max": 3.676779839412512,
+            "mean": 0.4503151208248336,
+            "median": 0.40206244848160094,
+            "min": 0.017938918435628823,
+            "n": 1339331,
+            "percentiles": {
+              "1": 0.12021655261890578,
+              "10": 0.21091675104118324,
+              "25": 0.2877357237078352,
+              "5": 0.17436276111742086,
+              "50": 0.40206244848160094,
+              "75": 0.558756234936181,
+              "90": 0.7469535137145544,
+              "95": 0.8882961459839852,
+              "99": 1.2279915265223964
+            },
+            "q25": 0.2877357237078352,
+            "q75": 0.558756234936181
+          },
+          "excluded_by_reason": {
+            "FACIES_OVERLAP": 71,
+            "INCIDENCE_ABOVE_MAX": 18180,
+            "PRODUCT_NODATA": 76620
+          },
+          "label": "Derived",
+          "n_in_polygon": 1434202,
+          "n_valid": 1339331
+        },
+        "spiny": {
+          "aggregation": {
+            "label": "Derived",
+            "mean_pixelwise_cpr": 0.44774706575974066,
+            "n": 595675,
+            "ratio_of_mean_powers": 0.40228658825575786
+          },
+          "cpr": {
+            "fraction_above_1": 0.030049943341587275,
+            "iqr": 0.268876308566823,
+            "max": 8.982038915527838,
+            "mean": 0.44774706575974066,
+            "median": 0.3974765434663312,
+            "min": 0.024647172352893324,
+            "n": 595675,
+            "percentiles": {
+              "1": 0.1178420578632109,
+              "10": 0.20873960251299165,
+              "25": 0.2849874358446076,
+              "5": 0.17252992966606476,
+              "50": 0.3974765434663312,
+              "75": 0.5538637444114306,
+              "90": 0.7451137019880137,
+              "95": 0.8916846238791463,
+              "99": 1.2456035985662215
+            },
+            "q25": 0.2849874358446076,
+            "q75": 0.5538637444114306
+          },
+          "excluded_by_reason": {
+            "INCIDENCE_ABOVE_MAX": 25979,
+            "PRODUCT_NODATA": 38096
+          },
+          "label": "Derived",
+          "n_in_polygon": 659750,
+          "n_valid": 595675
+        },
+        "undifferentiated": {
+          "aggregation": {
+            "label": "Derived",
+            "mean_pixelwise_cpr": 0.47180660578444505,
+            "n": 233382,
+            "ratio_of_mean_powers": 0.4235859768268086
+          },
+          "cpr": {
+            "fraction_above_1": 0.03735506594338895,
+            "iqr": 0.28737655271911605,
+            "max": 4.801302154209923,
+            "mean": 0.47180660578444505,
+            "median": 0.42040452337669654,
+            "min": 0.029062308725969967,
+            "n": 233382,
+            "percentiles": {
+              "1": 0.12152892403958049,
+              "10": 0.2178261435467146,
+              "25": 0.2986647491717728,
+              "5": 0.17914411230802954,
+              "50": 0.42040452337669654,
+              "75": 0.5860413018908889,
+              "90": 0.7884060890583597,
+              "95": 0.9387236419736481,
+              "99": 1.302621896857046
+            },
+            "q25": 0.2986647491717728,
+            "q75": 0.5860413018908889
+          },
+          "excluded_by_reason": {
+            "INCIDENCE_ABOVE_MAX": 4932,
+            "PRODUCT_NODATA": 1339
+          },
+          "label": "Derived",
+          "n_in_polygon": 239653,
+          "n_valid": 233382
+        }
+      },
+      "plausibility": {
+        "level_gap_cpr": {
+          "rubbly": 0.01968487917516637,
+          "spiny": 0.002252934240259352,
+          "undifferentiated": 0.0018066057844450811
+        },
+        "levels_within_tolerance": true,
+        "lowest_overlap": 0.9540410415506438,
+        "outcome": "consistent"
+      },
+      "union_of_three_facies": {
+        "label": "Derived",
+        "mean_pixelwise_cpr": 0.45192276647770785,
+        "n": 2168388,
+        "ratio_of_mean_powers": 0.40844194670455886
+      }
+    },
+    "boxcar3x3": {
+      "comparison": {
+        "label": "Derived",
+        "overlaps": {
+          "rubbly|spiny": 0.9564504595586669,
+          "rubbly|undifferentiated": 0.9319645733329133,
+          "spiny|undifferentiated": 0.9181843115620112
+        },
+        "status": "computed"
+      },
+      "per_facies": {
+        "rubbly": {
+          "aggregation": {
+            "label": "Derived",
+            "mean_pixelwise_cpr": 0.41302566792107975,
+            "n": 1339331,
+            "ratio_of_mean_powers": 0.40858422653414306
+          },
+          "cpr": {
+            "fraction_above_1": 0.00019860661778156407,
+            "iqr": 0.15072647255827032,
+            "max": 1.6203277706127064,
+            "mean": 0.41302566792107975,
+            "median": 0.4008763965851385,
+            "min": 0.061925176767524535,
+            "n": 1339331,
+            "percentiles": {
+              "1": 0.202596102430919,
+              "10": 0.2784196794121892,
+              "25": 0.3313212112384,
+              "5": 0.25024339229294834,
+              "50": 0.4008763965851385,
+              "75": 0.48204768379667035,
+              "90": 0.563314885839288,
+              "95": 0.6161072908228131,
+              "99": 0.727560187988184
+            },
+            "q25": 0.3313212112384,
+            "q75": 0.48204768379667035
+          },
+          "excluded_by_reason": {
+            "FACIES_OVERLAP": 71,
+            "FILTER_WINDOW_INCOMPLETE": 108,
+            "INCIDENCE_ABOVE_MAX": 18072,
+            "PRODUCT_NODATA": 76620
+          },
+          "label": "Derived",
+          "n_in_polygon": 1434202,
+          "n_valid": 1339331
+        },
+        "spiny": {
+          "aggregation": {
+            "label": "Derived",
+            "mean_pixelwise_cpr": 0.4094930814429488,
+            "n": 595675,
+            "ratio_of_mean_powers": 0.4023950017003809
+          },
+          "cpr": {
+            "fraction_above_1": 0.00020984597305577705,
+            "iqr": 0.1364122973415789,
+            "max": 1.500534543778161,
+            "mean": 0.4094930814429488,
+            "median": 0.398201027475044,
+            "min": 0.057278642312859916,
+            "n": 595675,
+            "percentiles": {
+              "1": 0.20473581458732915,
+              "10": 0.28457824401028514,
+              "25": 0.33511886066771157,
+              "5": 0.2561668075456344,
+              "50": 0.398201027475044,
+              "75": 0.47153115800929046,
+              "90": 0.5483706934043014,
+              "95": 0.6009259666875008,
+              "99": 0.7153313001710412
+            },
+            "q25": 0.33511886066771157,
+            "q75": 0.47153115800929046
+          },
+          "excluded_by_reason": {
+            "FILTER_WINDOW_INCOMPLETE": 287,
+            "INCIDENCE_ABOVE_MAX": 25692,
+            "PRODUCT_NODATA": 38096
+          },
+          "label": "Derived",
+          "n_in_polygon": 659750,
+          "n_valid": 595675
+        },
+        "undifferentiated": {
+          "aggregation": {
+            "label": "Derived",
+            "mean_pixelwise_cpr": 0.4306544613766843,
+            "n": 233382,
+            "ratio_of_mean_powers": 0.42354539153805626
+          },
+          "cpr": {
+            "fraction_above_1": 0.0002956526210247577,
+            "iqr": 0.14989317135995628,
+            "max": 1.4856220902401198,
+            "mean": 0.4306544613766843,
+            "median": 0.41940075368055774,
+            "min": 0.07831444189314293,
+            "n": 233382,
+            "percentiles": {
+              "1": 0.21017773889266458,
+              "10": 0.29394928887784433,
+              "25": 0.34936411009390306,
+              "5": 0.263457034579715,
+              "50": 0.41940075368055774,
+              "75": 0.49925728145385934,
+              "90": 0.5813567392085244,
+              "95": 0.6366201333140749,
+              "99": 0.7514667462395543
+            },
+            "q25": 0.34936411009390306,
+            "q75": 0.49925728145385934
+          },
+          "excluded_by_reason": {
+            "FILTER_WINDOW_INCOMPLETE": 83,
+            "INCIDENCE_ABOVE_MAX": 4849,
+            "PRODUCT_NODATA": 1339
+          },
+          "label": "Derived",
+          "n_in_polygon": 239653,
+          "n_valid": 233382
+        }
+      },
+      "plausibility": {
+        "level_gap_cpr": {
+          "rubbly": 0.05697433207892022,
+          "spiny": 0.040506918557051186,
+          "undifferentiated": 0.03934553862331569
+        },
+        "levels_within_tolerance": true,
+        "lowest_overlap": 0.9181843115620112,
+        "outcome": "consistent"
+      },
+      "union_of_three_facies": {
+        "label": "Derived",
+        "mean_pixelwise_cpr": 0.41395260978936865,
+        "n": 2168388,
+        "ratio_of_mean_powers": 0.40845433574020445
+      }
+    }
+  }
+}
