@@ -9,7 +9,7 @@ const enc = (v: unknown) => new TextEncoder().encode(JSON.stringify(v));
 const variant = { supported_lags_m: [270, 360], nu_m: { '270': 4, '360': 5, '540': null }, detrend: 'none', hurst: null, hurst_reason: 'insufficient_lags' };
 
 function bundle(files: Record<string, unknown>): PulledBundle {
-  return { manifest: {} as PulledBundle['manifest'], validation: {} as PulledBundle['validation'], checksumOnly: new Map(Object.entries(files).map(([k, v]) => [k, enc(v)])) };
+  return { manifest: {}, validation: {}, records: {}, checksumOnly: new Map(Object.entries(files).map(([k, v]) => [k, enc(v)])) } as unknown as PulledBundle;
 }
 
 describe('probeTargets', () => {
