@@ -24178,5 +24178,5949 @@
         "Terrain descriptors only; radar shown as context (PRD 4 Mode B)"
       ]
     }
+  },
+  {
+    "name": "model-record-every-prd-field",
+    "schema": "ModelRecord",
+    "valid": true,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-onnx-sha256-null",
+    "schema": "ModelRecord",
+    "valid": true,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": null
+    }
+  },
+  {
+    "name": "model-record-interval-excludes-estimate",
+    "schema": "ModelRecord",
+    "valid": true,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.91,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-mock-field",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "mock": true
+    }
+  },
+  {
+    "name": "model-record-missing-licence",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-g5-status-experimental",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "EXPERIMENTAL",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-onnx-sha256-63-characters",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde"
+    }
+  },
+  {
+    "name": "model-record-onnx-sha256-uppercase",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF"
+    }
+  },
+  {
+    "name": "model-record-metric-observed",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Observed",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-metric-null-with-bootstrap",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": 5,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-metric-value-without-bootstrap",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": null,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-metric-bootstrap-zero",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 0,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-metric-null-without-reason",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-metric-value-with-reason",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": "it was run",
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-metric-test-id-unknown",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "ood",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-window-counts-unknown-split",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 11310000,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150,
+            "holdout": 10
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "model-record-parameter-count-zero",
+    "schema": "ModelRecord",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "version": "1.0.0",
+      "architecture": "ResNet-18, 3 input channels, 256-d projection",
+      "parameter_count": 0,
+      "training_data": {
+        "bodies": [
+          "moon",
+          "mars",
+          "earth"
+        ],
+        "product_ids": [
+          "lola-ldem-site01",
+          "ctx-dtm-jezero",
+          "cop-dem-glo30"
+        ],
+        "window_counts": {
+          "moon": {
+            "train": 1200,
+            "val": 150,
+            "test": 150
+          },
+          "mars": {
+            "train": 800,
+            "val": null,
+            "test": 100
+          },
+          "earth": {
+            "train": 5000,
+            "val": 600,
+            "test": 600
+          }
+        },
+        "split_groups": {
+          "moon": "spatial-blocks-20km",
+          "mars": "dtm-id",
+          "earth": "mgrs-tile"
+        }
+      },
+      "objectives_and_weights": {
+        "vicreg": {
+          "invariance": 25.5,
+          "variance": 24.5,
+          "covariance": 1.5
+        },
+        "alpha_phys": 0.5,
+        "lambda_max": 0.1,
+        "schedule": "linear warm-up of lambda over the first 10 epochs"
+      },
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "metrics_with_ci": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "g5_status": "NOT_RUN",
+      "intended_use": "comparing terrain windows across bodies as a Predicted family",
+      "limitations": "no claim about radar, trafficability, regolith mechanics or ice",
+      "licence": "Apache-2.0",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  {
+    "name": "metrics-test-split",
+    "schema": "Metrics",
+    "valid": true,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-mock-run-id-null",
+    "schema": "Metrics",
+    "valid": true,
+    "value": {
+      "mock": true,
+      "run_id": null,
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-condition-failing-component",
+    "schema": "Metrics",
+    "valid": true,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": false,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": false,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-condition-passed-null-with-reason",
+    "schema": "Metrics",
+    "valid": true,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": null,
+            "reason": "test blocks not read",
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-ablation-unavailable",
+    "schema": "Metrics",
+    "valid": true,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "unavailable",
+          "reason": "no compute left",
+          "metrics": []
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-condition-1-threshold-null",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": null,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-condition-7",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 7,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-condition-passed-null-without-reason",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": null,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-component-passed-null-without-reason",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": null,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-ablation-unavailable-without-reason",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "unavailable",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-ablation-unavailable-with-metrics",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "unavailable",
+          "reason": "no compute left",
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-ablation-available-with-reason",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": "it ran",
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-g5-status-experimental",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "EXPERIMENTAL",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-evaluated-split-train",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "train",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-run-id-bare-hex",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-baseline-null-without-reason",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": null,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "metrics-config-hash-null",
+    "schema": "Metrics",
+    "valid": false,
+    "value": {
+      "mock": false,
+      "run_id": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "model_id": "terraluna-enc-v1",
+      "evaluated_split": "test",
+      "g5": {
+        "status": "NOT_RUN",
+        "conditions": [
+          {
+            "condition": 1,
+            "test_id": "physics_probe",
+            "statistic": "lower_95",
+            "threshold": 0.8,
+            "observed": 0.81,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "relief_lag_270",
+                "observed": 0.81,
+                "ci_low": 0.81,
+                "ci_high": 0.88,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          },
+          {
+            "condition": 6,
+            "test_id": "physics_probe",
+            "statistic": "paired_interval",
+            "threshold": null,
+            "observed": null,
+            "passed": true,
+            "reason": null,
+            "components": [
+              {
+                "component": "dino:morph_gain",
+                "observed": 0.08,
+                "ci_low": 0.02,
+                "ci_high": 0.13,
+                "passed": true,
+                "reason": null
+              }
+            ]
+          }
+        ],
+        "failed_tests": []
+      },
+      "tests": [
+        {
+          "test_id": "physics_probe",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "pooled",
+          "value": 0.83,
+          "ci_low": 0.8,
+          "ci_high": 0.86,
+          "n_blocks": 48,
+          "n_bootstrap": 1000,
+          "unavailable_reason": null,
+          "evidence_label": "Predicted",
+          "baselines": [
+            {
+              "name": "dino_vits8",
+              "value": 0.61,
+              "ci_low": 0.55,
+              "ci_high": 0.66,
+              "paired_diff_ci_low": 0.12,
+              "paired_diff_ci_high": 0.31,
+              "unavailable_reason": null
+            }
+          ]
+        },
+        {
+          "test_id": "held_out_body",
+          "measure": "r2",
+          "target": "log_nu_relief_lag_270",
+          "body": "mars",
+          "value": null,
+          "ci_low": null,
+          "ci_high": null,
+          "n_blocks": null,
+          "n_bootstrap": null,
+          "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+          "evidence_label": "Predicted",
+          "baselines": []
+        }
+      ],
+      "ablations": [
+        {
+          "run_name": "lambda_max_0",
+          "status": "available",
+          "reason": null,
+          "metrics": [
+            {
+              "test_id": "body_invariance",
+              "measure": "balanced_accuracy",
+              "target": null,
+              "body": "pooled",
+              "value": 0.83,
+              "ci_low": 0.8,
+              "ci_high": 0.86,
+              "n_blocks": 48,
+              "n_bootstrap": 1000,
+              "unavailable_reason": null,
+              "evidence_label": "Predicted",
+              "baselines": []
+            }
+          ]
+        }
+      ],
+      "run_record": {
+        "config_hash": null,
+        "data_manifest_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "split_map_sha256": null,
+        "checkpoint_sha256s": [
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        ],
+        "git_sha": "3f9c2a1",
+        "uv_lock_sha256": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+        "hardware": "CPU server, 32 cores",
+        "gpu_hours_total": null,
+        "gpu_hours_partial": false
+      }
+    }
+  },
+  {
+    "name": "embedding-record-moon",
+    "schema": "EmbeddingRecord",
+    "valid": true,
+    "value": {
+      "window_id": "moon-aeqd-0003-0007",
+      "body": "moon",
+      "model_id": "terraluna-enc-v1",
+      "embedding_f16": [
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375
+      ],
+      "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "valid_fraction": 0.97,
+      "ood_score": 3.25
+    }
+  },
+  {
+    "name": "embedding-record-ood-score-null",
+    "schema": "EmbeddingRecord",
+    "valid": true,
+    "value": {
+      "window_id": "moon-aeqd-0003-0007",
+      "body": "moon",
+      "model_id": "terraluna-enc-v1",
+      "embedding_f16": [
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375
+      ],
+      "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "valid_fraction": 0.97,
+      "ood_score": null
+    }
+  },
+  {
+    "name": "embedding-record-255-values",
+    "schema": "EmbeddingRecord",
+    "valid": false,
+    "value": {
+      "window_id": "moon-aeqd-0003-0007",
+      "body": "moon",
+      "model_id": "terraluna-enc-v1",
+      "embedding_f16": [
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625
+      ],
+      "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "valid_fraction": 0.97,
+      "ood_score": 3.25
+    }
+  },
+  {
+    "name": "embedding-record-257-values",
+    "schema": "EmbeddingRecord",
+    "valid": false,
+    "value": {
+      "window_id": "moon-aeqd-0003-0007",
+      "body": "moon",
+      "model_id": "terraluna-enc-v1",
+      "embedding_f16": [
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5
+      ],
+      "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "valid_fraction": 0.97,
+      "ood_score": 3.25
+    }
+  },
+  {
+    "name": "embedding-record-unknown-field",
+    "schema": "EmbeddingRecord",
+    "valid": false,
+    "value": {
+      "window_id": "moon-aeqd-0003-0007",
+      "body": "moon",
+      "model_id": "terraluna-enc-v1",
+      "embedding_f16": [
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375
+      ],
+      "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "valid_fraction": 0.97,
+      "ood_score": 3.25,
+      "split": "test"
+    }
+  },
+  {
+    "name": "embedding-record-valid-fraction-above-1",
+    "schema": "EmbeddingRecord",
+    "valid": false,
+    "value": {
+      "window_id": "moon-aeqd-0003-0007",
+      "body": "moon",
+      "model_id": "terraluna-enc-v1",
+      "embedding_f16": [
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375,
+        0.5,
+        -0.25,
+        0.125,
+        1.5,
+        -2.75,
+        0.0009765625,
+        3.140625,
+        -0.0999755859375
+      ],
+      "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "valid_fraction": 1.5,
+      "ood_score": 3.25
+    }
+  },
+  {
+    "name": "embeddings-index-two-rows",
+    "schema": "EmbeddingsIndex",
+    "valid": true,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "mock": false,
+      "dim": 256,
+      "dtype": "float16",
+      "byte_order": "little",
+      "n_rows": 2,
+      "rows": [
+        {
+          "row": 0,
+          "window_id": "moon-aeqd-0003-0007",
+          "body": "moon",
+          "split": "test",
+          "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "valid_fraction": 0.97,
+          "ood_score": 3.25,
+          "ood_flag": false
+        },
+        {
+          "row": 1,
+          "window_id": "earth-27n-0012-0040",
+          "body": "earth",
+          "split": "test",
+          "input_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+          "valid_fraction": 0.97,
+          "ood_score": null,
+          "ood_flag": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "embeddings-index-empty",
+    "schema": "EmbeddingsIndex",
+    "valid": true,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "mock": false,
+      "dim": 256,
+      "dtype": "float16",
+      "byte_order": "little",
+      "n_rows": 0,
+      "rows": []
+    }
+  },
+  {
+    "name": "embeddings-index-onnx-sha256-null",
+    "schema": "EmbeddingsIndex",
+    "valid": true,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "onnx_sha256": null,
+      "mock": false,
+      "dim": 256,
+      "dtype": "float16",
+      "byte_order": "little",
+      "n_rows": 2,
+      "rows": [
+        {
+          "row": 0,
+          "window_id": "moon-aeqd-0003-0007",
+          "body": "moon",
+          "split": "test",
+          "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "valid_fraction": 0.97,
+          "ood_score": 3.25,
+          "ood_flag": false
+        },
+        {
+          "row": 1,
+          "window_id": "earth-27n-0012-0040",
+          "body": "earth",
+          "split": "test",
+          "input_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+          "valid_fraction": 0.97,
+          "ood_score": null,
+          "ood_flag": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "embeddings-index-dim-128",
+    "schema": "EmbeddingsIndex",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "mock": false,
+      "dim": 128,
+      "dtype": "float16",
+      "byte_order": "little",
+      "n_rows": 2,
+      "rows": [
+        {
+          "row": 0,
+          "window_id": "moon-aeqd-0003-0007",
+          "body": "moon",
+          "split": "test",
+          "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "valid_fraction": 0.97,
+          "ood_score": 3.25,
+          "ood_flag": false
+        },
+        {
+          "row": 1,
+          "window_id": "earth-27n-0012-0040",
+          "body": "earth",
+          "split": "test",
+          "input_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+          "valid_fraction": 0.97,
+          "ood_score": null,
+          "ood_flag": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "embeddings-index-dtype-float32",
+    "schema": "EmbeddingsIndex",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "mock": false,
+      "dim": 256,
+      "dtype": "float32",
+      "byte_order": "little",
+      "n_rows": 2,
+      "rows": [
+        {
+          "row": 0,
+          "window_id": "moon-aeqd-0003-0007",
+          "body": "moon",
+          "split": "test",
+          "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "valid_fraction": 0.97,
+          "ood_score": 3.25,
+          "ood_flag": false
+        },
+        {
+          "row": 1,
+          "window_id": "earth-27n-0012-0040",
+          "body": "earth",
+          "split": "test",
+          "input_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+          "valid_fraction": 0.97,
+          "ood_score": null,
+          "ood_flag": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "embeddings-index-byte-order-big",
+    "schema": "EmbeddingsIndex",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "mock": false,
+      "dim": 256,
+      "dtype": "float16",
+      "byte_order": "big",
+      "n_rows": 2,
+      "rows": [
+        {
+          "row": 0,
+          "window_id": "moon-aeqd-0003-0007",
+          "body": "moon",
+          "split": "test",
+          "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "valid_fraction": 0.97,
+          "ood_score": 3.25,
+          "ood_flag": false
+        },
+        {
+          "row": 1,
+          "window_id": "earth-27n-0012-0040",
+          "body": "earth",
+          "split": "test",
+          "input_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+          "valid_fraction": 0.97,
+          "ood_score": null,
+          "ood_flag": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "embeddings-index-row-split-train",
+    "schema": "EmbeddingsIndex",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "mock": false,
+      "dim": 256,
+      "dtype": "float16",
+      "byte_order": "little",
+      "n_rows": 2,
+      "rows": [
+        {
+          "row": 0,
+          "window_id": "moon-aeqd-0003-0007",
+          "body": "moon",
+          "split": "train",
+          "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "valid_fraction": 0.97,
+          "ood_score": 3.25,
+          "ood_flag": false
+        },
+        {
+          "row": 1,
+          "window_id": "earth-27n-0012-0040",
+          "body": "earth",
+          "split": "test",
+          "input_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+          "valid_fraction": 0.97,
+          "ood_score": null,
+          "ood_flag": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "embeddings-index-ood-flag-without-score",
+    "schema": "EmbeddingsIndex",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "mock": false,
+      "dim": 256,
+      "dtype": "float16",
+      "byte_order": "little",
+      "n_rows": 2,
+      "rows": [
+        {
+          "row": 0,
+          "window_id": "moon-aeqd-0003-0007",
+          "body": "moon",
+          "split": "test",
+          "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "valid_fraction": 0.97,
+          "ood_score": 3.25,
+          "ood_flag": false
+        },
+        {
+          "row": 1,
+          "window_id": "earth-27n-0012-0040",
+          "body": "earth",
+          "split": "test",
+          "input_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+          "valid_fraction": 0.97,
+          "ood_score": null,
+          "ood_flag": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "embeddings-index-missing-mock",
+    "schema": "EmbeddingsIndex",
+    "valid": false,
+    "value": {
+      "model_id": "terraluna-enc-v1",
+      "onnx_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "dim": 256,
+      "dtype": "float16",
+      "byte_order": "little",
+      "n_rows": 2,
+      "rows": [
+        {
+          "row": 0,
+          "window_id": "moon-aeqd-0003-0007",
+          "body": "moon",
+          "split": "test",
+          "input_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+          "valid_fraction": 0.97,
+          "ood_score": 3.25,
+          "ood_flag": false
+        },
+        {
+          "row": 1,
+          "window_id": "earth-27n-0012-0040",
+          "body": "earth",
+          "split": "test",
+          "input_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+          "valid_fraction": 0.97,
+          "ood_score": null,
+          "ood_flag": null
+        }
+      ]
+    }
   }
 ]

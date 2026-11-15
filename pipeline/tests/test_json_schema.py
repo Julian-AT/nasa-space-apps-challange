@@ -65,6 +65,10 @@ SCHEMA_FILES = {
     "Comparisons": "comparisons.schema.json",
     "Targets": "targets.schema.json",
     "CardRecord": "card-record.schema.json",
+    "ModelRecord": "model-record.schema.json",
+    "Metrics": "metrics.schema.json",
+    "EmbeddingRecord": "embedding-record.schema.json",
+    "EmbeddingsIndex": "embeddings-index.schema.json",
 }
 GENERATOR_CASES = ROOT / "fixtures" / "schema-cases" / "generator-cases.json"
 """Synthetic schemas with ``if``/``then`` and ``not``, and documents with authored verdicts. The
@@ -1578,6 +1582,315 @@ _DUPLICATE_CODES = [
     ],
 )
 def test_card_and_target_rules_inside_a_document_are_checked_by_pydantic_only(
+    name: str, changes: list[tuple[tuple[Any, ...], Any]]
+) -> None:
+    case = cases_by_name()[name]
+    document = copy.deepcopy(case["value"])
+    for path, value in changes:
+        target = document
+        for key in path[:-1]:
+            target = target[key]
+        target[path[-1]] = copy.deepcopy(value)
+    assert not pydantic_accepts(case["schema"], document)
+    assert json_schema_accepts(case["schema"], document)
+
+
+# --- Model records I (T0B-03) -------------------------------------------------------------------
+
+METRIC = ("metrics_with_ci",)
+CONDITION = ("g5", "conditions")
+ABLATION = ("ablations", 0)
+
+# Each ModelRecord, Metrics, EmbeddingRecord or EmbeddingsIndex case and the base case it differs
+# from, with the paths at which it differs (CONTRACTS a.4, T0B-03).
+MODEL_CASE_CHANGES: dict[str, tuple[str, set[tuple[Any, ...]]]] = {
+    "model-record-onnx-sha256-null": ("model-record-every-prd-field", {("onnx_sha256",)}),
+    "model-record-interval-excludes-estimate": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "value")},
+    ),
+    "model-record-mock-field": ("model-record-every-prd-field", {("mock",)}),
+    "model-record-missing-licence": ("model-record-every-prd-field", {("licence",)}),
+    "model-record-g5-status-experimental": ("model-record-every-prd-field", {("g5_status",)}),
+    "model-record-onnx-sha256-63-characters": ("model-record-every-prd-field", {("onnx_sha256",)}),
+    "model-record-onnx-sha256-uppercase": ("model-record-every-prd-field", {("onnx_sha256",)}),
+    "model-record-metric-observed": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "evidence_label")},
+    ),
+    "model-record-metric-null-with-bootstrap": (
+        "model-record-every-prd-field",
+        {(*METRIC, 1, "n_bootstrap")},
+    ),
+    "model-record-metric-value-without-bootstrap": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "n_bootstrap")},
+    ),
+    "model-record-metric-bootstrap-zero": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "n_bootstrap")},
+    ),
+    "model-record-metric-null-without-reason": (
+        "model-record-every-prd-field",
+        {(*METRIC, 1, "unavailable_reason")},
+    ),
+    "model-record-metric-value-with-reason": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "unavailable_reason")},
+    ),
+    "model-record-metric-test-id-unknown": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "test_id")},
+    ),
+    "model-record-window-counts-unknown-split": (
+        "model-record-every-prd-field",
+        {("training_data", "window_counts", "moon", "holdout")},
+    ),
+    "model-record-parameter-count-zero": ("model-record-every-prd-field", {("parameter_count",)}),
+    "metrics-mock-run-id-null": ("metrics-test-split", {("mock",), ("run_id",)}),
+    "metrics-condition-failing-component": (
+        "metrics-test-split",
+        {(*CONDITION, 0, "passed"), (*CONDITION, 0, "components", 0, "passed")},
+    ),
+    "metrics-condition-passed-null-with-reason": (
+        "metrics-test-split",
+        {(*CONDITION, 0, "passed"), (*CONDITION, 0, "reason")},
+    ),
+    "metrics-ablation-unavailable": (
+        "metrics-test-split",
+        {(*ABLATION, "status"), (*ABLATION, "reason"), (*ABLATION, "metrics")},
+    ),
+    "metrics-condition-1-threshold-null": ("metrics-test-split", {(*CONDITION, 0, "threshold")}),
+    "metrics-condition-7": ("metrics-test-split", {(*CONDITION, 1, "condition")}),
+    "metrics-condition-passed-null-without-reason": (
+        "metrics-test-split",
+        {(*CONDITION, 0, "passed")},
+    ),
+    "metrics-component-passed-null-without-reason": (
+        "metrics-test-split",
+        {(*CONDITION, 0, "components", 0, "passed")},
+    ),
+    "metrics-ablation-unavailable-without-reason": ("metrics-test-split", {(*ABLATION, "status")}),
+    "metrics-ablation-unavailable-with-metrics": (
+        "metrics-test-split",
+        {(*ABLATION, "status"), (*ABLATION, "reason")},
+    ),
+    "metrics-ablation-available-with-reason": ("metrics-test-split", {(*ABLATION, "reason")}),
+    "metrics-g5-status-experimental": ("metrics-test-split", {("g5", "status")}),
+    "metrics-evaluated-split-train": ("metrics-test-split", {("evaluated_split",)}),
+    "metrics-run-id-bare-hex": ("metrics-test-split", {("run_id",)}),
+    "metrics-baseline-null-without-reason": (
+        "metrics-test-split",
+        {("tests", 0, "baselines", 0, "value")},
+    ),
+    "metrics-config-hash-null": ("metrics-test-split", {("run_record", "config_hash")}),
+    "embedding-record-ood-score-null": ("embedding-record-moon", {("ood_score",)}),
+    "embedding-record-unknown-field": ("embedding-record-moon", {("split",)}),
+    "embedding-record-valid-fraction-above-1": ("embedding-record-moon", {("valid_fraction",)}),
+    "embeddings-index-onnx-sha256-null": ("embeddings-index-two-rows", {("onnx_sha256",)}),
+    "embeddings-index-dim-128": ("embeddings-index-two-rows", {("dim",)}),
+    "embeddings-index-dtype-float32": ("embeddings-index-two-rows", {("dtype",)}),
+    "embeddings-index-byte-order-big": ("embeddings-index-two-rows", {("byte_order",)}),
+    "embeddings-index-row-split-train": ("embeddings-index-two-rows", {("rows", 0, "split")}),
+    "embeddings-index-ood-flag-without-score": (
+        "embeddings-index-two-rows",
+        {("rows", 1, "ood_flag")},
+    ),
+    "embeddings-index-missing-mock": ("embeddings-index-two-rows", {("mock",)}),
+}
+MODEL_SCHEMAS = ("ModelRecord", "Metrics", "EmbeddingRecord", "EmbeddingsIndex")
+
+
+def test_model_cases_test_what_they_name() -> None:
+    """Each model case differs from its base only at the paths its entry names."""
+    cases = cases_by_name()
+    for name, (base_name, paths) in MODEL_CASE_CHANGES.items():
+        case, base = cases[name], cases[base_name]
+        assert case["schema"] == base["schema"], name
+        assert base["valid"] is True, base_name
+        assert set(leaf_changes(base["value"], case["value"])) == paths, name
+    model = cases["model-record-every-prd-field"]["value"]
+    assert "mock" not in model
+    metrics = cases["metrics-test-split"]["value"]
+    assert metrics["tests"] == model["metrics_with_ci"]
+    unavailable = metrics["tests"][1]
+    assert [unavailable[key] for key in ("value", "n_blocks", "n_bootstrap")] == [None] * 3
+    six = metrics["g5"]["conditions"][1]
+    assert (six["condition"], six["threshold"]) == (6, None)
+    assert cases["metrics-ablation-unavailable"]["value"]["ablations"][0]["metrics"] == []
+    estimate = cases["model-record-interval-excludes-estimate"]["value"]["metrics_with_ci"][0]
+    assert estimate["value"] > estimate["ci_high"]
+    embedding = cases["embedding-record-moon"]["value"]
+    assert len(embedding["embedding_f16"]) == 256
+    for name, n in (("embedding-record-255-values", 255), ("embedding-record-257-values", 257)):
+        value = cases[name]["value"]
+        assert len(value["embedding_f16"]) == n, name
+        assert value["embedding_f16"] == (embedding["embedding_f16"] * 2)[:n], name
+        assert {**value, "embedding_f16": None} == {**embedding, "embedding_f16": None}, name
+    empty = cases["embeddings-index-empty"]["value"]
+    base_index = cases["embeddings-index-two-rows"]["value"]
+    assert (empty["n_rows"], empty["rows"]) == (0, [])
+    assert {k: v for k, v in empty.items() if k not in ("n_rows", "rows")} == {
+        k: v for k, v in base_index.items() if k not in ("n_rows", "rows")
+    }
+    named = {name for name, case in cases.items() if case["schema"] in MODEL_SCHEMAS}
+    bases = {base for base, _ in MODEL_CASE_CHANGES.values()}
+    assert named - set(MODEL_CASE_CHANGES) - bases == {
+        "embedding-record-255-values",
+        "embedding-record-257-values",
+        "embeddings-index-empty",
+    }
+
+
+def model_case(name: str, path: tuple[Any, ...], value: Any) -> dict[str, Any]:
+    document: dict[str, Any] = science_case(name)
+    target = document
+    for key in path[:-1]:
+        target = target[key]
+    target[path[-1]] = copy.deepcopy(value)
+    return document
+
+
+def schema_verdicts(name: str, values: list[Any]) -> tuple[int, int]:
+    return verdicts_agree(name, lambda value: json_schema_accepts(name, value), values)
+
+
+def test_metric_rules_agree_on_every_combination() -> None:
+    base = science_case("model-record-every-prd-field")["metrics_with_ci"][0]
+    values = []
+    for value, reason, n_blocks, n_bootstrap in itertools.product(
+        [None, 0, 0.83], [None, "not run"], [None, 0, 48], [None, 0, 1, 1000]
+    ):
+        entry = {
+            **base,
+            "value": value,
+            "unavailable_reason": reason,
+            "n_blocks": n_blocks,
+            "n_bootstrap": n_bootstrap,
+        }
+        values.append(model_case("model-record-every-prd-field", (*METRIC, 0), entry))
+    # A null value with a reason and both counts null (1), or a value of 0 or 0.83 without a
+    # reason and with n_blocks 48 and n_bootstrap 1 or 1000 (2 x 2).
+    assert schema_verdicts("ModelRecord", values) == (5, 67)
+
+
+def test_baseline_rule_agrees_on_every_combination() -> None:
+    base = science_case("metrics-test-split")["tests"][0]["baselines"][0]
+    values = [
+        model_case(
+            "metrics-test-split",
+            ("tests", 0, "baselines", 0),
+            {**base, "value": value, "unavailable_reason": reason},
+        )
+        for value, reason in itertools.product([None, 0, 0.61], [None, "not evaluated"])
+    ]
+    # Only a null value without a reason fails.
+    assert schema_verdicts("Metrics", values) == (5, 1)
+
+
+def test_g5_condition_rules_agree_on_every_combination() -> None:
+    base = science_case("metrics-test-split")["g5"]["conditions"][0]
+    values = []
+    for number, threshold, passed, reason in itertools.product(
+        [1, 5, 6, 7], [None, 0.8], [None, False, True], [None, "not evaluated"]
+    ):
+        entry = {**base, "condition": number, "threshold": threshold, "passed": passed}
+        values.append(
+            model_case("metrics-test-split", (*CONDITION, 0), {**entry, "reason": reason})
+        )
+    # Condition 1 to 6, a threshold unless condition 6, and a reason when passed is null:
+    # (1, 5 with 0.8; 6 with either) = 4 pairs, each with 5 of the 6 passed and reason pairs.
+    assert schema_verdicts("Metrics", values) == (20, 28)
+
+
+def test_g5_component_rule_agrees_on_every_combination() -> None:
+    base = science_case("metrics-test-split")["g5"]["conditions"][0]["components"][0]
+    values = [
+        model_case(
+            "metrics-test-split",
+            (*CONDITION, 0, "components", 0),
+            {**base, "passed": passed, "reason": reason},
+        )
+        for passed, reason in itertools.product([None, False, True], [None, "lag unsupported"])
+    ]
+    assert schema_verdicts("Metrics", values) == (5, 1)
+
+
+def test_ablation_rule_agrees_on_every_combination() -> None:
+    base = science_case("metrics-test-split")["ablations"][0]
+    values = [
+        model_case(
+            "metrics-test-split",
+            ABLATION,
+            {**base, "status": status, "reason": reason, "metrics": metrics},
+        )
+        for status, reason, metrics in itertools.product(
+            ["available", "unavailable", "missing"],
+            [None, "no compute left"],
+            [[], base["metrics"]],
+        )
+    ]
+    # available without a reason (either metrics), unavailable with a reason and no metrics.
+    assert schema_verdicts("Metrics", values) == (3, 9)
+
+
+def test_ood_flag_rule_agrees_on_every_combination() -> None:
+    base = science_case("embeddings-index-two-rows")["rows"][0]
+    values = [
+        model_case(
+            "embeddings-index-two-rows",
+            ("rows", 0),
+            {**base, "ood_score": score, "ood_flag": flag},
+        )
+        for score, flag in itertools.product([None, 0, 3.25], [None, False, True])
+    ]
+    # A null score allows only a null flag.
+    assert schema_verdicts("EmbeddingsIndex", values) == (7, 2)
+
+
+@pytest.mark.parametrize(
+    ("name", "changes"),
+    [
+        pytest.param(
+            "model-record-every-prd-field",
+            [((*METRIC, 0, "ci_low"), 0.9)],
+            id="metric-interval-reversed",
+        ),
+        pytest.param(
+            "metrics-test-split",
+            [(("tests", 0, "baselines", 0, "ci_low"), 0.7)],
+            id="baseline-interval-reversed",
+        ),
+        pytest.param(
+            "metrics-test-split",
+            [(("tests", 0, "baselines", 0, "paired_diff_ci_high"), 0.1)],
+            id="paired-interval-reversed",
+        ),
+        pytest.param(
+            "metrics-test-split",
+            [((*CONDITION, 0, "components", 0, "ci_high"), 0.5)],
+            id="component-interval-reversed",
+        ),
+        pytest.param(
+            "metrics-test-split",
+            [((*CONDITION, 0, "observed"), None), ((*CONDITION, 0, "components"), [])],
+            id="pass-without-evidence",
+        ),
+        pytest.param(
+            "embedding-record-moon", [(("embedding_f16", 17), 0.1)], id="value-not-float16"
+        ),
+        pytest.param(
+            "embedding-record-moon", [(("embedding_f16", 17), 65520.5)], id="value-above-float16"
+        ),
+        pytest.param("embeddings-index-two-rows", [(("n_rows",), 3)], id="n-rows-not-the-rows"),
+        pytest.param(
+            "embeddings-index-two-rows",
+            [(("rows", 0, "row"), 1), (("rows", 1, "row"), 0)],
+            id="rows-out-of-order",
+        ),
+    ],
+)
+def test_model_rules_inside_a_document_are_checked_by_pydantic_only(
     name: str, changes: list[tuple[tuple[Any, ...], Any]]
 ) -> None:
     case = cases_by_name()[name]

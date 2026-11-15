@@ -11,8 +11,12 @@ import {
   CardRecordSchema,
   ComparisonRecordSchema,
   ComparisonsSchema,
+  EmbeddingRecordSchema,
+  EmbeddingsIndexSchema,
   FingerprintRecordSchema,
   GateRecordSchema,
+  MetricsSchema,
+  ModelRecordSchema,
   ProductRecordSchema,
   SourcesSchema,
   TargetsSchema,
@@ -48,6 +52,10 @@ const SCHEMAS: ReadonlyMap<string, ZodType> = new Map<string, ZodType>([
   ['Comparisons', ComparisonsSchema],
   ['Targets', TargetsSchema],
   ['CardRecord', CardRecordSchema],
+  ['ModelRecord', ModelRecordSchema],
+  ['Metrics', MetricsSchema],
+  ['EmbeddingRecord', EmbeddingRecordSchema],
+  ['EmbeddingsIndex', EmbeddingsIndexSchema],
 ]);
 
 const CASE_KEYS = ['name', 'schema', 'valid', 'value'];

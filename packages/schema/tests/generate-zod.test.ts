@@ -212,6 +212,10 @@ describe('contracts', () => {
       'Comparisons',
       'Targets',
       'CardRecord',
+      'ModelRecord',
+      'Metrics',
+      'EmbeddingRecord',
+      'EmbeddingsIndex',
     ]);
   });
 });

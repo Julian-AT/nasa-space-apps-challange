@@ -13,10 +13,18 @@ import type {
   ComparisonRecordSchema,
   Comparisons,
   ComparisonsSchema,
+  EmbeddingRecord,
+  EmbeddingRecordSchema,
+  EmbeddingsIndex,
+  EmbeddingsIndexSchema,
   FingerprintRecord,
   FingerprintRecordSchema,
   GateRecord,
   GateRecordSchema,
+  Metrics,
+  MetricsSchema,
+  ModelRecord,
+  ModelRecordSchema,
   ProductRecord,
   ProductRecordSchema,
   Sources,
@@ -390,6 +398,141 @@ expectTypeOf<CardRecord>().toEqualTypeOf<{
   claim_limits: string[];
 }>();
 
+type MetricRecord = ModelRecord['metrics_with_ci'][number];
+
+expectTypeOf<MetricRecord>().toEqualTypeOf<{
+  test_id:
+    | 'physics_probe'
+    | 'morphology_probe'
+    | 'body_invariance'
+    | 'physics_agreement'
+    | 'target_retrieval'
+    | 'seed_stability'
+    | 'held_out_body'
+    | 'out_of_distribution';
+  measure: string;
+  target: string | null;
+  body: Body | 'pooled' | null;
+  value: number | null;
+  ci_low: number | null;
+  ci_high: number | null;
+  n_blocks: number | null;
+  n_bootstrap: number | null;
+  unavailable_reason: string | null;
+  evidence_label: 'Predicted';
+  baselines: {
+    name: string;
+    value: number | null;
+    ci_low: number | null;
+    ci_high: number | null;
+    paired_diff_ci_low: number | null;
+    paired_diff_ci_high: number | null;
+    unavailable_reason: string | null;
+  }[];
+}>();
+
+expectTypeOf<ModelRecord>().toEqualTypeOf<{
+  model_id: string;
+  version: string;
+  architecture: string;
+  parameter_count: number;
+  training_data: {
+    bodies: Body[];
+    product_ids: string[];
+    window_counts: Partial<Record<Body, Partial<Record<'train' | 'val' | 'test', number | null>>>>;
+    split_groups: Partial<Record<Body, string>>;
+  };
+  objectives_and_weights: {
+    vicreg: { invariance: number; variance: number; covariance: number } | null;
+    alpha_phys: number;
+    lambda_max: number;
+    schedule: string;
+  };
+  seeds: number[];
+  metrics_with_ci: MetricRecord[];
+  g5_status: GateStatus;
+  intended_use: string;
+  limitations: string;
+  licence: string;
+  onnx_sha256: string | null;
+}>();
+
+expectTypeOf<Metrics>().toEqualTypeOf<{
+  mock: boolean;
+  run_id: string | null;
+  model_id: string;
+  evaluated_split: 'val' | 'test';
+  g5: {
+    status: GateStatus;
+    conditions: {
+      condition: number;
+      test_id: string;
+      statistic: 'lower_95' | 'point' | 'paired_interval';
+      threshold: number | null;
+      observed: number | null;
+      passed: boolean | null;
+      reason: string | null;
+      components: {
+        component: string;
+        observed: number | null;
+        ci_low: number | null;
+        ci_high: number | null;
+        passed: boolean | null;
+        reason: string | null;
+      }[];
+    }[];
+    failed_tests: string[];
+  };
+  tests: MetricRecord[];
+  ablations: {
+    run_name: string;
+    status: 'available' | 'unavailable';
+    reason: string | null;
+    metrics: MetricRecord[];
+  }[];
+  run_record: {
+    config_hash: string;
+    data_manifest_sha256: string | null;
+    split_map_sha256: string | null;
+    checkpoint_sha256s: string[];
+    git_sha: string | null;
+    uv_lock_sha256: string;
+    hardware: string;
+    gpu_hours_total: number | null;
+    gpu_hours_partial: boolean;
+  };
+}>();
+
+expectTypeOf<EmbeddingRecord>().toEqualTypeOf<{
+  window_id: string;
+  body: Body;
+  model_id: string;
+  embedding_f16: number[];
+  input_hash: string;
+  valid_fraction: number;
+  ood_score: number | null;
+}>();
+
+expectTypeOf<EmbeddingsIndex>().toEqualTypeOf<{
+  model_id: string;
+  onnx_sha256: string | null;
+  mock: boolean;
+  dim: 256;
+  dtype: 'float16';
+  byte_order: 'little';
+  n_rows: number;
+  rows: {
+    row: number;
+    window_id: string;
+    body: Body;
+    split: 'test';
+    input_hash: string;
+    valid_fraction: number;
+    ood_score: number | null;
+    ood_flag: boolean | null;
+  }[];
+}>();
+
 // Parsing transforms nothing, so a schema's input type is its output type.
 expectTypeOf<z.input<typeof BundleManifestSchema>>().toEqualTypeOf<BundleManifest>();
 expectTypeOf<z.input<typeof GateRecordSchema>>().toEqualTypeOf<GateRecord>();
@@ -403,3 +546,7 @@ expectTypeOf<z.input<typeof ComparisonRecordSchema>>().toEqualTypeOf<ComparisonR
 expectTypeOf<z.input<typeof ComparisonsSchema>>().toEqualTypeOf<Comparisons>();
 expectTypeOf<z.input<typeof TargetsSchema>>().toEqualTypeOf<Targets>();
 expectTypeOf<z.input<typeof CardRecordSchema>>().toEqualTypeOf<CardRecord>();
+expectTypeOf<z.input<typeof ModelRecordSchema>>().toEqualTypeOf<ModelRecord>();
+expectTypeOf<z.input<typeof MetricsSchema>>().toEqualTypeOf<Metrics>();
+expectTypeOf<z.input<typeof EmbeddingRecordSchema>>().toEqualTypeOf<EmbeddingRecord>();
+expectTypeOf<z.input<typeof EmbeddingsIndexSchema>>().toEqualTypeOf<EmbeddingsIndex>();
