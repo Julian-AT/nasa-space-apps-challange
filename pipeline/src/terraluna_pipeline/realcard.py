@@ -766,6 +766,7 @@ def worldcover_product(base: ProductRecord, tile: str, path: Path, checksum: str
 class LandCover:
     allowed_fraction: float
     water_fraction: float
+    snow_ice_fraction: float
     nodata_fraction: float
     unknown_fraction: float
     reasons: tuple[str, ...]
@@ -817,6 +818,7 @@ def land_cover(window: RealWindow, path: Path, allowed: list[str], min_allowed: 
     return LandCover(
         allowed_fraction=allowed_fraction,
         water_fraction=float((classes == WORLDCOVER_WATER).sum() / n),
+        snow_ice_fraction=float((classes == WORLDCOVER_CODES["snow_ice"]).sum() / n),
         nodata_fraction=float(nodata_mask.sum() / n),
         unknown_fraction=float(unknown.sum() / n),
         reasons=tuple(result_reasons),
@@ -877,6 +879,12 @@ def search(root: Path, also_card: Sequence[str] = ()) -> list[Path]:
             extra_products[cop30.product_id] = cop30
             products = [cop30]
             reasons: list[str] = []
+            cover_fractions: dict[str, float | None] = {
+                "worldcover_allowed": None,
+                "worldcover_snow_ice": None,
+                "worldcover_water": None,
+            }
+            window_limits: list[str] = []
             lon, lat = earth.centre_lonlat_deg
             tile = worldcover_tile_name(lat, lon)
             try:
@@ -891,6 +899,18 @@ def search(root: Path, also_card: Sequence[str] = ()) -> list[Path]:
                 products.append(wc)
                 cover = land_cover(earth, wc_path, list(allowed), min_allowed)  # type: ignore[call-overload]
                 reasons.extend(cover.reasons)
+                cover_fractions = {
+                    "worldcover_allowed": cover.allowed_fraction,
+                    "worldcover_snow_ice": cover.snow_ice_fraction,
+                    "worldcover_water": cover.water_fraction,
+                }
+                window_limits.append(
+                    "WorldCover 2021 at the Earth window's 90 m cell centres: allowed classes "
+                    f"{cover.allowed_fraction:.4f}, of which snow_ice "
+                    f"{cover.snow_ice_fraction:.4f} "
+                    "(allowed by config earth_search.masks; PRD-04 reports snow and ice "
+                    f"separately), permanent water {cover.water_fraction:.4f}."
+                )
             if earth.fingerprint.excluded_reason is not None:
                 reasons.insert(0, str(earth.fingerprint.excluded_reason))
             entry = window_entry(earth, products, config_path, None)
@@ -899,8 +919,14 @@ def search(root: Path, also_card: Sequence[str] = ()) -> list[Path]:
                 if not reasons
                 else ("unknown" if reasons == ["worldcover_missing"] else "rejected")
             )
-            entry = entry.model_copy(update={"status": status, "reasons": reasons})
-            entry = type(entry).model_validate(entry.model_dump())
+            dumped = entry.model_dump()
+            dumped["status"], dumped["reasons"] = status, reasons
+            dumped["window"]["valid_fraction_by_observable"].update(cover_fractions)
+            for key in cover_fractions:
+                dumped["window"]["evidence_status_by_field"][key] = (
+                    "Unavailable" if cover_fractions[key] is None else "Derived"
+                )
+            entry = type(entry).model_validate(dumped)
             earth_entries.append(entry)
             windows_by_id[window_id] = earth
             if status != "eligible":
@@ -926,7 +952,19 @@ def search(root: Path, also_card: Sequence[str] = ()) -> list[Path]:
                     eligibility,
                     shipping_mode=mode,  # type: ignore[arg-type]
                     source_ids=[*moon_products, *products],
-                    claim_limits=_search_claim_limits(moon, str(mode), region),
+                    claim_limits=[
+                        *_search_claim_limits(moon, str(mode), region),
+                        *window_limits,
+                        *(
+                            [
+                                "This Earth window is the G0-05 first-card window (the eligible "
+                                "window containing the decoded UAVSAR ROI centre), chosen at G0 "
+                                "without ranking by similarity."
+                            ]
+                            if window_id in also_card
+                            else []
+                        ),
+                    ],
                     config_path=config_path,
                 )
             )
