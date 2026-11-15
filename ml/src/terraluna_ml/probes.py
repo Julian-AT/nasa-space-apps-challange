@@ -9,6 +9,7 @@ Every statistic here is Predicted.
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -101,6 +102,40 @@ def fit_physics_probe(
     alphas: tuple[float, ...] = RIDGE_ALPHAS,
 ) -> PhysicsProbe:
     """Ridge per target on train embeddings; alpha per target chosen on validation R2."""
+    with warnings.catch_warnings():
+        # Small alphas on rank-deficient embeddings trigger scipy's conditioning warning; the
+        # alpha grid is chosen on validation R2, so ill-conditioned fits lose rather than mislead.
+        warnings.filterwarnings(
+            "ignore", message="An ill-conditioned matrix", category=RuntimeWarning
+        )
+        return _fit_physics_probe(
+            train,
+            y_train,
+            mask_train,
+            val,
+            y_val,
+            mask_val,
+            test,
+            y_test,
+            mask_test,
+            targets,
+            alphas,
+        )
+
+
+def _fit_physics_probe(
+    train: EmbeddingSet,
+    y_train: F64,
+    mask_train: npt.NDArray[np.bool_],
+    val: EmbeddingSet,
+    y_val: F64,
+    mask_val: npt.NDArray[np.bool_],
+    test: EmbeddingSet,
+    y_test: F64,
+    mask_test: npt.NDArray[np.bool_],
+    targets: tuple[str, ...],
+    alphas: tuple[float, ...],
+) -> PhysicsProbe:
     sc = _scaler(train.x)
     xtr, xva, xte = (sc.transform(s.x) for s in (train, val, test))
     pred = np.full(y_test.shape, np.nan)
