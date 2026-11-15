@@ -50,6 +50,31 @@ describe('pageProblems', () => {
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/banner/);
   });
 
+  // The document title shows in the browser tab, not on the page, so it cannot stand in for a
+  // banner (codex-r7-1).
+  it.each([
+    {
+      name: 'the mock banner',
+      html: MOCK_PAGE.replace('<title>Terraluna</title>', '<title>Mock bundle — placeholder data, not results</title>').replace(
+        '<p role="status">Mock bundle — placeholder data, not results</p>',
+        '',
+      ),
+      shown: MOCK,
+      problem: /mock banner .* is missing/,
+    },
+    {
+      name: 'the shipping-mode banner',
+      html: REAL_PAGE.replace(
+        '<title>Terraluna</title>',
+        '<title>Shipping mode: B — Terrain analog candidates for Connecting Ridge, with radar context</title>',
+      ).replace('<header><p>Shipping mode: B — Terrain analog candidates for Connecting Ridge, with radar context</p></header>', ''),
+      shown: REAL,
+      problem: /shipping-mode banner .* is missing/,
+    },
+  ])('reports $name missing from the page when only the document title holds its text', ({ html, shown, problem }) => {
+    expect(pageProblems(html, shown).join('\n')).toMatch(problem);
+  });
+
   it('reports a mock banner on a bundle that is not mock', () => {
     const html = REAL_PAGE.replace('<header>', '<header><p>Mock bundle — placeholder data, not results</p>');
     expect(pageProblems(html, REAL).join('\n')).toMatch(/banner/);
