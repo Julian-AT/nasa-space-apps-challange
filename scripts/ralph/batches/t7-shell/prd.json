@@ -271,12 +271,18 @@
       "priority": 5,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "c90c7d07a9446acd0a9a6f07ed52191422168c67",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "05fa2bff91e1b868cb01d49f781534304e378dde",
+        "files": [
+          "reviews/T7-05-claude.json",
+          "reviews/T7-05-codex.json"
+        ],
+        "digests": {
+          "reviews/T7-05-claude.json": "d73cef5ceddaacf61a6a215c0d421cd7f7a91c131aa20d8d1d8b9aa670fa19c6",
+          "reviews/T7-05-codex.json": "70a94e7c6e56fa9e23b940b569e8a62981e54c601253074f3f7e9af4f1f83efc"
+        }
       },
       "notes": "Presence of sources.json is decided from manifest.files, never from the file merely being on disk. T15 owns copying sources.json (and targets.json) in bundle:pull and the loader; until that lands, a bundle that lists sources.json fails the build here rather than showing a false empty state."
     },

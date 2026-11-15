@@ -1,0 +1,132 @@
+{
+  "task_id": "T7-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "c90c7d07a9446acd0a9a6f07ed52191422168c67",
+    "head": "05fa2bff91e1b868cb01d49f781534304e378dde",
+    "files": [
+      {
+        "path": "apps/web/app/data/page.tsx",
+        "sha256": "f119f7983dcd9a5bb7d6fe5ab66f66b21c84347c52b895c9d1fffec84a201a90"
+      },
+      {
+        "path": "apps/web/app/data/sources.ts",
+        "sha256": "80da697dc09dc06f7241186e1d26d91643a8387cbde643e1d9a56f32df6ff3e2"
+      },
+      {
+        "path": "apps/web/components/sources-table.test.tsx",
+        "sha256": "af810dc4e686bba69dbdd3680ea890cd1f87f6aee3d91af442814bcac72c7679"
+      },
+      {
+        "path": "apps/web/components/sources-table.tsx",
+        "sha256": "87c033bff1b27ab78a4218a875e5280cc8f3d52b6baaf1ef1b4ac685584ba637"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "8ce595103f1005e645f55dab6ad70f9c6390b52729198c2c0e5690a72d643332"
+      },
+      {
+        "path": "apps/web/tests/tables.ts",
+        "sha256": "e2392227929fd0ed7d2ecfebff8afd852d92381bb685bac52f763ee702d42576"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:41:22Z",
+  "finished_utc": "2026-11-15T00:44:03Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found a binding evidence-label violation and a gap in the missing-field tests. Required checks were not run because the sandbox is read-only and execution was explicitly prohibited.",
+  "checks": [
+    {
+      "criterion": "1. Tests first; manifest-controlled empty state; missing, changed and malformed sources fail explicitly; synthetic test records.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "9242c63 contains the tests before implementation files. sources.ts:142-158 implements manifest-controlled loading; sources-table.test.tsx:136-246 and 373-410 contain behavioral assertions. Their execution and build-error behavior remain unverified because checks were prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "2. T7-owned reader uses the shared ProductRecord schema or the specified unavailable fallback.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "packages/schema/src/index.ts:3-5 exports no ProductRecord schema. apps/web/app/data/sources.ts:63-66 looks up ProductRecordSchema; :88-105 verifies the listed file; :153-158 returns no records with the exact missing-schema reason. Reader ownership is within app/data/."
+    },
+    {
+      "criterion": "3. Bundle files are listed from manifest.json with path, sha256 and bytes, without invented licence or attribution text.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/app/data/page.tsx:35-38 supplies manifest.files under 'Bundle files'. apps/web/components/sources-table.tsx:115-147 renders the manifest entries directly."
+    },
+    {
+      "criterion": "4. Missing licence, attribution and checksum values show Unavailable with reasons; source values come from records.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/sources-table.tsx:20-28 includes license_or_attribution and checksum. :54-67 handles undefined/null with an Unavailable label and field-specific reason, otherwise returning the record's string value. Runtime verification was not performed."
+    },
+    {
+      "criterion": "5. /data is static, has one h1, passes typecheck and lint, and preserves web-smoke.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/app/data/page.tsx:15 declares dynamic='error' and :24 contains its single h1. Typecheck, lint, prerendering and smoke results require execution, prohibited in this read-only sandbox."
+    },
+    {
+      "criterion": "Binding PRD sections 3 and 8.6: displayed quantities carry evidence labels.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "PRD.md:120 requires a label on every displayed quantity; :630 requires evidence labels on every number. apps/web/components/sources-table.tsx:138-139 renders manifest byte counts as plain String(file[field]) without a label."
+    },
+    {
+      "criterion": "Required check: make check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the read-only sandbox cannot support tool synchronization, caches or generated typecheck files."
+    },
+    {
+      "criterion": "Required check: make test",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: test execution writes temporary files and caches in this read-only sandbox."
+    },
+    {
+      "criterion": "Required check: focused sources tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/sources-table.test.tsx",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: these tests create directories, files and symbolic links; the sandbox is read-only."
+    },
+    {
+      "criterion": "Required check: make web-build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: bundle:pull copies files and Next.js writes build artifacts."
+    },
+    {
+      "criterion": "Required check: make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: this target depends on web-build and its filesystem writes."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "apps/web/components/sources-table.tsx:138",
+      "claim": "Bundle byte counts lack the evidence labels required by binding PRD sections 3 and 8.6.",
+      "evidence": "The bytes cell renders only String(file[field]) at line 139. The current mock manifest supplies bytes=1158 (fixtures/mock-bundle/manifest.json:6), so this affects the current /data path. PRD.md:120 and :630 require displayed quantities/numbers to carry evidence labels. Add evidence-labelled presentation while preserving the manifest value and byte unit.",
+      "id": "codex-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "medium",
+      "location": "apps/web/components/sources-table.test.tsx:282",
+      "claim": "The omitted/null-field tests can pass when the table drops every affected row.",
+      "evidence": "Lines 283-286 iterate over table?.rows ?? [] without asserting table existence or the expected two rows. Returning no table or an empty tbody for incomplete records skips every Unavailable-cell assertion; line 287 still passes independently. Assert the table and both rows before checking their cells.",
+      "id": "codex-r1-2",
+      "resolution": null
+    }
+  ]
+}

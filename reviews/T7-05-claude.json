@@ -1,0 +1,118 @@
+{
+  "task_id": "T7-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "c90c7d07a9446acd0a9a6f07ed52191422168c67",
+    "head": "05fa2bff91e1b868cb01d49f781534304e378dde",
+    "files": [
+      {
+        "path": "apps/web/app/data/page.tsx",
+        "sha256": "f119f7983dcd9a5bb7d6fe5ab66f66b21c84347c52b895c9d1fffec84a201a90"
+      },
+      {
+        "path": "apps/web/app/data/sources.ts",
+        "sha256": "80da697dc09dc06f7241186e1d26d91643a8387cbde643e1d9a56f32df6ff3e2"
+      },
+      {
+        "path": "apps/web/components/sources-table.test.tsx",
+        "sha256": "af810dc4e686bba69dbdd3680ea890cd1f87f6aee3d91af442814bcac72c7679"
+      },
+      {
+        "path": "apps/web/components/sources-table.tsx",
+        "sha256": "87c033bff1b27ab78a4218a875e5280cc8f3d52b6baaf1ef1b4ac685584ba637"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "8ce595103f1005e645f55dab6ad70f9c6390b52729198c2c0e5690a72d643332"
+      },
+      {
+        "path": "apps/web/tests/tables.ts",
+        "sha256": "e2392227929fd0ed7d2ecfebff8afd852d92381bb685bac52f763ee702d42576"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:41:22Z",
+  "finished_utc": "2026-11-15T00:42:03Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "All five story checks passed. The reader decides presence from manifest.files only and throws a build error naming the file when the file is missing, or its byte count or sha256 differs. Malformed lists fail as a whole with an \"invalid sources.json\" message. The page has one h1 and is static (`export const dynamic = 'error'`, and /data is prerendered). Missing schema, empty state and omitted-field paths all show Unavailable with a reason. The diff stayed within apps/web/app/data, components/sources-table*, and apps/web/tests/*, plus orchestration files (prd.json, progress.txt) that are outside the story's file list.",
+  "checks": [
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, eslint and tsc all passed (turbo 4/4 successful, lint and typecheck results replayed from cache)."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed. Web vitest 394 passed across 14 files (replayed from cache), including components/sources-table.test.tsx with 42 tests."
+    },
+    {
+      "criterion": "pnpm --filter @terraluna/web exec vitest run components/sources-table.test.tsx",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/sources-table.test.tsx",
+      "outcome": "PASS",
+      "evidence": "1 file, 42 tests passed."
+    },
+    {
+      "criterion": "make web-build",
+      "command": "make web-build",
+      "outcome": "PASS",
+      "evidence": "next build succeeded. The route table shows ○ /data (Static)."
+    },
+    {
+      "criterion": "make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "PASS",
+      "evidence": "Smoke output ends with the line: web-smoke: GET / shows the mock banner... mock-0. The command exited without error."
+    },
+    {
+      "criterion": "AC1: empty state when not listed; build error naming the file when listed but missing or sha256/bytes differ; malformed list renders no partial rows; synthetic test ids",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "sources.ts:143-144 returns the NO_SOURCES reason when the manifest does not list the file. sources.ts:88-107 throws when the file is missing, or its byte count or sha256 differs. sources.ts:120-131 validates the list as a whole before returning rows. page.tsx:28-33 renders LabelledValue 'Unavailable' with the reason. Tests at sources-table.test.tsx:137-253 and 337-414 cover these cases."
+    },
+    {
+      "criterion": "AC2: T7-owned reader validating with the ProductRecord schema; a missing schema gives Unavailable 'ProductRecord schema not in @terraluna/schema', no rows, and a code comment",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "sources.ts:63-67 looks up ProductRecordSchema by export name and returns null when absent. sources.ts:155-157 returns the unavailable state with the exact reason. A code comment names the missing schema (sources.ts:58, 64). The reader lives in app/data, and no lib/bundle* or scripts/* file is touched."
+    },
+    {
+      "criterion": "AC3: Bundle files table from manifest.json (path, sha256, bytes); no invented licence or attribution text",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "BundleFilesTable (sources-table.tsx:115-148) renders the schema's file fields. page.tsx adds only headings. Test 'types no licence or attribution' covers this."
+    },
+    {
+      "criterion": "AC4: Licences, attribution and checksums columns show Unavailable with a reason when omitted; no typed row text",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "sources-table.tsx:54-67: undefined or null becomes LabelledValue 'Unavailable' with omittedReason(field). A non-text value throws instead of being formatted, and there is no zero coercion."
+    },
+    {
+      "criterion": "AC5: /data static, one h1, typecheck and lint pass, web-smoke passes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page.tsx:15 sets dynamic='error' and the single h1 is at line 24. The build shows /data as Static. make check and web-smoke passed."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/app/data/sources.ts:154-158",
+      "claim": "The records path (a ProductRecordSchema export plus a listed sources.json) has no real end-to-end run, because the schema does not exist on this branch.",
+      "evidence": "productRecordSchema() returns null on this branch. The records path is covered only by injected-schema unit tests. Revisit once T1-01 and T15 land.",
+      "id": "claude-r1-1",
+      "resolution": null
+    }
+  ]
+}
