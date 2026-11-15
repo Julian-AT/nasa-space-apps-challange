@@ -1,0 +1,571 @@
+{
+  "record": "probe_bench_node",
+  "statement": "Node timings of the live-probe pipeline (lib/probe/pipeline.ts) on this machine against the public Copernicus bucket in direct mode. Not a browser, not the proxy, and not a mid-range laptop on 50 Mbit/s; the PRD 8.7 browser budgets (first probe <= 6 s, repeat <= 1.5 s) are not assessed by this record.",
+  "generated_at": "2026-11-15T01:21:28.104Z",
+  "machine": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "cpu": "Apple M4 Pro",
+    "cpus": 14,
+    "memory_gb": 24,
+    "node": "v22.23.3"
+  },
+  "prd_dem_budget_bytes": 4194304,
+  "encoder": "not run (no exported model yet; encoder distances are Unavailable, encoder_not_evaluated)",
+  "points": [
+    {
+      "lat_deg": 64.88510551859456,
+      "lon_deg": -16.721614960145644,
+      "window_id": "earth-utm27n-e280-n2880",
+      "runs": [
+        {
+          "attempt": "first",
+          "kind": "result",
+          "timings": {
+            "dem_read_ms": 660.385541,
+            "resample_ms": 3.9637500000000045,
+            "fingerprint_ms": 14.212834000000043,
+            "model_load_ms": null,
+            "inference_ms": null,
+            "total_ms": 678.562125
+          },
+          "dem": {
+            "mode": "direct",
+            "tiles_read": [
+              "Copernicus_DSM_COG_10_N64_00_W017_00_DEM"
+            ],
+            "tiles_missing": [],
+            "bytes": 2347785,
+            "requests": 3,
+            "prd_budget_bytes": 4194304,
+            "within_prd_budget": true
+          },
+          "relief_nu_m": {
+            "270.0": 1.6592713445694574,
+            "360.0": 2.0420498576360107,
+            "540.0": 2.7595319498986477,
+            "720.0": 3.422041121802898,
+            "1080.0": 4.758131106990514
+          },
+          "texture_nu_m": {
+            "270.0": 1.287890361974845,
+            "360.0": 1.4879895714978086,
+            "540.0": 1.790189441018881,
+            "720.0": 1.97313202795045,
+            "1080.0": 2.207466497705002
+          },
+          "distances": [
+            {
+              "target_id": "moon-sps-x2-y2",
+              "target_window_id": "moon-sps-x2-y2",
+              "terrain_relief": {
+                "status": "available",
+                "value": 3.372284897124809,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "terrain_texture": {
+                "status": "available",
+                "value": 3.8107800656788924,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "radar": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "CPR Wasserstein-1",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "Unavailable for live probes"
+              },
+              "encoder": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "cosine distance",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "encoder_not_evaluated"
+              }
+            }
+          ]
+        },
+        {
+          "attempt": "repeat",
+          "kind": "result",
+          "timings": {
+            "dem_read_ms": 439.26520800000014,
+            "resample_ms": 2.6729579999998805,
+            "fingerprint_ms": 7.057375000000093,
+            "model_load_ms": null,
+            "inference_ms": null,
+            "total_ms": 448.9955410000001
+          },
+          "dem": {
+            "mode": "direct",
+            "tiles_read": [
+              "Copernicus_DSM_COG_10_N64_00_W017_00_DEM"
+            ],
+            "tiles_missing": [],
+            "bytes": 2347785,
+            "requests": 3,
+            "prd_budget_bytes": 4194304,
+            "within_prd_budget": true
+          },
+          "relief_nu_m": {
+            "270.0": 1.6592713445694574,
+            "360.0": 2.0420498576360107,
+            "540.0": 2.7595319498986477,
+            "720.0": 3.422041121802898,
+            "1080.0": 4.758131106990514
+          },
+          "texture_nu_m": {
+            "270.0": 1.287890361974845,
+            "360.0": 1.4879895714978086,
+            "540.0": 1.790189441018881,
+            "720.0": 1.97313202795045,
+            "1080.0": 2.207466497705002
+          },
+          "distances": [
+            {
+              "target_id": "moon-sps-x2-y2",
+              "target_window_id": "moon-sps-x2-y2",
+              "terrain_relief": {
+                "status": "available",
+                "value": 3.372284897124809,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "terrain_texture": {
+                "status": "available",
+                "value": 3.8107800656788924,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "radar": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "CPR Wasserstein-1",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "Unavailable for live probes"
+              },
+              "encoder": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "cosine distance",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "encoder_not_evaluated"
+              }
+            }
+          ]
+        }
+      ],
+      "pipeline_comparison": {
+        "window_id": "earth-utm27n-e280-n2880",
+        "relief_max_rel_diff": 8.992741000318548e-14,
+        "texture_max_rel_diff": 1.8413340534386962e-13
+      }
+    },
+    {
+      "lat_deg": 64.85493475346743,
+      "lon_deg": -16.462273678349845,
+      "window_id": "earth-utm27n-e285-n2879",
+      "runs": [
+        {
+          "attempt": "first",
+          "kind": "result",
+          "timings": {
+            "dem_read_ms": 510.0825829999999,
+            "resample_ms": 1.9309170000001359,
+            "fingerprint_ms": 7.112374999999929,
+            "model_load_ms": null,
+            "inference_ms": null,
+            "total_ms": 519.125875
+          },
+          "dem": {
+            "mode": "direct",
+            "tiles_read": [
+              "Copernicus_DSM_COG_10_N64_00_W017_00_DEM"
+            ],
+            "tiles_missing": [],
+            "bytes": 4181167,
+            "requests": 4,
+            "prd_budget_bytes": 4194304,
+            "within_prd_budget": true
+          },
+          "relief_nu_m": {
+            "270.0": 32.190058196071725,
+            "360.0": 37.226674323974294,
+            "540.0": 43.552436150915085,
+            "720.0": 47.95484499522707,
+            "1080.0": 54.616105320027486
+          },
+          "texture_nu_m": {
+            "270.0": 32.06722051779371,
+            "360.0": 37.05085937808596,
+            "540.0": 43.25246309432486,
+            "720.0": 47.46531801275484,
+            "1080.0": 53.434807726537954
+          },
+          "distances": [
+            {
+              "target_id": "moon-sps-x2-y2",
+              "target_window_id": "moon-sps-x2-y2",
+              "terrain_relief": {
+                "status": "available",
+                "value": 0.6785492291449395,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "terrain_texture": {
+                "status": "available",
+                "value": 0.6584769659701786,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "radar": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "CPR Wasserstein-1",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "Unavailable for live probes"
+              },
+              "encoder": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "cosine distance",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "encoder_not_evaluated"
+              }
+            }
+          ]
+        },
+        {
+          "attempt": "repeat",
+          "kind": "result",
+          "timings": {
+            "dem_read_ms": 594.7020420000001,
+            "resample_ms": 0.2846249999997781,
+            "fingerprint_ms": 10.904915999999957,
+            "model_load_ms": null,
+            "inference_ms": null,
+            "total_ms": 605.8915829999999
+          },
+          "dem": {
+            "mode": "direct",
+            "tiles_read": [
+              "Copernicus_DSM_COG_10_N64_00_W017_00_DEM"
+            ],
+            "tiles_missing": [],
+            "bytes": 4181167,
+            "requests": 4,
+            "prd_budget_bytes": 4194304,
+            "within_prd_budget": true
+          },
+          "relief_nu_m": {
+            "270.0": 32.190058196071725,
+            "360.0": 37.226674323974294,
+            "540.0": 43.552436150915085,
+            "720.0": 47.95484499522707,
+            "1080.0": 54.616105320027486
+          },
+          "texture_nu_m": {
+            "270.0": 32.06722051779371,
+            "360.0": 37.05085937808596,
+            "540.0": 43.25246309432486,
+            "720.0": 47.46531801275484,
+            "1080.0": 53.434807726537954
+          },
+          "distances": [
+            {
+              "target_id": "moon-sps-x2-y2",
+              "target_window_id": "moon-sps-x2-y2",
+              "terrain_relief": {
+                "status": "available",
+                "value": 0.6785492291449395,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "terrain_texture": {
+                "status": "available",
+                "value": 0.6584769659701786,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "radar": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "CPR Wasserstein-1",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "Unavailable for live probes"
+              },
+              "encoder": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "cosine distance",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "encoder_not_evaluated"
+              }
+            }
+          ]
+        }
+      ],
+      "pipeline_comparison": {
+        "window_id": "earth-utm27n-e285-n2879",
+        "relief_max_rel_diff": 3.2066033771600424e-14,
+        "texture_max_rel_diff": 3.164286965763475e-14
+      }
+    },
+    {
+      "lat_deg": 34.89,
+      "lon_deg": -118.1,
+      "window_id": null,
+      "runs": [
+        {
+          "attempt": "first",
+          "kind": "result",
+          "timings": {
+            "dem_read_ms": 469.59920799999963,
+            "resample_ms": 0.28370900000027177,
+            "fingerprint_ms": 10.012457999999697,
+            "model_load_ms": null,
+            "inference_ms": null,
+            "total_ms": 479.8953749999996
+          },
+          "dem": {
+            "mode": "direct",
+            "tiles_read": [
+              "Copernicus_DSM_COG_10_N34_00_W119_00_DEM"
+            ],
+            "tiles_missing": [],
+            "bytes": 1166348,
+            "requests": 4,
+            "prd_budget_bytes": 4194304,
+            "within_prd_budget": true
+          },
+          "relief_nu_m": {
+            "270.0": 9.80084830292071,
+            "360.0": 12.009358885750771,
+            "540.0": 15.95766555596573,
+            "720.0": 19.468434197400168,
+            "1080.0": 26.00203488189651
+          },
+          "texture_nu_m": {
+            "270.0": 8.280883704712066,
+            "360.0": 9.776884943862155,
+            "540.0": 12.02990015749341,
+            "720.0": 13.547589647218068,
+            "1080.0": 15.88673650019446
+          },
+          "distances": [
+            {
+              "target_id": "moon-sps-x2-y2",
+              "target_window_id": "moon-sps-x2-y2",
+              "terrain_relief": {
+                "status": "available",
+                "value": 1.626335549263121,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "terrain_texture": {
+                "status": "available",
+                "value": 1.90428330646553,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "radar": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "CPR Wasserstein-1",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "Unavailable for live probes"
+              },
+              "encoder": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "cosine distance",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "encoder_not_evaluated"
+              }
+            }
+          ]
+        },
+        {
+          "attempt": "repeat",
+          "kind": "result",
+          "timings": {
+            "dem_read_ms": 339.229417,
+            "resample_ms": 0.4814160000000811,
+            "fingerprint_ms": 9.175166999999874,
+            "model_load_ms": null,
+            "inference_ms": null,
+            "total_ms": 348.88599999999997
+          },
+          "dem": {
+            "mode": "direct",
+            "tiles_read": [
+              "Copernicus_DSM_COG_10_N34_00_W119_00_DEM"
+            ],
+            "tiles_missing": [],
+            "bytes": 1166348,
+            "requests": 4,
+            "prd_budget_bytes": 4194304,
+            "within_prd_budget": true
+          },
+          "relief_nu_m": {
+            "270.0": 9.80084830292071,
+            "360.0": 12.009358885750771,
+            "540.0": 15.95766555596573,
+            "720.0": 19.468434197400168,
+            "1080.0": 26.00203488189651
+          },
+          "texture_nu_m": {
+            "270.0": 8.280883704712066,
+            "360.0": 9.776884943862155,
+            "540.0": 12.02990015749341,
+            "720.0": 13.547589647218068,
+            "1080.0": 15.88673650019446
+          },
+          "distances": [
+            {
+              "target_id": "moon-sps-x2-y2",
+              "target_window_id": "moon-sps-x2-y2",
+              "terrain_relief": {
+                "status": "available",
+                "value": 1.626335549263121,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "terrain_texture": {
+                "status": "available",
+                "value": 1.90428330646553,
+                "unit": "RMS of log nu",
+                "label": "Derived (live, in browser)",
+                "shared_lags_m": [
+                  270,
+                  360,
+                  540,
+                  720,
+                  1080
+                ],
+                "reason": null
+              },
+              "radar": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "CPR Wasserstein-1",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "Unavailable for live probes"
+              },
+              "encoder": {
+                "status": "unavailable",
+                "value": null,
+                "unit": "cosine distance",
+                "label": "Unavailable",
+                "shared_lags_m": [],
+                "reason": "encoder_not_evaluated"
+              }
+            }
+          ]
+        }
+      ],
+      "pipeline_comparison": null
+    }
+  ]
+}
