@@ -563,3 +563,21 @@ def test_wildcard_aggregates(tmp_path: Path) -> None:
     status, text = run_artifacts(tmp_path, spec)
     assert status == 0
     assert "{\\Lo}{1.0}" in text and "{\\Mid}{2.5}" in text and "{\\Hi}{4.0}" in text
+
+
+def test_selector_picks_the_one_matching_element(tmp_path: Path) -> None:
+    tests = [
+        {"test_id": "physics_probe", "target": "a", "value": 0.5},
+        {"test_id": "physics_probe", "target": "b", "value": 0.7},
+        {"test_id": "body_invariance", "target": None, "value": 0.4},
+    ]
+    (tmp_path / "m.json").write_text(json.dumps({"tests": tests}))
+    spec = (
+        artifact("B", "m.json", "/tests/[test_id=physics_probe,target=b]/value", ".1f"),
+        artifact("Body", "m.json", "/tests/[test_id=body_invariance]/value", ".1f"),
+    )
+    status, text = run_artifacts(tmp_path, spec)
+    assert status == 0
+    assert "{\\B}{0.7}" in text and "{\\Body}{0.4}" in text
+    bad = (artifact("X", "m.json", "/tests/[test_id=physics_probe]/value", ".1f"),)
+    assert run_artifacts(tmp_path, bad)[0] == 1

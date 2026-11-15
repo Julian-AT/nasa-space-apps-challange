@@ -1393,8 +1393,35 @@ def escape_text(value: str) -> str:
 AGGREGATES = ("min:", "max:", "median:", "n:", "span:")
 
 
+SELECTOR = re.compile(r"/\[([^\]]+)\]")
+
+
+def select(document: object, pointer: str) -> tuple[object, str]:
+    """Resolve every "[key=value,...]" segment: the one array element whose fields match.
+
+    Returns the document reached after the last selector and the rest of the pointer. Zero or
+    several matching elements are an error, so a selector never picks an element silently.
+    """
+    while (match := SELECTOR.search(pointer)) is not None:
+        items = resolve(document, pointer[: match.start()])
+        if not isinstance(items, list):
+            raise MacroError(f"pointer {pointer!r}: the selector needs an array")
+        wanted = dict(part.split("=", 1) for part in match.group(1).split(","))
+        hits = [
+            item
+            for item in items
+            if isinstance(item, dict)
+            and all(str(item.get(key)) == value for key, value in wanted.items())
+        ]
+        if len(hits) != 1:
+            raise MacroError(f"pointer {pointer!r}: {len(hits)} elements match {wanted}")
+        document, pointer = hits[0], pointer[match.end() :]
+    return document, pointer
+
+
 def resolve_artifact(document: object, pointer: str) -> object:
-    """resolve(), plus one "/*" segment that maps the rest of the pointer over an array."""
+    """resolve(), plus "[key=value]" selectors and one "/*" segment mapped over an array."""
+    document, pointer = select(document, pointer)
     if "/*" not in pointer:
         return resolve(document, pointer)
     head, _, rest = pointer.partition("/*")
