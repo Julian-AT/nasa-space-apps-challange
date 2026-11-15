@@ -377,7 +377,7 @@ function Quiz({ lang }: { lang: Lang }) {
   };
   const target = TARGET_BY_ID[R.target];
   return (
-    <section id="quiz" data-theme="dark" className="scroll-mt-20 border-t border-line bg-ink px-4 py-24 text-platinum sm:px-6">
+    <section id="quiz" className="scroll-mt-20 border-t border-line bg-ink px-4 py-24 text-platinum sm:px-6">
       <div className="mx-auto max-w-[1200px]">
         <Kicker n="03">{t.l3t}</Kicker>
         <p className={clsx("mt-5 max-w-[640px] text-chrome", bn ? "text-[17px] leading-[1.8]" : "text-[16px] leading-relaxed")}>{t.l3d}</p>

@@ -522,3 +522,9 @@ html {
 /* Clean shadcn surface: no film grain, no decorative page gradients. */
 body::before { display: none !important; }
 .bg-observatory { background-image: none !important; background-color: var(--background); }
+
+/* The preset's dark primary is a fill colour (buttons, badges); as text on a dark surface it is
+   too dim, so primary-coloured text uses the light accent tint in dark scopes. */
+:is(.dark, [data-theme="dark"]) .text-primary {
+  color: var(--flare);
+}

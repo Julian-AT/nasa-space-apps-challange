@@ -446,7 +446,7 @@ function Story({ grid, layers }: { grid: Grid | null; layers: Layers | null }) {
   const s = STORY[active];
   const values = layers ? layers[s.id] : null;
   return (
-    <section data-theme="dark" className="relative border-t border-line bg-void px-4 text-platinum sm:px-6">
+    <section className="relative border-t border-line bg-void px-4 text-platinum sm:px-6">
       <div className="mx-auto max-w-[1400px] pt-28">
         <Kicker n="02">One mission, step by step</Kicker>
         <h2 className="mt-6 max-w-[880px] text-3xl sm:text-4xl leading-[1.02] font-medium tracking-[-0.04em]">
