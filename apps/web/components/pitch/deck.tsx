@@ -53,10 +53,10 @@ function Brand({ size = 'lg' }: { size?: 'lg' | 'xl' }) {
   const big = size === 'xl';
   return (
     <div className={`flex items-center ${big ? 'gap-7' : 'gap-5'}`}>
-      <span className={`grid shrink-0 place-items-center bg-zinc-950 ${big ? 'size-28 rounded-[1.75rem]' : 'size-20 rounded-2xl'}`}>
-        <HugeiconsIcon icon={EarthIcon} strokeWidth={1.8} className={big ? 'size-16' : 'size-11'} style={{ color: '#ffffff' }} aria-hidden />
+      <span className={`grid shrink-0 place-items-center bg-zinc-950 ${big ? 'size-24 rounded-[1.6rem]' : 'size-20 rounded-2xl'}`}>
+        <HugeiconsIcon icon={EarthIcon} strokeWidth={1.8} className={big ? 'size-14' : 'size-11'} style={{ color: '#ffffff' }} aria-hidden />
       </span>
-      <span className={`${big ? 'text-[8.5rem]' : 'text-[6.5rem]'} font-bold leading-none tracking-[-0.05em]`} style={{ color: INK }}>
+      <span className={`${big ? 'text-[7.25rem]' : 'text-[6.5rem]'} font-bold leading-none tracking-[-0.05em]`} style={{ color: INK }}>
         Terraluna
       </span>
     </div>
@@ -127,14 +127,14 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       steps: 1,
       bare: true,
       body: () => (
-        <div className="relative grid h-full grid-cols-[1.1fr_1fr] items-center gap-16">
+        <div className="relative grid h-full grid-cols-[1fr_1fr] items-center gap-14">
           <div className="flex flex-col gap-10">
             <In>
               <Brand size="xl" />
             </In>
             <div className="flex flex-col gap-4">
               <In d={0.15}>
-                <p className="text-5xl font-bold tracking-tight">Find the Moon and Mars on Earth.</p>
+                <p className="text-[2.6rem] font-bold leading-tight tracking-tight">Find the Moon and Mars on Earth.</p>
               </In>
               <In d={0.25}>
                 <p className="max-w-xl text-2xl leading-snug" style={{ color: MUTED }}>
@@ -143,19 +143,19 @@ function slides(d: PitchData, qr: string | null): Slide[] {
               </In>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4 pt-10">
             {opening.map((o, k) => (
               <motion.figure
                 key={o.key}
                 initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: k === 1 ? -36 : 0 }}
+                animate={{ opacity: 1, y: k === 1 ? -40 : 0 }}
                 transition={{ duration: 0.9, delay: 0.3 + k * 0.12, ease: EASE }}
                 className="flex flex-col gap-3"
               >
-                <HillTile tile={o.tile} className="aspect-[3/5] w-full shadow-[0_24px_48px_-28px_rgba(9,9,11,0.5)]" />
+                <HillTile tile={o.tile} className="w-full shadow-[0_24px_48px_-28px_rgba(9,9,11,0.5)]" />
                 <figcaption className="flex flex-col">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: MUTED }}>{o.body}</span>
-                  <span className="text-lg font-semibold tracking-tight">{o.name}</span>
+                  <span className="whitespace-nowrap text-base font-semibold tracking-tight">{o.name}</span>
                 </figcaption>
               </motion.figure>
             ))}
@@ -190,14 +190,14 @@ function slides(d: PitchData, qr: string | null): Slide[] {
               <In key={col.head} d={0.2 + c * 0.15} className="h-full">
                 <div className="flex h-full flex-col gap-10 rounded-3xl border border-zinc-200 bg-zinc-50 p-10">
                   <span className={`w-fit rounded-full px-4 py-1 text-base font-semibold ${col.dark ? 'bg-zinc-950 text-white' : 'border border-zinc-300 bg-white text-zinc-950'}`}>{col.head}</span>
-                  <ol className="relative flex flex-1 flex-col justify-between">
+                  <ol className="relative flex flex-1 flex-col justify-around">
                     <span aria-hidden className="absolute bottom-4 left-[11px] top-4 w-px bg-zinc-300" />
                     {col.items.map((it, k) => (
                       <li key={it} className="relative flex items-center gap-6">
                         <span className={`relative z-10 grid size-6 shrink-0 place-items-center rounded-full border-2 ${col.dark ? 'border-zinc-950 bg-zinc-950' : 'border-zinc-400 bg-white'}`}>
                           <span className={`size-2 rounded-full ${col.dark ? 'bg-white' : 'bg-zinc-400'}`} />
                         </span>
-                        <span className={`text-[1.7rem] leading-snug tracking-tight ${col.dark ? 'font-semibold text-zinc-950' : 'font-medium text-zinc-600'}`}>
+                        <span className={`text-[1.6rem] leading-snug tracking-tight ${col.dark ? 'font-semibold text-zinc-950' : 'font-medium text-zinc-600'}`}>
                           <span className="mr-3 font-mono text-base text-zinc-400">{String(k + 1).padStart(2, '0')}</span>
                           {it}
                         </span>
@@ -220,7 +220,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
             <h2 className="text-[2.75rem] font-bold leading-tight tracking-tight">Physics fingerprint</h2>
             <p className="text-xl" style={{ color: MUTED }}>Three steps, the same code in Python and in your browser.</p>
           </In>
-          <div className="grid min-h-0 flex-1 grid-cols-[1fr_0.9fr_1.25fr] gap-6">
+          <div className="grid min-h-0 flex-1 grid-cols-[1fr_1fr_1.3fr] gap-6">
             <Step n={1} title="Take a 5 km window" d={0.15}>
               <div className="grid grid-cols-2 gap-3">
                 {jr ? (
@@ -243,25 +243,27 @@ function slides(d: PitchData, qr: string | null): Slide[] {
             </Step>
             <Step n={2} title="Measure the bumps at three scales" d={0.3}>
               {d.lags.length ? <LagProfile lags={d.lags} /> : <Unavailable reason="no lags in bundle" />}
-              <p className="text-base" style={{ color: MUTED }}>how much the height changes over each distance</p>
+              <p className="text-lg font-medium leading-snug">How much the height changes over each distance.</p>
+              <p className="-mt-2 text-sm" style={{ color: MUTED }}>schematic profile, lags from the bundle</p>
             </Step>
             <Step n={3} title="Compare the two curves" d={0.45}>
               {d.curves.length ? <NuChart curves={d.curves} lags={d.lags} /> : <Unavailable reason="no fingerprint curve in bundle" />}
               <div className="flex items-end justify-between gap-4">
-                <div className="flex flex-col gap-1.5 text-sm" style={{ color: MUTED }}>
+                <div className="flex shrink-0 flex-col gap-1.5 text-sm" style={{ color: MUTED }}>
                   {d.curves.map((c, k) => (
                     <span key={c.id} className="flex items-center gap-2">
                       <span className="h-1 w-5 rounded" style={{ background: k === 0 ? WORLD.mars : WORLD.earth }} />
-                      {c.role}
+                      {c.role.replace(' Dry Lake', '')}
                     </span>
                   ))}
                 </div>
                 {jr ? (
                   <div className="text-right">
-                    <p className="text-5xl font-black tracking-tight tabular-nums">{jr.relief.toFixed(3)}</p>
+                    <p className="text-6xl font-black tracking-tight tabular-nums">{jr.relief.toFixed(3)}</p>
                     <p className="text-sm font-semibold">relief distance</p>
                     <p className="text-sm" style={{ color: MUTED }}>
-                      lower = more alike{jr.closerThan !== null ? `, closer than ${jr.closerThan}% of windows` : ''}
+                      lower = more alike
+                      {jr.closerThan !== null ? <><br />closer than {jr.closerThan}% of windows</> : null}
                     </p>
                   </div>
                 ) : null}

@@ -190,27 +190,30 @@ export function HillTile({ tile, className = '' }: { tile: TileView | null; clas
  * the fingerprint asks how much height changes over each distance.
  */
 export function LagProfile({ lags }: { lags: readonly number[] }) {
-  const PW = 560;
-  const PH = 300;
-  const span = Math.max(...lags, 1) * 2.2;
+  // three doubling scales from the stored lags (e.g. 270, 540, 1080 m), else the first three
+  const first = lags[0] ?? 1;
+  const doubling = lags.filter((l) => Number.isInteger(Math.log2(l / first)));
+  const shown = (doubling.length >= 3 ? doubling : lags).slice(0, 3);
+  const PW = 480;
+  const PH = 330;
+  const span = Math.max(...shown, 1) * 1.45;
   const xs = Array.from({ length: 121 }, (_, i) => (i / 120) * span);
-  const h = (x: number) => 46 * Math.sin(x / 260) + 22 * Math.sin(x / 97 + 1.3) + 9 * Math.sin(x / 31 + 0.4);
-  const sx = (x: number) => 16 + (x / span) * (PW - 32);
-  const sy = (v: number) => 120 - v;
+  const h = (x: number) => 40 * Math.sin(x / 210) + 20 * Math.sin(x / 83 + 1.3) + 8 * Math.sin(x / 29 + 0.4);
+  const sx = (x: number) => 10 + (x / span) * (PW - 20);
+  const sy = (v: number) => 100 - v;
   const d = xs.map((x, i) => `${i ? 'L' : 'M'}${sx(x).toFixed(1)},${sy(h(x)).toFixed(1)}`).join(' ');
-  const shown = lags.slice(0, 4);
   return (
     <svg viewBox={`0 0 ${PW} ${PH}`} className="h-auto w-full" role="img" aria-label={`Schematic terrain profile with brackets of ${shown.join(', ')} metres`}>
-      <path d={`${d} L${sx(span)},200 L${sx(0)},200 Z`} fill="#f4f4f5" />
-      <motion.path d={d} fill="none" stroke={INK} strokeWidth={2.5} strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.4, delay: 0.3, ease: EASE }} />
+      <path d={`${d} L${sx(span)},170 L${sx(0)},170 Z`} fill="#e4e4e7" />
+      <motion.path d={d} fill="none" stroke={INK} strokeWidth={3.5} strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.4, delay: 0.3, ease: EASE }} />
       {shown.map((lag, k) => {
-        const x0 = sx(span * 0.06);
-        const x1 = sx(span * 0.06 + lag);
-        const y = 222 + k * 26;
+        const x0 = sx(0);
+        const x1 = sx(lag);
+        const y = 212 + k * 46;
         return (
-          <motion.g key={lag} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 + k * 0.2, duration: 0.4 }}>
-            <path d={`M${x0},${y - 6} V${y} H${x1} V${y - 6}`} fill="none" stroke={INK} strokeWidth={1.6} />
-            <text x={x1 + 10} y={y + 4} fontSize={15} className="font-mono" fill={INK}>{`${lag} m`}</text>
+          <motion.g key={lag} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8 + k * 0.25, duration: 0.5, ease: EASE }}>
+            <path d={`M${x0 + 1},${y - 12} V${y} H${x1} V${y - 12}`} fill="none" stroke={INK} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+            <text x={x1 + 14} y={y + 2} fontSize={26} fontWeight={700} fill={INK}>{`${lag} m`}</text>
           </motion.g>
         );
       })}

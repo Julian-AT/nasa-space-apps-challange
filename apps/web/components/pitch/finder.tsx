@@ -72,7 +72,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
           ))}
         </div>
         {/* clipped to the planet disc: no atmosphere rim on the white slide */}
-        <div className="absolute inset-0" style={{ clipPath: 'circle(41% at 50% 50%)' }}>
+        <div className="absolute inset-0" style={{ clipPath: 'circle(34% at 50% 50%)' }}>
           <Globe body="earth" pins={[pin]} selectedId={step >= 1 ? 'finder' : null} autoRotate={step === 0} />
         </div>
         <AnimatePresence>
