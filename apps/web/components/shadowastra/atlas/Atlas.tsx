@@ -4,6 +4,7 @@
 // Adapted for Next.js (no react-router; URL state via history.replaceState) and extended with a
 // Terraluna evidence layer (pins, cards, bundle hillshade) read from the release bundle.
 "use client";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
@@ -308,22 +309,42 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
               )}
             </motion.div>
           </AnimatePresence>
-          <div className="pointer-events-none absolute inset-0 z-[500] bg-[radial-gradient(120%_80%_at_50%_50%,transparent_55%,rgba(7,8,10,0.55))]" />
 
           <div className="pointer-events-none absolute inset-x-0 top-0 z-[600] flex flex-wrap items-start justify-center gap-2 p-3 sm:gap-3 sm:p-4 lg:pt-5">
-            <div className="pointer-events-auto flex gap-1 rounded-full border border-line-2 bg-void/70 p-1 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              spacing={0}
+              value={body}
+              onValueChange={(v) => v && setBody(v)}
+              aria-label="World"
+              className="pointer-events-auto rounded-lg bg-background/80 shadow-xs backdrop-blur-md"
+            >
               {BODIES.map((b) => (
-                <button key={b.id} onClick={() => setBody(b.id)} aria-pressed={body === b.id} className={clsx("relative flex items-center gap-1.5 rounded-full py-1 pr-2.5 pl-1 text-[12px] transition-colors sm:gap-2 sm:py-1.5 sm:pr-4 sm:pl-1.5 sm:text-[13px]", body === b.id ? "text-platinum" : "text-dim hover:text-chrome")}>
-                  {body === b.id && <motion.span layoutId="world-pill" className="absolute inset-0 rounded-full bg-platinum/[0.09] ring-1 ring-platinum/15" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
-                  <PlanetThumb body={b.id} on={body === b.id} size={22} />
-                  <span className="relative">{b.label}</span>
-                </button>
+                <ToggleGroupItem key={b.id} value={b.id} aria-label={b.label} className="h-8 gap-2 px-3 text-[13px] data-[state=on]:bg-muted">
+                  <PlanetThumb body={b.id} on={body === b.id} size={18} />
+                  {b.label}
+                </ToggleGroupItem>
               ))}
-            </div>
-            <div className="pointer-events-auto flex gap-1 rounded-full border border-line-2 bg-void/70 p-1 backdrop-blur-xl lg:absolute lg:top-5 lg:right-[412px]">
-              <ViewBtn on={view === "3d"} onClick={() => setView("3d")} icon={<Box size={14} />} label="3D" />
-              <ViewBtn on={view === "2d"} onClick={() => setView("2d")} icon={<MapIcon size={14} />} label="2D" />
-            </div>
+            </ToggleGroup>
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              spacing={0}
+              value={view}
+              onValueChange={(v) => v && setView(v)}
+              aria-label="Map view"
+              className="pointer-events-auto rounded-lg bg-background/80 shadow-xs backdrop-blur-md lg:absolute lg:top-5 lg:right-[412px]"
+            >
+              <ToggleGroupItem value="3d" className="h-8 gap-1.5 px-3 text-[12px] data-[state=on]:bg-muted">
+                <Box size={14} />
+                3D
+              </ToggleGroupItem>
+              <ToggleGroupItem value="2d" className="h-8 gap-1.5 px-3 text-[12px] data-[state=on]:bg-muted">
+                <MapIcon size={14} />
+                2D
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
 
           <WorldTitle body={body} shown={visibleCount} layer={view === "2d" ? (layer?.name ?? null) : null} left={panels.left} />

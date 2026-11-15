@@ -336,3 +336,206 @@ html.reduce-motion *::after {
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
+
+/* shadcn preset restyle (b2W4NKwNs): the ported ShadowAstra pages (.sa-atlas, .sa-ui) use the
+   shadcn card, border and primary look. No spotlight glow, sheen, film grain or heavy gradient. */
+.sa-ui .surface,
+.sa-atlas .surface {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.sa-ui .surface::before,
+.sa-atlas .surface::before {
+  display: none;
+}
+@media (hover: hover) {
+  .sa-ui .surface:hover,
+  .sa-atlas .surface:hover {
+    border-color: color-mix(in oklab, var(--foreground) 18%, transparent);
+  }
+  .sa-ui .surface.lift:hover,
+  .sa-atlas .surface.lift:hover {
+    transform: none;
+    background: color-mix(in oklab, var(--card) 92%, var(--foreground));
+  }
+}
+.sa-ui .glass,
+.sa-atlas .glass,
+.sa-ui .panel,
+.sa-atlas .panel {
+  background: color-mix(in oklab, var(--popover) 92%, transparent);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+.sa-ui .btn-primary,
+.sa-atlas .btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: background-color 0.15s ease;
+}
+.sa-ui .btn-primary::after,
+.sa-atlas .btn-primary::after {
+  display: none;
+}
+.sa-ui .btn-primary:hover,
+.sa-atlas .btn-primary:hover {
+  background: color-mix(in oklab, var(--primary) 85%, transparent);
+}
+.sa-ui .btn-primary:active,
+.sa-atlas .btn-primary:active {
+  transform: translateY(1px);
+}
+.sa-ui .bg-grid,
+.sa-atlas .bg-grid {
+  background-image: none;
+}
+.sa-ui .outline-num,
+.sa-atlas .outline-num {
+  font-family: var(--font-sans);
+  color: var(--muted-foreground);
+  -webkit-text-stroke: 0;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.sa-ui :focus-visible,
+.sa-atlas :focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--ring) 60%, transparent);
+  outline-offset: 2px;
+}
+.sa-ui input[type="range"].range::-webkit-slider-runnable-track,
+.sa-atlas input[type="range"].range::-webkit-slider-runnable-track {
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary) var(--fill, 50%), var(--muted) var(--fill, 50%));
+}
+.sa-ui input[type="range"].range::-webkit-slider-thumb,
+.sa-atlas input[type="range"].range::-webkit-slider-thumb {
+  margin-top: -6px;
+  background: var(--background);
+  border: 2px solid var(--primary);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.1);
+}
+.sa-ui input[type="range"].range::-moz-range-progress,
+.sa-atlas input[type="range"].range::-moz-range-progress {
+  background: var(--primary);
+}
+.sa-ui input[type="range"].range::-moz-range-thumb,
+.sa-atlas input[type="range"].range::-moz-range-thumb {
+  background: var(--background);
+  border: 2px solid var(--primary);
+  box-shadow: none;
+}
+.sa-ui .shimmer,
+.sa-atlas .shimmer {
+  background: var(--muted);
+  animation: sa-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.sa-ui .leaflet-bar a,
+.sa-atlas .leaflet-bar a {
+  background: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border-color: var(--border) !important;
+}
+.sa-ui .leaflet-bar,
+.sa-atlas .leaflet-bar {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  overflow: hidden;
+}
+.sa-ui .leaflet-tooltip.sa-tip,
+.sa-atlas .leaflet-tooltip.sa-tip,
+.leaflet-tooltip.sa-tip {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+}
+@keyframes sa-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+/* No film grain on the ported pages. */
+body:has(.sa-ui, .sa-atlas)::before {
+  display: none;
+}
+/* Pill-shaped buttons and links become shadcn's rounded-md controls. */
+.sa-ui :is(a, button).rounded-full:not([class*="size-"]),
+.sa-atlas :is(a, button).rounded-full:not([class*="size-"]) {
+  border-radius: calc(var(--radius) - 2px);
+}
+.sa-ui :is(a, button).rounded-full.border,
+.sa-atlas :is(a, button).rounded-full.border {
+  border-color: var(--border);
+  background-color: color-mix(in oklab, var(--input) 30%, transparent);
+}
+.sa-ui :is(a, button).rounded-full.border:hover,
+.sa-atlas :is(a, button).rounded-full.border:hover {
+  background-color: color-mix(in oklab, var(--input) 55%, transparent);
+  color: var(--foreground);
+}
+/* Segmented groups (world switcher, view modes): shadcn toggle-group shape and selected state. */
+.sa-ui div.rounded-full.border:has(> button, > a),
+.sa-atlas div.rounded-full.border:has(> button, > a) {
+  border-radius: var(--radius);
+  border-color: var(--border);
+  background-color: var(--muted);
+}
+.sa-ui :is(div, span).rounded-full.border:has(> button, > a) > :is(button, a),
+.sa-atlas :is(div, span).rounded-full.border:has(> button, > a) > :is(button, a) {
+  border-radius: calc(var(--radius) - 3px);
+}
+.sa-ui span.absolute.rounded-full.bg-platinum,
+.sa-atlas span.absolute.rounded-full.bg-platinum,
+.sa-ui :is(button, a).rounded-full.bg-platinum,
+.sa-atlas :is(button, a).rounded-full.bg-platinum {
+  border-radius: calc(var(--radius) - 3px);
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.1);
+}
+.sa-ui :is(button, a).bg-platinum.text-void,
+.sa-atlas :is(button, a).bg-platinum.text-void {
+  color: var(--foreground);
+}
+/* Active pills with a sliding indicator: readable text on the shadcn selected surface. */
+.sa-ui .text-void:has(> span.absolute.bg-platinum),
+.sa-atlas .text-void:has(> span.absolute.bg-platinum) {
+  color: var(--foreground);
+}
+.sa-ui .text-void:has(> span.absolute.bg-platinum) .bg-void,
+.sa-atlas .text-void:has(> span.absolute.bg-platinum) .bg-void {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+/* Accent text: the preset primary is too dark for text on the dark theme, so use its light tint. */
+.sa-ui,
+.sa-atlas {
+  --flare: oklch(0.74 0.19 322);
+  --color-flare: var(--flare);
+}
+[data-theme="light"] .sa-ui,
+[data-theme="light"] .sa-atlas {
+  --flare: var(--primary);
+  --color-flare: var(--flare);
+}
+/* Large panel radii follow the preset scale. */
+.sa-ui .rounded-3xl,
+.sa-atlas .rounded-3xl,
+.sa-ui .rounded-\[28px\],
+.sa-atlas .rounded-\[28px\] {
+  border-radius: calc(var(--radius) + 6px);
+}
+/* Pill-shaped select wrappers (lab pickers) follow the shadcn input shape. */
+.sa-ui :is(label, div).rounded-full.border:has(select),
+.sa-atlas :is(label, div).rounded-full.border:has(select) {
+  border-radius: calc(var(--radius) - 2px);
+  border-color: var(--input);
+  background-color: color-mix(in oklab, var(--input) 30%, transparent);
+}
