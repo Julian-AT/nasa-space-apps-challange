@@ -82,7 +82,7 @@
       "spiny|undifferentiated"
     ],
     "range_basis": "Fixed in advance from the CPR physics (0 to 2 covers the bulk; CPR above 1 is valid) before any result.",
-    "tolometti_definition": "Tolometti et al. (2022) section 3.3 and Figure 8e: 'fraction of population overlap (in %)' between the normalized frequency distributions of the facies CPR populations. The accepted-manuscript text states no bin width, range or estimator; the bin rule below is an engineering choice, not Tolometti's."
+    "tolometti_definition": "Tolometti et al. (2022) Results text and Figure 8e: 'fraction of population overlap (in %)' between the normalized frequency distributions of the facies CPR populations. The accepted-manuscript text states no bin width, range or estimator; the bin rule below is an engineering choice, not Tolometti's."
   },
   "parameters": {
     "boxcar": 3,
@@ -114,12 +114,12 @@
       "spiny": 0.45,
       "undifferentiated": 0.47
     },
-    "published_mean_cpr_source": "Tolometti et al. 2022 section 3.1 (mean of per-polygon mean CPR; sigma 0.10, 0.08, 0.09)",
+    "published_mean_cpr_source": "Tolometti et al. 2022 Results text, Figure 7a (mean of per-polygon mean CPR; sigma 0.10, 0.08, 0.09)",
     "published_overlap_range": [
       0.88,
       0.89
     ],
-    "published_overlap_source": "Tolometti et al. 2022 abstract and section 3.3 ('overlap by 88-89% for CPR', 'all CPR populations overlap by >88%')"
+    "published_overlap_source": "Tolometti et al. 2022 abstract and Results text ('overlap by 88-89% for CPR', 'all CPR populations overlap by >88%')"
   },
   "possible_reasons_for_difference": [
     "Tolometti et al. used a 5 m/pixel CPR mosaic (DT 4 and DT 5); this run uses the native GRD spacing of DT 4 only.",
