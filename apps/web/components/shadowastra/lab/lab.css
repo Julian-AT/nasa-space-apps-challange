@@ -1,0 +1,27 @@
+/* The 3D stage is always a dark scene (a lit terrain block reads best on black), in both page
+   themes. `.dark` swaps the shadcn tokens for this subtree; the ShadowAstra aliases and their
+   Tailwind colours are resolved at :root, so they are re-pointed here to follow the scoped tokens. */
+.lab-stage {
+  --void: var(--background);
+  --ink: var(--background);
+  --panel: var(--card);
+  --panel-2: var(--secondary);
+  --line: var(--border);
+  --line-2: var(--border);
+  --platinum: var(--foreground);
+  --chrome: var(--muted-foreground);
+  --dim: var(--muted-foreground);
+  --flare: var(--primary);
+  --color-void: var(--void);
+  --color-ink: var(--ink);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-platinum: var(--platinum);
+  --color-chrome: var(--chrome);
+  --color-dim: var(--dim);
+  --color-flare: var(--flare);
+  color: var(--foreground);
+  background: var(--background);
+}
