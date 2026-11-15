@@ -1,0 +1,49 @@
+// @ts-nocheck -- vendored verbatim; type-checks clean under upstream strict:true, not under Terraluna's extra noUncheckedIndexedAccess/exactOptionalPropertyTypes/noImplicitOverride.
+'use client';
+
+// Copied from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
+import { Scene, StaticGlobe } from "../ui/Safe";
+import { Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
+import { Planet, PlanetPlaceholder, SUN_DIR, type GlobeMarker } from "./Planet";
+import { Starfield } from "./Starfield";
+import { AdaptiveDpr, FitSphere, Orbit, ReleaseGPU } from "./Controls";
+import type { Body } from "@/lib/shadowastra/data/sites";
+import { useMotionReduced } from "@/lib/shadowastra/motionPref";
+
+interface Props {
+  body: Body;
+  markers: GlobeMarker[];
+  activeId: string | null;
+  onSelect: (id: string) => void;
+  focus: { lat: number; lon: number } | null;
+  lod?: "1k" | "2k" | "4k";
+  stars?: boolean;
+  onPick?: (lat: number, lon: number) => void;
+  /** Mouse wheel: "ctrl" inside scrolling pages, "zoom" for full-screen maps. */
+  wheel?: "ctrl" | "zoom";
+  dots?: { lat: number; lon: number }[];
+  dotColor?: string;
+}
+
+/** Interactive single-body globe used in the Atlas and the Analog Lab. */
+export default function GlobeView({ body, markers, activeId, onSelect, focus, lod, stars = true, onPick, wheel = "ctrl", dots, dotColor }: Props) {
+  const reduced = useMotionReduced();
+  return (
+    <Scene fallback={<StaticGlobe body={body} />}>
+    <Canvas dpr={[1, 1.75]} camera={{ position: [0, 0, 3.4], fov: 40 }} role="img" aria-label={`${body} globe`}>
+      <color attach="background" args={["#07080a"]} />
+      <ambientLight intensity={body === "earth" ? 0.06 : 0.22} />
+      <directionalLight position={SUN_DIR.clone().multiplyScalar(10)} intensity={body === "earth" ? 2.2 : 2.4} />
+      {stars && <Starfield count={1800} />}
+      <Suspense fallback={<PlanetPlaceholder body={body} />}>
+        <Planet key={body} body={body} markers={markers} activeId={activeId} onSelect={onSelect} focus={focus} autoRotate={!focus && !reduced} spin={0.035} lod={lod} onPick={onPick} dots={dots} dotColor={dotColor} />
+      </Suspense>
+      <FitSphere radius={1.1} />
+      <Orbit wheel={wheel} />
+      <ReleaseGPU />
+      <AdaptiveDpr />
+    </Canvas>
+    </Scene>
+  );
+}

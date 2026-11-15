@@ -84,6 +84,9 @@ export function contentSecurityPolicy(env: HeaderEnv = {}): string {
     'https://tiles.maps.eox.at',
     'https://astro.arcgis.com',
     'https://server.arcgisonline.com',
+    // Mapzen/AWS Terrarium elevation tiles, read by the ported ShadowAstra /find best-spot
+    // finder (lib/shadowastra/terrain.ts); the path limits it to that one public bucket.
+    'https://s3.amazonaws.com/elevation-tiles-prod/',
   ];
   const directives: [string, string[]][] = [
     ['default-src', ["'self'"]],

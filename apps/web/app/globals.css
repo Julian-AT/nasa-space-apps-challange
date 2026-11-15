@@ -144,6 +144,14 @@
   --color-world-mars: var(--world-mars);
   --color-world-earth: var(--world-earth);
 
+  /* ShadowAstra evidence-state hues, used by the ported /find factor breakdown
+     (components/shadowastra, copied from ShadowAstra_Atlas). */
+  --color-strong: #7cc8a0;
+  --color-partial: #e3b35e;
+  --color-weak: #e47a63;
+  --color-cobalt: #4f74c8;
+  --color-amethyst: #a197cf;
+
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);

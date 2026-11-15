@@ -1,0 +1,361 @@
+// @ts-nocheck -- vendored verbatim; type-checks clean under upstream strict:true, not under Terraluna's extra noUncheckedIndexedAccess/exactOptionalPropertyTypes/noImplicitOverride.
+'use client';
+
+// Copied from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { zoomHint, zoomKey } from "@/lib/shadowastra/wheel";
+import type { Body } from "@/lib/shadowastra/data/sites";
+import { LAYERS, type MapLayer } from "@/lib/shadowastra/data/layers";
+import { localToLatLon } from "@/lib/shadowastra/terrain";
+import {
+  equirectMetresPerPixel,
+  mercatorMetresPerPixel,
+  niceScale,
+  POLAR_EDGE_LAT,
+  POLAR_IMAGE_SIZE,
+  POLAR_METRES_PER_PIXEL,
+  polarPixel,
+  zoomForEquirect,
+  zoomForMercator,
+} from "@/lib/shadowastra/geo";
+
+export interface MapMarker {
+  id: string;
+  lat: number;
+  lon: number;
+  color: string;
+  label: string;
+  dim?: boolean;
+  dashed?: boolean;
+}
+
+/** A small, light dot (for example a cave candidate); one canvas draws them all. */
+export interface MapDot {
+  lat: number;
+  lon: number;
+  label: string;
+  strong?: boolean;
+}
+
+/** A square on the ground (for example the best 10 km spot of a place), km on a side. */
+export interface MapBox {
+  lat: number;
+  lon: number;
+  km: number;
+  color: string;
+  label: string;
+}
+
+export interface MapView {
+  lat: number;
+  lon: number;
+  zoom: number;
+  metresPerPixel: number;
+}
+
+export interface BodyMapHandle {
+  flyTo: (lat: number, lon: number, zoom?: number, animate?: boolean) => void;
+  setMetresPerPixel: (mpp: number) => void;
+}
+
+interface Props {
+  body: Body;
+  layerId: string;
+  overlayIds?: string[];
+  markers: MapMarker[];
+  boxes?: MapBox[];
+  dots?: MapDot[];
+  dotColor?: string;
+  activeId?: string | null;
+  onSelect?: (id: string) => void;
+  onViewChange?: (v: MapView) => void;
+  initial?: { lat: number; lon: number; zoom: number };
+  className?: string;
+  /** "ctrl" (default): the wheel scrolls the page and Ctrl or ⌘ + wheel zooms. "always": a full-screen map. */
+  wheelZoom?: "ctrl" | "always";
+  /** Where the + and − buttons sit (keep them clear of floating page buttons). */
+  zoomPosition?: L.ControlPosition;
+}
+
+const LAYER_BY_ID = Object.fromEntries(LAYERS.map((l) => [l.id, l])) as Record<string, MapLayer>;
+const NO_BOXES: MapBox[] = [];
+const NO_DOTS: MapDot[] = [];
+
+function toLatLng(projection: MapLayer["projection"], lat: number, lon: number): L.LatLng | null {
+  if (projection === "polar-south") {
+    if (lat > POLAR_EDGE_LAT) return null;
+    const [x, y] = polarPixel(lat, lon);
+    return L.latLng(-y, x);
+  }
+  return L.latLng(lat, lon);
+}
+
+function metresPerPixel(map: L.Map, projection: MapLayer["projection"], body: Body): number {
+  const z = map.getZoom();
+  if (projection === "mercator") return mercatorMetresPerPixel(map.getCenter().lat, z);
+  if (projection === "equirect") return equirectMetresPerPixel(body, z);
+  return POLAR_METRES_PER_PIXEL / 2 ** z;
+}
+
+function pinIcon(m: MapMarker, active: boolean) {
+  const cls = ["sa-pin", m.dim ? "dim" : "", active ? "active" : "", m.dashed ? "dashed" : ""].join(" ");
+  return L.divIcon({
+    className: "",
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    html: `<div class="${cls}" style="--pin:${m.color}"><span class="ring"></span><span class="core"></span></div>`,
+  });
+}
+
+export const BodyMap = forwardRef<BodyMapHandle, Props>(function BodyMap(
+  { body, layerId, overlayIds = [], markers, boxes = NO_BOXES, dots = NO_DOTS, dotColor = "#f2c879", activeId, onSelect, onViewChange, initial, className, wheelZoom = "ctrl", zoomPosition = "bottomright" },
+  ref,
+) {
+  const host = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const baseRef = useRef<L.Layer | null>(null);
+  const detailRef = useRef<L.Layer | null>(null);
+  const overlayRef = useRef<L.Layer[]>([]);
+  const markerLayer = useRef<L.LayerGroup | null>(null);
+  const boxLayer = useRef<L.LayerGroup | null>(null);
+  const dotLayer = useRef<L.LayerGroup | null>(null);
+  const silent = useRef(false);
+  const cb = useRef({ onSelect, onViewChange });
+  cb.current = { onSelect, onViewChange };
+
+  const layer = LAYER_BY_ID[layerId];
+  const projection = layer.projection;
+  const [scale, setScale] = useState({ px: 100, label: "" });
+
+  // (Re)create the map whenever the projection changes, each needs its own CRS.
+  useEffect(() => {
+    if (!host.current) return;
+    const crs = projection === "mercator" ? L.CRS.EPSG3857 : projection === "equirect" ? L.CRS.EPSG4326 : L.CRS.Simple;
+    const map = L.map(host.current, {
+      crs,
+      zoomControl: false,
+      attributionControl: true,
+      worldCopyJump: projection === "mercator",
+      zoomSnap: 0,
+      zoomDelta: 0.5,
+      wheelPxPerZoomLevel: 90,
+      scrollWheelZoom: wheelZoom === "always",
+      minZoom: projection === "polar-south" ? -1.5 : projection === "mercator" ? 1.5 : 0.5,
+      maxZoom: projection === "polar-south" ? 3 : projection === "mercator" ? 18.5 : 14,
+      maxBounds:
+        projection === "equirect"
+          ? L.latLngBounds([-90, -180], [90, 180])
+          : projection === "polar-south"
+            ? L.latLngBounds([-POLAR_IMAGE_SIZE * 1.1, -POLAR_IMAGE_SIZE * 0.1], [POLAR_IMAGE_SIZE * 0.1, POLAR_IMAGE_SIZE * 1.1])
+            : undefined,
+      maxBoundsViscosity: 0.8,
+    });
+    L.control.zoom({ position: zoomPosition }).addTo(map);
+    map.attributionControl.setPrefix(false);
+    boxLayer.current = L.layerGroup().addTo(map);
+    dotLayer.current = L.layerGroup().addTo(map);
+    markerLayer.current = L.layerGroup().addTo(map);
+
+    if (projection === "polar-south") {
+      map.setView([-POLAR_IMAGE_SIZE / 2, POLAR_IMAGE_SIZE / 2], -0.6);
+    } else if (initial) {
+      map.setView([initial.lat, initial.lon], initial.zoom);
+    } else {
+      map.setView([15, 0], projection === "mercator" ? 2 : 1.4);
+    }
+
+    let alive = true;
+    const emit = () => {
+      if (!alive) return;
+      const mpp = metresPerPixel(map, projection, body);
+      const nice = niceScale(mpp * 110);
+      setScale({ px: nice.value / mpp, label: nice.label });
+      if (silent.current) return;
+      const c = map.getCenter();
+      cb.current.onViewChange?.({ lat: c.lat, lon: c.lng, zoom: map.getZoom(), metresPerPixel: mpp });
+    };
+    map.on("zoomend moveend", emit);
+    mapRef.current = map;
+    const raf = requestAnimationFrame(() => {
+      if (!alive) return;
+      map.invalidateSize();
+      emit();
+    });
+    const ro = new ResizeObserver(() => alive && map.invalidateSize());
+    ro.observe(host.current);
+    // inside a scrolling page: plain wheel scrolls, Ctrl or ⌘ + wheel (or a trackpad pinch) zooms
+    const el = host.current;
+    const onWheel = (e: WheelEvent) => {
+      if (wheelZoom === "always") return;
+      if (!zoomKey(e)) return zoomHint();
+      e.preventDefault();
+      const z = Math.min(map.getMaxZoom(), Math.max(map.getMinZoom(), map.getZoom() - e.deltaY / 180));
+      map.setZoomAround(map.mouseEventToContainerPoint(e as unknown as MouseEvent), z, { animate: false });
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+
+    return () => {
+      alive = false;
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      el.removeEventListener("wheel", onWheel);
+      map.off();
+      map.remove();
+      mapRef.current = null;
+      baseRef.current = null;
+      overlayRef.current = [];
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projection, body]);
+
+  // Base layer
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (baseRef.current) map.removeLayer(baseRef.current);
+    if (detailRef.current) map.removeLayer(detailRef.current);
+    detailRef.current = null;
+    const attribution = `${layer.provider} · ${layer.instrument}`;
+    if (layer.projection === "polar-south") {
+      baseRef.current = L.imageOverlay(layer.url, [[-POLAR_IMAGE_SIZE, 0], [0, POLAR_IMAGE_SIZE]], {
+        attribution,
+        className: "polar-image",
+      }).addTo(map);
+    } else {
+      const tiles = (l: MapLayer, extra: L.TileLayerOptions = {}) =>
+        L.tileLayer(l.url, {
+          attribution: `${l.provider} · ${l.instrument}`,
+          tileSize: l.tileSize ?? 256,
+          zoomOffset: l.zoomOffset ?? 0,
+          maxNativeZoom: l.maxNativeZoom,
+          maxZoom: 20,
+          noWrap: l.projection === "equirect",
+          bounds: l.projection === "equirect" ? L.latLngBounds([-90, -180], [90, 180]) : undefined,
+          crossOrigin: true,
+          ...extra,
+        });
+      baseRef.current = tiles(layer).addTo(map);
+      // past the base layer's native detail, a sharper layer takes over
+      const d = layer.detail ? LAYER_BY_ID[layer.detail] : null;
+      if (d) detailRef.current = tiles(d, { minZoom: layer.maxNativeZoom + 0.5, className: "detail-tiles" }).addTo(map);
+    }
+    baseRef.current && (baseRef.current as L.GridLayer).bringToBack?.();
+  }, [layer, projection]);
+
+  // Overlays (Earth only for now)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    overlayRef.current.forEach((l) => map.removeLayer(l));
+    overlayRef.current = overlayIds
+      .map((id) => LAYER_BY_ID[id])
+      .filter((l) => l && l.projection === projection)
+      .map((l) =>
+        L.tileLayer(l.url, {
+          tileSize: 256,
+          maxNativeZoom: l.maxNativeZoom,
+          maxZoom: 12,
+          opacity: 0.72,
+          attribution: `${l.provider} · ${l.instrument}`,
+        }).addTo(map),
+      );
+  }, [overlayIds.join("|"), projection]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Dots: hundreds of small points on one canvas, each with a tooltip
+  useEffect(() => {
+    const group = dotLayer.current;
+    if (!group) return;
+    group.clearLayers();
+    if (!dots.length) return;
+    const renderer = L.canvas({ padding: 0.3 });
+    for (const d of dots) {
+      const ll = toLatLng(projection, d.lat, d.lon);
+      if (!ll) continue;
+      L.circleMarker(ll, { renderer, radius: d.strong ? 4 : 3, weight: 1, color: "#07080a", opacity: 0.7, fillColor: dotColor, fillOpacity: d.strong ? 0.95 : 0.7 })
+        .bindTooltip(d.label, { className: "sa-tip", direction: "top", offset: [0, -4] })
+        .addTo(group);
+    }
+  }, [dots, dotColor, projection]);
+
+  // Markers
+  useEffect(() => {
+    const group = markerLayer.current;
+    if (!group) return;
+    group.clearLayers();
+    for (const m of markers) {
+      const ll = toLatLng(projection, m.lat, m.lon);
+      if (!ll) continue;
+      const active = m.id === activeId;
+      L.marker(ll, { icon: pinIcon(m, active), zIndexOffset: active ? 1000 : m.dim ? -100 : 0, keyboard: true, title: m.label })
+        .bindTooltip(m.label, { className: "sa-tip", direction: "top", offset: [0, -10] })
+        .on("click", () => cb.current.onSelect?.(m.id))
+        .addTo(group);
+    }
+  }, [markers, activeId, projection]);
+
+  // Squares on the ground (corners from the same local projection as the terrain grids)
+  useEffect(() => {
+    const group = boxLayer.current;
+    if (!group) return;
+    group.clearLayers();
+    for (const b of boxes) {
+      const h = b.km / 2;
+      const corners = ([[-h, -h], [h, -h], [h, h], [-h, h]] as const).map(([x, y]) => localToLatLon(body, b.lat, b.lon, x, y)).map(([la, lo]) => toLatLng(projection, la, lo));
+      if (corners.some((c) => !c)) continue;
+      // a dark halo under a bright dashed line, so the square reads on snow, sand and forest alike
+      L.polygon(corners as L.LatLng[], { color: "#07080a", opacity: 0.6, weight: 6, fill: false, interactive: false }).addTo(group);
+      L.polygon(corners as L.LatLng[], { color: b.color, weight: 2.5, dashArray: "7 5", fillColor: b.color, fillOpacity: 0.12, interactive: true })
+        .bindTooltip(b.label, { className: "sa-tip", sticky: true })
+        .addTo(group);
+    }
+  }, [boxes, body, projection]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      flyTo(lat, lon, zoom, animate = true) {
+        const map = mapRef.current;
+        if (!map) return;
+        const ll = toLatLng(projection, lat, lon);
+        if (!ll) return;
+        const z = zoom ?? (projection === "polar-south" ? 1 : projection === "mercator" ? 6 : 5);
+        map.stop();
+        if (animate) map.flyTo(ll, z, { duration: 1.1 });
+        else map.setView(ll, z, { animate: false });
+      },
+      setMetresPerPixel(mpp) {
+        const map = mapRef.current;
+        if (!map) return;
+        let z: number;
+        if (projection === "mercator") z = zoomForMercator(map.getCenter().lat, mpp);
+        else if (projection === "equirect") z = zoomForEquirect(body, mpp);
+        else z = Math.log2(POLAR_METRES_PER_PIXEL / mpp);
+        z = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), z));
+        if (Math.abs(z - map.getZoom()) < 0.01) return;
+        // Stay silent for the whole change: map.stop() itself can fire move events, and an
+        // echo back to the paired map would bounce the scale between the two forever.
+        silent.current = true;
+        try {
+          // Cancel any running fly-in first: zooming mid-animation leaves Leaflet's tile pane stuck.
+          map.stop();
+          map.setView(map.getCenter(), z, { animate: false });
+        } finally {
+          silent.current = false;
+        }
+      },
+    }),
+    [projection, body],
+  );
+
+  return (
+    <div className={`relative h-full w-full ${className ?? ""}`}>
+      <div ref={host} className="absolute inset-0" />
+      <div className="pointer-events-none absolute bottom-3 left-3 z-[500] flex flex-col gap-1">
+        <div className="font-mono text-[10px] tracking-wider text-chrome uppercase">{scale.label}</div>
+        <div className="h-1.5 border-x border-b border-platinum/80" style={{ width: Math.round(scale.px) }} />
+      </div>
+    </div>
+  );
+});
