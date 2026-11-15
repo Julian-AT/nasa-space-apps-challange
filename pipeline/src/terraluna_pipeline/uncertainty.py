@@ -238,6 +238,35 @@ def load_windows(path: Path) -> list[MoonWindow]:
     return windows
 
 
+def search_windows(raster: io.RasterWindow, config: TerrainConfig) -> list[MoonWindow]:
+    """The Site01 window grid exactly as ``search.evaluate_moon`` builds it.
+
+    The grid and the window centres come from ``search.projected_grid`` over the raster extent
+    with the raster's own polar stereographic lookup, so a clone run on the surface product
+    reproduces the search fingerprints bit for bit (T5 is the producer of the windows).
+    """
+    from terraluna_pipeline.search import projected_grid
+
+    lookup = _lookup(raster)
+    transform = raster.transform
+    assert transform is not None
+    rows, cols = raster.array.shape
+    x0, y1 = float(transform.c), float(transform.f)
+    x1 = x0 + float(transform.a) * cols
+    y0 = y1 + float(transform.e) * rows
+    grid = projected_grid(
+        prefix="moon-sps",
+        body="moon",
+        frame="polar_stereographic",
+        crs=raster.crs or "",
+        extent_m=(x0, y0, x1, y1),
+        window_m=config.window_m,
+        stride_m=config.stride_m,
+        unproject=lambda x, y: lookup.unproject(x, y),
+    )
+    return [MoonWindow(g.window_id, g.centre_lon_deg, g.centre_lat_deg) for g in grid]
+
+
 def _lookup(raster: io.RasterWindow) -> geometry.PolarStereographicLookup:
     transform = raster.transform
     if transform is None:
@@ -730,7 +759,8 @@ def _run_clones(args: argparse.Namespace) -> int:
     surf = pgda / "Site01" / "Site01_final_adj_5mpp_surf.tif"
     clones_dir = pgda / "Site01" / "Clones"
     windows_path = Path(args.windows)
-    missing = [str(p) for p in (surf, clones_dir, windows_path) if not p.exists()]
+    needed = [surf, clones_dir] + ([windows_path] if args.window_source == "g0" else [])
+    missing = [str(p) for p in needed if not p.exists()]
     if missing:
         print(f"blocked: missing input {', '.join(missing)}")
         return EXIT_BLOCKED
@@ -741,7 +771,12 @@ def _run_clones(args: argparse.Namespace) -> int:
     n_requested = int(args.n_clones)
     files = files[:n_requested]
     config = load_terrain_config(Path(args.config))
-    windows = load_windows(windows_path)
+    surface = io.read_geotiff_window(surf)
+    windows = (
+        search_windows(surface, config)
+        if args.window_source == "search"
+        else load_windows(windows_path)
+    )
     if args.window_id:
         wanted = set(args.window_id)
         windows = [w for w in windows if w.window_id in wanted]
@@ -749,7 +784,6 @@ def _run_clones(args: argparse.Namespace) -> int:
             print(f"blocked: window ids {sorted(wanted)} not in {windows_path}")
             return EXIT_BLOCKED
     rules: tuple[IsotropicRule, ...] = ISOTROPIC_RULES
-    surface = io.read_geotiff_window(surf)
     base = {
         rule: window_fingerprints(surface, windows, config=config, isotropic_rule=rule)
         for rule in rules
@@ -775,8 +809,14 @@ def _run_clones(args: argparse.Namespace) -> int:
             "source_files_sha256": dict(sorted(hashes.items())),
             "command": command_line("terraluna_pipeline.uncertainty", args.argv),
             "config_version": config_version(Path(args.config)),
-            "windows_evidence": str(windows_path),
-            "windows_evidence_sha256": io.sha256_file(windows_path),
+            "window_source": (
+                "search.projected_grid over the Site01 surface extent (as search.evaluate_moon)"
+                if args.window_source == "search"
+                else f"G0 evidence {windows_path}"
+            ),
+            "windows_evidence_sha256": (
+                io.sha256_file(windows_path) if args.window_source == "g0" else None
+            ),
             "resampler": "D29: geometry.resample_window (spherical AEQD about the window centre, "
             "bilinear, PGDA78 sphere 1737400 m)",
             "by_isotropic_rule": {
@@ -822,6 +862,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     run.add_argument("--out-dir", default=str(DEFAULT_OUT))
     run.add_argument("--window-id", action="append", default=None)
     run.add_argument("--n-clones", type=int, default=100)
+    run.add_argument("--window-source", choices=["search", "g0"], default="search")
     for name, text in (
         ("annotate", "write uncertainty into the comparisons"),
         ("verify", "offline twin"),
