@@ -9,7 +9,11 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from terraluna_pipeline.matching import Outcome, distance_entry, unavailable_uncertainty
 from terraluna_pipeline.schema import (
+    ComparisonRecord,
+    DistancesByFamily,
+    Family,
     FingerprintRecord,
     ProductRecord,
     TerrainVariant,
@@ -245,3 +249,40 @@ def fingerprint_of(window: WindowEntry) -> FingerprintRecord:
 
 
 E = math.e
+
+
+def comparison(
+    earth_window_id: str,
+    *,
+    relief: float | None = None,
+    texture: float | None = None,
+    radar: float | None = None,
+    model: float | None = None,
+    target_window_id: str = "moon-sps-x2-y2",
+) -> ComparisonRecord:
+    """A synthetic ComparisonRecord with the given family values; None is unavailable."""
+    values: dict[Family, float | None] = {
+        "terrain_relief": relief,
+        "terrain_texture": texture,
+        "radar_cpr": radar,
+        "model_embedding": model,
+    }
+    distances = {
+        family: distance_entry(family, Outcome(value, None))
+        if value is not None
+        else distance_entry(family, Outcome(None, "synthetic_missing"))
+        for family, value in values.items()
+    }
+    return ComparisonRecord(
+        target_window_id=target_window_id,
+        earth_window_id=earth_window_id,
+        shipping_mode="C",
+        comparable_observables=[],
+        excluded_observables_and_reasons=[],
+        distances_by_family=DistancesByFamily.model_validate(distances),
+        uncertainty_components=unavailable_uncertainty(),
+        sort_rule=None,
+        claim_limits=["synthetic test record"],
+        source_ids=["synthetic-dem"],
+        run_id=RUN_ID,
+    )

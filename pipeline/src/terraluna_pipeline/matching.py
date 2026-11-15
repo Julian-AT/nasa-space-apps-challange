@@ -21,6 +21,12 @@ Public API
   :func:`incidence_bin` (incidence enters a bin only through ``polarimetry.angle_to_degrees``).
 - :func:`compare_windows` builds the t0b :class:`~terraluna_pipeline.schema.ComparisonRecord`;
   :func:`unavailable_uncertainty` builds the all-unavailable uncertainty components.
+- :func:`pareto_shortlist`, :func:`pareto_layers` and :func:`trim_comparisons` (T4L-04): the
+  encoder family ranks only with G5 PASS, and no family that sorts first is chosen here.
+- :func:`tie_groups`, :func:`reference_spread`, :func:`background_sample`,
+  :func:`percentile_fields` and the ``with_*`` fillers (T4L-05).
+- ``python -m terraluna_pipeline.matching parity [--check]`` writes or checks
+  fixtures/parity/matching_synthetic.json.
 
 Reason codes (:class:`MatchReason`, CONTRACTS a.5)
     The declared order is the CONTRACTS a.5 list followed by the codes this module added, which
@@ -32,7 +38,10 @@ Reason codes (:class:`MatchReason`, CONTRACTS a.5)
     ``nu_missing`` (a null nu at a shared supported lag), ``no_valid_blocks`` (the same string
     fingerprints.py uses; matching does not import fingerprints.py),
     ``reference_spread_not_run`` and ``background_not_run`` (the T4L-05 fields before they are
-    filled). ``below_min_valid_fraction`` is the T3 code, read from ``terrain.WindowReason``.
+    filled), ``no_ranking_family`` (no family is available for every candidate),
+    ``distance_unavailable`` (no distance to tie or rank against a background) and
+    ``background_missing`` (no histogram for the family). ``below_min_valid_fraction`` is the
+    T3 code, read from ``terrain.WindowReason``.
 
 Reasons inside one :class:`QualifyResult` are in check order: the mode and body gates first
 (``shipping_mode_unset``, ``radar_unavailable_for_body``, ``radar_not_completed``), then the
@@ -57,6 +66,7 @@ from __future__ import annotations
 
 import argparse
 import bisect
+import hashlib
 import itertools
 import json
 import math
@@ -84,9 +94,11 @@ from terraluna_pipeline.schema import (
     ExcludedObservable,
     Family,
     FingerprintRecord,
+    GateStatus,
     ModelEmbeddingDistanceEntry,
     ProductRecord,
     RadarFingerprint,
+    ReferenceSpread,
     ShippingMode,
     TerrainVariant,
     UncertaintyComponent,
@@ -134,6 +146,9 @@ class MatchReason(StrEnum):
     NO_VALID_BLOCKS = "no_valid_blocks"
     REFERENCE_SPREAD_NOT_RUN = "reference_spread_not_run"
     BACKGROUND_NOT_RUN = "background_not_run"
+    NO_RANKING_FAMILY = "no_ranking_family"
+    DISTANCE_UNAVAILABLE = "distance_unavailable"
+    BACKGROUND_MISSING = "background_missing"
 
 
 BELOW_MIN_VALID_FRACTION: Final[str] = get_args(terrain.WindowReason)[0]
@@ -883,6 +898,491 @@ def compare_windows(
         source_ids=ids,
         run_id=provenance.run_id(config_path, source_ids),
     )
+
+
+# --- Pareto shortlist, sort rule and trim (T4L-04; PRD 6.5 step 4, 8.4, 11.10) ----------------
+
+COMPARISON_LIMIT: Final = 500
+"""Most ComparisonRecords kept per target (PRD 8.4)."""
+
+_TERRAIN_RADAR: Final[tuple[Family, ...]] = ("terrain_relief", "terrain_texture", "radar_cpr")
+
+
+@dataclass(frozen=True, slots=True)
+class ShortlistResult:
+    """Pareto layers over the ranking families (PRD 6.5 step 4); distances are never summed.
+
+    ``layers[0]`` is the non-dominated set. ``order`` lists every ranked earth window in the
+    declared order and ``sort_rule`` states it. ``not_comparable`` names, per window, the families
+    that were unavailable for it and so ranked nobody. With no ranking family, every tuple is
+    empty and ``reason`` is ``no_ranking_family``.
+    """
+
+    families: tuple[Family, ...]
+    layers: tuple[tuple[str, ...], ...]
+    order: tuple[str, ...]
+    sort_rule: str | None
+    reason: str | None
+    not_comparable: Mapping[str, tuple[Family, ...]]
+
+    @property
+    def shortlist(self) -> tuple[str, ...]:
+        return self.layers[0] if self.layers else ()
+
+
+def _by_window(records: Sequence[ComparisonRecord]) -> dict[str, ComparisonRecord]:
+    by_id: dict[str, ComparisonRecord] = {}
+    targets = {record.target_window_id for record in records}
+    if len(targets) > 1:
+        raise ValueError(f"records belong to several targets: {sorted(targets)}")
+    for record in records:
+        if record.earth_window_id in by_id:
+            raise ValueError(f"{record.earth_window_id} is compared twice")
+        by_id[record.earth_window_id] = record
+    return by_id
+
+
+def _allowed_families(g5_status: GateStatus | None) -> tuple[Family, ...]:
+    return FAMILIES if g5_status == "PASS" else _TERRAIN_RADAR
+
+
+def _available(record: ComparisonRecord, family: Family) -> float | None:
+    entry = record.distances_by_family[family]
+    return entry.value if entry.status == "available" else None
+
+
+def _dominates(a: Sequence[float], b: Sequence[float]) -> bool:
+    return all(x <= y for x, y in zip(a, b, strict=True)) and any(
+        x < y for x, y in zip(a, b, strict=True)
+    )
+
+
+def pareto_layers(points: Mapping[str, Sequence[float]]) -> tuple[tuple[str, ...], ...]:
+    """Non-dominated sorting: layer 0 is the set no point dominates, then the next, and so on.
+
+    ``a`` dominates ``b`` when ``a`` is no worse (not larger) in every coordinate and strictly
+    better (smaller) in at least one. Each layer is sorted by window id.
+    """
+    ids = sorted(points)
+    dominated_by = {i: 0 for i in ids}
+    dominates: dict[str, list[str]] = {i: [] for i in ids}
+    for a, b in itertools.combinations(ids, 2):
+        if _dominates(points[a], points[b]):
+            dominates[a].append(b)
+            dominated_by[b] += 1
+        elif _dominates(points[b], points[a]):
+            dominates[b].append(a)
+            dominated_by[a] += 1
+    layers: list[tuple[str, ...]] = []
+    current = [i for i in ids if dominated_by[i] == 0]
+    while current:
+        layers.append(tuple(sorted(current)))
+        following: list[str] = []
+        for a in current:
+            for b in dominates[a]:
+                dominated_by[b] -= 1
+                if dominated_by[b] == 0:
+                    following.append(b)
+        current = following
+    return tuple(layers)
+
+
+def pareto_shortlist(
+    records: Sequence[ComparisonRecord],
+    g5_status: GateStatus | None,
+    *,
+    first_family: Family | None = None,
+) -> ShortlistResult:
+    """The Pareto layers of the earth windows over the ranking families (PRD 6.5 step 4).
+
+    Ranking families are those available (status available, value set) for every record;
+    model_embedding is one only when ``g5_status`` is PASS (PRD 11.10). Dominance: no worse in
+    every ranking family and strictly better in at least one. A family unavailable for some
+    record ranks nobody, and those records are listed in ``not_comparable`` rather than treated
+    as a poor or perfect match. The default order is the Pareto layers, then window_id
+    ascending (ANA-03: no single order). ``first_family``, which a caller names and this module
+    never chooses, orders by that family ascending, then window_id; it is refused when it is
+    model_embedding without G5 PASS or is unavailable for any record. Input order never
+    changes the result.
+    """
+    by_id = _by_window(records)
+    allowed = _allowed_families(g5_status)
+    if first_family is not None:
+        if first_family not in allowed:
+            raise ValueError(f"{first_family} cannot rank while G5 is {g5_status}")
+        missing = sorted(i for i, r in by_id.items() if _available(r, first_family) is None)
+        if missing:
+            raise ValueError(f"{first_family} is not available for {', '.join(missing)}")
+    not_comparable = {
+        window: tuple(f for f in allowed if _available(record, f) is None)
+        for window, record in sorted(by_id.items())
+    }
+    families = tuple(
+        f for f in allowed if by_id and all(_available(r, f) is not None for r in by_id.values())
+    )
+    blocked = MappingProxyType({w: fs for w, fs in not_comparable.items() if fs})
+    if not families:
+        return ShortlistResult((), (), (), None, MatchReason.NO_RANKING_FAMILY, blocked)
+    points = {w: [_value(r, f) for f in families] for w, r in by_id.items()}
+    layers = pareto_layers(points)
+    if first_family is not None:
+        order = tuple(sorted(by_id, key=lambda w: (_value(by_id[w], first_family), w)))
+        rule = f"{first_family} ascending; then window_id"
+    else:
+        order = tuple(w for layer in layers for w in layer)
+        rule = f"pareto layers over {', '.join(families)}; then window_id"
+    return ShortlistResult(families, layers, order, rule, None, blocked)
+
+
+def _value(record: ComparisonRecord, family: Family) -> float:
+    value = _available(record, family)
+    if value is None:
+        raise ValueError(f"{family} is not available for {record.earth_window_id}")
+    return value
+
+
+@dataclass(frozen=True, slots=True)
+class TrimReport:
+    """What :func:`trim_comparisons` kept and dropped, in the declared order."""
+
+    n_input: int
+    n_kept: int
+    n_dropped: int
+    sort_rule: str
+    kept_window_ids: tuple[str, ...]
+    dropped_window_ids: tuple[str, ...]
+
+
+def trim_comparisons(
+    records: Sequence[ComparisonRecord],
+    shortlist: Sequence[str],
+    g5_status: GateStatus | None,
+    *,
+    limit: int = COMPARISON_LIMIT,
+) -> tuple[list[ComparisonRecord], TrimReport]:
+    """Keep at most ``limit`` records of one target in a declared deterministic order.
+
+    The order is the shortlisted windows first (window_id ascending), then the successive
+    Pareto layers of :func:`pareto_shortlist`, each by window_id, then any remaining windows by
+    window_id. Every kept record gets that ``sort_rule``; when anything was dropped, each kept
+    record also gets one deterministic claim_limits line stating the count. Shortlisted windows
+    are never dropped: a shortlist longer than ``limit`` raises.
+    """
+    by_id = _by_window(records)
+    chosen = sorted(set(shortlist))
+    if len(chosen) != len(shortlist):
+        raise ValueError("the shortlist names a window twice")
+    unknown = [w for w in chosen if w not in by_id]
+    if unknown:
+        raise ValueError(f"shortlisted windows without a comparison: {', '.join(unknown)}")
+    if len(chosen) > limit:
+        raise ValueError(f"the shortlist ({len(chosen)}) exceeds the limit of {limit}")
+    ranking = pareto_shortlist(list(by_id.values()), g5_status)
+    seen = set(chosen)
+    order = list(chosen)
+    for window in (*ranking.order, *sorted(by_id)):
+        if window not in seen:
+            seen.add(window)
+            order.append(window)
+    layers = f"pareto layers over {', '.join(ranking.families)}; " if ranking.families else ""
+    rule = f"shortlist; then {layers}then window_id"
+    kept, dropped = order[:limit], order[limit:]
+    line = (
+        f"comparisons trimmed to {len(kept)} of {len(order)} for this target (PRD 8.4 limit "
+        f"{limit}); {len(dropped)} dropped in the order: {rule}"
+    )
+    out = []
+    for window in kept:
+        record = by_id[window]
+        limits = [*record.claim_limits, line] if dropped else list(record.claim_limits)
+        out.append(record.model_copy(update={"sort_rule": rule, "claim_limits": limits}))
+    report = TrimReport(len(order), len(kept), len(dropped), rule, tuple(kept), tuple(dropped))
+    return out, report
+
+
+# --- Ties, reference spread, background (T4L-05; PRD 6.5 steps 5 to 7, 6.6) -------------------
+
+
+@dataclass(frozen=True, slots=True)
+class TieMembership:
+    """The tie state of one candidate in one family."""
+
+    tied: bool | None
+    tie_group: str | None
+    tie_reason: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class TieGroup:
+    """Candidates joined by pairwise ties; ``not_pairwise_tied`` makes a chain visible."""
+
+    group_id: str
+    members: tuple[str, ...]
+    not_pairwise_tied: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True, slots=True)
+class TieResult:
+    family: Family
+    by_window: Mapping[str, TieMembership]
+    groups: tuple[TieGroup, ...]
+
+
+def tie_groups(
+    family: Family,
+    entries: Mapping[str, float | None],
+    spreads: Mapping[str, float | None],
+) -> TieResult:
+    """Ties within one distance family (PRD 6.5 step 6); families are never combined.
+
+    Two candidates are tied when ``|d_a - d_b| < s_a + s_b`` (the combined spread is the sum of
+    the two supplied spreads, and a difference equal to it is not tied; an engineering choice).
+    Groups are the connected components of the tie relation, so A~B and B~C put A, B and C in
+    one group, and every pair in a group that is not itself tied is listed. A group id is
+    ``"<family>:<smallest window id>"``. A candidate without a supplied spread claims no tie
+    (tied null, tie_reason ``spread_unavailable``); one without a distance gets
+    ``distance_unavailable``.
+    """
+    membership: dict[str, TieMembership] = {}
+    usable: dict[str, tuple[float, float]] = {}
+    for window in sorted(entries):
+        value, spread = entries[window], spreads.get(window)
+        if value is None:
+            membership[window] = TieMembership(None, None, MatchReason.DISTANCE_UNAVAILABLE)
+        elif spread is None:
+            membership[window] = TieMembership(None, None, MatchReason.SPREAD_UNAVAILABLE)
+        elif not (math.isfinite(value) and math.isfinite(spread)) or spread < 0.0:
+            raise ValueError(f"{window}: distance and spread must be finite, spread >= 0")
+        else:
+            usable[window] = (value, spread)
+
+    def tied(a: str, b: str) -> bool:
+        (da, sa), (db, sb) = usable[a], usable[b]
+        return abs(da - db) < sa + sb
+
+    parent = {w: w for w in usable}
+
+    def root(w: str) -> str:
+        while parent[w] != w:
+            w = parent[w]
+        return w
+
+    for a, b in itertools.combinations(sorted(usable), 2):
+        if tied(a, b):
+            ra, rb = root(a), root(b)
+            parent[max(ra, rb)] = min(ra, rb)
+    components: dict[str, list[str]] = {}
+    for w in sorted(usable):
+        components.setdefault(root(w), []).append(w)
+    groups: list[TieGroup] = []
+    for members in components.values():
+        if len(members) < 2:
+            membership[members[0]] = TieMembership(False, None, None)
+            continue
+        group_id = f"{family}:{members[0]}"
+        chain = tuple((a, b) for a, b in itertools.combinations(members, 2) if not tied(a, b))
+        groups.append(TieGroup(group_id, tuple(members), chain))
+        for w in members:
+            membership[w] = TieMembership(True, group_id, None)
+    return TieResult(family, MappingProxyType(dict(sorted(membership.items()))), tuple(groups))
+
+
+def with_tie(entry: DistanceEntry, tie: TieMembership) -> DistanceEntry:
+    """``entry`` with the tie fields set; the schema refuses a tie without a reference spread."""
+    fields = entry.model_dump() | {
+        "tied": tie.tied,
+        "tie_group": tie.tie_group,
+        "tie_reason": None if tie.tie_reason is None else str(tie.tie_reason),
+    }
+    return type(entry).model_validate(fields)
+
+
+def reference_spread(distances: Sequence[float]) -> tuple[ReferenceSpread | None, str | None]:
+    """min, median, max and n of the distances within the target reference set (PRD 6.5 step 5).
+
+    The median of an even count is the mean of the two middle values. Fewer than two reference
+    windows give ``reference_set_too_small`` (no larger minimum is invented). This is a
+    reference, not proof of suitability.
+    """
+    values = sorted(float(d) for d in distances)
+    if not all(math.isfinite(v) for v in values):
+        raise ValueError("reference distances must be finite")
+    if len(values) < 2:
+        return None, MatchReason.REFERENCE_SET_TOO_SMALL
+    n = len(values)
+    middle = values[n // 2] if n % 2 else (values[n // 2 - 1] + values[n // 2]) / 2.0
+    return ReferenceSpread(min=values[0], median=middle, max=values[-1], n=n), None
+
+
+def with_reference_spread(entry: DistanceEntry, distances: Sequence[float]) -> DistanceEntry:
+    """``entry`` with reference_spread filled from :func:`reference_spread`."""
+    spread, reason = reference_spread(distances)
+    fields = entry.model_dump() | {
+        "reference_spread": None if spread is None else spread.model_dump(),
+        "reference_spread_reason": None if reason is None else str(reason),
+    }
+    if spread is None:
+        fields |= {"tied": None, "tie_group": None}
+    return type(entry).model_validate(fields)
+
+
+def uncertainty_components(
+    *,
+    heterogeneity: UncertaintyComponent | None = None,
+    measurement_error: UncertaintyComponent | None = None,
+    statistical_prediction_error: UncertaintyComponent | None = None,
+    scenario_sensitivity: UncertaintyComponent | None = None,
+) -> UncertaintyComponents:
+    """The four PRD 6.6 components from supplied values, kept separate; a component that is
+    not supplied is unavailable with ``uncertainty_not_run``. Nothing combines them."""
+    missing = _unavailable_component(MatchReason.UNCERTAINTY_NOT_RUN)
+    return UncertaintyComponents(
+        heterogeneity=heterogeneity or missing,
+        measurement_error=measurement_error or missing,
+        statistical_prediction_error=statistical_prediction_error or missing,
+        scenario_sensitivity=scenario_sensitivity or missing,
+    )
+
+
+BACKGROUND_STATEMENT: Final = "empirical background comparison, not a physical truth test"
+
+
+class BackgroundSampleSizeUnsetError(ValueError):
+    """Neither the argument nor ``uncertainty.background_sample_size`` sets the sample size."""
+
+    code: Final = MatchReason.BACKGROUND_SAMPLE_SIZE_UNSET
+
+    def __init__(self) -> None:
+        super().__init__(f"blocked: {MatchReason.BACKGROUND_SAMPLE_SIZE_UNSET}")
+
+
+@dataclass(frozen=True, slots=True)
+class BackgroundSample:
+    """A seeded background sample of eligible windows (PRD 6.5 step 7)."""
+
+    seed: int
+    requested_n: int
+    actual_n: int
+    sample_window_ids: tuple[str, ...]
+    excluded_by_status: Mapping[str, int]
+    statement: str = BACKGROUND_STATEMENT
+
+
+def sample_rank(seed: int, window_id: str) -> str:
+    """The rank key of a window: sha256 hex of ``"<seed>:<window_id>"`` in UTF-8."""
+    return hashlib.sha256(f"{seed}:{window_id}".encode()).hexdigest()
+
+
+def background_sample(
+    universe: Sequence[WindowEntry | tuple[str, str]],
+    sample_size: int | None,
+    seed: int,
+    *,
+    config_path: Path = DEFAULT_RUN_CONFIG,
+) -> BackgroundSample:
+    """Draw ``sample_size`` eligible windows of one search universe, reproducibly.
+
+    Windows are ranked by :func:`sample_rank` (ties by window id) and the first ``sample_size``
+    eligible ones are taken, so the rule can be reimplemented anywhere. Rejected and unknown
+    windows are excluded and counted by status. A null ``sample_size`` reads
+    ``uncertainty.background_sample_size``; when that is null too,
+    :class:`BackgroundSampleSizeUnsetError` is raised and no number is picked (ANA-02).
+    """
+    size = sample_size
+    if size is None:
+        configured = load_run_config(config_path).value("uncertainty.background_sample_size")
+        if configured is None:
+            raise BackgroundSampleSizeUnsetError
+        if isinstance(configured, bool) or not isinstance(configured, int):
+            raise ValueError(
+                f"uncertainty.background_sample_size must be an integer: {configured!r}"
+            )
+        size = configured
+    if isinstance(size, bool) or size < 1:
+        raise ValueError(f"sample_size must be a positive integer, got {size!r}")
+    statuses: dict[str, str] = {}
+    for item in universe:
+        window, status = (
+            (item.window.window_id, item.status) if isinstance(item, WindowEntry) else item
+        )
+        if window in statuses:
+            raise ValueError(f"{window} appears twice in the universe")
+        statuses[window] = status
+    excluded: dict[str, int] = {}
+    eligible: list[str] = []
+    for window, status in statuses.items():
+        if status == "eligible":
+            eligible.append(window)
+        else:
+            excluded[status] = excluded.get(status, 0) + 1
+    ranked = sorted(eligible, key=lambda w: (sample_rank(seed, w), w))[:size]
+    return BackgroundSample(
+        seed=seed,
+        requested_n=size,
+        actual_n=len(ranked),
+        sample_window_ids=tuple(sorted(ranked)),
+        excluded_by_status=MappingProxyType(dict(sorted(excluded.items()))),
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class Histogram:
+    """One family's background histogram (the BackgroundFamily fields matching needs)."""
+
+    family: Family
+    unit: str
+    bin_edges: tuple[float, ...]
+    counts: tuple[int, ...]
+    model_id: str | None = None
+
+
+def percentile_fields(
+    family: Family,
+    distance: float | None,
+    histogram: Histogram | None,
+    *,
+    sample_size_unset: bool = False,
+) -> tuple[float | None, str | None]:
+    """``(background_percentile, background_percentile_reason)``: exactly one is null.
+
+    The percentile is :func:`background_percentile` against the histogram of the same family
+    only (another family's histogram raises). The model family without a model histogram is
+    ``encoder_not_evaluated``; an unset sample size is ``background_sample_size_unset``; a
+    missing histogram is ``background_missing``, an empty one ``background_empty``, and a
+    missing distance ``distance_unavailable``.
+    """
+    if histogram is not None and histogram.family != family:
+        raise ValueError(
+            f"a {family} distance is never ranked against a {histogram.family} background"
+        )
+    if sample_size_unset:
+        return None, MatchReason.BACKGROUND_SAMPLE_SIZE_UNSET
+    if histogram is None:
+        if family == "model_embedding":
+            return None, MatchReason.ENCODER_NOT_EVALUATED
+        return None, MatchReason.BACKGROUND_MISSING
+    if distance is None:
+        return None, MatchReason.DISTANCE_UNAVAILABLE
+    outcome = background_percentile(distance, histogram.bin_edges, histogram.counts)
+    return outcome.value, outcome.reason
+
+
+def with_background_percentile(
+    entry: DistanceEntry,
+    family: Family,
+    histogram: Histogram | None,
+    *,
+    sample_size_unset: bool = False,
+) -> DistanceEntry:
+    """``entry`` with the background percentile fields from :func:`percentile_fields`."""
+    value, reason = percentile_fields(
+        family, entry.value, histogram, sample_size_unset=sample_size_unset
+    )
+    fields = entry.model_dump() | {
+        "background_percentile": value,
+        "background_percentile_reason": None if reason is None else str(reason),
+    }
+    return type(entry).model_validate(fields)
 
 
 # --- Parity fixture (PRD 8.8; T10-08 and T13-03 mirror these) --------------------------------
