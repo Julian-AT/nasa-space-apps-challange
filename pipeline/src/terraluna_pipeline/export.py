@@ -884,9 +884,10 @@ and the Mars target's name for a Mars target (the same pattern, an engineering c
 
 MOON_PLACE = "Connecting Ridge"
 
-CARD_WORDING: Literal["candidate window identified by this search"] = (
-    "candidate window identified by this search"
-)
+CARD_WORDING = "candidate window identified by this search"
+PILOT_WORDING = "Pilot pairing (G0-05); not shortlisted"
+"""Wording of a pair outside the Pareto shortlist; ``(relief rank R of N)`` is appended when the
+target's comparisons are known."""
 
 FIELD_EXPERIMENT = (
     "Proposed, not yet carried out: survey a surface patch in this Earth window with a "
@@ -930,6 +931,7 @@ class CardLimits:
     """
 
     interpretation: str
+    wording: str = CARD_WORDING
     differing: tuple[str, ...] = ()
     ambiguous: tuple[str, ...] = ()
     not_observed: tuple[str, ...] = ()
@@ -972,22 +974,92 @@ def q4_limits(body: Body) -> list[str]:
     raise CardExportError("a card's target is a lunar or Mars window, not an Earth window")
 
 
-def default_card_limits(comparison: ComparisonRecord, body: Body) -> CardLimits:
+def _relief_rank(
+    comparison: ComparisonRecord, peers: Sequence[ComparisonRecord]
+) -> tuple[int, int] | None:
+    """(rank, n) of the comparison's relief distance among the target's available relief
+    distances, 1 = smallest; None when it or the peers are unavailable."""
+    own = comparison.distances_by_family.terrain_relief.value
+    values = [
+        record.distances_by_family.terrain_relief.value
+        for record in peers
+        if record.target_window_id == comparison.target_window_id
+        and record.distances_by_family.terrain_relief.status == "available"
+        and record.distances_by_family.terrain_relief.value is not None
+    ]
+    if own is None or not values:
+        return None
+    return 1 + sum(1 for value in values if value < own), len(values)
+
+
+def _beyond_spread(comparison: ComparisonRecord) -> list[tuple[str, float, float]]:
+    """Terrain families whose distance exceeds the max of the target's reference spread, as
+    (family, value, max)."""
+    found: list[tuple[str, float, float]] = []
+    for family in ("terrain_relief", "terrain_texture"):
+        entry = getattr(comparison.distances_by_family, family)
+        spread = entry.reference_spread
+        if (
+            entry.status == "available"
+            and entry.value is not None
+            and spread is not None
+            and entry.value > spread.max
+        ):
+            found.append((family, entry.value, spread.max))
+    return found
+
+
+def default_card_limits(
+    comparison: ComparisonRecord,
+    body: Body,
+    *,
+    peers: Sequence[ComparisonRecord] = (),
+    shortlisted: bool = True,
+) -> CardLimits:
     """Question 2 and 4 answers stated only from the comparison record, for ``export cards``.
 
     ``not_observed`` names every excluded observable with its reasons and every family without
     a distance; ``ambiguous`` names every family tied with the target reference spread.
-    ``differing`` stays empty: no rule in the PRD turns a distance into a verdict.
+    ``differing`` stays empty: no rule in the PRD turns a distance into a verdict. ``peers`` are
+    the target's comparisons (for the relief rank of a pair outside the shortlist).
+    A distance beyond the target's reference spread is stated as not a close neighbour.
     """
     shipping_mode = comparison.shipping_mode
     if shipping_mode is None:
         raise ShippingModeUnsetError("shipping_mode is null; a card needs a chosen mode")
     observables = ", ".join(comparison.comparable_observables) or "no shared observable"
-    interpretation = (
-        f"Assumed: this Earth window could help investigate how surfaces with comparable "
-        f"supported descriptors ({observables}) behave, as a {CARD_WORDING} for the "
-        f"{_BODY_NAME[body]} target. It is an interpretation to test, not a measured result."
-    )
+    wording = CARD_WORDING
+    extra_limits: list[str] = []
+    if not shortlisted:
+        wording = PILOT_WORDING
+        ranked = _relief_rank(comparison, peers)
+        if ranked is not None:
+            wording += f" (relief rank {ranked[0]} of {ranked[1]})"
+            extra_limits.append(
+                f"Not in the Pareto shortlist: its terrain relief distance ranks {ranked[0]} of "
+                f"{ranked[1]} evaluated Earth windows (1 = smallest)."
+            )
+    beyond = _beyond_spread(comparison)
+    names = {"terrain_relief": "relief", "terrain_texture": "texture"}
+    sentences = [
+        f"Its terrain {names[family]} distance ({value:.4g}) exceeds the target's distance to "
+        f"every other window of its own site (max {maximum:.4g}), so it is not a close neighbour "
+        f"in this metric"
+        for family, value, maximum in beyond
+    ]
+    if beyond:
+        extra_limits.append("; ".join(sentences) + ".")
+        interpretation = (
+            f"Assumed: {wording}. " + ". ".join(sentences) + ". It is not a close "
+            f"neighbour of the {_BODY_NAME[body]} target on the supported descriptors "
+            f"({observables}); this is an interpretation to test, not a measured result."
+        )
+    else:
+        interpretation = (
+            f"Assumed: this Earth window could help investigate how surfaces with comparable "
+            f"supported descriptors ({observables}) behave, as a {wording} for the "
+            f"{_BODY_NAME[body]} target. It is an interpretation to test, not a measured result."
+        )
     not_observed = [
         f"{item.observable}: {', '.join(item.reasons)}"
         for item in comparison.excluded_observables_and_reasons
@@ -1005,6 +1077,8 @@ def default_card_limits(comparison: ComparisonRecord, body: Body) -> CardLimits:
     ]
     return CardLimits(
         interpretation=interpretation,
+        wording=wording,
+        claim_limits=tuple(extra_limits),
         ambiguous=tuple(ambiguous),
         not_observed=tuple(not_observed),
     )
@@ -1206,8 +1280,8 @@ def _mode_claims(mode: ShippingMode, body: Body, g5: GateStatus) -> list[str]:
         )
     if g5 != "PASS":
         claims.append(
-            f"The encoder is EXPERIMENTAL (G5 {g5}); its distance, if shown, is Predicted and "
-            "takes no part in any ranking."
+            f"The encoder is EXPERIMENTAL (G5 {g5}) and takes no part in any ranking; its "
+            "distance, if shown, is Predicted."
         )
     claims.append(
         "Field confirmation is future work; similarity here does not establish block sizes, soil "
@@ -1313,10 +1387,13 @@ def export_card(
     )
     product_ids = target_products | earth_products | {entry.product_id for entry in radar_context}
     run_id = card_run_id(config_path, card_target, card_earth, sorted(product_ids), by_id)
+    base_limits = [
+        text
+        for text in comparison.claim_limits
+        if not (limits.wording != CARD_WORDING and text.startswith(CARD_WORDING))
+    ]
     claim_limits = list(
-        dict.fromkeys(
-            [*comparison.claim_limits, *_mode_claims(mode, body, g5), *limits.claim_limits]
-        )
+        dict.fromkeys([*base_limits, *_mode_claims(mode, body, g5), *limits.claim_limits])
     )
     return CardRecord(
         card_id=card_id,
@@ -1324,7 +1401,7 @@ def export_card(
         run_id=run_id,
         shipping_mode=mode,
         title=card_title(mode, body, target.name),
-        wording=CARD_WORDING,
+        wording=limits.wording,
         target=card_target,
         earth=card_earth,
         comparison_ref=ComparisonRef(
@@ -1590,7 +1667,13 @@ def build_cards(
             entries,
             record,
             sources,
-            default_card_limits(record, target.body),
+            default_card_limits(
+                record,
+                target.body,
+                peers=comparisons.get(target.target_id, []),
+                shortlisted=target.shortlist is None
+                or earth_window in target.shortlist.earth_window_ids,
+            ),
             gates,
             target=target,
             config_path=config,

@@ -1477,7 +1477,13 @@ class CardRecord(Record):
     run_id: RunId
     shipping_mode: ShippingMode
     title: NonEmptyStr
-    wording: Literal["candidate window identified by this search"]
+    wording: Annotated[
+        str,
+        Field(
+            pattern=r"^(candidate window identified by this search|Pilot pairing \(G0-05\); "
+            r"not shortlisted( \(relief rank [0-9]+ of [0-9]+\))?)$"
+        ),
+    ]
     target: CardTarget
     earth: CardEarth
     comparison_ref: ComparisonRef
