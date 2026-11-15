@@ -57,27 +57,46 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Final
 
-from terraluna_ml.evaluate import REASON_RETRIEVAL
 from terraluna_ml.shards import BODIES, canonical_json, open_shards, sha256_path
 from terraluna_pipeline.config import load_run_config
 from terraluna_pipeline.schema import (
+    MAX_FAILURE_CASES,
     Ablation,
+    CurvesFile,
+    ExampleHillshade,
+    ExamplesFile,
+    FailureCases,
     G5Summary,
+    GalleryEntry,
+    GpuHours,
+    GpuRun,
+    IntervalValue,
+    LossEpoch,
+    LossTerm,
     MetricRecord,
     MetricsFile,
     ModelRecord,
     ObjectivesAndWeights,
+    RetrievalTarget,
     RunRecord,
+    TradeoffPoint,
     TrainingData,
+    ValidationProbeMetrics,
     VicregWeights,
 )
 
 REPO_ROOT: Final = Path(__file__).resolve().parents[3]
+REASON_VAL_PROBES: Final = (
+    "per-epoch validation probe metrics were not computed during the reduced-scope CPU training; "
+    "the probes ran once after training (evaluate.py), and the validation-split evaluation chose "
+    "probe penalties on the same rows, so it is a dry run and is not reported here"
+)
 LAGS_M: Final = (270, 360, 540, 720, 1080)
 FORBIDDEN_PHRASES: Final = ("AI-verified analog", "best match", "best place on Earth")
 SEED_FREE_STRIP: Final = frozenset(
@@ -233,7 +252,7 @@ def build_metrics(evaluation_dir: Path) -> MetricsFile:
     check_hygiene(evaluation)
     return MetricsFile(
         mock=bool(evaluation["mock"]),
-        run_id=None,
+        run_id=run_id_of(evaluation),
         model_id=evaluation["model_id"],
         evaluated_split=evaluation["evaluated_split"],
         g5=_summary(evaluation_dir),
@@ -413,54 +432,195 @@ def tradeoff(evaluation: Mapping[str, Any]) -> dict[str, Any]:
     return {"chance_body_accuracy": 1.0 / n_bodies, "n_bodies": n_bodies, "points": points}
 
 
+def run_id_of(evaluation: Mapping[str, Any]) -> str | None:
+    """``sha256:<freeze hash>``, the run id the G5 GateRecord carries; None without a freeze."""
+    freeze = evaluation.get("freeze")
+    digest = freeze.get("sha256") if isinstance(freeze, Mapping) else None
+    return f"sha256:{digest}" if isinstance(digest, str) and len(digest) == 64 else None
+
+
+def bundle_window_id(window_id: str) -> str:
+    """The bundle form of a shard window id (CONTRACTS a.2: lower case, digits and hyphens).
+
+    Shard ids keep the source product's spelling (for example a CTX DTM name with capitals and
+    underscores); the bundle id lower-cases it and turns every other run of characters into one
+    hyphen. The mapping is deterministic and keeps the shard id's body prefix and index.
+    """
+    out = re.sub(r"[^a-z0-9]+", "-", window_id.lower()).strip("-")
+    if not re.match(r"^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$", out):
+        raise ReportError(f"window id {window_id!r} has no bundle form")
+    return out
+
+
+def _body_of(window_id: str) -> str:
+    return window_id.split("-", 1)[0]
+
+
+LOSS_TERMS: Final = ("total", "vicreg", "vicreg_inv", "vicreg_var", "vicreg_cov", "phys", "body")
+
+
 def build_curves(evaluation_dir: Path, run_dirs: Sequence[Path]) -> dict[str, Any]:
+    """report/curves.json as a validated CurvesFile (layout in the module docstring)."""
     evaluation = _read(evaluation_dir / "evaluation_metrics.json")
     curves, gpu = loss_curves(run_dirs)
-    return {
-        "format": "terraluna-ml-report-curves/1",
-        "mock": bool(evaluation["mock"]),
-        "evaluated_split": evaluation["evaluated_split"],
-        "model_status": "EXPERIMENTAL",
-        "loss_curves": curves,
-        "gpu_hours": gpu,
-        "tradeoff": tradeoff(evaluation),
-    }
+    main = evaluation.get("main_arm")
+    group = next((g for g in curves if g["group"] == main), None)
+    loss_terms: list[LossTerm] = []
+    if group is not None:
+        for term in LOSS_TERMS:
+            series = group["terms"].get(f"loss_{term}")
+            if series is None:
+                continue
+            loss_terms.append(
+                LossTerm(
+                    term=term,
+                    epochs=[
+                        LossEpoch(epoch=e, mean=mu, min=lo, max=hi, n_seeds=n)
+                        for e, mu, lo, hi, n in zip(
+                            series["epochs"],
+                            series["mean"],
+                            series["min"],
+                            series["max"],
+                            series["n_seeds"],
+                            strict=True,
+                        )
+                    ],
+                )
+            )
+    runs: list[GpuRun] = []
+    for r in gpu["per_run"]:
+        cpu = r.get("cpu_core_hours")
+        note = r.get("gpu_hours_note") or "gpu_hours from the run's metrics.json"
+        if isinstance(cpu, int | float):
+            note = f"{note}; {cpu:g} CPU core-hours (threads x wall-clock), measured"
+        runs.append(
+            GpuRun(
+                run_name=str(r["run"]),
+                hours=r["gpu_hours"],
+                reason=r["reason"],
+                source=note,
+            )
+        )
+    gpu_hours = GpuHours(runs=runs, total_hours=gpu["total"], partial=bool(gpu["partial"]))
+    trade = tradeoff(evaluation)
+    points: list[TradeoffPoint] = []
+    for p in trade["points"]:
+        if p["status"] == "available":
+            lag0 = p["physics_r2_relief"]["per_lag"][0]
+            ba = p["body_balanced_accuracy"]
+            points.append(
+                TradeoffPoint(
+                    lambda_max=float(p["lambda_max"]),
+                    status="available",
+                    reason=None,
+                    body_probe_balanced_accuracy=IntervalValue(
+                        value=ba["value"], ci_low=ba["ci_low"], ci_high=ba["ci_high"]
+                    ),
+                    physics_r2=IntervalValue(
+                        value=lag0["value"], ci_low=lag0["ci_low"], ci_high=lag0["ci_high"]
+                    ),
+                )
+            )
+        else:
+            empty = IntervalValue(value=None, ci_low=None, ci_high=None)
+            points.append(
+                TradeoffPoint(
+                    lambda_max=float(p["lambda_max"]),
+                    status="unavailable",
+                    reason=str(p["reason"]),
+                    body_probe_balanced_accuracy=empty,
+                    physics_r2=empty,
+                )
+            )
+    doc = CurvesFile(
+        mock=bool(evaluation["mock"]),
+        run_id=run_id_of(evaluation),
+        loss_terms=loss_terms,
+        gpu_hours=gpu_hours,
+        tradeoff=points,
+        chance_level_body_probe=float(trade["chance_body_accuracy"]),
+        validation_probe_metrics=ValidationProbeMetrics(
+            status="unavailable",
+            reason=REASON_VAL_PROBES,
+            metrics=[],
+        ),
+    )
+    return doc.model_dump(mode="json")
 
 
 # --- examples.json -------------------------------------------------------------------------------
 
 
+def _entry(window_id: str, rank: int, distance: float | None) -> GalleryEntry:
+    wid = bundle_window_id(window_id)
+    return GalleryEntry(
+        window_id=wid,
+        body=_body_of(wid),  # type: ignore[arg-type]
+        rank=rank,
+        distance=distance,
+        distance_family="model_embedding",
+        evidence_label="Predicted",
+    )
+
+
 def build_examples(evaluation_dir: Path) -> dict[str, Any]:
+    """report/examples.json as a validated ExamplesFile (layout in the module docstring)."""
     ev = _read(evaluation_dir / "evaluation_curves.json")
+    evaluation = _read(evaluation_dir / "evaluation_metrics.json")
     ex = ev["examples"]
     gallery = [
-        {
-            "target_window_id": t["target_window_id"],
-            "encoder_top5": {
-                "evidence_label": "Predicted",
-                "distance_family": "encoder",
-                "shortfall": t["shortfall"],
-                "windows": t["windows"],
-            },
-            "deterministic_top5": {"status": "unavailable", "reason": REASON_RETRIEVAL},
-        }
+        RetrievalTarget(
+            target_id=str(t["target_window_id"]),
+            encoder_top5=[
+                _entry(w["window_id"], int(w["rank"]), float(w["cosine_distance"]))
+                for w in t["windows"]
+            ],
+            deterministic_top5=[],
+            shortfall_reason="deterministic_ranking_not_an_input",
+        )
         for t in ex["top5_by_target"]
     ]
-    return {
-        "format": "terraluna-ml-report-examples/1",
-        "mock": bool(ev["mock"]),
-        "evaluated_split": ev["evaluated_split"],
-        "model_status": "EXPERIMENTAL",
-        "evidence_label": "Predicted",
-        "gallery": gallery,
-        "failure_cases": {
-            "sort_rule": ex["failure_sort_rule"],
-            "basis": ex["failure_basis"],
-            "shortfall": ex.get("failure_shortfall"),
-            "cases": ex["failure_cases"],
-        },
-        "ood_examples": ex["ood_examples"],
-    }
+    cases = ex["failure_cases"][:MAX_FAILURE_CASES]
+    failure = FailureCases(
+        sort_rule=(
+            f"{ex['failure_sort_rule']}; basis: {ex['failure_basis']}; each entry's rank and "
+            "distance are the encoder's (rank among the Earth test candidates, cosine distance "
+            "to the target embedding)"
+        ),
+        entries=[
+            _entry(c["window_id"], int(c["encoder_rank"]), float(c["encoder_cosine_distance"]))
+            for c in cases
+        ],
+        shortfall_reason=None if len(cases) == MAX_FAILURE_CASES else "fewer_candidates_than_20",
+    )
+    ood_sorted = sorted(
+        ex["ood_examples"], key=lambda o: (-float(o["mahalanobis"]), o["window_id"])
+    )
+    ood = [_entry(o["window_id"], i + 1, float(o["mahalanobis"])) for i, o in enumerate(ood_sorted)]
+    shown = sorted(
+        {e.window_id for t in gallery for e in t.encoder_top5}
+        | {e.window_id for e in failure.entries}
+        | {e.window_id for e in ood}
+    )
+    hillshades = [
+        ExampleHillshade(
+            window_id=w,
+            size=64,
+            encoding="not_stored",
+            data_b64=None,
+            unavailable_reason="hillshade_not_rendered",
+        )
+        for w in shown
+    ]
+    doc = ExamplesFile(
+        mock=bool(ev["mock"]),
+        run_id=run_id_of(evaluation),
+        retrieval_gallery=gallery,
+        failure_cases=failure,
+        ood_examples=ood,
+        hillshades=hillshades,
+    )
+    return doc.model_dump(mode="json")
 
 
 # --- model_card.json -----------------------------------------------------------------------------
@@ -502,8 +662,16 @@ def build_model_card(
     alpha = cfg.get("alpha_phys")
     if alpha is None:
         alpha = load_run_config(config_path).value("ml.alpha_phys")
-    onnx = out_dir / "model" / "encoder.onnx"
-    limitations = LIMITATIONS if onnx.is_file() else LIMITATIONS + ONNX_ABSENT_NOTE
+    # The bundle ships encoder.fp16.onnx first (export stage), so the card names that file.
+    shipped = next(
+        (
+            p
+            for p in (out_dir / "model" / "encoder.fp16.onnx", out_dir / "model" / "encoder.onnx")
+            if p.is_file()
+        ),
+        None,
+    )
+    limitations = LIMITATIONS if shipped is not None else LIMITATIONS + ONNX_ABSENT_NOTE
     main_run = ev["arms"][ev["main_arm"]]
     lam = main_run["lambda_max"]
     card = ModelRecord(
@@ -531,7 +699,7 @@ def build_model_card(
         intended_use=INTENDED_USE,
         limitations=limitations,
         licence="Apache-2.0",
-        onnx_sha256=sha256_path(onnx) if onnx.is_file() else None,
+        onnx_sha256=sha256_path(shipped) if shipped is not None else None,
     )
     return card
 
