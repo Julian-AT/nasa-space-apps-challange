@@ -35,6 +35,26 @@ Earth, Holuhraun & texture & \DistHoluhraunTextureHCount & \DistHoluhraunTexture
 \end{tabular}
 \end{table}
 
+\paragraph{Bootstrap intervals and target percentiles.} Over the target site, the median relief
+Hurst exponent is \SiteHMedian{} with an interquartile range from \SiteHQLow{} to \SiteHQHigh{}
+and a moving block bootstrap interval for the median from \SiteHLow{} to \SiteHHigh{}
+(\SiteBootReplicates{} replicates, blocks of two windows, a two dimensional block bootstrap after
+\citet{kunsch1989}). The texture exponent has a median of \SiteTextureHMedian{} with an interval
+from \SiteTextureHLow{} to \SiteTextureHHigh. Neighbouring windows overlap by half, so these
+intervals describe one site, not the Moon. Within the site, the primary target window sits at the
+\TargetHPercentile{}th percentile of relief $H$, the \TargetNuShortPercentile{}th percentile of
+relief $\nu$ at the shortest lag and the \TargetNuLongPercentile{}th at the longest lag. Across the
+error clones the percentile of $H$ stays between \TargetHCloneMin{} and \TargetHCloneMax.
+
+\paragraph{Scale behaviour.} A deviogram of the whole site from \BreakMinLag\,m to
+\BreakMaxLag\,m lags has a single slope Hurst exponent of \BreakSingleH. A hinged fit with a
+break at \BreakM\,m is preferred over a straight line by a difference in the Bayesian information
+criterion of \BreakDeltaBIC, with exponents of \BreakHBelow{} below and \BreakHAbove{} above the
+break. \citet{rosenburg2011} report that a breakover, where present, typically sits near a
+kilometre baseline on the Moon; our break lies in the same range, but the site is a single
+massif, our lags come from a gridded and partly interpolated model rather than profiles, and the
+comparison is a sanity check, not a reproduction. The fingerprint's lags all lie below this break.
+
 \paragraph{Distances to the target.} Over the \ComparedCount{} compared Earth windows, relief
 distances to the target run from \ReliefDistanceMin{} to \ReliefDistanceMax{} (median
 \ReliefDistanceMedian) and texture distances from \TextureDistanceMin{} to \TextureDistanceMax{}

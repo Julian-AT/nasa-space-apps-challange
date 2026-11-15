@@ -13,8 +13,8 @@ trafficability, is inferred.
 pixels of the target window hold a LOLA return; the rest is the provider's interpolation between
 tracks \citep{barker2021}. At the \ConfigGridM\,m analysis grid almost every cell contains a
 return, but the short lag statistics of the target still depend on the interpolation. The
-provider's error clones measure this uncertainty, and they were not yet propagated to the
-distances reported here.
+provider's error clones measure this uncertainty under the published error model; they were
+propagated to the shortlist distances, but not to the background or to the encoder.
 
 \paragraph{Earth surface model.} Copernicus GLO-30 is a digital surface model, so canopy, buildings
 and snow are part of the height \citep{airbus2022copernicus}. The land cover mask removes windows
@@ -28,8 +28,8 @@ artefacts that survive the filter can mimic roughness. The Martian target window
 in time, so no Mars retrieval is reported.
 
 \paragraph{Radar.} The radar comparison was not completed. The Mini-RF mosaic mixes viewing
-geometries and states no transmit handedness, the UAVSAR handedness convention is not verified, and
-the conversion gate is partial. Even a completed comparison would face a band difference and the
+geometries and states no transmit handedness, the UAVSAR handedness convention is not verified
+against Mini-RF, and no radar pair has passed the comparison eligibility gate. Even a completed comparison would face a band difference and the
 ambiguity that CPR is not monotonic with rock abundance \citep{riveravalentin2026}.
 
 \paragraph{Search universe and independence.} Two regions were searched, and overlapping windows
