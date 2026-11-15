@@ -162,17 +162,17 @@
       "priority": 3,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 7,
+        "state": "reviewed",
+        "round": 8,
         "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
-        "head": "b0736297c93c47fd8aff5520656241105ad3d5f3",
+        "head": "9864e9499b0363cf73de4cbc572c4829c9d514ff",
         "files": [
-          "reviews/T7-03-claude-r7.json",
-          "reviews/T7-03-codex-r7.json"
+          "reviews/T7-03-claude-r8.json",
+          "reviews/T7-03-codex-r8.json"
         ],
         "digests": {
-          "reviews/T7-03-claude-r7.json": "f9deb32b964977005d0da62351a4f17f17ee16f3e0db7eb0193e53ff6cdb39c7",
-          "reviews/T7-03-codex-r7.json": "eddb0e4c1ae42e6a6ae60e565acd948273d8d5557ed40ad2dbf977c0ed83462a"
+          "reviews/T7-03-claude-r8.json": "a4a582da1b8410a26abc5b55d16baa9744a5d7ccdc563d65ddc61aade87ca3ed",
+          "reviews/T7-03-codex-r8.json": "1fe53c6b1498cb04019d5827f3ad73f762c7a3c2fff9283f4aa433de1cafa1cf"
         },
         "bounces": 0
       },
