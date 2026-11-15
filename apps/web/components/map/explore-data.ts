@@ -30,6 +30,8 @@ export interface ExplorerBundle {
 export interface MapWindow {
   readonly id: string;
   readonly ringM: readonly (readonly [number, number])[];
+  /** The same polygon in degrees [lon, lat], as windows/<body>.json stores it. */
+  readonly ringLonLat?: readonly (readonly [number, number])[];
   readonly status: EligibilityStatus;
   readonly reasons: readonly string[];
   readonly isPrimary: boolean;
@@ -155,7 +157,7 @@ function nuSummary(target: Targets[number], entries: readonly WindowEntry[] | un
   };
 }
 
-function windowRelief(entry: WindowEntry): WindowRelief | null {
+export function windowRelief(entry: WindowEntry): WindowRelief | null {
   const fingerprint = entry.terrain;
   const relief = fingerprint?.terrain?.relief;
   if (fingerprint === null || fingerprint === undefined || relief === undefined) return null;
@@ -191,6 +193,7 @@ function targetWindows(
     out.push({
       id,
       ringM: toPairs(ring),
+      ringLonLat: toPairs(entry.window.polygon.ring_lonlat),
       status: entry.status,
       reasons: entry.reasons,
       isPrimary,

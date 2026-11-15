@@ -9,30 +9,23 @@ import { PageHeader } from '@/components/page-header';
 import { Section } from '@/components/section';
 
 import type { Bundle } from '../../lib/bundle.ts';
-import { buildBodyData, buildEarthData, type ExplorerBundle } from './explore-data.ts';
-import { EarthExplorer } from './earth-explorer.tsx';
-import { ExplorerMap } from './explorer-map.tsx';
+import type { ExplorerBundle } from './explore-data.ts';
+import { Atlas } from '../atlas/atlas.tsx';
+import { buildAtlasBody, buildAtlasEarth } from '../atlas/atlas-data.ts';
 
 export type LoadedBundle = Bundle & { readonly records: ExplorerBundle['records'] };
 
-function assetBase(): string | null {
-  const value = process.env.NEXT_PUBLIC_ASSET_BASE;
-  // Default: same-origin copy of the bundle tiles written by bundle:pull (public/assets/<v>/tiles).
-  return value === undefined || value === '' ? '/assets' : value;
-}
-
 const LEAD: Readonly<Record<'moon' | 'mars', string>> = {
-  moon: 'Polar-stereographic view of the Moon target in projected metres, with the window grid coloured by eligibility.',
-  mars: 'Local view of the Mars targets in projected metres, terrain only, with the window grid coloured by eligibility.',
+  moon: 'Moon target on a globe and, in 2D, in its polar-stereographic frame in projected metres, with the window grid coloured by eligibility.',
+  mars: 'Mars targets on a globe and, in 2D, in their local projected frames in metres, terrain only, with the window grid coloured by eligibility.',
 };
 
 export function ExploreBodyPage({ body, bundle }: { readonly body: 'moon' | 'mars'; readonly bundle: LoadedBundle }) {
-  const data = buildBodyData(bundle, body);
   return (
     <>
       <p className="sr-only">{LEAD[body]}</p>
-      <ExplorerMap data={data} body={body} assetBase={assetBase()} />
-      <div className="px-4 pb-8 sm:px-6">
+      <Atlas data={buildAtlasBody(bundle, body)} />
+      <div className="px-4 pt-6 pb-8 sm:px-6">
         <Section title="Evidence labels">
           <EvidenceLegend headingLevel={3} />
         </Section>
@@ -42,15 +35,11 @@ export function ExploreBodyPage({ body, bundle }: { readonly body: 'moon' | 'mar
 }
 
 export function ExploreEarthPage({ bundle }: { readonly bundle: LoadedBundle }) {
-  const data = buildEarthData(bundle);
   return (
     <>
-      <EarthExplorer
-        data={data}
-        mapsEnabled={process.env.NEXT_PUBLIC_MAPS_ENABLED !== '0'}
-        probeEnabled={process.env.NEXT_PUBLIC_PROBE_ENABLED === '1'}
-      />
-      <div data-full-bleed className="px-4 pb-8 sm:px-6">
+      <p className="sr-only">Earth analog windows from the release bundle on a globe and a NASA basemap, with the bundle hillshade tiles on top.</p>
+      <Atlas data={buildAtlasEarth(bundle)} />
+      <div data-full-bleed className="px-4 pt-6 pb-8 sm:px-6">
         <Section title="Evidence labels">
           <EvidenceLegend headingLevel={3} />
         </Section>
