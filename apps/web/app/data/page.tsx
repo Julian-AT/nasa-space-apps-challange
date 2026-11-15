@@ -5,6 +5,8 @@
 // labelled Unavailable with the reason.
 import type { Metadata } from 'next';
 
+import { PageHeader } from '../../components/page-header.tsx';
+import { Section } from '../../components/section.tsx';
 import { LabelledValue } from '../../components/labelled-value.tsx';
 import { BundleFilesTable, SourcesTable } from '../../components/sources-table.tsx';
 import { loadBundle } from '../../lib/bundle.ts';
@@ -21,23 +23,17 @@ export default function DataPage() {
   const sources = readSources({ manifest });
   return (
     <>
-      <h1>Data sources</h1>
-      <section aria-labelledby="sources" className="mt-6">
-        <h2 id="sources">Sources</h2>
-        <div className="mt-2">
-          {sources.kind === 'records' ? (
-            <SourcesTable records={sources.records} />
-          ) : (
-            <LabelledValue label="Unavailable" reason={sources.reason} source={sources.source} />
-          )}
-        </div>
-      </section>
-      <section aria-labelledby="bundle-files" className="mt-6">
-        <h2 id="bundle-files">Bundle files</h2>
-        <div className="mt-2">
-          <BundleFilesTable files={manifest.files} />
-        </div>
-      </section>
+      <PageHeader title="Data sources" />
+      <Section title="Sources" id="sources">
+        {sources.kind === 'records' ? (
+          <SourcesTable records={sources.records} />
+        ) : (
+          <LabelledValue label="Unavailable" reason={sources.reason} source={sources.source} />
+        )}
+      </Section>
+      <Section title="Bundle files" id="bundle-files">
+        <BundleFilesTable files={manifest.files} />
+      </Section>
     </>
   );
 }

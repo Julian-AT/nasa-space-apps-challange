@@ -26,7 +26,7 @@ from typing import Any
 
 import numpy as np
 import numpy.typing as npt
-from rasterio.crs import CRS
+from rasterio.crs import CRS  # type: ignore[import-untyped]
 
 from terraluna_pipeline.geometry import (
     Body,
@@ -61,10 +61,10 @@ class RasterDemSource:
         """The sub-raster holding every point (source-read padding only)."""
         column, row = self.lookup.to_pixel(lat_rad, lon_rad)
         rows, cols = self.raster.shape
-        c0 = max(int(math.floor(float(np.min(column)))) - margin, 0)
-        c1 = min(int(math.ceil(float(np.max(column)))) + margin + 1, cols)
-        r0 = max(int(math.floor(float(np.min(row)))) - margin, 0)
-        r1 = min(int(math.ceil(float(np.max(row)))) + margin + 1, rows)
+        c0 = max(math.floor(float(np.min(column))) - margin, 0)
+        c1 = min(math.ceil(float(np.max(column))) + margin + 1, cols)
+        r0 = max(math.floor(float(np.min(row))) - margin, 0)
+        r1 = min(math.ceil(float(np.max(row))) + margin + 1, rows)
         # Points wholly outside the raster: keep a 2 x 2 corner; every point stays outside.
         c0, r0 = min(c0, cols - 2), min(r0, rows - 2)
         c1, r1 = max(c1, c0 + 2), max(r1, r0 + 2)
@@ -190,16 +190,16 @@ class ClassRaster:
 
 def read_class_crop(path: Path, lat_deg: FloatArray, lon_deg: FloatArray) -> ClassRaster | None:
     """Read the WorldCover crop covering the points, or None if the tile does not cover them."""
-    from rasterio.windows import Window
+    from rasterio.windows import Window  # type: ignore[import-untyped]
 
     head = read_geotiff_window(path, Window(0, 0, 1, 1))
     t = head.raster_transform
     if t is None:
         raise SourceError(f"{path}: no geotransform")
-    c0 = int(math.floor((float(np.min(lon_deg)) - t.c) / t.a)) - 2
-    c1 = int(math.ceil((float(np.max(lon_deg)) - t.c) / t.a)) + 2
-    r0 = int(math.floor((float(np.max(lat_deg)) - t.f) / t.e)) - 2
-    r1 = int(math.ceil((float(np.min(lat_deg)) - t.f) / t.e)) + 2
+    c0 = math.floor((float(np.min(lon_deg)) - t.c) / t.a) - 2
+    c1 = math.ceil((float(np.max(lon_deg)) - t.c) / t.a) + 2
+    r0 = math.floor((float(np.max(lat_deg)) - t.f) / t.e) - 2
+    r1 = math.ceil((float(np.min(lat_deg)) - t.f) / t.e) + 2
     c0, r0 = max(c0, 0), max(r0, 0)
     c1, r1 = min(c1, head.raster_width), min(r1, head.raster_height)
     if c1 - c0 < 1 or r1 - r0 < 1:

@@ -6,11 +6,16 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import type { EncoderSpec, ModelBackground } from '../../lib/probe/embedding.ts';
 import { COP30_MODE } from '../../lib/probe/mode.ts';
 import { type ProbeResult, type ProbeTargetFingerprint, isProbeResult } from '../../lib/probe/result.ts';
 import { ProbeCard } from './probe-card.tsx';
 
 type Target = ProbeTargetFingerprint & { name: string };
+export interface ProbeEncoder {
+  spec: EncoderSpec;
+  backgrounds: Record<string, ModelBackground | null>;
+}
 
 function parseCoordinate(value: string | null, limit: number): number | null {
   if (value === null || value.trim() === '') return null;
@@ -22,7 +27,8 @@ export function ProbeClient({
   targets,
   targetsReason,
   bundleVersion,
-}: Readonly<{ targets: Target[]; targetsReason: string | null; bundleVersion: string }>) {
+  encoder,
+}: Readonly<{ targets: Target[]; targetsReason: string | null; bundleVersion: string; encoder: ProbeEncoder | null }>) {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -62,13 +68,13 @@ export function ProbeClient({
       setWorkerError('The probe worker failed to start.');
       setRunning(false);
     };
-    w.postMessage({ type: 'init', mode: COP30_MODE, targets, targetsReason, bundleVersion: bundleVersion });
+    w.postMessage({ type: 'init', mode: COP30_MODE, targets, targetsReason, bundleVersion, encoder });
     worker.current = w;
     return () => {
       w.terminate();
       worker.current = null;
     };
-  }, [targets, targetsReason, bundleVersion]);
+  }, [targets, targetsReason, bundleVersion, encoder]);
 
   useEffect(() => {
     if (lat === null || lon === null || worker.current === null) return;

@@ -1,20 +1,21 @@
-// The release bundle as the web reads it (PRD 8.4, 8.5, 8.9). `bundle:pull` copies the small JSON
-// files the server reads from the selected bundle into apps/web/data/: manifest.json,
-// validation.json and, when the manifest lists them, sources.json, targets.json,
-// comparisons/<target_id>.json and windows/<body>.json (the top-N subset). `next build` and the
-// API read apps/web/data/ through loadBundle, which repeats every check, so nothing reads a
-// bundle that bundle:pull refuses.
+// The release bundle as the web reads it (PRD 8.4, 8.5, 8.9). `bundle:pull` copies the small files
+// the web reads from the selected bundle into apps/web/data/: manifest.json, validation.json and,
+// when the manifest lists them, every path in lib/bundle-paths.ts (sources.json, targets.json,
+// windows/<body>.json, comparisons/<target_id>.json, cards/<card_id>.json, model/model_card.json,
+// report/metrics.json and figures/<name>.svg). `next build` and the API read apps/web/data/ through
+// loadBundle, which repeats every check, so nothing reads a bundle that bundle:pull refuses.
 //
 // Every copied file must be listed in the manifest, and its byte count and SHA-256 must match the
 // entry. A listed file the bundle lacks is an error; a file the manifest does not list is never
-// copied or read. Large artifacts (tiles/, windows/*.parquet, model/, report/, reference/) and
-// files the server never reads (cards/, figures/) stay in the bundle and are not read here, so
-// they may live in object storage only. Validating the whole bundle (every checksum, unlisted
-// files, budgets) is `export.py validate`'s job.
+// copied or read. Large artifacts (tiles/, windows/*.parquet, model/*.onnx, embeddings,
+// report/umap.bin, reference/) stay in the bundle and may live in object storage only.
+// Validating the whole bundle (every checksum, unlisted files, budgets) is `export.py validate`'s
+// job.
 //
-// manifest.json and validation.json are validated with their @terraluna/schema schemas. sources,
-// targets, comparisons and windows have no schema there yet (schema gaps, left to a human
-// decision), so they are checked against the manifest only and kept as bytes, never parsed.
+// Each JSON file is validated with the @terraluna/schema contract its path maps to and exposed as
+// bundle.records; each figure must pass the SVG allowlist (no script, on* attribute,
+// foreignObject or external reference). An optional file that is not listed is null or absent
+// from its map, never an empty default.
 //
 // Selection: BUNDLE_VERSION unset or empty selects the mock bundle in fixtures/mock-bundle/;
 // otherwise release/<BUNDLE_VERSION>/. A requested bundle that is missing or invalid is an error;
@@ -30,6 +31,17 @@ import {
   ValidationSchema,
 } from '@terraluna/schema';
 
+import {
+  type CardRecord,
+  type Comparisons,
+  type Metrics,
+  type ModelRecord,
+  type Sources,
+  type Targets,
+  type Windows,
+} from '@terraluna/schema';
+
+import { bundlePathEntry, svgRefusal } from './bundle-paths.ts';
 import { BundleError, BundleFileError, MockBundleError } from './errors.ts';
 import { decodeJson } from './json.ts';
 
@@ -55,15 +67,9 @@ export function windowsTopNPath(body: string): string {
   return `windows/${body}.json`;
 }
 
-// One segment of a bundle path, as BundlePath in @terraluna/schema allows it.
-const SEGMENT = '[A-Za-z0-9_-][A-Za-z0-9._-]*';
-const PULLED_PATH = new RegExp(
-  `^(?:validation\\.json|sources\\.json|targets\\.json|(?:comparisons|windows)/${SEGMENT}\\.json)$`,
-);
-
-/** True for a listed bundle path that bundle:pull copies. manifest.json itself is never listed. */
+/** True for a listed bundle path that bundle:pull copies (lib/bundle-paths.ts). */
 export function isPulledPath(path: string): boolean {
-  return PULLED_PATH.test(path);
+  return bundlePathEntry(path) !== null;
 }
 
 /** The environment variables that select and guard the bundle (PRD 8.9). */
@@ -79,14 +85,33 @@ export interface Bundle {
   readonly validation: Validation;
 }
 
+/**
+ * The validated records of the optional bundle files (T15B-01). A file the manifest does not list
+ * is null or absent from its map: "not present", never an empty default.
+ */
+export interface BundleRecords {
+  readonly sources: Sources | null;
+  readonly targets: Targets | null;
+  /** windows/<body>.json by body. */
+  readonly windows: ReadonlyMap<string, Windows>;
+  /** comparisons/<target_id>.json by target_id. */
+  readonly comparisons: ReadonlyMap<string, Comparisons>;
+  /** cards/<card_id>.json by card_id. */
+  readonly cards: ReadonlyMap<string, CardRecord>;
+  readonly modelCard: ModelRecord | null;
+  readonly metrics: Metrics | null;
+  /** figures/<name>.svg by bundle path, as text that passed the allowlist. */
+  readonly figures: ReadonlyMap<string, string>;
+}
+
 /** Everything bundle:pull copied. Read the optional files through the accessors below. */
 export interface PulledBundle extends Bundle {
   /**
-   * The pulled files that have no @terraluna/schema schema yet, by bundle path. Their bytes match
-   * the manifest's byte count and SHA-256; nothing else about them is known, so they are never
-   * parsed here and must not be served as records.
+   * Every pulled file other than validation.json, by bundle path, as bytes that match the
+   * manifest's byte count and SHA-256. The parsed records are in `records`.
    */
   readonly checksumOnly: ReadonlyMap<string, Uint8Array>;
+  readonly records: BundleRecords;
 }
 
 /**
@@ -334,6 +359,73 @@ function checkSelection(manifest: BundleManifest, selection: BundleSelection, la
   }
 }
 
+/** Parses and validates every pulled file with the schema its path maps to (lib/bundle-paths.ts). */
+function parseRecords(files: ReadonlyMap<string, Uint8Array>, where: string): BundleRecords {
+  let sources: Sources | null = null;
+  let targets: Targets | null = null;
+  let modelCard: ModelRecord | null = null;
+  let metrics: Metrics | null = null;
+  const windows = new Map<string, Windows>();
+  const comparisons = new Map<string, Comparisons>();
+  const cards = new Map<string, CardRecord>();
+  const figures = new Map<string, string>();
+  for (const [path, bytes] of files) {
+    const found = bundlePathEntry(path);
+    if (found === null) continue;
+    const { entry, key } = found;
+    const label = `${where}/${path}`;
+    if (entry.schema === 'svg_allowlist') {
+      const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      const refusal = svgRefusal(text);
+      if (refusal !== null) {
+        throw new BundleFileError(path, 'invalid', `${label} is refused by the figure allowlist: ${refusal}`);
+      }
+      figures.set(path, text);
+      continue;
+    }
+    const result = entry.schema.safeParse(decodeFile(bytes, path, label));
+    if (!result.success) {
+      throw new BundleFileError(
+        path,
+        'invalid',
+        `${label} does not match the ${entry.contract} schema: ${issues(result.error)}`,
+      );
+    }
+    const data = result.data;
+    switch (entry.contract) {
+      case 'Sources':
+        sources = data as Sources;
+        break;
+      case 'Targets':
+        targets = data as Targets;
+        break;
+      case 'Windows':
+        windows.set(key ?? '', data as Windows);
+        break;
+      case 'Comparisons':
+        comparisons.set(key ?? '', data as Comparisons);
+        break;
+      case 'CardRecord': {
+        const card = data as CardRecord;
+        if (card.card_id !== key) {
+          throw new BundleFileError(path, 'invalid', `${label} holds card_id ${card.card_id}, not ${String(key)}`);
+        }
+        cards.set(card.card_id, card);
+        break;
+      }
+      case 'ModelRecord':
+        modelCard = data as ModelRecord;
+        break;
+      case 'Metrics':
+        metrics = data as Metrics;
+        break;
+      default:
+        break;
+    }
+  }
+  return { sources, targets, windows, comparisons, cards, modelCard, metrics, figures };
+}
+
 interface ReadBundle {
   readonly bundle: PulledBundle;
   readonly manifestBytes: Uint8Array;
@@ -353,8 +445,9 @@ function readBundle(source: Source, selection: BundleSelection): ReadBundle {
     entries.others.map((entry) => [entry.path, readListedFile(source, entry)] as const),
   );
   const validation = parseValidation(validationBytes, `${source.where}/${VALIDATION}`);
+  const records = parseRecords(checksumOnly, source.where);
   const files = new Map([[VALIDATION, validationBytes] as const, ...checksumOnly]);
-  return { bundle: { manifest, validation, checksumOnly }, manifestBytes, files };
+  return { bundle: { manifest, validation, checksumOnly, records }, manifestBytes, files };
 }
 
 /**

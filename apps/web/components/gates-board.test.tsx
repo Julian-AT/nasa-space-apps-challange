@@ -10,7 +10,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import { EVIDENCE_MEANINGS } from './evidence-label.tsx';
-import { GATE_FIELDS, GATE_IDS, GatesBoard, NO_RECORD, NULL_REASON } from './gates-board.tsx';
+import { GATE_FIELDS, GATE_IDS, GatesBoard, NO_INPUTS_REASON, NO_RECORD, NULL_REASON } from './gates-board.tsx';
 import { MOCK_DIR, WEB_DIR } from '../tests/helpers.ts';
 import { prd812GateFields } from '../tests/prd.ts';
 
@@ -97,7 +97,19 @@ function render(records: readonly unknown[]): string {
   return renderToStaticMarkup(<GatesBoard validation={ValidationSchema.parse(records)} />);
 }
 
-function record(gateId: string, fields: Partial<Record<keyof GateRecord, string | null>> = {}): GateRecord {
+function record(gateId: string, fields: Partial<Record<keyof GateRecord, unknown>> = {}): GateRecord {
+  // A record with any status other than NOT_RUN must carry its evidence (GateRecord schema, PRD 8.13).
+  const evidence =
+    (fields.status ?? 'NOT_RUN') === 'NOT_RUN'
+      ? {}
+      : {
+          evidence_path: `outputs/${gateId}/evidence.json`,
+          run_id: `sha256:${'d'.repeat(64)}`,
+          scope: `scope text of ${gateId}`,
+          command: `uv run gate-${gateId}`,
+          config_version: 'e'.repeat(64),
+          input_hashes: [{ path: `inputs/${gateId}.json`, sha256: 'f'.repeat(64) }],
+        };
   return GateRecordSchema.parse({
     gate_id: gateId,
     status: 'NOT_RUN',
@@ -106,6 +118,10 @@ function record(gateId: string, fields: Partial<Record<keyof GateRecord, string 
     scope: null,
     result: null,
     consequence: null,
+    command: null,
+    config_version: null,
+    input_hashes: [],
+    ...evidence,
     ...fields,
   });
 }
@@ -115,11 +131,19 @@ function fullRecord(gateId: string, status: string): GateRecord {
   return record(gateId, {
     status,
     evidence_path: `outputs/${gateId}/evidence.json`,
-    run_id: `sha256:run-${gateId}`,
+    run_id: `sha256:${'d'.repeat(64)}`,
+    command: `uv run gate-${gateId}`,
+    config_version: 'e'.repeat(64),
+    input_hashes: [{ path: `inputs/${gateId}.json`, sha256: 'f'.repeat(64) }],
     scope: `scope text of ${gateId}`,
     result: `result text of ${gateId}`,
     consequence: `consequence text of ${gateId}`,
   });
+}
+
+/** The text a field's cell shows: an input_hashes list is one "path sha256" line per entry. */
+function cellText(value: GateRecord[keyof GateRecord]): string | null {
+  return Array.isArray(value) ? value.map((input) => `${input.path} ${input.sha256}`).join(' ') : value;
 }
 
 const MOCK_VALIDATION: unknown = JSON.parse(readFileSync(join(MOCK_DIR, 'validation.json'), 'utf8'));
@@ -170,9 +194,13 @@ describe('GatesBoard on the mock bundle', () => {
   it('shows every null field as Unavailable with the reason, never as 0 or a blank', () => {
     for (const row of table.rows) {
       expect(row).toHaveLength(GATE_FIELDS.length);
-      for (const field of ['evidence_path', 'run_id', 'scope', 'result', 'consequence'] as const) {
+      for (const field of ['evidence_path', 'run_id', 'scope', 'result', 'consequence', 'command', 'config_version'] as const) {
         expect(row[GATE_FIELDS.indexOf(field)]?.text).toBe(UNAVAILABLE_TEXT);
       }
+      // An empty input list is absent evidence too, with its own reason; it is never a blank or 0.
+      expect(row[GATE_FIELDS.indexOf('input_hashes')]?.text).toBe(
+        `Unavailable ${EVIDENCE_MEANINGS.Unavailable} ${NO_INPUTS_REASON}`,
+      );
     }
   });
 });
@@ -185,7 +213,9 @@ describe('GatesBoard on small GateRecord arrays', () => {
   it('renders every field of a full record verbatim in its own column', () => {
     const full = fullRecord('G3', 'PARTIAL');
     const [row] = readTable(render([full])).rows.filter((cells) => cells[0]?.text === 'G3');
-    expect(row?.map((c) => c.text)).toEqual(GATE_FIELDS.map((field) => full[field]));
+    expect(row?.map((c) => c.text)).toEqual(
+      GATE_FIELDS.map((field) => cellText(full[field])),
+    );
   });
 
   it('renders each status as its own literal text, with the same styling for every status', () => {
@@ -214,7 +244,7 @@ describe('GatesBoard on small GateRecord arrays', () => {
     expect(rows.map((row) => row[0]?.text)).toEqual(GATE_IDS);
     for (const row of rows) {
       const source = shuffled.find((entry) => entry.gate_id === row[0]?.text);
-      expect(row.map((c) => c.text)).toEqual(GATE_FIELDS.map((field) => source?.[field]));
+      expect(row.map((c) => c.text)).toEqual(GATE_FIELDS.map((field) => (source === undefined ? undefined : cellText(source[field]))));
     }
   });
 
@@ -252,20 +282,22 @@ describe('GatesBoard on small GateRecord arrays', () => {
     const g5 = fullRecord('G5', 'FAIL');
     const rows = readTable(render([g5])).rows;
     expect(rows.find((row) => row[0]?.text === 'G5')?.map((c) => c.text)).toEqual(
-      GATE_FIELDS.map((field) => g5[field]),
+      GATE_FIELDS.map((field) => cellText(g5[field])),
     );
   });
 
   it('adds no text of its own beyond the caption, the field names and the two fixed reasons', () => {
     const records = ['G0', 'G2'].map((id) => fullRecord(id, 'PASS'));
     const table = readTable(render(records));
-    const own = new Set([...GATE_IDS, NO_RECORD, ...records.flatMap((entry) => GATE_FIELDS.map((f) => entry[f]))]);
+    const own = new Set([...GATE_IDS, NO_RECORD, ...records.flatMap((entry) => GATE_FIELDS.map((f) => cellText(entry[f])))]);
     for (const c of table.rows.flat()) expect(own).toContain(c.text);
   });
 });
 
 describe('gates-board.tsx source', () => {
   const source = readFileSync(join(WEB_DIR, 'components', 'gates-board.tsx'), 'utf8');
+  const tableSource = readFileSync(join(WEB_DIR, 'components', 'ui', 'table.tsx'), 'utf8');
+  const badgeSource = readFileSync(join(WEB_DIR, 'components', 'ui', 'badge.tsx'), 'utf8');
 
   it('types no status, result or threshold: every status literal comes from the records', () => {
     for (const status of STATUSES) expect(source).not.toContain(status);
@@ -283,7 +315,8 @@ describe('gates-board.tsx source', () => {
     expect(classes.size).toBeGreaterThan(0);
     for (const name of classes) {
       const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      expect(source, name).toMatch(new RegExp(`['"\\s]${escaped}['"\\s]`));
+      // The board's classes live in its own source and in the table and badge primitives it uses.
+      expect(`${source}${tableSource}${badgeSource}`, name).toMatch(new RegExp(`['"\\s]${escaped}['"\\s]`));
     }
   });
 

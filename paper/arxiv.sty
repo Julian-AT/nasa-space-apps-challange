@@ -18,3 +18,21 @@
   citecolor = blue!60!black,
   urlcolor = blue!60!black,
 }
+
+% A generated number macro whose artifact or value does not exist yet renders as this text,
+% never as 0 (scripts/numbers.py).
+\newcommand{\NotAvailable}{\textit{not available}}
+
+% Measurement sections may hold no literal digit outside macros (scripts/test_manuscript.py), so
+% the coefficient of determination and the wide table columns are named here.
+\RequirePackage{array}
+\newcommand{\Rsq}{\ensuremath{R^{2}}}
+\newcolumntype{W}{p{0.52\linewidth}}
+
+% Let tall figures and tables float near their first reference instead of collecting at the end.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.7}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{5}

@@ -1,2 +1,104 @@
 \section{Background}
 \label{sec:background}
+
+\subsection{Planetary roughness statistics}
+
+Surface roughness has no single value. \citet{shepard2001} compared topographic data from many
+natural surfaces and concluded that a roughness measure must be tied to the horizontal scale at
+which it is taken, so they proposed reporting scale dependent parameters in a standard form. The
+central quantity is the root mean square height difference between points a fixed lag apart. Its
+growth with lag is the deviogram, and on a log scale the slope of the deviogram is the Hurst
+exponent of a self affine surface. These definitions let workers with different instruments and
+sampling report comparable numbers, provided that each number states its lag.
+
+Laser altimetry turned these definitions into maps. \citet{rosenburg2011} computed slopes and
+Hurst exponents of the Moon from LOLA over baselines from about 17 m to about 2.7 km. Most of the
+surface behaves like a fractal with one or two exponents over that range, and where the exponent
+changes, the breakover typically sits near a 1 km baseline \citep{rosenburg2011}. The median Hurst
+exponent is 0.95 in the highlands and 0.76 in the maria \citep{rosenburg2011}. \citet{kreslavsky2013}
+mapped lunar roughness from LOLA profile curvature at baselines from 115 m to 1.8 km and found that
+hectometre and kilometre roughness correlate poorly, because they record different processes and
+ages. On Mars, \citet{kreslavsky2000} measured kilometre scale roughness from MOLA as the median
+differential slope over baselines from 0.6 km to about 20 km and showed that geological units
+have distinct roughness and distinct scale dependence. Field measurements give the same caution
+at smaller scales: lava flow roughness behaves as a self affine surface only over a limited range
+of lengths, and the smallest scales follow different statistics \citep{campbell1996}. A Hurst
+exponent is therefore a description of a stated range of lags, not a property of a surface at all
+scales.
+
+\subsection{Radar polarimetry and the circular polarization ratio}
+
+Radar adds information at the scale of its wavelength. Mini-RF on the Lunar Reconnaissance
+Orbiter is a hybrid polarity synthetic aperture radar that measures the Stokes parameters of the
+echo \citep{nozette2010}. From them, the circular polarization ratio (CPR) of the same sense to
+the opposite sense return is formed, and the m-chi decomposition interprets the echo through the degree of polarization and the
+Poincar\'e ellipticity parameter \citep{raney2012}. CPR is sensitive to structure near the radar wavelength. Real CPR values above
+unity occur on the Moon, on Venus and on terrestrial lava flows, produced by scattering from rock
+edges and between rock facets \citep{campbell2012}. Lunar impact melt flows typically have high
+CPR, so deposits that look smooth in optical images may be rough at centimetre to decimetre scales
+\citep{carter2012}.
+
+CPR is not a direct measure of rock size. Viewing geometry shifts it: across the inner wall of a
+bowl shaped crater the local incidence angle changes by about 30 degrees, which can change CPR by
+about 0.2 \citep{fa2013}. The same study attributes the enhanced CPR inside anomalous polar
+craters mostly to rocks perched on or buried in the regolith, rather than to ice \citep{fa2013}.
+Across the lunar highlands, \citet{riveravalentin2026} found that CPR rises quickly with rock
+abundance at low abundance, then levels off and can fall over rock rich terrain, so a CPR of 0.8
+may correspond to a rock abundance of about 0.7\% or about 10\%. They show that several
+polarimetric properties used together resolve this ambiguity \citep{riveravalentin2026}. Mini-RF
+mosaics also depend on how terrain effects are handled. \citet{fassett2024} orthorectified the
+archived monostatic data onto lunar topography and reduced topographic effects with an empirical
+correction based on the known effect of incidence angle.
+Learned inversions inherit the same geometry dependence: comparing east and west looking polar
+mosaics gives a look direction uncertainty of 1.01 in the real part of the inferred dielectric
+constant \citep{shukla2024}.
+
+\subsection{Quantitative analog studies}
+
+Earth surfaces have long served as candidates for interpreting planetary radar and terrain
+signatures, but quantitative studies report overlapping populations rather than clean matches. At
+the 2014 to 2015 Holuhraun flow field in Iceland, \citet{tolometti2022holuhraun} tested whether
+three mapped lava facies differ in UAVSAR CPR and Sentinel-1 cross polarization. The facies were
+statistically distinguishable, yet their CPR populations overlap by 88\% to 89\%, so radar can
+suggest a facies in probability but cannot map it \citep{tolometti2022holuhraun}. The same study
+found only small differences in lidar Hurst exponents between most lava types. On Mars, equatorial
+lava flows are radar bright with CPR above one, like blocky terrestrial flows, but terrain models
+of 35 flows from HiRISE show that at metre scale they are smoother than blocky flows and closer to
+pahoehoe and rubbly flows \citep{rodriguezsanchezvahamonde2021}. Decimetre and metre roughness can
+thus point in different directions on one surface. Learned similarity has also been tried:
+\citet{meng2024} trained a convolutional network with a discriminative loss to bring Earth and
+Mars image patches of the same location together, and used it to select analog areas in the
+evaporite region of the Qaidam Basin. These studies treat an Earth surface as a candidate for
+interpreting a signature, a use that field work can then test.
+
+\subsection{Self-supervised and domain-adversarial learning}
+
+Joint embedding methods learn representations by making two augmented views of one input agree.
+Their failure mode is collapse to a constant output. Contrastive methods such as SimCLR learn by
+contrasting augmented views \citep{chen2020}. Barlow Twins drives the cross
+correlation of the two views' embeddings towards the identity \citep{zbontar2021}. VICReg adds an
+explicit variance term on every embedding dimension to an invariance term and a covariance term
+that decorrelates dimensions \citep{bardes2021}. DINO trains a Vision
+Transformer by self distillation without labels, and its features work well as nearest neighbour
+classifiers \citep{caron2021}. Domain-adversarial training addresses a
+different problem: a gradient reversal layer between a feature extractor and a domain classifier
+makes the features useful for the main task while uninformative about the domain
+\citep{ganin2015}. The two ideas combine naturally when the domains are planetary bodies and the
+aim is an embedding of terrain that does not encode which body a window came from.
+
+\subsection{Learned planetary and terrain representations}
+
+The lunar representation models below are trained on lunar data. LunarFM is a multimodal
+masked autoencoder that maps 18 channels from six instruments on three lunar missions into a
+shared 768 dimensional embedding, with a training set spanning 70 degrees south to 70 degrees
+north \citep{gironamata2026}. SomBench assembles more than 30 co-registered lunar layers into
+machine learning ready tiles with leakage safe splits \citep{patil2026}, and a lunar foundation
+model was pretrained on its tiles at 1 m and 100 m per pixel \citep{fraccaro2026}. Crater retrieval benchmarks show that self-supervised Vision Transformers
+with in-domain pretraining outperform larger generic models \citep{fang2026}. On Earth, topo2vec
+learns embeddings of elevation data with self-supervision built on the fractal assumption that
+structures recur across scales \citep{kavitzky2021}. GEAR retrieves terrestrial topographic analogs
+of the Mariana Trench on the Qinghai-Tibet Plateau with a Siamese graph network and an expert
+annotated similarity dataset \citep{liu2026}. Optical surveys at the boulder scale complement
+these models: a convolutional network mapped about 94 million boulders in images between
+60 degrees south and 60 degrees north \citep{aussel2025}. Section~\ref{sec:embedding} compares the
+inputs, training signals and invariances of these models with those of the encoder studied here.

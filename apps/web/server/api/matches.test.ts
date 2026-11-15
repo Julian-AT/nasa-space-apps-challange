@@ -1,405 +1,170 @@
-// GET /api/v1/targets/{id}/matches (PRD 8.5, T15-05). The ranked ComparisonRecords of a target
-// live in comparisons/<target_id>.json, which has no @terraluna/schema schema yet, so the route
-// always answers with a problem: 404 when the bundle does not hold the matches, 501 when it holds
-// the comparison file but cannot serve it. Model-family matches are refused unless a model is in
-// the bundle and G5 is PASS; any model-family answer carries the Predicted label.
-import { describe, expect, it, vi } from 'vitest';
+// GET /api/v1/targets/{id}/matches (PRD 8.5, T15B-03) over test-local, schema-valid comparison files.
+import { describe, expect, it } from 'vitest';
 
-import { comparisonPath, type PulledBundle } from '../../lib/bundle.ts';
-import { ALL_GATES_NOT_RUN, gate } from '../../tests/helpers.ts';
-import {
-  CURSOR_MAX_LENGTH,
-  CURSOR_PATTERN,
-  MATCH_BODIES,
-  MATCH_FAMILIES,
-  MATCH_LIMIT_DEFAULT,
-  MATCH_LIMIT_MAX,
-  MATCH_LIMIT_MIN,
-  MatchesQuerySchema,
-} from './matches.ts';
-import { VALIDATION_STATUS } from './problem.ts';
-import { TARGET_ID_MAX_LENGTH } from './targets.ts';
-import {
-  expectProblem,
-  mockReader,
-  quietApi,
-  RELEASE_VERSION,
-  releaseBundleReader,
-  TEST_BYTES_MARKER,
-  testBytes,
-} from './test-support.ts';
+import type { MatchesResponse } from './matches.ts';
+import { comparison, EARTH_ID, memoryReader, TARGET_ID, targetRecord } from './test-records.ts';
+import { expectProblem, quietApi } from './test-support.ts';
 
-/** Target ids for these tests only. They are test input, not targets of any bundle. */
-const TARGET = 'test-target-alpha';
-const OTHER_TARGET = 'test-target-beta';
+type Page = MatchesResponse;
 
-/** A model entry for these tests only, not a model of any bundle. */
-const TEST_MODEL_ID = 'test-model-alpha';
+const RECORDS = [
+  comparison({ earth: EARTH_ID(1), relief: 0.5, texture: 0.1, radar: 0.3 }),
+  comparison({ earth: EARTH_ID(2), relief: 0.2, texture: 0.9, radar: null }),
+  comparison({ earth: EARTH_ID(3), relief: null, texture: 0.4, radar: 0.1 }),
+  comparison({ earth: EARTH_ID(4), relief: 0.2, texture: null, radar: 0.2 }),
+];
 
-function matchesPath(id: string, query = 'body=earth&family=terrain'): string {
-  return `/api/v1/targets/${id}/matches?${query}`;
-}
-
-function testModel(g5: string) {
-  return { id: TEST_MODEL_ID, status: 'EXPERIMENTAL', g5 };
-}
-
-/** validation.json with G5 replaced by the given statuses (none: no G5 record at all). */
-function gatesWithG5(...statuses: string[]) {
-  return [
-    ...ALL_GATES_NOT_RUN.filter((record) => record.gate_id !== 'G5'),
-    ...statuses.map((status) => gate('G5', status)),
-  ];
-}
-
-/** A release bundle that lists TARGET and holds its comparison file (test bytes). */
-function withComparisons(options: Parameters<typeof releaseBundleReader>[0] = {}) {
-  return releaseBundleReader({
-    targets: [TARGET, OTHER_TARGET],
-    files: { [comparisonPath(TARGET)]: testBytes('a comparison file') },
-    ...options,
+function reader(extra: Parameters<typeof memoryReader>[0] = {}) {
+  return memoryReader({
+    targets: [targetRecord()],
+    comparisons: { [TARGET_ID]: RECORDS },
+    ...extra,
   });
 }
 
-const NON_PASS = ['NOT_RUN', 'FAIL', 'PARTIAL', 'NOT_APPLICABLE'];
+async function page(query: string, r = reader()): Promise<Page> {
+  const response = await quietApi(r).api.request(`/api/v1/targets/${TARGET_ID}/matches?${query}`);
+  expect(response.status).toBe(200);
+  return (await response.json()) as Page;
+}
 
-describe('GET /api/v1/targets/{id}/matches on the mock bundle', () => {
-  for (const family of ['terrain', 'radar']) {
-    it(`is a 404 problem for family=${family}, naming the target and the bundle`, async () => {
-      const { api, log } = quietApi();
-      const response = await api.request(matchesPath(TARGET, `body=earth&family=${family}`));
-      const problem = await expectProblem(response, 404, 'Not Found');
-      expect(problem.detail).toBe(`Target ${TARGET} is not in bundle mock-0.`);
-      expect(problem.instance).toBe(`/api/v1/targets/${TARGET}/matches`);
-      expect(log).not.toHaveBeenCalled();
-    });
-  }
+const ids = (p: Page) => p.items.map((i) => i.earth_window_id);
 
-  it('explains for family=model that model-family matches need a model in the bundle', async () => {
-    const { api, log } = quietApi();
-    const response = await api.request(matchesPath(TARGET, 'body=earth&family=model'));
-    const problem = await expectProblem(response, 404, 'Not Found');
-    expect(problem.detail).toContain('Model-family matches are not in bundle mock-0');
-    expect(problem.detail).toContain('exist only when a model is in the bundle');
-    expect(log).not.toHaveBeenCalled();
+describe('matches order and families', () => {
+  it('returns the records in file order', async () => {
+    expect(ids(await page('family=terrain'))).toEqual(RECORDS.map((r) => r.earth_window_id));
+  });
+
+  it('reorders by measure inside the terrain family only, stably, unavailable last', async () => {
+    expect(ids(await page('family=terrain&measure=relief'))).toEqual([
+      EARTH_ID(2),
+      EARTH_ID(4),
+      EARTH_ID(1),
+      EARTH_ID(3),
+    ]);
+    expect(ids(await page('family=terrain&measure=texture'))).toEqual([
+      EARTH_ID(1),
+      EARTH_ID(3),
+      EARTH_ID(2),
+      EARTH_ID(4),
+    ]);
+  });
+
+  it('is a 400 problem for measure with radar or model', async () => {
+    for (const family of ['radar', 'model']) {
+      const response = await quietApi(reader()).api.request(
+        `/api/v1/targets/${TARGET_ID}/matches?family=${family}&measure=relief`,
+      );
+      await expectProblem(response, 400, 'Bad Request');
+    }
+  });
+
+  it('carries terrain keys for terrain, radar_cpr for radar, and never mixes families', async () => {
+    const terrain = (await page('family=terrain')).items[0] ?? {};
+    expect(Object.keys(terrain)).toEqual(expect.arrayContaining(['terrain_relief', 'terrain_texture']));
+    expect('radar_cpr' in terrain || 'model_embedding' in terrain).toBe(false);
+    const radar = (await page('family=radar')).items[0] ?? {};
+    expect('radar_cpr' in radar).toBe(true);
+    expect('terrain_relief' in radar || 'model_embedding' in radar).toBe(false);
+  });
+
+  it('returns an unavailable distance as stored, with its reason and no value', async () => {
+    const second = (await page('family=radar')).items[1];
+    expect(second?.radar_cpr).toMatchObject({ value: null, status: 'unavailable', reason: 'test_radar_not_in_mode' });
+  });
+
+  it('refuses a Mode B record that carries a radar value', async () => {
+    const bad = comparison({ earth: EARTH_ID(1), relief: 0.1, texture: 0.1, radar: 0.5, mode: 'B' });
+    const r = reader({ comparisons: { [TARGET_ID]: [bad] } });
+    const response = await quietApi(r).api.request(`/api/v1/targets/${TARGET_ID}/matches?family=radar`);
+    await expectProblem(response, 500, 'Internal Server Error');
   });
 });
 
-describe('GET /api/v1/targets/{id}/matches on a release bundle', () => {
-  it('is a 404 problem for a target the manifest does not list', async () => {
-    const { api } = quietApi(withComparisons());
-    const problem = await expectProblem(
-      await api.request(matchesPath('test-target-gamma')),
-      404,
-      'Not Found',
-    );
-    expect(problem.detail).toBe(`Target test-target-gamma is not in bundle ${RELEASE_VERSION}.`);
-  });
-
-  it('is a 404 problem for a listed target whose comparison file the manifest does not list', async () => {
-    const { api, log } = quietApi(withComparisons());
-    const problem = await expectProblem(
-      await api.request(matchesPath(OTHER_TARGET)),
-      404,
-      'Not Found',
-    );
-    expect(problem.detail).toContain(`not in bundle ${RELEASE_VERSION}`);
-    expect(problem.detail).toContain(comparisonPath(OTHER_TARGET));
-    expect(log).not.toHaveBeenCalled();
-  });
-
-  for (const family of ['terrain', 'radar']) {
-    it(`is a 501 problem for family=${family} when the comparison file is in the bundle`, async () => {
-      const { api, log } = quietApi(withComparisons());
-      const response = await api.request(matchesPath(TARGET, `body=earth&family=${family}`));
-      const text = await response.clone().text();
-      const problem = await expectProblem(response, 501, 'Not Implemented');
-      expect(problem.detail).toContain(`${comparisonPath(TARGET)} is in bundle ${RELEASE_VERSION}`);
-      expect(problem.detail).toContain('not served yet');
-      expect(problem.detail).toContain('@terraluna/schema has no ComparisonRecord schema');
-      expect(text).not.toContain(TEST_BYTES_MARKER);
-      expect(log).not.toHaveBeenCalled();
+describe('family=model', () => {
+  const withModel = (g5: string | null, manifestG5 = 'PASS') =>
+    reader({
+      g5,
+      manifest: { model: { id: 'test-model-alpha', status: 'EXPERIMENTAL', g5: manifestG5 } },
+      comparisons: {
+        [TARGET_ID]: [comparison({ earth: EARTH_ID(1), relief: 0.1, texture: 0.1, model: 0.7 })],
+      },
     });
-  }
 
-  it('matches the target id exactly, so another target never borrows a comparison file', async () => {
-    const { api } = quietApi(
-      releaseBundleReader({
-        targets: [TARGET, `${TARGET}-x`],
-        files: { [comparisonPath(`${TARGET}-x`)]: testBytes('a comparison file') },
-      }),
-    );
-    await expectProblem(await api.request(matchesPath(TARGET)), 404, 'Not Found');
+  it.each(['NOT_RUN', 'FAIL', 'PARTIAL', null])('is a 409 problem while G5 is %s', async (g5) => {
+    const r = withModel(g5, g5 ?? 'NOT_RUN');
+    const response = await quietApi(r).api.request(`/api/v1/targets/${TARGET_ID}/matches?family=model`);
+    await expectProblem(response, 409, 'Conflict');
   });
 
-  it('answers HEAD with the problem status and no body', async () => {
-    const { api } = quietApi(withComparisons());
-    const head = await api.request(matchesPath(TARGET), { method: 'HEAD' });
-    expect(head.status).toBe(501);
-    expect(await head.text()).toBe('');
+  it('is a 409 problem when the bundle has no model, whatever it holds', async () => {
+    const response = await quietApi(reader()).api.request(`/api/v1/targets/${TARGET_ID}/matches?family=model`);
+    await expectProblem(response, 409, 'Conflict');
   });
 
-  it('refuses a manifest that fails its schema with a 500 problem, not 404 or 501', async () => {
-    const bundle = withComparisons()();
-    const corrupt = { ...bundle, manifest: { ...bundle.manifest, targets: [TARGET, 7] } };
-    const { api, log } = quietApi(() => corrupt as unknown as PulledBundle);
-    const problem = await expectProblem(
-      await api.request(matchesPath(TARGET)),
-      500,
-      'Internal Server Error',
-    );
-    expect(problem.detail).toContain('manifest.json');
-    expect(log).toHaveBeenCalledOnce();
+  it('returns Predicted entries once G5 is PASS in both places', async () => {
+    const result = await page('family=model', withModel('PASS'));
+    expect(result.evidence_label).toBe('Predicted');
+    expect(result.items[0]?.model_embedding).toMatchObject({ value: 0.7, evidence_label: 'Predicted' });
   });
 
-  it('reads the bundle on each request', async () => {
-    const reader = vi.fn(mockReader);
-    const { api } = quietApi(reader);
-    await api.request(matchesPath(TARGET));
-    await api.request(matchesPath(TARGET));
-    expect(reader).toHaveBeenCalledTimes(2);
+  it('leaves terrain and radar untouched by the G5 state', async () => {
+    expect((await page('family=terrain', withModel('FAIL', 'FAIL'))).items).toHaveLength(1);
   });
 });
 
-describe('family=model matches', () => {
-  const MODEL_QUERY = 'body=earth&family=model';
+describe('paging', () => {
+  const many = Array.from({ length: 10_000 }, (_, i) =>
+    comparison({ earth: `earth-test-x${String(i)}-y0`, relief: i / 10_000, texture: 0 }),
+  );
+  const big = () => reader({ comparisons: { [TARGET_ID]: many } });
 
-  it('are refused when manifest.json names no model, even with a comparison file', async () => {
-    const { api } = quietApi(withComparisons({ gates: gatesWithG5('PASS') }));
-    const response = await api.request(matchesPath(TARGET, MODEL_QUERY));
-    const text = await response.clone().text();
-    const problem = await expectProblem(response, 404, 'Not Found');
-    expect(problem.detail).toContain(`Model-family matches are not in bundle ${RELEASE_VERSION}`);
-    expect(problem.detail).toContain('exist only when a model is in the bundle');
-    expect(text).not.toContain(TEST_BYTES_MARKER);
+  it('pages 10,000 stored records to the first 500 in order, without repeat or gap', async () => {
+    const r = big();
+    const seen: string[] = [];
+    let cursor: string | null = null;
+    let pages = 0;
+    do {
+      const query: string = `family=terrain&limit=70${cursor === null ? '' : `&cursor=${cursor}`}`;
+      const p = await page(query, r);
+      expect(p.total).toBe(500);
+      seen.push(...ids(p));
+      cursor = p.next_cursor;
+      pages += 1;
+    } while (cursor !== null && pages < 20);
+    expect(seen).toEqual(many.slice(0, 500).map((m) => m.earth_window_id));
   });
 
-  for (const status of NON_PASS) {
-    it(`are refused while the manifest gives G5 as ${status}`, async () => {
-      const reader = withComparisons({ model: testModel(status), gates: gatesWithG5('PASS') });
-      const { api, log } = quietApi(reader);
-      const response = await api.request(matchesPath(TARGET, MODEL_QUERY));
-      const text = await response.clone().text();
-      const problem = await expectProblem(response, 404, 'Not Found');
-      expect(problem.detail).toContain(`Model-family matches are not in bundle ${RELEASE_VERSION}`);
-      expect(problem.detail).toContain(TEST_MODEL_ID);
-      expect(problem.detail).toContain('only when G5 is PASS');
-      expect(problem.detail).toContain(`manifest.json gives G5 as ${status}`);
-      expect(text).not.toContain(TEST_BYTES_MARKER);
-      expect(log).not.toHaveBeenCalled();
-    });
+  it('defaults to 50 and rejects limits outside 1..500', async () => {
+    expect((await page('family=terrain', big())).items).toHaveLength(50);
+    for (const limit of ['0', '501', 'x']) {
+      const response = await quietApi(big()).api.request(`/api/v1/targets/${TARGET_ID}/matches?family=terrain&limit=${limit}`);
+      await expectProblem(response, 400, 'Bad Request');
+    }
+  });
 
-    it(`are refused while validation.json gives G5 as ${status}`, async () => {
-      const reader = withComparisons({ model: testModel('PASS'), gates: gatesWithG5(status) });
-      const { api } = quietApi(reader);
-      const problem = await expectProblem(
-        await api.request(matchesPath(TARGET, MODEL_QUERY)),
-        404,
-        'Not Found',
+  it('is a 400 problem for a malformed cursor', async () => {
+    for (const cursor of ['!!', 'AAAA', Buffer.from('o9999').toString('base64url'), Buffer.from('x1').toString('base64url')]) {
+      const response = await quietApi(reader()).api.request(
+        `/api/v1/targets/${TARGET_ID}/matches?family=terrain&cursor=${cursor}`,
       );
-      expect(problem.detail).toContain('only when G5 is PASS');
-      expect(problem.detail).toContain(`validation.json gives G5 as ${status}`);
-    });
-  }
-
-  it('are refused when validation.json has no G5 record', async () => {
-    const reader = withComparisons({ model: testModel('PASS'), gates: gatesWithG5() });
-    const { api } = quietApi(reader);
-    const problem = await expectProblem(
-      await api.request(matchesPath(TARGET, MODEL_QUERY)),
-      404,
-      'Not Found',
-    );
-    expect(problem.detail).toContain('validation.json has no G5 record');
+      await expectProblem(response, 400, 'Bad Request');
+    }
   });
-
-  it('are a 500 problem when validation.json lists G5 twice, which the loader refuses', async () => {
-    const reader = withComparisons({
-      model: testModel('PASS'),
-      gates: gatesWithG5('PASS', 'PASS'),
-    });
-    const { api, log } = quietApi(reader);
-    const response = await api.request(matchesPath(TARGET, MODEL_QUERY));
-    const text = await response.clone().text();
-    const problem = await expectProblem(response, 500, 'Internal Server Error');
-    expect(problem.detail).toContain('validation.json');
-    expect(text).not.toContain('Predicted');
-    expect(log).toHaveBeenCalledOnce();
-  });
-
-  it('are refused when a reader passes validation.json with G5 twice', async () => {
-    const bundle = withComparisons({ model: testModel('PASS'), gates: gatesWithG5('PASS') })();
-    const doubled = { ...bundle, validation: gatesWithG5('PASS', 'PASS') };
-    const { api } = quietApi(() => doubled as unknown as PulledBundle);
-    const problem = await expectProblem(
-      await api.request(matchesPath(TARGET, MODEL_QUERY)),
-      404,
-      'Not Found',
-    );
-    expect(problem.detail).toContain('validation.json records G5 2 times (PASS, PASS)');
-  });
-
-  it('are refused before the target is looked up', async () => {
-    const reader = withComparisons({ model: testModel('NOT_RUN') });
-    const { api } = quietApi(reader);
-    const problem = await expectProblem(
-      await api.request(matchesPath('test-target-gamma', MODEL_QUERY)),
-      404,
-      'Not Found',
-    );
-    expect(problem.detail).toContain('only when G5 is PASS');
-  });
-
-  it('pass the G5 check only when both files give G5 as PASS, and then carry Predicted', async () => {
-    const reader = withComparisons({ model: testModel('PASS'), gates: gatesWithG5('PASS') });
-    const { api } = quietApi(reader);
-    const response = await api.request(matchesPath(TARGET, MODEL_QUERY));
-    const text = await response.clone().text();
-    const problem = await expectProblem(response, 501, 'Not Implemented');
-    expect(problem.detail).toContain('Predicted');
-    expect(problem.detail).toContain('@terraluna/schema has no ComparisonRecord schema');
-    expect(text).not.toContain(TEST_BYTES_MARKER);
-  });
-
-  it('give a 404 for an unlisted target once G5 is PASS', async () => {
-    const reader = withComparisons({ model: testModel('PASS'), gates: gatesWithG5('PASS') });
-    const { api } = quietApi(reader);
-    const problem = await expectProblem(
-      await api.request(matchesPath('test-target-gamma', MODEL_QUERY)),
-      404,
-      'Not Found',
-    );
-    expect(problem.detail).toBe(`Target test-target-gamma is not in bundle ${RELEASE_VERSION}.`);
-  });
-
-  it('refuse a validation.json that fails its schema with a 500 problem', async () => {
-    const bundle = withComparisons({ model: testModel('PASS'), gates: gatesWithG5('PASS') })();
-    const corrupt = { ...bundle, validation: [{ gate_id: 'G5', status: 'PASSED' }] };
-    const { api, log } = quietApi(() => corrupt as unknown as PulledBundle);
-    const problem = await expectProblem(
-      await api.request(matchesPath(TARGET, MODEL_QUERY)),
-      500,
-      'Internal Server Error',
-    );
-    expect(problem.detail).toContain('validation.json');
-    expect(log).toHaveBeenCalledOnce();
-  });
-
-  for (const family of ['terrain', 'radar']) {
-    it(`leave family=${family} untouched by the G5 state`, async () => {
-      const reader = withComparisons({ model: testModel('NOT_RUN') });
-      const { api } = quietApi(reader);
-      const response = await api.request(matchesPath(TARGET, `body=earth&family=${family}`));
-      const problem = await expectProblem(response, 501, 'Not Implemented');
-      expect(problem.detail).not.toContain('G5');
-    });
-  }
 });
 
-describe('the matches query parameters', () => {
-  it('have the documented values', () => {
-    expect(MATCH_BODIES).toEqual(['earth']);
-    expect(MATCH_FAMILIES).toEqual(['terrain', 'radar', 'model']);
-    expect([MATCH_LIMIT_MIN, MATCH_LIMIT_MAX, MATCH_LIMIT_DEFAULT]).toEqual([1, 500, 50]);
-    expect(CURSOR_PATTERN).toBe('^[A-Za-z0-9_-]*$');
-    expect(CURSOR_MAX_LENGTH).toBe(256);
+describe('missing comparisons', () => {
+  it('is a 404 problem for a target without a comparison file, and for an unknown one', async () => {
+    const r = memoryReader({ targets: [targetRecord()] });
+    await expectProblem(
+      await quietApi(r).api.request(`/api/v1/targets/${TARGET_ID}/matches?family=terrain`),
+      404,
+      'Not Found',
+    );
+    await expectProblem(
+      await quietApi(reader()).api.request('/api/v1/targets/moon-test-none/matches?family=terrain'),
+      404,
+      'Not Found',
+    );
   });
-
-  it('default limit to 50 and leave cursor unset', () => {
-    expect(MatchesQuerySchema.parse({ body: 'earth', family: 'terrain' })).toEqual({
-      body: 'earth',
-      family: 'terrain',
-      limit: 50,
-    });
-  });
-
-  it('turn a limit in decimal digits into a number', () => {
-    const query = { body: 'earth', family: 'radar', limit: '500', cursor: 'abc' };
-    expect(MatchesQuerySchema.parse(query)).toEqual({ ...query, limit: 500 });
-  });
-
-  const ACCEPTED: readonly [string, string][] = [
-    ['limit 1', 'body=earth&family=terrain&limit=1'],
-    ['limit 50', 'body=earth&family=radar&limit=50'],
-    ['limit 500', 'body=earth&family=model&limit=500'],
-    ['an empty cursor', 'body=earth&family=terrain&cursor='],
-    ['a cursor of url-safe characters', 'body=earth&family=terrain&cursor=Ab_9-z'],
-    [
-      `a cursor of ${String(CURSOR_MAX_LENGTH)} characters`,
-      `body=earth&family=terrain&cursor=${'c'.repeat(CURSOR_MAX_LENGTH)}`,
-    ],
-    ['the parameters in any order', 'limit=7&family=terrain&body=earth'],
-  ];
-
-  for (const [what, query] of ACCEPTED) {
-    it(`accept ${what}`, async () => {
-      const { api } = quietApi();
-      await expectProblem(await api.request(matchesPath(TARGET, query)), 404, 'Not Found');
-    });
-  }
-
-  const REFUSED: readonly [string, string, string][] = [
-    ['no body', 'family=terrain', 'body'],
-    ['body=moon', 'body=moon&family=terrain', 'body'],
-    ['body=Earth', 'body=Earth&family=terrain', 'body'],
-    ['two bodies', 'body=earth&body=earth&family=terrain', 'body'],
-    ['no family', 'body=earth', 'family'],
-    ['family=Terrain', 'body=earth&family=Terrain', 'family'],
-    ['family=all', 'body=earth&family=all', 'family'],
-    ['two families in one value', 'body=earth&family=terrain,radar', 'family'],
-    ['two families', 'body=earth&family=terrain&family=radar', 'family'],
-    ['limit 0', 'body=earth&family=terrain&limit=0', 'limit'],
-    ['limit 501', 'body=earth&family=terrain&limit=501', 'limit'],
-    ['a negative limit', 'body=earth&family=terrain&limit=-1', 'limit'],
-    ['a fractional limit', 'body=earth&family=terrain&limit=1.5', 'limit'],
-    ['a limit in exponent form', 'body=earth&family=terrain&limit=1e2', 'limit'],
-    ['a limit with a leading zero', 'body=earth&family=terrain&limit=050', 'limit'],
-    ['a limit with a space', 'body=earth&family=terrain&limit=%205', 'limit'],
-    ['a limit in hex', 'body=earth&family=terrain&limit=0x10', 'limit'],
-    ['an empty limit', 'body=earth&family=terrain&limit=', 'limit'],
-    ['a limit beyond 2^53', 'body=earth&family=terrain&limit=99999999999999999999', 'limit'],
-    ['two limits', 'body=earth&family=terrain&limit=5&limit=6', 'limit'],
-    [
-      `a cursor of ${String(CURSOR_MAX_LENGTH + 1)} characters`,
-      `body=earth&family=terrain&cursor=${'c'.repeat(CURSOR_MAX_LENGTH + 1)}`,
-      'cursor',
-    ],
-    ['a cursor with a space', 'body=earth&family=terrain&cursor=a%20b', 'cursor'],
-    ['a cursor with a plus sign', 'body=earth&family=terrain&cursor=a%2Bb', 'cursor'],
-    ['a cursor with a slash', 'body=earth&family=terrain&cursor=a%2Fb', 'cursor'],
-    ['two cursors', 'body=earth&family=terrain&cursor=a&cursor=b', 'cursor'],
-    ['an unknown parameter', 'body=earth&family=terrain&famly=model', ''],
-  ];
-
-  for (const [what, query, name] of REFUSED) {
-    it(`refuse ${what} with a ${String(VALIDATION_STATUS)} problem, without reading the bundle`, async () => {
-      const reader = vi.fn(mockReader);
-      const { api } = quietApi(reader);
-      const problem = await expectProblem(
-        await api.request(matchesPath(TARGET, query)),
-        VALIDATION_STATUS,
-        'Bad Request',
-      );
-      expect(problem.detail).toContain(`query parameter ${name}`);
-      expect(reader).not.toHaveBeenCalled();
-    });
-  }
-
-  for (const [what, id] of [
-    ['a leading dot', '.test-target-alpha'],
-    ['an encoded slash', 'test-target%2Falpha'],
-    ['too many characters', 'a'.repeat(TARGET_ID_MAX_LENGTH + 1)],
-  ] as const) {
-    it(`refuse a target id with ${what}, without reading the bundle`, async () => {
-      const reader = vi.fn(mockReader);
-      const { api } = quietApi(reader);
-      const problem = await expectProblem(
-        await api.request(matchesPath(id)),
-        VALIDATION_STATUS,
-        'Bad Request',
-      );
-      expect(problem.detail).toContain('path parameter id');
-      expect(reader).not.toHaveBeenCalled();
-    });
-  }
 });

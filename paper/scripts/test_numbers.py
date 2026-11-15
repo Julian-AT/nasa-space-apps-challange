@@ -18,7 +18,7 @@ from typing import Any
 
 import pytest
 
-from scripts.numbers import MACROS, Macro, main
+from scripts.numbers import ARTIFACT_MACROS, MACROS, ArtifactMacro, Macro, main
 from terraluna_pipeline.export import write_bundle
 from terraluna_pipeline.schema import SCHEMA_VERSION
 
@@ -91,7 +91,7 @@ def run(out: Path, bundle: Path | None = None, macros: tuple[Macro, ...] = ()) -
     argv = ["--out", str(out)]
     if bundle is not None:
         argv += ["--bundle", str(bundle)]
-    return main(argv, macros=macros), out
+    return main(argv, macros=macros, artifacts=()), out
 
 
 def kept_output(tmp_path: Path) -> Path:
@@ -132,7 +132,8 @@ def test_cli_without_a_bundle_writes_the_header_only_file(tmp_path: Path) -> Non
             [sys.executable, "-P", str(SCRIPT), "--out", str(out)], check=True, cwd=tmp_path
         )
         outputs.append(out.read_bytes())
-    assert outputs == [NO_BUNDLE.encode("ascii")] * 2
+    assert outputs[0] == outputs[1]
+    assert outputs[0].startswith(NO_BUNDLE.encode("ascii"))
 
 
 def numbers_tex_problems(text: str, macros: Sequence[Macro]) -> list[str]:
@@ -212,7 +213,12 @@ def test_generated_numbers_tex_is_a_numbers_py_output() -> None:
 
     numbers-check, run without BUNDLE_VERSION, pins the committed file to the no-bundle output.
     """
-    assert numbers_tex_problems(COMMITTED.read_bytes().decode("utf-8"), MACROS) == []
+    fresh = Path(__file__).parent / ".." / "generated" / ".numbers-test.tex"
+    try:
+        assert main(["--out", str(fresh)]) == 0
+        assert fresh.read_bytes() == COMMITTED.read_bytes()
+    finally:
+        fresh.unlink(missing_ok=True)
 
 
 def test_build_with_a_bundle_passes_the_generated_file_test(tmp_path: Path) -> None:
@@ -224,7 +230,9 @@ def test_build_with_a_bundle_passes_the_generated_file_test(tmp_path: Path) -> N
         check=True,
         cwd=tmp_path,
     )
-    assert numbers_tex_problems(out.read_bytes().decode("utf-8"), MACROS) == []
+    text = out.read_bytes().decode("utf-8")
+    bundle_part = "".join(line for line in text.splitlines(keepends=True)[:2])
+    assert numbers_tex_problems(bundle_part, MACROS) == []
 
 
 def test_bundle_output_with_macros_passes_the_generated_file_test(tmp_path: Path) -> None:
@@ -451,3 +459,104 @@ def test_bad_macro_name_fails_and_leaves_output_untouched(
     out = kept_output(tmp_path)
     assert run(out, bundle, spec)[0] == 1
     assert out.read_bytes() == KEEP
+
+
+# --- Artifact macros ----------------------------------------------------------------------------
+
+
+def artifact(name: str, path: str, pointer: str, spec: str) -> ArtifactMacro:
+    return ArtifactMacro(name=name, path=path, pointer=pointer, format_spec=spec)
+
+
+def run_artifacts(tmp_path: Path, spec: tuple[ArtifactMacro, ...]) -> tuple[int, str]:
+    out = tmp_path / "numbers.tex"
+    status = main(["--out", str(out)], macros=(), artifacts=spec, root=tmp_path)
+    return status, out.read_text("utf-8") if out.exists() else ""
+
+
+def test_artifact_macros_render_numbers_text_counts_and_missing(tmp_path: Path) -> None:
+    (tmp_path / "out").mkdir()
+    data = {"a": 0.5, "s": "C_mode & 50%", "l": [1, 2, 3], "n": None}
+    (tmp_path / "out" / "x.json").write_text(json.dumps(data))
+    spec = (
+        artifact("Alpha", "out/x.json", "/a", ".2f"),
+        artifact("Mode", "out/x.json", "/s", "text"),
+        artifact("Count", "out/x.json", "/l", "count"),
+        artifact("Null", "out/x.json", "/n", ".2f"),
+        artifact("Later", "out/absent.json", "/a", ".2f"),
+    )
+    status, text = run_artifacts(tmp_path, spec)
+    assert status == 0
+    digest = hashlib.sha256((tmp_path / "out" / "x.json").read_bytes()).hexdigest()
+    assert f"% Artifact out/x.json sha256 {digest}.\n" in text
+    assert "% Artifact out/absent.json: not present.\n" in text
+    assert "\\newcommand{\\Alpha}{0.50}\n" in text
+    assert "\\newcommand{\\Mode}{C\\_mode \\& 50\\%}\n" in text
+    assert "\\newcommand{\\Count}{3}\n" in text
+    assert "\\newcommand{\\Null}{\\NotAvailable}\n" in text
+    assert "\\newcommand{\\Later}{\\NotAvailable}\n" in text
+    assert "{0}" not in text
+
+
+@pytest.mark.parametrize(
+    ("value", "pointer", "spec"),
+    [(1.0, "/missing", ".2f"), (float("nan"), "/v", ".2f"), ("x", "/v", ".2f"), (1, "/v", "text")],
+)
+def test_bad_artifact_macro_fails(tmp_path: Path, value: object, pointer: str, spec: str) -> None:
+    (tmp_path / "x.json").write_text(json.dumps({"v": value}))
+    out = kept_output(tmp_path)
+    status = main(
+        ["--out", str(out)],
+        macros=(),
+        artifacts=(artifact("V", "x.json", pointer, spec),),
+        root=tmp_path,
+    )
+    assert status == 1
+    assert out.read_bytes() == KEEP
+
+
+def test_artifact_macro_names_are_checked(tmp_path: Path) -> None:
+    spec = (artifact("Same", "a.json", "/v", "d"), artifact("Same", "a.json", "/v", "d"))
+    assert run_artifacts(tmp_path, spec)[0] == 1
+    assert run_artifacts(tmp_path, (artifact("Bad1", "a.json", "/v", "d"),))[0] == 1
+
+
+def test_artifact_macro_spec_names_are_unique() -> None:
+    names = [m.name for m in ARTIFACT_MACROS]
+    assert len(names) == len(set(names))
+
+
+def test_yaml_lists_and_percent(tmp_path: Path) -> None:
+    (tmp_path / "run.yaml").write_text("a:\n  lags: [270, 360, 540]\n  frac: 0.8\n  one: [5]\n")
+    spec = (
+        artifact("Lags", "run.yaml", "/a/lags", "list:d"),
+        artifact("Pct", "run.yaml", "/a/frac", "%.0f"),
+        artifact("One", "run.yaml", "/a/one", "list:d"),
+    )
+    status, text = run_artifacts(tmp_path, spec)
+    assert status == 0
+    assert "\\newcommand{\\Lags}{270, 360 and 540}\n" in text
+    assert "\\newcommand{\\Pct}{80}\n" in text
+    assert "\\newcommand{\\One}{5}\n" in text
+
+
+def test_optional_pointer_renders_not_available(tmp_path: Path) -> None:
+    (tmp_path / "x.json").write_text(json.dumps({"v": 1}))
+    spec = (artifact("Opt", "x.json", "/missing", "?.2f"), artifact("Got", "x.json", "/v", "?d"))
+    status, text = run_artifacts(tmp_path, spec)
+    assert status == 0
+    assert "\\newcommand{\\Opt}{\\NotAvailable}\n" in text
+    assert "\\newcommand{\\Got}{1}\n" in text
+    assert "% Artifact x.json: pointer /missing absent.\n" in text
+
+
+def test_wildcard_aggregates(tmp_path: Path) -> None:
+    (tmp_path / "c.json").write_text(json.dumps([{"d": 3.0}, {"d": 1.0}, {"d": 2.0}, {"d": 4.0}]))
+    spec = (
+        artifact("Lo", "c.json", "/*/d", "min:.1f"),
+        artifact("Mid", "c.json", "/*/d", "median:.1f"),
+        artifact("Hi", "c.json", "/*/d", "max:.1f"),
+    )
+    status, text = run_artifacts(tmp_path, spec)
+    assert status == 0
+    assert "{\\Lo}{1.0}" in text and "{\\Mid}{2.5}" in text and "{\\Hi}{4.0}" in text

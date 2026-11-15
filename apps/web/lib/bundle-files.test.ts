@@ -5,8 +5,8 @@
 // large artifacts are never copied; an optional file the manifest does not list reads as not
 // present, never as an empty default. The T0-05 cases stay in tests/bundle.test.ts.
 //
-// The file contents below are labelled test placeholders, not records: sources, targets,
-// comparisons and windows have no @terraluna/schema schema yet, so only their bytes matter here.
+// The JSON files below are empty, schema-valid lists; the record contents are tested in
+// lib/bundle-records.test.ts. Placeholders stand only for files the web never copies.
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -52,10 +52,13 @@ const placeholder = (name: string) => toBytes({ test_placeholder: name });
 /** The small JSON files bundle:pull copies, besides manifest.json. */
 const SERVER_FILES: FileSet = {
   'validation.json': toBytes(ALL_GATES_NOT_RUN),
-  'sources.json': placeholder('sources.json'),
-  'targets.json': placeholder('targets.json'),
-  [`comparisons/${TARGET}.json`]: placeholder('comparison'),
-  [`windows/${BODY}.json`]: placeholder('windows top-N'),
+  // Empty lists are schema-valid Sources, Targets, Comparisons and Windows: zero records, which
+  // is not the same as a file that is not present.
+  'sources.json': toBytes([]),
+  'targets.json': toBytes([]),
+  [`comparisons/${TARGET}.json`]: toBytes([]),
+  [`windows/${BODY}.json`]: toBytes([]),
+  'figures/test.svg': Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><use href="#a"/></svg>'),
 };
 
 /** Listed files that bundle:pull never copies: large artifacts and files the server never reads. */
@@ -64,12 +67,10 @@ const OTHER_FILES: FileSet = {
   'tiles/cpr/0/0/0.webp': Buffer.from('RIFF test placeholder'),
   'model/encoder.onnx': Buffer.from('onnx test placeholder'),
   'model/encoder.fp16.onnx': Buffer.from('onnx fp16 test placeholder'),
-  'model/model_card.json': placeholder('model card'),
   'model/embeddings.f16.bin': Buffer.from('f16 test placeholder'),
-  'report/metrics.json': placeholder('metrics'),
   [`reference/background_${TARGET}.json`]: placeholder('background'),
-  'cards/test-card.json': placeholder('card'),
-  'figures/test.svg': Buffer.from('<svg/>'),
+  'report/umap.bin': Buffer.from('umap test placeholder'),
+  'report/curves.json': placeholder('curves (no generated schema yet)'),
   'comparisons/nested/test.json': placeholder('nested comparison'),
 };
 
@@ -471,14 +472,14 @@ describe('bundle:pull command', () => {
     });
   }
 
-  it('lists the copied files and the ones copied without a schema check', () => {
+  it('lists the copied files, each validated with its schema', () => {
     const root = repoWithMock();
     addFullRelease(root);
     const result = run(root, join(tempDir(), 'data'));
     expect(result.stderr).toBe('');
     expect(result.status).toBe(0);
     for (const path of ['manifest.json', ...SERVER_PATHS]) expect(result.stdout).toContain(path);
-    expect(result.stdout).toMatch(/no schema/);
+    expect(result.stdout).not.toMatch(/no schema/);
     expect(result.stdout).not.toContain('tiles/');
   });
 

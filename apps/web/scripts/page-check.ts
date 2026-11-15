@@ -46,6 +46,9 @@ export const LAYOUT_LABELS: readonly string[] = [
   'Model',
   'Methods',
   'Data',
+  'Paper',
+  'API docs',
+  SITE_TITLE,
 ];
 
 /** Elements whose text the check compares as a whole. */
@@ -74,6 +77,9 @@ function inDocumentHead(block: Block): boolean {
 }
 
 const SHIPPING_MODE = 'Shipping mode:';
+
+/** Wording PRD 3 and 4 forbid outside Mode A, and any "best analog" claim in every mode. */
+const OVERSTATED = /\bbest\b|\bverified analog|radar[- ]scattering (match|analog)|\bconfirmed\b|\bdiscover/i;
 const MOCK_MARKER = 'Mock bundle';
 
 /** Elements whose text is not page text: the RSC payload in <script>, the CSS in <style>. */
@@ -240,7 +246,7 @@ function checkBanner(blocks: readonly Block[], marker: string, banner: string, n
  * unless the block is the document's title, in <main>, in a footer or in a banner part, or sits in
  * a live region that is a banner part. Each of these texts must be a layout label.
  */
-function strayTexts(blocks: readonly Block[], banners: readonly Extent[]): string[] {
+function strayTexts(blocks: readonly Block[], banners: readonly Extent[], extra: readonly string[]): string[] {
   const compared = new Set<Extent>(banners);
   for (const block of blocks) {
     if (COMPARED_ELEMENTS.has(block.name) || isDocumentTitle(block)) compared.add(block);
@@ -252,8 +258,13 @@ function strayTexts(blocks: readonly Block[], banners: readonly Extent[]): strin
     return block.regions.some((region) => compared.has(region));
   };
   return blocks
-    .filter((block) => block.own !== '' && !isCompared(block) && !LAYOUT_LABELS.includes(block.own))
+    .filter((block) => block.own !== '' && !isCompared(block) && !LAYOUT_LABELS.includes(block.own) && !extra.includes(block.own))
     .map((block) => block.own);
+}
+
+/** Every block nested in a block, at any depth. */
+function descendants(block: Block): Block[] {
+  return block.children.flatMap((child) => [child, ...descendants(child)]);
 }
 
 function occurrences(text: string, part: string): number {
@@ -310,17 +321,23 @@ export function pageProblems(html: string, bundle: Bundle): string[] {
   const footer = onlyBlock(blocks, 'footer');
   if (typeof footer === 'string') {
     problems.push(footer);
-  } else if (footer.full !== footerText) {
+  } else if (footer.full !== footerText && !descendants(footer).some((child) => child.full === footerText)) {
+    // The versions are one block of their own; the team name and links may sit beside it.
     problems.push(`the footer must read "${footerText}"`);
   }
   const main = onlyBlock(blocks, 'main');
-  const allowed = `${SITE_TITLE} ${HOME_LINE}`;
   if (typeof main === 'string') {
     problems.push(main);
-  } else if (main.full !== allowed) {
-    problems.push(`<main> must show only "${allowed}", but shows "${main.full}"`);
+  } else if (!main.full.startsWith(`${SITE_TITLE} `) && !main.full.includes(` ${SITE_TITLE} `)) {
+    problems.push(`<main> must show the title "${SITE_TITLE}"`);
+  } else if (!main.full.includes(HOME_LINE)) {
+    problems.push(`<main> must show "${HOME_LINE}", but shows "${main.full}"`);
+  } else if (main.full.includes(MOCK_MARKER) || main.full.includes(SHIPPING_MODE)) {
+    problems.push('<main> must not repeat a banner: the mock and shipping-mode banners belong to the header');
+  } else if (OVERSTATED.test(main.full)) {
+    problems.push(`<main> makes a claim stronger than any shipping mode allows: "${OVERSTATED.exec(main.full)?.[0] ?? ''}"`);
   }
-  for (const stray of strayTexts(blocks, banners)) {
+  for (const stray of strayTexts(blocks, banners, [`Bundle ${bundle.manifest.bundle_version}`])) {
     problems.push(`text outside <main> must be a banner, the footer or a layout label, but "${stray}" is none of these`);
   }
   return problems;

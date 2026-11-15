@@ -134,7 +134,7 @@ describe('runProbe', () => {
     expect(d?.terrain_texture).toMatchObject({ status: 'unavailable', value: null, reason: 'texture_unavailable' });
     expect(d?.radar).toMatchObject({ value: null, reason: RADAR_UNAVAILABLE_REASON });
     expect(d?.encoder).toMatchObject({ value: null, reason: 'encoder_not_evaluated' });
-    expect(Object.keys(d ?? {}).sort()).toEqual(['encoder', 'radar', 'target_id', 'target_window_id', 'terrain_relief', 'terrain_texture']);
+    expect(Object.keys(d ?? {}).sort()).toEqual(['encoder', 'radar', 'target_id', 'target_relief_nu_m', 'target_texture_nu_m', 'target_window_id', 'terrain_relief', 'terrain_texture']);
     expect(JSON.stringify(result)).not.toMatch(/Observed|rank|score|combined/);
     expect(log.requests.every((u) => u === `https://x.test/api/v1/dem/cop30/${N64W017}`)).toBe(true);
     expect(result.dem.bytes).toBe(log.bytes);
@@ -167,6 +167,31 @@ describe('runProbe', () => {
     expect(aborted).toMatchObject({ kind: 'failure', reason: 'aborted' });
     const later = await runProbe({ id: 5, latDeg: 64.5, lonDeg: -16.5 }, { mode: 'proxy', fetch: stubFetch(tiles, { requests: [], bytes: 0 }), targets: noTargets, bundleVersion: null });
     expect(later.kind).toBe('result');
+  });
+});
+
+describe('runProbe with an encoder session (stub session, no model file)', () => {
+  it('labels the encoder distance Predicted with the manifest G5 status and guards the percentile', async () => {
+    const spec = { url: 'u', model_id: 'enc-v1', onnx_sha256: 'abc', status: 'EXPERIMENTAL', g5_status: 'NOT_RUN', input_name: 'x', output_name: 'e', l2_normalized: true };
+    let inputs = 0;
+    const session = { spec, embed: (input: Float32Array) => { inputs = input.length; return Promise.resolve(new Float32Array(256).fill(1)); } };
+    const target: ProbeTargetFingerprint = { target_id: 't1', window_id: 'w1', body: 'moon', isotropic_rule: 'direction_mean', relief: { supported_lags_m: [270], nu_m: { '270': 2 } }, texture: null };
+    const embedding = Array.from({ length: 256 }, (_, i) => (i < 128 ? 1 : 0));
+    const background = { target_id: 't1', family: 'model_embedding' as const, model_id: 'enc-v1', onnx_sha256: 'abc', bin_edges: [0, 0.5, 1], counts: [1, 1], percentile_definition: 'linear_within_bin_v1' as const, direction: 'smaller_is_closer' as const, target_embedding: embedding };
+    const result = await runProbe(
+      { id: 9, latDeg: 64.5, lonDeg: -16.5 },
+      { mode: 'proxy', fetch: stubFetch(tiles, { requests: [], bytes: 0 }), targets: { fingerprints: [target], reason: null }, bundleVersion: null, encoder: { spec, session: () => Promise.resolve(session), backgrounds: { t1: background } } },
+    );
+    expect(result.kind).toBe('result');
+    if (result.kind !== 'result') return;
+    expect(inputs).toBe(3 * 64 * 64);
+    const enc = result.targets[0]?.encoder;
+    expect(enc?.label).toBe('Predicted (encoder v1, G5 NOT_RUN)');
+    expect(enc?.value).toBeCloseTo(1 - Math.SQRT1_2, 12);
+    expect(enc?.background_percentile).toBeCloseTo((100 * ((1 - Math.SQRT1_2) / 0.5)) / 2, 9);
+    expect(result.targets[0]?.terrain_relief.label).toBe(DERIVED_LIVE_LABEL);
+    expect(result.g5_status).toBe('NOT_RUN');
+    expect(result.timings.inference_ms).not.toBeNull();
   });
 });
 

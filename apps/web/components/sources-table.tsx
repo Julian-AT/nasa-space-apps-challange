@@ -9,6 +9,7 @@ import { type BundleManifest, BundleManifestSchema } from '@terraluna/schema';
 
 import type { SourceRecord } from '@/app/data/sources';
 import { LabelledValue } from '@/components/labelled-value';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
 export type { SourceRecord } from '@/app/data/sources';
@@ -44,12 +45,10 @@ export function omittedReason(field: string): string {
 const MONOSPACE: ReadonlySet<string> = new Set(['product_id', 'checksum', 'source_url', 'path', 'sha256', 'bytes']);
 
 function cellClass(field: string): string {
-  return cn('border border-border px-2 py-1 text-left align-top wrap-anywhere', MONOSPACE.has(field) && 'font-mono');
+  return cn(MONOSPACE.has(field) && 'font-mono text-xs');
 }
 
-function headerClass(field: string): string {
-  return cn(cellClass(field), 'bg-muted font-semibold');
-}
+const ROW_HEADER = 'px-3 py-2.5 text-left align-top font-mono text-xs font-semibold wrap-anywhere';
 
 function valueText(record: SourceRecord, field: SourceField): string | null {
   const value = record[field];
@@ -66,13 +65,13 @@ function Value({ record, field }: { readonly record: SourceRecord; readonly fiel
   const text = valueText(record, field);
   const content = text ?? <LabelledValue label="Unavailable" reason={omittedReason(field)} />;
   return field === 'product_id' ? (
-    <th scope="row" data-field={field} className={cellClass(field)}>
+    <th scope="row" data-field={field} className={ROW_HEADER}>
       {content}
     </th>
   ) : (
-    <td data-field={field} className={cellClass(field)}>
+    <TableCell data-field={field} className={cellClass(field)}>
       {content}
-    </td>
+    </TableCell>
   );
 }
 
@@ -83,27 +82,27 @@ export interface SourcesTableProps {
 
 export function SourcesTable({ records }: SourcesTableProps) {
   return (
-    <table className="w-full table-fixed border-collapse text-sm">
-      <caption className="mb-2 text-left">ProductRecords from the bundle&apos;s sources.json</caption>
-      <thead>
-        <tr>
+    <Table className="min-w-[56rem]">
+      <TableCaption>ProductRecords from the bundle&apos;s sources.json</TableCaption>
+      <TableHeader>
+        <TableRow>
           {SOURCE_FIELDS.map((field) => (
-            <th key={field} scope="col" className={headerClass(field)}>
+            <TableHead key={field} scope="col">
               {field}
-            </th>
+            </TableHead>
           ))}
-        </tr>
-      </thead>
-      <tbody>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {records.map((record, index) => (
-          <tr key={index}>
+          <TableRow key={index}>
             {SOURCE_FIELDS.map((field) => (
               <Value key={field} record={record} field={field} />
             ))}
-          </tr>
+          </TableRow>
         ))}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   );
 }
 
@@ -115,34 +114,34 @@ export interface BundleFilesTableProps {
 export function BundleFilesTable({ files }: BundleFilesTableProps) {
   if (files.length === 0) return <p>manifest.json lists no files</p>;
   return (
-    <table className="w-full table-fixed border-collapse text-sm">
-      <caption className="mb-2 text-left">Files listed in the bundle&apos;s manifest.json</caption>
-      <thead>
-        <tr>
+    <Table className="min-w-[40rem]">
+      <TableCaption>Files listed in the bundle&apos;s manifest.json</TableCaption>
+      <TableHeader>
+        <TableRow>
           {BUNDLE_FILE_FIELDS.map((field) => (
-            <th key={field} scope="col" className={headerClass(field)}>
+            <TableHead key={field} scope="col">
               {field}
-            </th>
+            </TableHead>
           ))}
-        </tr>
-      </thead>
-      <tbody>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {files.map((file) => (
-          <tr key={file.path}>
+          <TableRow key={file.path}>
             {BUNDLE_FILE_FIELDS.map((field) =>
               field === 'path' ? (
-                <th key={field} scope="row" data-field={field} className={cellClass(field)}>
+                <th key={field} scope="row" data-field={field} className={ROW_HEADER}>
                   {file.path}
                 </th>
               ) : (
-                <td key={field} data-field={field} className={cellClass(field)}>
+                <TableCell key={field} data-field={field} className={cellClass(field)}>
                   {String(file[field])}
-                </td>
+                </TableCell>
               ),
             )}
-          </tr>
+          </TableRow>
         ))}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   );
 }

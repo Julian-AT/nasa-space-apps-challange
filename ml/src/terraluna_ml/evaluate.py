@@ -56,6 +56,7 @@ from terraluna_ml.shards import (
     open_shards,
     sha256_path,
 )
+from terraluna_pipeline import provenance
 from terraluna_pipeline.schema import (
     MetricBaseline,
     MetricRecord,
@@ -1402,6 +1403,11 @@ def main(argv: Sequence[str] | None = None, *, loaders: Loaders = DEFAULT_LOADER
             args.gate_out,
             parity=parity,
             checkpoint_sha256s=ckpts,
+            command=provenance.command_line(
+                "terraluna_ml.evaluate", list(argv) if argv is not None else sys.argv[1:]
+            ),
+            config_path=args.config,
+            input_paths=[p for p in (args.metrics, args.parity) if p is not None],
             run_id=f"sha256:{metrics['freeze']['sha256']}" if "freeze" in metrics else None,
         )
         print(f"G5 {gate.status}: {gate.result}")
