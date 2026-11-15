@@ -338,7 +338,7 @@ expectTypeOf<CardRecord>().toEqualTypeOf<{
   run_id: string;
   shipping_mode: ShippingMode;
   title: string;
-  wording: 'candidate window identified by this search';
+  wording: string;
   target: {
     target_id: string;
     target_window_id: string;
