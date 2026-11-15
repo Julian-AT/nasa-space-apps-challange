@@ -88,7 +88,7 @@ export default function EarthMap({ layerId, pin, markers, onPick, onLayerBlocked
     markerLayer.current = L.layerGroup().addTo(map);
     pinLayer.current = L.layerGroup().addTo(map);
     const p = pinRef.current;
-    if (p === null) map.setView([25, 0], projection === 'mercator' ? 2 : 1.5);
+    if (p === null) map.setView([48.2082, 16.3738], projection === 'mercator' ? 5 : 4);
     else map.setView([p.lat, p.lon], projection === 'mercator' ? 9 : 4);
     map.on('click', (e: L.LeafletMouseEvent) => {
       const ll = e.latlng.wrap();
@@ -160,8 +160,8 @@ export default function EarthMap({ layerId, pin, markers, onPick, onLayerBlocked
     if (pin === null) return;
     const square = windowSquare(pin.lat, pin.lon);
     L.polygon(square, { color: '#07080a', opacity: 0.6, weight: 5, fill: false, interactive: false }).addTo(group);
-    L.polygon(square, { color: '#f2c879', weight: 2, dashArray: '6 4', fillColor: '#f2c879', fillOpacity: 0.12, interactive: false }).addTo(group);
-    L.marker([pin.lat, pin.lon], { icon: pinIcon(true, '#f2c879'), keyboard: true, title: 'Probe point', zIndexOffset: 1000 }).addTo(group);
+    L.polygon(square, { color: '#171717', weight: 2, dashArray: '6 4', fillColor: '#171717', fillOpacity: 0.12, interactive: false }).addTo(group);
+    L.marker([pin.lat, pin.lon], { icon: pinIcon(true, '#171717'), keyboard: true, title: 'Probe point', zIndexOffset: 1000 }).addTo(group);
     if (!map.getBounds().pad(-0.1).contains([pin.lat, pin.lon])) map.panTo([pin.lat, pin.lon]);
   }, [pin, ready]);
 

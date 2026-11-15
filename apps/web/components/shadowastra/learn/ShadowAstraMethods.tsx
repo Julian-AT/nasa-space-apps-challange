@@ -113,12 +113,12 @@ function Hero({ grid, values, progress, v }: { grid: Grid | null; values: Float3
     <section ref={ref} data-theme="dark" className="relative isolate flex min-h-[90dvh] flex-col overflow-hidden bg-void text-platinum">
       <motion.div style={{ y, opacity: fade }} className="absolute inset-y-0 right-[-18vw] w-[100vw] sm:right-[-10vw] lg:right-[-6vw] lg:w-[64vw]">
         <Suspense fallback={null}>
-          <DotGlobe grid={grid} values={values} tint="#f2c879" startLon={30} className="h-full w-full" size={2.3} stillNote={false} />
+          <DotGlobe grid={grid} values={values} tint="#ffffff" startLon={30} className="h-full w-full" size={2.3} stillNote={false} />
         </Suspense>
         <AnimatePresence>
           {!grid && (
             <motion.div initial={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 grid place-items-center">
-              <div className="relative grid size-[min(56vw,520px)] place-items-center rounded-full border border-line bg-[radial-gradient(circle_at_35%_35%,rgba(242,200,121,0.08),transparent_60%)]">
+              <div className="relative grid size-[min(56vw,520px)] place-items-center rounded-full border border-line bg-[radial-gradient(circle_at_35%_35%,rgba(255,255,255,0.04),transparent_60%)]">
                 <div className="font-mono text-[12px] tracking-[0.2em] text-chrome uppercase">Measuring Earth · {Math.round(progress * 100)}%</div>
               </div>
             </motion.div>
@@ -407,9 +407,9 @@ const STORY = [
   { id: "cold", t: "Measure every place", d: "Coldest night ground temperature, for all 80,206 land areas.", src: "NASA MODIS", tint: "#8fb4ea", lo: "warm", hi: "cold" },
   { id: "regolith", t: "Find bare, dry ground", d: "Little rain and few plants, so rock and soil show, like regolith.", src: "NASA POWER · MODIS", tint: "#e08a5f", lo: "green", hi: "bare" },
   { id: "shape", t: "Compare the ground", d: "Slopes and height range next to Jezero crater on Mars.", src: "SRTM · MGS MOLA", tint: "#edeae4", lo: "different", hi: "alike" },
-  { id: "mission", t: "Weigh it for the job", d: "Looking for signs of life? Rocks and dryness count most.", src: "Five factors", tint: "#f2c879", lo: "poor", hi: "strong" },
-  { id: "model", t: "Ask what experts chose", d: "A model learned from 38 places NASA, ESA and others use.", src: "3-model ensemble · 8 bags", tint: "#f2c879", lo: "unlike", hi: "alike" },
-  { id: "final", t: "Shortlist new places", d: "60% model, 40% factors. 300 km apart. Known sites left out.", src: "Top 10 for Jezero", tint: "#f2c879", lo: "", hi: "" },
+  { id: "mission", t: "Weigh it for the job", d: "Looking for signs of life? Rocks and dryness count most.", src: "Five factors", tint: "#ffffff", lo: "poor", hi: "strong" },
+  { id: "model", t: "Ask what experts chose", d: "A model learned from 38 places NASA, ESA and others use.", src: "3-model ensemble · 8 bags", tint: "#ffffff", lo: "unlike", hi: "alike" },
+  { id: "final", t: "Shortlist new places", d: "60% model, 40% factors. 300 km apart. Known sites left out.", src: "Top 10 for Jezero", tint: "#ffffff", lo: "", hi: "" },
 ] as const;
 
 function StoryStep({ i, active, onActive }: { i: number; active: boolean; onActive: (i: number) => void }) {

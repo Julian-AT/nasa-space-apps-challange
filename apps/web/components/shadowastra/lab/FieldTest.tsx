@@ -483,7 +483,7 @@ export function FieldPanel({ ft, earthName, targetName, targetBody, compact, cla
                   onChange={(e) => ft.setHour(+e.target.value)}
                   aria-label="Time of day, local Sun time"
                   aria-valuetext={`${clock(ft.hour)} local Sun time`}
-                  className="w-32 accent-[#f2c879]"
+                  className="w-32 accent-primary"
                 />
                 <span className="w-11 font-mono text-platinum tabular">{clock(ft.hour)}</span>
               </label>

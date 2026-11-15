@@ -192,11 +192,11 @@ export default function Find({ probe }: { probe: TerralunaProbeProps }) {
 
   /* ---------- stage content */
   const targetsOfWorld = TARGETS.filter((t) => t.body === world);
-  const markers: GlobeMarker[] = targetsOfWorld.map((t) => ({ id: t.id, lat: t.lat, lon: t.lon, color: t.id === m.target ? "#f2c879" : "#edeae4", label: t.name }));
+  const markers: GlobeMarker[] = targetsOfWorld.map((t) => ({ id: t.id, lat: t.lat, lon: t.lon, color: t.id === m.target ? "#ffffff" : "#edeae4", label: t.name }));
   const earthStage = step === "needs" || step === "results";
   const pins: GlobePin[] = useMemo(() => {
-    const out: GlobePin[] = [{ id: "home", lat: m.home.lat, lon: m.home.lon, color: "#f2c879", kind: "home" }];
-    if (step === "results" && result && scan > 0.98) result.places.forEach((c, i) => out.push({ id: `c${c.k}`, lat: c.lat, lon: c.lon, color: "#f2c879", kind: "candidate", rank: i + 1 }));
+    const out: GlobePin[] = [{ id: "home", lat: m.home.lat, lon: m.home.lon, color: "#ffffff", kind: "home" }];
+    if (step === "results" && result && scan > 0.98) result.places.forEach((c, i) => out.push({ id: `c${c.k}`, lat: c.lat, lon: c.lon, color: "#ffffff", kind: "candidate", rank: i + 1 }));
     if (grid && sel !== null && !result?.places.some((c) => c.k === sel)) out.push({ id: "pick", lat: grid.lat(sel), lon: grid.lon(sel), color: "#ffffff", kind: "pick" });
     return out;
   }, [m.home, step, result, scan, grid, sel]);
@@ -234,8 +234,8 @@ export default function Find({ probe }: { probe: TerralunaProbeProps }) {
                 key={sel}
                 body="earth"
                 layerId={Math.abs(grid.lat(sel)) > 60 ? "earth-bluemarble" : "earth-s2"}
-                markers={[{ id: "pick", lat: grid.lat(sel), lon: grid.lon(sel), color: "#f2c879", label: grid.name(sel).title }]}
-                boxes={pin && pin !== "failed" ? [{ lat: pin.best.lat, lon: pin.best.lon, km: 9.5, color: "#f2c879", label: `Best 10 km spot · slopes ${Math.round(pin.best.score * 100)}% alike` }] : []}
+                markers={[{ id: "pick", lat: grid.lat(sel), lon: grid.lon(sel), color: "#ffffff", label: grid.name(sel).title }]}
+                boxes={pin && pin !== "failed" ? [{ lat: pin.best.lat, lon: pin.best.lon, km: 9.5, color: "#ffffff", label: `Best 10 km spot · slopes ${Math.round(pin.best.score * 100)}% alike` }] : []}
                 activeId="pick"
                 zoomPosition="topright"
                 initial={{ lat: grid.lat(sel), lon: grid.lon(sel), zoom: 10.4 }}

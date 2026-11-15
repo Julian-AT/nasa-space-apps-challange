@@ -7,7 +7,7 @@
  */
 import { TARGET_BY_ID, TASKS, type TaskId } from "./data/sites";
 import { MODEL_MIX } from "./grid";
-import { ALTITUDES, DEFAULT_SHAPE, DHAKA, DISTANCES, TOWN_LIMITS, defaultMission, type Mission } from "./mission";
+import { ALTITUDES, DEFAULT_SHAPE, VIENNA, DISTANCES, TOWN_LIMITS, defaultMission, type Mission } from "./mission";
 
 export const STEP_IDS = ["start", "destination", "job", "needs", "results"] as const;
 export type StepId = (typeof STEP_IDS)[number];
@@ -67,7 +67,7 @@ export function writeMission(m: Mission, step: StepId, at: [number, number] | nu
   if (!m.onlyNew) p.new = "0";
   if (m.shape !== DEFAULT_SHAPE) p.shape = m.shape;
   if (m.modelMix !== MODEL_MIX) p.mix = String(m.modelMix);
-  if (m.home.name !== DHAKA.name) Object.assign(p, { home: m.home.name, hlat: m.home.lat.toFixed(2), hlon: m.home.lon.toFixed(2) });
+  if (m.home.name !== VIENNA.name) Object.assign(p, { home: m.home.name, hlat: m.home.lat.toFixed(2), hlon: m.home.lon.toFixed(2) });
   if (at) p.at = `${at[0].toFixed(2)},${at[1].toFixed(2)}`;
   return p;
 }

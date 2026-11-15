@@ -15,9 +15,9 @@
   --color-moon: var(--moon);
   --color-mars: var(--mars);
   --color-earth: var(--earth);
-  --color-strong: #7cc8a0;
-  --color-partial: #e3b35e;
-  --color-weak: #e47a63;
+  --color-strong: var(--status-pass);
+  --color-partial: var(--status-partial);
+  --color-weak: var(--status-fail);
 }
 .tabular {
   font-variant-numeric: tabular-nums;

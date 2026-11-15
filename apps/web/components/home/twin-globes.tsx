@@ -71,7 +71,7 @@ export function TwinGlobes({ cards }: { readonly cards: readonly HeroCard[] }) {
         <div className="aspect-square w-full">
           <Globe body="earth" pins={earthPins} selectedId={card.windowId} autoRotate={!reduced} />
         </div>
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-[30%] top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_12px_var(--color-primary)]" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-[30%] top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-primary to-transparent" />
         {card.relief.label === 'Unavailable' ? null : (
           <Badge className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+18px)] tabular-nums">
             relief {card.relief.value} {card.relief.unit}

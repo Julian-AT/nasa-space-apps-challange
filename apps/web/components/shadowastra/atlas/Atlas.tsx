@@ -201,11 +201,11 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
             dashed: true,
             dim: world !== "both" && !r.worlds.includes(world),
           });
-      if (earthFocus) out.push({ id: "twin", lat: earthFocus.lat, lon: earthFocus.lon, color: "#f2c879", label: "Earth twin" });
+      if (earthFocus) out.push({ id: "twin", lat: earthFocus.lat, lon: earthFocus.lon, color: "#ffffff", label: "Earth twin" });
     } else {
       for (const t of TARGETS.filter((t) => t.body === body))
         out.push({ id: t.id, lat: t.lat, lon: t.lon, color: "#edeae4", label: t.name, dim: !matchTarget(t) });
-      if (spot) out.push({ id: "spot", lat: spot.lat, lon: spot.lon, color: "#f2c879", label: "Your spot" });
+      if (spot) out.push({ id: "spot", lat: spot.lat, lon: spot.lon, color: "#ffffff", label: "Your spot" });
     }
     if (showTl)
       for (const p of terraluna.pins.filter((p) => p.body === body))

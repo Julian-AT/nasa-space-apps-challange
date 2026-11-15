@@ -101,7 +101,7 @@ export function HillshadeMap({ pane, label, onView, control }: Props) {
       bounds: L.latLngBounds([minY, minX], [maxY, maxX]),
     }).addTo(map);
     const ring = pane.ring.map(([x, y]) => L.latLng(y, x));
-    L.polygon(ring, { color: '#f2c879', weight: 2, dashArray: '6 4', fill: false, interactive: false }).addTo(map);
+    L.polygon(ring, { color: '#171717', weight: 2, dashArray: '6 4', fill: false, interactive: false }).addTo(map);
     const fit = (): void => {
       fitView(map, pane);
     };

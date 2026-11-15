@@ -12,7 +12,7 @@ import { TASK_WEIGHTS, greatCircleKm, tripCo2Tonnes } from "@/lib/shadowastra/sc
 import { formatCoord } from "@/lib/shadowastra/geo";
 import { sunRegime } from "@/lib/shadowastra/sun";
 import { MODEL_MIX, MONTHS, scoreCell, useGrid } from "@/lib/shadowastra/grid";
-import { DHAKA, FACTORS, FIELD_TESTS } from "@/lib/shadowastra/mission";
+import { VIENNA, FACTORS, FIELD_TESTS } from "@/lib/shadowastra/mission";
 import { useEarthThumb } from "@/lib/shadowastra/thumbs";
 import { sharePct } from "@/components/shadowastra/find/MineralCard";
 import { pinpointVerdict } from "@/components/shadowastra/find/PinpointCard";
@@ -30,7 +30,7 @@ export default function Report() {
   const targetId = TARGET_BY_ID[p.get("target") ?? ""] ? p.get("target")! : "jezero";
   const task = (TASKS.some((t) => t.id === p.get("task")) ? p.get("task") : "astrobio") as TaskId;
   const at = (p.get("at") ?? "").split(",").map(Number);
-  const home = p.get("hlat") ? { name: p.get("home") ?? "Home", lat: +p.get("hlat")!, lon: +p.get("hlon")! } : DHAKA;
+  const home = p.get("hlat") ? { name: p.get("home") ?? "Home", lat: +p.get("hlat")!, lon: +p.get("hlon")! } : VIENNA;
   const k = grid && at.length === 2 ? grid.cellAt(at[0], at[1], 3) : -1;
   const T = TARGET_BY_ID[targetId];
   const t = grid?.targets[targetId];

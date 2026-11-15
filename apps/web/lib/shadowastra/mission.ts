@@ -38,13 +38,13 @@ export interface Mission {
   shape: ShapeSource;
 }
 
-export const DHAKA: Home = { name: "Dhaka", lat: 23.81, lon: 90.41 };
+export const VIENNA: Home = { name: "Vienna, Austria", lat: 48.2082, lon: 16.3738 };
 
 export function defaultMission(target = "jezero", task: TaskId = "astrobio"): Mission {
   return {
     target,
     task,
-    home: DHAKA,
+    home: VIENNA,
     maxKm: null,
     townKm: null,
     maxElev: null,

@@ -3,9 +3,9 @@
 @theme {
   --color-cobalt: #4f74c8;
   --color-amethyst: #a197cf;
-  --color-strong: #7cc8a0;
-  --color-partial: #e3b35e;
-  --color-weak: #e47a63;
+  --color-strong: var(--status-pass);
+  --color-partial: var(--status-partial);
+  --color-weak: var(--status-fail);
   --color-chart-1: #bd871c;
   --color-chart-2: #5296df;
   --color-chart-3: #d47452;

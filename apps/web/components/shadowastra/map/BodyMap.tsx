@@ -110,7 +110,7 @@ function pinIcon(m: MapMarker, active: boolean) {
 }
 
 export const BodyMap = forwardRef<BodyMapHandle, Props>(function BodyMap(
-  { body, layerId, overlayIds = [], markers, boxes = NO_BOXES, dots = NO_DOTS, dotColor = "#f2c879", activeId, onSelect, onViewChange, initial, className, wheelZoom = "ctrl", zoomPosition = "bottomright" },
+  { body, layerId, overlayIds = [], markers, boxes = NO_BOXES, dots = NO_DOTS, dotColor = "#ffffff", activeId, onSelect, onViewChange, initial, className, wheelZoom = "ctrl", zoomPosition = "bottomright" },
   ref,
 ) {
   const host = useRef<HTMLDivElement>(null);

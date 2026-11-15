@@ -17,7 +17,7 @@ import type { Body } from "@/lib/shadowastra-atlas/data/sites";
 import type { TerralunaAtlas, TlCard } from "./terraluna-data";
 
 export const SA_SITE = "https://shadowastra-atlas.vercel.app";
-export const TERRALUNA_COLOR = "#f2c879";
+export const TERRALUNA_COLOR = "#ffffff";
 export const MODE_C_NOTE = "Terrain evidence";
 export const SA_ATTRIBUTION = "ShadowAstra Atlas (MIT)";
 
@@ -154,7 +154,7 @@ export function TerralunaLayers({
   return (
     <div className="space-y-2">
       <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line p-3">
-        <input type="checkbox" checked={showPins} onChange={(e) => onPins(e.target.checked)} className="mt-0.5 size-4 accent-[#f2c879]" />
+        <input type="checkbox" checked={showPins} onChange={(e) => onPins(e.target.checked)} className="mt-0.5 size-4 accent-primary" />
         <span>
           <span className="block text-[13px] text-platinum">Terraluna pins · {count}</span>
           <span className="block text-[11px] leading-relaxed text-dim">{body === "earth" ? "Evidence card windows" : "Bundle targets"}</span>
@@ -162,7 +162,7 @@ export function TerralunaLayers({
       </label>
       {body === "earth" ? (
         <label className={clsx("flex items-start gap-3 rounded-xl border border-line p-3", data.earthHillshade.length > 0 ? "cursor-pointer" : "opacity-60")}>
-          <input type="checkbox" checked={hillshade} disabled={data.earthHillshade.length === 0} onChange={(e) => onHillshade(e.target.checked)} className="mt-0.5 size-4 accent-[#f2c879]" />
+          <input type="checkbox" checked={hillshade} disabled={data.earthHillshade.length === 0} onChange={(e) => onHillshade(e.target.checked)} className="mt-0.5 size-4 accent-primary" />
           <span>
             <span className="block text-[13px] text-platinum">Bundle hillshade · {data.earthHillshade.length}</span>
             <span className="block text-[11px] leading-relaxed text-dim">
