@@ -100,3 +100,12 @@ web-smoke: web-build
 web-dev:
 	$(WEB) bundle:pull
 	$(WEB) dev
+
+# --- fast/search block (T5): candidate search, run where the raw products live (the compute
+# server). compute writes outputs/search/* and the git-ignored data/processed/{windows,search,tiles}.
+SEARCH := $(UV_RUN) python -m terraluna_pipeline.search
+.PHONY: search search-verify
+search:
+	$(SEARCH) compute --raw-root "$${TERRALUNA_RAW:?set TERRALUNA_RAW to the raw product root}"
+search-verify:
+	$(SEARCH) verify outputs/search
