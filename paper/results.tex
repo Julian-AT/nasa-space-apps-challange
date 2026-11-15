@@ -1,2 +1,171 @@
 \section{Results}
 \label{sec:results}
+
+All results come from the committed artifacts named in the generated macro file, and a value that
+an artifact does not contain yet is printed as \NotAvailable. The study ships in mode
+\ConfigShippingMode: a terrain analog pilot for Connecting Ridge in which the radar comparison was
+not completed. Table~\ref{tab:gates} gives the state of every release gate as recorded in the
+validation record.
+
+\begin{table}[t]
+\centering
+\caption{Release gates as recorded in the validation record. A gate that has not been executed is
+NOT\_RUN, never a pass.}
+\label{tab:gates}
+\footnotesize
+\begin{tabular}{@{}llW@{}}
+\toprule
+Gate & Status & What it checks \\
+\midrule
+Data pilot & \GateZeroStatus & real lunar and Earth products decoded with metadata, masks and units \\
+Conversion correctness & \GateOneStatus & radar conversions against independent fixtures \\
+Comparison eligibility & \GateTwoStatus & band, convention, geometry and support of each radar pair \\
+Literature check & \GateThreeStatus & reproduction of the Holuhraun facies overlap \\
+Shortlist and uncertainty & \GateFourStatus & candidate table, rank sensitivity and a counterexample \\
+Encoder promotion & \GateFiveStatus & the six conditions of Section~\ref{sec:results-ml} on test blocks \\
+Release consistency & \GateSixStatus & application, interface, exports and report agree \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Encoder probes}
+\label{sec:results-ml}
+
+The encoder is promoted to a third distance family only if, on test blocks, the lower bound of
+the physics probe \Rsq{} reaches \GFivePhysRMin{} for relief $\ln \nu$ at every lag, the morphology
+probe gains at least \GFiveMorphGainMin{} in \Rsq{} over a ridge on the fingerprint for the Moon or
+Mars, a logistic body probe stays at or below a balanced accuracy of \GFiveBodyAccMax, the Spearman
+correlation between embedding and fingerprint distances reaches \GFiveRhoMin, the top twenty
+neighbours agree across seeds with a Jaccard index of at least \GFiveJaccardMin, and the encoder
+beats both frozen image baselines on the two probes. These thresholds were fixed in the
+configuration before training. Table~\ref{tab:probes} reports the probes from the evaluation
+record. The encoder promotion gate is \GateFiveStatus, so the encoder is reported as experimental
+and every ranking in this paper uses the fingerprint alone.
+
+\begin{table}[t]
+\centering
+\caption{Probes on test blocks. Physics: the smallest lower bound of the probe \Rsq{} over the
+relief lags. Morphology: the \Rsq{} gain over the fingerprint ridge. Body: balanced accuracy of the
+body probe, where chance is one third. Agreement: Spearman correlation of embedding and fingerprint
+distances on cross body pairs.}
+\label{tab:probes}
+\footnotesize
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Representation & Physics & Morphology & Body & Agreement \\
+\midrule
+Random initialisation & \RandomPhysRReliefMin & & & \\
+ImageNet ResNet & \ResNetPhysRReliefMin & & & \\
+DINO & \DinoPhysRReliefMin & & & \\
+Terraluna encoder & \EncoderPhysRReliefMin & \EncoderMorphGain & \EncoderBodyAcc & \EncoderAgreementRho \\
+Encoder without gradient reversal & & & \NoAdvBodyAcc & \\
+\midrule
+Promotion threshold & \GFivePhysRMin & \GFiveMorphGainMin & \GFiveBodyAccMax & \GFiveRhoMin \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Cross body retrieval for the lunar target}
+\label{sec:results-retrieval}
+
+The lunar target window was compared with \ComparedCount{} eligible Earth windows from the two
+declared regions. Only the relief and texture distances of Equation~\eqref{eq:distance} were
+comparable; the radar distance is not comparable in this mode and the encoder distance was not
+evaluated. Over the compared windows the relief distance ranges from \ReliefDistanceMin{} to
+\ReliefDistanceMax{} with a median of \ReliefDistanceMedian, and the texture distance from
+\TextureDistanceMin{} to \TextureDistanceMax{} with a median of \TextureDistanceMedian. The first
+Pareto layer holds \ShortlistCount{} window, \texttt{\ShortlistWindow} at Holuhraun, with a relief
+distance of \BestReliefDistance{} and a texture distance of \BestTextureDistance. Its background
+percentile is \BestBackgroundPercentile{} and the spread of the target reference set is
+\BestReferenceSpread, because neither reference was computed for this slice, and the error clone
+ensemble was not run on it. The shortlisted window is therefore a candidate window identified by
+this search, not a confirmed analog, and its distance has not yet been set against the internal
+variation of the target.
+
+Table~\ref{tab:first-pair} and Figure~\ref{fig:structure-functions} show the fingerprints behind
+these distances for the target and for the first Earth window that was paired with it, the window
+that contains the decoded radar scene centre. The lunar window is much rougher at every lag: its
+relief $\nu$ grows from \MoonTargetReliefNuShort\,m to \MoonTargetReliefNuLong\,m over the lags,
+against \EarthCardReliefNuShort\,m to \EarthCardReliefNuLong\,m at Holuhraun, which gives this pair
+a relief distance of \FirstReliefDistance{} and a texture distance of \FirstTextureDistance. The
+Hurst exponents of the lunar window, \MoonTargetReliefH{} for relief and \MoonTargetTextureH{} for
+texture, lie near the highland median of \citet{rosenburg2011}, although their baselines and
+estimator differ from ours. Removing the plane barely changes the lunar statistics, while it
+lowers the Holuhraun texture exponent to \EarthCardTextureH, so at the longer lags much of the
+lava field's relief comes from its regional tilt. Holuhraun is a reference site for L band radar
+roughness \citep{tolometti2022holuhraun}, yet at the hectometre scale of this fingerprint it is
+far smoother than the lunar target. Radar scattering and the fingerprint describe different scales
+of one surface, and this pilot ranks on the fingerprint only.
+
+\begin{table}[t]
+\centering
+\caption{Fingerprints of the lunar target window and the first paired Earth window, on the
+\ConfigGridM\,m grid over the \ConfigWindowM\,m window. $\nu$ is given at the shortest and longest
+configured lag.}
+\label{tab:first-pair}
+\footnotesize
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Window & relief $\nu$ short & relief $\nu$ long & texture $\nu$ short & texture $\nu$ long & $H$ relief & $H$ texture \\
+\midrule
+Moon, target & \MoonTargetReliefNuShort & \MoonTargetReliefNuLong & \MoonTargetTextureNuShort & \MoonTargetTextureNuLong & \MoonTargetReliefH & \MoonTargetTextureH \\
+Earth, Holuhraun & \EarthCardReliefNuShort & \EarthCardReliefNuLong & \EarthCardTextureNuShort & \EarthCardTextureNuLong & \EarthCardReliefH & \EarthCardTextureH \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\input{figures/structure-functions}
+
+The Martian targets, a window at Jezero crater and one in Arcadia Planitia, were not frozen
+before the analysis cutoff, so no Mars retrieval is reported.
+
+\subsection{Model variations}
+\label{sec:results-variations}
+
+Table~\ref{tab:variations} lists the planned variations of the encoder, in the manner of a model
+variations table, with the results that the evaluation record holds for each.
+
+\begin{table}[t]
+\centering
+\caption{Encoder variations on validation blocks. Physics, body and agreement as in
+Table~\ref{tab:probes}.}
+\label{tab:variations}
+\footnotesize
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Variation & Physics & Body & Agreement \\
+\midrule
+Main configuration & \VarMainPhysR & \VarMainBodyAcc & \VarMainRho \\
+No physics head & \VarNoPhysPhysR & \VarNoPhysBodyAcc & \VarNoPhysRho \\
+No gradient reversal & \VarLambdaZeroPhysR & \VarLambdaZeroBodyAcc & \VarLambdaZeroRho \\
+Weaker gradient reversal & \VarLambdaTenthPhysR & \VarLambdaTenthBodyAcc & \VarLambdaTenthRho \\
+Stronger gradient reversal & \VarLambdaOnePhysR & \VarLambdaOneBodyAcc & \VarLambdaOneRho \\
+VICReg only & \VarVicregOnlyPhysR & \VarVicregOnlyBodyAcc & \VarVicregOnlyRho \\
+Physics head only & \VarPhysOnlyPhysR & \VarPhysOnlyBodyAcc & \VarPhysOnlyRho \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Held out body}
+\label{sec:results-heldout}
+
+A run trained on the Moon and Earth only and probed on Mars tests whether the physics probe
+transfers to a body the encoder has not seen. Its relief probe \Rsq{} on Mars is \HeldOutMarsR.
+
+\subsection{Radar context for the lunar target}
+\label{sec:results-radar}
+
+Both radar products were decoded, but the radar comparison was not completed, and no radar number
+enters any distance. On the lunar side, the Mini-RF south polar CPR mosaic was read over the
+site extent, with \MiniRFValidPixels{} valid and \MiniRFNodataPixels{} nodata pixels. The mosaic
+combines east and west looking passes from several acquisitions, so the incidence angle of a pixel
+is not recoverable from it, and its label does not state the transmit handedness. On the Earth
+side, a region of interest of \UavsarRoiSide\,m at Holuhraun was decoded from the UAVSAR L band
+covariance product, with \UavsarPixels{} valid pixels at \UavsarLooks{} nominal looks and a median
+local incidence of \UavsarIncidenceMedian{} degrees. The median ratio of the handedness dependent
+term to the base same sense power is \UavsarHandednessRatioMedian, but the handedness convention is
+not yet verified on either side. The conversion correctness gate is \GateOneStatus{} and the
+comparison eligibility gate is \GateTwoStatus, so no quantitative CPR is reported and no Earth
+value is presented as equivalent to Mini-RF. The two sensors also differ in band, look geometry
+and processing, so even a completed comparison would show the signatures side by side rather than
+as a distance.

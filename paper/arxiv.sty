@@ -22,3 +22,9 @@
 % A generated number macro whose artifact or value does not exist yet renders as this text,
 % never as 0 (scripts/numbers.py).
 \newcommand{\NotAvailable}{\textit{not available}}
+
+% Measurement sections may hold no literal digit outside macros (scripts/test_manuscript.py), so
+% the coefficient of determination and the wide table columns are named here.
+\RequirePackage{array}
+\newcommand{\Rsq}{\ensuremath{R^{2}}}
+\newcolumntype{W}{p{0.52\linewidth}}

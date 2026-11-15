@@ -34,7 +34,11 @@ OPTIONAL_THIRD_APPENDIX = "Exploratory quantum experiment"
 
 # Stems of the figures/*.tex files the manuscript inputs. figures/styles.tex is style code that
 # the preamble inputs (22.5), not a figure.
-PLANNED_FIGURES: tuple[str, ...] = ("system-overview",)
+PLANNED_FIGURES: tuple[str, ...] = (
+    "encoder-architecture",
+    "structure-functions",
+    "system-overview",
+)
 FIGURE_STYLES = "styles"
 
 ABSTRACT_WORD_LIMIT = 200

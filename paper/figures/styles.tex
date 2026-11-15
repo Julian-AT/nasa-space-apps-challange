@@ -33,3 +33,19 @@
   flowdashed/.style = {flow, dashed, dash pattern=on 3pt off 2pt},
   flowlabel/.style = {font=\footnotesize, fill=white, inner sep=1.5pt, align=center}
 }
+
+% Plots (PRD 22.5): pgfplots reading generated number macros; colour-blind-safe Okabe-Ito hues.
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\definecolor{okblue}{HTML}{0072B2}
+\definecolor{okorange}{HTML}{E69F00}
+\definecolor{okgreen}{HTML}{009E73}
+\definecolor{okvermilion}{HTML}{D55E00}
+\pgfplotsset{
+  tlplot/.style={
+    width=0.48\linewidth, height=0.36\linewidth,
+    tick label style={font=\footnotesize}, label style={font=\footnotesize},
+    legend style={font=\footnotesize, draw=none, fill=none},
+    axis lines=left, tick align=outside,
+  },
+}

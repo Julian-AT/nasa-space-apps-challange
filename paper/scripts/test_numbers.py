@@ -538,3 +538,25 @@ def test_yaml_lists_and_percent(tmp_path: Path) -> None:
     assert "\\newcommand{\\Lags}{270, 360 and 540}\n" in text
     assert "\\newcommand{\\Pct}{80}\n" in text
     assert "\\newcommand{\\One}{5}\n" in text
+
+
+def test_optional_pointer_renders_not_available(tmp_path: Path) -> None:
+    (tmp_path / "x.json").write_text(json.dumps({"v": 1}))
+    spec = (artifact("Opt", "x.json", "/missing", "?.2f"), artifact("Got", "x.json", "/v", "?d"))
+    status, text = run_artifacts(tmp_path, spec)
+    assert status == 0
+    assert "\\newcommand{\\Opt}{\\NotAvailable}\n" in text
+    assert "\\newcommand{\\Got}{1}\n" in text
+    assert "% Artifact x.json: pointer /missing absent.\n" in text
+
+
+def test_wildcard_aggregates(tmp_path: Path) -> None:
+    (tmp_path / "c.json").write_text(json.dumps([{"d": 3.0}, {"d": 1.0}, {"d": 2.0}, {"d": 4.0}]))
+    spec = (
+        artifact("Lo", "c.json", "/*/d", "min:.1f"),
+        artifact("Mid", "c.json", "/*/d", "median:.1f"),
+        artifact("Hi", "c.json", "/*/d", "max:.1f"),
+    )
+    status, text = run_artifacts(tmp_path, spec)
+    assert status == 0
+    assert "{\\Lo}{1.0}" in text and "{\\Mid}{2.5}" in text and "{\\Hi}{4.0}" in text

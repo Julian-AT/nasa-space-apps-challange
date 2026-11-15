@@ -62,7 +62,9 @@ class ArtifactMacro:
     path: repository-relative JSON file, for example outputs/g0/earth-radar-roi.json. pointer: a
     JSON pointer. format_spec: a Python format specification for a number, the same prefixed
     with % for a fraction shown in percent, "count" for the length of an array or object, or
-    "text" for a string, which is escaped for LaTeX.
+    "text" for a string, which is escaped for LaTeX, or min:, max: or median: followed by a number
+    format for an aggregate over a pointer with one "/*" segment, such as /*/distance. A leading "?" makes an absent pointer render
+    \\NotAvailable instead of failing; it is only for artifacts whose schema is not fixed yet.
 
     An artifact that does not exist yet, or a null value (missing evidence), renders as
     \NotAvailable, never as 0. A pointer that is absent from an existing file, a non-finite
@@ -114,44 +116,164 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro(
         "MoonTargetReliefH",
         "outputs/g0/windows-evidence.json",
-        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/relief/H",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/relief/H",
         ".2f",
     ),
     ArtifactMacro(
         "MoonTargetTextureH",
         "outputs/g0/windows-evidence.json",
-        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/texture/H",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/texture/H",
         ".2f",
     ),
     ArtifactMacro(
         "MoonTargetReliefNuShort",
         "outputs/g0/windows-evidence.json",
-        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/relief/nu_m/0",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/relief/nu_m/0",
         ".1f",
     ),
     ArtifactMacro(
         "MoonTargetReliefNuLong",
         "outputs/g0/windows-evidence.json",
-        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/relief/nu_m/4",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/relief/nu_m/4",
         ".1f",
     ),
     ArtifactMacro(
         "MoonTargetTextureNuShort",
         "outputs/g0/windows-evidence.json",
-        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/texture/nu_m/0",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/texture/nu_m/0",
         ".1f",
     ),
     ArtifactMacro(
         "MoonTargetTextureNuLong",
         "outputs/g0/windows-evidence.json",
-        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/texture/nu_m/4",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/texture/nu_m/4",
         ".1f",
     ),
     ArtifactMacro(
-        "MoonTargetDirMeanReliefH",
+        "MoonTargetPooledReliefH",
         "outputs/g0/windows-evidence.json",
-        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/relief/H",
+        "/g0_02_moon/proposed_primary/fingerprint/pooled_pairs/relief/H",
         ".2f",
+    ),
+    ArtifactMacro(
+        "PlotMoonReliefNuOne",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/relief/nu_m/0",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotMoonReliefNuTwo",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/relief/nu_m/1",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotMoonReliefNuThree",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/relief/nu_m/2",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotMoonReliefNuFour",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/relief/nu_m/3",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotMoonReliefNuFive",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/relief/nu_m/4",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotMoonTextureNuOne",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/texture/nu_m/0",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotMoonTextureNuTwo",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/texture/nu_m/1",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotMoonTextureNuThree",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/texture/nu_m/2",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotMoonTextureNuFour",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/texture/nu_m/3",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotMoonTextureNuFive",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/proposed_primary/fingerprint/direction_mean/texture/nu_m/4",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotEarthReliefNuOne",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/relief/nu_m/0",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotEarthReliefNuTwo",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/relief/nu_m/1",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotEarthReliefNuThree",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/relief/nu_m/2",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotEarthReliefNuFour",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/relief/nu_m/3",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotEarthReliefNuFive",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/relief/nu_m/4",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotEarthTextureNuOne",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/texture/nu_m/0",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotEarthTextureNuTwo",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/texture/nu_m/1",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotEarthTextureNuThree",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/texture/nu_m/2",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotEarthTextureNuFour",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/texture/nu_m/3",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "PlotEarthTextureNuFive",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/texture/nu_m/4",
+        ".4f",
     ),
     ArtifactMacro(
         "HoluhraunWindowsGenerated",
@@ -186,37 +308,37 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro(
         "EarthCardReliefH",
         "outputs/g0/windows-evidence.json",
-        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/relief/H",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/relief/H",
         ".2f",
     ),
     ArtifactMacro(
         "EarthCardTextureH",
         "outputs/g0/windows-evidence.json",
-        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/texture/H",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/texture/H",
         ".2f",
     ),
     ArtifactMacro(
         "EarthCardReliefNuShort",
         "outputs/g0/windows-evidence.json",
-        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/relief/nu_m/0",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/relief/nu_m/0",
         ".2f",
     ),
     ArtifactMacro(
         "EarthCardReliefNuLong",
         "outputs/g0/windows-evidence.json",
-        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/relief/nu_m/4",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/relief/nu_m/4",
         ".2f",
     ),
     ArtifactMacro(
         "EarthCardTextureNuShort",
         "outputs/g0/windows-evidence.json",
-        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/texture/nu_m/0",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/texture/nu_m/0",
         ".2f",
     ),
     ArtifactMacro(
         "EarthCardTextureNuLong",
         "outputs/g0/windows-evidence.json",
-        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/pooled_pairs/texture/nu_m/4",
+        "/g0_04_earth_and_g0_05/g0_05/proposed/fingerprint/direction_mean/texture/nu_m/4",
         ".2f",
     ),
     ArtifactMacro(
@@ -267,9 +389,13 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro("ConfigMinLagsH", "config/run.yaml", "/terrain/min_lags_for_H", "d"),
     ArtifactMacro("ConfigLagSpan", "config/run.yaml", "/terrain/min_lag_span_factor", "d"),
     ArtifactMacro("ConfigMinValidPct", "config/run.yaml", "/terrain/min_valid_fraction", "%.0f"),
-    ArtifactMacro("ConfigMinAllowedPct", "config/run.yaml", "/earth_search/masks/min_allowed_fraction", "%.0f"),
+    ArtifactMacro(
+        "ConfigMinAllowedPct", "config/run.yaml", "/earth_search/masks/min_allowed_fraction", "%.0f"
+    ),
     ArtifactMacro("ConfigClones", "config/run.yaml", "/uncertainty/clones_used", "d"),
-    ArtifactMacro("ConfigBackgroundSample", "config/run.yaml", "/uncertainty/background_sample_size", ",d"),
+    ArtifactMacro(
+        "ConfigBackgroundSample", "config/run.yaml", "/uncertainty/background_sample_size", ",d"
+    ),
     ArtifactMacro("ConfigInputPx", "config/run.yaml", "/ml/input_px", "d"),
     ArtifactMacro("ConfigInputSpacing", "config/run.yaml", "/ml/input_m_per_px", ".3f"),
     ArtifactMacro("ConfigEmbeddingDim", "config/run.yaml", "/ml/embedding_dim", "d"),
@@ -283,6 +409,445 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro("GFiveRhoMin", "config/run.yaml", "/ml/g5/agreement_rho_min", ".1f"),
     ArtifactMacro("GFiveJaccardMin", "config/run.yaml", "/ml/g5/seed_jaccard20_min", ".1f"),
     ArtifactMacro("ConfigShippingMode", "config/run.yaml", "/run/shipping_mode", "text"),
+    ArtifactMacro(
+        "DatasetMoonWindows", "outputs/ml/dataset/manifest.json", "/counts/moon/total", "?,d"
+    ),
+    ArtifactMacro(
+        "DatasetMarsWindows", "outputs/ml/dataset/manifest.json", "/counts/mars/total", "?,d"
+    ),
+    ArtifactMacro(
+        "DatasetEarthWindows", "outputs/ml/dataset/manifest.json", "/counts/earth/total", "?,d"
+    ),
+    ArtifactMacro("DatasetTestWindows", "outputs/ml/dataset/manifest.json", "/counts/test", "?,d"),
+    ArtifactMacro("TrainEpochs", "outputs/ml/train/summary.json", "/epochs", "?d"),
+    ArtifactMacro("TrainBatch", "outputs/ml/train/summary.json", "/batch_size", "?d"),
+    ArtifactMacro("TrainHours", "outputs/ml/train/summary.json", "/wall_hours", "?.1f"),
+    ArtifactMacro("TrainDevice", "outputs/ml/train/summary.json", "/device", "?text"),
+    ArtifactMacro("EncoderParams", "outputs/ml/train/summary.json", "/parameters", "?,d"),
+    ArtifactMacro(
+        "EncoderPhysRReliefMin",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/physics_probe/encoder/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "ResNetPhysRReliefMin",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/physics_probe/imagenet_resnet18/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "DinoPhysRReliefMin",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/physics_probe/dino_vits8/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "RandomPhysRReliefMin",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/physics_probe/random_init/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "EncoderMorphGain",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/morphology_probe/encoder/gain",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "EncoderBodyAcc",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/body_probe/encoder/balanced_accuracy",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "NoAdvBodyAcc",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/body_probe/lambda_zero/balanced_accuracy",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "EncoderAgreementRho",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/physics_agreement/spearman_rho",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "EncoderSeedJaccard",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/seed_stability/jaccard20",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "EncoderTargetJaccard",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/target_retrieval/jaccard20",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "HeldOutMarsR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/held_out_body/mars/relief_r2",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "GFiveVerdict", "outputs/ml/evaluation/test/g5_conditions.json", "/status", "?text"
+    ),
+    ArtifactMacro(
+        "ShortlistCount", "outputs/search/targets.json", "/0/shortlist/earth_window_ids", "count"
+    ),
+    ArtifactMacro("ComparedCount", "outputs/search/targets.json", "/0/shortlist/n_compared", "d"),
+    ArtifactMacro(
+        "ShortlistWindow", "outputs/search/targets.json", "/0/shortlist/earth_window_ids/0", "text"
+    ),
+    ArtifactMacro(
+        "BestReliefDistance",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+        "/distances_by_family/terrain_relief/value",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "BestTextureDistance",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+        "/distances_by_family/terrain_texture/value",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "FirstReliefDistance",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e280-n2880.json",
+        "/distances_by_family/terrain_relief/value",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "FirstTextureDistance",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e280-n2880.json",
+        "/distances_by_family/terrain_texture/value",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "ReliefDistanceMin",
+        "outputs/comparisons/moon-cr-site01-w000.json",
+        "/*/distances_by_family/terrain_relief/value",
+        "min:.2f",
+    ),
+    ArtifactMacro(
+        "ReliefDistanceMedian",
+        "outputs/comparisons/moon-cr-site01-w000.json",
+        "/*/distances_by_family/terrain_relief/value",
+        "median:.2f",
+    ),
+    ArtifactMacro(
+        "ReliefDistanceMax",
+        "outputs/comparisons/moon-cr-site01-w000.json",
+        "/*/distances_by_family/terrain_relief/value",
+        "max:.2f",
+    ),
+    ArtifactMacro(
+        "TextureDistanceMin",
+        "outputs/comparisons/moon-cr-site01-w000.json",
+        "/*/distances_by_family/terrain_texture/value",
+        "min:.2f",
+    ),
+    ArtifactMacro(
+        "TextureDistanceMedian",
+        "outputs/comparisons/moon-cr-site01-w000.json",
+        "/*/distances_by_family/terrain_texture/value",
+        "median:.2f",
+    ),
+    ArtifactMacro(
+        "TextureDistanceMax",
+        "outputs/comparisons/moon-cr-site01-w000.json",
+        "/*/distances_by_family/terrain_texture/value",
+        "max:.2f",
+    ),
+    ArtifactMacro(
+        "CardShippingMode",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+        "/shipping_mode",
+        "text",
+    ),
+    ArtifactMacro(
+        "BestBackgroundPercentile",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+        "/distances_by_family/terrain_relief/background_percentile",
+        ".0f",
+    ),
+    ArtifactMacro(
+        "BestReferenceSpread",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+        "/distances_by_family/terrain_relief/reference_spread",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "VarMainPhysR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/main/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarMainBodyAcc",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/main/body_balanced_accuracy",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarMainRho",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/main/physics_agreement_rho",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarNoPhysPhysR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/no_physics_head/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarNoPhysBodyAcc",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/no_physics_head/body_balanced_accuracy",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarNoPhysRho",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/no_physics_head/physics_agreement_rho",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarLambdaZeroPhysR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/lambda_zero/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarLambdaZeroBodyAcc",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/lambda_zero/body_balanced_accuracy",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarLambdaZeroRho",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/lambda_zero/physics_agreement_rho",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarVicregOnlyPhysR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/vicreg_only/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarVicregOnlyBodyAcc",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/vicreg_only/body_balanced_accuracy",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarVicregOnlyRho",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/vicreg_only/physics_agreement_rho",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarPhysOnlyPhysR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/physics_only/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarPhysOnlyBodyAcc",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/physics_only/body_balanced_accuracy",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarPhysOnlyRho",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/physics_only/physics_agreement_rho",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarLambdaOnePhysR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/lambda_one/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarLambdaOneBodyAcc",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/lambda_one/body_balanced_accuracy",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarLambdaOneRho",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/lambda_one/physics_agreement_rho",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarLambdaTenthPhysR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/lambda_point_one/relief_r2_lower_min",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarLambdaTenthBodyAcc",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/lambda_point_one/body_balanced_accuracy",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "VarLambdaTenthRho",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/variations/lambda_point_one/physics_agreement_rho",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "DistSiteReliefHMin",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/relief/H",
+        "min:.2f",
+    ),
+    ArtifactMacro(
+        "DistSiteReliefHMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/relief/H",
+        "median:.2f",
+    ),
+    ArtifactMacro(
+        "DistSiteReliefHMax",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/relief/H",
+        "max:.2f",
+    ),
+    ArtifactMacro(
+        "DistSiteReliefHCount",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/relief/H",
+        "n:d",
+    ),
+    ArtifactMacro(
+        "DistSiteReliefNuShortMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/relief/nu_m/0",
+        "median:.1f",
+    ),
+    ArtifactMacro(
+        "DistSiteReliefNuLongMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/relief/nu_m/4",
+        "median:.1f",
+    ),
+    ArtifactMacro(
+        "DistSiteTextureHMin",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/texture/H",
+        "min:.2f",
+    ),
+    ArtifactMacro(
+        "DistSiteTextureHMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/texture/H",
+        "median:.2f",
+    ),
+    ArtifactMacro(
+        "DistSiteTextureHMax",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/texture/H",
+        "max:.2f",
+    ),
+    ArtifactMacro(
+        "DistSiteTextureHCount",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/texture/H",
+        "n:d",
+    ),
+    ArtifactMacro(
+        "DistSiteTextureNuShortMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/texture/nu_m/0",
+        "median:.1f",
+    ),
+    ArtifactMacro(
+        "DistSiteTextureNuLongMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_02_moon/windows/*/fingerprint/direction_mean/texture/nu_m/4",
+        "median:.1f",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunReliefHMin",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/relief/H",
+        "min:.2f",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunReliefHMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/relief/H",
+        "median:.2f",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunReliefHMax",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/relief/H",
+        "max:.2f",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunReliefHCount",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/relief/H",
+        "n:d",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunReliefNuShortMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/relief/nu_m/0",
+        "median:.2f",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunReliefNuLongMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/relief/nu_m/4",
+        "median:.2f",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunTextureHMin",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/texture/H",
+        "min:.2f",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunTextureHMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/texture/H",
+        "median:.2f",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunTextureHMax",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/texture/H",
+        "max:.2f",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunTextureHCount",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/texture/H",
+        "n:d",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunTextureNuShortMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/texture/nu_m/0",
+        "median:.2f",
+    ),
+    ArtifactMacro(
+        "DistHoluhraunTextureNuLongMedian",
+        "outputs/g0/windows-evidence.json",
+        "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/texture/nu_m/4",
+        "median:.2f",
+    ),
     ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
     ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
     ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),
@@ -402,9 +967,57 @@ def escape_text(value: str) -> str:
     return "".join(LATEX_SPECIAL.get(char, char) for char in value)
 
 
+AGGREGATES = ("min:", "max:", "median:", "n:")
+
+
+def resolve_artifact(document: object, pointer: str) -> object:
+    """resolve(), plus one "/*" segment that maps the rest of the pointer over an array."""
+    if "/*" not in pointer:
+        return resolve(document, pointer)
+    head, _, rest = pointer.partition("/*")
+    items = resolve(document, head)
+    if not isinstance(items, list):
+        raise MacroError(f"pointer {pointer!r}: {head!r} is not an array")
+    return [resolve(item, rest) for item in items]
+
+
+def aggregate(values: object, format_spec: str) -> str:
+    """min, max, median (the mean of the two middle values) or count n of an array of numbers."""
+    name, _, spec = format_spec.partition(":")
+    if not isinstance(values, list) or not values:
+        raise MacroError(f"{name} needs a non-empty array, got {values!r}")
+    numbers = []
+    # Null entries are missing values: they are skipped, never read as 0, and "n:" counts the rest.
+    for value in (value for value in values if value is not None):
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, int | float)
+            or not math.isfinite(value)
+        ):
+            raise MacroError(f"{name}: {value!r} is not a finite number")
+        numbers.append(float(value))
+    if name == "n":
+        return render(len(numbers), spec)
+    if not numbers:
+        return NOT_AVAILABLE
+    numbers.sort()
+    middle = len(numbers) // 2
+    result = {
+        "min": numbers[0],
+        "max": numbers[-1],
+        "n": float(len(numbers)),
+        "median": numbers[middle]
+        if len(numbers) % 2
+        else (numbers[middle - 1] + numbers[middle]) / 2,
+    }[name]
+    return render(result, spec)
+
+
 def render_artifact(value: object, format_spec: str) -> str:
     if value is None:
         return NOT_AVAILABLE
+    if format_spec.startswith(AGGREGATES):
+        return aggregate(value, format_spec)
     if format_spec == "text":
         if not isinstance(value, str) or not value.strip():
             raise MacroError(f"the value {value!r} is not a non-empty string")
@@ -450,6 +1063,7 @@ def artifact_lines(
     documents: dict[str, object] = {}
     lines: list[str] = []
     errors: list[str] = []
+    absent: list[str] = []
     for macro in macros:
         path = root / macro.path
         try:
@@ -460,17 +1074,27 @@ def artifact_lines(
                     data = path.read_bytes()
                     sources[macro.path] = f"% Artifact {macro.path} sha256 {sha256(data)}."
                     documents[macro.path] = parse_artifact(macro.path, data)
+            spec = macro.format_spec
+            # "?" marks a macro whose producer has not fixed its schema yet: an absent pointer in
+            # an existing file then renders \NotAvailable and is named in a comment line.
+            optional = spec.startswith("?")
+            spec = spec.removeprefix("?")
             if macro.path in documents:
-                value = render_artifact(
-                    resolve(documents[macro.path], macro.pointer), macro.format_spec
-                )
+                try:
+                    found = resolve_artifact(documents[macro.path], macro.pointer)
+                except MacroError:
+                    if not optional:
+                        raise
+                    absent.append(f"% Artifact {macro.path}: pointer {macro.pointer} absent.")
+                    found = None
+                value = render_artifact(found, spec)
             else:
                 value = NOT_AVAILABLE
         except MacroError as error:
             errors.append(f"\\{macro.name}: {macro.path}#{macro.pointer}: {error}")
             continue
         lines.append(f"\\newcommand{{\\{macro.name}}}{{{value}}}")
-    return list(sources.values()), lines, errors
+    return list(sources.values()) + absent, lines, errors
 
 
 def write_atomic(path: Path, text: str) -> None:

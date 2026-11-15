@@ -1,0 +1,26 @@
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{loglogaxis}[tlplot, width=0.62\linewidth, height=0.42\linewidth,
+  xlabel={lag $L$ (m)}, ylabel={$\nu(L)$ (m)},
+  xtick={270,360,540,720,1080}, xticklabels={270,360,540,720,1080},
+  log ticks with fixed point, legend pos=outer north east, legend cell align=left]
+\addplot[okblue, thick, mark=*] coordinates {(270,\PlotMoonReliefNuOne) (360,\PlotMoonReliefNuTwo) (540,\PlotMoonReliefNuThree) (720,\PlotMoonReliefNuFour) (1080,\PlotMoonReliefNuFive)};
+\addlegendentry{Moon, relief}
+\addplot[okblue, thick, dashed, mark=o] coordinates {(270,\PlotMoonTextureNuOne) (360,\PlotMoonTextureNuTwo) (540,\PlotMoonTextureNuThree) (720,\PlotMoonTextureNuFour) (1080,\PlotMoonTextureNuFive)};
+\addlegendentry{Moon, texture}
+\addplot[okvermilion, thick, mark=square*] coordinates {(270,\PlotEarthReliefNuOne) (360,\PlotEarthReliefNuTwo) (540,\PlotEarthReliefNuThree) (720,\PlotEarthReliefNuFour) (1080,\PlotEarthReliefNuFive)};
+\addlegendentry{Earth, relief}
+\addplot[okvermilion, thick, dashed, mark=square] coordinates {(270,\PlotEarthTextureNuOne) (360,\PlotEarthTextureNuTwo) (540,\PlotEarthTextureNuThree) (720,\PlotEarthTextureNuFour) (1080,\PlotEarthTextureNuFive)};
+\addlegendentry{Earth, texture}
+\end{loglogaxis}
+\end{tikzpicture}
+\caption{Structure functions of the primary lunar target window (Site01 of PGDA product 78,
+window \texttt{moon-sps-x2-y2}) and the first paired Earth window (Copernicus GLO-30,
+\texttt{earth-utm27n-e280-n2880}, Holuhraun), on the \ConfigGridM\,m analysis grid, from the
+windows evidence record of the gate G0 pilot. Solid lines are relief (raw heights) and dashed lines
+texture (best fit plane removed). Each curve is the equal weight mean over the two grid axes. The
+slopes give the Hurst exponents of Table~\ref{tab:first-pair}. The Earth window was chosen because
+it contains the decoded radar scene centre, not by similarity.}
+\label{fig:structure-functions}
+\end{figure}
