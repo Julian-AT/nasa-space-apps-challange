@@ -1,0 +1,382 @@
+{
+  "project": "Terraluna",
+  "branchName": "ralph/t11-dataset",
+  "description": "PRD section 12, T11 (encoder dataset code). T11-01 to T11-06 run on synthetic DEMs only and are written so that real DEM readers plug in later; T11-07 and T11-08 are the real-data stories and are blocked until their human decisions exist. Launch predecessors (CONTRACTS section k): t3-terrain complete (terraluna_pipeline.geometry and terrain merged) and t1-pilot through T1-02 (io.py and quality.py), plus the integration fixes in CONTRACTS section g: the orchestrator commits the ruff and pytest config (ml/tests in ruff src and include, testpaths pipeline/tests and ml/tests) before launch, and adds ml/tests to mypy files and mypy_path in the T11-01 merge. T11-07 and T11-08 additionally wait on t1-pilot complete (T1-09) and on the human decisions G0-02, G0-06, G0-07, G0-08, ANA-05, PRD-04, PRD-05, PRD-06 and PRD-08 (HUMAN-DECISIONS.md); they stop as blocked and never guess. Contracts: section (j) for masks.py, which T11-03 owns and which T5 (T5-04) and the dataset import; section (f) for the CLI convention, so every CLI module exposes main(argv) -> int; section (g) for the test-file rules (unique basenames against pipeline/tests; ml/tests/conftest.py belongs to this batch only); section (b) for outputs/ml/sources.json, outputs/ml/dataset/manifest.json and fixtures/parity/encoder_channels.json. Out of scope: model code (T12), T8 and quantum work. The 600,000-window real build is T11-08 and is run by a person on the cluster. The encoder stays EXPERIMENTAL; the G5 thresholds (PRD 8.13 ml.g5) are never read for tuning and never edited, and config/run.yaml is not touched. Window geometry is 64 x 78.125 m = 5,000 m, built with geometry.window_grid(5000.0, 78.125); every DEM window goes through geometry.resample_window (the D29 resampler); never reimplement the resampler or the terrain statistics. Before writing code, read terraluna_pipeline.geometry (window_grid, resample_window, body_radius_m, GeographicLookup, PolarStereographicLookup, EquirectangularLookup, ResampledGrid with values, valid and inside) and terraluna_pipeline.terrain (terrain_fingerprint, below_min_valid_fraction) as merged, and write criteria against what they provide. Stories run in priority order; T11-03 (masks.py) runs before T11-02 because T11-02 imports masks.ctx_quality_status. The author iteration never sets passes; ralph.sh runs two independent reviews and a deterministic gate first. This file is Ralph's task list, not the product PRD.",
+  "userStories": [
+    {
+      "id": "T11-01",
+      "title": "Synthetic DEM fixtures and 64 x 64 window sampling",
+      "owner": "ml-engineer",
+      "prdRefs": [
+        "7 (Window resampler, D29)",
+        "11.2",
+        "12 (T11)"
+      ],
+      "description": "Create the synthetic DEM source and the window sampler, tests first. Real DEM readers later implement the same source interface.",
+      "files": [
+        "ml/src/terraluna_ml/dataset.py",
+        "ml/src/terraluna_ml/splits.py",
+        "ml/src/terraluna_ml/synthetic.py",
+        "ml/tests/test_dataset*.py",
+        "ml/tests/test_splits*.py",
+        "ml/tests/test_synthetic*.py",
+        "ml/pyproject.toml",
+        "uv.lock",
+        "ml/tests/conftest.py"
+      ],
+      "acceptanceCriteria": [
+        "ml/pyproject.toml gains dependencies only: terraluna-pipeline (workspace source), numpy and pyarrow, plus whatever pipeline already pins. Nothing else, no torch.",
+        "synthetic.py builds labelled synthetic DEMs, deterministic from an explicit integer seed: a plane, a fractional-Brownian surface with a chosen Hurst exponent, a surface with a nodata hole, and a non-constant 4-fold-symmetric surface on a polar-stereographic source centred on the pole with the pole on a source lattice node. Every DEM carries body, nodata value and a mock=True label; nothing synthetic can be mistaken for real data. A DemSource protocol is the single interface a real reader will implement later. It only supplies the source raster and metadata: body, a float64 source raster, nodata value, and the T3 lookup object (terraluna_pipeline.geometry GeographicLookup, PolarStereographicLookup or EquirectangularLookup, each built with its explicit georeferencing parameters). It never evaluates elevation at (lat, lon), and nothing in ml/src bypasses or duplicates the resampler.",
+        "dataset.py provides sample_window(source, lat0, lon0) with lat0 and lon0 in degrees, converted once to radians. It calls geometry.resample_window(raster, lookup, grid=geometry.window_grid(5000.0, 78.125), body=..., lat0_rad=..., lon0_rad=..., nodata=...) with the body radius from geometry.body_radius_m, so the window is exactly 64 x 64 pixels at 78.125 m/px, an analysed window of exactly 5,000 m (64 x 78.125 m), centred on (lat0, lon0). Any edge margin is source-read padding only (stated as such in the constants block, never counted as the window); the analysed window stays exactly 5 km. No 5.5 km crop is produced; the up-to-250 m sub-crop augmentation of PRD 11.4 is out of this batch (decision PRD-08). It removes a best-fit plane fitted over valid pixels only and returns channels asinh(z / 50 m), slope magnitude / 45 degrees and the valid mask, float16 on storage, plus the valid fraction of the 64 x 64 window (recorded, not a filter). Window pixels, pixel size, window extent and the 50 m and 45 degree constants come from one named constants block matching PRD 11.2 and the 8.13 ml block, with a test asserting 64 x 78.125 == 5000. Input encoding at invalid pixels is fixed here and recorded in the constants block and data manifest: channels 0 and 1 hold 0.0 where the valid channel is 0. This is a network-input fill, not an elevation: plane fit, slope, targets and valid fraction use only valid pixels. No NaN is stored in shards. A test asserts no NaN in any shard and that changing the fill pixels' source values does not change any valid-pixel output.",
+        "ml/tests are written and run failing first. They cover: output shape is 3 x 64 x 64 and spacing is exactly 78.125 m; for a synthetic plane source, texture after plane removal stays below a bound derived in the test, before the first run, from T3-03's stated curvature residual and the source spacing (never exact zero, never an epsilon tuned to the result), and texture nu or its nu_zero mask equals what terraluna_pipeline.terrain returns; the valid channel is 0 wherever the source has nodata; the same seed gives byte-identical windows; ml/src/terraluna_ml/dataset.py, splits.py and synthetic.py (by path) import the resampler from terraluna_pipeline.geometry and define no AEQD or bilinear function (a by-path test of those three files only; later modules such as baselines.py are not covered); for a polar-stereographic synthetic source centred on the pole, with the pole on a source lattice node and a non-constant 4-fold-symmetric surface, rotating the window centre by 90 degrees of longitude gives the 90-degree-rotated window to float error.",
+        "mypy --strict passes for ml/src; ruff passes."
+      ],
+      "checks": [
+        "uv run pytest ml/tests",
+        "uv run mypy ml/src ml/tests",
+        "make check"
+      ],
+      "priority": 1,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Decision (orchestrator): window geometry is 64 px x 78.125 m = 5,000 m; the earlier 5.5 km crop and the 72 px context are removed (PRD-08 asks a human whether to restore a context crop). Any resampling margin is source-read padding only. DemSource supplies rasters and metadata only; all windows go through T3's D29 resampler. Read terraluna_pipeline.geometry first and use its real names. Real DEM readers are T11-07. The orchestrator commits the ruff and pytest config before launch and adds ml/tests to mypy files and mypy_path in the T11-01 merge (CONTRACTS g); until then checks name ml/src and ml/tests explicitly. Test basenames are unique against pipeline/tests (test_dataset*, test_splits*, test_synthetic* only); ml/tests/conftest.py belongs to this batch only, and later ML batches use helpers_<area>.py. The fill-at-invalid rule is shared with t10 T10-07 and t12a T12A-03.",
+      "codexPasses": 2
+    },
+    {
+      "id": "T11-03",
+      "title": "Shared WorldCover and CTX masks (masks.py)",
+      "owner": "data-engineer",
+      "prdRefs": [
+        "5 (inputs 11, 12; Mars inputs)",
+        "6.4",
+        "8.3 (quality.py)",
+        "8.13 (earth_search.masks)",
+        "11.2",
+        "D31",
+        "9 (What must be reported)"
+      ],
+      "description": "The one home of the WorldCover and CTX eligibility masks (CONTRACTS section j, moved from t5 T5-01). Pure functions on in-memory arrays, tests first on small synthetic rasters labelled mock. T5 search (T5-04) and this dataset (T11-02, T11-05, T11-08) import it; nothing reimplements it. quality.py (T1) is imported, not edited; if it already provides a CTX QA reader, call it. Real WorldCover and CTX reads are T11-07 and t5 T5-07.",
+      "files": [
+        "pipeline/src/terraluna_pipeline/masks.py",
+        "pipeline/tests/test_masks*.py"
+      ],
+      "acceptanceCriteria": [
+        "Tests first (pipeline/tests/test_masks.py fails before masks.py exists). The legend table maps the WorldCover class codes (10 tree, 20 shrubland, 30 grassland, 40 cropland, 50 built-up, 60 bare or sparse, 70 snow and ice, 80 water, 90 herbaceous wetland, 95 mangroves, 100 moss and lichen) to the config names (bare_sparse 60, snow_ice 70, grassland 30, shrubland 20 and so on). The author confirms the legend against the pinned product (G0-08: the version T1-07 actually read) and records version, year and legend source as module constants; a test pins them and the table. A code outside the legend is an unknown-class pixel, never allowed.",
+        "Nearest-class sampling (ANA-05 default): a function samples a class raster at the D29 pixel centres of the 90 m analysis grid, geometry.window_grid(window_m, analysis_grid_m), through geometry.aeqd_inverse and the same source-lookup forms as the DEM, with a stated and tested rounding rule at pixel boundaries. Classes are never bilinearly resampled; points outside the raster or on nodata are nodata. A test shows that no code outside the legend can arise from sampling. The native 10 m areal count is the alternative under decision ANA-05 and is not implemented.",
+        "window_land_cover_status(classes, allowed, min_allowed_fraction, water_rule) returns a status of eligible, rejected or unknown, a machine-readable reason, the allowed fraction and pixel counts by reason; the counts sum exactly to the sample count (tested on three rasters). Cases: a 100x100 raster that is 90% class 60 and 10% class 50 is eligible at min_allowed_fraction 0.9 (boundary inclusive, pinned by a test); 89% is rejected with land_cover_below_min_fraction; a raster that is 40% nodata is unknown with land_cover_nodata, not rejected and not a zero fraction; unknown codes count as unknown (reason unknown_class), never as allowed. If unknown and nodata pixels exceed 1 - min_allowed_fraction the window is unknown; otherwise the allowed fraction is taken over all samples.",
+        "allowed and min_allowed_fraction come from config earth_search.masks (PRD 8.13; bare_sparse, snow_ice, grassland, shrubland; 0.9) and are never hard-coded or edited. PRD 6.4 and D31 say snow, ice and vegetation are masked while the config list allows snow_ice, grassland and shrubland (decision PRD-04): the function implements the config list as given, counts class 70 pixels separately as snow_ice, and notes record the discrepancy. Water is class 80 and config earth_search.masks.water is null (G0-09): a null water rule returns unknown with reason water_rule_unset instead of silently allowing it; tests pass explicit water rules. Disallowed pixels inside an accepted window are not turned into nodata: the PRD does not state that rule (review-ml #7), so it is not implemented.",
+        "Body rule: Moon and Mars windows return not_applicable_body and are never recorded as fully allowed. A missing class source for an Earth window is worldcover_missing (unknown), never a pass.",
+        "ctx_quality_status(valid_fraction, qa_metrics, ctx_mola_sd_threshold_m, *, is_target) applies the Mars rule: target windows need a valid fraction of at least 0.9 (PRD 5), other windows at least terrain.min_valid_fraction (0.8, read from config); below that the status is rejected with ctx_valid_fraction_below_min. A missing qa_metrics.txt gives unknown with ctx_qa_missing. A threshold of None gives unknown with ctx_qa_threshold_unset (G0-06; PRD 11.2 starts at 10 m); no value is invented and tests pass explicit thresholds. Uncertain quality is never converted to zero error.",
+        "Layover and shadow masks for radar are an optional boolean input; when the radar product is unavailable the field is Unavailable with a reason and does not change terrain eligibility (PRD 6.4: terrain-only regions). Reason codes are the CONTRACTS a.5 vocabulary for masks.py.",
+        "mypy --strict and ruff pass; the module has no network or file-system access."
+      ],
+      "checks": [
+        "uv run pytest pipeline/tests/test_masks.py",
+        "make check-py"
+      ],
+      "priority": 2,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Moved from t5 T5-01 (CONTRACTS j). Owner is data-engineer; the files are in pipeline/, so this is the only T11 story outside ml/. PRD 8.3 puts the WorldCover and CTX QA filters in pipeline quality.py; they live in masks.py, which imports quality.py. Decisions open: ANA-05 (areal fraction method), PRD-04 (snow_ice, grassland and shrubland), G0-06 (CTX QA threshold), G0-08 (WorldCover version), G0-09 (water rule). The 64 x 64 encoder window's own fraction is not a mask rule."
+    },
+    {
+      "id": "T11-02",
+      "title": "Physics targets from the ranking's own terrain code",
+      "owner": "ml-engineer",
+      "prdRefs": [
+        "6.3",
+        "11.2",
+        "11.4",
+        "12 (T11)"
+      ],
+      "description": "Attach the 11 masked physics targets to each window, computed with terraluna_pipeline.terrain, never with a copy.",
+      "files": [
+        "ml/src/terraluna_ml/dataset.py",
+        "ml/src/terraluna_ml/splits.py",
+        "ml/src/terraluna_ml/synthetic.py",
+        "ml/tests/test_dataset*.py",
+        "ml/tests/test_splits*.py",
+        "ml/tests/test_synthetic*.py",
+        "ml/pyproject.toml",
+        "uv.lock",
+        "ml/tests/conftest.py"
+      ],
+      "acceptanceCriteria": [
+        "dataset.py provides physics_targets(source, lat0, lon0, h_variant). It returns log nu(L) for relief (raw) and texture (plane removed) at the five lags in the 8.13 terrain.lags_m on the 90 m analysis grid (10 values), plus one H, and an 11-element mask. All values come from terraluna_pipeline.terrain.terrain_fingerprint on the grid and with the support rules defined there (T3-05); read that module first. PRD 11.2 and 11.3 do not say whether the eleventh target is the relief or the texture H, so h_variant is a required argument with no default, and the notes record the choice as a human decision. Lags with insufficient support, a zero nu, or H that is Unavailable are masked with the reason recorded, never filled with zero or a mean.",
+        "Because the 78.125 m window grid differs from the 90 m analysis grid, the code obtains the 90 m grid (geometry.window_grid(5000.0, 90.0), 55 x 55 cells) through the same geometry.resample_window call and records the grid used; no other interpolation is introduced and upsampling is not treated as information.",
+        "Tests, written first: a synthetic fractional-Brownian DEM with known H recovers H within the tolerance the terrain tests already use; for a synthetic plane source, texture after plane removal stays below a bound derived in the test, before the first run, from T3-03's stated curvature residual and the source spacing (never exact zero, never a tuned epsilon), texture nu or its nu_zero mask equals what terraluna_pipeline.terrain returns, and relief nu is nonzero; a window with a hole large enough to break support masks the affected targets and flags them with a reason; all 11 outputs equal a direct call to terraluna_pipeline.terrain on the same grid (equality to float tolerance, so a reimplementation fails). Standardisation of targets needs the T11-04 split map and is done in T11-05.",
+        "The window quality filter is the valid fraction of the 90 m analysis grid as terraluna_pipeline.terrain computes it (T3-05: below_min_valid_fraction, threshold from terrain.min_valid_fraction), the same rule T10-05 mirrors for the live probe. The 64 x 64 window's valid fraction is recorded but is not a second filter. Windows below the threshold are returned as rejected with the reason and the exact fraction, not silently dropped. The CTX QA standard-deviation filter is masks.ctx_quality_status (T11-03) with the threshold passed in (unset by default and recorded as unset, G0-06); the dataset never reimplements it.",
+        "mypy --strict passes for ml/src; ruff passes."
+      ],
+      "checks": [
+        "uv run pytest ml/tests",
+        "uv run mypy ml/src ml/tests",
+        "make check"
+      ],
+      "priority": 3,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Human decision needed (PRD-06): PRD 11.2 and 11.3 do not say whether the eleventh target H is the relief or texture variant; h_variant stays a required argument with no default. Target standardisation moved to T11-05 because it needs the T11-04 split map. physics_targets takes the source and centre so the 90 m grid comes from one D29 resampler call. Runs after T11-03 (imports masks.py).",
+      "codexPasses": 2
+    },
+    {
+      "id": "T11-04",
+      "title": "Spatial split maps",
+      "owner": "ml-engineer",
+      "prdRefs": [
+        "9 (What is held out)",
+        "11.2 (Splits by space)",
+        "11.5",
+        "12 (T11)"
+      ],
+      "description": "Assign every sampled centre to train, validation or test by spatial block, so regions and connected acquisitions stay together. The touch rule is configuration-driven and loud about empty results.",
+      "files": [
+        "ml/src/terraluna_ml/dataset.py",
+        "ml/src/terraluna_ml/splits.py",
+        "ml/src/terraluna_ml/synthetic.py",
+        "ml/tests/test_dataset*.py",
+        "ml/tests/test_splits*.py",
+        "ml/tests/test_synthetic*.py",
+        "ml/pyproject.toml",
+        "uv.lock",
+        "ml/tests/conftest.py"
+      ],
+      "acceptanceCriteria": [
+        "splits.py provides block keys per body, with all rule parameters read from a config object (not literals): Moon by four 90 degree longitude sectors (one test, one validation, two train per PRD 11.2); Mars by the 10 x 10 degree tile of the DTM, grouped so that all windows from one DTM share a split (a DTM's tile is that of its centre; overlapping DTMs in one connected acquisition stay together); Earth by 2 x 2 degree blocks. Fractions: Mars and Earth 15% test and 10% validation of blocks, rounded and recorded, never random per window. Moon sector roles come either from an explicit configured assignment (the real one is frozen by a human at G0 and G5 time) or from an explicit seed, and the choice is recorded.",
+        "The PRD rule 'training blocks that touch a test block are dropped' is implemented as configuration: touch means sharing an edge or corner, with longitude wrap handled, and a config flag states whether contact only at a pole point counts. The rule is never silently relaxed. Dropped blocks are listed in the split map with the reason, and the split map records the fraction of training blocks dropped.",
+        "After dropping, if training, validation or test is empty, building the split raises an error naming the reason (for example that every Moon training sector touches the test sector under the configured rule). It never falls back to another rule. The synthetic Moon layout is a ring of four sectors over a polar cap; as written with pole contact counted, no training sector survives, so that configuration must fail loudly, while the edge-only configuration leaves non-empty training, validation and test sets. A human decides the real rule at G0 and G5 time.",
+        "The split map is a Parquet or JSON artifact with the seed, rule version, touch configuration, block keys, assignment and a content hash; the same inputs and seed give a byte-identical file.",
+        "Tests, written first, on synthetic acquisitions and the synthetic Moon layout: no block appears in two splits; windows of one DTM or one connected acquisition never straddle splits; a train block adjacent to a test block (including across the 180 degree longitude seam) is dropped; Moon and a Mars or Earth synthetic grid produce non-empty train, validation and test under the configured rule, and the Moon pole-contact configuration raises the empty-training error with its reason; fractions come out within one block of the target before dropping; changing the seed changes the assignment and the same seed does not; no window-level random split function exists.",
+        "Test and validation assignments are never used to fit anything in this module; a docstring and a test state that only training blocks may be used to fit preprocessing statistics.",
+        "mypy --strict passes for ml/src; ruff passes."
+      ],
+      "checks": [
+        "uv run pytest ml/tests",
+        "uv run mypy ml/src ml/tests",
+        "make check"
+      ],
+      "priority": 4,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Interpretation recorded: with four 90 degree sectors, one test and one validation leave two train sectors, but the test sector's two neighbours share edges and all four share the pole, so the literal 'touch' rule leaves at most one training sector (edge-only) or none (pole counts). Random 10 and 2 degree blocks at 15% test also drop a large share of training blocks (about 1 - 0.85^8 if every neighbour counts). This story implements the PRD rule as configuration, fails loudly on empty sets and reports the dropped fraction; it chooses neither a window-level buffer nor clustered test regions. The real lunar sector assignment and the touch rule are frozen by a human at G0 and G5 time."
+    },
+    {
+      "id": "T11-05",
+      "title": "Target-footprint leakage check and deterministic sharding",
+      "owner": "ml-engineer",
+      "prdRefs": [
+        "11.2",
+        "11.10",
+        "9 (What is held out)",
+        "11.5 (Logged per run)",
+        "12 (T11)"
+      ],
+      "description": "Exclude windows that overlap a target footprint or its 10 km buffer, and write reproducible float16 shards with recorded seeds and hashes.",
+      "files": [
+        "ml/src/terraluna_ml/dataset.py",
+        "ml/src/terraluna_ml/splits.py",
+        "ml/src/terraluna_ml/synthetic.py",
+        "ml/tests/test_dataset*.py",
+        "ml/tests/test_splits*.py",
+        "ml/tests/test_synthetic*.py",
+        "ml/pyproject.toml",
+        "uv.lock",
+        "ml/tests/conftest.py"
+      ],
+      "acceptanceCriteria": [
+        "A leakage function takes target footprints (body, centre, window size, as an explicit input; real Moon and Mars footprints are frozen at G0 and are not invented here) and a candidate window set, and excludes every window overlapping a footprint or its 10 km buffer, using great-circle distance with the radii from terraluna_pipeline.geometry. The exclusion applies to training and to every probe set, and each excluded window is recorded with the target it hit.",
+        "A leakage check function returns a failure if any kept window lies within 10 km of any footprint edge, and the dataset build calls it as its last step and refuses to write shards on failure.",
+        "Shard writing: float16 arrays of shape (n, 3, 64, 64) as memory-mapped .npy plus Parquet metadata (window id, body, centre, split, valid fraction, physics targets and masks, rejection reason, source id, mock flag). Window order, sampling centres and shard assignment are deterministic functions of an explicit seed; the seed, git SHA when available, constants block, and per-shard SHA-256 are written to a data manifest, and the manifest hash is returned for the run records of PRD 11.5. dataset.py also exposes the read side as the contract later batches import: open_shards(manifest_path) returns the memory-mapped (n, 3, 64, 64) arrays, the Parquet metadata table, the split map (via splits.load_split_map) and data_manifest_sha256 recomputed from the file. It verifies every per-shard SHA-256 and raises on mismatch. A round-trip test uses the synthetic build. The manifest also records the invalid-pixel fill rule (0.0 in channels 0 and 1) and a test asserts no NaN in any shard.",
+        "Tests, written first: a window just inside and just outside the 10 km buffer (on the Moon radius and the Mars radius) are classified correctly; a target near the longitude seam and near the pole is handled; the leakage check fails when a window is deliberately left in; two builds with the same seed produce byte-identical shards and manifests, and a different seed differs; a shard round-trips through np.load with mmap_mode and matches the in-memory windows exactly; synthetic shards carry mock=True and a test shows that a manifest with mock windows cannot be marked production.",
+        "Balanced sampling support: the sampler can draw equal thirds per body for a batch plan (index plan only; no torch, no training).",
+        "Eligibility masks come from terraluna_pipeline.masks (T11-03) and are never reimplemented: Earth windows are kept only when window_land_cover_status is eligible, and the metadata records the masks status, reason and counts; rejected and unknown windows carry their reason, not a silent drop; Moon and Mars carry not_applicable_body. Labelled synthetic land-cover class rasters (mock=True, known allowed fractions) are added to synthetic.py for the tests.",
+        "Physics targets are standardised with statistics fitted on training-split windows only, from the T11-04 split map. A test shows that changing validation or test windows does not change the fitted statistics, and the statistics and the split-map hash are written to the data manifest.",
+        "mypy --strict passes for ml/src; ruff passes."
+      ],
+      "checks": [
+        "uv run pytest ml/tests",
+        "uv run mypy ml/src ml/tests",
+        "make check"
+      ],
+      "priority": 5,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Standardisation moved here from T11-02. The 10 km leakage buffer is applied to training and every probe set. Split-map hash and training-only target statistics go in the data manifest. If the story proves too large, the leakage check can be split into its own story. Real footprints are frozen at G0; none are invented. Masks come from masks.py (T11-03). The shard reader open_shards is imported by t12a and t13."
+    },
+    {
+      "id": "T11-06",
+      "title": "Dry-run planner and command line",
+      "owner": "ml-engineer",
+      "prdRefs": [
+        "11.2",
+        "8.13 (ml block)",
+        "12 (T11 and Commands)"
+      ],
+      "description": "A dry-run planner that reports what a real build would do, from config, without data. It never fabricates real-data counts.",
+      "files": [
+        "ml/src/terraluna_ml/dataset.py",
+        "ml/src/terraluna_ml/splits.py",
+        "ml/src/terraluna_ml/synthetic.py",
+        "ml/tests/test_dataset*.py",
+        "ml/tests/test_splits*.py",
+        "ml/tests/test_synthetic*.py",
+        "ml/pyproject.toml",
+        "uv.lock",
+        "ml/tests/conftest.py",
+        "fixtures/parity/encoder_*"
+      ],
+      "acceptanceCriteria": [
+        "uv run python -m terraluna_ml.dataset plan [--config path] prints and exits 0 with, per body, the requested training-window count from PRD 11.2 (Moon 200,000, Mars 200,000, Earth 200,000; total 600,000), the window geometry, the split rules, the filters, the leakage buffer, the estimated storage from the shard layout (3 x 64 x 64 float16, 24,576 bytes per window) and the seeds. These are requested and derived numbers and are labelled as such.",
+        "The planner reads config/run.yaml read-only. Missing or null entries (for example primary_window_id, the CTX QA threshold, the lunar DEM product) are printed as unset, never defaulted; achieved counts, accepted counts and block counts for real data are printed as unknown (no real DEMs present), not as zero or an estimate. It never reads or modifies the g5 thresholds and never writes to config.",
+        "A synthetic mode, uv run python -m terraluna_ml.dataset plan --synthetic --h-variant relief (or texture), runs the whole pipeline (sampling, targets, mask, splits, leakage, sharding) on a few labelled synthetic DEMs into a temporary directory and reports real counts for that mock run, clearly labelled mock. --h-variant is required with --synthetic and has no default (PRD-06): without it argparse exits 2, and the plain plan mode never needs it because it computes no targets.",
+        "Output is deterministic (sorted keys if JSON) and identical across runs for the same config and seed. The command states that the real 600,000-window build needs real DEMs (after G0) and the GPU cluster and is not run by this batch.",
+        "The module exposes main(argv: Sequence[str] | None = None) -> int, which the T9-01 launcher calls, and python -m delegates to it (if __name__ == \"__main__\": raise SystemExit(main())). A test calls main([...]) directly and checks the exit codes (0 done, 1 check failed, 2 usage, 3 blocked).",
+        "A subcommand dataset parity [--check] writes fixtures/parity/encoder_channels.json: synthetic windows with their exact float64 input arrays, the float64 channels from sample_window (plane removal over valid pixels, asinh(z/50 m), slope/45 degrees, valid mask), the invalid-pixel fill rule (0.0 in channels 0 and 1), and the tolerances (compared in float64 at 1e-9 absolute, CONTRACTS i). Every fixture carries data_kind synthetic and the sha256 of each input. --check recomputes in memory, compares byte for byte, writes nothing and exits 1 on drift. t10 T10-07 consumes the file.",
+        "Tests, written first: the plan output for a test config matches the expected counts and bytes; null config entries show as unset; the plan never emits a real-data count; the synthetic mode returns mock-labelled counts and exits 0; the CLI refuses unknown arguments with a non-zero exit; plan --synthetic without --h-variant exits 2; parity --check passes on the committed fixture and fails on a tampered copy.",
+        "mypy --strict passes for ml/src; ruff passes."
+      ],
+      "checks": [
+        "uv run pytest ml/tests",
+        "uv run mypy ml/src ml/tests",
+        "uv run python -m terraluna_ml.dataset plan",
+        "uv run python -m terraluna_ml.dataset plan --synthetic --h-variant relief",
+        "uv run python -m terraluna_ml.dataset plan --synthetic --h-variant texture",
+        "uv run python -m terraluna_ml.dataset parity --check",
+        "make check"
+      ],
+      "priority": 6,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "The orchestrator commits the ruff and pytest config before launch and adds the mypy paths in the T11-01 merge (CONTRACTS g). Test basenames avoid pipeline/tests (use test_dataset_plan*.py, test_dataset_parity*.py). The parity fixture is generated once by the author with dataset parity and committed; the check twin is offline."
+    },
+    {
+      "id": "T11-07",
+      "title": "Real DEM sources over the pipeline readers",
+      "owner": "ml-engineer",
+      "prdRefs": [
+        "5",
+        "7 (source lookup)",
+        "11.2",
+        "12 (T11)"
+      ],
+      "description": "Real DemSource adapters, and the dataset fetch command, over the pipeline readers. No new reader code. Starts only after t1-pilot is complete; the lunar part waits on G0-07.",
+      "files": [
+        "ml/src/terraluna_ml/sources.py",
+        "ml/src/terraluna_ml/dataset.py",
+        "ml/tests/test_sources*.py",
+        "outputs/ml/sources.json"
+      ],
+      "acceptanceCriteria": [
+        "Tests first, on synthetic GeoTIFFs written in tmp_path (labelled mock): ml/tests/test_sources.py fails before sources.py exists. DemSource adapters wrap terraluna_pipeline.io readers and the T3 lookup forms: Copernicus GLO-30 (GeographicLookup), CTX DTMs (EquirectangularLookup) and the G0-07 lunar DEM (PolarStereographicLookup). Georeferencing, nodata and CRS come from the file, never from literals in the adapter; an adapter that cannot read them raises.",
+        "A WorldCover class-raster source (GeographicLookup) feeds terraluna_pipeline.masks (T11-03). Class rasters are never bilinearly resampled.",
+        "dataset fetch <source> is the only network command in this story: it downloads to data/raw/ (git-ignored) through the pipeline io readers and records ProductRecords in outputs/ml/sources.json (validated by the schema, upserted by product_id, sorted, byte-identical on re-run). A source that needs credentials or a licence is recorded as blocked with the reason, never with invented values. A fetch subcommand check twin recomputes the records from data/raw offline and writes nothing.",
+        "After the offline tests pass, the author runs one small cached real read per accessible source (licence-free sources first: GLO-30, WorldCover, CTX). Values are recorded only from real reads. The lunar DEM part stops blocked, printing blocked: G0-07 and exiting 3, until G0-07 (exact file, grid, projection, nodata) is decided.",
+        "main(argv) exposes the fetch subcommand (CONTRACTS f); tests call main([...]) and check exit codes 0, 1, 2 and 3. mypy --strict and ruff pass."
+      ],
+      "checks": [
+        "uv run pytest ml/tests/test_sources.py",
+        "uv run mypy ml/src ml/tests",
+        "make check"
+      ],
+      "priority": 7,
+      "notes": "Blocked parts: lunar DEM until G0-07; WorldCover constants follow G0-08. dataset.py is listed only for the fetch subcommand. Real reads are author-run and cached in data/raw; committed records are verified offline.",
+      "waitsFor": [
+        "t1-pilot:T1-09"
+      ],
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      }
+    },
+    {
+      "id": "T11-08",
+      "title": "Real dataset build (600,000 windows)",
+      "owner": "ml-engineer",
+      "prdRefs": [
+        "11.2",
+        "11.5",
+        "9 (What is held out)",
+        "12 (T11)"
+      ],
+      "description": "The real 200,000 + 200,000 + 200,000 window build, run by a person on the cluster, and its offline verifier. Blocked until the decisions below exist.",
+      "files": [
+        "ml/src/terraluna_ml/dataset.py",
+        "ml/tests/test_dataset_build*.py",
+        "outputs/ml/dataset/manifest.json"
+      ],
+      "acceptanceCriteria": [
+        "Blocked until G0-02, G0-06, G0-07, ANA-05, PRD-04, PRD-05, PRD-06 and PRD-08 are decided (also G0-08 for the WorldCover constants). Without them dataset build prints blocked: <codes>, exits 3 and writes nothing.",
+        "Tests first, on a synthetic mini-build (ml/tests/test_dataset_build.py): the build samples per PRD 11.2 through sample_window, terraluna_pipeline.masks, splits and the leakage check, and writes shards to ml/shards/ (git-ignored) and the data manifest summary to outputs/ml/dataset/manifest.json. The manifest records the actual counts per body, split and rejection reason, never the requested ones, the seeds, the constants block, the fill rule, the split-map hash, the training-only target statistics and per-shard SHA-256.",
+        "dataset verify is the offline twin: it recomputes the manifest hashes from the cache without writing and exits 1 on any mismatch or missing shard. Gate checks use only verify.",
+        "Real-run commands, input hashes, hardware and compute cost are recorded from the real run in the manifest (PRD 11.5); nothing is entered by hand. Mock windows can never be marked production.",
+        "mypy --strict and ruff pass."
+      ],
+      "checks": [
+        "uv run pytest ml/tests/test_dataset_build.py",
+        "uv run mypy ml/src ml/tests",
+        "make check"
+      ],
+      "priority": 8,
+      "notes": "Cache-only: the build runs on the cluster and is not a check. G5 thresholds and config/run.yaml are untouched.",
+      "waitsFor": [
+        "t1-pilot:T1-09"
+      ],
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      }
+    }
+  ]
+}
