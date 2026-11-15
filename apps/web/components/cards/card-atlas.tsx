@@ -56,7 +56,7 @@ export function CardAtlas({ segments, items }: { readonly segments: readonly Atl
         })}
       </ToggleGroup>
       <p role="status" className="sr-only">{shown.length} cards shown</p>
-      <ul className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
+      <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {shown.map((i) => (
           <li key={i.cardId} className="min-w-0">{i.node}</li>
         ))}
