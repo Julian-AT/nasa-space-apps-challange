@@ -18,6 +18,7 @@
     "lib",
     "scripts",
     "tests",
+    "workers",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
