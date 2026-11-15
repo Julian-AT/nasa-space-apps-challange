@@ -1,0 +1,56 @@
+{
+  "checkpoint_sha256s": {
+    "lambda_0.3/seed0": {
+      "backbone.pt": "0fe0a41e6d965de329d5d2893cccaf591416c0fcb57cfd3b1ebedbbb537f1c29",
+      "checkpoint.pt": "4935cff90d96359d19ef80bc902038f127ad491cb5392148fdcce75b26eb1d71"
+    },
+    "lambda_0.3/seed1": {
+      "backbone.pt": "f2920b47136cffb2e46b8b92e7dc4c2964098a914f44386eb7dc85afcba86f6c",
+      "checkpoint.pt": "9ae9e910811b89acceccb551088ccee85d64a6c61b72d1e8a2094e0d125ee3d4"
+    },
+    "lambda_0.3/seed2": {
+      "backbone.pt": "ad1774c37c22d48c721fed181dbd76a4066c15567da7f66c3be8bdb5eb343973",
+      "checkpoint.pt": "5985d306fef2571dd384131ec7ec6c779435a37f0b21826434e99f515de5cf60"
+    },
+    "random_init/seed0": {
+      "random_init_weights": "8a1e558a87924a246876c6be418b48d0d30eb69e3e98c13b7b4d00c8539b23c1"
+    }
+  },
+  "config_sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
+  "data_manifest_sha256": "53f0c2614945436ba7e89460ed365d1aefa7e86b55ed34c9a58f0a65d5227b3e",
+  "format": "terraluna-ml-freeze/1",
+  "ml_g5_thresholds": {
+    "agreement_rho_min": 0.5,
+    "body_acc_max": 0.6,
+    "morph_gain_min": 0.1,
+    "phys_r2_min": 0.8,
+    "seed_jaccard20_min": 0.5
+  },
+  "probe_hyperparameters": {
+    "agreement_seed": 11,
+    "logistic_cs": [
+      0.001,
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "max_train_rows": 20000,
+    "n_agreement_pairs": 20000,
+    "n_bootstrap": 1000,
+    "ood_percentile": 99.0,
+    "ood_regularisation": 0.001,
+    "ridge_alphas": [
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0
+    ],
+    "standardisation": "StandardScaler fitted on training embeddings only",
+    "top_k": 20,
+    "train_subsample_seed": 0
+  },
+  "split_map_sha256": "e99bed11b9b18791bb89f996eb99c396850513a8dd998e118eed3ac7216eb6da"
+}
