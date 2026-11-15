@@ -141,11 +141,12 @@
       ],
       "description": "Add TileLayer, TargetRecord, Targets, CardRecord, TableDRow, CampaignEntry and FigureRef exactly as CONTRACTS.md a.4 defines them. TileLayer replaces a separate tile-metadata path: it lives inside TargetRecord (review-science #33). The card record is an engineering choice built on PRD 10 (seven answers, table D) because PRD 8.12 does not list it; record that in notes. Records only. Starts after T0B-01 because it reuses WindowPolygon, WindowId, Family, DistanceEntry, UncertaintyComponents and RunId. Every record inherits the T0 Record base (extra forbidden, strict, frozen, rust-regex). Every field is required with no default; X | None keys must still be present. Reason codes are snake_case strings matching ^[a-z][a-z0-9_]*$. Each new top-level record is appended to CONTRACTS with the schema file named below, then make schema regenerates packages/schema/json and the generated zod, which are committed and never edited by hand. SCHEMA_VERSION stays 1.0.0.",
       "files": [
-        "pipeline/src/terraluna_pipeline/schema.py",
-        "packages/schema/*",
-        "pipeline/tests/test_json_schema.py",
         "fixtures/schema-cases/*",
-        "pipeline/tests/test_schema_cards.py"
+        "packages/schema/*",
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "pipeline/tests/test_json_schema.py",
+        "pipeline/tests/test_schema_cards.py",
+        "pipeline/tests/test_schema_science.py"
       ],
       "acceptanceCriteria": [
         "Failing tests first in pipeline/tests/test_schema_cards.py; the failing run is recorded in notes.",
@@ -166,14 +167,14 @@
       "priority": 3,
       "passes": false,
       "review": {
-        "state": "blocked",
+        "state": "pending",
         "round": 0,
         "base": "dd1f7f7431c0889bf4e6d41af64c064dda5b66f5",
         "head": null,
         "files": [],
         "digests": {}
       },
-      "notes": "BLOCKED (2026-11-15, implementation complete and committed through b3b7d3d): appending Targets and CardRecord to CONTRACTS, as this story requires, breaks pipeline/tests/test_schema_science.py::test_new_records_are_appended_to_contracts_with_their_schema_files (line 1425), which pins CONTRACTS[-5:] to the five T0B-01 contracts. That file is outside T0B-02's files, so the story cannot fix it. TURBO_FORCE=true make test: 1 failed, 2376 passed, and that is the only failure. All five story checks pass (test_schema_cards.py 454 passed, test_json_schema.py 779 passed, Vitest 877 passed, make schema-check, make check). To unblock: change line 1425 to compare CONTRACTS[5:10] (or locate (\"WindowRecord\", ...) by index, as test_schema_cards.py does for its own two), either as an orchestrator commit or by adding pipeline/tests/test_schema_science.py to T0B-02's files. T0B-03 and T0B-04 will hit the same pin unless it is changed. Then set review.state back to pending; the next iteration only reruns the checks and make test, and requests review. Failing runs before the implementation: test_schema_cards.py failed at collection (ImportError: cannot import name 'CampaignEntry' from terraluna_pipeline.schema; commit d962126). Generator tests (b2dad39): Vitest 96 failed | 702 passed, while the Python Draft 2020-12 oracle already passed the new generator cases (184 passed with -k generator). Contract pin and shared cases (848758a): pytest test_json_schema.py 74 failed | 705 passed with the two new JSON Schemas moved aside; Vitest 46 failed | 831 passed before index.ts exported the new schemas. Engineering choice, recorded as the AC asks: PRD 8.12 lists no card record, so CardRecord is built on PRD 10 (seven answers as q1..q7, table D as q3_measurements, figures A to C, Earth's limits in q4). Mars wording: q4_differences.limits is list[str] that the card writer (T4L-06) fills with Earth's seven limits or the five Mars items of PRD 10. The schema fixes neither the wording nor the count, and a test parses both lists. The generator learned two forms, both with tests first: an integer const (Literal[512] becomes z.literal(512)) and pydantic's discriminated union (discriminator plus oneOf of $refs, mapping checked before inlining) as z.discriminatedUnion. Choices beyond CONTRACTS a.4, each documented in packages/schema/README.md. (a) Bounds: target_id has the WindowId form, a safe file name for comparisons/{target_id}.json; card_id has the form <window id>__<window id>; a tile layer name is one path segment; tile_px refuses 512.0; rgba channels 0..255; azimuth 0..360 and altitude 0..90; WebP quality 0..100; a classes legend needs at least one class; FigureRef has exactly one of path and reason; q5 tied_by_family and tie_group_by_family require all four families. (b) Pydantic-only rules: the card's comparison_ref.path is comparisons/<target_id>.json; q5 ties equal each family's distances_by_family tied and tie_group; a Mode B or C card has no available radar_cpr distance (PRD 4); figure letters are distinct; zoom_min <= zoom_max; metres_per_pixel_by_zoom has one entry per zoom from zoom_min to zoom_max (it is indexed from zoom_min); omitted tiles lie in the zoom range; extent_m is [min_x, min_y, max_x, max_y] with min < max; a numeric legend has min < max; class codes are distinct; n_eligible <= n_generated; the shortlist length is at most n_compared. Considered and not added (not in CONTRACTS): earth_window_id restricted to earth-, target body moon or mars only, title tied to the mode, a figures count of exactly three, TableDRow value null requiring a reason, model_embedding unavailable unless G5 passed (the encoder may show as experimental), and the Mode B/C radar rule on ComparisonRecord (proposed to the orchestrator)."
+      "notes": "BLOCKED (2026-11-15, implementation complete and committed through b3b7d3d): appending Targets and CardRecord to CONTRACTS, as this story requires, breaks pipeline/tests/test_schema_science.py::test_new_records_are_appended_to_contracts_with_their_schema_files (line 1425), which pins CONTRACTS[-5:] to the five T0B-01 contracts. That file is outside T0B-02's files, so the story cannot fix it. TURBO_FORCE=true make test: 1 failed, 2376 passed, and that is the only failure. All five story checks pass (test_schema_cards.py 454 passed, test_json_schema.py 779 passed, Vitest 877 passed, make schema-check, make check). To unblock: change line 1425 to compare CONTRACTS[5:10] (or locate (\"WindowRecord\", ...) by index, as test_schema_cards.py does for its own two), either as an orchestrator commit or by adding pipeline/tests/test_schema_science.py to T0B-02's files. T0B-03 and T0B-04 will hit the same pin unless it is changed. Then set review.state back to pending; the next iteration only reruns the checks and make test, and requests review. Failing runs before the implementation: test_schema_cards.py failed at collection (ImportError: cannot import name 'CampaignEntry' from terraluna_pipeline.schema; commit d962126). Generator tests (b2dad39): Vitest 96 failed | 702 passed, while the Python Draft 2020-12 oracle already passed the new generator cases (184 passed with -k generator). Contract pin and shared cases (848758a): pytest test_json_schema.py 74 failed | 705 passed with the two new JSON Schemas moved aside; Vitest 46 failed | 831 passed before index.ts exported the new schemas. Engineering choice, recorded as the AC asks: PRD 8.12 lists no card record, so CardRecord is built on PRD 10 (seven answers as q1..q7, table D as q3_measurements, figures A to C, Earth's limits in q4). Mars wording: q4_differences.limits is list[str] that the card writer (T4L-06) fills with Earth's seven limits or the five Mars items of PRD 10. The schema fixes neither the wording nor the count, and a test parses both lists. The generator learned two forms, both with tests first: an integer const (Literal[512] becomes z.literal(512)) and pydantic's discriminated union (discriminator plus oneOf of $refs, mapping checked before inlining) as z.discriminatedUnion. Choices beyond CONTRACTS a.4, each documented in packages/schema/README.md. (a) Bounds: target_id has the WindowId form, a safe file name for comparisons/{target_id}.json; card_id has the form <window id>__<window id>; a tile layer name is one path segment; tile_px refuses 512.0; rgba channels 0..255; azimuth 0..360 and altitude 0..90; WebP quality 0..100; a classes legend needs at least one class; FigureRef has exactly one of path and reason; q5 tied_by_family and tie_group_by_family require all four families. (b) Pydantic-only rules: the card's comparison_ref.path is comparisons/<target_id>.json; q5 ties equal each family's distances_by_family tied and tie_group; a Mode B or C card has no available radar_cpr distance (PRD 4); figure letters are distinct; zoom_min <= zoom_max; metres_per_pixel_by_zoom has one entry per zoom from zoom_min to zoom_max (it is indexed from zoom_min); omitted tiles lie in the zoom range; extent_m is [min_x, min_y, max_x, max_y] with min < max; a numeric legend has min < max; class codes are distinct; n_eligible <= n_generated; the shortlist length is at most n_compared. Considered and not added (not in CONTRACTS): earth_window_id restricted to earth-, target body moon or mars only, title tied to the mode, a figures count of exactly three, TableDRow value null requiring a reason, model_embedding unavailable unless G5 passed (the encoder may show as experimental), and the Mode B/C radar rule on ComparisonRecord (proposed to the orchestrator).\nralph orchestrator 2026-11-15T00:05:42Z: decision on the T0B-02 block. pipeline/tests/test_schema_science.py (from T0B-01) pins CONTRACTS[-5:] to the five T0B-01 contracts, so any later appended contract breaks it. T0B-02, T0B-03 and T0B-04 may edit that test. Change test_new_records_are_appended_to_contracts_with_their_schema_files to assert that the five T0B-01 contracts are present in CONTRACTS, in their original order and as a contiguous block, each with its committed schema file. Do not assert that they are the last entries. No assertion about their names, schema files or order is removed. Set this story back to pending and continue: implement the test change, run the checks, then request review."
     },
     {
       "id": "T0B-03",
@@ -190,11 +191,12 @@
       ],
       "description": "Add ModelRecord, MetricRecord, G5ConditionRecord, MetricsFile, EmbeddingRecord and EmbeddingsIndex, taking the first part of the old T14-01 with the review-ml #40 and #41 corrections. Records only. schema.py has one editing batch, so t14-report no longer touches it. Every record inherits the T0 Record base (extra forbidden, strict, frozen, rust-regex). Every field is required with no default; X | None keys must still be present. Reason codes are snake_case strings matching ^[a-z][a-z0-9_]*$. Each new top-level record is appended to CONTRACTS with the schema file named below, then make schema regenerates packages/schema/json and the generated zod, which are committed and never edited by hand. SCHEMA_VERSION stays 1.0.0.",
       "files": [
-        "pipeline/src/terraluna_pipeline/schema.py",
-        "packages/schema/*",
-        "pipeline/tests/test_json_schema.py",
         "fixtures/schema-cases/*",
-        "pipeline/tests/test_schema_model.py"
+        "packages/schema/*",
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "pipeline/tests/test_json_schema.py",
+        "pipeline/tests/test_schema_model.py",
+        "pipeline/tests/test_schema_science.py"
       ],
       "acceptanceCriteria": [
         "Failing tests first in pipeline/tests/test_schema_model.py; the failing run is recorded in notes.",
@@ -240,11 +242,12 @@
       ],
       "description": "Add CurvesFile, UmapHeader, ExamplesFile, BackgroundFamily, ModelBackground and Background, then BUNDLE_PATHS, the single map from PRD 8.4 path template to contract name, emitted as packages/schema/json/bundle-paths.json so export.py (T4L-08) and the web loader (T15B-01) read one copy. Contract names match the BUNDLE_PATHS values: Metrics is the MetricsFile model, Curves the CurvesFile model, Examples the ExamplesFile model, Background the Background model. This story completes the records (T0B-01 to T0B-04) that t4-logic, t15b-api, t7b-explorer and t12b-evaluate wait for. Every record inherits the T0 Record base (extra forbidden, strict, frozen, rust-regex). Every field is required with no default; X | None keys must still be present. Reason codes are snake_case strings matching ^[a-z][a-z0-9_]*$. Each new top-level record is appended to CONTRACTS with the schema file named below, then make schema regenerates packages/schema/json and the generated zod, which are committed and never edited by hand. SCHEMA_VERSION stays 1.0.0.",
       "files": [
-        "pipeline/src/terraluna_pipeline/schema.py",
-        "packages/schema/*",
-        "pipeline/tests/test_json_schema.py",
         "fixtures/schema-cases/*",
-        "pipeline/tests/test_schema_report.py"
+        "packages/schema/*",
+        "pipeline/src/terraluna_pipeline/schema.py",
+        "pipeline/tests/test_json_schema.py",
+        "pipeline/tests/test_schema_report.py",
+        "pipeline/tests/test_schema_science.py"
       ],
       "acceptanceCriteria": [
         "Failing tests first in pipeline/tests/test_schema_report.py; the failing run is recorded in notes.",
