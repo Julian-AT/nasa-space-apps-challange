@@ -1,22 +1,34 @@
 // GET /api/v1/model (PRD 8.5, 11.9) and the guard for model-family data (PRD 3, 11.7, 11.10).
 //
-// /model would return the model card, summary metrics and the G5 status. They come from
-// model/model_card.json and report/*.json, which bundle:pull never copies and which have no
-// @terraluna/schema schema (no ModelRecord). By the rule in ./unavailable.ts the route answers
-// 404 when manifest.json names no model, as the mock bundle does, and 501 when it names one.
+// /model returns the ModelRecord summary (model/model_card.json), MetricsFile.g5 from
+// report/metrics.json when the bundle holds it (null otherwise: a missing metric is never
+// invented), and the G5 status of validation.json. Every model value is Predicted. While G5 is
+// not PASS in_rankings is false: the encoder stays outside rankings. A bundle without a
+// model card is a 404 problem.
 //
 // modelFamilyAccess is the one gate for model-family data, such as encoder distances in matches.
 // The encoder becomes a distance family only when G5 passes (PRD 11.7), so access is refused unless
 // manifest.json names a model and G5 is PASS in both manifest.json (model.g5) and validation.json,
 // which must hold exactly one G5 record: a missing record is an untested gate, never a pass
-// (PRD 8.12), and two records leave the verdict unclear (the loader already refuses them).
-// When access is allowed it carries the Predicted label, and any response that returns
-// model-family data must take its label from here (PRD 3: encoder output is always Predicted).
-import { createRoute, type RouteHandler } from '@hono/zod-openapi';
+// (PRD 8.12). When access is allowed it carries the Predicted label.
+import { createRoute, type RouteHandler, z } from '@hono/zod-openapi';
 import type { BundleManifest, Validation } from '@terraluna/schema';
 
 import type { PulledBundle } from '../../lib/bundle.ts';
-import { notInBundle, notServedYet, readManifest, unavailableResponses } from './unavailable.ts';
+import {
+  bundleCacheHeaders,
+  bundleCacheResponseHeaders,
+  conditionalGet,
+  notModifiedResponse,
+} from './cache.ts';
+import { G5SummarySchema, ModelRecordResponseSchema } from './records.ts';
+import {
+  g5Status,
+  notInBundle,
+  problemResponses,
+  readManifest,
+  readValidation,
+} from './unavailable.ts';
 
 /** The evidence label of every model-family value (PRD 3). */
 export const PREDICTED_LABEL = 'Predicted';
@@ -38,7 +50,7 @@ export function modelFamilyAccess(
   validation: Validation,
   bundleVersion: string,
 ): ModelFamilyAccess {
-  const notInThisBundle = `Model-family matches are not in bundle ${bundleVersion}`;
+  const notInThisBundle = `Model-family matches are not available in bundle ${bundleVersion}`;
   const { model } = manifest;
   if (model === null) {
     return {
@@ -60,32 +72,70 @@ export function modelFamilyAccess(
   return { allowed: true, label: PREDICTED_LABEL, modelId: model.id };
 }
 
+export const ModelResponseSchema = z
+  .object({
+    bundle_version: z.string(),
+    evidence_label: z.literal(PREDICTED_LABEL),
+    status: z.literal('EXPERIMENTAL').openapi({
+      description: 'The encoder is EXPERIMENTAL, as manifest.json labels it.',
+    }),
+    in_rankings: z.boolean().openapi({
+      description: 'True only when the G5 status of validation.json is PASS; otherwise false.',
+    }),
+    g5_status: z.string().nullable().openapi({
+      description: 'The status of the single G5 record in validation.json; null if it has none.',
+    }),
+    model: ModelRecordResponseSchema,
+    g5: G5SummarySchema.nullable().openapi({
+      description: 'MetricsFile.g5 of report/metrics.json; null when the bundle has no metrics.',
+    }),
+  })
+  .strict()
+  .openapi('ModelResponse');
+
+export type ModelResponse = z.infer<typeof ModelResponseSchema>;
+
 export const modelRoute = createRoute({
   method: 'get',
   path: '/model',
-  summary: 'The model report (not served yet)',
+  middleware: [conditionalGet],
+  summary: 'The model report (EXPERIMENTAL)',
   description:
-    'The model card, summary metrics and G5 status are not served yet: @terraluna/schema has no ' +
-    'ModelRecord schema, and model/model_card.json and report/*.json are not pulled. When ' +
-    'manifest.json names no model, as the mock bundle does, the answer is a 404 problem; when it ' +
-    'names one, a 501 problem. Problems are never cached.',
-  responses: unavailableResponses({
-    notInBundle: 'manifest.json names no model: the model report is not in the bundle.',
-    notServed: 'manifest.json names a model, but the model report is not served yet.',
-  }),
+    'Returns the model card, MetricsFile.g5 (null without report/metrics.json) and the G5 status ' +
+    'of validation.json. Every value is Predicted and the status is EXPERIMENTAL; in_rankings is false while G5 is not ' +
+    'PASS. A bundle without a model card is a 404 problem. Cached per bundle.',
+  responses: {
+    200: {
+      description: 'The model report.',
+      headers: bundleCacheResponseHeaders('per-bundle'),
+      content: { 'application/json': { schema: ModelResponseSchema } },
+    },
+    304: notModifiedResponse,
+    ...problemResponses({ 404: 'The bundle holds no model card.' }),
+  },
 });
 
-/** The model handler over a bundle reader: 404 or 501, as the module comment says. */
+/** The model handler over a bundle reader. */
 export function modelHandler(read: () => PulledBundle): RouteHandler<typeof modelRoute> {
-  return () => {
-    const manifest = readManifest(read());
-    const bundle = `bundle ${manifest.bundle_version}`;
-    if (manifest.model === null) {
-      throw notInBundle(`The model report is not in ${bundle}: manifest.json names no model.`);
+  return (c) => {
+    const bundle = read();
+    const manifest = readManifest(bundle);
+    const model = bundle.records.modelCard;
+    if (model === null) {
+      throw notInBundle(
+        `The model report is not in bundle ${manifest.bundle_version}: it has no model card.`,
+      );
     }
-    throw notServedYet(
-      `Model ${manifest.model.id} is in ${bundle}, but the model report is not served yet: ` +
-        '@terraluna/schema has no ModelRecord schema.',
-    );
+    const g5 = g5Status(readValidation(bundle));
+    const response: ModelResponse = {
+      bundle_version: manifest.bundle_version,
+      evidence_label: PREDICTED_LABEL,
+      status: 'EXPERIMENTAL',
+      in_rankings: g5 === 'PASS',
+      g5_status: g5,
+      model,
+      g5: bundle.records.metrics?.g5 ?? null,
+    };
+    return c.json(response, 200, bundleCacheHeaders('per-bundle', manifest.bundle_version));
   };
 }

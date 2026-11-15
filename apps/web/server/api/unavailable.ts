@@ -1,24 +1,11 @@
-// The rule for data the API cannot serve yet (PRD 8.5, 8.12, D23). It covers matches, windows,
-// compare and model (T15-05) and is the rule GET /targets/{id} (T15-04) already follows:
+// Shared pieces of the record routes (PRD 8.5, 8.12, D23): reading the validated manifest and
+// validation.json, and the problem responses of the OpenAPI document.
 //
-//   404 Not Found (NOT_IN_BUNDLE_STATUS): the bundle does not hold the requested record or file.
-//       manifest.json decides: it does not list the id, lists no file that could hold the record
-//       of that id, or names no model. The detail says what is not in bundle <bundle_version>.
-//   501 Not Implemented (NOT_SERVED_STATUS): the bundle holds a file the record could come from,
-//       but @terraluna/schema has no schema for its records, so the API serves nothing from it.
-//       The detail says the file is in bundle <bundle_version> and which schema is missing.
-//
-// An id manifest.targets does not list is therefore a 404 only where manifest.json rules it out.
-// When it lists windows/<body>.json, which could hold any window, a window or comparison id is a
-// 501, since telling an unknown id from a known one would mean parsing that file (orchestrator
-// decision on T15-05 AC0). t15b-api replaces these 501s with real 404 or 200 answers once
-// @terraluna/schema has WindowRecord and ComparisonRecord.
-//
-// So the status follows from manifest.json alone, which is checked again with its generated schema
-// first: a manifest that fails it is a 500 problem, never a 404 or 501. No file without a schema is
-// parsed, nothing is passed through unvalidated, and nothing is computed in place of a missing
-// record: missing evidence is never zero, and never a default (PRD 8.12). Both answers are expected
-// problems (ProblemError), never logged and never cached (problem.ts).
+// A record the bundle does not hold is a 404 problem that names what is missing in bundle
+// <bundle_version>; nothing is served in its place, and missing evidence is never zero. A record
+// the API cannot produce yet (a comparison computed on request, which waits for @terraluna/core)
+// is a 501 problem. Expected problems are ProblemError values, never logged and never cached
+// (problem.ts). A bundle file that fails its schema is a 500 problem, never a 404.
 import type { BundleManifest, Validation } from '@terraluna/schema';
 
 import { MANIFEST, type PulledBundle, VALIDATION } from '../../lib/bundle.ts';
@@ -28,6 +15,7 @@ import {
   PROBLEM_MEDIA_TYPE,
   ProblemError,
   ProblemSchema,
+  type ProblemStatus,
   VALIDATION_STATUS,
 } from './problem.ts';
 import { BundleManifestRecord, parseBundleFile, ValidationRecord } from './records.ts';
@@ -40,7 +28,7 @@ export function notInBundle(detail: string): ProblemError {
   return new ProblemError(NOT_IN_BUNDLE_STATUS, detail);
 }
 
-/** The answer when the bundle holds the file, but its records have no schema to be served with. */
+/** The answer when the API cannot produce the record yet. */
 export function notServedYet(detail: string): ProblemError {
   return new ProblemError(NOT_SERVED_STATUS, detail);
 }
@@ -55,37 +43,33 @@ export function readValidation(bundle: PulledBundle): Validation {
   return parseBundleFile(ValidationRecord, bundle.validation, VALIDATION);
 }
 
-/** The bundle paths manifest.json lists that pass the test, in manifest order. */
-export function listedPaths(manifest: BundleManifest, test: (path: string) => boolean): string[] {
-  return manifest.files.map((file) => file.path).filter(test);
-}
-
-/** True when manifest.json lists the bundle path. */
-export function isListed(manifest: BundleManifest, path: string): boolean {
-  return manifest.files.some((file) => file.path === path);
+/** The status of the single G5 record in validation.json, or null when it has none or several. */
+export function g5Status(validation: Validation): Validation[number]['status'] | null {
+  const g5 = validation.filter((record) => record.gate_id === 'G5');
+  return g5.length === 1 && g5[0] !== undefined ? g5[0].status : null;
 }
 
 const problemContent = { [PROBLEM_MEDIA_TYPE]: { schema: ProblemSchema } };
 
-/** The problem responses of an unavailable-data route, for the OpenAPI document. */
-export function unavailableResponses(descriptions: {
-  /** Why a request fails validation; leave out for a route without parameters. */
-  readonly invalid?: string;
-  readonly notInBundle: string;
-  readonly notServed: string;
-}) {
-  const responses = {
-    [NOT_IN_BUNDLE_STATUS]: { description: descriptions.notInBundle, content: problemContent },
+/**
+ * The problem responses of a record route for the OpenAPI document: 500 and 503 always, 400 when
+ * `invalid` is given, and each further status with its description.
+ */
+export function problemResponses(
+  descriptions: Readonly<Partial<Record<ProblemStatus, string>>> & { readonly invalid?: string },
+) {
+  const { invalid, ...others } = descriptions;
+  const responses: Record<number, { description: string; content: typeof problemContent }> = {
     500: {
       description: 'A bundle file is missing or invalid, or an unexpected error occurred.',
       content: problemContent,
     },
-    [NOT_SERVED_STATUS]: { description: descriptions.notServed, content: problemContent },
-    [MOCK_REFUSED_STATUS]: mockRefusedResponse,
   };
-  if (descriptions.invalid === undefined) return responses;
-  return {
-    [VALIDATION_STATUS]: { description: descriptions.invalid, content: problemContent },
-    ...responses,
-  };
+  for (const [status, description] of Object.entries(others)) {
+    responses[Number(status)] = { description, content: problemContent };
+  }
+  if (invalid !== undefined) {
+    responses[VALIDATION_STATUS] = { description: invalid, content: problemContent };
+  }
+  return { ...responses, [MOCK_REFUSED_STATUS]: mockRefusedResponse };
 }

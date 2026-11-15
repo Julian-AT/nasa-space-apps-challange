@@ -7,7 +7,15 @@
 // first depends on the importer. clone() constructs a new instance over the same definition after
 // the extension (this module imports @hono/zod-openapi), and .openapi(name) does the same again.
 import { z } from '@hono/zod-openapi';
-import { BundleManifestSchema, ValidationSchema } from '@terraluna/schema';
+import {
+  ComparisonsSchema,
+  MetricsSchema,
+  ModelRecordSchema,
+  TargetsSchema,
+  ValidationSchema,
+  WindowsSchema,
+  BundleManifestSchema,
+} from '@terraluna/schema';
 
 import { BundleFileError } from '../../lib/bundle.ts';
 
@@ -16,6 +24,36 @@ export const BundleManifestRecord = BundleManifestSchema.clone().openapi('Bundle
 
 /** validation.json: the GateRecords (PRD 8.12). */
 export const ValidationRecord = ValidationSchema.clone().openapi('Validation');
+
+/** One entry of targets.json (PRD 8.4, 8.12). */
+export const TargetRecordSchema = TargetsSchema.element.clone().openapi('TargetRecord');
+
+/** One row of windows/<body>.json: a window, its fingerprints and its eligibility. */
+export const WindowEntrySchema = WindowsSchema.element.clone().openapi('WindowEntry');
+
+/** The four stored fingerprints of a window row. */
+export const FingerprintRecordSchema = WindowsSchema.element.shape.radar.element
+  .clone()
+  .openapi('FingerprintRecord');
+
+/** One record of comparisons/<target_id>.json. */
+export const ComparisonRecordSchema = ComparisonsSchema.element.clone().openapi('ComparisonRecord');
+
+/** One family's stored distance. */
+export const DistanceEntrySchema = ComparisonsSchema.element.shape.distances_by_family.shape.terrain_relief
+  .clone()
+  .openapi('DistanceEntry');
+
+/** The model's stored distance (Predicted). */
+export const ModelDistanceEntrySchema = ComparisonsSchema.element.shape.distances_by_family.shape.model_embedding
+  .clone()
+  .openapi('ModelEmbeddingDistanceEntry');
+
+/** model/model_card.json. */
+export const ModelRecordResponseSchema = ModelRecordSchema.clone().openapi('ModelRecord');
+
+/** The G5 summary of report/metrics.json. */
+export const G5SummarySchema = MetricsSchema.shape.g5.clone().openapi('G5Summary');
 
 /**
  * A bundle file's record, checked again with its schema before it is served, so a reader that

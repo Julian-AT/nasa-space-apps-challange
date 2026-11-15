@@ -190,8 +190,8 @@ describe('the production mock refusal in the document (T15-07)', () => {
     '/api/v1/targets/{id}': '/api/v1/targets/test-only-target',
     '/api/v1/targets/{id}/matches':
       '/api/v1/targets/test-only-target/matches?body=earth&family=terrain',
-    '/api/v1/windows/{id}': '/api/v1/windows/test-only-window',
-    '/api/v1/compare': '/api/v1/compare?a=test-only-a&b=test-only-b',
+    '/api/v1/windows/{id}': '/api/v1/windows/earth-test-only-window',
+    '/api/v1/compare': '/api/v1/compare?a=earth-test-only-a&b=earth-test-only-b',
   };
 
   it('documents a 503 problem on every operation that reads the bundle, and only there', async () => {
