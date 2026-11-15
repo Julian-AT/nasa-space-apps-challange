@@ -17,13 +17,13 @@ NOT\_RUN, never a pass.}
 \toprule
 Gate & Status & What it checks \\
 \midrule
-Data pilot & \GateZeroStatus & real lunar and Earth products decoded with metadata, masks and units \\
-Conversion correctness & \GateOneStatus & radar conversions against independent fixtures \\
-Comparison eligibility & \GateTwoStatus & band, convention, geometry and support of each radar pair \\
-Literature check & \GateThreeStatus & reproduction of the Holuhraun facies overlap \\
-Shortlist and uncertainty & \GateFourStatus & candidate table, rank sensitivity and a counterexample \\
-Encoder promotion & \GateFiveStatus & the six conditions of Section~\ref{sec:results-ml} on test blocks \\
-Release consistency & \GateSixStatus & application, interface, exports and report agree \\
+Data pilot & \GateZeroStatus{} & real lunar and Earth products decoded with metadata, masks and units \\
+Conversion correctness & \GateOneStatus{} & radar conversions against independent fixtures \\
+Comparison eligibility & \GateTwoStatus{} & band, convention, geometry and support of each radar pair \\
+Literature check & \GateThreeStatus{} & reproduction of the Holuhraun facies overlap \\
+Shortlist and uncertainty & \GateFourStatus{} & candidate table, rank sensitivity and a counterexample \\
+Encoder promotion & \GateFiveStatus{} & the six conditions of Section~\ref{sec:results-ml} on test blocks \\
+Release consistency & \GateSixStatus{} & application, interface, exports and report agree \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -53,13 +53,13 @@ distances on cross body pairs.}
 \toprule
 Representation & Physics & Morphology & Body & Agreement \\
 \midrule
-Random initialisation & \RandomPhysRReliefMin & & & \\
-ImageNet ResNet & \ResNetPhysRReliefMin & & & \\
-DINO & \DinoPhysRReliefMin & & & \\
-Terraluna encoder & \EncoderPhysRReliefMin & \EncoderMorphGain & \EncoderBodyAcc & \EncoderAgreementRho \\
-Encoder without gradient reversal & & & \NoAdvBodyAcc & \\
+Random initialisation & \RandomPhysRReliefMin{} & & & \\
+ImageNet ResNet & \ResNetPhysRReliefMin{} & & & \\
+DINO & \DinoPhysRReliefMin{} & & & \\
+Terraluna encoder & \EncoderPhysRReliefMin{} & \EncoderMorphGain{} & \EncoderBodyAcc{} & \EncoderAgreementRho{} \\
+Encoder without gradient reversal & & & \NoAdvBodyAcc{} & \\
 \midrule
-Promotion threshold & \GFivePhysRMin & \GFiveMorphGainMin & \GFiveBodyAccMax & \GFiveRhoMin \\
+Promotion threshold & \GFivePhysRMin{} & \GFiveMorphGainMin{} & \GFiveBodyAccMax{} & \GFiveRhoMin{} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -116,8 +116,8 @@ configured lag.}
 \toprule
 Window & relief $\nu$ short & relief $\nu$ long & texture $\nu$ short & texture $\nu$ long & $H$ relief & $H$ texture \\
 \midrule
-Moon, target & \MoonTargetReliefNuShort & \MoonTargetReliefNuLong & \MoonTargetTextureNuShort & \MoonTargetTextureNuLong & \MoonTargetReliefH & \MoonTargetTextureH \\
-Earth, Holuhraun & \EarthCardReliefNuShort & \EarthCardReliefNuLong & \EarthCardTextureNuShort & \EarthCardTextureNuLong & \EarthCardReliefH & \EarthCardTextureH \\
+Moon, target & \MoonTargetReliefNuShort{} & \MoonTargetReliefNuLong{} & \MoonTargetTextureNuShort{} & \MoonTargetTextureNuLong{} & \MoonTargetReliefH{} & \MoonTargetTextureH{} \\
+Earth, Holuhraun & \EarthCardReliefNuShort{} & \EarthCardReliefNuLong{} & \EarthCardTextureNuShort{} & \EarthCardTextureNuLong{} & \EarthCardReliefH{} & \EarthCardTextureH{} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -150,13 +150,13 @@ Table~\ref{tab:probes}.}
 \toprule
 Variation & Physics & Body & Agreement \\
 \midrule
-Main configuration & \VarMainPhysR & \VarMainBodyAcc & \VarMainRho \\
-No physics head & \VarNoPhysPhysR & \VarNoPhysBodyAcc & \VarNoPhysRho \\
-No gradient reversal & \VarLambdaZeroPhysR & \VarLambdaZeroBodyAcc & \VarLambdaZeroRho \\
-Weaker gradient reversal & \VarLambdaTenthPhysR & \VarLambdaTenthBodyAcc & \VarLambdaTenthRho \\
-Stronger gradient reversal & \VarLambdaOnePhysR & \VarLambdaOneBodyAcc & \VarLambdaOneRho \\
-VICReg only & \VarVicregOnlyPhysR & \VarVicregOnlyBodyAcc & \VarVicregOnlyRho \\
-Physics head only & \VarPhysOnlyPhysR & \VarPhysOnlyBodyAcc & \VarPhysOnlyRho \\
+Main configuration & \VarMainPhysR{} & \VarMainBodyAcc{} & \VarMainRho{} \\
+No physics head & \VarNoPhysPhysR{} & \VarNoPhysBodyAcc{} & \VarNoPhysRho{} \\
+No gradient reversal & \VarLambdaZeroPhysR{} & \VarLambdaZeroBodyAcc{} & \VarLambdaZeroRho{} \\
+Weaker gradient reversal & \VarLambdaTenthPhysR{} & \VarLambdaTenthBodyAcc{} & \VarLambdaTenthRho{} \\
+Stronger gradient reversal & \VarLambdaOnePhysR{} & \VarLambdaOneBodyAcc{} & \VarLambdaOneRho{} \\
+VICReg only & \VarVicregOnlyPhysR{} & \VarVicregOnlyBodyAcc{} & \VarVicregOnlyRho{} \\
+Physics head only & \VarPhysOnlyPhysR{} & \VarPhysOnlyBodyAcc{} & \VarPhysOnlyRho{} \\
 \bottomrule
 \end{tabular}
 \end{table}
