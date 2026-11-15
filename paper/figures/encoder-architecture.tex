@@ -1,30 +1,102 @@
+% Encoder architecture (PRD 22.5), drawn as a layer diagram after Figure 1 of Vaswani et al.
+% (2017). Inputs at the bottom, flow upward. Facts from ml/src/terraluna_ml/model.py, losses.py,
+% train.py, onnx_export.py, config/run.yaml (via generated/numbers.tex) and the model card.
 \begin{figure}[tbp]
 \centering
+\def\tlsmall{\fontsize{7}{8.4}\selectfont}%
 \begin{tikzpicture}[x=1cm,y=1cm]
-  \node[external=3.0cm] (in) at (0,0) {window, three channels\\$\operatorname{asinh}(z/s)$, slope, valid mask};
-  \node[python=3.0cm] (stem) at (0,-1.45) {stem convolution\\no max pooling};
-  \node[python=3.0cm] (stages) at (0,-2.9) {four residual stages\\widths 32, 64, 128, 256};
-  \node[python=3.0cm] (pool) at (0,-4.35) {global average pooling};
-  \node[bundle=3.0cm] (emb) at (0,-5.8) {embedding $h$\\L2 normalised for retrieval};
-  \node[hosting=3.3cm] (proj) at (-4.6,-7.6) {projector MLP\\VICReg loss $\mathcal{L}_{\mathrm{V}}$};
-  \node[hosting=3.3cm] (phys) at (0,-7.6) {physics head MLP\\masked loss $\mathcal{L}_{\mathrm{phys}}$};
-  \node[browser=3.3cm] (grl) at (4.6,-5.8) {gradient reversal\\scale $\lambda$};
-  \node[hosting=3.3cm] (body) at (4.6,-7.6) {body head MLP\\cross entropy $\mathcal{L}_{\mathrm{body}}$};
-  \node[group, fit=(stem)(stages)(pool)(emb), label={[font=\footnotesize,anchor=south west]north west:exported backbone}] {};
-  \draw[flow] (in) -- (stem);
-  \draw[flow] (stem) -- (stages);
-  \draw[flow] (stages) -- (pool);
-  \draw[flow] (pool) -- (emb);
-  \draw[flow] (emb.south) -- ++(0,-0.35) -| (proj.north);
-  \draw[flow] (emb.south) -- (phys.north);
-  \draw[flow] (emb.east) -- (grl.west);
-  \draw[flow] (grl) -- (body);
+  % ---- backbone column (x = 0) ----
+  \node[inlayer=4.0cm, minimum height=0.85cm] (in) at (0,0)
+    {Input window, $\ConfigInputPx \times \ConfigInputPx \times 3$\\[-0.5pt]
+     {\tlsmall $\operatorname{asinh}(z/s)$, slope, valid mask}};
+  \node[note, align=center, below=3pt of in] {two augmented views $x$, $x'$ of one window};
+  \node[inlayer=3.0cm, minimum height=0.8cm] (stem) at (0,1.45)
+    {Conv $3{\times}3$, 32, stride 2\\[-0.5pt]BatchNorm, ReLU};
+
+  % repeated BasicBlock inside the grey frame
+  \path[repframe] (-2.2,2.25) rectangle (2.2,7.55);
+  \node[conv]  (c1) at (0,3.05) {Conv $3{\times}3$, $C$};
+  \node[norm]  (b1) at (0,3.72) {BatchNorm};
+  \node[norm]  (r1) at (0,4.39) {ReLU};
+  \node[conv]  (c2) at (0,5.06) {Conv $3{\times}3$, $C$};
+  \node[norm]  (b2) at (0,5.73) {BatchNorm};
+  \node[addnode] (add) at (0,6.38) {};
+  \node[norm]  (r2) at (0,7.03) {ReLU};
+
+  \node[note, align=center, anchor=east] at (-2.4,4.9)
+    {{\fontsize{10}{12}\selectfont $\times 2$} per stage\\[1pt]4 stages};
+  \node[note, anchor=west] at (2.4,4.9)
+    {$C = 32, 64, 128, 256$\\in stages 1 to 4\\[4pt]
+     first block of stages 2 to 4:\\stride 2, skip through\\$1{\times}1$ conv and BatchNorm};
+
+  \node[dense=3.0cm] (pool) at (0,8.3) {Global average pooling};
+  \node[embbox=3.0cm] (h) at (0,9.05) {Embedding $h \in \mathbb{R}^{\ConfigEmbeddingDim}$};
+  \node[dense=2.3cm] (l2) at (4.1,9.05) {L2 normalise};
+  \node[note, anchor=west] (ret) at (6.2,9.05) {retrieval};
+
+  \path[onnxframe] (-4.3,0.85) rectangle (5.95,9.5);
+  \node[note, anchor=south east] at (5.82,0.95) {exported to ONNX};
+
+  % backbone flow
+  \draw[arr] (in) -- (stem);
+  \draw[arr] (stem) -- (c1);
+  \coordinate (split) at (0,2.55);
+  \node[junction] at (split) {};
+  \draw[wire] (split) -- (-1.75,2.55) -- (-1.75,6.38);
+  \draw[arr] (-1.75,6.38) -- (add);
+    \draw[arr] (c1) -- (b1);
+  \draw[arr] (b1) -- (r1);
+  \draw[arr] (r1) -- (c2);
+  \draw[arr] (c2) -- (b2);
+  \draw[arr] (b2) -- (add);
+  \draw[arr] (add) -- (r2);
+  \draw[arr] (r2) -- (pool);
+  \draw[arr] (pool) -- (h);
+  \draw[arr] (h) -- (l2);
+  \draw[arr] (l2) -- (ret);
+
+  % ---- training heads ----
+  \coordinate (bus) at (0,9.9);
+  \node[junction] at (bus) {};
+  \draw[wire] (h) -- (bus);
+  \node[inlayer=3.3cm] (grl) at (4.3,10.55) {Gradient reversal $\times(-\lambda)$};
+  \node[dense=3.3cm, minimum height=0.8cm] (proj) at (-4.3,11.5)
+    {Projector MLP\\[-0.5pt]{\tlsmall $\ConfigEmbeddingDim{\to}2048{\to}2048{\to}2048$}};
+  \node[dense=3.3cm, minimum height=0.8cm] (phys) at (0,11.5)
+    {Physics head MLP\\[-0.5pt]{\tlsmall $\ConfigEmbeddingDim{\to}\ConfigEmbeddingDim{\to}11$}};
+  \node[dense=3.3cm, minimum height=0.8cm] (body) at (4.3,11.5)
+    {Body head MLP\\[-0.5pt]{\tlsmall $\ConfigEmbeddingDim{\to}\ConfigEmbeddingDim{\to}3$}};
+  \node[lossbox=3.3cm, minimum height=0.8cm] (lv) at (-4.3,12.85)
+    {VICReg loss $\mathcal{L}_{\mathrm{V}}$\\[-0.5pt]{\tlsmall between the two views}};
+  \node[lossbox=3.3cm, minimum height=0.8cm] (lp) at (0,12.85)
+    {Masked MSE $\mathcal{L}_{\mathrm{phys}}$\\[-0.5pt]{\tlsmall missing targets masked}};
+  \node[lossbox=3.3cm, minimum height=0.8cm] (lb) at (4.3,12.85)
+    {Cross entropy $\mathcal{L}_{\mathrm{body}}$\\[-0.5pt]{\tlsmall Moon, Mars, Earth}};
+  \node[embbox=5.0cm, minimum height=0.6cm] (tot) at (0,14.1)
+    {$\mathcal{L} = \mathcal{L}_{\mathrm{V}} + \alpha\,\mathcal{L}_{\mathrm{phys}}
+      + \mathcal{L}_{\mathrm{body}}$};
+
+  \draw[wire] (-4.3,9.9) -- (4.3,9.9);
+  \draw[arr] (-4.3,9.9) -- (proj);
+  \draw[arr] (bus) -- (phys);
+  \draw[arr] (4.3,9.9) -- (grl);
+  \draw[arr] (grl) -- (body);
+  \draw[arr] (proj) -- node[wirelabel, right] {$z$, $z'$} (lv);
+  \draw[arr] (phys) -- node[wirelabel, right] {$\hat y$} (lp);
+  \draw[arr] (body) -- node[wirelabel, right] {logits} (lb);
+  \draw[arr] (lv.north) |- (tot.west);
+  \draw[arr] (lp) -- (tot);
+  \draw[arr] (lb.north) |- (tot.east);
+  \node[note, anchor=south, align=center] at (0,14.45)
+    {$\alpha = \ConfigAlphaPhys$; $\lambda$ ramps to $\lambda_{\max}$ during training};
 \end{tikzpicture}
-\caption{Encoder architecture. A ResNet style backbone at half width maps a
-\ConfigInputPx{} by \ConfigInputPx{} window with three channels to a \ConfigEmbeddingDim{} value
-embedding. Three heads train it: a projector for the VICReg loss on two views of one window, a
-physics head that regresses the fingerprint of Section~\ref{sec:fingerprint}, and a body head
-behind a gradient reversal layer that is trained to predict the body while the backbone is pushed
-not to encode it. Only the backbone is exported; the heads are used in training only.}
+\caption{Encoder architecture, drawn from input (bottom) to loss (top). A ResNet-18 layout at
+half width maps a \ConfigInputPx{} by \ConfigInputPx{} window with three channels to a
+\ConfigEmbeddingDim{} value embedding $h$. The grey frame is the repeated BasicBlock, two per stage
+in four stages. Three heads train the backbone: a projector for the VICReg loss on two views of one
+window, a physics head that regresses the fingerprint of Section~\ref{sec:fingerprint} with a
+masked loss, and a body head behind a gradient reversal layer, through which $\lambda$ acts. Only
+the backbone with the L2 normalisation (dashed) is exported to ONNX; the heads are used in
+training only. The stride 2 stem is a recorded deviation from the specified stride 1.}
 \label{fig:encoder}
 \end{figure}
