@@ -40,3 +40,17 @@ export function prd4Titles(): Record<string, string> {
   }
   return titles;
 }
+
+/** PRD.md section 8.12: the ProductRecord field names, in the order the PRD lists them. */
+export function prd812ProductFields(): string[] {
+  const prd = readFileSync(join(REPO_ROOT, 'PRD.md'), 'utf8');
+  const start = prd.indexOf('\n### 8.12 Records\n');
+  const end = prd.indexOf('\n### ', start + 1);
+  if (start < 0 || end < 0) throw new Error('PRD.md has no section 8.12');
+  const line = prd
+    .slice(start, end)
+    .split('\n')
+    .find((text) => text.startsWith('- **ProductRecord:**'));
+  if (line === undefined) throw new Error('PRD 8.12 lists no ProductRecord');
+  return [...line.matchAll(/`([a-z_]+)`/g)].map((match) => match[1] ?? '');
+}
