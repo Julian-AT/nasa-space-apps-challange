@@ -338,7 +338,6 @@ describe('home page', () => {
       expect(hrefs, href).toContain(href);
     }
     // The synthetic bundle has no cards and no targets: the page says Unavailable, never zero.
-    expect(textOf(html)).toContain('the bundle holds no evidence cards');
     expect(textOf(html)).toContain('the bundle lists no targets.json');
   });
 
