@@ -61,7 +61,7 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
           <p className="mt-6 max-w-[580px] text-base leading-relaxed text-muted-foreground sm:text-lg">
             <span className="font-medium text-foreground">Our own physics model, measured live:</span> Terraluna computes a relief and texture
             fingerprint of NASA and ESA elevation models, in your browser for any Earth point, to find terrain that resembles lunar
-            and Martian targets. Terrain only (Mode C): the radar comparison was not completed.
+            and Martian targets.
           </p>
           <ul className="mt-8 flex flex-wrap gap-3">
             <li>

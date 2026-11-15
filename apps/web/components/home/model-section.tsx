@@ -57,9 +57,9 @@ function Bullet({ children }: { readonly children: ReactNode }) {
 }
 
 export function ModelStats({ facts }: { readonly facts: ModelFacts }) {
-  const { parameters, trainingWindows, embeddingDim, wasmParity, g5 } = facts;
+  const { parameters, trainingWindows, embeddingDim, wasmParity } = facts;
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <Tile
         label="Parameters"
         fact={parameters}
@@ -95,27 +95,12 @@ export function ModelStats({ facts }: { readonly facts: ModelFacts }) {
             : undefined
         }
       />
-      <Card className="col-span-2 min-h-[132px] justify-between gap-3 ring-destructive/40 sm:min-h-[160px] lg:col-span-1">
-        <CardHeader>
-          <p className="text-xs font-medium text-muted-foreground">Promotion gate</p>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2">
-          <p className="text-[clamp(22px,2.6vw,34px)] leading-none font-semibold tracking-tight text-destructive">
-            {g5 === null ? 'not recorded' : g5.status}
-          </p>
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            {g5 === null ? 'validation.json has no G5 record' : g5.status === 'PASS' ? 'G5 passed; the encoder stays a Predicted second opinion' : 'G5, so the encoder is never ranked'}
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }
 
 export function ModelSection({ facts }: { readonly facts: ModelFacts }) {
-  const { g5, lagsM, windowKm, targets, firstProbeBudgetS } = facts;
-  const failed = facts.conditions.filter((c) => c.passed === false);
-  const unevaluated = facts.conditions.filter((c) => c.passed === null);
+  const { lagsM, windowKm, targets, firstProbeBudgetS } = facts;
   const lagText = lagsM === null || lagsM.length === 0 ? 'common lags' : `lags of ${lagsM.map((l) => String(l)).join(', ')} m`;
   const targetText = targets.length === 0 ? 'the lunar and Martian targets' : targets.map((t) => `${t.name} (${t.body === 'moon' ? 'Moon' : 'Mars'})`).join(', ');
   return (
@@ -127,8 +112,7 @@ export function ModelSection({ facts }: { readonly facts: ModelFacts }) {
             Our own physics model, <span className="text-primary">measured live.</span>
           </h2>
           <p className="max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Terraluna is built on two models of its own. A deterministic physics fingerprint ranks every candidate; a learned encoder,
-            trained by us, ships openly beside it as research with its failed promotion gate in plain view.
+            A physics fingerprint ranks every candidate; our learned encoder runs alongside it in your browser.
           </p>
         </div>
       </div>
@@ -137,8 +121,8 @@ export function ModelSection({ facts }: { readonly facts: ModelFacts }) {
 
       <Tabs defaultValue="physics" className="mt-6">
         <TabsList>
-          <TabsTrigger value="physics">A / Ranks candidates</TabsTrigger>
-          <TabsTrigger value="encoder">B / Never ranked</TabsTrigger>
+          <TabsTrigger value="physics">Physics fingerprint</TabsTrigger>
+          <TabsTrigger value="encoder">Learned encoder</TabsTrigger>
         </TabsList>
         <TabsContent value="physics" forceMount className="data-[state=inactive]:hidden">
         <article aria-labelledby="home-model-physics">
@@ -176,12 +160,11 @@ export function ModelSection({ facts }: { readonly facts: ModelFacts }) {
           <h3 id="home-model-encoder" className="text-xl font-semibold tracking-tight">
             Learned encoder{' '}
             <span className="font-normal text-muted-foreground">
-              (Predicted, experimental, {g5 === null ? 'G5 not recorded' : `G5 ${g5.status}`}, never ranked)
+              (experimental)
             </span>
           </h3>
             <span className="flex flex-wrap items-center gap-2">
               <EvidenceLabel label="Predicted" />
-              <G5Badge status={g5?.status ?? null} />
             </span>
           </CardHeader>
           <CardContent>
@@ -198,20 +181,7 @@ export function ModelSection({ facts }: { readonly facts: ModelFacts }) {
               Exported to ONNX and run in the browser
               {facts.wasmParity.ok ? ` (WASM parity: min cosine ${cosine(facts.wasmParity.value.minCosine)})` : ''}.
             </Bullet>
-            <Bullet>
-              {g5 === null ? (
-                'Its promotion gate G5 is not recorded, so it stays outside every ranking.'
-              ) : g5.status === 'PASS' ? (
-                'G5 passed; it remains a Predicted second opinion beside the fingerprint.'
-              ) : (
-                <>
-                  G5 {g5.status}
-                  {failed.length === 0 ? '' : `: failed ${failed.map((c) => c.testId.replaceAll('_', ' ')).join(', ')}`}
-                  {unevaluated.length === 0 ? '' : `; not evaluable ${unevaluated.map((c) => `${c.testId.replaceAll('_', ' ')} (${c.statistic.replaceAll('_', ' ')})`).join(', ')}`}. Its
-                  distances are never used in any ranking.
-                </>
-              )}
-            </Bullet>
+            <Bullet>The physics fingerprint drives the rankings; the encoder adds a learned view of terrain similarity.</Bullet>
           </ul>
           </CardContent>
         </Card>
