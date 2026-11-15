@@ -525,3 +525,10 @@ body:has(.sa-ui, .sa-atlas)::before {
   --flare: var(--primary);
   --color-flare: var(--flare);
 }
+/* Large panel radii follow the preset scale. */
+.sa-ui .rounded-3xl,
+.sa-atlas .rounded-3xl,
+.sa-ui .rounded-\[28px\],
+.sa-atlas .rounded-\[28px\] {
+  border-radius: calc(var(--radius) + 6px);
+}
