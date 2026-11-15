@@ -2,5 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "export NEXT_TELEMETRY_DISABLED=1 && pnpm run bundle:pull && pnpm run build"
+  "buildCommand": "export NEXT_TELEMETRY_DISABLED=1 && pnpm run bundle:pull && pnpm run build",
+  "ignoreCommand": "git log -1 --pretty=%B | grep -q '\\[deploy\\]' && exit 1 || exit 0"
 }
