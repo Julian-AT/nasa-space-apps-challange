@@ -7,11 +7,7 @@
     "The nu values use the direction_mean isotropic summary of T3.",
     "Copernicus GLO-30 is a surface model (DSM) of one epoch; snow, moisture and surface change since acquisition were not checked on the Earth window.",
     "This is a slice search over the configured regions, not the full t5 search; the shortlist is the first Pareto layer of the windows compared.",
-<<<<<<< HEAD
-    "PGDA78 error spatial correlation is not propagated: the uncertainty components (clones, scenarios) have not been run.",
-=======
     "PGDA78 clone measurement error is propagated for the lunar target window only (clone counts in uncertainty_components); no Earth DEM error model is applied, and ties are not set in distances_by_family because the target has no reference set (schema: tied needs a reference spread); clone-based ties are listed in analysis/g4_candidates.json.",
->>>>>>> origin/main
     "PGDA78 Site01 interpolation: 0.1045 of the target window's valid 90 m cells sit on a 5 m pixel with at least one LOLA return; the rest of the 5 m DEM there is interpolated.",
     "WorldCover 2021 at the Earth window's 90 m cell centres: allowed classes 1.0000, of which snow_ice 0.0000 (allowed by config earth_search.masks; PRD-04 reports snow and ice separately), permanent water 0.0000.",
     "This Earth window is the G0-05 first-card window (the eligible window containing the decoded UAVSAR ROI centre), chosen at G0 without ranking by similarity.",
@@ -250,41 +246,13 @@
         "evidence_label": "Unavailable",
         "n_requested": null,
         "n_used": null,
-<<<<<<< HEAD
-        "note": null,
-        "rank_frequency": null,
-        "reason": "uncertainty_not_run",
-=======
         "note": "Within-window spread of the distance is not computed for this slice.",
         "rank_frequency": null,
         "reason": "heterogeneity_not_computed",
->>>>>>> origin/main
         "scenarios": null,
         "status": "unavailable"
       },
       "measurement_error": {
-<<<<<<< HEAD
-        "by_family": null,
-        "evidence_label": "Unavailable",
-        "n_requested": null,
-        "n_used": null,
-        "note": null,
-        "rank_frequency": null,
-        "reason": "uncertainty_not_run",
-        "scenarios": null,
-        "status": "unavailable"
-      },
-      "scenario_sensitivity": {
-        "by_family": null,
-        "evidence_label": "Unavailable",
-        "n_requested": null,
-        "n_used": null,
-        "note": null,
-        "rank_frequency": null,
-        "reason": "uncertainty_not_run",
-        "scenarios": null,
-        "status": "unavailable"
-=======
         "by_family": {
           "terrain_relief": {
             "n": 100,
@@ -390,22 +358,15 @@
           }
         ],
         "status": "available"
->>>>>>> origin/main
       },
       "statistical_prediction_error": {
         "by_family": null,
         "evidence_label": "Unavailable",
         "n_requested": null,
         "n_used": null,
-<<<<<<< HEAD
-        "note": null,
-        "rank_frequency": null,
-        "reason": "uncertainty_not_run",
-=======
         "note": "no predictor evaluated",
         "rank_frequency": null,
         "reason": "no_predictor_evaluated",
->>>>>>> origin/main
         "scenarios": null,
         "status": "unavailable"
       }
