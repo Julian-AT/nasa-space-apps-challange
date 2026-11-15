@@ -1,0 +1,120 @@
+{
+  "task_id": "T11-01",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "c520a4c4cfd1549785edbb647682e5afc7275768",
+    "head": "63e111914bd1ee5873bde77b9bdf86a7fc8ec709",
+    "files": [
+      {
+        "path": "ml/pyproject.toml",
+        "sha256": "82b7d3e998d7842cbd5f583599440b1ca32150510875b2cd0642f9c51730c9e0"
+      },
+      {
+        "path": "ml/src/terraluna_ml/dataset.py",
+        "sha256": "c19179376fbb7a57609fd07cc3f4308850d80f617dd3f36f31102bb677abda08"
+      },
+      {
+        "path": "ml/src/terraluna_ml/synthetic.py",
+        "sha256": "8b2818e9d80654c731072055349bc8dd99d23a08c437d34e5d56eb66adbcf45c"
+      },
+      {
+        "path": "ml/tests/test_dataset_window.py",
+        "sha256": "62264c7a9d103187aeb815f589448d72eb35e3a8c53819cff0fa46c8f19b1f4a"
+      },
+      {
+        "path": "ml/tests/test_synthetic_dems.py",
+        "sha256": "8f5fb89a99c9fa53c1a145a15583b9a0833d791c0f5701149ddd451ef7fff357"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "a35ef31a99eb383c7f1641df46ddecee189b354f6446836b2488276a4293e94e"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:41:53Z",
+  "finished_utc": "2026-11-15T00:42:24Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 2 of T11-01 passes. All three story checks pass. Both round-1 fixes check out: claude-r1-1 (DemSource now lives in dataset.py) and codex2-r1-1 (overflow refused). codex2-r1-2 (nu comparison) I judged by reading only, without running the mutation probe. The one rebuttal, claude-r1-2 (valid_fraction), is reasonable and stays a low. No blocker or high findings. splits.py does not exist yet, and I take the by-path test's tolerance of that as acceptable. The review was static plus the three check commands; it does not pass any empirical gate.",
+  "checks": [
+    {
+      "criterion": "uv run pytest ml/tests",
+      "command": "uv run pytest ml/tests",
+      "outcome": "PASS",
+      "evidence": "80 passed in 0.94s (59 in test_dataset_window.py, 21 in test_synthetic_dems.py)."
+    },
+    {
+      "criterion": "uv run mypy ml/src ml/tests",
+      "command": "uv run mypy ml/src ml/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 5 source files. mypy --strict is not run explicitly; strictness comes from the repo mypy config, which I did not inspect."
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check and format passed; mypy passed on 37 files; turbo lint and typecheck: 4 successful."
+    },
+    {
+      "criterion": "Dependencies: only terraluna-pipeline (workspace), numpy and pyarrow; no torch",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "ml/pyproject.toml diff adds numpy>=2.5,<3, pyarrow>=26.0,<27, terraluna-pipeline and [tool.uv.sources] workspace=true. uv.lock is consistent: make check uses --locked and passes."
+    },
+    {
+      "criterion": "synthetic.py: seeded, labelled mock DEMs (plane, fBm, hole, polar 4-fold); DemSource supplies raster and metadata only",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "synthetic.py:76-100 forces mock=True and label 'mock'. The builders plane_dem, fbm_dem, hole_dem and polar_fourfold_dem are at lines 102-275. _rng rejects a non-integer or negative seed. The polar surface is 4-fold symmetric via _orbit_sum, with the pole on the centre node of an odd lattice. The DemSource protocol (dataset.py:92-114) has only body, raster, nodata, lookup and mock, with no elevation(lat, lon)."
+    },
+    {
+      "criterion": "dataset.py sample_window calls geometry.resample_window with window_grid(5000.0, 78.125), a radians centre and body_radius_m; 3x64x64 float16; plane fit over valid pixels; fill 0.0 at invalid pixels; valid fraction recorded; constants block",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "dataset.py:58-85 (constants and an import-time 64*78.125==5000 check), :180-214 (one call to resample_window with grid=WINDOW_GRID), :217-263 (plane fit, slope and fill over the `use` mask only), :168-177 (storage() refuses non-finite). valid_fraction is recorded and does not filter. No 5.5 km crop. Tests cover the constants, a single resampler call and the fill-pixel invariance."
+    },
+    {
+      "criterion": "Tests cover shape and spacing, plane texture bound vs T3 and terrain nu, valid=0 at nodata, byte-identical seeds, by-path no-duplication check, 90-degree polar rotation",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_dataset_window.py:136-160 (shape and spacing), :299-355 (curvature bound derived before the run; nu compared with terrain at an arithmetic tolerance), :448 (nodata), :658 (byte-identical), :743-806 (by path over dataset.py, splits.py and synthetic.py), :679-716 (polar rotation). The strengthened nu check at :353 is a real bound, not implied by :352."
+    },
+    {
+      "criterion": "mypy --strict for ml/src; ruff passes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "mypy and ruff pass inside make check and in the separate mypy run."
+    },
+    {
+      "criterion": "Round-1 fixes: claude-r1-1 (DemSource moved), codex2-r1-1 (overflow), codex2-r1-2 (nu comparison)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "dataset.py:92 defines DemSource with no synthetic import, and the test at test_dataset_window.py:782 enforces it. dataset.py:238-252 raises DatasetError on non-finite plane, residual or slope values, and storage() at :174-177 refuses non-finite channels. The tighter nu assertion is at test_dataset_window.py:343-355."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "ml/src/terraluna_ml/dataset.py:213",
+      "claim": "valid_fraction counts pixels left valid after the slope-support rule, not the resampler's valid pixels (rebuttal of claude-r1-2 accepted).",
+      "evidence": "valid_fraction = valid_cells / 4096 with valid_cells from encoded.valid. It equals the mean of the stored valid channel, and the resampler count is kept as resampled_valid_cells. The rule is documented in the module docstring and input_encoding_record()['valid_rule']. The spec does not choose between the two counts, so a human should confirm it before the PRD 11.2 quality filter uses it.",
+      "id": "claude-r2-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "ml/tests/test_dataset_window.py:737",
+      "claim": "splits.py does not exist, so the by-path check for it is vacuous for now.",
+      "evidence": "ml/src/terraluna_ml/ contains only __init__.py, dataset.py and synthetic.py. The tests skip splits.py when it is absent, with a comment that T11-04 adds it. This matches the story files list but the check has no effect until then.",
+      "id": "claude-r2-2",
+      "resolution": null
+    }
+  ]
+}

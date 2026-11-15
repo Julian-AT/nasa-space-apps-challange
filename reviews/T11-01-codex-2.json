@@ -1,0 +1,122 @@
+{
+  "task_id": "T11-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "c520a4c4cfd1549785edbb647682e5afc7275768",
+    "head": "a670ff0d8f5e13b35cb5344c344a17f6bad0fdcb",
+    "files": [
+      {
+        "path": "ml/pyproject.toml",
+        "sha256": "82b7d3e998d7842cbd5f583599440b1ca32150510875b2cd0642f9c51730c9e0"
+      },
+      {
+        "path": "ml/src/terraluna_ml/dataset.py",
+        "sha256": "dbbab6fbb533e8908cb6f597b55c008a3326046828b3089ba3adda78928cd818"
+      },
+      {
+        "path": "ml/src/terraluna_ml/synthetic.py",
+        "sha256": "9a53835bdff778a64c3068a611706238837114538e99c14b823c201f0a7aab98"
+      },
+      {
+        "path": "ml/tests/test_dataset_window.py",
+        "sha256": "45492caf491f4e472800d79f4cbc1c6ae26395b40eb457cb0d38d261bab8ed48"
+      },
+      {
+        "path": "ml/tests/test_synthetic_dems.py",
+        "sha256": "e3b6a2d38ba7f1ad78e6838e0ba0a66028b01d3ae5dacadbf819548279e539e0"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "a35ef31a99eb383c7f1641df46ddecee189b354f6446836b2488276a4293e94e"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:30:38Z",
+  "finished_utc": "2026-11-15T00:35:50Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found a path that stores NaN despite finite input, and an ineffective plane-texture comparison. Checks were not run because the sandbox is read-only and execution was explicitly prohibited.",
+  "checks": [
+    {
+      "criterion": "Dependencies are limited to workspace terraluna-pipeline, numpy and pyarrow.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "ml/pyproject.toml:7-14 adds exactly these dependencies and the workspace source. uv.lock:564-579 matches; no torch dependency is introduced."
+    },
+    {
+      "criterion": "Labelled, seeded synthetic DEMs implement the raster-and-metadata DemSource interface and use shared geometry.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "synthetic.py:74-121 defines the protocol and enforces mock labels. Builders at lines 124-297 supply explicit lookup parameters; lines 303-306 require an integer seed. The spectral amplitude at line 369 has the required two-dimensional exponent -(H+1). Lines 379-406 assign identical sums to quarter-turn orbits. No elevation-at-coordinate interface or duplicate resampler is defined."
+    },
+    {
+      "criterion": "sample_window supplies the exact 5 km grid, valid-only preprocessing, channel encoding, float16 storage and NaN-free inputs.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "dataset.py:54-79 and 151-177 establish the required geometry, units and shared resampler. Lines 195-216 and 328-340 permit finite inputs to generate NaN during plane fitting; storage() at lines 138-141 casts these without validation. The no-NaN storage contract therefore does not hold for all accepted inputs."
+    },
+    {
+      "criterion": "Tests are written and run failing first and meaningfully cover the required numerical behaviours.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Required cases are present in test_dataset_window.py, but lines 339-345 do not establish numerical agreement between nonzero plane-texture curves: the comparison tolerance is already implied by their separate bounds. Historical failing execution and current test outcomes could not be verified because execution is prohibited."
+    },
+    {
+      "criterion": "Strict mypy and ruff pass.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Read-only sandbox and explicit instruction prohibit running checks that may create caches or modify the environment. Static typing configuration alone cannot establish passing results."
+    },
+    {
+      "criterion": "Run the ML test suite.",
+      "command": "uv run pytest ml/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited in this read-only review; uv and pytest may write environment state and caches."
+    },
+    {
+      "criterion": "Run strict type checking for ML source and tests.",
+      "command": "uv run mypy ml/src ml/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited in this read-only review; uv and mypy may write environment state and caches."
+    },
+    {
+      "criterion": "Run repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited in this read-only review; the target invokes uv, ruff, mypy and pnpm tooling."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "ml/src/terraluna_ml/dataset.py:328",
+      "claim": "Finite accepted elevations can produce NaN channels that storage() preserves.",
+      "evidence": "An all-valid 64 × 64 array containing 1e308 passes the finite-input check at lines 195-196. The float64 sum used by np.mean(zs) exceeds float64 range, making z_mean infinite; subsequent centred products and plane residuals become NaN. Lines 209-211 still encode these pixels with valid=1, and storage() at lines 138-141 performs only astype(float16). Reject nonfinite intermediate/output values or use overflow-safe arithmetic, and add a regression covering this path.",
+      "id": "codex2-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "f6704bbdb3ed0a60b21c25229365365869e58dad",
+        "reason": "encode_channels now checks the plane coefficients, residuals and both slope differences over valid pixels and raises DatasetError if any is not finite; EncoderWindow.storage() refuses non-finite float16 channels. Regression tests in 69f6651 (all 1e308, all -1e308, alternating +-1e308, 1.7e308 with 0) failed first and pass now, plus a check that 1e300 m still encodes."
+      }
+    },
+    {
+      "severity": "high",
+      "location": "ml/tests/test_dataset_window.py:343",
+      "claim": "The plane-texture nu comparison cannot detect disagreement between nonzero curves.",
+      "evidence": "Let B be texture_bound. Line 343 requires ours.nu ≤ 2B. Line 340 bounds every pipeline residual by B, which bounds its RMS pair differences by 2B. Since both nu values are nonnegative, line 344's |ours.nu - pipeline.nu| ≤ 2B follows automatically. Line 345 only compares zero status, so arbitrary unequal positive curves within those bounds pass. Compare nonzero nu values using an independently justified arithmetic tolerance, retaining the curvature bound as a separate physical-residual assertion.",
+      "id": "codex2-r1-2",
+      "resolution": {
+        "action": "fixed",
+        "commit": "a43198516a9172a5d01cb10c04b3d5d96422ea45",
+        "reason": "The plane test now bounds the residual gap to terrain surface_m by PRD 7 arithmetic (ATOL + RTOL max|z|) and |nu_ours - nu_terrain| by 2 x gap + ATOL + RTOL max(nu): both are RMS over the same pairs (terrain calls structure_function on its surface with the same mask, lags and rule), so Minkowski gives <= 2 x gap exactly. The curvature bound stays as a separate physical assertion. A mutation probe (residual x 1.05; shifted lags) fails the new check in all 9 body/seed cases and passed the old one."
+      }
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "task_id": "T11-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "c520a4c4cfd1549785edbb647682e5afc7275768",
+    "head": "a670ff0d8f5e13b35cb5344c344a17f6bad0fdcb",
+    "files": [
+      {
+        "path": "ml/pyproject.toml",
+        "sha256": "82b7d3e998d7842cbd5f583599440b1ca32150510875b2cd0642f9c51730c9e0"
+      },
+      {
+        "path": "ml/src/terraluna_ml/dataset.py",
+        "sha256": "dbbab6fbb533e8908cb6f597b55c008a3326046828b3089ba3adda78928cd818"
+      },
+      {
+        "path": "ml/src/terraluna_ml/synthetic.py",
+        "sha256": "9a53835bdff778a64c3068a611706238837114538e99c14b823c201f0a7aab98"
+      },
+      {
+        "path": "ml/tests/test_dataset_window.py",
+        "sha256": "45492caf491f4e472800d79f4cbc1c6ae26395b40eb457cb0d38d261bab8ed48"
+      },
+      {
+        "path": "ml/tests/test_synthetic_dems.py",
+        "sha256": "e3b6a2d38ba7f1ad78e6838e0ba0a66028b01d3ae5dacadbf819548279e539e0"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "a35ef31a99eb383c7f1641df46ddecee189b354f6446836b2488276a4293e94e"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:30:38Z",
+  "finished_utc": "2026-11-15T00:34:59Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static review found no definite defects in the scoped change. Numerical behavior, failing-first execution, typing, lint, and required checks remain unverified because execution was prohibited.",
+  "checks": [
+    {
+      "criterion": "Dependencies are limited to workspace terraluna-pipeline, numpy, pyarrow, and existing pipeline dependencies; no torch.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "ml/pyproject.toml:7 adds exactly numpy, pyarrow and terraluna-pipeline; line 14 declares the workspace source. The uv.lock diff adds pyarrow and the corresponding ML dependency metadata without changing existing pins."
+    },
+    {
+      "criterion": "Labelled, seeded synthetic DEMs implement the raster-only DemSource interface and use shared geometry.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "synthetic.py:74 defines raster and metadata properties; line 113 enforces mock labels and float64 storage. Builders at lines 124, 165, 194 and 241 cover the four surfaces. Shared lookup types and aeqd_forward are imported from geometry. Determinism and numerical fixture behavior require execution, prohibited in this read-only review."
+    },
+    {
+      "criterion": "Sample exact 64 × 64, 5,000 m windows through D29; encode valid-only plane residuals, slope and mask with float16 storage and zero invalid fills.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "dataset.py:54 defines the shared constants; line 76 constructs window_grid(5000.0, 78.125). Lines 151–177 call the shared resampler, convert degrees to radians and record valid fraction. Lines 188–216 mask encoding operations; line 138 converts storage to float16. input_encoding_record at line 220 exposes manifest metadata. Numerical and storage assertions were not executed because checks are prohibited."
+    },
+    {
+      "criterion": "Tests run failing first and cover geometry, plane bounds and terrain agreement, nodata, fill independence, determinism, shared-resampler use and polar rotation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_dataset_window.py contains shape/spacing assertions at lines 136–159 and 211–220, derived plane bounds and terrain comparisons at 251–346, nodata/fill assertions at 439–559, determinism at 607–614, rotation checks at 627–665 and by-path checks at 671–740. The d3584b5 tree contains these tests before the implementation modules exist, but no failing-first execution was independently observed. Tests were not run under the review restriction."
+    },
+    {
+      "criterion": "mypy strict passes for ml/src; ruff passes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Strict mypy and ruff are configured in root pyproject.toml, but successful execution cannot be established by reading. Running checks was explicitly prohibited in this read-only review."
+    },
+    {
+      "criterion": "Required pytest check",
+      "command": "uv run pytest ml/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: user prohibited checks because the read-only sandbox cannot support dependency synchronization or test-cache writes."
+    },
+    {
+      "criterion": "Required mypy check",
+      "command": "uv run mypy ml/src ml/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: user prohibited checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: user prohibited checks in the read-only sandbox. Makefile includes ruff lint/format, mypy and TypeScript checks."
+    }
+  ],
+  "findings": []
+}
