@@ -100,7 +100,11 @@
       "claim": "Finite accepted elevations can produce NaN channels that storage() preserves.",
       "evidence": "An all-valid 64 × 64 array containing 1e308 passes the finite-input check at lines 195-196. The float64 sum used by np.mean(zs) exceeds float64 range, making z_mean infinite; subsequent centred products and plane residuals become NaN. Lines 209-211 still encode these pixels with valid=1, and storage() at lines 138-141 performs only astype(float16). Reject nonfinite intermediate/output values or use overflow-safe arithmetic, and add a regression covering this path.",
       "id": "codex2-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "f6704bbdb3ed0a60b21c25229365365869e58dad",
+        "reason": "encode_channels now checks the plane coefficients, residuals and both slope differences over valid pixels and raises DatasetError if any is not finite; EncoderWindow.storage() refuses non-finite float16 channels. Regression tests in 69f6651 (all 1e308, all -1e308, alternating +-1e308, 1.7e308 with 0) failed first and pass now, plus a check that 1e300 m still encodes."
+      }
     },
     {
       "severity": "high",
@@ -108,7 +112,11 @@
       "claim": "The plane-texture nu comparison cannot detect disagreement between nonzero curves.",
       "evidence": "Let B be texture_bound. Line 343 requires ours.nu ≤ 2B. Line 340 bounds every pipeline residual by B, which bounds its RMS pair differences by 2B. Since both nu values are nonnegative, line 344's |ours.nu - pipeline.nu| ≤ 2B follows automatically. Line 345 only compares zero status, so arbitrary unequal positive curves within those bounds pass. Compare nonzero nu values using an independently justified arithmetic tolerance, retaining the curvature bound as a separate physical-residual assertion.",
       "id": "codex2-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "a43198516a9172a5d01cb10c04b3d5d96422ea45",
+        "reason": "The plane test now bounds the residual gap to terrain surface_m by PRD 7 arithmetic (ATOL + RTOL max|z|) and |nu_ours - nu_terrain| by 2 x gap + ATOL + RTOL max(nu): both are RMS over the same pairs (terrain calls structure_function on its surface with the same mask, lags and rule), so Minkowski gives <= 2 x gap exactly. The curvature bound stays as a separate physical assertion. A mutation probe (residual x 1.05; shifted lags) fails the new check in all 9 body/seed cases and passed the old one."
+      }
     }
   ]
 }

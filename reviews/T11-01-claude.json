@@ -100,7 +100,11 @@
       "claim": "The production sampler imports the DemSource protocol from the mock-only synthetic module.",
       "evidence": "dataset.py:39 has `from terraluna_ml.synthetic import DemSource`. synthetic.py's docstring says it is mock only and never reaches a production path. Importing the protocol type is harmless today, but it couples the production path to the mock module. Consider moving the protocol to a neutral module before T11-07.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "33df05e144803acd4439c514090a195484ba72d1",
+        "reason": "DemSource now lives in ml/src/terraluna_ml/dataset.py; dataset.py imports nothing from the mock module, synthetic.py no longer defines the protocol and SyntheticDem satisfies it structurally. Tests in a2adfcf (by-path import check on dataset.py, protocol module is terraluna_ml.dataset) failed first and pass now."
+      }
     },
     {
       "severity": "low",
@@ -108,7 +112,11 @@
       "claim": "valid_fraction counts pixels left valid after the slope-support rule, not the resampler's valid pixels.",
       "evidence": "valid_fraction = valid_cells / 4096 with valid_cells taken from encoded.valid (dataset.py:163, 177). The resampler's own count is kept separately as resampled_valid_cells. The module docstring discloses this. The two differ only where the valid region has isolated pixels, but the spec does not say which count to use.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The count is deliberate and consistent with what is stored: the story asks for the valid mask as channel 2 plus the valid fraction of the 64 x 64 window, and valid_fraction = valid_cells / 4096 is exactly the mean of the stored valid channel, so manifest metadata and shard agree. Pixels dropped by the slope-support rule carry 0.0 in every channel and are not valid encoder input, so counting them would overstate the usable fraction the PRD 11.2 quality filter (valid fraction >= 0.8) later reads. The resampler count is kept beside it as resampled_valid_cells, and the rule is in the dataset.py docstring and input_encoding_record()[\"valid_rule\"]. The reviewer notes the spec does not choose; this is the reading that matches the stored mask, and no change is needed."
+      }
     }
   ]
 }
