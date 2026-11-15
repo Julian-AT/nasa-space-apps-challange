@@ -46,7 +46,7 @@ function Em({ children }: { readonly children: ReactNode }) {
 function StatTile({ name, entry, note }: { readonly name: string; readonly entry: Entry; readonly note?: string }) {
   const has = entry.status === 'available' && entry.value !== null && entry.evidence_label !== 'Unavailable';
   return (
-    <div className="min-w-0 rounded-xl border bg-card p-5 shadow-xs" data-family-stat={name}>
+    <div className="min-w-0 rounded-lg bg-card p-5 ring-1 ring-foreground/10" data-family-stat={name}>
       <p className="text-xs font-medium text-muted-foreground">{name}</p>
       {has ? (
         <>
@@ -146,7 +146,7 @@ export function CompareLab({ card, pair, index, total, options, current, records
             }
             text="Log-log axes. Solid blue with circles is the target; dashed orange with squares is the Earth window. Dotted vertical lines mark lags without a value; the reason is in the table."
           />
-          <div className="grid gap-6 rounded-xl border bg-card p-4 shadow-xs sm:p-6 lg:grid-cols-2 [&>*]:min-w-0">
+          <div className="grid gap-6 rounded-lg bg-card p-4 ring-1 ring-foreground/10 sm:p-6 lg:grid-cols-2 [&>*]:min-w-0">
             {(['relief', 'texture'] as const).map((observable) => {
               const series = [namedSeries('Target', wa, pair.a, observable), namedSeries('Earth candidate', wb, pair.b, observable)].filter(
                 (s): s is NamedSeries => s !== null,
@@ -185,7 +185,7 @@ export function CompareLab({ card, pair, index, total, options, current, records
             </Link>
             <span className="font-mono text-[11px] wrap-anywhere text-muted-foreground">{card.card_id}</span>
           </div>
-          <div className="mt-8 rounded-xl border border-primary/40 bg-primary/5 p-5">
+          <div className="mt-8 rounded-lg bg-card p-5 ring-1 ring-foreground/10">
             <h3 className="text-sm font-semibold">Claim limits</h3>
             {card.claim_limits.length === 0 ? (
               <p className="mt-2 text-sm text-muted-foreground">The card lists no claim limits.</p>

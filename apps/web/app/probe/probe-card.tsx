@@ -99,7 +99,7 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
         <p>Unavailable: {r.targets_reason ?? 'no targets'}</p>
       ) : (
         r.targets.map((t) => (
-          <section key={t.target_id} aria-label={`Distances to ${names[t.target_id] ?? t.target_id}`} className="mt-4 rounded-lg border bg-muted/30 p-4">
+          <section key={t.target_id} aria-label={`Distances to ${names[t.target_id] ?? t.target_id}`} className="mt-4 rounded-md bg-muted p-4">
             <h4 className="font-medium">
               {names[t.target_id] ?? t.target_id} <span className="text-sm">({t.target_window_id})</span>
             </h4>

@@ -103,7 +103,7 @@ export function ProbeClient({
 
   return (
     <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
-      <aside aria-label="Probe input" className="flex flex-col gap-4 self-start rounded-xl border bg-card p-5 font-sans shadow-xs">
+      <aside aria-label="Probe input" className="flex flex-col gap-4 self-start rounded-lg bg-card p-5 ring-1 ring-foreground/10">
         <h2 className="text-sm font-semibold">Point on Earth</h2>
         <form
           className="flex flex-col gap-3"
@@ -169,7 +169,7 @@ export function ProbeClient({
         {invalid ? <p role="alert">Latitude must lie in [-90, 90] and longitude in [-180, 180].</p> : null}
         {workerError === null ? null : <p role="alert">{workerError}</p>}
       </aside>
-      <div aria-live="polite" className="min-w-0 rounded-xl border bg-card p-5 font-sans shadow-xs">
+      <div aria-live="polite" className="min-w-0 rounded-lg bg-card p-5 ring-1 ring-foreground/10">
         {result === null && !running ? <p className="text-sm text-muted-foreground">Run a probe to see relief, texture distances and curves here.</p> : null}
         {running ? <p>Reading the window and measuring it in your browser…</p> : null}
         {result === null ? null : <ProbeCard result={result} names={names} />}

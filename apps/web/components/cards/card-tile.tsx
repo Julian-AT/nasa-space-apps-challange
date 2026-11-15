@@ -16,7 +16,7 @@ const show = (v: number): string => String(Number(v.toPrecision(4)));
 function Stat({ name, d }: { readonly name: string; readonly d: CardRecord['distances_by_family']['terrain_relief'] }) {
   const has = d.status === 'available' && d.value !== null;
   return (
-    <div className="min-w-0 rounded-lg border bg-muted/30 p-3" data-family-stat={name}>
+    <div className="min-w-0 rounded-md bg-muted p-3" data-family-stat={name}>
       <p className="text-xs font-medium text-muted-foreground">{name}</p>
       {has ? (
         <>
@@ -50,7 +50,7 @@ export function CardTile({ card, visual, index }: { readonly card: CardRecord; r
   const d = card.distances_by_family;
   return (
     <Link href={`/site/${card.card_id}`} data-slot="card-tile" className="group block h-full rounded-xl no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-      <Card className="h-full gap-4 transition-colors group-hover:border-primary/60 motion-reduce:transition-none">
+      <Card className="h-full gap-4 text-sm transition-shadow group-hover:ring-primary/60 motion-reduce:transition-none">
         <CardContent>
           <CardPair visual={visual} />
         </CardContent>

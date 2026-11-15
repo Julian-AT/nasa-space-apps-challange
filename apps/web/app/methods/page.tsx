@@ -41,7 +41,7 @@ export default function Methods() {
       </div>
       <section aria-labelledby="shadowastra-model" className="border-t">
         <div className="px-4 pt-20 pb-6 sm:px-6">
-          <div className="mx-auto max-w-[1200px] rounded-xl border bg-card p-6 shadow-xs sm:p-8">
+          <div className="mx-auto max-w-[1200px] rounded-lg bg-card p-6 ring-1 ring-foreground/10 sm:p-8">
             <Badge variant="secondary" className="h-auto py-1">
               From ShadowAstra Atlas (MIT, Team ShadowAstra)
             </Badge>

@@ -71,15 +71,15 @@ export function SwipeStage({
             if (e.key === 'Home') onChange(0.03);
             if (e.key === 'End') onChange(0.97);
           }}
-          className="absolute top-1/2 left-1/2 grid size-11 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize touch-none place-items-center rounded-full border border-platinum/70 bg-void/85 text-[13px] text-platinum backdrop-blur"
+          className="absolute top-1/2 left-1/2 grid size-11 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize touch-none place-items-center rounded-md border border-platinum/70 bg-void/85 text-[13px] text-platinum backdrop-blur"
         >
           <span aria-hidden="true">⟷</span>
         </button>
       </div>
-      <div className="pointer-events-none absolute top-3 left-3 z-[700] flex max-w-[45%] items-center gap-2 truncate rounded-full border bg-popover/95 px-3 py-1.5 text-xs shadow-sm">
+      <div className="pointer-events-none absolute top-3 left-3 z-[700] flex max-w-[45%] items-center gap-2 truncate rounded-md border bg-popover px-3 py-1.5 text-xs shadow-sm">
         <WorldDot world={leftWorld} /> <span className="truncate">{leftLabel}</span>
       </div>
-      <div className="pointer-events-none absolute top-3 right-3 z-[700] flex max-w-[45%] items-center gap-2 truncate rounded-full border bg-popover/95 px-3 py-1.5 text-xs shadow-sm">
+      <div className="pointer-events-none absolute top-3 right-3 z-[700] flex max-w-[45%] items-center gap-2 truncate rounded-md border bg-popover px-3 py-1.5 text-xs shadow-sm">
         <WorldDot world="earth" /> <span className="truncate">{rightLabel}</span>
       </div>
     </div>

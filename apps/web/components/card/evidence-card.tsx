@@ -9,6 +9,7 @@ import type { ReactNode } from 'react';
 
 import { EvidenceLabel, isEvidenceLabel } from '@/components/evidence-label';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -71,10 +72,11 @@ const QUESTIONS = [
 
 function Q({ n, children }: { readonly n: number; readonly children: ReactNode }) {
   return (
-    <section
+    <Card
+      role="region"
       data-question={`q${String(n)}`}
       aria-labelledby={`q${String(n)}-title`}
-      className="flex flex-col gap-4 rounded-xl border bg-card p-5 text-card-foreground shadow-xs sm:p-6"
+      className="gap-4 px-5 text-sm sm:px-6"
     >
       <div className="flex items-center gap-4">
         <span
@@ -91,7 +93,7 @@ function Q({ n, children }: { readonly n: number; readonly children: ReactNode }
         </div>
       </div>
       <div className="flex min-w-0 flex-col gap-3">{children}</div>
-    </section>
+    </Card>
   );
 }
 
@@ -132,7 +134,7 @@ function Polygon({
     .filter((x) => x !== null)
     .join(' · ');
   return (
-    <div className="min-w-0 rounded-lg border bg-muted/30 p-3 text-sm">
+    <div className="min-w-0 rounded-md bg-muted p-3 text-sm">
       <p className="font-semibold wrap-anywhere">{title}</p>
       <p className="text-muted-foreground">
         {short} · {polygon.ring_lonlat.length} vertices
@@ -158,8 +160,9 @@ function Distances({ card, g5Passed }: { readonly card: CardRecord; readonly g5P
             key={family}
             data-family={family}
             data-status={d.status}
-            className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-xs"
+            className="flex min-w-0"
           >
+            <Card className="w-full gap-3 px-4 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground">
                 {FAMILY_NAMES[family]}
@@ -189,6 +192,7 @@ function Distances({ card, g5Passed }: { readonly card: CardRecord; readonly g5P
                 {experimental ? 'unranked (G5 not passed)' : 'unranked: no single score'}
               </span>
             </div>
+            </Card>
           </li>
         );
       })}
@@ -267,7 +271,7 @@ function Figures({ card, figures }: Pick<EvidenceCardViewProps, 'card' | 'figure
       {card.figures.map((f) => {
         const svg = f.path === null ? undefined : figures.get(f.path);
         return (
-          <figure key={f.figure} data-figure={f.figure} className="m-0 flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4 shadow-xs">
+          <figure key={f.figure} data-figure={f.figure} className="m-0 flex min-w-0 flex-col gap-3 rounded-lg bg-card p-4 ring-1 ring-foreground/10">
             <figcaption className="text-sm font-medium">Figure {f.figure}</figcaption>
             {svg !== undefined && f.path !== null ? (
               <>
@@ -275,7 +279,7 @@ function Figures({ card, figures }: Pick<EvidenceCardViewProps, 'card' | 'figure
                 <p className="text-xs text-muted-foreground">{f.alt}</p>
               </>
             ) : (
-              <div role="img" aria-label={f.alt} className="rounded border border-dashed border-border p-4 text-sm">
+              <div role="img" aria-label={f.alt} className="rounded-md border border-dashed p-4 text-sm">
                 <p>
                   <EvidenceLabel label="Unavailable" />
                 </p>
@@ -321,7 +325,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
           MOCK PREVIEW: synthetic data, not production evidence
         </p>
       ) : null}
-      <header className="grid gap-8 rounded-xl border bg-card p-6 text-card-foreground shadow-xs sm:p-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      <header className="grid gap-8 rounded-lg bg-card p-6 text-card-foreground ring-1 ring-foreground/10 sm:p-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-5">
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-xs font-medium text-muted-foreground">
@@ -378,7 +382,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
       <section
         aria-labelledby="claim-limits"
         data-slot="limits"
-        className="flex flex-col gap-3 rounded-xl border border-primary/40 bg-primary/5 p-5 sm:p-6"
+        className="flex flex-col gap-3 rounded-lg border bg-card p-5 sm:p-6"
       >
         <SectionTitle id="claim-limits" eyebrow="What this card does not claim">Claim limits</SectionTitle>
         <List items={card.claim_limits} empty="The record lists no claim limits." />
