@@ -39,12 +39,20 @@
       "priority": 1,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "c520a4c4cfd1549785edbb647682e5afc7275768",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "a670ff0d8f5e13b35cb5344c344a17f6bad0fdcb",
+        "files": [
+          "reviews/T11-01-claude.json",
+          "reviews/T11-01-codex.json",
+          "reviews/T11-01-codex-2.json"
+        ],
+        "digests": {
+          "reviews/T11-01-claude.json": "1a58f11e4befc45ddd1a4900bc03c40e2d33e3020c7c7951d8436b259aad712c",
+          "reviews/T11-01-codex.json": "b9d38138f6ca00865e3d17582e808e2df6fa1cd9d5766768cdaca5854f0d657e",
+          "reviews/T11-01-codex-2.json": "386414cfd67a493a8cb6b8a01d95a193e707441f5441fb5a798e49492fa4d831"
+        }
       },
       "notes": "Decision (orchestrator): window geometry is 64 px x 78.125 m = 5,000 m; the earlier 5.5 km crop and the 72 px context are removed (PRD-08 asks a human whether to restore a context crop). Any resampling margin is source-read padding only. DemSource supplies rasters and metadata only; all windows go through T3's D29 resampler. Read terraluna_pipeline.geometry first and use its real names. Real DEM readers are T11-07. The orchestrator commits the ruff and pytest config before launch and adds ml/tests to mypy files and mypy_path in the T11-01 merge (CONTRACTS g); until then checks name ml/src and ml/tests explicitly. Test basenames are unique against pipeline/tests (test_dataset*, test_splits*, test_synthetic* only); ml/tests/conftest.py belongs to this batch only, and later ML batches use helpers_<area>.py. The fill-at-invalid rule is shared with t10 T10-07 and t12a T12A-03.",
       "codexPasses": 2
