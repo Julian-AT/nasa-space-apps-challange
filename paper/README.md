@@ -29,3 +29,4 @@ hand.
   `make -C paper refs` validates the record and `make -C paper refs-check` fails if `refs.bib` drifted.
 - `TERRALUNA_DATA=<dir> make -C paper figures` redraws the hillshades in `figures/generated/` from the
   raw DEMs under `<dir>/raw/`; the PDFs and their input digests are committed.
+- `make -C paper tables` writes `generated/distance-plot.tex` from the committed comparison record.

@@ -84,6 +84,10 @@ evaluated set. This stability is a frequency over the published height error mod
 probability that the window is an analog. It mostly shows that the clones move the target's
 statistics very little. Neither the background percentile nor the spread of the target reference set has been computed for this search, so the distance has not been set against the internal variation of the target.
 
+Figure~\ref{fig:candidate-distances} shows the two distances for every compared window.
+
+\input{figures/candidate-distances}
+
 The shortlist and uncertainty gate (status \GateFourStatus) inspected this window as a counterexample. The target is one broad massif whose relief keeps growing with
 lag, while the candidate is a mostly flat plain crossed by narrow ridges and a trough, whose
 relief is close to the target's at the shortest lags but grows much more slowly with lag. Equation~\eqref{eq:distance} averages over lags and does not read the Hurst exponent, so a

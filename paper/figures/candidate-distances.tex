@@ -1,0 +1,15 @@
+\begin{figure}[tbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[tlplot, width=0.55\linewidth, height=0.42\linewidth,
+  xlabel={relief distance (RMS of $\ln \nu$)}, ylabel={texture distance (RMS of $\ln \nu$)},
+  xmin=0, ymin=0, legend pos=outer north east, legend cell align=left]
+\input{generated/distance-plot}
+\end{axis}
+\end{tikzpicture}
+\caption{Derived relief and texture distances of the \ComparedCount{} compared Earth windows to the
+lunar target window, by search region, from the comparison record of the target. The circled window
+forms the first Pareto layer. Smaller is closer in each distance; the two are never summed. Drawn by
+\texttt{paper/scripts/tables.py} from the committed comparison and target records.}
+\label{fig:candidate-distances}
+\end{figure}
