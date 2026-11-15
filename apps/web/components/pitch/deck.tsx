@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 
 import { Globe } from '@/components/globe';
 
-import { ACCENT, EASE, FAINT, HillTile, INK, LINE, MUTED, PAPER } from './bits';
+import { ACCENT, EASE, FAINT, INK, LINE, MUTED, PAPER } from './bits';
 import { C, FigureCard, LineFigure, type LineSeries } from './figure';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
@@ -250,19 +250,9 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                 <FigureCard
                   title={<>{r.targetName} <span style={{ color: FAINT }}>and</span> {r.earthName.split(',')[0]}</>}
                   sub={`${BODY[r.body]} vs Earth, ${r.label}`}
-                  caption="Candidate windows found by this search, not proven analogs."
+                  caption="Candidate windows found by this search."
                 >
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex flex-col gap-1.5">
-                      <HillTile tile={r.targetTile} className="rounded-lg" />
-                      <span className="text-xs" style={{ color: FAINT }}>{r.targetName}, hillshade</span>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <HillTile tile={r.earthTile} className="rounded-lg" />
-                      <span className="text-xs" style={{ color: FAINT }}>{r.earthName.split(',')[0]}, hillshade</span>
-                    </div>
-                  </div>
-                  <div className="mt-6 grid grid-cols-2 gap-8">
+                  <div className="mt-2 grid grid-cols-2 gap-8">
                     <div className="flex flex-col gap-2">
                       <p className="text-[2.75rem] font-medium leading-none tracking-[-0.03em] tabular-nums" style={{ color: k === 0 ? ACCENT : INK }}>{r.relief.toFixed(3)}</p>
                       <p className="text-lg">relief distance</p>
