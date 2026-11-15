@@ -3,13 +3,18 @@
 // Photoreal Earth for the pitch title slide: NASA Blue Marble day texture and Black Marble city
 // lights (public domain), one directional sun from the upper left, a soft terminator, an ocean
 // glint and a faint white limb. Transparent canvas, so the slide colour shows through. No
-// atmosphere glow. One turn in ~90 s, paused under prefers-reduced-motion.
+// atmosphere glow. One turn in ~90 s, paused under prefers-reduced-motion. Optional `focus` eases a
+// point to face the camera and stops the spin; optional `pin` marks a surface point.
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ACESFilmicToneMapping,
+  Color,
   type Group,
+  type Mesh,
+  type MeshBasicMaterial,
   LinearMipmapLinearFilter,
+  Quaternion,
   ShaderMaterial,
   SRGBColorSpace,
   TextureLoader,
@@ -101,11 +106,64 @@ const fragment = /* glsl */ `
   }
 `;
 
-function Planet({ reduced }: { reduced: boolean }) {
+export type LatLon = { lat: number; lon: number };
+
+const D2R = Math.PI / 180;
+const FOCUS_S = 1.2;
+/** Default spin (rotation.y): Africa and Europe facing the viewer. */
+const AFRICA_Y = -1.75;
+const ACCENT = new Color('#CC5800');
+
+/** Unit-sphere point for a latitude/longitude in three's SphereGeometry UV layout (u = 0 at -180°). */
+function surface(lat: number, lon: number, r = 1): Vector3 {
+  const a = lat * D2R;
+  const o = lon * D2R;
+  return new Vector3(Math.cos(a) * Math.cos(o), Math.sin(a), -Math.cos(a) * Math.sin(o)).multiplyScalar(r);
+}
+
+/** Spin angle (rotation.y) that brings longitude `lon` to face the camera (+z). */
+const spinFor = (lon: number) => -Math.PI / 2 - lon * D2R;
+
+const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+
+/** White dot with a thin accent ring and a soft pulse, lying flat on the surface. */
+function Pin({ at }: { at: LatLon }) {
+  const pulse = useRef<Mesh>(null);
+  const pulseMat = useRef<MeshBasicMaterial>(null);
+  const pos = useMemo(() => surface(at.lat, at.lon, 1.004), [at.lat, at.lon]);
+  // Orient the disc (+z) along the local surface normal; lookAt would use world space.
+  const quat = useMemo(() => new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), pos.clone().normalize()), [pos]);
+  useFrame(({ clock }) => {
+    const t = (clock.elapsedTime % 1.8) / 1.8;
+    pulse.current?.scale.setScalar(1 + t * 2.4);
+    if (pulseMat.current) pulseMat.current.opacity = 0.55 * (1 - t) ** 2;
+  });
+  return (
+    <group position={pos} quaternion={quat}>
+      <mesh ref={pulse} renderOrder={2}>
+        <ringGeometry args={[0.036, 0.042, 64]} />
+        <meshBasicMaterial ref={pulseMat} color={ACCENT} transparent depthWrite={false} toneMapped={false} />
+      </mesh>
+      <mesh renderOrder={3}>
+        <ringGeometry args={[0.023, 0.03, 64]} />
+        <meshBasicMaterial color={ACCENT} toneMapped={false} />
+      </mesh>
+      <mesh renderOrder={3}>
+        <circleGeometry args={[0.023, 48]} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
+function Planet({ reduced, focus, pin, startLon }: { reduced: boolean; focus: LatLon | null; pin: LatLon | null; startLon: number | null }) {
   const day = useLoader(TextureLoader, DAY);
   const night = useLoader(TextureLoader, NIGHT);
   const gl = useThree((s) => s.gl);
+  const tilt = useRef<Group>(null);
   const spin = useRef<Group>(null);
+  // A running focus animation: start pose, target pose and elapsed time.
+  const anim = useRef<{ from: [number, number, number]; to: [number, number, number]; t: number } | null>(null);
 
   const material = useMemo(() => {
     const aniso = gl.capabilities.getMaxAnisotropy();
@@ -125,23 +183,70 @@ function Planet({ reduced }: { reduced: boolean }) {
 
   useEffect(() => () => material.dispose(), [material]);
 
-  useFrame((_, dt) => {
-    if (!reduced && spin.current) spin.current.rotation.y += (Math.PI * 2 * Math.min(dt, 0.1)) / TURN_S;
+  const fLat = focus?.lat;
+  const fLon = focus?.lon;
+  useEffect(() => {
+    const tg = tilt.current;
+    const sp = spin.current;
+    if (!tg || !sp) return;
+    if (fLat === undefined || fLon === undefined) {
+      // Back to the free tilted spin from wherever the globe is.
+      anim.current = { from: [tg.rotation.x, tg.rotation.z, sp.rotation.y], to: [0, TILT, sp.rotation.y], t: 0 };
+      return;
+    }
+    // Nearest equivalent spin angle, so the globe takes the short way round.
+    const raw = spinFor(fLon);
+    const y = raw + Math.round((sp.rotation.y - raw) / (Math.PI * 2)) * Math.PI * 2;
+    anim.current = { from: [tg.rotation.x, tg.rotation.z, sp.rotation.y], to: [fLat * D2R, 0, y], t: reduced ? FOCUS_S : 0 };
+  }, [fLat, fLon, reduced]);
+
+  useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.1);
+    const tg = tilt.current;
+    const sp = spin.current;
+    if (!tg || !sp) return;
+    const a = anim.current;
+    if (a) {
+      a.t = Math.min(a.t + dt, FOCUS_S);
+      const k = ease(a.t / FOCUS_S);
+      tg.rotation.x = a.from[0] + (a.to[0] - a.from[0]) * k;
+      tg.rotation.z = a.from[1] + (a.to[1] - a.from[1]) * k;
+      sp.rotation.y = a.from[2] + (a.to[2] - a.from[2]) * k;
+      if (a.t >= FOCUS_S) anim.current = null;
+    }
+    // Auto-rotation only while nothing is focused.
+    if (fLat === undefined && !reduced) sp.rotation.y += (Math.PI * 2 * dt) / TURN_S;
   });
 
   return (
-    <group rotation={[0, 0, TILT]}>
-      {/* Start with Africa and Europe facing the viewer. */}
-      <group ref={spin} rotation={[0, -1.75, 0]}>
+    <group ref={tilt} rotation={[0, 0, TILT]}>
+      <group ref={spin} rotation={[0, startLon === null ? AFRICA_Y : spinFor(startLon), 0]}>
         <mesh material={material}>
           <sphereGeometry args={[1, 128, 128]} />
         </mesh>
+        {pin ? <Pin at={pin} /> : null}
       </group>
     </group>
   );
 }
 
-export function EarthHero({ className }: { className?: string }) {
+export function EarthHero({
+  className,
+  focus = null,
+  pin = null,
+  startLon = null,
+  shadow = true,
+}: {
+  className?: string;
+  /** When set, the globe eases (~1.2 s) to face this point and stops auto-rotating. */
+  focus?: LatLon | null;
+  /** A small surface marker. */
+  pin?: LatLon | null;
+  /** Longitude facing the viewer at mount; default shows Africa and Europe. */
+  startLon?: number | null;
+  /** Soft contact shadow under the planet. */
+  shadow?: boolean;
+}) {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -153,20 +258,21 @@ export function EarthHero({ className }: { className?: string }) {
 
   return (
     <div className={className} role="img" aria-label="Rendered Earth, NASA Blue Marble imagery">
-      {/* Soft contact shadow under the planet. */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          left: '22%',
-          right: '22%',
-          bottom: '3%',
-          height: '6%',
-          borderRadius: '50%',
-          background: 'radial-gradient(closest-side, rgba(40,32,20,0.16), rgba(40,32,20,0))',
-          filter: 'blur(6px)',
-        }}
-      />
+      {shadow ? (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: '22%',
+            right: '22%',
+            bottom: '3%',
+            height: '6%',
+            borderRadius: '50%',
+            background: 'radial-gradient(closest-side, rgba(40,32,20,0.16), rgba(40,32,20,0))',
+            filter: 'blur(6px)',
+          }}
+        />
+      ) : null}
       <Canvas
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
         dpr={[1, 2]}
@@ -175,7 +281,7 @@ export function EarthHero({ className }: { className?: string }) {
         onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       >
         <Suspense fallback={null}>
-          <Planet reduced={reduced} />
+          <Planet reduced={reduced} focus={focus} pin={pin} startLon={startLon} />
         </Suspense>
       </Canvas>
     </div>
