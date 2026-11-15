@@ -1,0 +1,1081 @@
+{
+  "browser_run": "not performed by this record; G0 asks for a Copernicus COG read from a browser origin with the CORS result recorded (PRD 9), which this header evidence implies but does not replace",
+  "cop30_mode_note": "cop30_mode (direct or proxy) is chosen by the team at G0 (PRD 9, PRD 15 architecture review); this record is evidence for that choice and does not set it, and T1-07 writes it nowhere, config/run.yaml included",
+  "cors_evidence_reasons": [
+    "https://example.org: the preflight answered HTTP 403, not 2xx",
+    "https://example.org: the preflight response has no Access-Control-Allow-Origin equal to the origin or *",
+    "https://example.org: the preflight response has no Access-Control-Allow-Methods listing GET or *",
+    "https://example.org: the preflight response has no Access-Control-Allow-Headers listing range or *",
+    "https://example.org: the Range GET response has no Access-Control-Allow-Origin equal to the origin or *, so a browser's CORS check would fail",
+    "https://example.org: Access-Control-Expose-Headers on the Range GET does not list Content-Range and is not *",
+    "https://example.org: Access-Control-Expose-Headers on the Range GET does not list Accept-Ranges and is not *",
+    "http://localhost:3000: the preflight answered HTTP 403, not 2xx",
+    "http://localhost:3000: the preflight response has no Access-Control-Allow-Origin equal to the origin or *",
+    "http://localhost:3000: the preflight response has no Access-Control-Allow-Methods listing GET or *",
+    "http://localhost:3000: the preflight response has no Access-Control-Allow-Headers listing range or *",
+    "http://localhost:3000: the Range GET response has no Access-Control-Allow-Origin equal to the origin or *, so a browser's CORS check would fail",
+    "http://localhost:3000: Access-Control-Expose-Headers on the Range GET does not list Content-Range and is not *",
+    "http://localhost:3000: Access-Control-Expose-Headers on the Range GET does not list Accept-Ranges and is not *"
+  ],
+  "cors_evidence_scope": "the GLO-30 tile URL, which bears on cop30_mode; each URL's own value is under urls[].cors_evidence_supports",
+  "cors_evidence_supports": "proxy_needed",
+  "derivation_rule": "Per URL, over every origin tested. direct_read: the preflight answers 2xx with Access-Control-Allow-Origin equal to the origin or *, Access-Control-Allow-Methods listing GET or *, and Access-Control-Allow-Headers listing range or *; and the Range GET answers 206 with Access-Control-Allow-Origin equal to the origin or * and Access-Control-Expose-Headers listing Content-Range and Accept-Ranges or being *. proxy_needed: for every origin the Range GET's response has no single Access-Control-Allow-Origin equal to the origin or *, so a browser's CORS check fails and script cannot read the response (Fetch standard, CORS check). inconclusive: anything else. A missing header counts as absent, never as allowing. The top-level value is the GLO-30 URL's, which bears on cop30_mode; the WorldCover URL's value bears on the live WorldCover check (PRD 8.7 step 4).",
+  "description": "Origin-header requests to one Copernicus GLO-30 tile and one ESA WorldCover map (the tiles the T1-06 and wc records read), with the response headers that decide whether a browser may read them cross-origin (PRD 8.7 step 2 and 4; 9 G0; 15 architecture review). Raw observations and a derived evidence value only: the G0 status and cop30_mode are human decisions (PRD 23.6).",
+  "method": {
+    "absent_header": "a header the response does not carry is recorded with state absent and no values, and never counts as allowing",
+    "client": "io.send_http_exchange: Host, Accept-Encoding: identity and the request headers listed per request; no User-Agent, cookie, credential or project identifier; redirects are not followed",
+    "error_message": "body.error_message quotes the <Message> of an XML <Error> body as the server sent it, else null; the body itself is at body.local_path",
+    "headers_that_matter": [
+      "access-control-allow-origin",
+      "access-control-allow-methods",
+      "access-control-allow-headers",
+      "access-control-expose-headers",
+      "access-control-max-age",
+      "vary",
+      "content-range",
+      "accept-ranges",
+      "content-length"
+    ],
+    "origins": [
+      {
+        "key": "neutral",
+        "origin": "https://example.org",
+        "why": "a neutral HTTPS origin reserved for documentation (example.org), so no project or personal name is sent"
+      },
+      {
+        "key": "localhost",
+        "origin": "http://localhost:3000",
+        "why": "a local development origin, as a browser on a developer's machine would send it"
+      }
+    ],
+    "requests": {
+      "preflight": "OPTIONS with Origin, Access-Control-Request-Method: GET and Access-Control-Request-Headers: range",
+      "range_get": "GET with Origin and Range: bytes=0-1023"
+    },
+    "statement": "This is a server-side request that sends an Origin header (Python http.client through io.send_http_exchange), not a real browser fetch. The header evidence implies but does not replace a browser run: a browser applies its own CORS checks, caching and preflight rules, which this record does not observe."
+  },
+  "record": "cors_check",
+  "retrieval": {
+    "command": "python -m terraluna_pipeline.pilot fetch cors",
+    "fetch_metadata": "data/raw/cors/fetch.json",
+    "first_retrieved_at": "2026-11-15T00:38:00Z",
+    "last_retrieved_at": "2026-11-15T00:38:01Z"
+  },
+  "source": "cors",
+  "tool_versions": {
+    "gdal": "3.12.2",
+    "numpy": "2.5.4",
+    "pillow": "13.0.0",
+    "pydantic": "2.14.3",
+    "pyshp": "3.1.8",
+    "python": "3.12.13",
+    "rasterio": "1.5.2",
+    "terraluna-pipeline": "0.1.0"
+  },
+  "urls": [
+    {
+      "cors_evidence_supports": "proxy_needed",
+      "key": "glo30",
+      "origins": [
+        {
+          "origin": "https://example.org",
+          "origin_key": "neutral",
+          "preflight": {
+            "body": {
+              "bytes": 358,
+              "error_message": "CORSResponse: CORS is not enabled for this bucket.",
+              "local_path": "data/raw/cors/glo30_neutral_preflight.body",
+              "sha256": "965b5bce563c28b2cdb9c2e5d07d310fc676b7440f615495bdef4d83359c0a47",
+              "truncated": false
+            },
+            "headers_that_matter": {
+              "accept-ranges": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-methods": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-origin": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-expose-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-max-age": {
+                "state": "absent",
+                "values": []
+              },
+              "content-length": {
+                "state": "absent",
+                "values": []
+              },
+              "content-range": {
+                "state": "absent",
+                "values": []
+              },
+              "vary": {
+                "state": "absent",
+                "values": []
+              }
+            },
+            "method": "OPTIONS",
+            "observations": {
+              "allows_get": false,
+              "allows_origin": false,
+              "allows_range_header": false,
+              "ok_status": false
+            },
+            "request_headers": [
+              [
+                "Host",
+                "copernicus-dem-30m.s3.eu-central-1.amazonaws.com"
+              ],
+              [
+                "Accept-Encoding",
+                "identity"
+              ],
+              [
+                "Origin",
+                "https://example.org"
+              ],
+              [
+                "Access-Control-Request-Method",
+                "GET"
+              ],
+              [
+                "Access-Control-Request-Headers",
+                "range"
+              ]
+            ],
+            "requested_at": "2026-11-15T00:38:00Z",
+            "response_headers": [
+              [
+                "Server",
+                "AmazonS3"
+              ],
+              [
+                "x-amz-request-id",
+                "B739ERE705W1ZT3Q"
+              ],
+              [
+                "x-amz-id-2",
+                "zgYFLyuEQJP2JPebxzk91Mvv6bZl1DMVMaiCLz98lq5+HOkr4kfPJQDNYBsIopvJDqRJPZvOIxcg4W20sknBvaMd4Fwi283t"
+              ],
+              [
+                "Content-Type",
+                "application/xml"
+              ],
+              [
+                "Transfer-Encoding",
+                "chunked"
+              ],
+              [
+                "Date",
+                "Sun, 15 Nov 2026 00:37:59 GMT"
+              ]
+            ],
+            "retrieved_at": "2026-11-15T00:38:00Z",
+            "status": 403,
+            "status_line": "HTTP/1.1 403 Forbidden"
+          },
+          "range_get": {
+            "body": {
+              "bytes": 1024,
+              "error_message": null,
+              "local_path": "data/raw/cors/glo30_neutral_range_get.body",
+              "sha256": "ac877c1c1d9f8e65da9c74159f32646d8025978266a94779d6fb4d3b26125087",
+              "truncated": false
+            },
+            "headers_that_matter": {
+              "accept-ranges": {
+                "state": "present",
+                "values": [
+                  "bytes"
+                ]
+              },
+              "access-control-allow-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-methods": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-origin": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-expose-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-max-age": {
+                "state": "absent",
+                "values": []
+              },
+              "content-length": {
+                "state": "present",
+                "values": [
+                  "1024"
+                ]
+              },
+              "content-range": {
+                "state": "present",
+                "values": [
+                  "bytes 0-1023/19059689"
+                ]
+              },
+              "vary": {
+                "state": "absent",
+                "values": []
+              }
+            },
+            "method": "GET",
+            "observations": {
+              "allows_origin": false,
+              "expose_headers_lists_accept_ranges": false,
+              "expose_headers_lists_content_range": false,
+              "expose_headers_wildcard": false,
+              "returned_206": true
+            },
+            "request_headers": [
+              [
+                "Host",
+                "copernicus-dem-30m.s3.eu-central-1.amazonaws.com"
+              ],
+              [
+                "Accept-Encoding",
+                "identity"
+              ],
+              [
+                "Origin",
+                "https://example.org"
+              ],
+              [
+                "Range",
+                "bytes=0-1023"
+              ]
+            ],
+            "requested_at": "2026-11-15T00:38:00Z",
+            "response_headers": [
+              [
+                "x-amz-id-2",
+                "H0lSE3i36BokLd6lScZv37XwUd+aI5LVYderuz9Y/EeY5kW+1jn0qCjYGQB8bOotbjuVsOUBpe9P+XHaz67onVhMvN0u8eLz"
+              ],
+              [
+                "x-amz-request-id",
+                "B735032XH3CMZR7W"
+              ],
+              [
+                "Server",
+                "AmazonS3"
+              ],
+              [
+                "Date",
+                "Sun, 15 Nov 2026 00:38:01 GMT"
+              ],
+              [
+                "Last-Modified",
+                "Mon, 09 May 2022 14:41:24 GMT"
+              ],
+              [
+                "ETag",
+                "\"1905a35c9588b63fef3213f45bc02cb1\""
+              ],
+              [
+                "x-amz-version-id",
+                "null"
+              ],
+              [
+                "Accept-Ranges",
+                "bytes"
+              ],
+              [
+                "Content-Range",
+                "bytes 0-1023/19059689"
+              ],
+              [
+                "Content-Type",
+                "image/tiff"
+              ],
+              [
+                "Content-Length",
+                "1024"
+              ]
+            ],
+            "retrieved_at": "2026-11-15T00:38:00Z",
+            "status": 206,
+            "status_line": "HTTP/1.1 206 Partial Content"
+          }
+        },
+        {
+          "origin": "http://localhost:3000",
+          "origin_key": "localhost",
+          "preflight": {
+            "body": {
+              "bytes": 358,
+              "error_message": "CORSResponse: CORS is not enabled for this bucket.",
+              "local_path": "data/raw/cors/glo30_localhost_preflight.body",
+              "sha256": "499bd7126c9e8f4364844b4545fbbad91ac2d2eb118fec1cb1aad0ef33c7ae47",
+              "truncated": false
+            },
+            "headers_that_matter": {
+              "accept-ranges": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-methods": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-origin": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-expose-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-max-age": {
+                "state": "absent",
+                "values": []
+              },
+              "content-length": {
+                "state": "absent",
+                "values": []
+              },
+              "content-range": {
+                "state": "absent",
+                "values": []
+              },
+              "vary": {
+                "state": "absent",
+                "values": []
+              }
+            },
+            "method": "OPTIONS",
+            "observations": {
+              "allows_get": false,
+              "allows_origin": false,
+              "allows_range_header": false,
+              "ok_status": false
+            },
+            "request_headers": [
+              [
+                "Host",
+                "copernicus-dem-30m.s3.eu-central-1.amazonaws.com"
+              ],
+              [
+                "Accept-Encoding",
+                "identity"
+              ],
+              [
+                "Origin",
+                "http://localhost:3000"
+              ],
+              [
+                "Access-Control-Request-Method",
+                "GET"
+              ],
+              [
+                "Access-Control-Request-Headers",
+                "range"
+              ]
+            ],
+            "requested_at": "2026-11-15T00:38:00Z",
+            "response_headers": [
+              [
+                "Server",
+                "AmazonS3"
+              ],
+              [
+                "x-amz-request-id",
+                "B736ZWZ7T7ACY5TR"
+              ],
+              [
+                "x-amz-id-2",
+                "PNKlSIEHLrc9s2rWigFXZn1+uJPtrngVgHg6iWnNq7xsxNww4EYvUl+REXfhh2HN/QApIbTc/a0OLKRrqD+TQXGeA1ywD0oP"
+              ],
+              [
+                "Content-Type",
+                "application/xml"
+              ],
+              [
+                "Transfer-Encoding",
+                "chunked"
+              ],
+              [
+                "Date",
+                "Sun, 15 Nov 2026 00:37:59 GMT"
+              ]
+            ],
+            "retrieved_at": "2026-11-15T00:38:00Z",
+            "status": 403,
+            "status_line": "HTTP/1.1 403 Forbidden"
+          },
+          "range_get": {
+            "body": {
+              "bytes": 1024,
+              "error_message": null,
+              "local_path": "data/raw/cors/glo30_localhost_range_get.body",
+              "sha256": "ac877c1c1d9f8e65da9c74159f32646d8025978266a94779d6fb4d3b26125087",
+              "truncated": false
+            },
+            "headers_that_matter": {
+              "accept-ranges": {
+                "state": "present",
+                "values": [
+                  "bytes"
+                ]
+              },
+              "access-control-allow-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-methods": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-origin": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-expose-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-max-age": {
+                "state": "absent",
+                "values": []
+              },
+              "content-length": {
+                "state": "present",
+                "values": [
+                  "1024"
+                ]
+              },
+              "content-range": {
+                "state": "present",
+                "values": [
+                  "bytes 0-1023/19059689"
+                ]
+              },
+              "vary": {
+                "state": "absent",
+                "values": []
+              }
+            },
+            "method": "GET",
+            "observations": {
+              "allows_origin": false,
+              "expose_headers_lists_accept_ranges": false,
+              "expose_headers_lists_content_range": false,
+              "expose_headers_wildcard": false,
+              "returned_206": true
+            },
+            "request_headers": [
+              [
+                "Host",
+                "copernicus-dem-30m.s3.eu-central-1.amazonaws.com"
+              ],
+              [
+                "Accept-Encoding",
+                "identity"
+              ],
+              [
+                "Origin",
+                "http://localhost:3000"
+              ],
+              [
+                "Range",
+                "bytes=0-1023"
+              ]
+            ],
+            "requested_at": "2026-11-15T00:38:00Z",
+            "response_headers": [
+              [
+                "x-amz-id-2",
+                "Z5/IiQwupx9Z8CXhpaU5xeM/GkkEwWcqMRahD5ms2UsD2TS6uEOO+w5ncPDb1lum2xR7kzEgcMAYq8M3USmJw0S7byupfyq7"
+              ],
+              [
+                "x-amz-request-id",
+                "B738700631CPSZQY"
+              ],
+              [
+                "Server",
+                "AmazonS3"
+              ],
+              [
+                "Date",
+                "Sun, 15 Nov 2026 00:38:01 GMT"
+              ],
+              [
+                "Last-Modified",
+                "Mon, 09 May 2022 14:41:24 GMT"
+              ],
+              [
+                "ETag",
+                "\"1905a35c9588b63fef3213f45bc02cb1\""
+              ],
+              [
+                "x-amz-version-id",
+                "null"
+              ],
+              [
+                "Accept-Ranges",
+                "bytes"
+              ],
+              [
+                "Content-Range",
+                "bytes 0-1023/19059689"
+              ],
+              [
+                "Content-Type",
+                "image/tiff"
+              ],
+              [
+                "Content-Length",
+                "1024"
+              ]
+            ],
+            "retrieved_at": "2026-11-15T00:38:00Z",
+            "status": 206,
+            "status_line": "HTTP/1.1 206 Partial Content"
+          }
+        }
+      ],
+      "reasons": [
+        "https://example.org: the preflight answered HTTP 403, not 2xx",
+        "https://example.org: the preflight response has no Access-Control-Allow-Origin equal to the origin or *",
+        "https://example.org: the preflight response has no Access-Control-Allow-Methods listing GET or *",
+        "https://example.org: the preflight response has no Access-Control-Allow-Headers listing range or *",
+        "https://example.org: the Range GET response has no Access-Control-Allow-Origin equal to the origin or *, so a browser's CORS check would fail",
+        "https://example.org: Access-Control-Expose-Headers on the Range GET does not list Content-Range and is not *",
+        "https://example.org: Access-Control-Expose-Headers on the Range GET does not list Accept-Ranges and is not *",
+        "http://localhost:3000: the preflight answered HTTP 403, not 2xx",
+        "http://localhost:3000: the preflight response has no Access-Control-Allow-Origin equal to the origin or *",
+        "http://localhost:3000: the preflight response has no Access-Control-Allow-Methods listing GET or *",
+        "http://localhost:3000: the preflight response has no Access-Control-Allow-Headers listing range or *",
+        "http://localhost:3000: the Range GET response has no Access-Control-Allow-Origin equal to the origin or *, so a browser's CORS check would fail",
+        "http://localhost:3000: Access-Control-Expose-Headers on the Range GET does not list Content-Range and is not *",
+        "http://localhost:3000: Access-Control-Expose-Headers on the Range GET does not list Accept-Ranges and is not *"
+      ],
+      "url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "url_from": "outputs/pilot/cop30_range_read.json: dem.range_read.url"
+    },
+    {
+      "cors_evidence_supports": "proxy_needed",
+      "key": "worldcover",
+      "origins": [
+        {
+          "origin": "https://example.org",
+          "origin_key": "neutral",
+          "preflight": {
+            "body": {
+              "bytes": 358,
+              "error_message": "CORSResponse: CORS is not enabled for this bucket.",
+              "local_path": "data/raw/cors/worldcover_neutral_preflight.body",
+              "sha256": "037ba005609e929959610720308406823462ff58bb878e386087891a55663927",
+              "truncated": false
+            },
+            "headers_that_matter": {
+              "accept-ranges": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-methods": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-origin": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-expose-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-max-age": {
+                "state": "absent",
+                "values": []
+              },
+              "content-length": {
+                "state": "absent",
+                "values": []
+              },
+              "content-range": {
+                "state": "absent",
+                "values": []
+              },
+              "vary": {
+                "state": "absent",
+                "values": []
+              }
+            },
+            "method": "OPTIONS",
+            "observations": {
+              "allows_get": false,
+              "allows_origin": false,
+              "allows_range_header": false,
+              "ok_status": false
+            },
+            "request_headers": [
+              [
+                "Host",
+                "esa-worldcover.s3.eu-central-1.amazonaws.com"
+              ],
+              [
+                "Accept-Encoding",
+                "identity"
+              ],
+              [
+                "Origin",
+                "https://example.org"
+              ],
+              [
+                "Access-Control-Request-Method",
+                "GET"
+              ],
+              [
+                "Access-Control-Request-Headers",
+                "range"
+              ]
+            ],
+            "requested_at": "2026-11-15T00:38:00Z",
+            "response_headers": [
+              [
+                "Server",
+                "AmazonS3"
+              ],
+              [
+                "x-amz-request-id",
+                "B7397AHXQG8XQQS7"
+              ],
+              [
+                "x-amz-id-2",
+                "9rEmNMVsZC683H8unmRWWLTj4471erEAvyTIYoK4CVbwcoLnTxBEUz7c3TvgCGWuheVzGE0C+yC7rePf9gLTwl41Xm3fUfBc"
+              ],
+              [
+                "Content-Type",
+                "application/xml"
+              ],
+              [
+                "Transfer-Encoding",
+                "chunked"
+              ],
+              [
+                "Date",
+                "Sun, 15 Nov 2026 00:38:00 GMT"
+              ]
+            ],
+            "retrieved_at": "2026-11-15T00:38:00Z",
+            "status": 403,
+            "status_line": "HTTP/1.1 403 Forbidden"
+          },
+          "range_get": {
+            "body": {
+              "bytes": 1024,
+              "error_message": null,
+              "local_path": "data/raw/cors/worldcover_neutral_range_get.body",
+              "sha256": "7577b2f61911332bd481f88fbac65cf6b005af21918b72d6f65b0a5dfc5e4060",
+              "truncated": false
+            },
+            "headers_that_matter": {
+              "accept-ranges": {
+                "state": "present",
+                "values": [
+                  "bytes"
+                ]
+              },
+              "access-control-allow-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-methods": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-origin": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-expose-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-max-age": {
+                "state": "absent",
+                "values": []
+              },
+              "content-length": {
+                "state": "present",
+                "values": [
+                  "1024"
+                ]
+              },
+              "content-range": {
+                "state": "present",
+                "values": [
+                  "bytes 0-1023/38079044"
+                ]
+              },
+              "vary": {
+                "state": "absent",
+                "values": []
+              }
+            },
+            "method": "GET",
+            "observations": {
+              "allows_origin": false,
+              "expose_headers_lists_accept_ranges": false,
+              "expose_headers_lists_content_range": false,
+              "expose_headers_wildcard": false,
+              "returned_206": true
+            },
+            "request_headers": [
+              [
+                "Host",
+                "esa-worldcover.s3.eu-central-1.amazonaws.com"
+              ],
+              [
+                "Accept-Encoding",
+                "identity"
+              ],
+              [
+                "Origin",
+                "https://example.org"
+              ],
+              [
+                "Range",
+                "bytes=0-1023"
+              ]
+            ],
+            "requested_at": "2026-11-15T00:38:00Z",
+            "response_headers": [
+              [
+                "x-amz-id-2",
+                "HJ75dYucaDut0qS/62TkQ++LdQ8z7Jk5JjjByilCHiF1fqLsTBAPefAeO6qDrG2c2tjBspClFieYKn5eh3Ybbhtpbl3idEVs"
+              ],
+              [
+                "x-amz-request-id",
+                "B733KXPB3CT5DZ3V"
+              ],
+              [
+                "Server",
+                "AmazonS3"
+              ],
+              [
+                "Date",
+                "Sun, 15 Nov 2026 00:38:01 GMT"
+              ],
+              [
+                "Last-Modified",
+                "Wed, 26 Oct 2022 13:03:03 GMT"
+              ],
+              [
+                "ETag",
+                "\"042d6956a4963f356b4b6dddb0316e80-5\""
+              ],
+              [
+                "x-amz-server-side-encryption",
+                "AES256"
+              ],
+              [
+                "Accept-Ranges",
+                "bytes"
+              ],
+              [
+                "Content-Range",
+                "bytes 0-1023/38079044"
+              ],
+              [
+                "Content-Type",
+                "binary/octet-stream"
+              ],
+              [
+                "Content-Length",
+                "1024"
+              ]
+            ],
+            "retrieved_at": "2026-11-15T00:38:01Z",
+            "status": 206,
+            "status_line": "HTTP/1.1 206 Partial Content"
+          }
+        },
+        {
+          "origin": "http://localhost:3000",
+          "origin_key": "localhost",
+          "preflight": {
+            "body": {
+              "bytes": 358,
+              "error_message": "CORSResponse: CORS is not enabled for this bucket.",
+              "local_path": "data/raw/cors/worldcover_localhost_preflight.body",
+              "sha256": "79df9d37bf9b3720458dfb4dfc33a2a225d8a1b375b2148cfb742b333479e8e6",
+              "truncated": false
+            },
+            "headers_that_matter": {
+              "accept-ranges": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-methods": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-origin": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-expose-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-max-age": {
+                "state": "absent",
+                "values": []
+              },
+              "content-length": {
+                "state": "absent",
+                "values": []
+              },
+              "content-range": {
+                "state": "absent",
+                "values": []
+              },
+              "vary": {
+                "state": "absent",
+                "values": []
+              }
+            },
+            "method": "OPTIONS",
+            "observations": {
+              "allows_get": false,
+              "allows_origin": false,
+              "allows_range_header": false,
+              "ok_status": false
+            },
+            "request_headers": [
+              [
+                "Host",
+                "esa-worldcover.s3.eu-central-1.amazonaws.com"
+              ],
+              [
+                "Accept-Encoding",
+                "identity"
+              ],
+              [
+                "Origin",
+                "http://localhost:3000"
+              ],
+              [
+                "Access-Control-Request-Method",
+                "GET"
+              ],
+              [
+                "Access-Control-Request-Headers",
+                "range"
+              ]
+            ],
+            "requested_at": "2026-11-15T00:38:01Z",
+            "response_headers": [
+              [
+                "Server",
+                "AmazonS3"
+              ],
+              [
+                "x-amz-request-id",
+                "Z2MDGEXRC718QTN3"
+              ],
+              [
+                "x-amz-id-2",
+                "BQC3svHfP77WoCoSEll1YLOOLfGtL+HItAMHpPtrOm6eXao36RPsvqjdGBVwV8JXCcCN9HCeqY33aSxzYyi3po1yGLUx+8ei"
+              ],
+              [
+                "Content-Type",
+                "application/xml"
+              ],
+              [
+                "Transfer-Encoding",
+                "chunked"
+              ],
+              [
+                "Date",
+                "Sun, 15 Nov 2026 00:38:01 GMT"
+              ]
+            ],
+            "retrieved_at": "2026-11-15T00:38:01Z",
+            "status": 403,
+            "status_line": "HTTP/1.1 403 Forbidden"
+          },
+          "range_get": {
+            "body": {
+              "bytes": 1024,
+              "error_message": null,
+              "local_path": "data/raw/cors/worldcover_localhost_range_get.body",
+              "sha256": "7577b2f61911332bd481f88fbac65cf6b005af21918b72d6f65b0a5dfc5e4060",
+              "truncated": false
+            },
+            "headers_that_matter": {
+              "accept-ranges": {
+                "state": "present",
+                "values": [
+                  "bytes"
+                ]
+              },
+              "access-control-allow-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-methods": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-allow-origin": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-expose-headers": {
+                "state": "absent",
+                "values": []
+              },
+              "access-control-max-age": {
+                "state": "absent",
+                "values": []
+              },
+              "content-length": {
+                "state": "present",
+                "values": [
+                  "1024"
+                ]
+              },
+              "content-range": {
+                "state": "present",
+                "values": [
+                  "bytes 0-1023/38079044"
+                ]
+              },
+              "vary": {
+                "state": "absent",
+                "values": []
+              }
+            },
+            "method": "GET",
+            "observations": {
+              "allows_origin": false,
+              "expose_headers_lists_accept_ranges": false,
+              "expose_headers_lists_content_range": false,
+              "expose_headers_wildcard": false,
+              "returned_206": true
+            },
+            "request_headers": [
+              [
+                "Host",
+                "esa-worldcover.s3.eu-central-1.amazonaws.com"
+              ],
+              [
+                "Accept-Encoding",
+                "identity"
+              ],
+              [
+                "Origin",
+                "http://localhost:3000"
+              ],
+              [
+                "Range",
+                "bytes=0-1023"
+              ]
+            ],
+            "requested_at": "2026-11-15T00:38:01Z",
+            "response_headers": [
+              [
+                "x-amz-id-2",
+                "IqwAM11f+FZmdvrz/zm4BCfTZo8+NBqeovkEuK5AyZW/oXQe0BDlzxlNHQaO0yAAuF5cRr2Ou9fMuQJPnLBVqUM86Aif5jn6"
+              ],
+              [
+                "x-amz-request-id",
+                "Z2M1AZCX58K8R9TS"
+              ],
+              [
+                "Server",
+                "AmazonS3"
+              ],
+              [
+                "Date",
+                "Sun, 15 Nov 2026 00:38:02 GMT"
+              ],
+              [
+                "Last-Modified",
+                "Wed, 26 Oct 2022 13:03:03 GMT"
+              ],
+              [
+                "ETag",
+                "\"042d6956a4963f356b4b6dddb0316e80-5\""
+              ],
+              [
+                "x-amz-server-side-encryption",
+                "AES256"
+              ],
+              [
+                "Accept-Ranges",
+                "bytes"
+              ],
+              [
+                "Content-Range",
+                "bytes 0-1023/38079044"
+              ],
+              [
+                "Content-Type",
+                "binary/octet-stream"
+              ],
+              [
+                "Content-Length",
+                "1024"
+              ]
+            ],
+            "retrieved_at": "2026-11-15T00:38:01Z",
+            "status": 206,
+            "status_line": "HTTP/1.1 206 Partial Content"
+          }
+        }
+      ],
+      "reasons": [
+        "https://example.org: the preflight answered HTTP 403, not 2xx",
+        "https://example.org: the preflight response has no Access-Control-Allow-Origin equal to the origin or *",
+        "https://example.org: the preflight response has no Access-Control-Allow-Methods listing GET or *",
+        "https://example.org: the preflight response has no Access-Control-Allow-Headers listing range or *",
+        "https://example.org: the Range GET response has no Access-Control-Allow-Origin equal to the origin or *, so a browser's CORS check would fail",
+        "https://example.org: Access-Control-Expose-Headers on the Range GET does not list Content-Range and is not *",
+        "https://example.org: Access-Control-Expose-Headers on the Range GET does not list Accept-Ranges and is not *",
+        "http://localhost:3000: the preflight answered HTTP 403, not 2xx",
+        "http://localhost:3000: the preflight response has no Access-Control-Allow-Origin equal to the origin or *",
+        "http://localhost:3000: the preflight response has no Access-Control-Allow-Methods listing GET or *",
+        "http://localhost:3000: the preflight response has no Access-Control-Allow-Headers listing range or *",
+        "http://localhost:3000: the Range GET response has no Access-Control-Allow-Origin equal to the origin or *, so a browser's CORS check would fail",
+        "http://localhost:3000: Access-Control-Expose-Headers on the Range GET does not list Content-Range and is not *",
+        "http://localhost:3000: Access-Control-Expose-Headers on the Range GET does not list Accept-Ranges and is not *"
+      ],
+      "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif",
+      "url_from": "outputs/pilot/worldcover_window.json: range_read.url"
+    }
+  ]
+}

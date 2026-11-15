@@ -133,14 +133,20 @@
         "make check"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "passed",
+        "round": 2,
+        "base": "d29b39401856a7b32b2a0a91d6d04a8dc665cfb5",
+        "head": "fcb894ac580b0f70296e2f5568780ed3537da2a4",
+        "files": [
+          "reviews/T1-03-claude-r2.json",
+          "reviews/T1-03-codex-r2.json"
+        ],
+        "digests": {
+          "reviews/T1-03-claude-r2.json": "2fa3b7917d97f80a5b966fb78d0f8689df4cd13c0ba02ada01cc69cc6e71f39d",
+          "reviews/T1-03-codex-r2.json": "4845de2678a402187c6fb98fa9b5db5f7230ac2404a1c40c601d0309f5f750ef"
+        }
       },
       "notes": "Reviewer findings applied: offline gate with fetch/record/check split, required preview PNG, upsert. Engineering choice: Pillow and pyshp are the candidate dependencies, picked by the author and added in this story."
     },
@@ -179,14 +185,20 @@
         "make check"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "passed",
+        "round": 3,
+        "base": "921be8ca687e7082dc5e9fc57c45c1fe3b26704c",
+        "head": "7fcb76b1625bc273b693ea28fb12c7b976b37826",
+        "files": [
+          "reviews/T1-04-claude-r3.json",
+          "reviews/T1-04-codex-r3.json"
+        ],
+        "digests": {
+          "reviews/T1-04-claude-r3.json": "4acbcabddc7a11f12be8052e0d887c69bb6a4c7061f2fc653588185d75b55d0b",
+          "reviews/T1-04-codex-r3.json": "9b63a21bd5e4133ad1ce41cfb9e77b6b258e1dd196e3a92c8484d8a50cfe4020"
+        }
       },
       "notes": "Reviewer findings applied. T2 owns the S4-sign verdict and Stokes validity (orchestrator decision 2); T1 records raw counts only. The reviewer flagged the story as large; engineering choice: kept as one story with the single-swath read removed. If it does not fit one session, the author stops after the CPR window record and notes the Stokes observation as unfinished instead of faking it."
     },
@@ -222,14 +234,20 @@
         "make check"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "passed",
+        "round": 2,
+        "base": "3a2a5b98e25d630638928a885f890425ce7d1289",
+        "head": "34968fcb978ae05728a49d442e47a5813fdac04e",
+        "files": [
+          "reviews/T1-05-claude-r2.json",
+          "reviews/T1-05-codex-r2.json"
+        ],
+        "digests": {
+          "reviews/T1-05-claude-r2.json": "318bd91a34445aa0654bc1b12612c04f0264e6659dc4d41c1b70f2274a5adb73",
+          "reviews/T1-05-codex-r2.json": "6751f7391348ed63b461537f882fd3ebe139cacca6e97a23703890dc4a56d6e5"
+        }
       },
       "notes": "Reviewer findings applied: upsert, io.py readers, offline gate."
     },
@@ -265,14 +283,20 @@
         "make check"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "passed",
+        "round": 2,
+        "base": "2f821413ccedd5a8085836739a897cae006093fe",
+        "head": "115fa5fd16eb2eaf4624486383c55874162fd33e",
+        "files": [
+          "reviews/T1-06-claude-r2.json",
+          "reviews/T1-06-codex-r2.json"
+        ],
+        "digests": {
+          "reviews/T1-06-claude-r2.json": "6c72602556afbf35b1d515b9d43aba5f0cac32bfe9609d33114f30c474a2a39b",
+          "reviews/T1-06-codex-r2.json": "88af422f59d023a882b825045b729b54d878c3ebc30826e6fd40f4e108fc5ad1"
+        }
       },
       "notes": "Reviewer findings applied: window is the 5 km live-probe footprint and the 4 MB budget is measured and reported, not forced; upsert; offline gate."
     },
@@ -312,12 +336,18 @@
       "priority": 7,
       "passes": false,
       "review": {
-        "state": "pending",
-        "round": 0,
-        "base": null,
-        "head": null,
-        "files": [],
-        "digests": {}
+        "state": "reviewed",
+        "round": 1,
+        "base": "19b8108b4506711d339b384b5a667e4d1ee862f2",
+        "head": "7c5ab9b3dc4ab4f00e91fed5db16bd71d4b04af7",
+        "files": [
+          "reviews/T1-07-claude.json",
+          "reviews/T1-07-codex.json"
+        ],
+        "digests": {
+          "reviews/T1-07-claude.json": "83bb104b41188c806656fcf27f7268e36f6fb6a69c74f2316adb1bc7c20bafc3",
+          "reviews/T1-07-codex.json": "2aed2549bc46eba984d866e4a184aab4bb431394e1b95b157fdd92335c8e756b"
+        }
       },
       "notes": "Reviewer findings applied. cors and wc are two sources of the same CLI (fetch cors, fetch wc). The real browser-origin CORS and range evidence is not produced by this story; it is a separate pilot step and T1-09 treats header evidence as partial."
     },

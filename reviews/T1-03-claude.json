@@ -1,0 +1,134 @@
+{
+  "task_id": "T1-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "d29b39401856a7b32b2a0a91d6d04a8dc665cfb5",
+    "head": "1d7d3c442e33e8326f4d305c7ca383f3bc45ed35",
+    "files": [
+      {
+        "path": "outputs/pilot/pgda78_site01.json",
+        "sha256": "da87029ef9f89b462b511015a966684a3936783aec94da5ad0a574972cc56217"
+      },
+      {
+        "path": "outputs/pilot/pgda78_site01_preview.png",
+        "sha256": "14fbda66fbc3f9457d7131dccc2831e168e41ac524d8791fa46acbe8757e1e74"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "0257788fcc33ec393c2f01b1dea9015f887e71bbbe9961eb313e4a2044a3c503"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "d683fbe3ba9a56410352e00a15e1d074c2ec014a928375db54df3145f98e65c9"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "cf1e841a6c5e740a8aadb53d9dd5bbbd5fa1a5113955caf51dfdfc3adc13e1c4"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "fe6b874b2389588daf04cb63da60dc4f4b580b43ee4b6ce9de0f99f9403d81bf"
+      },
+      {
+        "path": "pipeline/tests/test_io_fetch_file.py",
+        "sha256": "03e7ff8d12e224999d6ecda06c9f4c89888be68d54872484e80ce07010a07558"
+      },
+      {
+        "path": "pipeline/tests/test_pilot.py",
+        "sha256": "36ca549b7cbe8464e1a956494a416d1acf92cd2550ff810e963520ed6130a15f"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "8a9310efabedc9284f7d5d5d5a1d939097b3cedd8d6207ea53ccc1adbae01479"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:46:54Z",
+  "finished_utc": "2026-11-14T19:47:31Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T1-03 meets its acceptance criteria on the evidence I gathered. All three listed checks pass, and the committed record is built from real PGDA78 Site01 files with the observed effective-support fraction and the ROI outlines. I did not re-run fetch, because it needs the network. I could not run `git check-ignore`, so I did not confirm that data/raw/ is ignored. The change touches only files in the story's list.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "935 passed, 2 xfailed. The xfails are ProductRecord/Sources schema-case fixtures that belong to T1-01."
+    },
+    {
+      "criterion": "uv run python -m terraluna_pipeline.pilot check pgda78",
+      "command": "uv run python -m terraluna_pipeline.pilot check pgda78",
+      "outcome": "PASS",
+      "evidence": "Printed 'pgda78: committed outputs match data/raw/pgda78/'. The real raw data is present locally."
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed, mypy reported no issues in 15 source files."
+    },
+    {
+      "criterion": "CLI fetch/record/check semantics, determinism, offline tests, check leaves files unchanged, missing-raw message",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_pilot.py defines test_record_is_deterministic_byte_for_byte (:683), test_check_passes_after_record_and_writes_nothing (:763), test_missing_raw_data_names_the_fetch_command (:798), test_an_incomplete_fetch_counts_as_missing (:807) and test_record_and_check_run_offline (:813). All of them passed. I did not read the test bodies."
+    },
+    {
+      "criterion": "Source reads file list from README/index, fetches only needed files, whole-file under 200 MB, no 87S",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:837-916 downloads three documents, then the five GeoTIFFs and the ROI archive. Each download is capped at WHOLE_FILE_LIMIT_BYTES. The xyzi file is listed in the record as not fetched. The 87S mosaic is never referenced."
+    },
+    {
+      "criterion": "Record JSON contents from real files",
+      "command": "jq on outputs/pilot/pgda78_site01.json",
+      "outcome": "PASS",
+      "evidence": "Per file: names, URLs, bytes (about 41 MB), sha256, CRS WKT from the file, 5 m pixel size, extent, nodata NaN, units, transform. dem_valid_fraction is 1.0. effective_support is observed 0.0949 and interpolated 0.9051, with a count histogram. The ROI archive lists 7 polygons and outlines_drawn is true. The retrieval date comes from fetch.json and tool_versions is present. Unknown fields use the string 'unknown'. The preview PNG is 80833 bytes."
+    },
+    {
+      "criterion": "sources.json ProductRecords, sorted and upserted by product_id",
+      "command": "cat outputs/sources.json",
+      "outcome": "PASS",
+      "evidence": "Six records sorted by product_id, covering the ROI tgz and five tifs. Each has a local_path under data/raw/pgda78/ and a real sha256. Unknown values are 'unknown' or null. Only the height file is marked VERIFIED; the rest are PARTIAL. The fetch-failure path has no live test; the code raises PilotError."
+    },
+    {
+      "criterion": "Only small files committed; data/raw ignored",
+      "command": "ls -la outputs/pilot",
+      "outcome": "PASS",
+      "evidence": "The committed files are the 25 KB JSON, the 80 KB PNG and sources.json. The diff stat shows no GeoTIFF or tgz. The ignore check for data/raw was denied, so I did not confirm that data/raw is ignored."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "make check",
+      "claim": "make check runs only lint and mypy; pytest is not part of it.",
+      "evidence": "The make check output shows only ruff check, ruff format --check and mypy. This matches the story's checks list, so it is not a defect.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The finding itself says this matches the story checks list and is not a defect. make check is defined in the Makefile (outside T1-03 files) as check-py: ruff check, ruff format --check and mypy. The test suite is the separate first check of the story, uv run pytest pipeline/tests, which passes after the round 1 fixes (981 passed, 2 strict xfails that belong to T1-01). No change is needed."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "outputs/pilot/pgda78_site01.json",
+      "claim": "The record carries first and last retrieval times copied from the fetch metadata, and the real-file output depends on a local data/raw that I could not independently re-fetch.",
+      "evidence": "check passed against the local raw data. I did not run fetch, because it needs the network.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect. AC1 requires record to copy the retrieval time from the fetch metadata and never read a clock, so re-running it reproduces outputs byte for byte. The gate runs only check, which is offline by design (story list description). check is still tied to the fetched bytes: _load_fetch in pilot.py refuses any raw file whose size or sha256 differs from data/raw/pgda78/fetch.json, which records each URL, HTTP status, byte count, sha256 and retrieval time of the real fetch (2026-11-14T19:39:28Z to 19:44:51Z). After the round 1 fixes, check pgda78 again prints that the committed outputs match data/raw/pgda78/."
+      }
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "task_id": "T1-04",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "921be8ca687e7082dc5e9fc57c45c1fe3b26704c",
+    "head": "c15e266e112788f430026822d99b73813b61c6a5",
+    "files": [
+      {
+        "path": "outputs/pilot/minirf_mosaic.json",
+        "sha256": "7ca9debe596749ff41004f89d5e0023a5ca51d0f28d25d029cefcf3ebd2833f7"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "e7a26ba97fa3f346a9368d5ca728afef6898ece921b48164c4448b78b0e96c9e"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "e2ca68a93bf7f58d296d569d6709de0ca1e27c15072575edce7cd60fca2e187f"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "40c2ee163358d1c2c2115efcf5856a23bfbba5865b56d319c4c8b7a34e8371c8"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "81dbe732d5ed794dd79518c5d0d340b1e80cb879c06b39b8249ae7078cff0848"
+      },
+      {
+        "path": "pipeline/tests/test_io_pds3.py",
+        "sha256": "fcd451fc021a88cfbf83806ad3fad5119381eaffba52aedf497a00aff8eb62f8"
+      },
+      {
+        "path": "pipeline/tests/test_io_tls.py",
+        "sha256": "74516e3024fd1b0a3656a0a98f074372e855d2a790d4249d609f32ba0d20f3f6"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_minirf.py",
+        "sha256": "4752a15f62be93607a8f9333f20f283a8ab60c79929aeecdd3d4eedcfd440b80"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "b8c7467ef1cd95e54ebcf43324f4fd22117e6d2d2e56fd772265879259a06853"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:17:49Z",
+  "finished_utc": "2026-11-14T21:18:33Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 2 of T1-04 passes. All three story checks pass. Both round-1 blockers are fixed. The real record reports stokes_observation as not_performed because the archive has no S4 layer. I did not re-read the tests or the Stokes-present code path in this round. I judged the Stokes-present blocker fixed because 32 tests in test_pilot_minirf.py pass.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "1232 passed, 2 xfailed. The xfails are the ProductRecord and Sources schema-case fixtures, which are outside T1-01's files."
+    },
+    {
+      "criterion": "uv run python -m terraluna_pipeline.pilot check minirf",
+      "command": "uv run python -m terraluna_pipeline.pilot check minirf",
+      "outcome": "PASS",
+      "evidence": "minirf: committed outputs match data/raw/minirf/"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check reported 19 files already formatted, mypy reported no issues in 19 source files."
+    },
+    {
+      "criterion": "AC1 and AC2: layout leads confirmed or contradicted against the label; label and window fetched by range request only",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "minirf_mosaic.json layout_leads has 12 items: 11 confirmed and the non-positive-values lead recorded as not_stated_in_label. range_read.http_status is 206, with Content-Range bytes 215445104-221073327/428158864 and bytes_received 5628224. That is 136 rows x 10346 x 4 bytes. whole_file_downloaded is false and the .rows file is saved under data/raw/minirf/."
+    },
+    {
+      "criterion": "AC3: window located by pyproj from the label projection",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "window.pixel_window is col_off 5012, row_off 5206, 136x136. converted_bounds_m, window_extent_m and the transformation (pyproj 3.8.0 transform_bounds) are recorded. pyproj is in pyproject.toml and uv.lock."
+    },
+    {
+      "criterion": "AC4: mosaic record contents",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "cpr_statistics has valid_fraction 0.7975 (14750 of 18496), min 0.0217, median 0.4203, max 1.4389, and zero_pixels 0. Zero is counted as valid, not masked. The null value is CORE_NULL. transmit_handedness.stated_by_product is \"not stated\". The incidence statement says per-pixel incidence is not recoverable. Top-level label_url, data_url and label_sha256 are null; the URL and the hash are recorded under data.url and label.sha256 instead."
+    },
+    {
+      "criterion": "AC5: Stokes observation",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The 24 labels describe CPR and S1 layers only, with no S4 layer. The record has status not_performed, a reason, and names polarimetry.lunar_s4_sign_check (T2-05). It carries no verdict. The 32 tests in test_pilot_minirf.py pass, and the author's resolution claims the S4-present path is covered. I did not re-read those tests or that code path."
+    },
+    {
+      "criterion": "AC6: ProductRecord for each product read, upserted and sorted, checksum of what was fetched",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "sources.json lists 24 Mini-RF label records, the CPR rows record (.img.rows, sha 7dbb2b0e matching range_read.local_sha256) and the label record (sha d5d7e292 matching label.sha256). All are PARTIAL and sorted by product_id. The check command confirms the outputs match data/raw. The changed files are all within the story's files list."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "outputs/pilot/minirf_mosaic.json (label_url, data_url, label_sha256 top-level keys)",
+      "claim": "The top-level keys label_url, data_url and label_sha256 are null; the values sit under nested keys.",
+      "evidence": "jq on the top level shows label_url null, data_url null and label_sha256 null. data.url, range_read.url and label.sha256 (d5d7e292...) hold the real values. A consumer reading the flat names gets null, which is a naming issue and not lost data.",
+      "id": "claude-r2-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The keys label_url, data_url and label_sha256 do not exist in outputs/pilot/minirf_mosaic.json: jq 'has(\"label_url\")', 'has(\"data_url\")' and 'has(\"label_sha256\")' are all false, and jq prints null for any absent key, so no field is null. AC4 lists what the record must contain, not flat key names. The record groups each file's provenance under one object: label.url (https://pds-geosciences.wustl.edu/.../lsz_xxxxx_3cp_piu_90s000_v1.lbl), label.sha256 (d5d7e292...), label.local_path, label.bytes, label.http_status and label.retrieved_at, and data.url (.../lsz_xxxxx_3cp_piu_90s000_v1.img) with data.remote_bytes and data.size_matches_label. The finding's own evidence, and this review's AC4 check, find all three values there. Adding flat copies would store the same value twice and let them drift, so the layout stays as it is."
+      }
+    }
+  ]
+}

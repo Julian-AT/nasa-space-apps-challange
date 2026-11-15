@@ -1,0 +1,137 @@
+{
+  "task_id": "T1-03",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "d29b39401856a7b32b2a0a91d6d04a8dc665cfb5",
+    "head": "fcb894ac580b0f70296e2f5568780ed3537da2a4",
+    "files": [
+      {
+        "path": "outputs/pilot/pgda78_site01.json",
+        "sha256": "329223610b8496efc257a14027cdc353bca8adb99bc840ad4e755e0f561a2e6a"
+      },
+      {
+        "path": "outputs/pilot/pgda78_site01_preview.png",
+        "sha256": "14fbda66fbc3f9457d7131dccc2831e168e41ac524d8791fa46acbe8757e1e74"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "0257788fcc33ec393c2f01b1dea9015f887e71bbbe9961eb313e4a2044a3c503"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "d683fbe3ba9a56410352e00a15e1d074c2ec014a928375db54df3145f98e65c9"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "cc44153a3caae76a3329228538c5c256546c685e377da89cd38a599de1138c3e"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "99408baf3b526b1ddf664cb9e76cacf57bd179180698790285131d6288d5918c"
+      },
+      {
+        "path": "pipeline/tests/test_io_fetch_file.py",
+        "sha256": "03e7ff8d12e224999d6ecda06c9f4c89888be68d54872484e80ce07010a07558"
+      },
+      {
+        "path": "pipeline/tests/test_io_remote_window.py",
+        "sha256": "8f26a688f7fa8244961ea57e4726cd95d92051302b2aeef16ee2317a6b9914cb"
+      },
+      {
+        "path": "pipeline/tests/test_pilot.py",
+        "sha256": "ae1c42c1d185d2434aad9c4399e48a4d5080fe7e9830b5fc5de857f52c35fb57"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "8a9310efabedc9284f7d5d5d5a1d939097b3cedd8d6207ea53ccc1adbae01479"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:11:09Z",
+  "finished_utc": "2026-11-14T20:14:47Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found in the static review. Both prior fixes and both rebuttals are supported by the code and tests. Runtime verification remains NOT_RUN as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: CLI separation, deterministic offline record, read-only check, and behavioral tests",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Execution prohibited in the read-only sandbox. Static support: pilot.py:351–445 implements missing-data handling, recomputation and comparison; test_pilot.py:1045–1189 covers determinism, mismatches, unchanged files and refused network access."
+    },
+    {
+      "criterion": "AC2: README-based Site01 discovery, download limit, windowed range reads, and mosaic exclusion",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Fetch was not exercised because execution is prohibited. pilot.py:994–1072 discovers the required products and routes oversized GeoTIFFs through range reads. test_pilot.py:434–451 checks exclusions; test_pilot.py:518–594 exercises windowed fetching and offline recording."
+    },
+    {
+      "criterion": "AC3: Real-file metadata, validity, effective support, preview, ROI handling, and dependencies",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Independent decoding and regeneration require prohibited execution. The committed JSON contains provenance, metadata and support measurements; the inspected PNG visibly contains terrain and ROI outlines. pilot.py:766–827 handles unreadable shapefiles; pipeline/pyproject.toml:10–12 and uv.lock add Pillow and pyshp."
+    },
+    {
+      "criterion": "AC4: Schema-validated, sorted ProductRecord upserts and truthful fetch failures",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Validation and failure-path execution were prohibited. outputs/sources.json contains six Site01 records with raw-data paths. pilot.py:310–334 validates and sorts records; test_pilot.py:454–485 and 1082–1119 cover failed downloads and upserts."
+    },
+    {
+      "criterion": "AC5: Small committed artifacts and ignored raw data",
+      "command": "git ls-tree -r -l fcb894ac580b0f70296e2f5568780ed3537da2a4 -- outputs pipeline data",
+      "outcome": "PASS",
+      "evidence": "Committed preview: 80,833 bytes; pilot JSON: 26,058 bytes; sources JSON: 9,943 bytes. No GeoTIFF or tgz is tracked. .gitignore:29 ignores /data/; git check-ignore confirmed the raw DEM is ignored."
+    },
+    {
+      "criterion": "Required Python test suite",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks because the read-only sandbox disallows dependency and test-cache writes."
+    },
+    {
+      "criterion": "Required real-data output recomputation",
+      "command": "uv run python -m terraluna_pipeline.pilot check pgda78",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks in this sandbox. Local raw files and fetch metadata were inspected without executing the pipeline."
+    },
+    {
+      "criterion": "Required lint, formatting and type checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited running checks because the read-only sandbox disallows cache writes."
+    },
+    {
+      "criterion": "Previous codex-r1-1 resolution: oversized GeoTIFF range-read fallback",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static fix confirmed at pilot.py:1039–1070. io.py:946–984 enforces range-transfer limits; missing cached bytes raise RangeCacheError. test_pilot.py:518–594 and test_io_remote_window.py:255–318 cover offline decoding and missing-byte rejection. Tests were not executed."
+    },
+    {
+      "criterion": "Previous codex-r1-2 resolution: unreadable ROI inputs preserve the DEM record",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static fix confirmed at pilot.py:713–720, 780–816 and 1617–1702. test_pilot.py:894–982 covers corrupt/truncated shapefiles, mismatched DBF records, invalid projection encoding and unreadable archives. Tests were not executed."
+    },
+    {
+      "criterion": "Previous claude-r1-1 rebuttal: pytest is a separate required check",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Makefile:16 and 26–32 define make check as ruff and mypy, with pytest under the separate test target. The story independently lists the pytest command."
+    },
+    {
+      "criterion": "Previous claude-r1-2 rebuttal: retrieval timestamps and local raw-data provenance",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:277–289 verifies raw sizes and checksums; pilot.py:1225 and 1263–1267 copies retrieval timestamps. The local fetch.json timestamps agree with the committed record. This supports the rebuttal statically; recomputation was not executed."
+    }
+  ],
+  "findings": []
+}

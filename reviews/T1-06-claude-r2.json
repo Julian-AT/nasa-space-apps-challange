@@ -1,0 +1,140 @@
+{
+  "task_id": "T1-06",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "2f821413ccedd5a8085836739a897cae006093fe",
+    "head": "115fa5fd16eb2eaf4624486383c55874162fd33e",
+    "files": [
+      {
+        "path": "outputs/pilot/cop30_range_read.json",
+        "sha256": "97f7b74cd848ab490485c9521842b5a190a2eff88934746847cc88ff75aa6a4e"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "d83a293198ef51688866ede13e34e72a622bda0a1f013ae08e0c9a922ff10e84"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "0db516090be8ddda90ae8214cb8167e60d19d639b0dfc44a24e21da08ebd7b5b"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "9f8e8f44fb9751412492db6faa3d7586810b5f05b798b641d5ad1c775c951c08"
+      },
+      {
+        "path": "pipeline/tests/test_io_cog_layout.py",
+        "sha256": "721937bad87161db090614685dfa47ac92f682b13da36b204243a50f42559e5e"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_cop30.py",
+        "sha256": "2794132f33d8487cb07e05f04309ebb83f5eaacdc128c9eeccff69b72995ba64"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:17:30Z",
+  "finished_utc": "2026-11-15T00:18:29Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T1-06 round 2: all three story checks pass. The committed cop30 record and the ProductRecord match the saved raw ranges. Both round-1 fixes (codex-r1-1 and codex-r1-2) are in place and tested. I found no blocker or high finding. The only paths changed outside the story's files list are log, review and batch bookkeeping files.",
+  "checks": [
+    {
+      "criterion": "Check: uv run pytest pipeline/tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "1411 passed, 2 xfailed. The two xfails are the T1-01 schema-case fixtures, unrelated to this story."
+    },
+    {
+      "criterion": "Check: uv run python -m terraluna_pipeline.pilot check cop30",
+      "command": "uv run python -m terraluna_pipeline.pilot check cop30",
+      "outcome": "PASS",
+      "evidence": "Output: 'cop30: committed outputs match data/raw/cop30/'."
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check passed (24 files), mypy reported no issues in 24 source files."
+    },
+    {
+      "criterion": "AC1: deterministic tile, credential-free HTTPS URL, header and window read by range request, readers in io.py",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "cop30_range_read.json range_read.url is https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/..., with whole_file_downloaded false and 3 requests. The io.py diff adds the COG layout and remote readers. Tests cover an absent tile with a recorded fallback (test_pilot_cop30.py:956) and a tile choice the list does not support (:1057). I did not re-check the tile's presence in the saved tileList.txt by hand; the record reads the tile list from the saved file."
+    },
+    {
+      "criterion": "AC2: record fields",
+      "command": "jq on outputs/pilot/cop30_range_read.json",
+      "outcome": "PASS",
+      "evidence": "The record states the URL, HTTP 206, Content-Range 'bytes 0-262143/19059689', object size 19059689, bytes requested and received 2883584, the COG structure, CRS EPSG:4326, pixel size, vertical datum (file 'unknown', product docs EGM2008 quoted), nodata null with a note, units from the product docs, valid_fraction 1.0, elevation min 715.64 and max 806.08. surface_model_caveat is a top-level key."
+    },
+    {
+      "criterion": "AC3: 5 km window, bytes, tiles touched, budget observation",
+      "command": "jq",
+      "outcome": "PASS",
+      "evidence": "window.side_m 5000 at a stated centre with centre_basis disclosed. live_probe_budget has bytes_fetched 2883584, limit 4000000, tiles_touched 1 and within_budget true. The record does not claim an observed centre."
+    },
+    {
+      "criterion": "AC4: ProductRecord upserted into sources.json with licence, sha256 and local_path",
+      "command": "git diff on outputs/sources.json",
+      "outcome": "PASS",
+      "evidence": "The added entry has license_or_attribution quoted from the provider pages, checksum 2f8ad7cf... equal to range_read.local_sha256, and local_path data/raw/cop30/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif.ranges. The file exists at 2883584 bytes, which equals bytes_received. verification_status is PARTIAL, not overstated. I did not confirm the sort order by reading the whole file."
+    },
+    {
+      "criterion": "AC5: unreachable bucket fails non-zero naming the URL and error",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Tests at test_pilot_cop30.py:589, 602 and 615 cover an unreachable bucket, document and tile, and a refused connection, each naming the URL. All pass in the full run."
+    },
+    {
+      "criterion": "AC6: fetch saves tileList.txt, ranges and HTTP metadata; record and check run offline",
+      "command": "ls data/raw/cop30; check cop30",
+      "outcome": "PASS",
+      "evidence": "data/raw/cop30 holds tileList.txt, the .ranges file, fetch.json and the provider pages. check cop30 passes offline against the committed outputs."
+    },
+    {
+      "criterion": "Round-1 fix codex-r1-1: unstated tile sizes stay unknown",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Commit 1f88300 adds the failing sparse-COG tests: the test_io_cog_layout.py stored_bytes table and test_pilot_cop30.py::test_a_touched_tile_the_file_does_not_store_has_unknown_bytes. Both run and pass in the full suite. The record's touched_tile_bytes definition says it is null when a size is unstated."
+    },
+    {
+      "criterion": "Round-1 fix codex-r1-2: licence quote from visible text",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The same commit adds the visible-text tests (JSON-LD decoys in script, style and comments). They pass. The committed sources.json licence string is a full sentence from the visible page, not escaped JSON-LD."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "git diff 2f82141..115fa5f --stat",
+      "claim": "The range also touches logs/agents/*, reviews/* and scripts/ralph/batches/t1-pilot/{prd.json,progress.txt}, which are not in the story's files list.",
+      "evidence": "These are agent logs, review records and batch bookkeeping. config/ and PRD.md are unchanged, so no kickoff values were set and no gate was passed. This agrees with the round-1 rebuttal.",
+      "id": "claude-r2-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted. The prompt allows the story list and progress log (scripts/ralph/prompt.md section 2), and ralph.sh writes and commits logs/agents/* and reviews/* itself. No product path outside the story files changed in 2f82141..115fa5f, and config/run.yaml and PRD.md are unchanged. This repeats claude-r1-1, whose rebuttal the reviewer accepts here and Codex r2 confirms (scripts/ralph/prompt.md:21, :35-36; ralph.sh:48). Nothing to change."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "outputs/pilot/cop30_range_read.json dem.window.centre_basis",
+      "claim": "The window centre comes from a Wikipedia coordinate that was not fetched, so it is a stated choice and not an observation.",
+      "evidence": "The record discloses this and the criterion asks for a stated centre. No config/run.yaml values are set. The record is acceptable as written.",
+      "id": "claude-r2-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted. AC3 asks for \"a stated centre in the tile\", not an observed or fetched one. outputs/pilot/cop30_range_read.json dem.window.centre_basis already says the Holuhraun coordinate is a stated pilot choice taken from the English Wikipedia article, not an observation and not a target window. config/run.yaml keeps its kickoff values null. Wikipedia returns HTTP 403 to the io client, which sends no User-Agent (Codebase Patterns), so it cannot be a fetched basis document. The reviewer calls the record acceptable as written, and Codex r2 confirms the rebuttal of claude-r1-2."
+      }
+    }
+  ]
+}

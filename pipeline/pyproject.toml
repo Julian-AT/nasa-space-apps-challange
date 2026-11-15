@@ -6,9 +6,16 @@ license = "Apache-2.0"
 requires-python = "==3.12.*"
 dependencies = [
     "affine>=3.0,<4",
+    "certifi>=2026.10.23",
     "numpy>=2.5,<3",
+    "pillow>=13.0,<14",
     "pydantic>=2.14,<3",
+<<<<<<< HEAD
     "pyyaml>=6.0.3,<7",
+=======
+    "pyproj>=3.8,<4",
+    "pyshp>=3.1,<4",
+>>>>>>> ralph/t1-pilot
     "rasterio>=1.5,<2",
     "scipy>=1.18,<2",
 ]

@@ -1,0 +1,144 @@
+{
+  "task_id": "T1-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "3a2a5b98e25d630638928a885f890425ce7d1289",
+    "head": "7c54f39b0abd75065fb1ff4ce6c8b17ba8299c7d",
+    "files": [
+      {
+        "path": "outputs/pilot/ctx_dtm.json",
+        "sha256": "34c0059e15b25869be9dd3fb992eb3fa791237f3b1bcf731fb76bdb0ef8b5ccf"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "271a5825167aa6c86ca58dadae863585e9ba99846a2c7f2a01c64ed5799574d4"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "bd782300465759b8d05bd6c6b3658dba2193d977b9e3d25983c83cc43c041e04"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "ec48793d0eb6aa6f07f7eb5f0021d21de263fa18cb916b097d7d8a24924a39ac"
+      },
+      {
+        "path": "pipeline/tests/test_io_cog.py",
+        "sha256": "0f6232a02a541e298e5adbf187dbd56d89c24e9c4b52c754d74c44e3e02110d2"
+      },
+      {
+        "path": "pipeline/tests/test_io_stac.py",
+        "sha256": "f00c00a6005fbfec987803b207b80f5693f7d73d3ce8a64f7f175f93f0b99c2a"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_ctx.py",
+        "sha256": "fb03bf09c403c072fd528ab84188182de82a4be39b9d8edb50d702f6d9b882d9"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:04:47Z",
+  "finished_utc": "2026-11-14T22:05:36Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T1-05 (commit 7c54f39b0abd75065fb1ff4ce6c8b17ba8299c7d, round 1) meets every acceptance criterion I checked. All three story checks pass. The record is built from real USGS fetches: item counts of 80 for Jezero and 136 for Arcadia Planitia, found by paginating. A 256x256 window was read by 3 range requests (1,835,008 bytes of 14,245,180, not a whole download). The record quotes the CTX-MOLA value 12.6913 m and sets no threshold. Only a few items were judged from the artifacts alone: the byte-identity of re-runs, the stub-server tests, the unreachable-URL exit and the sources.json upsert and sort order.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "1318 passed, 2 xfailed. The xfails are the test_json_schema.py fixture cases (ProductRecord, Sources), which the test itself marks as outside T1-01's files."
+    },
+    {
+      "criterion": "uv run python -m terraluna_pipeline.pilot check ctx",
+      "command": "uv run python -m terraluna_pipeline.pilot check ctx",
+      "outcome": "PASS",
+      "evidence": "ctx: committed outputs match data/raw/ctx/"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check reported 22 files already formatted, mypy found no issues in 22 source files."
+    },
+    {
+      "criterion": "AC1: STAC bbox search of both probes, collection named, pagination, boxes labelled as probes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "outputs/pilot/ctx_dtm.json probes[]: collection mro_ctx_controlled_usgs_dtms. Jezero found 80 items over 2 pages, Arcadia Planitia found 136 over 3 pages, both counted from the saved pages. The role field says 'pilot probe ... not a target window', and target_windows.chosen is false. The Arcadia bbox is flagged as crossing the antimeridian. io.py gained 396 lines and test_io_stac.py and test_io_cog.py were added."
+    },
+    {
+      "criterion": "AC2: deterministic item choice, header fields, qa text, 256x256 window by range request, valid fraction via quality.py",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The chosen item is B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W, the lexicographically first Jezero ID. dtm.header holds band 1, the CRS WKT, 20.2229 m pixels, nodata -32767 and float32, and units is null (the file states none, recorded as such). The window is 256x256. range_read shows 3 HTTP 206 exchanges with Content-Range values, 1,835,008 bytes received of 14,245,180, and whole_file_downloaded false. valid.method cites quality.validity_mask and valid_fraction. valid_fraction is 1.0 (65536 of 65536)."
+    },
+    {
+      "criterion": "AC3: CTX-MOLA std dev quoted with its source line, no threshold applied",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "qa_metrics.ctx_mola_std_dev gives value 12.6913, line 'StdDev of difference: 12.6913 meters', line_number 6, matching data/raw/ctx/qa_metrics.txt. ctx_qa_threshold has applied false and value null, and its reason says the threshold is an open item."
+    },
+    {
+      "criterion": "AC4: licence and DOI only from STAC metadata; ProductRecord upsert; local_path; no signed URLs",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "outputs/sources.json license_or_attribution cites CC0-1.0 (STAC collection license) and doi:10.5066/P9JKVWR3 (sci:doi). local_path is data/raw/ctx/...dtm.tif.ranges, and its checksum 48da86cb… equals range_read.local_sha256. The URLs are unsigned. Byte-identical re-runs follow from check ctx passing against the committed outputs; I did not re-run fetch or the upsert myself. The sort-by-product_id behaviour was not examined directly."
+    },
+    {
+      "criterion": "AC5: unreachable STAC or asset exits non-zero naming URL and error; unit tests use a 127.0.0.1 stub server, no network",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_pilot_ctx.py (30 tests), test_io_stac.py and test_io_cog.py all pass in the pytest run. I did not read their stub-server setup or the unreachable-URL assertions, so this rests on the passing run and the file names. The one run's pytest output was not inspected for network use."
+    },
+    {
+      "criterion": "AC6: fetch saves raw artefacts with HTTP metadata under data/raw/ctx/; record reads only those; check is offline and byte-for-byte",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "data/raw/ctx/ holds all stac_search pages (Jezero 2, Arcadia 3), stac_collection.json, qa_metrics.txt, the .ranges file, fetch.json and the probe-basis HTML. The record carries http_status, content_range, bytes_received and retrieved_at per exchange. check ctx passes and reports matching committed outputs."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "data/raw/ctx/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_dtm.tif.ranges",
+      "claim": "local_path names a .ranges file (header plus window tiles, 1.8 MB), not a plain .tif.",
+      "evidence": "The record states it holds exactly the fetched bytes and gives its SHA-256 (48da86cb…). This matches 'exactly the fetched bytes'. It is not a loadable GeoTIFF, though, and the window read is 256x256 but fetched 1.5 MB of tiles, because the file is a 512x512 DEFLATE COG whose window straddles tiles. Noted only.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect, and the reviewer marks it as noted only. AC4 asks that local_path name the data/raw/ctx/ file holding exactly the fetched bytes. For a window read, those bytes are the byte ranges, not a GeoTIFF: a .tif with unfetched bytes zeroed would invent data, and ByteRanges treats a byte it does not hold as unknown, never zero. The .ranges file is decodable offline: record decodes the header and the 256 x 256 window from it with io.read_geotiff_header(ranges=) and read_product(ranges=), and fetch.json lists its two ranges. The transfer size follows from the COG layout as recorded. dtm.header.block_shapes is [[512, 512]], and window cols 827-1082 x rows 1580-1835 span tile columns 1 and 2 of tile row 3. So the read is the header block 0-262143 plus 8650752-10223615 (six 256 KiB blocks), 1,835,008 of 14,245,180 bytes, and range_read lists it per exchange. Since 21a39a3 (codex-r1-1), whole_file_downloaded is derived from these ranges."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "outputs/pilot/ctx_dtm.json dtm.units_stated_by_file",
+      "claim": "Units are null because the COG states none; the vertical unit is not in the file.",
+      "evidence": "This is correctly recorded as not stated rather than assumed to be metres. A downstream consumer must not treat the null as a value.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect: the reviewer confirms the null is recorded correctly. The record does not leave the null for a consumer to read as a value. dtm.units_stated_by_file and header.units are null because the file states none. The DTM ProductRecord in outputs/sources.json has units 'unknown', which is the ProductRecord convention for a field that applies but was not established, so it cannot be VERIFIED. field_notes.units says 'the DTM COG states no band units, so its ProductRecord units are unknown'. The verification basis adds 'and the file states no units ... the PRD 5 entry rule is not complete'. No metre unit is assumed anywhere in the record."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/tests/test_pilot_ctx.py, test_io_stac.py",
+      "claim": "I did not read the stub-server tests or the unreachable-URL code path.",
+      "evidence": "They pass in the pytest run, so I could not rule out weak assertions without reading them. Any non-zero exit I accepted rests on the passing tests, not on my own run.",
+      "id": "claude-r1-3",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "A limit of the review's scope, not a defect in the code. The other reviewer read the stubs and cited test_pilot_ctx.py:173-196, :375-400 and :546-595. On the network question: the autouse no_network fixture (test_pilot_ctx.py:40) resolves loopback hosts only and clears proxy variables. The stub is http.server.ThreadingHTTPServer on 127.0.0.1 with synthetic STAC JSON and a synthetic COG. fetch_and_record runs record with refuse_sockets (:55, applied at :477), so record and check are offline. On the unreachable URLs: test_an_unreachable_stac_page_or_document_fails_naming_the_url (:582) covers search, collection and documentation answering HTTP 500. test_an_unreachable_asset_fails_naming_the_url (:596) covers dtm and qa_metrics answering 404, and test_a_refused_connection_fails_naming_the_url (:612) covers a closed port. Each asserts exit 1, the URL and the error in stderr, and no fetch.json. These tests pass in uv run pytest pipeline/tests (1340 passed, 2 strict xfails), as does the new failure path for a whole-COG range read."
+      }
+    }
+  ]
+}

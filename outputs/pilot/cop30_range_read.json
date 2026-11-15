@@ -1,0 +1,525 @@
+{
+  "acquisition": {
+    "document": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+    "groups": [],
+    "local_path": "data/raw/cop30/cdse_cop_dem_collection.html",
+    "quote": "Data were acquired by the TanDEM-X mission between 2011 and 2015."
+  },
+  "bucket": {
+    "credentials": "none: anonymous HTTPS GET requests with a Range header; no account, key, token or signature",
+    "https_base_url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com",
+    "region": "eu-central-1",
+    "s3_uri": "s3://copernicus-dem-30m/",
+    "url_rule": "https://<bucket>.s3.<region>.amazonaws.com/<tile>/<tile>.tif, the S3 virtual-hosted-style URL of s3://<bucket>/<tile>/<tile>.tif"
+  },
+  "dem": {
+    "candidate": "holuhraun",
+    "cog": {
+      "header": {
+        "block_shapes": [
+          [
+            1024,
+            1024
+          ]
+        ],
+        "count": 1,
+        "crs_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST],AUTHORITY[\"EPSG\",\"4326\"]]",
+        "descriptions": [
+          null
+        ],
+        "dtypes": [
+          "float32"
+        ],
+        "height": 3600,
+        "image_structure": {
+          "COMPRESSION": "DEFLATE",
+          "INTERLEAVE": "BAND",
+          "LAYOUT": "COG",
+          "PREDICTOR": "3"
+        },
+        "nodata": [
+          null
+        ],
+        "offsets": [
+          0.0
+        ],
+        "overviews": [
+          2,
+          4,
+          8
+        ],
+        "pixel_size": {
+          "unit": "degree",
+          "x": 0.0005555555555555556,
+          "y": 0.0002777777777777778
+        },
+        "scales": [
+          1.0
+        ],
+        "tags": {
+          "AREA_OR_POINT": "Point"
+        },
+        "transform": [
+          0.0005555555555555556,
+          0.0,
+          -17.00027777777778,
+          0.0,
+          -0.0002777777777777778,
+          65.00013888888888
+        ],
+        "units": [
+          null
+        ],
+        "width": 1800
+      },
+      "internal_tile_shape": {
+        "columns": 1024,
+        "rows": 1024
+      },
+      "overviews": [
+        {
+          "block_shape": [
+            1024,
+            1024
+          ],
+          "factor": 2,
+          "height": 1800,
+          "level": 0,
+          "width": 900
+        },
+        {
+          "block_shape": [
+            1024,
+            1024
+          ],
+          "factor": 4,
+          "height": 900,
+          "level": 1,
+          "width": 450
+        },
+        {
+          "block_shape": [
+            1024,
+            1024
+          ],
+          "factor": 8,
+          "height": 450,
+          "level": 2,
+          "width": 225
+        }
+      ],
+      "readme_tile_size": {
+        "columns": 1024,
+        "document": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/readme.html",
+        "matches_file": true,
+        "quote": "GLO-30 Public The properties of COG files specific to this dataset: original height: 3601 pixels COG height: 3600 pixels TIFF tile size: 1024 * 1024 pixels",
+        "rows": 1024
+      },
+      "tile_grid": {
+        "across": 2,
+        "down": 4
+      },
+      "tiles_touched": {
+        "count": 1,
+        "definition": "the internal COG tiles of band 1 that the pixel window intersects, with the byte offset and size the TIFF tile index states (GDAL TIFF metadata BLOCK_OFFSET and BLOCK_SIZE); held_in_ranges says whether every byte of the tile is in the stored byte ranges. GDAL states no offset or size for a tile the file does not store (a sparse file) or whose tile index entry it cannot read; such a tile has offset, size and held_in_ranges null, and stored_bytes is then null, not a sum over the other tiles",
+        "stored_bytes": 2345737,
+        "tiles": [
+          {
+            "col": 0,
+            "held_in_ranges": true,
+            "offset": 4965103,
+            "row": 0,
+            "size": 2345737
+          }
+        ]
+      }
+    },
+    "crs": {
+      "epsg_identified": 4326,
+      "is_geographic": true,
+      "name": "WGS 84",
+      "stated_by": "the COG's GeoTIFF keys, as GDAL reads them",
+      "wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST],AUTHORITY[\"EPSG\",\"4326\"]]"
+    },
+    "live_probe_budget": {
+      "bytes_fetched": 2883584,
+      "limit_bytes": 4000000,
+      "limit_definition": "'DEM reads ≤ 4 MB' read as 4,000,000 bytes",
+      "note": "an observation of this server-side read, not a browser measurement; an over-budget read is recorded as over budget and does not fail the command",
+      "reader": "io.read_remote_cog_window with 262144-byte aligned blocks, so bytes_fetched also holds the header, the block alignment and any other bytes GDAL read; touched_tile_bytes are the touched tiles' sizes as the TIFF tile index states them, null when it states no size for some touched tile",
+      "rule": "PRD 8.7: the first live probe reads at most 4 MB of DEM",
+      "tiles_touched": 1,
+      "touched_tile_bytes": 2345737,
+      "within_budget": true
+    },
+    "nodata": {
+      "note": "the COG declares no nodata value, so only non-finite values are masked",
+      "stated_by_file": null
+    },
+    "pixel_size": {
+      "unit": "degree",
+      "x": 0.0005555555555555556,
+      "y": 0.0002777777777777778
+    },
+    "product_id": "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+    "range_read": {
+      "bytes_by_phase": {
+        "header": {
+          "bytes_received": 262144,
+          "requests": 1
+        },
+        "window": {
+          "bytes_received": 2621440,
+          "requests": 2
+        }
+      },
+      "bytes_received": 2883584,
+      "bytes_requested": 2883584,
+      "content_range": "bytes 0-262143/19059689",
+      "content_type": "image/tiff",
+      "etag": "\"1905a35c9588b63fef3213f45bc02cb1\"",
+      "exchanges": [
+        {
+          "bytes_received": 262144,
+          "content_range": "bytes 0-262143/19059689",
+          "http_status": 206,
+          "phase": "header",
+          "requested_range": "bytes=0-262143",
+          "retrieved_at": "2026-11-15T00:01:29Z"
+        },
+        {
+          "bytes_received": 1310720,
+          "content_range": "bytes 4718592-6029311/19059689",
+          "http_status": 206,
+          "phase": "window",
+          "requested_range": "bytes=4718592-6029311",
+          "retrieved_at": "2026-11-15T00:01:29Z"
+        },
+        {
+          "bytes_received": 1310720,
+          "content_range": "bytes 6029312-7340031/19059689",
+          "http_status": 206,
+          "phase": "window",
+          "requested_range": "bytes=6029312-7340031",
+          "retrieved_at": "2026-11-15T00:01:29Z"
+        }
+      ],
+      "final_url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "http_status": 206,
+      "last_modified": "Mon, 09 May 2022 14:41:24 GMT",
+      "local_path": "data/raw/cop30/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif.ranges",
+      "local_sha256": "2f8ad7cfcb8f6cf96597bad3ecd0d25f6a448710b7cb705bd93c706faf9b49a5",
+      "object_size_bytes": 19059689,
+      "phase_definition": "header: the requests sent before the window's pixels were decoded (the first block, which states the object size, the COG header and the layout); window: the requests sent while the window was decoded",
+      "range_block_bytes": 262144,
+      "range_requests": 3,
+      "ranges": [
+        [
+          0,
+          262143
+        ],
+        [
+          4718592,
+          7340031
+        ]
+      ],
+      "retrieved_at": "2026-11-15T00:01:29Z",
+      "s3_uri": "s3://copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "sha256_note": "the tile was not downloaded whole, so its SHA-256 is unknown; local_sha256 is that of the fetched byte ranges held in local_path, at the positions listed in ranges",
+      "url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "whole_file_downloaded": false
+    },
+    "tile": "Copernicus_DSM_COG_10_N64_00_W017_00_DEM",
+    "units": {
+      "product_documentation": {
+        "document": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+        "local_path": "data/raw/cop30/cdse_cop_dem_collection.html",
+        "quote": "Vertical Unit: meters",
+        "unit": "meters"
+      },
+      "record_units": "meters, as the Copernicus DEM collection description states ('Vertical Unit: meters'); the COG states no band units",
+      "stated_by_file": null
+    },
+    "values": {
+      "elevation_max": 806.0833129882812,
+      "elevation_min": 715.6431884765625,
+      "elevation_units": "meters, as the Copernicus DEM collection description states ('Vertical Unit: meters'); the COG states no band units",
+      "invalid_by_reason": {
+        "isis_saturation": 0,
+        "nodata": 0,
+        "non_finite": 0,
+        "outside_support": 0
+      },
+      "invalid_pixels": 0,
+      "live_probe_quality_rule": {
+        "met": true,
+        "rule": "PRD 8.7 step 4: a live probe needs a valid fraction of at least 0.8",
+        "threshold": 0.8
+      },
+      "method": "quality.validity_mask(window, nodata=the file's nodata) and quality.valid_fraction over the stored values; min and max over valid pixels",
+      "total_pixels": 32899,
+      "valid_fraction": 1.0,
+      "valid_pixels": 32899
+    },
+    "vertical_datum": {
+      "file_note": "the COG's CRS has no vertical part, so the file does not state the vertical datum",
+      "product_documentation": {
+        "datum": "EGM2008",
+        "document": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+        "epsg": 3855,
+        "local_path": "data/raw/cop30/cdse_cop_dem_collection.html",
+        "quote": "Vertical EGM2008 (EPSG 3855)"
+      },
+      "stated_by_file": "unknown"
+    },
+    "window": {
+      "centre": {
+        "latitude": 64.85,
+        "longitude": -16.83
+      },
+      "centre_basis": "the coordinates the English Wikipedia article 'Holuhraun' states (64.85° N, 16.83° W; https://en.wikipedia.org/wiki/Holuhraun, read on 2026-11-14 when this source was written). The pilot does not download that page (Wikipedia answers Python's default HTTP client with HTTP 403), so the centre is a stated choice of the pilot, not an observation; PRD 5 names Holuhraun as the first Earth region",
+      "centre_utm_m": {
+        "x": 413229.1208483961,
+        "y": 7192992.037033184
+      },
+      "definition": "the square of side_m metres centred on the centre in the UTM CRS (PRD 5: Earth windows are computed in the local UTM zone with pyproj); its edges, densified to densify_points points each, are transformed to EPSG:4326 and bounded, and the pixel window holds every pixel whose cell, as the COG's geotransform defines it, intersects that bounding box",
+      "densify_points": 21,
+      "geographic_bounds_deg": {
+        "east": -16.775827411011576,
+        "north": 64.87306071610783,
+        "south": 64.82692184916675,
+        "west": -16.884260229365424
+      },
+      "pixel_window": {
+        "col_off": 208,
+        "height": 167,
+        "row_off": 457,
+        "width": 197
+      },
+      "role": "the live-probe footprint of PRD 8.7 (a 5 km x 5 km window) at a stated centre; a pilot probe of the read path, not a target or search window",
+      "side_m": 5000.0,
+      "utm_bounds_m": {
+        "east": 415729.1208483961,
+        "north": 7195492.037033184,
+        "south": 7190492.037033184,
+        "west": 410729.1208483961
+      },
+      "utm_crs": "EPSG:32628",
+      "utm_zone_rule": "the standard 6-degree UTM zone of the centre longitude, north or south by the centre latitude; the Norway and Svalbard exceptions are not applied"
+    }
+  },
+  "description": "One window of one Copernicus DEM GLO-30 Public COG read by HTTP range requests from the public AWS bucket, server-side, as fetched by the T1 pilot (PRD 5 row 11; 8.7 live-probe footprint and budget; 9 G0, one Copernicus COG read). Raw observations only: this read sends no Origin header and is not the browser-origin CORS check (T1-07), cop30_mode is chosen by the team at G0, and the shipping mode and the G0 status are a human checkpoint (PRD 23.6).",
+  "documents": [
+    {
+      "bytes_received": 1110900,
+      "content_type": "text/plain",
+      "file_name": "tileList.txt",
+      "final_url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/tileList.txt",
+      "http_status": 200,
+      "last_modified": "Mon, 09 May 2022 18:23:01 GMT",
+      "local_path": "data/raw/cop30/tileList.txt",
+      "retrieved_at": "2026-11-15T00:01:28Z",
+      "role": "tile_list",
+      "sha256": "10604e3052c98a09e9216f1a8f0a555a04148419757575f783d4937fd44316dc",
+      "url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/tileList.txt"
+    },
+    {
+      "bytes_received": 8536,
+      "content_type": "text/html",
+      "file_name": "readme.html",
+      "final_url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/readme.html",
+      "http_status": 200,
+      "last_modified": "Wed, 22 Nov 2023 10:39:04 GMT",
+      "local_path": "data/raw/cop30/readme.html",
+      "retrieved_at": "2026-11-15T00:01:28Z",
+      "role": "bucket_readme",
+      "sha256": "922461d55070e3c7e0cf2903ec54190d69e3773da2dc9e776a3f03566cfd56d2",
+      "url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/readme.html"
+    },
+    {
+      "bytes_received": 10002,
+      "content_type": "text/html",
+      "file_name": "aws_registry_copernicus_dem.html",
+      "final_url": "https://registry.opendata.aws/copernicus-dem/",
+      "http_status": 200,
+      "last_modified": "Fri, 13 Nov 2026 19:29:49 GMT",
+      "local_path": "data/raw/cop30/aws_registry_copernicus_dem.html",
+      "retrieved_at": "2026-11-15T00:01:28Z",
+      "role": "registry_entry",
+      "sha256": "04b2d63198acecd854a2a04100feb63d71aeecd83773c692b7f5093a0a4defca",
+      "url": "https://registry.opendata.aws/copernicus-dem/"
+    },
+    {
+      "bytes_received": 115071,
+      "content_type": "text/html; charset=UTF-8",
+      "file_name": "cdse_cop_dem_collection.html",
+      "final_url": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+      "http_status": 200,
+      "last_modified": "Sat, 14 Nov 2026 14:45:42 GMT",
+      "local_path": "data/raw/cop30/cdse_cop_dem_collection.html",
+      "retrieved_at": "2026-11-15T00:01:28Z",
+      "role": "collection_description",
+      "sha256": "25bc846e9bc2abf4b6b72bac96e88fa78d1427c43b099dd6c1beaf2cf32c22aa",
+      "url": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM"
+    }
+  ],
+  "field_notes": {
+    "acquisition_time": "unknown for this tile: the COG states no acquisition time; acquisition quotes the collection-level statement of the collection description",
+    "centre": "the window centre is a stated pilot choice with its basis in tile_choice; it is not a target window and sets nothing in config/run.yaml",
+    "crs_and_frame": "the horizontal CRS WKT the COG states",
+    "effective_resolution": "unknown: the COG states none and this record derives none (PRD 5 row 11, R16)",
+    "units": "the COG states no band units; the record's units are those the Copernicus DEM collection description states for the vertical axis, else unknown",
+    "version": "the release the AWS registry entry states; the COG states no version, so the release of this tile is not read from the file",
+    "vertical_datum": "read from the file's CRS where it has a vertical part, else unknown for the file; the collection description's statement is quoted beside it"
+  },
+  "licence": {
+    "collection_licence": {
+      "document": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+      "groups": [],
+      "local_path": "data/raw/cop30/cdse_cop_dem_collection.html",
+      "quote": "The GLO-30 and GLO-90 datasets are available worldwide with a free license."
+    },
+    "collection_notice": {
+      "document": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+      "groups": [
+        "© DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved"
+      ],
+      "local_path": "data/raw/cop30/cdse_cop_dem_collection.html",
+      "quote": "distributing the Copernicus WorldDEM-30 (GLO-30), the User shall inform the General Public of the source by using the following notice: © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved"
+    },
+    "license_or_attribution": "licence as the Copernicus DEM collection description states: 'The GLO-30 and GLO-90 datasets are available worldwide with a free license.'; required notice for GLO-30, as it states: '© DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved' (source: https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM, the page the AWS registry entry links as the licence)",
+    "note": "the AWS registry entry links its licence statement to the Copernicus DEM collection description, which fetch saved; the readme's licence link is recorded as stated and not fetched",
+    "readme_licence": {
+      "document": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/readme.html",
+      "groups": [],
+      "link": "https://spacedata.copernicus.eu/en/web/guest/collections/copernicus-digital-elevation-model/#Licencing",
+      "links_to_collection_description": false,
+      "local_path": "data/raw/cop30/readme.html",
+      "quote": "GLO-30 Public and GLO-90 are available on a free basis for the general public under the terms and conditions of the Licence found here ."
+    },
+    "registry_licence": {
+      "document": "https://registry.opendata.aws/copernicus-dem/",
+      "groups": [],
+      "link": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+      "links_to_collection_description": true,
+      "local_path": "data/raw/cop30/aws_registry_copernicus_dem.html",
+      "quote": "GLO-30 Public and GLO-90 are available on a free basis for the general public under the terms and conditions of the Licence found on here ."
+    }
+  },
+  "open_g0_items": [
+    "G0 needs a Copernicus COG read from a browser origin with the CORS result recorded (PRD 9); this read is server-side and sends no Origin header. The Origin-header check is T1-07, and cop30_mode is chosen by the team at G0",
+    "The effective support of GLO-30 (PRD 5 row 11, R16) is not established here",
+    "No WorldCover or other bare-ground mask is applied (D31)",
+    "The G0 status and the shipping mode are a human checkpoint (PRD 23.6)"
+  ],
+  "record": "cop30_range_read",
+  "retrieval": {
+    "command": "python -m terraluna_pipeline.pilot fetch cop30",
+    "fetch_metadata": "data/raw/cop30/fetch.json",
+    "first_retrieved_at": "2026-11-15T00:01:28Z",
+    "last_retrieved_at": "2026-11-15T00:01:29Z"
+  },
+  "source": "cop30",
+  "surface_model_caveat": {
+    "caveat": "Copernicus GLO-30 is a digital surface model: its heights include vegetation, buildings and infrastructure, so terrain statistics from it are not bare-ground statistics unless the window is masked to bare or sparse cover (PRD 5 row 11, D31); no such mask is applied here",
+    "quotes": [
+      {
+        "document": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/readme.html",
+        "groups": [],
+        "local_path": "data/raw/cop30/readme.html",
+        "quote": "The Copernicus DEM is a Digital Surface Model (DSM) which represents the surface of the Earth including buildings, infrastructure and vegetation."
+      },
+      {
+        "document": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+        "groups": [],
+        "local_path": "data/raw/cop30/cdse_cop_dem_collection.html",
+        "quote": "The Copernicus DEM is a Digital Surface Model (DSM) that represents the surface of the Earth including buildings, infrastructure and vegetation."
+      }
+    ]
+  },
+  "tile_choice": {
+    "candidates": [
+      {
+        "centre": {
+          "latitude": 64.85,
+          "longitude": -16.83
+        },
+        "centre_basis": "the coordinates the English Wikipedia article 'Holuhraun' states (64.85° N, 16.83° W; https://en.wikipedia.org/wiki/Holuhraun, read on 2026-11-14 when this source was written). The pilot does not download that page (Wikipedia answers Python's default HTTP client with HTTP 403), so the centre is a stated choice of the pilot, not an observation; PRD 5 names Holuhraun as the first Earth region",
+        "key": "holuhraun",
+        "listed_in_tile_list": true,
+        "name": "Holuhraun, Iceland",
+        "status": "chosen",
+        "tile": "Copernicus_DSM_COG_10_N64_00_W017_00_DEM"
+      },
+      {
+        "centre": {
+          "latitude": 65.5,
+          "longitude": -16.5
+        },
+        "centre_basis": "the centre of the 1-degree cell N65 W017, the next cell north of the Holuhraun tile; the documented fallback, read only when the Holuhraun tile is absent from tileList.txt",
+        "key": "fallback_n65_w017",
+        "listed_in_tile_list": true,
+        "name": "the GLO-30 tile north of the Holuhraun tile",
+        "status": "not_needed",
+        "tile": "Copernicus_DSM_COG_10_N65_00_W017_00_DEM"
+      }
+    ],
+    "chosen": "holuhraun",
+    "chosen_tile": "Copernicus_DSM_COG_10_N64_00_W017_00_DEM",
+    "fallback_used": false,
+    "reason": null,
+    "rule": "the first candidate, in the order listed, whose tile name appears in the bucket's tileList.txt; a tile absent from it is withheld from the GLO-30 Public release or missing, and the next candidate is used"
+  },
+  "tile_list": {
+    "bytes_received": 1110900,
+    "http_status": 200,
+    "last_modified": "Mon, 09 May 2022 18:23:01 GMT",
+    "lines": 26450,
+    "lines_not_tile_names": 0,
+    "local_path": "data/raw/cop30/tileList.txt",
+    "readme_statement": {
+      "document": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/readme.html",
+      "groups": [],
+      "local_path": "data/raw/cop30/readme.html",
+      "quote": "The list of tiles is saved in each bucket as tileList.txt ."
+    },
+    "retrieved_at": "2026-11-15T00:01:28Z",
+    "sha256": "10604e3052c98a09e9216f1a8f0a555a04148419757575f783d4937fd44316dc",
+    "tiles_listed": 26450,
+    "url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/tileList.txt",
+    "withheld_tiles_statement": {
+      "document": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/readme.html",
+      "groups": [],
+      "local_path": "data/raw/cop30/readme.html",
+      "quote": "GLO-30 Public provides limited worldwide coverage at 30 meters because a small subset of tiles covering specific countries are not yet released to the public by the Copernicus Programme."
+    }
+  },
+  "tool_versions": {
+    "gdal": "3.12.2",
+    "numpy": "2.5.4",
+    "pillow": "13.0.0",
+    "pydantic": "2.14.3",
+    "pyshp": "3.1.8",
+    "python": "3.12.13",
+    "rasterio": "1.5.2",
+    "terraluna-pipeline": "0.1.0"
+  },
+  "verification": {
+    "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif": {
+      "basis": "the 5000 m probe window (197 x 167 pixels) read through 3 HTTP range requests (2883584 of the 19059689 bytes; the COG is not downloaded whole), header, layout and window decoded and masked with quality.validity_mask; not plotted, so the PRD 5 entry rule is not complete",
+      "status": "PARTIAL"
+    }
+  },
+  "version": {
+    "file_states": null,
+    "quote": {
+      "document": "https://registry.opendata.aws/copernicus-dem/",
+      "groups": [
+        "2021"
+      ],
+      "local_path": "data/raw/cop30/aws_registry_copernicus_dem.html",
+      "quote": "Data is provided as Cloud Optimized GeoTIFFs and comes from Copernicus DEM 2021 release."
+    },
+    "value": "Copernicus DEM 2021 release, as the AWS registry entry states"
+  }
+}

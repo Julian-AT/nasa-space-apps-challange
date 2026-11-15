@@ -1,0 +1,1054 @@
+{
+  "cpr_statistics": {
+    "invalid_by_reason": {
+      "isis_saturation": 0,
+      "nodata": 3746,
+      "non_finite": 0,
+      "outside_support": 0
+    },
+    "mask": "quality.validity_mask with nodata = the label's CORE_NULL; the label's four ISIS saturation codes are isis_saturation",
+    "max": 1.4389289617538452,
+    "median": 0.4203002601861954,
+    "median_definition": "numpy.median of the valid values in float64: the mean of the two middle values for an even count",
+    "min": 0.02173224464058876,
+    "negative_pixels": 0,
+    "non_positive_rule": "a CPR of 0 or below is kept as valid and counted, not masked: the label declares no rule that makes it missing (layout_leads, missing_data_non_positive; PRD 7, F1)",
+    "positive_pixels": 14750,
+    "reason": null,
+    "status": "computed",
+    "total_pixels": 18496,
+    "valid_fraction": 0.797469723183391,
+    "valid_pixels": 14750,
+    "values": "the stored samples of the window's columns of the rows read, unscaled (SCALING_FACTOR 1.0 and OFFSET 0.0 in the label)",
+    "zero_pixels": 0
+  },
+  "data": {
+    "file_name": "lsz_xxxxx_3cp_piu_90s000_v1.img",
+    "images_not_downloaded": [
+      "lsz_04790_3cp_phu_90s000_e_v1.img",
+      "lsz_04790_3cp_pju_90s000_e_v1.img",
+      "lsz_04790_3s1_phu_90s000_e_v1.img",
+      "lsz_04790_3s1_pju_90s000_e_v1.img",
+      "lsz_05034_3cp_phu_90s000_w_v1.img",
+      "lsz_05034_3cp_pju_90s000_w_v1.img",
+      "lsz_05034_3s1_phu_90s000_w_v1.img",
+      "lsz_05034_3s1_pju_90s000_w_v1.img",
+      "lsz_06899_3cp_phu_90n000_e_v1.img",
+      "lsz_06899_3cp_phu_90n000_w_v1.img",
+      "lsz_06899_3cp_pju_90n000_e_v1.img",
+      "lsz_06899_3cp_pju_90n000_w_v1.img",
+      "lsz_06899_3s1_phu_90n000_e_v1.img",
+      "lsz_06899_3s1_phu_90n000_w_v1.img",
+      "lsz_06899_3s1_pju_90n000_e_v1.img",
+      "lsz_06899_3s1_pju_90n000_w_v1.img",
+      "lsz_xxxxx_3cp_pfu_90n000_v1.img",
+      "lsz_xxxxx_3cp_pfu_90s000_v1.img",
+      "lsz_xxxxx_3cp_piu_90n000_v1.img",
+      "lsz_xxxxx_3cp_piu_90s000_v1.img",
+      "lsz_xxxxx_3s1_pfu_90n000_v1.img",
+      "lsz_xxxxx_3s1_pfu_90s000_v1.img",
+      "lsz_xxxxx_3s1_piu_90n000_v1.img",
+      "lsz_xxxxx_3s1_piu_90s000_v1.img"
+    ],
+    "label_file_bytes": 428158864,
+    "remote_bytes": 428158864,
+    "size_matches_label": true,
+    "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3cp_piu_90s000_v1.img",
+    "whole_file_downloaded": false
+  },
+  "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+  "description": "The Mini-RF south-polar CPR mosaic over the Site01 window, as fetched and decoded by the T1 pilot (PRD 5 rows 1 and 2, pilot step 3). Raw observations only: no S4-sign verdict (T2-05), no Stokes validity rule (T2-02), and the shipping mode and the G0 status are a human checkpoint (PRD 23.6) and are not recorded here.",
+  "documents": [
+    {
+      "bytes_received": 38682,
+      "content_type": "text/html",
+      "file_name": "landing_page.html",
+      "http_status": 200,
+      "last_modified": "Wed, 30 Sep 2026 17:29:30 GMT",
+      "local_path": "data/raw/minirf/landing_page.html",
+      "retrieved_at": "2026-11-14T21:12:35Z",
+      "role": "landing_page",
+      "sha256": "6de9eac71b6800f9f7721a2ed111ad3c6b8b72ca09c0295a2571764c35bb8ac9",
+      "url": "https://pds-geosciences.wustl.edu/missions/lro/mrf.htm"
+    },
+    {
+      "bytes_received": 1288,
+      "content_type": "text/html; charset=UTF-8",
+      "file_name": "volume_index.html",
+      "http_status": 200,
+      "last_modified": null,
+      "local_path": "data/raw/minirf/volume_index.html",
+      "retrieved_at": "2026-11-14T21:12:36Z",
+      "role": "volume_index",
+      "sha256": "522a3d6c73f78d13a9052b86d52de88a060c89a5bd503d381dfb822c4749c56d",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/"
+    },
+    {
+      "bytes_received": 1957,
+      "content_type": "text/html; charset=UTF-8",
+      "file_name": "catalog_index.html",
+      "http_status": 200,
+      "last_modified": null,
+      "local_path": "data/raw/minirf/catalog_index.html",
+      "retrieved_at": "2026-11-14T21:12:36Z",
+      "role": "catalog_index",
+      "sha256": "6705525521b3feeb7c5ebe99d4a0b734c67ad1989f79b965b02136f4c783c9e2",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/catalog/"
+    },
+    {
+      "bytes_received": 15593,
+      "content_type": "text/plain",
+      "file_name": "dsmap.cat",
+      "http_status": 200,
+      "last_modified": "Thu, 17 Oct 2013 16:36:25 GMT",
+      "local_path": "data/raw/minirf/dsmap.cat",
+      "retrieved_at": "2026-11-14T21:12:37Z",
+      "role": "dsmap",
+      "sha256": "fac57af9dc7955afcdea7241485b5aeb7b0b01384de1f248e05f1018a216aa5e",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/catalog/dsmap.cat"
+    },
+    {
+      "bytes_received": 8875,
+      "content_type": "text/plain",
+      "file_name": "mrflro_5_cdr_mosaic_v1_0_ds.cat",
+      "http_status": 200,
+      "last_modified": "Wed, 06 Jan 2021 12:50:13 GMT",
+      "local_path": "data/raw/minirf/mrflro_5_cdr_mosaic_v1_0_ds.cat",
+      "retrieved_at": "2026-11-14T21:12:38Z",
+      "role": "data_set_catalog",
+      "sha256": "2a359f3e13be09070f9268618a8457615949d0c7fa37fafffe4fb0f77dc91a47",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/catalog/mrflro_5_cdr_mosaic_v1_0_ds.cat"
+    },
+    {
+      "bytes_received": 11449,
+      "content_type": "text/plain",
+      "file_name": "mrf_inst.cat",
+      "http_status": 200,
+      "last_modified": "Tue, 15 Oct 2019 16:56:41 GMT",
+      "local_path": "data/raw/minirf/mrf_inst.cat",
+      "retrieved_at": "2026-11-14T21:12:38Z",
+      "role": "instrument_catalog",
+      "sha256": "6777944fef413e435cf6dcc895b861749dd8c3dbac35bae407f05c34efd5f487",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/catalog/mrf_inst.cat"
+    },
+    {
+      "bytes_received": 29044,
+      "content_type": "text/plain",
+      "file_name": "errata.txt",
+      "http_status": 200,
+      "last_modified": "Wed, 09 Apr 2014 16:28:04 GMT",
+      "local_path": "data/raw/minirf/errata.txt",
+      "retrieved_at": "2026-11-14T21:12:39Z",
+      "role": "errata",
+      "sha256": "bc8d1bf71ddb4f444099479ef97e874c75eacf30d37a9db1c782581a4ba83935",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/errata.txt"
+    },
+    {
+      "bytes_received": 422,
+      "content_type": "text/html; charset=UTF-8",
+      "file_name": "data_index.html",
+      "http_status": 200,
+      "last_modified": null,
+      "local_path": "data/raw/minirf/data_index.html",
+      "retrieved_at": "2026-11-14T21:12:40Z",
+      "role": "data_index",
+      "sha256": "062c98c28ccc97a555ab0bc2f7b5a6c8a23d000ddc4d6c3aabbf8f9ee0d88827",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/"
+    },
+    {
+      "bytes_received": 1350,
+      "content_type": "text/html; charset=UTF-8",
+      "file_name": "sar_index.html",
+      "http_status": 200,
+      "last_modified": null,
+      "local_path": "data/raw/minirf/sar_index.html",
+      "retrieved_at": "2026-11-14T21:12:41Z",
+      "role": "sar_index",
+      "sha256": "75dc48f96cf8920843fb62615d553020fd18f751c76139b6dad18702321daabe",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/"
+    },
+    {
+      "bytes_received": 8634,
+      "content_type": "text/html; charset=UTF-8",
+      "file_name": "mosaics_index.html",
+      "http_status": 200,
+      "last_modified": null,
+      "local_path": "data/raw/minirf/mosaics_index.html",
+      "retrieved_at": "2026-11-14T21:12:41Z",
+      "role": "mosaics_index",
+      "sha256": "8bc0ddc9503166d04adef73420847e9802cbdf6b6b664faaa7e4991c586cd6e5",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/"
+    }
+  ],
+  "field_notes": {
+    "checksum": "for the image, the ProductRecord checksum and local_path are those of the image rows read by range (range_read), not of the whole file, which was not downloaded",
+    "effective_resolution": "unknown: MAP_SCALE is the nominal sampling of the grid; the mosaic blends several acquisitions, and neither the label nor the catalog states an effective resolution",
+    "nodata": "special pixels are compared as the label's bit patterns; null_value.value is the float32 value of CORE_NULL written as a JSON number",
+    "pixel_convention": "the window uses DSMAP.CAT's conversion (projection.conversion). GDAL's PDS driver with its default settings places the origin of such a label one pixel further right and down (pinned in test_io_pds3.py); the GDAL documentation warns that 'Due to ambiguities in the PDS specification, the georeferencing of some products is subtly or grossly incorrect'",
+    "product_records": "every mosaic label downloaded has a ProductRecord, because each is read to establish the layers (mosaic_layers, stokes_observation); its fields are those its own label states. Only the images whose window rows were read have an image record",
+    "transmit_receive_convention": "unknown in the ProductRecords: the label states no transmit handedness (transmit_handedness); the volume errata's statement is quoted there, not adopted",
+    "version": "PRODUCT_VERSION_ID as the label states it"
+  },
+  "frequency": {
+    "instrument_catalog_source": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/catalog/mrf_inst.cat",
+    "instrument_catalog_text": "Mini-RF operated in S-band (2.38 GHz)",
+    "label_raw": "2379.99968158 <GHz>",
+    "note": "the label states 2379.99968158 <GHz>, but the instrument catalog states 'Mini-RF operated in S-band (2.38 GHz)': the two differ by a factor of 1000. Both are quoted as stated; neither is corrected here"
+  },
+  "incidence": {
+    "label_incidence_keywords": [],
+    "statement": "per-pixel incidence is not recoverable from the mosaic: the label states no incidence angle, and the mosaic combines several acquisitions (2009-07-19T12:27:42.785399 to 2011-01-11T01:32:11.7200) with East- and West-looking passes, so each pixel's viewing geometry is not known"
+  },
+  "label": {
+    "bytes": 4411,
+    "description": "The Circular Polarization Ratio product, defined as the ratio of the same sense to the opposite sense circularly polarized (CPR = SC / OS) radar returns. These Level 3 products are Derived Data Records (DDRs) generated from multiple Level 1 RDRs. They are mosaics that are produced by ingesting the Level 1 raw RDRs into the ISIS software and orthorectifying them using a combination of spacecraft spice data and spatially tying the data to the LOLA base map. The mosaics are produced for each lunar pole (i.e., regions above +/- 70 deg. latitude). Unlike the lower-level products (Level 1 RDRs and Level 2 CDRs), these products are composed of data sets collected during multiple acquisitions and are produced manually using the ISIS software provided by the Astrogeology branch of the USGS. This is a combined East and West-looking mosaic.",
+    "file_name": "lsz_xxxxx_3cp_piu_90s000_v1.lbl",
+    "http_status": 200,
+    "label_revision_note": "2012-JHU/APL Mini-RF LRO Ver. 1",
+    "local_path": "data/raw/minirf/lsz_xxxxx_3cp_piu_90s000_v1.lbl",
+    "note": "Circular Polarization Ratio South polar mosaic.",
+    "product_creation_time": "2012-05-08",
+    "product_version_id": "1.0",
+    "retrieved_at": "2026-11-14T21:14:41Z",
+    "sha256": "d5d7e292fd6d4972ad0d8203dc6f445313804aadff576738b1acb121d9055332",
+    "software_name": "ISIS 3",
+    "start_time": "2009-07-19T12:27:42.785399",
+    "stop_time": "2011-01-11T01:32:11.7200",
+    "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3cp_piu_90s000_v1.lbl"
+  },
+  "layout": {
+    "bands": 1,
+    "byte_order": "little-endian",
+    "dtype": "<f4",
+    "image_bytes": 428158864,
+    "line_bytes": 41384,
+    "line_samples": 10346,
+    "lines": 10346,
+    "offset_bytes": 0,
+    "record_bytes": 41384,
+    "sample_bits": 32,
+    "sample_type": "PC_REAL",
+    "scaling_applied": false,
+    "scaling_factor": 1.0,
+    "source": "the label's ^IMAGE pointer and IMAGE object; PDS3 Standards Reference appendix C for the SAMPLE_TYPE byte order",
+    "value_offset": 0.0
+  },
+  "layout_leads": [
+    {
+      "basis": "the label's ^IMAGE pointer and the volume directory the landing page links",
+      "item": "file",
+      "label_value": "^IMAGE = \"LSZ_XXXXX_3CP_PIU_90S000_V1.IMG\"; listed as lsz_xxxxx_3cp_piu_90s000_v1.img at https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/",
+      "prd_lead": "lsz_xxxxx_3cp_piu_90s000_v1.img, volume LROMRF_0005 of the Mini-RF CDR archive at PDS Geosciences",
+      "status": "confirmed"
+    },
+    {
+      "basis": "the label's DATA_SET_ID",
+      "item": "data_set",
+      "label_value": "DATA_SET_ID = \"LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0\"",
+      "prd_lead": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "status": "confirmed"
+    },
+    {
+      "basis": "the label's IMAGE object",
+      "item": "size",
+      "label_value": "LINES = 10346, LINE_SAMPLES = 10346",
+      "prd_lead": "10,346 x 10,346 pixels",
+      "status": "confirmed"
+    },
+    {
+      "basis": "PDS3 Standards Reference appendix C: PC_REAL is a little-endian IEEE real",
+      "item": "sample_type",
+      "label_value": "SAMPLE_TYPE = PC_REAL, SAMPLE_BITS = 32",
+      "prd_lead": "Little-endian 32-bit float",
+      "status": "confirmed"
+    },
+    {
+      "basis": "the label's NOTE",
+      "item": "values",
+      "label_value": "NOTE = 'Circular Polarization Ratio South polar mosaic.'",
+      "prd_lead": "CPR values",
+      "status": "confirmed"
+    },
+    {
+      "basis": "the label's IMAGE_MAP_PROJECTION object",
+      "item": "projection",
+      "label_value": "MAP_PROJECTION_TYPE = \"POLAR STEREOGRAPHIC\", CENTER_LATITUDE = -90.0 <deg>",
+      "prd_lead": "South-polar stereographic",
+      "status": "confirmed"
+    },
+    {
+      "basis": "the label's IMAGE_MAP_PROJECTION object",
+      "item": "pixels_per_degree",
+      "label_value": "MAP_RESOLUTION = 256.0 <pix/deg>",
+      "prd_lead": "256 pixels per degree",
+      "status": "confirmed"
+    },
+    {
+      "basis": "the label's MAP_SCALE, converted to metres and rounded to the lead's 2 decimals",
+      "item": "pixel_size",
+      "label_value": "MAP_SCALE = 0.11845058759433 <km/pix>",
+      "prd_lead": "about 118.45 m per pixel",
+      "status": "confirmed"
+    },
+    {
+      "basis": "DSMAP.CAT: x = (Sample - S0) * Scale and y = (L0 - Line) * Scale with Sample and Line 1-based and integral at pixel centres, so the offsets are the pole's 1-based pixel-centre coordinates (compared to 1e-6 pixel)",
+      "item": "projection_centre",
+      "label_value": "SAMPLE_PROJECTION_OFFSET = 5173.5000000002 <pixel>, LINE_PROJECTION_OFFSET = 5173.5000000002 <pixel>",
+      "prd_lead": "projection centre at sample and line 5173.5 (1-based)",
+      "status": "confirmed"
+    },
+    {
+      "basis": "the label's CORE_NULL bit pattern equals the ISIS 4-byte Null (SpecialPixel.h) that quality.validity_mask uses",
+      "item": "missing_data_isis_null",
+      "label_value": "CORE_NULL = 16#FF7FFFFB# (-3.4028226550889045e+38)",
+      "prd_lead": "ISIS null values near -3.4e38",
+      "status": "confirmed"
+    },
+    {
+      "basis": "the label does not make non-positive values missing, so a CPR of 0 or below is a valid value (PRD 7, F1) and is counted, not masked (cpr_statistics)",
+      "item": "missing_data_non_positive",
+      "label_value": "the IMAGE object declares CORE_NULL, CORE_LOW_REPR_SATURATION, CORE_LOW_INSTR_SATURATION, CORE_HIGH_REPR_SATURATION, CORE_HIGH_INSTR_SATURATION and no rule for non-positive values",
+      "prd_lead": "non-positive values treated as missing",
+      "status": "not_stated_in_label"
+    },
+    {
+      "basis": "the label's DESCRIPTION, START_TIME and STOP_TIME",
+      "item": "acquisitions",
+      "label_value": "'This is a combined East and West-looking mosaic.'; START_TIME = 2009-07-19T12:27:42.785399, STOP_TIME = 2011-01-11T01:32:11.7200",
+      "prd_lead": "East- and west-looking passes combined, 2009 to 2011",
+      "status": "confirmed"
+    }
+  ],
+  "located_through": {
+    "landing_page": "https://pds-geosciences.wustl.edu/missions/lro/mrf.htm",
+    "mosaics_url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/",
+    "volume_url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/"
+  },
+  "look_direction": {
+    "label_text": "This is a combined East and West-looking mosaic.",
+    "look_direction_keyword": null,
+    "mixed": true,
+    "single_look_mosaics_covering_site01": [
+      "lsz_04790_3cp_phu_90s000_e_v1.lbl",
+      "lsz_04790_3cp_pju_90s000_e_v1.lbl",
+      "lsz_05034_3cp_phu_90s000_w_v1.lbl",
+      "lsz_05034_3cp_pju_90s000_w_v1.lbl"
+    ]
+  },
+  "mosaic_layers": [
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": false,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_04790_3cp_phu_90s000_e_v1.lbl",
+      "image_file": "LSZ_04790_3CP_PHU_90S000_E_V1.IMG",
+      "line_samples": 5173,
+      "lines": 5173,
+      "look_direction": "EAST",
+      "map_resolution_ppd": 128.0,
+      "note": "Circular Polarization Ratio South polar mosaic.",
+      "product_id": "LSZ_04790_3CP_PHU_90S000_E_V1",
+      "quantity": "CPR",
+      "sha256": "abdba916cb2e1ac3f2b5ca63cf3f8267c12635303c5526fe2944ffd2437c872d",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_04790_3cp_phu_90s000_e_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": false,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_04790_3cp_pju_90s000_e_v1.lbl",
+      "image_file": "LSZ_04790_3CP_PJU_90S000_E_V1.IMG",
+      "line_samples": 20691,
+      "lines": 20691,
+      "look_direction": "EAST",
+      "map_resolution_ppd": 512.0,
+      "note": "Circular Polarization Ratio South polar mosaic.",
+      "product_id": "LSZ_04790_3CP_PJU_90S000_E_V1",
+      "quantity": "CPR",
+      "sha256": "0f96589aceb888bcd8b1aec3b685d5528f729269c1216f3720760bae6a54c0f1",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_04790_3cp_pju_90s000_e_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": false,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_04790_3s1_phu_90s000_e_v1.lbl",
+      "image_file": "LSZ_04790_3S1_PHU_90S000_E_V1.IMG",
+      "line_samples": 5173,
+      "lines": 5173,
+      "look_direction": "EAST",
+      "map_resolution_ppd": 128.0,
+      "note": "S1 Total Power South polar mosaic.",
+      "product_id": "LSZ_04790_3S1_PHU_90S000_E_V1",
+      "quantity": "S1",
+      "sha256": "e403260d2b1a94247ae2dddfad8169bdeef670d958e76f5372bf366dc5960986",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_04790_3s1_phu_90s000_e_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": false,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_04790_3s1_pju_90s000_e_v1.lbl",
+      "image_file": "LSZ_04790_3S1_PJU_90S000_E_V1.IMG",
+      "line_samples": 20691,
+      "lines": 20691,
+      "look_direction": "EAST",
+      "map_resolution_ppd": 512.0,
+      "note": "S1 Total Power South polar mosaic.",
+      "product_id": "LSZ_04790_3S1_PJU_90S000_E_V1",
+      "quantity": "S1",
+      "sha256": "bd4f25ef92fe79282c1c9b9564b8ff1a57544f6328589e0b9bd2d89c8a30f668",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_04790_3s1_pju_90s000_e_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": false,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_05034_3cp_phu_90s000_w_v1.lbl",
+      "image_file": "LSZ_05034_3CP_PHU_90S000_W_V1.IMG",
+      "line_samples": 5173,
+      "lines": 5173,
+      "look_direction": "WEST",
+      "map_resolution_ppd": 128.0,
+      "note": "Circular Polarization Ratio South polar mosaic.",
+      "product_id": "LSZ_05034_3CP_PHU_90S000_W_V1",
+      "quantity": "CPR",
+      "sha256": "8effe0df10d8ba1b99bd10be48c2c0941a5e0faa7618d529931b73b8492a0728",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_05034_3cp_phu_90s000_w_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": false,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_05034_3cp_pju_90s000_w_v1.lbl",
+      "image_file": "LSZ_05034_3CP_PJU_90S000_W_V1.IMG",
+      "line_samples": 20691,
+      "lines": 20691,
+      "look_direction": "WEST",
+      "map_resolution_ppd": 512.0,
+      "note": "Circular Polarization Ratio South polar mosaic.",
+      "product_id": "LSZ_05034_3CP_PJU_90S000_W_V1",
+      "quantity": "CPR",
+      "sha256": "20492e2ad8d4d723c78af074fad7c6a8014a9022494dc7e81bcc34d14e2c1a59",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_05034_3cp_pju_90s000_w_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": false,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_05034_3s1_phu_90s000_w_v1.lbl",
+      "image_file": "LSZ_05034_3S1_PHU_90S000_W_V1.IMG",
+      "line_samples": 5173,
+      "lines": 5173,
+      "look_direction": "WEST",
+      "map_resolution_ppd": 128.0,
+      "note": "S1 Total Power South polar mosaic.",
+      "product_id": "LSZ_05034_3S1_PHU_90S000_W_V1",
+      "quantity": "S1",
+      "sha256": "c4f2d14846342b3c257b75e6e611a5e51cd88823114d9793b3c299ad7586528e",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_05034_3s1_phu_90s000_w_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": false,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_05034_3s1_pju_90s000_w_v1.lbl",
+      "image_file": "LSZ_05034_3S1_PJU_90S000_W_V1.IMG",
+      "line_samples": 20691,
+      "lines": 20691,
+      "look_direction": "WEST",
+      "map_resolution_ppd": 512.0,
+      "note": "S1 Total Power South polar mosaic.",
+      "product_id": "LSZ_05034_3S1_PJU_90S000_W_V1",
+      "quantity": "S1",
+      "sha256": "257f7f454b5b1e36295efd3f43d73ac5240ea533ca59243797380d15b26bd072",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_05034_3s1_pju_90s000_w_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": false,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_06899_3cp_phu_90n000_e_v1.lbl",
+      "image_file": "LSZ_06899_3CP_PHU_90N000_E_V1.IMG",
+      "line_samples": 5173,
+      "lines": 5173,
+      "look_direction": "EAST",
+      "map_resolution_ppd": 128.0,
+      "note": "Circular Polarization Ratio North polar mosaic.",
+      "product_id": "LSZ_06899_3CP_PHU_90N000_E_V1",
+      "quantity": "CPR",
+      "sha256": "615ed91585388833da9fb9ad518aa1171592ff9dfac5aef623e8c3536dfb921b",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_06899_3cp_phu_90n000_e_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": false,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_06899_3cp_phu_90n000_w_v1.lbl",
+      "image_file": "LSZ_06899_3CP_PHU_90N000_W_V1.IMG",
+      "line_samples": 5173,
+      "lines": 5173,
+      "look_direction": "WEST",
+      "map_resolution_ppd": 128.0,
+      "note": "Circular Polarization Ratio North polar mosaic.",
+      "product_id": "LSZ_06899_3CP_PHU_90N000_W_V1",
+      "quantity": "CPR",
+      "sha256": "3040abe8dccdd91d54f5aac4a334cdb2cdfd2ce06fccf61d2b75859bf28d77b9",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_06899_3cp_phu_90n000_w_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": false,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_06899_3cp_pju_90n000_e_v1.lbl",
+      "image_file": "LSZ_06899_3CP_PJU_90N000_E_V1.IMG",
+      "line_samples": 20691,
+      "lines": 20691,
+      "look_direction": "EAST",
+      "map_resolution_ppd": 512.0,
+      "note": "Circular Polarization Ratio North polar mosaic.",
+      "product_id": "LSZ_06899_3CP_PJU_90N000_E_V1",
+      "quantity": "CPR",
+      "sha256": "b6042fa27215a30cc53419a1b55aec88daa7c8f1b5a97e2c0e47ca525166cfc4",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_06899_3cp_pju_90n000_e_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": false,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_06899_3cp_pju_90n000_w_v1.lbl",
+      "image_file": "LSZ_06899_3CP_PJU_90N000_W_V1.IMG",
+      "line_samples": 20691,
+      "lines": 20691,
+      "look_direction": "WEST",
+      "map_resolution_ppd": 512.0,
+      "note": "Circular Polarization Ratio North polar mosaic.",
+      "product_id": "LSZ_06899_3CP_PJU_90N000_W_V1",
+      "quantity": "CPR",
+      "sha256": "dcfb2dabcfd6f14959ea36525db4c4dcf4bc8a8dc2529f68b84d941c376ced01",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_06899_3cp_pju_90n000_w_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": false,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_06899_3s1_phu_90n000_e_v1.lbl",
+      "image_file": "LSZ_06899_3S1_PHU_90N000_E_V1.IMG",
+      "line_samples": 5173,
+      "lines": 5173,
+      "look_direction": "EAST",
+      "map_resolution_ppd": 128.0,
+      "note": "S1 Total Power North polar mosaic.",
+      "product_id": "LSZ_06899_3S1_PHU_90N000_E_V1",
+      "quantity": "S1",
+      "sha256": "7933e7e0006cab4d96ea74b2c176d377a5114c6c96b9b09cf705f42468983b2e",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_06899_3s1_phu_90n000_e_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": false,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_06899_3s1_phu_90n000_w_v1.lbl",
+      "image_file": "LSZ_06899_3S1_PHU_90N000_W_V1.IMG",
+      "line_samples": 5173,
+      "lines": 5173,
+      "look_direction": "WEST",
+      "map_resolution_ppd": 128.0,
+      "note": "S1 Total Power North polar mosaic.",
+      "product_id": "LSZ_06899_3S1_PHU_90N000_W_V1",
+      "quantity": "S1",
+      "sha256": "cecaa7e6cc1d52e030f10909ce2d43927934c90907a93a0a3ed792adb0d0c6a7",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_06899_3s1_phu_90n000_w_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": false,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_06899_3s1_pju_90n000_e_v1.lbl",
+      "image_file": "LSZ_06899_3S1_PJU_90N000_E_V1.IMG",
+      "line_samples": 20691,
+      "lines": 20691,
+      "look_direction": "EAST",
+      "map_resolution_ppd": 512.0,
+      "note": "S1 Total Power North polar mosaic.",
+      "product_id": "LSZ_06899_3S1_PJU_90N000_E_V1",
+      "quantity": "S1",
+      "sha256": "80deaa2a09277cc1bf038497f81bbe11fcd4fa45f5a09de570221c946ca58158",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_06899_3s1_pju_90n000_e_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": false,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_06899_3s1_pju_90n000_w_v1.lbl",
+      "image_file": "LSZ_06899_3S1_PJU_90N000_W_V1.IMG",
+      "line_samples": 20691,
+      "lines": 20691,
+      "look_direction": "WEST",
+      "map_resolution_ppd": 512.0,
+      "note": "S1 Total Power North polar mosaic.",
+      "product_id": "LSZ_06899_3S1_PJU_90N000_W_V1",
+      "quantity": "S1",
+      "sha256": "0b2514d0a5bf509bc3aa48b7fc0a64350f1bdee30154a809459767f1a48d01ec",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_06899_3s1_pju_90n000_w_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": true,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_xxxxx_3cp_pfu_90n000_v1.lbl",
+      "image_file": "LSZ_XXXXX_3CP_PFU_90N000_V1.IMG",
+      "line_samples": 1294,
+      "lines": 1294,
+      "look_direction": null,
+      "map_resolution_ppd": 32.0,
+      "note": "Circular Polarization Ratio North polar mosaic.",
+      "product_id": "LSZ_XXXXX_3CP_PFU_90N000_V1",
+      "quantity": "CPR",
+      "sha256": "dfcd9eec465bc0d928f75f7b2e04276be2b2179d3d82f7c2e4b08b57c2b5266f",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3cp_pfu_90n000_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": true,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_xxxxx_3cp_pfu_90s000_v1.lbl",
+      "image_file": "LSZ_XXXXX_3CP_PFU_90S000_V1.IMG",
+      "line_samples": 1294,
+      "lines": 1294,
+      "look_direction": null,
+      "map_resolution_ppd": 32.0,
+      "note": "Circular Polarization Ratio South polar mosaic.",
+      "product_id": "LSZ_XXXXX_3CP_PFU_90S000_V1",
+      "quantity": "CPR",
+      "sha256": "20fb269c86710761722c368165dee3265a67155c6ab1989845ef0210f29bb592",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3cp_pfu_90s000_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": true,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_xxxxx_3cp_piu_90n000_v1.lbl",
+      "image_file": "LSZ_XXXXX_3CP_PIU_90N000_V1.IMG",
+      "line_samples": 10346,
+      "lines": 10346,
+      "look_direction": null,
+      "map_resolution_ppd": 256.0,
+      "note": "Circular Polarization Ratio North polar mosaic.",
+      "product_id": "LSZ_XXXXX_3CP_PIU_90N000_V1",
+      "quantity": "CPR",
+      "sha256": "1fa23e7589ab8381aa134d1526e90f833a69d69ab92507962e265cf8085eeba8",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3cp_piu_90n000_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": true,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_xxxxx_3cp_piu_90s000_v1.lbl",
+      "image_file": "LSZ_XXXXX_3CP_PIU_90S000_V1.IMG",
+      "line_samples": 10346,
+      "lines": 10346,
+      "look_direction": null,
+      "map_resolution_ppd": 256.0,
+      "note": "Circular Polarization Ratio South polar mosaic.",
+      "product_id": "LSZ_XXXXX_3CP_PIU_90S000_V1",
+      "quantity": "CPR",
+      "sha256": "d5d7e292fd6d4972ad0d8203dc6f445313804aadff576738b1acb121d9055332",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3cp_piu_90s000_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": true,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_xxxxx_3s1_pfu_90n000_v1.lbl",
+      "image_file": "LSZ_XXXXX_3S1_PFU_90N000_V1.IMG",
+      "line_samples": 1294,
+      "lines": 1294,
+      "look_direction": null,
+      "map_resolution_ppd": 32.0,
+      "note": "First stokes parameter North polar mosaic.",
+      "product_id": "LSZ_XXXXX_3S1_PFU_90N000_V1",
+      "quantity": "S1",
+      "sha256": "db58c7fd21ffd99ecf6f6c254f4502d902008f3d19146a8943e0ab9c31653cb7",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3s1_pfu_90n000_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": true,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_xxxxx_3s1_pfu_90s000_v1.lbl",
+      "image_file": "LSZ_XXXXX_3S1_PFU_90S000_V1.IMG",
+      "line_samples": 1294,
+      "lines": 1294,
+      "look_direction": null,
+      "map_resolution_ppd": 32.0,
+      "note": "First stokes parameter South polar mosaic.",
+      "product_id": "LSZ_XXXXX_3S1_PFU_90S000_V1",
+      "quantity": "S1",
+      "sha256": "fefc77b5d7136d89a99a6e8f83020190cac56304f9615d0694541d9d09b5657f",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3s1_pfu_90s000_v1.lbl"
+    },
+    {
+      "center_latitude_deg": 90.0,
+      "combined_east_west": true,
+      "covers_site01": false,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_xxxxx_3s1_piu_90n000_v1.lbl",
+      "image_file": "LSZ_XXXXX_3S1_PIU_90N000_V1.IMG",
+      "line_samples": 10346,
+      "lines": 10346,
+      "look_direction": null,
+      "map_resolution_ppd": 256.0,
+      "note": "First stokes parameter North polar mosaic.",
+      "product_id": "LSZ_XXXXX_3S1_PIU_90N000_V1",
+      "quantity": "S1",
+      "sha256": "802f485748daedd1d5456277931999f0a5e2ae684bd1636b0175fee45087f871",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3s1_piu_90n000_v1.lbl"
+    },
+    {
+      "center_latitude_deg": -90.0,
+      "combined_east_west": true,
+      "covers_site01": true,
+      "data_set_id": "LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0",
+      "file_name": "lsz_xxxxx_3s1_piu_90s000_v1.lbl",
+      "image_file": "LSZ_XXXXX_3S1_PIU_90S000_V1.IMG",
+      "line_samples": 10346,
+      "lines": 10346,
+      "look_direction": null,
+      "map_resolution_ppd": 256.0,
+      "note": "First stokes parameter South polar mosaic.",
+      "product_id": "LSZ_XXXXX_3S1_PIU_90S000_V1",
+      "quantity": "S1",
+      "sha256": "41de26b3c3818ca8a666dacba2ccf61d784f6c65595398bfdfbe92d0199c6c5e",
+      "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3s1_piu_90s000_v1.lbl"
+    }
+  ],
+  "null_value": {
+    "keyword": "CORE_NULL",
+    "mask_reason": "nodata",
+    "raw": "16#FF7FFFFB#",
+    "value": -3.4028226550889045e+38
+  },
+  "open_g0_items": [
+    {
+      "item": "Read one LRO-L-MRFLRO-5-CDR-MAP-V1.0 map-projected single-swath product over Site01 and observe its S1 and S4 layers (PRD 5 row 1)",
+      "reason": "the polar mosaic has no S4 layer (stokes_observation); reading a single swath is outside T1-04"
+    }
+  ],
+  "product_id": "LSZ_XXXXX_3CP_PIU_90S000_V1",
+  "projection": {
+    "centred_on_pole": true,
+    "conversion": {
+      "formulas": [
+        "x = (Sample - S0) * Scale",
+        "y = (L0 - Line) * Scale"
+      ],
+      "keywords": "S0 = SAMPLE_PROJECTION_OFFSET, L0 = LINE_PROJECTION_OFFSET, Scale = MAP_SCALE; Sample and Line are 1-based, so the 0-based pixel edge coordinate is Sample - 0.5",
+      "pixel_centres": "Integral values of line and sample correspond to the center of a pixel.",
+      "source": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/catalog/dsmap.cat"
+    },
+    "crs_wkt": "PROJCRS[\"unknown\",BASEGEOGCRS[\"unknown\",DATUM[\"unknown\",ELLIPSOID[\"unknown\",1737400,0,LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]],PRIMEM[\"Reference meridian\",0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]]],CONVERSION[\"unknown\",METHOD[\"Polar Stereographic (variant B)\",ID[\"EPSG\",9829]],PARAMETER[\"Latitude of standard parallel\",-90,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8832]],PARAMETER[\"Longitude of origin\",0,ANGLEUNIT[\"degree\",0.0174532925199433],ID[\"EPSG\",8833]],PARAMETER[\"False easting\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8806]],PARAMETER[\"False northing\",0,LENGTHUNIT[\"metre\",1],ID[\"EPSG\",8807]]],CS[Cartesian,2],AXIS[\"(E)\",north,MERIDIAN[90,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],ORDER[1],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]],AXIS[\"(N)\",north,MERIDIAN[0,ANGLEUNIT[\"degree\",0.0174532925199433,ID[\"EPSG\",9122]]],ORDER[2],LENGTHUNIT[\"metre\",1,ID[\"EPSG\",9001]]]]",
+    "image_centre_edge_coordinates": {
+      "col": 5173.0,
+      "row": 5173.0
+    },
+    "label_keywords": {
+      "A_AXIS_RADIUS": "1737.4 <km>",
+      "B_AXIS_RADIUS": "1737.4 <km>",
+      "CENTER_LATITUDE": "-90.0 <deg>",
+      "CENTER_LONGITUDE": "0.0 <deg>",
+      "COORDINATE_SYSTEM_NAME": "PLANETOCENTRIC",
+      "COORDINATE_SYSTEM_TYPE": "\"BODY-FIXED ROTATING\"",
+      "C_AXIS_RADIUS": "1737.4 <km>",
+      "EASTERNMOST_LONGITUDE": "360.0 <deg>",
+      "FIRST_STANDARD_PARALLEL": "\"N/A\"",
+      "KEYWORD_LATITUDE_TYPE": "PLANETOCENTRIC",
+      "LINE_FIRST_PIXEL": "1",
+      "LINE_LAST_PIXEL": "10346",
+      "LINE_PROJECTION_OFFSET": "5173.5000000002 <pixel>",
+      "MAP_PROJECTION_ROTATION": "0.0 <deg>",
+      "MAP_PROJECTION_TYPE": "\"POLAR STEREOGRAPHIC\"",
+      "MAP_RESOLUTION": "256.0 <pix/deg>",
+      "MAP_SCALE": "0.11845058759433 <km/pix>",
+      "MAXIMUM_LATITUDE": "-70.0 <deg>",
+      "MINIMUM_LATITUDE": "-90.0 <deg>",
+      "POSITIVE_LONGITUDE_DIRECTION": "EAST",
+      "SAMPLE_FIRST_PIXEL": "1",
+      "SAMPLE_LAST_PIXEL": "10346",
+      "SAMPLE_PROJECTION_OFFSET": "5173.5000000002 <pixel>",
+      "SECOND_STANDARD_PARALLEL": "\"N/A\"",
+      "WESTERNMOST_LONGITUDE": "0.0 <deg>",
+      "^DATA_SET_MAP_PROJECTION": "\"DSMAP.CAT\""
+    },
+    "map_scale_m": 118.45058759433,
+    "pole_edge_coordinates": {
+      "col": 5173.0000000002,
+      "row": 5173.0000000002
+    },
+    "proj4": "+proj=stere +lat_0=-90.0 +lat_ts=-90.0 +lon_0=0.0 +x_0=0 +y_0=0 +R=1737400.0 +units=m +type=crs",
+    "radius_m": 1737400.0,
+    "transform": [
+      118.45058759433,
+      0.0,
+      -612744.8896254929,
+      0.0,
+      -118.45058759433,
+      612744.8896254929
+    ]
+  },
+  "range_read": {
+    "byte_ranges": [
+      [
+        215445104,
+        221073327
+      ]
+    ],
+    "bytes_received": 5628224,
+    "content_range": "bytes 215445104-221073327/428158864",
+    "content_type": "application/octet-stream",
+    "etag": "\"0dc3d17d34cd1:0\"",
+    "final_url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3cp_piu_90s000_v1.img",
+    "http_status": 206,
+    "last_modified": "Thu, 17 May 2012 22:32:56 GMT",
+    "local_path": "data/raw/minirf/lsz_xxxxx_3cp_piu_90s000_v1.img.rows",
+    "local_sha256": "7dbb2b0ede4397f1ed31fc93f2c7f4580a5efe2b7a331b7df7dc8243a5514768",
+    "note": "whole image rows are read; only the window's columns are decoded into the statistics, the other columns are stored but not used",
+    "reason": null,
+    "remote_bytes": 428158864,
+    "requested_range": "bytes=215445104-221073327",
+    "retrieved_at": "2026-11-14T21:14:48Z",
+    "status": "read",
+    "url": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/lsz_xxxxx_3cp_piu_90s000_v1.img",
+    "whole_file_downloaded": false
+  },
+  "record": "minirf_mosaic",
+  "retrieval": {
+    "command": "python -m terraluna_pipeline.pilot fetch minirf",
+    "fetch_metadata": "data/raw/minirf/fetch.json",
+    "first_retrieved_at": "2026-11-14T21:12:35Z",
+    "last_retrieved_at": "2026-11-14T21:14:48Z"
+  },
+  "source": "minirf",
+  "special_values": [
+    {
+      "keyword": "CORE_LOW_REPR_SATURATION",
+      "mask_reason": "isis_saturation",
+      "raw": "16#FF7FFFFC#",
+      "value": -3.4028228579130005e+38
+    },
+    {
+      "keyword": "CORE_LOW_INSTR_SATURATION",
+      "mask_reason": "isis_saturation",
+      "raw": "16#FF7FFFFD#",
+      "value": -3.4028230607370965e+38
+    },
+    {
+      "keyword": "CORE_HIGH_REPR_SATURATION",
+      "mask_reason": "isis_saturation",
+      "raw": "16#FF7FFFFF#",
+      "value": -3.4028234663852886e+38
+    },
+    {
+      "keyword": "CORE_HIGH_INSTR_SATURATION",
+      "mask_reason": "isis_saturation",
+      "raw": "16#FF7FFFFE#",
+      "value": -3.4028232635611926e+38
+    }
+  ],
+  "stokes_observation": {
+    "reason": "the 24 LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0 labels listed at https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/data/sar/mosaics/ describe CPR and S1 layers only: 6 S1 layers cover Site01 (lsz_04790_3s1_phu_90s000_e_v1.lbl, lsz_04790_3s1_pju_90s000_e_v1.lbl, lsz_05034_3s1_phu_90s000_w_v1.lbl, lsz_05034_3s1_pju_90s000_w_v1.lbl, lsz_xxxxx_3s1_pfu_90s000_v1.lbl, lsz_xxxxx_3s1_piu_90s000_v1.lbl), but no label describes an S4 (fourth Stokes parameter) layer, so the S4 sign cannot be observed from this mosaic. CPR is never used to infer S4. The S4-sign verdict is computed by polarimetry.lunar_s4_sign_check (T2-05) at integration, from a product with S4",
+    "status": "not_performed"
+  },
+  "tool_versions": {
+    "gdal": "3.12.2",
+    "numpy": "2.5.4",
+    "pillow": "13.0.0",
+    "proj": "9.8.1",
+    "pydantic": "2.14.3",
+    "pyproj": "3.8.0",
+    "pyshp": "3.1.8",
+    "python": "3.12.13",
+    "rasterio": "1.5.2",
+    "terraluna-pipeline": "0.1.0"
+  },
+  "transmit_handedness": {
+    "label_keywords_searched": "every keyword of the label containing POLARIZATION, HANDEDNESS, TRANSMIT",
+    "note": "PRD 15: sources disagree on the Mini-RF transmit handedness, so the ProductRecord stores what the product states; the convention is settled at G1, not assumed here",
+    "stated_by_product": "not stated",
+    "volume_documentation": [
+      {
+        "source": "https://pds-geosciences.wustl.edu/lro/lro-l-mrflro-4-cdr-v1/lromrf_0005/errata.txt",
+        "text": "The Mini-RF instrument transmits nominally left-hand circularly polarized (LCP) signals and receives linear horizontally and vertically-polarized signals."
+      }
+    ]
+  },
+  "units": {
+    "source": "the label's DESCRIPTION; the IMAGE object has no UNIT keyword",
+    "value": "dimensionless ratio: the label defines (CPR = SC / OS) and states no unit"
+  },
+  "verification": {
+    "MINIRF/LROMRF_0005/lsz_04790_3cp_phu_90s000_e_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_04790_3cp_pju_90s000_e_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_04790_3s1_phu_90s000_e_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_04790_3s1_pju_90s000_e_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_05034_3cp_phu_90s000_w_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_05034_3cp_pju_90s000_w_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_05034_3s1_phu_90s000_w_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_05034_3s1_pju_90s000_w_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_06899_3cp_phu_90n000_e_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_06899_3cp_phu_90n000_w_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_06899_3cp_pju_90n000_e_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_06899_3cp_pju_90n000_w_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_06899_3s1_phu_90n000_e_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_06899_3s1_phu_90n000_w_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_06899_3s1_pju_90n000_e_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_06899_3s1_pju_90n000_w_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_xxxxx_3cp_pfu_90n000_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_xxxxx_3cp_pfu_90s000_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_xxxxx_3cp_piu_90n000_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_xxxxx_3cp_piu_90s000_v1.img": {
+      "basis": "the Site01 window rows read by one HTTP range request (206), decoded with the label's layout and masked with quality.validity_mask; not plotted, so the PRD 5 entry rule is not complete",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_xxxxx_3cp_piu_90s000_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label; every PRD 5 layout lead is checked against it (layout_leads)",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_xxxxx_3s1_pfu_90n000_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_xxxxx_3s1_pfu_90s000_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_xxxxx_3s1_piu_90n000_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    },
+    "MINIRF/LROMRF_0005/lsz_xxxxx_3s1_piu_90s000_v1.lbl": {
+      "basis": "downloaded and read as a PDS3 label to establish the mosaic layers (mosaic_layers); its image was not read",
+      "status": "PARTIAL"
+    }
+  },
+  "volume": "LROMRF_0005",
+  "window": {
+    "converted_bounds_m": {
+      "bottom": -20000.0,
+      "left": -19000.0,
+      "right": -3000.0,
+      "top": -4000.0
+    },
+    "pixel_rule": "the smallest set of whole mosaic pixels covering the converted bounds: the low edges floored and the high edges ceiled in 0-based pixel edge coordinates",
+    "pixel_window": {
+      "col_off": 5012,
+      "height": 136,
+      "row_off": 5206,
+      "width": 136
+    },
+    "reason": null,
+    "rows": {
+      "count": 136,
+      "first": 5206,
+      "last": 5341
+    },
+    "site_extent": {
+      "crs_wkt": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+      "extent_m": {
+        "bottom": -20000.0,
+        "left": -19000.0,
+        "right": -3000.0,
+        "top": -4000.0
+      },
+      "file_name": "Site01_final_adj_5mpp_surf.tif",
+      "source": "outputs/pilot/pgda78_site01.json"
+    },
+    "status": "read",
+    "transformation": "pyproj 3.8.0 Transformer.from_crs(the site CRS WKT, the label CRS, always_xy=True).transform_bounds(densify_pts=21, errcheck=True)",
+    "window_extent_m": {
+      "bottom": -20018.149303418068,
+      "left": -19070.54460271087,
+      "right": -2961.2646898819894,
+      "top": -3908.869390589185
+    }
+  }
+}

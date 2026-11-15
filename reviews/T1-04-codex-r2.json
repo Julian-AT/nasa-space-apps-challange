@@ -1,0 +1,146 @@
+{
+  "task_id": "T1-04",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "921be8ca687e7082dc5e9fc57c45c1fe3b26704c",
+    "head": "c15e266e112788f430026822d99b73813b61c6a5",
+    "files": [
+      {
+        "path": "outputs/pilot/minirf_mosaic.json",
+        "sha256": "7ca9debe596749ff41004f89d5e0023a5ca51d0f28d25d029cefcf3ebd2833f7"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "e7a26ba97fa3f346a9368d5ca728afef6898ece921b48164c4448b78b0e96c9e"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "e2ca68a93bf7f58d296d569d6709de0ca1e27c15072575edce7cd60fca2e187f"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "40c2ee163358d1c2c2115efcf5856a23bfbba5865b56d319c4c8b7a34e8371c8"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "81dbe732d5ed794dd79518c5d0d340b1e80cb879c06b39b8249ae7078cff0848"
+      },
+      {
+        "path": "pipeline/tests/test_io_pds3.py",
+        "sha256": "fcd451fc021a88cfbf83806ad3fad5119381eaffba52aedf497a00aff8eb62f8"
+      },
+      {
+        "path": "pipeline/tests/test_io_tls.py",
+        "sha256": "74516e3024fd1b0a3656a0a98f074372e855d2a790d4249d609f32ba0d20f3f6"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_minirf.py",
+        "sha256": "4752a15f62be93607a8f9333f20f283a8ab60c79929aeecdd3d4eedcfd440b80"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "b8c7467ef1cd95e54ebcf43324f4fd22117e6d2d2e56fd772265879259a06853"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:17:49Z",
+  "finished_utc": "2026-11-14T21:23:00Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Both previous blockers have substantive fixes, and the three prior rebuttals are supported by inspection. One failure-path defect remains: a refused S4 range request discards successfully fetched Stokes bytes and their provenance. No checks were executed, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Provider discovery, label-confirmed layout and synthetic parser tests",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:2071-2103 follows the provider pages. data/raw/minirf/lsz_xxxxx_3cp_piu_90s000_v1.lbl:48-91 confirms the layout. outputs/pilot/minirf_mosaic.json:236-320 records each lead, including the absent non-positive exclusion. Synthetic parser/layout tests are present in pipeline/tests/test_io_pds3.py:148-676."
+    },
+    {
+      "criterion": "AC2: Bounded range reads, refusal handling and preservation of fetched bytes and HTTP metadata",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "io.py:533-537 refuses HTTP 200 before reading its body. However, pilot.py:2155-2171 loses earlier successful Stokes reads when a later request refuses Range; test_pilot_minirf.py:1248-1249 explicitly expects their files and metadata to be absent."
+    },
+    {
+      "criterion": "AC3: Label-derived projection, Site01 bounds, pyproj dependency and missing-extent behavior",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Implementation inspected at pilot.py:1894-1907 and :2272-2308. pyproj is declared at pipeline/pyproject.toml:13, locked at uv.lock:403-404 and installed according to .venv/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/METADATA:3. Numerical projection and missing-extent tests were not executed because the user prohibits checks in this read-only sandbox."
+    },
+    {
+      "criterion": "AC4: Required mosaic fields and valid CPR statistics",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Required fields appear in outputs/pilot/minirf_mosaic.json, including statistics at :2-23, incidence at :198-200 and range metadata at :821-844. pilot.py:3188-3219 uses quality.py and preserves empty statistics as null. Independent numerical reproduction was not executed under the user's read-only restriction."
+    },
+    {
+      "criterion": "AC5: Raw Stokes observation, coverage discovery and deferred sign verdict",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The previous Stokes-present blocker is addressed at pilot.py:2251-2270 and :2969-3037, with substantive synthetic tests at test_pilot_minirf.py:1037-1189. The saved archive has no S4 layer and records not_performed plus the open single-swath item at minirf_mosaic.json:754-758 and :880-882. Stokes numerical tests were not executed because checks are prohibited."
+    },
+    {
+      "criterion": "AC6: ProductRecords for every product read, exact fetched-byte provenance and unreachable-source failure",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pilot.py:2403-2433 now constructs records for every downloaded label and retained image read; :331-355 sorts the upsert. However, the discarded successful Stokes reads at :2155-2171 never reach these records. URL-bearing failures are handled at io.py:521-526 and pilot.py:520-522."
+    },
+    {
+      "criterion": "Prior rebuttal claude-r1-1: Preserve contradictory frequency statements",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "outputs/pilot/minirf_mosaic.json:192-196 quotes both provider statements and identifies their discrepancy without silently correcting either."
+    },
+    {
+      "criterion": "Prior rebuttal claude-r1-2: PARTIAL verification without an invented G0 pass",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:2779 sets Mini-RF records to PARTIAL; minirf_mosaic.json:988-994 distinguishes decoded rows from label inspection. config/run.yaml retains unset shipping-mode and primary-window choices."
+    },
+    {
+      "criterion": "Prior rebuttal claude-r1-3: certifi supports verified TLS",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "io.py:491-496 creates a verifying TLS context using certifi and supplies it to HTTPS requests. pipeline/tests/test_io_tls.py checks certificate verification, hostname verification and use by both fetch functions."
+    },
+    {
+      "criterion": "Required Python test suite",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user because test and dependency caches can write in the read-only sandbox."
+    },
+    {
+      "criterion": "Required Mini-RF reproduction check",
+      "command": "uv run python -m terraluna_pipeline.pilot check minirf",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user; uv may write environment or cache state."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user because the invoked tools can write caches in the read-only sandbox."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/pilot.py:2155-2171",
+      "claim": "Preserve successful Stokes reads when a later range request is refused. Currently, an S1 window successfully fetched before an S4 refusal loses its bytes, HTTP metadata and image ProductRecord, violating AC2 and AC6.",
+      "evidence": "_read_window_rows writes each successful response at :2236-2248, but files.extend(read) runs only after the entire comprehension succeeds. On a later RangeNotSupportedError, earlier entries are lost and their staged files are deleted. test_pilot_minirf.py:1238-1249 explicitly expects the successfully fetched S1 file and all Stokes metadata to disappear. Retain each successful read and its provenance while reporting the incomplete pair without paired statistics.",
+      "id": "codex-r2-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "7d6dea41384e27c8bd0ee0b75a1d29e4882d5b07",
+        "reason": "Fixed in 7d6dea41384e27c8bd0ee0b75a1d29e4882d5b07, with the failing tests first in af1b1a905f1e17052d59a99330a711d7bb0007b5. fetch now reads the S1 and S4 windows one at a time, pair by pair with S1 first, and stops at the first RangeNotSupportedError. The windows already read keep their staged .img.rows files and fetch.json stokes_window_rows entries (http_status, content_range, bytes_received, sha256, retrieved_at). fetch.json stokes then holds status range_not_supported, the reason, and refused_label_file_name. record gives each kept window an image ProductRecord with the checksum of its rows. Pairs read in full keep their raw statistics under stokes_observation.pairs, with status incomplete, or not_performed when no pair is complete. The interrupted pair is listed under pairs_not_observed: windows_read carries each kept window's provenance with no statistics and no decoding, and windows_not_read says which window was refused and which was not requested. The ProductRecord qa_definition and the verification basis say that those rows were stored but not decoded. _stokes_rows now requires exactly the windows the fetch order implies. Tests: test_a_refused_s4_range_read_keeps_the_s1_window_read_before_it (this replaces the test that expected the S1 file to be absent), test_a_refusal_keeps_the_statistics_of_the_pairs_read_before_it, test_a_refused_first_stokes_read_requests_no_other_window and test_record_refuses_a_refused_fetch_that_lacks_the_windows_read_before_it. The real LROMRF_0005 record has no S4 layer, so it does not change, and pilot check minirf still matches."
+      }
+    }
+  ]
+}

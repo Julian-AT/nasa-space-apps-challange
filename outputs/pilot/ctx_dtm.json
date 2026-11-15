@@ -1,0 +1,777 @@
+{
+  "chosen_item": {
+    "assets": {
+      "dtm": {
+        "href": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_dtm.tif",
+        "roles": [
+          "data"
+        ],
+        "title": "Digital Terrain Model",
+        "type": "image/tiff; application=geotiff; profile=cloud-optimized"
+      },
+      "image": {
+        "href": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_hillshade.tif",
+        "roles": [
+          "data",
+          "overview"
+        ],
+        "title": "Hillshade",
+        "type": "image/tiff; application=geotiff; profile=cloud-optimized"
+      },
+      "intersection_error": {
+        "href": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_intersection_error.tif",
+        "roles": [
+          "metadata"
+        ],
+        "title": "Intersection Error",
+        "type": "image/tiff; application=geotiff; profile=cloud-optimized"
+      },
+      "mola_csv": {
+        "href": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_mola_shots.csv",
+        "roles": [
+          "metadata"
+        ],
+        "title": "MOLA Spot Observations Used for initial pc-align",
+        "type": "text/plain"
+      },
+      "orthoimage": {
+        "href": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_orthoimage.tif",
+        "roles": [
+          "data"
+        ],
+        "title": "Orthoimage",
+        "type": "image/tiff; application=geotiff; profile=cloud-optimized"
+      },
+      "qa_metrics": {
+        "href": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/qa_metrics.txt",
+        "roles": [
+          "metadata"
+        ],
+        "title": "ASP Generated Quality Assurance Metrics",
+        "type": "text/plain"
+      },
+      "thumbnail": {
+        "href": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W.jpg",
+        "roles": [
+          "thumbnail"
+        ],
+        "title": "Thumbnail",
+        "type": "image/jpeg"
+      }
+    },
+    "bbox": [
+      76.9895439116402,
+      17.088409488045727,
+      77.65239386090751,
+      18.26400976651276
+    ],
+    "collection": "mro_ctx_controlled_usgs_dtms",
+    "found_on_page": 1,
+    "item_id": "B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W",
+    "probe": "jezero",
+    "properties": {
+      "datetime": "2023-04-18T12:00:00Z",
+      "end_datetime": "2023-04-18T12:00:00.000000Z",
+      "gsd": 20.222886568424517,
+      "license": "CC0-1.0",
+      "proj:shape": [
+        3417,
+        1911
+      ],
+      "start_datetime": "2023-04-18T12:00:00.000000Z",
+      "title": "DTM: B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W"
+    },
+    "rule": "the lexicographically first item ID (Python string order, by code point) among the items the Jezero probe search returned over all its pages"
+  },
+  "collection": {
+    "citation": {
+      "stated_by": "https://stac.astrogeology.usgs.gov/api/collections/mro_ctx_controlled_usgs_dtms (sci:citation)",
+      "value": "Laura, J.R., Adoram-Kershner, L.A., Meyer, D.P., Wheeler, B.H., Bauck, K.H. and Fergason, R.L., 2023. Mars Reconnaissance Orbiter (MRO) Context Camera (CTX) orthoimage generated using Ames stereo pipeline derived digital terrain models. https://doi.org/10.5066/P9JKVWR3"
+    },
+    "cite_as": "https://doi.org/10.5066/P9JKVWR3",
+    "doi": {
+      "stated_by": "https://stac.astrogeology.usgs.gov/api/collections/mro_ctx_controlled_usgs_dtms (sci:doi)",
+      "value": "10.5066/P9JKVWR3"
+    },
+    "id": "mro_ctx_controlled_usgs_dtms",
+    "license": {
+      "stated_by": "https://stac.astrogeology.usgs.gov/api/collections/mro_ctx_controlled_usgs_dtms (license)",
+      "value": "CC0-1.0"
+    },
+    "local_path": "data/raw/ctx/stac_collection.json",
+    "providers": [
+      {
+        "name": "NASA",
+        "roles": [
+          "producer"
+        ],
+        "url": "https://mars.nasa.gov/mro/mission/instruments/hirise/"
+      },
+      {
+        "name": "USGS",
+        "roles": [
+          "processor",
+          "host"
+        ],
+        "url": "https://www.usgs.gov/centers/astrogeology-science-center"
+      }
+    ],
+    "sha256": "38b8d386f905952480256b8da3bad923480b431fd1da2f358e3b3cdd85cf4668",
+    "stated_id": "mro_ctx_controlled_usgs_dtms",
+    "title": "Mars Reconnaissance Orbiter (MRO) Context Camera (CTX) Digital Terrain Models (DTMs)",
+    "url": "https://stac.astrogeology.usgs.gov/api/collections/mro_ctx_controlled_usgs_dtms"
+  },
+  "description": "One USGS ASP CTX DTM found through the Astrogeology STAC API and read by window, with its qa_metrics.txt, as fetched by the T1 pilot (PRD 5 Mars inputs; 9 G0, one Mars CTX DTM read). Raw observations only: no CTX QA threshold is applied (PRD 15), no target window is chosen, and the shipping mode and the G0 status are a human checkpoint (PRD 23.6) and are not recorded here.",
+  "documents": [
+    {
+      "bytes_received": 4529,
+      "content_type": "application/json; charset=utf-8",
+      "file_name": "stac_collection.json",
+      "final_url": "https://stac.astrogeology.usgs.gov/api/collections/mro_ctx_controlled_usgs_dtms",
+      "http_status": 200,
+      "last_modified": null,
+      "local_path": "data/raw/ctx/stac_collection.json",
+      "retrieved_at": "2026-11-14T22:01:40Z",
+      "role": "collection",
+      "sha256": "38b8d386f905952480256b8da3bad923480b431fd1da2f358e3b3cdd85cf4668",
+      "url": "https://stac.astrogeology.usgs.gov/api/collections/mro_ctx_controlled_usgs_dtms"
+    },
+    {
+      "bytes_received": 159216,
+      "content_type": "text/html",
+      "file_name": "ctxdtms_documentation.html",
+      "final_url": "https://stac.astrogeology.usgs.gov/docs/data/mars/ctxdtms/",
+      "http_status": 200,
+      "last_modified": "Wed, 12 Aug 2026 15:50:59 GMT",
+      "local_path": "data/raw/ctx/ctxdtms_documentation.html",
+      "retrieved_at": "2026-11-14T22:01:41Z",
+      "role": "documentation",
+      "sha256": "97d92fa81cc493d018828ac75d1ae702193deb54ee6a38a396616b62b62b2d6d",
+      "url": "https://stac.astrogeology.usgs.gov/docs/data/mars/ctxdtms/"
+    },
+    {
+      "bytes_received": 172884,
+      "content_type": "text/html",
+      "file_name": "usgs_tutorial_mosaic_json.html",
+      "final_url": "https://stac.astrogeology.usgs.gov/docs/tutorials/mosaic_json/",
+      "http_status": 200,
+      "last_modified": "Wed, 12 Aug 2026 15:51:43 GMT",
+      "local_path": "data/raw/ctx/usgs_tutorial_mosaic_json.html",
+      "retrieved_at": "2026-11-14T22:01:41Z",
+      "role": "jezero_box_basis",
+      "sha256": "097d482dfc004f639e1ffc7450187bff2fb65d58a8fcd565c8891bd0924237d6",
+      "url": "https://stac.astrogeology.usgs.gov/docs/tutorials/mosaic_json/"
+    },
+    {
+      "bytes_received": 48527,
+      "content_type": "text/html; charset=utf-8",
+      "file_name": "iau_gazetteer_arcadia_planitia.html",
+      "final_url": "https://planetarynames.wr.usgs.gov/Feature/348",
+      "http_status": 200,
+      "last_modified": null,
+      "local_path": "data/raw/ctx/iau_gazetteer_arcadia_planitia.html",
+      "retrieved_at": "2026-11-14T22:01:41Z",
+      "role": "arcadia_box_basis",
+      "sha256": "b160ec01ade324b41d489dd9b18fe090ac95a5e856c2052cbe66405dc2e955e0",
+      "url": "https://planetarynames.wr.usgs.gov/Feature/348"
+    }
+  ],
+  "dtm": {
+    "asset_key": "dtm",
+    "band": 1,
+    "final_url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_dtm.tif",
+    "header": {
+      "block_shapes": [
+        [
+          512,
+          512
+        ]
+      ],
+      "count": 1,
+      "crs_wkt": "PROJCS[\"Mars (2015) - Sphere / Ocentric / Equirectangular, clon = 0\",GEOGCS[\"Mars (2015) - Sphere / Ocentric\",DATUM[\"Mars (2015) - Sphere\",SPHEROID[\"Mars (2015) - Sphere\",3396190,0,AUTHORITY[\"IAU\",\"49900\"]],AUTHORITY[\"IAU\",\"49900\"]],PRIMEM[\"Reference Meridian\",0,AUTHORITY[\"IAU\",\"49900\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"IAU\",\"49900\"]],PROJECTION[\"Equirectangular\"],PARAMETER[\"standard_parallel_1\",0],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"IAU\",\"49910\"]]",
+      "descriptions": [
+        null
+      ],
+      "dtypes": [
+        "float32"
+      ],
+      "height": 3417,
+      "image_structure": {
+        "COMPRESSION": "DEFLATE",
+        "INTERLEAVE": "BAND",
+        "LAYOUT": "COG",
+        "PREDICTOR": "3"
+      },
+      "nodata": [
+        -32767.0
+      ],
+      "offsets": [
+        0.0
+      ],
+      "overviews": [
+        2,
+        4,
+        8,
+        16,
+        32,
+        64
+      ],
+      "pixel_size": {
+        "unit": "metre",
+        "x": 20.222886568424517,
+        "y": 20.222886568424517
+      },
+      "scales": [
+        1.0
+      ],
+      "tags": {
+        "AREA_OR_POINT": "Area",
+        "GEOID": "mola"
+      },
+      "transform": [
+        20.222886568424517,
+        0.0,
+        4563975.7951930165,
+        0.0,
+        -20.222886568424517,
+        1082444.2816282432
+      ],
+      "units": [
+        null
+      ],
+      "width": 1911
+    },
+    "item_id": "B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W",
+    "nodata_stated_by_file": -32767.0,
+    "product_id": "CTX/mro_ctx_controlled_usgs_dtms/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_dtm.tif",
+    "provider_file_name": "B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_dtm.tif",
+    "range_read": {
+      "bytes_received": 1835008,
+      "content_type": "image/tiff",
+      "etag": "\"c8ca1badd20792488c18ab580cc93eac-2\"",
+      "exchanges": [
+        {
+          "bytes_received": 262144,
+          "content_range": "bytes 0-262143/14245180",
+          "http_status": 206,
+          "requested_range": "bytes=0-262143",
+          "retrieved_at": "2026-11-14T22:01:48Z"
+        },
+        {
+          "bytes_received": 786432,
+          "content_range": "bytes 8650752-9437183/14245180",
+          "http_status": 206,
+          "requested_range": "bytes=8650752-9437183",
+          "retrieved_at": "2026-11-14T22:01:49Z"
+        },
+        {
+          "bytes_received": 786432,
+          "content_range": "bytes 9437184-10223615/14245180",
+          "http_status": 206,
+          "requested_range": "bytes=9437184-10223615",
+          "retrieved_at": "2026-11-14T22:01:51Z"
+        }
+      ],
+      "final_url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_dtm.tif",
+      "http_status": 206,
+      "last_modified": "Sun, 14 May 2023 02:28:23 GMT",
+      "local_path": "data/raw/ctx/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_dtm.tif.ranges",
+      "local_sha256": "48da86cb5bb5e8c734c4b080213a2ce35cca088328620bcd9130a2661bed583c",
+      "range_requests": 3,
+      "ranges": [
+        [
+          0,
+          262143
+        ],
+        [
+          8650752,
+          10223615
+        ]
+      ],
+      "remote_bytes": 14245180,
+      "retrieved_at": "2026-11-14T22:01:51Z",
+      "sha256_note": "the whole file was not downloaded, so its SHA-256 is unknown; local_sha256 is that of the byte ranges held in local_path (COG header and window tiles)",
+      "url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_dtm.tif",
+      "whole_file_downloaded": false
+    },
+    "stac_raster_band": {
+      "data_type": "float32",
+      "matches_file": true,
+      "nodata": -32767
+    },
+    "units_stated_by_file": null,
+    "url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_dtm.tif",
+    "valid": {
+      "invalid_by_reason": {
+        "isis_saturation": 0,
+        "nodata": 0,
+        "non_finite": 0,
+        "outside_support": 0
+      },
+      "invalid_pixels": 0,
+      "max_stored_valid": -2090.11083984375,
+      "method": "quality.validity_mask(window, nodata=the file's nodata) and quality.valid_fraction",
+      "min_stored_valid": -2549.09228515625,
+      "total_pixels": 65536,
+      "valid_fraction": 1.0,
+      "valid_pixels": 65536
+    },
+    "vertical_reference": {
+      "documentation": "https://stac.astrogeology.usgs.gov/docs/data/mars/ctxdtms/",
+      "documentation_quote": "Each CTX DTM gives elevation values above or below the Mars geoid (referred to as the areoid) and is presented in a simple cylindrical projection.",
+      "geoid_tag": "mola"
+    },
+    "window": {
+      "col_off": 827,
+      "height": 256,
+      "row_off": 1580,
+      "width": 256
+    }
+  },
+  "field_notes": {
+    "acquisition_time": "unknown: the STAC item gives start_datetime and end_datetime (chosen_item.properties) without defining them as the CTX image acquisition times",
+    "crs_and_frame": "the WKT the COG states; the STAC item's proj:wkt2 is not used for the record",
+    "effective_resolution": "unknown: neither the STAC item nor the file states one for this DTM",
+    "probe_boxes": "the probe boxes count CTX DTM coverage for G0; they are not target windows and set nothing in config/run.yaml",
+    "units": "the DTM COG states no band units, so its ProductRecord units are unknown; qa_metrics.txt states its differences in the unit it writes after each value",
+    "version": "unknown: neither the STAC collection nor the item states a version"
+  },
+  "open_g0_items": [
+    "G0 needs the Mars target windows (Jezero near the landing site, Arcadia Planitia inside the shallow-ice region); none is chosen here (PRD 5, 15)",
+    "The CTX QA threshold is not set (PRD 15); qa_metrics.txt is quoted, not judged",
+    "The G0 status and the shipping mode are a human checkpoint (PRD 23.6)"
+  ],
+  "probes": [
+    {
+      "basis": {
+        "confirmed": true,
+        "document": "https://stac.astrogeology.usgs.gov/docs/tutorials/mosaic_json/",
+        "local_path": "data/raw/ctx/usgs_tutorial_mosaic_json.html",
+        "quotes": [
+          "stac-client search https://stac.astrogeology.usgs.gov/api/ --bbox 76.69 17.41 78.69 19.41 -c mro_ctx_controlled_usgs_dtms --matched",
+          "Jezero is located at Longitude Latitude 77.69 E, 18.41 N in mc13"
+        ],
+        "text": "the 2-degree box that the USGS STAC tutorial 'mosaic_json' searches for Jezero crater with stac-client --bbox, around the location it states"
+      },
+      "bbox": [
+        76.69,
+        17.41,
+        78.69,
+        19.41
+      ],
+      "bbox_crosses_antimeridian": false,
+      "bbox_order": "west, south, east, north in degrees (STAC API bbox)",
+      "key": "jezero",
+      "name": "Jezero crater",
+      "role": "pilot probe of CTX DTM coverage for G0; not a target window (the Jezero and Arcadia Planitia target windows are frozen at G0 by the team, PRD 5 and 15)",
+      "search": {
+        "collection": "mro_ctx_controlled_usgs_dtms",
+        "duplicate_item_ids": [],
+        "first_url": "https://stac.astrogeology.usgs.gov/api/search?collections=mro_ctx_controlled_usgs_dtms&bbox=76.69%2C17.41%2C78.69%2C19.41&limit=100",
+        "item_ids": [
+          "B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W",
+          "B18_016509_1978_XN_17N282W__B18_016575_1978_XN_17N282W",
+          "B18_016720_1978_XN_17N283W__B18_016786_1978_XN_17N283W",
+          "B19_016931_1975_XN_17N283W__B19_017076_1975_XN_17N282W",
+          "B20_017498_1977_XN_17N283W__G01_018566_1978_XN_17N283W",
+          "B22_018065_1976_XN_17N283W__G02_019133_1977_XN_17N283W",
+          "B22_018210_1978_XN_17N283W__D19_034772_1978_XN_17N283W",
+          "D05_029036_1971_XI_17N281W__D04_028970_1971_XI_17N281W",
+          "D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W",
+          "D14_032794_1989_XN_18N282W__D15_033216_1989_XN_18N282W",
+          "D15_033150_1983_XN_18N281W__F17_042328_1984_XN_18N281W",
+          "D17_033717_1987_XN_18N281W__D16_033651_1987_XN_18N281W",
+          "D19_034495_1988_XN_18N282W__D20_035141_1987_XN_18N282W",
+          "D22_035629_1987_XN_18N282W__D21_035563_1987_XN_18N282W",
+          "F02_036618_1985_XN_18N282W__F03_037119_2001_XN_20N283W",
+          "F03_036829_1977_XN_17N283W__F03_037040_1994_XN_19N283W",
+          "F03_036974_2011_XI_21N281W__F05_037686_2011_XI_21N281W",
+          "F04_037396_1985_XN_18N282W__F17_042315_1986_XN_18N282W",
+          "F05_037752_2008_XN_20N282W__F05_037607_2008_XN_20N282W",
+          "F05_037818_1977_XN_17N282W__F04_037330_2008_XN_20N282W",
+          "F06_038029_1971_XN_17N283W__J04_046271_1983_XN_18N283W",
+          "F09_039203_1984_XN_18N282W__F09_039348_1984_XN_18N282W",
+          "F09_039414_1959_XN_15N283W__F10_039770_1959_XN_15N283W",
+          "F13_040970_1974_XN_17N282W__F13_040904_1974_XN_17N282W",
+          "F16_041893_1974_XN_17N283W__F14_041115_1974_XN_17N283W",
+          "F20_043739_1976_XN_17N283W__F21_043884_1976_XN_17N283W",
+          "F22_044517_1988_XI_18N281W__F23_044873_1988_XN_18N281W",
+          "G09_021612_1972_XN_17N283W__G09_021757_1972_XN_17N283W",
+          "G12_022746_1976_XN_17N282W__G11_022680_1976_XN_17N282W",
+          "G13_023102_1986_XN_18N282W__G13_023168_1986_XN_18N282W",
+          "G14_023524_1985_XN_18N282W__G13_023379_1985_XN_18N282W",
+          "G16_024513_1991_XN_19N283W__G18_025370_1981_XN_18N283W",
+          "G21_026280_1976_XN_17N283W__D02_027902_1975_XN_17N283W",
+          "G23_027269_1970_XN_17N283W__F18_042671_1963_XN_16N283W",
+          "J03_045994_1986_XN_18N282W__J03_046060_1986_XN_18N282W",
+          "J04_046350_1987_XN_18N281W__J03_045928_1987_XI_18N281W",
+          "J10_048631_1988_XN_18N281W__J12_049343_1988_XN_18N281W",
+          "J10_048842_1986_XN_18N282W__J11_048908_1986_XN_18N282W",
+          "J11_049053_1980_XN_18N282W__J11_049119_1982_XN_18N282W",
+          "J11_049264_1982_XN_18N283W__J12_049330_1982_XN_18N283W",
+          "J13_049752_1980_XN_18N283W__J13_050042_1981_XN_18N282W",
+          "J13_049897_1980_XN_18N283W__J12_049330_1982_XN_18N283W",
+          "J19_052165_1975_XN_17N283W__J19_052231_1974_XN_17N283W",
+          "J20_052521_1984_XN_18N282W__J20_052455_1984_XN_18N282W",
+          "J21_053022_1984_XN_18N282W__J21_053167_1984_XN_18N282W",
+          "J22_053378_1984_XN_18N282W__J22_053312_1984_XN_18N282W",
+          "K01_053589_1983_XN_18N283W__K01_053655_1983_XN_18N283W",
+          "K01_053734_1984_XN_18N282W__K05_055145_1985_XN_18N282W",
+          "K01_053800_1983_XN_18N283W__J22_053299_1983_XN_18N283W",
+          "K01_053945_1984_XN_18N282W__K01_053879_1984_XN_18N282W",
+          "K06_055567_1983_XN_18N283W__K05_055501_1983_XN_18N283W",
+          "K12_057928_1978_XN_17N282W__K12_058073_1978_XN_17N282W",
+          "K13_058429_1983_XN_18N283W__K12_058139_1983_XN_18N283W",
+          "K13_058574_1983_XN_18N282W__K13_058640_1983_XN_18N282W",
+          "K14_058996_1985_XN_18N282W__K14_058930_1986_XN_18N282W",
+          "K17_060130_1985_XN_18N282W__K18_060275_1985_XN_18N282W",
+          "K17_060196_1985_XN_18N282W__K18_060486_1984_XN_18N282W",
+          "K18_060341_1985_XN_18N282W__K18_060407_1984_XN_18N282W",
+          "K19_060763_1986_XN_18N282W__K19_060697_1985_XN_18N282W",
+          "K19_060829_1986_XN_18N283W__K22_062161_1987_XN_18N282W",
+          "K20_061185_1986_XN_18N283W__K19_060908_1985_XN_18N283W",
+          "K21_061607_1988_XN_18N283W__K19_060829_1986_XN_18N283W",
+          "K21_061673_1987_XN_18N283W__K21_061739_1987_XN_18N283W",
+          "K22_062029_1988_XN_18N282W__K22_061963_1988_XN_18N282W",
+          "K22_062095_1988_XN_18N282W__K22_061950_1988_XN_18N282W",
+          "K23_062240_1985_XN_18N283W__K23_062174_1986_XN_18N283W",
+          "K23_062385_1988_XN_18N282W__K23_062451_1988_XN_18N282W",
+          "K23_062530_1986_XN_18N282W__K23_062319_1986_XN_18N282W",
+          "N01_062741_1988_XN_18N282W__N03_063387_1988_XN_18N282W",
+          "N01_062886_1988_XN_18N282W__N02_063308_1988_XN_18N282W",
+          "N01_062952_1988_XN_18N282W__N01_062662_1988_XN_18N282W",
+          "N02_063242_1988_XN_18N283W__N03_063532_1988_XN_18N283W",
+          "N03_063453_1982_XN_18N282W__N03_063519_1982_XN_18N282W",
+          "N04_063809_1982_XN_18N282W__N05_064231_1982_XN_18N282W",
+          "N04_064020_1983_XN_18N283W__N04_063954_1982_XN_18N283W",
+          "N09_065774_1988_XN_18N283W__N10_066196_1987_XN_18N283W",
+          "N15_068162_1984_XN_18N283W__N12_067159_1988_XN_18N283W",
+          "P02_001820_1984_XI_18N282W__P06_003442_1987_XI_18N282W",
+          "P05_002809_1975_XI_17N283W__P13_006000_1974_XI_17N283W",
+          "P18_007925_1987_XN_18N282W__P19_008650_1987_XI_18N282W"
+        ],
+        "items_found": 80,
+        "items_found_note": "distinct item IDs over every page, counted from the saved pages; number_matched_stated lists the numberMatched values the pages state",
+        "limit": 100,
+        "number_matched_stated": [
+          80
+        ],
+        "pages": [
+          {
+            "bytes_received": 807708,
+            "content_type": "application/geo+json; charset=utf-8",
+            "final_url": "https://stac.astrogeology.usgs.gov/api/search?collections=mro_ctx_controlled_usgs_dtms&bbox=76.69%2C17.41%2C78.69%2C19.41&limit=100",
+            "http_status": 200,
+            "local_path": "data/raw/ctx/stac_search_jezero_page001.json",
+            "next_url": "https://g6goyz4w56.execute-api.us-west-2.amazonaws.com/prod/search?collections=mro_ctx_controlled_usgs_dtms&bbox=76.69%2C17.41%2C78.69%2C19.41&limit=100&next=2023-04-18T12%3A00%3A00Z%2CB17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W%2Cmro_ctx_controlled_usgs_dtms",
+            "number": 1,
+            "number_matched_stated": 80,
+            "number_returned": 80,
+            "retrieved_at": "2026-11-14T22:01:43Z",
+            "sha256": "efcc4e87cd18749d51db32d2c86d2b3134d2473cea1f0b0a6e8ef31533c888e9",
+            "url": "https://stac.astrogeology.usgs.gov/api/search?collections=mro_ctx_controlled_usgs_dtms&bbox=76.69%2C17.41%2C78.69%2C19.41&limit=100"
+          },
+          {
+            "bytes_received": 200,
+            "content_type": "application/geo+json; charset=utf-8",
+            "final_url": "https://g6goyz4w56.execute-api.us-west-2.amazonaws.com/prod/search?collections=mro_ctx_controlled_usgs_dtms&bbox=76.69%2C17.41%2C78.69%2C19.41&limit=100&next=2023-04-18T12%3A00%3A00Z%2CB17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W%2Cmro_ctx_controlled_usgs_dtms",
+            "http_status": 200,
+            "local_path": "data/raw/ctx/stac_search_jezero_page002.json",
+            "next_url": null,
+            "number": 2,
+            "number_matched_stated": 80,
+            "number_returned": 0,
+            "retrieved_at": "2026-11-14T22:01:43Z",
+            "sha256": "ec38f0b79a0e9fc9adb65fc98fd8bfe88a66abc3e9a7e3674db8ad74c048d272",
+            "url": "https://g6goyz4w56.execute-api.us-west-2.amazonaws.com/prod/search?collections=mro_ctx_controlled_usgs_dtms&bbox=76.69%2C17.41%2C78.69%2C19.41&limit=100&next=2023-04-18T12%3A00%3A00Z%2CB17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W%2Cmro_ctx_controlled_usgs_dtms"
+          }
+        ]
+      }
+    },
+    {
+      "basis": {
+        "confirmed": true,
+        "document": "https://planetarynames.wr.usgs.gov/Feature/348",
+        "local_path": "data/raw/ctx/iau_gazetteer_arcadia_planitia.html",
+        "stated": {
+          "control_network": "MDIM 2.1",
+          "control_network_id": "25330",
+          "coordinate_system": "Planetocentric, +East, 0 - 360",
+          "coordinate_system_id": "6",
+          "eastmost_longitude": "210.43",
+          "northmost_latitude": "64.17",
+          "southmost_latitude": "33.87",
+          "westmost_longitude": "165.86"
+        },
+        "text": "the extent of Arcadia Planitia in the IAU Gazetteer of Planetary Nomenclature (Feature 348) for the control network and coordinate system the page selects, with the east longitude taken from 0-360 to -180-180; west greater than east crosses the antimeridian (RFC 7946 5.2)"
+      },
+      "bbox": [
+        165.86,
+        33.87,
+        -149.57,
+        64.17
+      ],
+      "bbox_crosses_antimeridian": true,
+      "bbox_order": "west, south, east, north in degrees (STAC API bbox)",
+      "key": "arcadia_planitia",
+      "name": "Arcadia Planitia",
+      "role": "pilot probe of CTX DTM coverage for G0; not a target window (the Jezero and Arcadia Planitia target windows are frozen at G0 by the team, PRD 5 and 15)",
+      "search": {
+        "collection": "mro_ctx_controlled_usgs_dtms",
+        "duplicate_item_ids": [],
+        "first_url": "https://stac.astrogeology.usgs.gov/api/search?collections=mro_ctx_controlled_usgs_dtms&bbox=165.86%2C33.87%2C-149.57%2C64.17&limit=100",
+        "item_ids": [
+          "B02_010334_2266_XN_46N183W__B01_010189_2282_XN_48N183W",
+          "B02_010611_2208_XN_40N184W__G23_027173_2212_XN_41N184W",
+          "B18_016492_2175_XN_37N181W__B19_017125_2173_XN_37N181W",
+          "B18_016650_2206_XN_40N174W__D21_035427_2205_XN_40N174W",
+          "B19_016874_2241_XN_44N171W__G01_018786_2264_XN_46N171W",
+          "B19_016874_2241_XN_44N171W__G16_024522_2264_XN_46N171W",
+          "B19_016980_2359_XN_55N188W__B20_017257_2358_XN_55N188W",
+          "B19_017006_2124_XN_32N173W__D22_035704_2143_XN_34N173W",
+          "B20_017454_2409_XN_60N170W__F02_036706_2409_XN_60N170W",
+          "B20_017480_2355_XN_55N159W__B21_017968_2355_XN_55N159W",
+          "B20_017573_2124_XI_32N173W__D22_035704_2143_XN_34N173W",
+          "B21_017784_2164_XN_36N175W__B22_018272_2183_XN_38N175W",
+          "B21_017903_2196_XN_39N185W__B20_017613_2190_XN_39N185W",
+          "B21_018008_2289_XN_48N171W__B20_017586_2271_XN_47N171W",
+          "D02_027937_2350_XN_55N163W__G01_018746_2348_XI_54N163W",
+          "D02_028016_2257_XN_45N158W__G17_024917_2257_XN_45N158W",
+          "D02_028056_2263_XN_46N171W__G01_018786_2264_XN_46N171W",
+          "D02_028056_2263_XN_46N171W__G16_024522_2264_XN_46N171W",
+          "D02_028162_2313_XN_51N185W__D02_028083_2313_XN_51N185W",
+          "D03_028201_2296_XN_49N170W__G03_019287_2283_XI_48N170W",
+          "D04_028676_2183_XN_38N174W__K02_054152_2183_XN_38N174W",
+          "D04_028795_2302_XN_50N185W__F03_037155_2303_XN_50N185W",
+          "D15_032921_2372_XN_57N155W__D15_033145_2372_XN_57N155W",
+          "D15_033053_2242_XN_44N157W__D16_033330_2242_XN_44N157W",
+          "D15_033066_2231_XN_43N151W__D16_033501_2231_XN_43N151W",
+          "D15_033132_2202_XN_40N153W__D15_033211_2202_XN_40N153W",
+          "D15_033146_2247_XN_44N176W__D15_033225_2247_XN_44N176W",
+          "D15_033172_2265_XN_46N166W__D16_033594_2263_XN_46N166W",
+          "D16_033277_2212_XN_41N152W__D16_033554_2212_XN_41N152W",
+          "D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W",
+          "D16_033410_2299_XN_49N186W__D17_033898_2299_XN_49N186W",
+          "D17_033739_2291_XN_49N167W__D18_034293_2290_XN_49N167W",
+          "D17_033779_2307_XN_50N179W__D18_034069_2307_XN_50N179W",
+          "D17_033805_2282_XN_48N168W__D18_034095_2282_XN_48N168W",
+          "D17_033818_2228_XN_42N162W__D17_033963_2228_XN_42N162W",
+          "D17_033950_2275_XN_47N166W__D18_034240_2275_XN_47N166W",
+          "D18_034055_2266_XN_46N154W__D18_034134_2266_XN_46N154W",
+          "D18_034082_2261_XN_46N171W__D15_033014_2261_XN_46N171W",
+          "D18_034108_2245_XN_44N160W__D18_034174_2244_XN_44N160W",
+          "D18_034161_2272_XN_47N167W__D19_034649_2271_XN_47N167W",
+          "D18_034187_2276_XN_47N156W__D19_034622_2276_XN_47N156W",
+          "D18_034200_2333_XN_53N154W__D18_034266_2333_XN_53N154W",
+          "D18_034253_2231_XN_43N158W__D20_034899_2231_XN_43N158W",
+          "D18_034319_2260_XN_46N161W__D19_034754_2260_XN_46N161W",
+          "D18_034332_2265_XN_46N156W__D20_035110_2249_XN_44N156W",
+          "D19_034504_2305_XN_50N173W__D19_034636_2305_XN_50N173W",
+          "D19_034767_2333_XN_53N154W__D20_035057_2333_XN_53N154W",
+          "D20_034979_2311_XN_51N183W__D21_035256_2311_XN_51N183W",
+          "D20_035005_2329_XN_52N171W__D20_035084_2329_XN_52N171W",
+          "D20_035189_2241_XN_44N153W__D22_035690_2241_XN_44N153W",
+          "D21_035334_2359_XN_55N154W__F01_036257_2331_XN_53N153W",
+          "D21_035532_2183_XN_38N157W__D22_035809_2177_XN_37N157W",
+          "D21_035545_2290_XN_49N153W__F02_036455_2294_XN_49N153W",
+          "D21_035585_2277_XN_47N166W__F02_036495_2277_XN_47N166W",
+          "D22_035651_2203_XN_40N166W__F03_036917_2216_XN_41N166W",
+          "D22_035664_2233_XN_43N162W__F01_036363_2232_XN_43N162W",
+          "D22_035862_2182_XN_38N167W__D22_035928_2192_XN_39N167W",
+          "D22_035981_2253_XN_45N176W__F01_036337_2234_XN_43N175W",
+          "F04_037247_2156_XN_35N178W__N03_063726_2147_XI_34N178W",
+          "F04_037352_2254_XN_45N166W__F04_037418_2254_XN_45N166W",
+          "F06_038143_2203_XI_40N157W__K06_055536_2187_XN_38N157W",
+          "F13_040794_2186_XN_38N160W__F14_041071_2186_XN_38N160W",
+          "F14_041348_2223_XN_42N165W__B16_015898_2235_XN_43N166W",
+          "F16_041888_2271_XN_47N151W__F16_041954_2271_XN_47N151W",
+          "F17_042376_2306_XN_50N156W__F22_044222_2299_XN_49N155W",
+          "F18_042930_2210_XN_41N158W__F19_043220_2210_XN_41N158W",
+          "F18_042931_2313_XN_51N188W__F19_043208_2313_XN_51N188W",
+          "F18_042996_2208_XN_40N162W__F19_043273_2208_XN_40N162W",
+          "F19_043102_2275_XN_47N177W__F19_043036_2275_XN_47N176W",
+          "F19_043260_2265_XN_46N170W__F21_043972_2265_XN_46N170W",
+          "F21_043932_2242_XN_44N155W__G20_025906_2242_XN_44N155W",
+          "F23_044724_2261_XN_46N176W__F23_044869_2261_XN_46N176W",
+          "G01_018522_2275_XI_47N165W__G02_019010_2269_XN_46N165W",
+          "G01_018548_2120_XN_32N152W__P16_007195_2145_XN_34N152W",
+          "G02_018970_2121_XN_32N153W__G20_025906_2119_XN_31N154W",
+          "G03_019458_2123_XN_32N157W__K20_061154_2149_XN_34N158W",
+          "G03_019498_2264_XN_46N171W__G16_024522_2264_XN_46N171W",
+          "G03_019590_2280_XI_48N163W__G05_020078_2267_XN_46N163W",
+          "G04_019604_2361_XN_56N188W__G03_019380_2361_XN_56N188W",
+          "G06_020526_2118_XN_31N154W__G20_025906_2119_XN_31N154W",
+          "G17_024983_2155_XN_35N158W__D02_028082_2155_XN_35N158W",
+          "G17_024983_2155_XN_35N158W__K20_061154_2149_XN_34N158W",
+          "G18_025115_2217_XN_41N161W__G19_025616_2217_XN_41N161W",
+          "G18_025195_2320_XN_52N188W__G18_025116_2320_XN_52N188W",
+          "G18_025366_2305_XN_50N175W__G19_025498_2305_XN_50N175W",
+          "G19_025497_2352_XN_55N153W__G18_025352_2352_XN_55N153W",
+          "G19_025656_2264_XN_46N171W__G20_025933_2264_XN_46N171W",
+          "G19_025775_2291_XN_49N182W__G20_026065_2291_XN_49N182W",
+          "G19_025788_2199_XN_39N174W__G20_025867_2199_XN_39N174W",
+          "G19_025801_2184_XN_38N168W__G19_025735_2184_XN_38N168W",
+          "G19_025840_2248_XI_44N155W__D19_034543_2242_XN_44N155W",
+          "G19_025840_2248_XI_44N155W__F01_036165_2238_XN_43N155W",
+          "G19_025840_2248_XI_44N155W__G20_025906_2242_XN_44N155W",
+          "G19_025840_2248_XI_44N155W__G21_026473_2242_XN_44N155W",
+          "G20_025906_2242_XN_44N155W__F01_036165_2238_XN_43N155W",
+          "G20_025906_2242_XN_44N155W__F19_043299_2242_XN_44N155W",
+          "G20_025985_2161_XN_36N152W__G20_026051_2161_XN_36N152W",
+          "G21_026619_2289_XN_48N183W__G23_027107_2286_XN_48N183W",
+          "G23_027027_2326_XN_52N162W__G23_027370_2326_XN_52N163W",
+          "G23_027331_2136_XN_33N177W__G22_026975_2137_XN_33N177W",
+          "J03_045989_2363_XN_56N151W__J04_046213_2364_XN_56N151W",
+          "J13_050011_2210_XN_41N158W__J14_050077_2210_XN_41N158W",
+          "J16_050868_2201_XN_40N157W__J16_050934_2201_XN_40N157W",
+          "J18_051857_2208_XN_40N157W__J18_051923_2208_XN_40N157W",
+          "J19_052068_2201_XN_40N158W__J20_052701_2200_XN_40N158W",
+          "J19_052134_2210_XN_41N158W__J19_052358_2210_XN_41N158W",
+          "J19_052279_2209_XN_40N159W__J19_052345_2209_XN_40N159W",
+          "J20_052424_2201_XN_40N158W__J20_052490_2201_XN_40N158W",
+          "J20_052582_2308_XN_50N153W__J21_053004_2308_XN_50N153W",
+          "J21_052925_2196_XN_39N156W__J21_052859_2196_XN_39N156W",
+          "J21_053070_2202_XN_40N157W__J22_053202_2204_XN_40N157W",
+          "J21_053136_2223_XN_42N159W__J21_053057_2223_XN_42N159W",
+          "K01_053638_2296_XN_49N184W__K02_054139_2296_XN_49N184W",
+          "K01_053782_2242_XN_44N155W__G19_025840_2248_XI_44N155W",
+          "K02_054007_2324_XN_52N181W__K02_054086_2324_XN_52N181W",
+          "K05_055378_2174_XN_37N166W__K05_055444_2174_XN_37N166W",
+          "K18_060376_2195_XN_39N163W__K19_060732_2195_XN_39N163W",
+          "K18_060429_2201_XN_40N168W__K18_060363_2201_XN_40N168W",
+          "K19_060706_2194_XN_39N170W__K18_060416_2193_XN_39N170W",
+          "K19_060719_2201_XN_40N164W__K19_060785_2196_XN_39N164W",
+          "K19_060811_2203_XN_40N156W__K18_060323_2203_XN_40N156W",
+          "K20_061128_2189_XN_38N169W__K20_061194_2189_XN_38N169W",
+          "K20_061141_2195_XN_39N164W__K20_061075_2195_XN_39N164W",
+          "K20_061167_2242_XN_44N155W__G20_025906_2242_XN_44N155W",
+          "K22_061919_2196_XN_39N160W__K21_061576_2196_XN_39N160W",
+          "N01_062922_2266_XN_46N187W__N01_062856_2266_XN_46N187W",
+          "N03_063488_2186_XN_38N160W__N03_063422_2186_XN_38N160W",
+          "N05_064174_2195_XN_39N170W__N05_064464_2195_XN_39N170W",
+          "N05_064200_2187_XN_38N160W__N05_064279_2167_XN_36N160W",
+          "N11_066574_2186_XN_38N160W__N10_066442_2186_XN_38N160W",
+          "P02_001948_2141_XI_34N178W__P03_002238_2141_XI_34N178W",
+          "P17_007671_2122_XN_32N190W__P17_007526_2146_XN_34N189W",
+          "P17_007684_2222_XN_42N186W__P18_007895_2222_XN_42N186W",
+          "P18_007947_2348_XN_54N169W__P21_009160_2348_XN_54N169W",
+          "P19_008303_2346_XN_54N169W__P17_007736_2349_XI_54N169W",
+          "P19_008554_2170_XN_37N182W__P20_008765_2170_XN_37N182W"
+        ],
+        "items_found": 136,
+        "items_found_note": "distinct item IDs over every page, counted from the saved pages; number_matched_stated lists the numberMatched values the pages state",
+        "limit": 100,
+        "number_matched_stated": [
+          136
+        ],
+        "pages": [
+          {
+            "bytes_received": 1012897,
+            "content_type": "application/geo+json; charset=utf-8",
+            "final_url": "https://stac.astrogeology.usgs.gov/api/search?collections=mro_ctx_controlled_usgs_dtms&bbox=165.86%2C33.87%2C-149.57%2C64.17&limit=100",
+            "http_status": 200,
+            "local_path": "data/raw/ctx/stac_search_arcadia_planitia_page001.json",
+            "next_url": "https://g6goyz4w56.execute-api.us-west-2.amazonaws.com/prod/search?collections=mro_ctx_controlled_usgs_dtms&bbox=165.86%2C33.87%2C-149.57%2C64.17&limit=100&next=2023-04-18T12%3A00%3A00Z%2CD18_034108_2245_XN_44N160W__D18_034174_2244_XN_44N160W%2Cmro_ctx_controlled_usgs_dtms",
+            "number": 1,
+            "number_matched_stated": 136,
+            "number_returned": 100,
+            "retrieved_at": "2026-11-14T22:01:45Z",
+            "sha256": "ae89390ef802f60eed1991a18b66de5cb84fcddadeb6c2436e7adb4aa6e69bac",
+            "url": "https://stac.astrogeology.usgs.gov/api/search?collections=mro_ctx_controlled_usgs_dtms&bbox=165.86%2C33.87%2C-149.57%2C64.17&limit=100"
+          },
+          {
+            "bytes_received": 363215,
+            "content_type": "application/geo+json; charset=utf-8",
+            "final_url": "https://g6goyz4w56.execute-api.us-west-2.amazonaws.com/prod/search?collections=mro_ctx_controlled_usgs_dtms&bbox=165.86%2C33.87%2C-149.57%2C64.17&limit=100&next=2023-04-18T12%3A00%3A00Z%2CD18_034108_2245_XN_44N160W__D18_034174_2244_XN_44N160W%2Cmro_ctx_controlled_usgs_dtms",
+            "http_status": 200,
+            "local_path": "data/raw/ctx/stac_search_arcadia_planitia_page002.json",
+            "next_url": "https://g6goyz4w56.execute-api.us-west-2.amazonaws.com/prod/search?collections=mro_ctx_controlled_usgs_dtms&next=2023-04-18T12%3A00%3A00Z%2CB02_010334_2266_XN_46N183W__B01_010189_2282_XN_48N183W%2Cmro_ctx_controlled_usgs_dtms&bbox=165.86%2C33.87%2C-149.57%2C64.17&limit=100",
+            "number": 2,
+            "number_matched_stated": 136,
+            "number_returned": 36,
+            "retrieved_at": "2026-11-14T22:01:45Z",
+            "sha256": "779b3ec3b6a4d1200abe250fd45343f7e9d8a22d31aa16e62079e51d1845e9cd",
+            "url": "https://g6goyz4w56.execute-api.us-west-2.amazonaws.com/prod/search?collections=mro_ctx_controlled_usgs_dtms&bbox=165.86%2C33.87%2C-149.57%2C64.17&limit=100&next=2023-04-18T12%3A00%3A00Z%2CD18_034108_2245_XN_44N160W__D18_034174_2244_XN_44N160W%2Cmro_ctx_controlled_usgs_dtms"
+          },
+          {
+            "bytes_received": 201,
+            "content_type": "application/geo+json; charset=utf-8",
+            "final_url": "https://g6goyz4w56.execute-api.us-west-2.amazonaws.com/prod/search?collections=mro_ctx_controlled_usgs_dtms&next=2023-04-18T12%3A00%3A00Z%2CB02_010334_2266_XN_46N183W__B01_010189_2282_XN_48N183W%2Cmro_ctx_controlled_usgs_dtms&bbox=165.86%2C33.87%2C-149.57%2C64.17&limit=100",
+            "http_status": 200,
+            "local_path": "data/raw/ctx/stac_search_arcadia_planitia_page003.json",
+            "next_url": null,
+            "number": 3,
+            "number_matched_stated": 136,
+            "number_returned": 0,
+            "retrieved_at": "2026-11-14T22:01:45Z",
+            "sha256": "a3c3ac821ba01e0cd180976de4da185a41007c32cf1eec12229952c143bae150",
+            "url": "https://g6goyz4w56.execute-api.us-west-2.amazonaws.com/prod/search?collections=mro_ctx_controlled_usgs_dtms&next=2023-04-18T12%3A00%3A00Z%2CB02_010334_2266_XN_46N183W__B01_010189_2282_XN_48N183W%2Cmro_ctx_controlled_usgs_dtms&bbox=165.86%2C33.87%2C-149.57%2C64.17&limit=100"
+          }
+        ]
+      }
+    }
+  ],
+  "qa_metrics": {
+    "bytes_received": 399,
+    "content_type": "text/plain",
+    "ctx_mola_std_dev": {
+      "line": "StdDev of difference: 12.6913 meters",
+      "line_number": 6,
+      "source": "data/raw/ctx/qa_metrics.txt",
+      "unit": "meters",
+      "value": "12.6913"
+    },
+    "ctx_mola_std_dev_absent_reason": null,
+    "ctx_qa_threshold": {
+      "applied": false,
+      "reason": "the CTX QA threshold is an open kickoff item (PRD 15: start at 10 m CTX-MOLA standard deviation); this record quotes qa_metrics.txt and neither sets nor applies a threshold",
+      "value": null
+    },
+    "definition": {
+      "quote": "The qa_metrics.txt file for each DTM provides the maximum, minimum, mean, median, and standard deviation of the final CTX-MOLA differences after ground control.",
+      "source": "https://stac.astrogeology.usgs.gov/docs/data/mars/ctxdtms/"
+    },
+    "final_url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/qa_metrics.txt",
+    "http_status": 200,
+    "item_id": "B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W",
+    "local_path": "data/raw/ctx/qa_metrics.txt",
+    "reason": null,
+    "retrieved_at": "2026-11-14T22:01:46Z",
+    "sha256": "61f127f3ec47e0bbfceb9cf07e7fe4daa3b1997b979314aa57fccd52e3dbbb8a",
+    "status": "read",
+    "text": "\t--> Setting number of processing threads to: 4\n\tFound input nodata value for DEM: -32767\nMax difference:       233.171 meters\nMin difference:       -158.493 meters\nMean difference:      32.2583 meters\nStdDev of difference: 12.6913 meters\nMedian difference:    32.3768 meters\nWriting difference file: aligned/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W-QuadAligned_FINAL_geodiff-diff.csv\n",
+    "url": "https://astrogeo-ard.s3-us-west-2.amazonaws.com/mars/mro/ctx/controlled/usgs/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/qa_metrics.txt"
+  },
+  "record": "ctx_dtm",
+  "retrieval": {
+    "command": "python -m terraluna_pipeline.pilot fetch ctx",
+    "fetch_metadata": "data/raw/ctx/fetch.json",
+    "first_retrieved_at": "2026-11-14T22:01:40Z",
+    "last_retrieved_at": "2026-11-14T22:01:51Z"
+  },
+  "source": "ctx",
+  "target_windows": {
+    "chosen": false,
+    "reason": "no target window is chosen here: the Jezero window near the landing site and the Arcadia Planitia window inside the shallow-ice region are frozen at G0 by the team (PRD 5 Mars target windows; PRD 15 open items). The probe boxes only count CTX DTM coverage."
+  },
+  "tool_versions": {
+    "gdal": "3.12.2",
+    "numpy": "2.5.4",
+    "pillow": "13.0.0",
+    "pydantic": "2.14.3",
+    "pyshp": "3.1.8",
+    "python": "3.12.13",
+    "rasterio": "1.5.2",
+    "terraluna-pipeline": "0.1.0"
+  },
+  "verification": {
+    "CTX/mro_ctx_controlled_usgs_dtms/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W_dtm.tif": {
+      "basis": "the centred 256 x 256 window read through 3 HTTP range requests (1835008 of the 14245180 bytes; the COG is not downloaded whole), header and window decoded and masked with quality.validity_mask; not plotted, and the file states no units, so the PRD 5 entry rule is not complete",
+      "status": "PARTIAL"
+    },
+    "CTX/mro_ctx_controlled_usgs_dtms/B17_016364_1978_XN_17N282W__B17_016219_1978_XN_17N282W/qa_metrics.txt": {
+      "basis": "downloaded and read as text; the CTX-MOLA standard deviation line is quoted in qa_metrics.ctx_mola_std_dev where present. A text file is not decoded, masked or plotted, so the PRD 5 entry rule does not apply in full",
+      "status": "PARTIAL"
+    }
+  }
+}

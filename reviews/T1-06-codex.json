@@ -1,0 +1,134 @@
+{
+  "task_id": "T1-06",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "2f821413ccedd5a8085836739a897cae006093fe",
+    "head": "541c5e781099e41fdb4ce98477a5ceb76374a353",
+    "files": [
+      {
+        "path": "outputs/pilot/cop30_range_read.json",
+        "sha256": "b984ac12f5cf17316c8c925a9d1d734bf7fe97661cb35ccee015dee3e0a93d4e"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "d83a293198ef51688866ede13e34e72a622bda0a1f013ae08e0c9a922ff10e84"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "f0cf3f8e2025f6297688249a4fa0db2296d693b87d4f0d802f3cd3449d577c97"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "babe9c2e949da6bbda673d3a2d61ecb5584adf70e2604dd191f57f80472c84f0"
+      },
+      {
+        "path": "pipeline/tests/test_io_cog_layout.py",
+        "sha256": "fbb73f4c3009ebde5239be2db94b4b5232a5d4c929336f5e3e3c6cd743b67be8"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_cop30.py",
+        "sha256": "06cc3e3a8d64889a493839e147b6fa2f5cf1fce6462a05b08caf0a20280ede63"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:04:05Z",
+  "finished_utc": "2026-11-15T00:08:43Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found unknown COG block sizes converted to numeric totals and a malformed provider quote. Required checks were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Deterministic Holuhraun tile selection, documented fallback, anonymous HTTPS URL and range readers in io.py.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:4823 defines Holuhraun and its fallback; :5013 selects the first listed candidate; :5047 calls the COG range reader. data/raw/cop30/tileList.txt:11553 lists the selected tile. io.py:1499 implements the header-aware reader; saved exchanges are in outputs/pilot/cop30_range_read.json:181."
+    },
+    {
+      "criterion": "AC2: The committed record contains the required HTTP, COG, spatial, vertical, validity, elevation and surface-model metadata.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "outputs/pilot/cop30_range_read.json:18 contains the header and overviews; :137 identifies EPSG:4326; :165 records HTTP 206, ranges and byte counts; :233 records units and elevation statistics; :264 distinguishes unknown file datum from documented EGM2008; :423 states the surface-model caveat."
+    },
+    {
+      "criterion": "AC3: A stated 5 km square, total fetched bytes, touched-tile count, observational budget result and no whole-tile download.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "outputs/pilot/cop30_range_read.json:144 records 2,883,584 bytes, one touched tile and a 4,000,000-byte limit; :212 states a 19,059,689-byte object; :275 describes the 5,000 m UTM square. pilot.py:5601 only records the budget comparison. test_pilot_cop30.py:739 covers an over-budget result without command failure; test not executed."
+    },
+    {
+      "criterion": "AC4: Sorted ProductRecord upsert with provider attribution, SHA-256 and a local file containing exactly the fetched bytes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "outputs/sources.json:6 records the checksum, :11 the provider attribution and :12 the raw path. io.py:652 computes and compares checksums; pilot.py:364 sorts records. Exact correspondence to the raw bytes was not executed because the user prohibits checks in the read-only sandbox."
+    },
+    {
+      "criterion": "AC5: An unreachable bucket makes fetch exit non-zero naming the URL and error.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "io.py:942 and :945 construct URL-bearing download errors; pilot.py:576 catches them and returns 1. test_pilot_cop30.py:560 and :586 exercise HTTP and connection failures. These behaviors were not executed because checks are prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC6: Fetch preserves raw inputs and HTTP metadata; record replays locally; check compares committed outputs byte for byte offline.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "data/raw/cop30/fetch.json:78 contains range metadata and retrieval times; the raw directory contains tileList.txt and the ranges file. pilot.py:5094 loads cached inputs and :519 compares committed bytes. test_pilot_cop30.py:915 refuses sockets during check. Offline replay and byte equality were not executed because checks are prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "Binding rule: Missing evidence remains unknown rather than becoming zero.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "io.py:417 excludes unknown block sizes from sum(), producing zero when every size is unknown and an incomplete numeric total otherwise. io.py:1602 permits missing block metadata; pilot.py:5603 and :5635 serialize the resulting total."
+    },
+    {
+      "criterion": "Required Python test suite.",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user: the sandbox is read-only and test caches or environment synchronization can write files."
+    },
+    {
+      "criterion": "Required offline Copernicus replay check.",
+      "command": "uv run python -m terraluna_pipeline.pilot check cop30",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user; uv may synchronize the environment or write caches in the read-only sandbox."
+    },
+    {
+      "criterion": "Required repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user; this target invokes uv, Ruff and mypy, which can write environment or cache files."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/io.py:417",
+      "claim": "Preserve unknown block sizes instead of reporting zero or an incomplete total as the touched tiles' byte size.",
+      "evidence": "_tag_int at io.py:420 returns None for missing TIFF metadata, but stored_bytes filters those values out before summing. All unknown sizes therefore produce 0. The remote reader skips missing metadata at :1602, and pilot.py:5603 and :5635 publish this total. Propagate null or reject incomplete size metadata, and cover that case with a test. This violates the binding missing-evidence rule.",
+      "id": "codex-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "3d253aff9428ddcaf86fe2494f0ea21c9595c57c",
+        "reason": "CogLayout.stored_bytes now returns None when the tile index states no size for any touched block, instead of summing the others (which gave 0 or an understated total). The cop30 record writes held_in_ranges null for such a tile, and stored_bytes and touched_tile_bytes null, and its definitions say why. The case is real: GDAL states no BLOCK_OFFSET/BLOCK_SIZE for a tile a sparse (SPARSE_OK) file does not store, or whose index entry it cannot read. The regression tests in 1f88300 use a sparse COG: test_io_cog_layout.py (local and remote read, plus a parametrised stored_bytes table) and test_pilot_cop30.py::test_a_touched_tile_the_file_does_not_store_has_unknown_bytes. Before the fix, 5 io tests and the pilot test failed: stored_bytes was 637932 for a window with an unstored block, and held_in_ranges was False. read_remote_cog_window's docstring now states that only blocks with a stated offset and size can be checked as held. The real Holuhraun read states every size (one tile, 2,345,737 bytes), so re-recording offline from data/raw/cop30/ changed only the two definition strings in cop30_range_read.json."
+      }
+    },
+    {
+      "severity": "medium",
+      "location": "pipeline/src/terraluna_pipeline/pilot.py:5268",
+      "claim": "Extract the registry licence quote from visible HTML instead of matching its escaped JSON-LD representation.",
+      "evidence": "The first match comes from data/raw/cop30/aws_registry_copernicus_dem.html:33. The committed quote at outputs/pilot/cop30_range_read.json:406 contains escaped markup and stops at 'https://dataspace.'. The complete visible licence paragraph exists at the raw document's :83. Exclude script content or parse the structured field correctly, add regression coverage and regenerate the output.",
+      "id": "codex-r1-2",
+      "resolution": {
+        "action": "fixed",
+        "commit": "238ef40879a665d989bad6aa522c7d139819ae6f",
+        "reason": "_page_text removed tags but kept script and style content and comments, so the registry licence pattern first matched the JSON-LD line 33 of aws_registry_copernicus_dem.html. It now drops script and style elements and comments first (_HTML_HIDDEN). Re-recorded offline: licence.registry_licence.quote is now the visible paragraph of line 83 ('... the Licence found on here .', the same tag-to-space convention as readme_licence). No other cop30 field changed, and sources.json is unchanged. Every other cop30 quote gives the same text on the saved pages. _page_text is shared with ctx; pilot check ctx, pgda78 and minirf still exit 0 against their committed outputs. In 1f88300 the synthetic registry page now carries the real page's JSON-LD head. test_the_registry_licence_quote_is_the_visible_sentence and test_provider_statements_are_read_from_visible_text_only (decoy version, datum and unit statements in script, style, an uppercase SCRIPT and a comment, placed before the visible text) failed before the fix: the quote ended in '\\u003ca href=\\\"http://127.' and the decoys gave 2019, EGM96 5773 and feet."
+      }
+    }
+  ]
+}
