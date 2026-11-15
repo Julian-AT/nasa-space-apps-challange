@@ -291,9 +291,9 @@ html {
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-2xl: calc(var(--radius) * 1.4);
+  --radius-3xl: calc(var(--radius) * 1.4);
+  --radius-4xl: calc(var(--radius) * 1.4);
 }
 
 @layer base {
@@ -580,3 +580,7 @@ html {
   --dim: var(--muted-foreground);
   --flare: var(--primary);
 }
+
+/* Clean shadcn surface: no film grain, no decorative page gradients. */
+body::before { display: none !important; }
+.bg-observatory { background-image: none !important; background-color: var(--background); }
