@@ -12,6 +12,9 @@ import { AnimatePresence, animate, motion, useInView, useMotionValue, useSpring 
 import { useMotionReduced } from "@/lib/shadowastra/motionPref";
 import clsx from "clsx";
 import { ArrowUp, Check, Info, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -125,14 +128,11 @@ export function Ring({ value, size = 112, stroke = 6, label, sub, color, classNa
       <svg viewBox="0 0 100 100" className="size-full -rotate-90" aria-hidden>
         <defs>
           <linearGradient id={`rg-${id}`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" style={{ stopColor: color ?? "var(--color-flare)" }} />
-            <stop offset="1" style={{ stopColor: color ?? "var(--color-mars)", stopOpacity: 0.9 }} />
+            <stop offset="0" style={{ stopColor: color ?? "var(--primary)" }} />
+            <stop offset="1" style={{ stopColor: color ?? "var(--primary)" }} />
           </linearGradient>
         </defs>
-        <circle cx="50" cy="50" r={R} fill="none" style={{ stroke: "var(--color-line)" }} strokeWidth={stroke} />
-        {[0, 0.25, 0.5, 0.75].map((t) => (
-          <line key={t} x1="50" y1={50 - R - stroke / 2 - 1.5} x2="50" y2={50 - R - stroke / 2 + 1} transform={`rotate(${t * 360} 50 50)`} style={{ stroke: "var(--color-line-2)" }} strokeWidth="0.8" />
-        ))}
+        <circle cx="50" cy="50" r={R} fill="none" style={{ stroke: "var(--muted)" }} strokeWidth={stroke} />
         <motion.circle
           cx="50"
           cy="50"
@@ -149,11 +149,11 @@ export function Ring({ value, size = 112, stroke = 6, label, sub, color, classNa
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
-          {label && <div className="font-mono text-[9px] tracking-[0.18em] text-dim uppercase">{label}</div>}
-          <div className="font-mono leading-none font-light text-platinum" style={{ fontSize: size * 0.24 }}>
+          {label && <div className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">{label}</div>}
+          <div className="leading-none font-semibold tracking-tight text-foreground tabular" style={{ fontSize: size * 0.24 }}>
             {value === null ? "··" : <Counter value={v} decimals={2} duration={1.1} />}
           </div>
-          {sub && <div className="mt-1 text-[10.5px] text-chrome">{sub}</div>}
+          {sub && <div className="mt-1 text-[10.5px] text-muted-foreground">{sub}</div>}
         </div>
       </div>
     </div>
@@ -161,30 +161,30 @@ export function Ring({ value, size = 112, stroke = 6, label, sub, color, classNa
 }
 
 /** Horizontal bar that fills when it enters the view. */
-export function Meter({ value, label, right, hint, tone = "var(--color-flare)", kind, className, thin }: { value: number | null; label?: ReactNode; right?: ReactNode; hint?: ReactNode; tone?: string; kind?: Kind; className?: string; thin?: boolean }) {
+export function Meter({ value, label, right, hint, tone = "var(--primary)", kind, className, thin }: { value: number | null; label?: ReactNode; right?: ReactNode; hint?: ReactNode; tone?: string; kind?: Kind; className?: string; thin?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true });
   return (
     <div ref={ref} className={className}>
       {(label || right) && (
         <div className="flex items-center justify-between gap-3 text-[13px]">
-          <span className="flex items-center gap-2 text-platinum">
+          <span className="flex items-center gap-2 text-foreground">
             {label}
             {kind && <KindBadge kind={kind} />}
           </span>
-          <span className="font-mono text-platinum tabular">{right ?? (value === null ? "n/a" : value.toFixed(2))}</span>
+          <span className="font-mono text-foreground tabular">{right ?? (value === null ? "n/a" : value.toFixed(2))}</span>
         </div>
       )}
-      <div className={clsx("relative overflow-hidden rounded-full bg-line", thin ? "mt-1.5 h-[3px]" : "mt-2 h-1.5")}>
+      <div data-slot="progress" className={clsx("relative overflow-hidden rounded-md bg-muted", thin ? "mt-1.5 h-1" : "mt-2 h-1.5")}>
         <motion.div
-          className="absolute inset-y-0 left-0 rounded-full"
-          style={{ background: `linear-gradient(90deg, color-mix(in oklab, ${tone} 55%, transparent), ${tone})` }}
+          className="absolute inset-y-0 left-0 rounded-md"
+          style={{ background: tone }}
           initial={{ width: 0 }}
           animate={{ width: inView && value !== null ? `${Math.max(0, Math.min(1, value)) * 100}%` : 0 }}
           transition={{ duration: 1.1, ease: EASE }}
         />
       </div>
-      {hint && <div className="mt-1.5 text-[11.5px] leading-snug text-dim">{hint}</div>}
+      {hint && <div className="mt-1.5 text-[11.5px] leading-snug text-muted-foreground">{hint}</div>}
     </div>
   );
 }
@@ -196,21 +196,21 @@ export type Kind = "computed" | "model" | "demo" | "gap";
 const KIND: Record<Kind, { label: string; cls: string; tip: string }> = {
   computed: { label: "Computed", cls: "border-strong/40 bg-strong/10 text-strong", tip: "Measured from real NASA and open data." },
   model: { label: "Learned", cls: "border-earth/40 bg-earth/10 text-earth", tip: "From our model trained on 38 known test sites." },
-  demo: { label: "Demo", cls: "border-dashed border-line-2 text-chrome", tip: "A placeholder from published studies, not measured." },
+  demo: { label: "Demo", cls: "border-dashed border-border text-muted-foreground", tip: "A placeholder from published studies, not measured." },
   gap: { label: "Earth can't copy", cls: "border-weak/40 bg-weak/10 text-weak", tip: "Earth cannot reproduce this. Shown, never scored." },
 };
 
 export function KindBadge({ kind }: { kind: Kind }) {
   return (
-    <span title={KIND[kind].tip} className={clsx("inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 font-mono text-[9.5px] tracking-wider uppercase", KIND[kind].cls)}>
+    <Badge variant="outline" title={KIND[kind].tip} className={clsx("h-5 shrink-0 px-1.5 text-[10px] font-medium tracking-wide uppercase", KIND[kind].cls)}>
       {KIND[kind].label}
-    </span>
+    </Badge>
   );
 }
 
 const CHIP = {
-  default: "border-line-2 bg-platinum/[0.035] text-chrome",
-  flare: "border-flare/35 bg-flare/10 text-flare",
+  default: "border-border bg-secondary text-secondary-foreground",
+  flare: "border-primary/40 bg-primary/15 text-foreground",
   strong: "border-strong/35 bg-strong/10 text-strong",
   moon: "border-moon/35 bg-moon/10 text-moon",
   mars: "border-mars/35 bg-mars/10 text-mars",
@@ -220,31 +220,28 @@ const CHIP = {
 };
 
 export function Chip({ children, tone = "default", className }: { children: ReactNode; tone?: keyof typeof CHIP; className?: string }) {
-  return <span className={clsx("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] leading-none whitespace-nowrap", CHIP[tone], className)}>{children}</span>;
+  return (
+    <Badge variant="outline" className={clsx("h-auto gap-1.5 px-2.5 py-1 text-[11.5px] leading-none font-medium", CHIP[tone], className)}>
+      {children}
+    </Badge>
+  );
 }
 
 /** Small explanation bubble for any term that needs one. */
 export function Tip({ text, children, className }: { text: string; children?: ReactNode; className?: string }) {
-  const [open, setOpen] = useState(false);
   return (
-    <span className={clsx("relative inline-flex", className)} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <button type="button" onFocus={() => setOpen(true)} onBlur={() => setOpen(false)} onClick={() => setOpen((o) => !o)} aria-label={text} className="inline-flex items-center text-dim transition-colors hover:text-platinum">
-        {children ?? <Info size={12} />}
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.span
-            initial={{ opacity: 0, y: 4, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 2 }}
-            transition={{ duration: 0.18 }}
-            className="absolute bottom-full left-1/2 z-[900] mb-2 w-max max-w-[240px] -translate-x-1/2 rounded-lg border border-line-2 bg-panel px-3 py-2 text-left text-[11.5px] leading-snug font-normal tracking-normal text-platinum normal-case shadow-[0_18px_40px_-18px_rgba(0,0,0,0.7)]"
-          >
-            {text}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </span>
+    <TooltipProvider delayDuration={120}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button type="button" aria-label={text} className={clsx("relative inline-flex items-center text-muted-foreground transition-colors hover:text-foreground", className)}>
+            {children ?? <Info size={12} />}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent sideOffset={6} className="z-[900] max-w-[240px] text-left text-[11.5px] leading-snug font-normal tracking-normal normal-case">
+          {text}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -253,7 +250,7 @@ export function Tip({ text, children, className }: { text: string; children?: Re
 export function Seg<T extends string>({ value, onChange, options, size = "md", className }: { value: T; onChange: (v: T) => void; options: { id: T; label: ReactNode; title?: string }[]; size?: "sm" | "md"; className?: string }) {
   const group = useId();
   return (
-    <div className={clsx("relative flex w-fit gap-0.5 rounded-full border border-line bg-ink p-0.5", className)} role="group">
+    <div data-slot="toggle-group" className={clsx("relative flex w-fit gap-0.5 rounded-lg border border-border bg-muted p-0.5", className)} role="group">
       {options.map((o) => (
         <button
           key={o.id}
@@ -261,9 +258,9 @@ export function Seg<T extends string>({ value, onChange, options, size = "md", c
           title={o.title}
           onClick={() => onChange(o.id)}
           aria-pressed={value === o.id}
-          className={clsx("relative flex items-center gap-1.5 rounded-full transition-colors", size === "sm" ? "px-2.5 py-1 text-[11.5px]" : "px-3.5 py-1.5 text-[12px]", value === o.id ? "text-void" : "text-chrome hover:text-platinum")}
+          className={clsx("relative flex items-center gap-1.5 rounded-md font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40", size === "sm" ? "h-6 px-2.5 text-[11.5px]" : "h-7 px-3 text-[12px]", value === o.id ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
         >
-          {value === o.id && <motion.span layoutId={`seg-${group}`} className="absolute inset-0 rounded-full bg-platinum" transition={{ type: "spring", stiffness: 420, damping: 36 }} />}
+          {value === o.id && <motion.span layoutId={`seg-${group}`} className="absolute inset-0 rounded-md border border-border bg-background shadow-xs" transition={{ type: "spring", stiffness: 420, damping: 36 }} />}
           <span className="relative flex items-center gap-1.5">{o.label}</span>
         </button>
       ))}
@@ -354,9 +351,9 @@ export function Reveal({ children, className, delay = 0, y = 22 }: { children: R
 export function Kicker({ n, children, className }: { n?: string; children: ReactNode; className?: string }) {
   return (
     <div className={clsx("flex items-center gap-4", className)}>
-      {n && <span className="outline-num text-[44px] leading-none">{n}</span>}
-      <motion.span className="h-px w-10 origin-left bg-line-2" initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.1, ease: EASE }} />
-      <span className="font-mono text-[11px] tracking-[0.24em] text-chrome uppercase">{children}</span>
+      {n && <Badge variant="outline" className="h-6 px-2 font-mono text-[11px] text-muted-foreground tabular">{n}</Badge>}
+      <motion.span className="h-px w-10 origin-left bg-border" initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.1, ease: EASE }} />
+      <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">{children}</span>
     </div>
   );
 }
@@ -397,13 +394,13 @@ export function Toaster() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.35, ease: EASE }}
-            className="glass pointer-events-auto flex items-center gap-2 rounded-full px-4 py-2 text-[13px] text-platinum"
+            className="pointer-events-auto flex items-center gap-2 rounded-lg border border-border bg-popover px-4 py-2.5 text-[13px] text-popover-foreground shadow-md"
           >
-            {t.tone === "ok" ? <Check size={14} className="text-strong" /> : <Info size={14} className="text-flare" />}
+            {t.tone === "ok" ? <Check size={14} className="text-strong" /> : <Info size={14} className="text-primary" />}
             {t.text}
-            <button onClick={() => setList((l) => l.filter((x) => x.id !== t.id))} aria-label="Dismiss" className="ml-1 text-dim hover:text-platinum">
+            <Button variant="ghost" size="icon-xs" onClick={() => setList((l) => l.filter((x) => x.id !== t.id))} aria-label="Dismiss" className="ml-1 text-muted-foreground">
               <X size={12} />
-            </button>
+            </Button>
           </motion.div>
         ))}
       </AnimatePresence>
@@ -439,10 +436,10 @@ export function BackToTop() {
           transition={{ duration: 0.3, ease: EASE }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="Back to top"
-          className="glass fixed right-5 bottom-24 z-[800] grid size-11 place-items-center rounded-full text-platinum max-md:bottom-24"
+          className="fixed right-5 bottom-24 z-[800] grid size-10 place-items-center rounded-full border border-border bg-popover text-popover-foreground shadow-md max-md:bottom-24"
         >
           <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90" aria-hidden>
-            <circle cx="22" cy="22" r="19" fill="none" style={{ stroke: "var(--color-flare)" }} strokeWidth="1.5" strokeDasharray={C} strokeDashoffset={C * (1 - p)} strokeLinecap="round" />
+            <circle cx="22" cy="22" r="19" fill="none" style={{ stroke: "var(--primary)" }} strokeWidth="1.5" strokeDasharray={C} strokeDashoffset={C * (1 - p)} strokeLinecap="round" />
           </svg>
           <ArrowUp size={16} />
         </motion.button>
@@ -454,13 +451,9 @@ export function BackToTop() {
 /* ------------------------------------------------------------- glyph tile */
 
 /** Icon on a softly rotating orbit, used to give text cards a visual anchor. */
-export function GlyphTile({ children, tone = "var(--color-flare)", className }: { children: ReactNode; tone?: string; className?: string }) {
+export function GlyphTile({ children, tone = "var(--primary)", className }: { children: ReactNode; tone?: string; className?: string }) {
   return (
-    <span className={clsx("glyph-tile relative grid size-12 shrink-0 place-items-center rounded-xl border border-line-2 bg-ink", className)} style={{ color: tone }}>
-      <svg viewBox="0 0 48 48" className="glyph-orbit absolute inset-0 size-full" aria-hidden>
-        <circle cx="24" cy="24" r="17" fill="none" style={{ stroke: "var(--color-line-2)" }} strokeDasharray="2 4" strokeWidth="0.8" />
-        <circle cx="24" cy="7" r="1.6" style={{ fill: tone }} />
-      </svg>
+    <span className={clsx("glyph-tile relative grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-muted", className)} style={{ color: tone }}>
       <span className="relative">{children}</span>
     </span>
   );

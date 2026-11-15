@@ -203,7 +203,7 @@ export default function Find({ probe }: { probe: TerralunaProbeProps }) {
 
   if (step === "start")
     return (
-      <div className="bg-void">
+      <div className="sa-ui bg-void">
         <StartScreen
           onPreset={(p) => {
             const next = { ...m, target: p.target, task: p.task, weights: { ...TASK_WEIGHTS[p.task] } };
@@ -217,7 +217,7 @@ export default function Find({ probe }: { probe: TerralunaProbeProps }) {
     );
 
   return (
-    <div className="bg-void">
+    <div className="sa-ui bg-void">
       <section className="relative isolate xl:h-[calc(100dvh-112px)] xl:min-h-[700px]">
         {/* stage: a window into space */}
         <div

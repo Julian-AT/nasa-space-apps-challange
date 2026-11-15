@@ -74,7 +74,7 @@ export default function HomeSections() {
   }, []);
 
   return (
-    <div ref={root} className="sa-home bg-void">
+    <div ref={root} className="sa-ui sa-home bg-void">
       <SourceMarquee />
       <Numbers />
       <MoonBase />

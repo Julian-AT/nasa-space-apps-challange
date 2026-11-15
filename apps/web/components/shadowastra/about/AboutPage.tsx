@@ -70,7 +70,7 @@ function Kicker({ n, children }: { n: string; children: React.ReactNode }) {
 
 export default function AboutPage() {
   return (
-    <div className="bg-void">
+    <div className="sa-ui bg-void">
       <Hero />
       <Crew />
       <Built />

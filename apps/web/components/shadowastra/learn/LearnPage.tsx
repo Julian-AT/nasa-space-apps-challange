@@ -217,7 +217,7 @@ export default function Learn() {
   const t = T[lang];
   const bn = lang === "bn";
   return (
-    <div className={clsx("bg-void", bn && "font-bn")} lang={lang}>
+    <div className={clsx("sa-ui bg-void", bn && "font-bn")} lang={lang}>
       <style>{`@media print { .no-print { display: none !important } .print-only { display: block !important } body::before { display: none } } .print-only { display: none }`}</style>
       <div className="no-print">
         <section data-theme="dark" className="relative overflow-hidden bg-void px-4 pt-24 pb-20 text-platinum sm:px-6">
