@@ -149,17 +149,6 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
       ),
     },
     {
-      id: 'physics',
-      steps: 1,
-      body: () => (
-        <Frame title="We searched every Earth window" sub={<>A physics fingerprint of relief and texture, computed for every 5 km window, <A>the same code in Python and in your browser</A>.</>}>
-          <div className="pt-[2vh]">
-            <FigSearch data={search} />
-          </div>
-        </Frame>
-      ),
-    },
-    {
       id: 'finder',
       steps: 2,
       body: (step) => (
@@ -240,6 +229,17 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
         <Frame title="Results" sub={<><A>{d.cardCount} evidence cards</A>. The best Earth match for each target.</>}>
           <div className="pt-[1vh]">
             <FigBest data={search} />
+          </div>
+        </Frame>
+      ),
+    },
+    {
+      id: 'physics',
+      steps: 1,
+      body: () => (
+        <Frame title="We searched every Earth window" sub={<>A physics fingerprint of relief and texture, computed for every 5 km window, <A>the same code in Python and in your browser</A>.</>}>
+          <div className="pt-[2vh]">
+            <FigSearch data={search} />
           </div>
         </Frame>
       ),
