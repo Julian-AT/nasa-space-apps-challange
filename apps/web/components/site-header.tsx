@@ -30,6 +30,7 @@ export const NAV_ITEMS = [
   { label: 'Learn', href: '/learn' },
   { label: 'Paper', href: '/paper' },
   { label: 'API docs', href: '/api/docs' },
+  { label: 'About', href: '/about' },
 ] as const;
 
 /** Index in NAV_ITEMS after which a group divider is drawn: Home | Cards Compare Lab Find Maps | Model Methods Paper | API docs. */
