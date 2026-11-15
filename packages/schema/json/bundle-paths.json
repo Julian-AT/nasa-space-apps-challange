@@ -1,0 +1,21 @@
+{
+  "cards/{card_id}.json": "CardRecord",
+  "comparisons/{target_id}.json": "Comparisons",
+  "figures/{name}.svg": "svg_allowlist",
+  "manifest.json": "BundleManifest",
+  "model/*.onnx": "none",
+  "model/embeddings.f16.bin": "none",
+  "model/embeddings.index.json": "EmbeddingsIndex",
+  "model/model_card.json": "ModelRecord",
+  "reference/background_{target_id}.json": "Background",
+  "report/curves.json": "Curves",
+  "report/examples.json": "Examples",
+  "report/metrics.json": "Metrics",
+  "report/umap.bin": "UmapHeader",
+  "sources.json": "Sources",
+  "targets.json": "Targets",
+  "tiles/{layer}/{z}/{x}/{y}.webp": "none",
+  "validation.json": "Validation",
+  "windows/{body}.json": "Windows",
+  "windows/{body}.parquet": "none"
+}

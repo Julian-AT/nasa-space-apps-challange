@@ -69,7 +69,12 @@ SCHEMA_FILES = {
     "Metrics": "metrics.schema.json",
     "EmbeddingRecord": "embedding-record.schema.json",
     "EmbeddingsIndex": "embeddings-index.schema.json",
+    "Curves": "curves.schema.json",
+    "UmapHeader": "umap-header.schema.json",
+    "Examples": "examples.schema.json",
+    "Background": "background.schema.json",
 }
+BUNDLE_PATHS_JSON = "bundle-paths.json"
 GENERATOR_CASES = ROOT / "fixtures" / "schema-cases" / "generator-cases.json"
 """Synthetic schemas with ``if``/``then`` and ``not``, and documents with authored verdicts. The
 zod generator's tests (packages/schema) translate the same schemas; here the verdicts must also
@@ -251,8 +256,9 @@ def test_generation_is_deterministic_across_processes(tmp_path: Path) -> None:
             capture_output=True,
             env={**os.environ, "PYTHONHASHSEED": seed},
         )
-        assert sorted(path.name for path in out.iterdir()) == sorted(SCHEMA_FILES.values())
-        for file_name in SCHEMA_FILES.values():
+        files = [*SCHEMA_FILES.values(), BUNDLE_PATHS_JSON]
+        assert sorted(path.name for path in out.iterdir()) == sorted(files)
+        for file_name in files:
             assert (out / file_name).read_bytes() == (SCHEMA_DIR / file_name).read_bytes()
 
 

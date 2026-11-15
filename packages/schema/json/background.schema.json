@@ -1,0 +1,430 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "BackgroundFamilies": {
+      "additionalProperties": false,
+      "description": "One histogram per family, null where ``family_reasons`` names why.",
+      "properties": {
+        "terrain_relief": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BackgroundFamily"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "terrain_texture": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BackgroundFamily"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "radar_cpr": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BackgroundFamily"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model_embedding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelBackground"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "terrain_relief",
+        "terrain_texture",
+        "radar_cpr",
+        "model_embedding"
+      ],
+      "title": "BackgroundFamilies",
+      "type": "object"
+    },
+    "BackgroundFamily": {
+      "additionalProperties": false,
+      "description": "A distance histogram of one family over the background sample (PRD 6.5).",
+      "properties": {
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "evidence_label": {
+          "enum": [
+            "Observed",
+            "Derived",
+            "Predicted",
+            "Assumed",
+            "Unavailable"
+          ],
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "bin_edges": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "title": "Bin Edges",
+          "type": "array"
+        },
+        "counts": {
+          "items": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "array"
+        },
+        "n": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "N",
+          "type": "integer"
+        },
+        "percentile_definition": {
+          "const": "linear_within_bin_v1",
+          "description": "linear_within_bin_v1: for a distance d, p = 100 * (counts of bins entirely below d + counts[k] * (d - lo_k) / (hi_k - lo_k) for the containing bin k) / n; 0 below the first edge and 100 above the last. Python reference: matching.background_percentile.",
+          "title": "Percentile Definition",
+          "type": "string"
+        },
+        "direction": {
+          "const": "smaller_is_closer",
+          "title": "Direction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit",
+        "evidence_label",
+        "bin_edges",
+        "counts",
+        "n",
+        "percentile_definition",
+        "direction"
+      ],
+      "title": "BackgroundFamily",
+      "type": "object"
+    },
+    "EmbeddingRecord": {
+      "additionalProperties": false,
+      "description": "One window's encoder embedding: exactly the PRD 8.12 EmbeddingRecord fields. The values\nare Predicted (PRD 11.10). ``ood_score`` is the Mahalanobis distance to the training\nembeddings (PRD 11.6), null when not computed.",
+      "properties": {
+        "window_id": {
+          "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+          "title": "Window Id",
+          "type": "string"
+        },
+        "body": {
+          "enum": [
+            "moon",
+            "mars",
+            "earth"
+          ],
+          "title": "Body",
+          "type": "string"
+        },
+        "model_id": {
+          "minLength": 1,
+          "title": "Model Id",
+          "type": "string"
+        },
+        "embedding_f16": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 256,
+          "minItems": 256,
+          "title": "Embedding F16",
+          "type": "array"
+        },
+        "input_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "valid_fraction": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Valid Fraction",
+          "type": "number"
+        },
+        "ood_score": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ood Score"
+        }
+      },
+      "required": [
+        "window_id",
+        "body",
+        "model_id",
+        "embedding_f16",
+        "input_hash",
+        "valid_fraction",
+        "ood_score"
+      ],
+      "title": "EmbeddingRecord",
+      "type": "object"
+    },
+    "FamilyReasons": {
+      "additionalProperties": false,
+      "description": "Why a family has no histogram, null where it has one.",
+      "properties": {
+        "terrain_relief": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Terrain Relief"
+        },
+        "terrain_texture": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Terrain Texture"
+        },
+        "radar_cpr": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Radar Cpr"
+        },
+        "model_embedding": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Model Embedding"
+        }
+      },
+      "required": [
+        "terrain_relief",
+        "terrain_texture",
+        "radar_cpr",
+        "model_embedding"
+      ],
+      "title": "FamilyReasons",
+      "type": "object"
+    },
+    "ModelBackground": {
+      "additionalProperties": false,
+      "description": "The encoder family's histogram, tied to one exported model and the target embedding.",
+      "properties": {
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "evidence_label": {
+          "const": "Predicted",
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "bin_edges": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "title": "Bin Edges",
+          "type": "array"
+        },
+        "counts": {
+          "items": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "array"
+        },
+        "n": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "N",
+          "type": "integer"
+        },
+        "percentile_definition": {
+          "const": "linear_within_bin_v1",
+          "description": "linear_within_bin_v1: for a distance d, p = 100 * (counts of bins entirely below d + counts[k] * (d - lo_k) / (hi_k - lo_k) for the containing bin k) / n; 0 below the first edge and 100 above the last. Python reference: matching.background_percentile.",
+          "title": "Percentile Definition",
+          "type": "string"
+        },
+        "direction": {
+          "const": "smaller_is_closer",
+          "title": "Direction",
+          "type": "string"
+        },
+        "model_id": {
+          "minLength": 1,
+          "title": "Model Id",
+          "type": "string"
+        },
+        "onnx_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Onnx Sha256",
+          "type": "string"
+        },
+        "g5_status": {
+          "enum": [
+            "NOT_RUN",
+            "PASS",
+            "FAIL",
+            "PARTIAL",
+            "NOT_APPLICABLE"
+          ],
+          "title": "G5 Status",
+          "type": "string"
+        },
+        "target_embedding": {
+          "$ref": "#/$defs/EmbeddingRecord"
+        },
+        "sample_window_ids_sha256": {
+          "description": "SHA-256 of the canonical JSON of the parent's sample_window_ids.",
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sample Window Ids Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit",
+        "evidence_label",
+        "bin_edges",
+        "counts",
+        "n",
+        "percentile_definition",
+        "direction",
+        "model_id",
+        "onnx_sha256",
+        "g5_status",
+        "target_embedding",
+        "sample_window_ids_sha256"
+      ],
+      "title": "ModelBackground",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "reference/background_{target_id}.json (PRD 6.5; CONTRACTS a.4).\n\nExactly one of each family and its reason is null; ``actual_n`` counts the sample; the\nmodel family hashes the sample it was computed on.",
+  "properties": {
+    "target_id": {
+      "minLength": 1,
+      "title": "Target Id",
+      "type": "string"
+    },
+    "mock": {
+      "title": "Mock",
+      "type": "boolean"
+    },
+    "run_id": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "statement": {
+      "const": "empirical background comparison, not a physical truth test",
+      "title": "Statement",
+      "type": "string"
+    },
+    "seed": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Seed",
+      "type": "integer"
+    },
+    "requested_n": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Requested N",
+      "type": "integer"
+    },
+    "actual_n": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "title": "Actual N",
+      "type": "integer"
+    },
+    "sample_window_ids": {
+      "items": {
+        "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+        "type": "string"
+      },
+      "title": "Sample Window Ids",
+      "type": "array"
+    },
+    "source_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Source Ids",
+      "type": "array"
+    },
+    "families": {
+      "$ref": "#/$defs/BackgroundFamilies"
+    },
+    "family_reasons": {
+      "$ref": "#/$defs/FamilyReasons"
+    }
+  },
+  "required": [
+    "target_id",
+    "mock",
+    "run_id",
+    "statement",
+    "seed",
+    "requested_n",
+    "actual_n",
+    "sample_window_ids",
+    "source_ids",
+    "families",
+    "family_reasons"
+  ],
+  "title": "Background",
+  "type": "object"
+}
