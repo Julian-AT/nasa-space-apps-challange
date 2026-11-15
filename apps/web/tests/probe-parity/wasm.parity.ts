@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { cosineDistance, createSession } from '../../lib/probe/embedding.ts';
 
 const DIR = resolve(import.meta.dirname, '../../../../ml/checkpoints/onnx-parity');
-const MODEL_DIR = process.env.TERRALUNA_ONNX_DIR ?? join(DIR, 'model');
+const MODEL_DIR = process.env.TERRALUNA_ONNX_DIR ?? resolve(import.meta.dirname, '../../public/probe-model');
 const need = (path: string): Buffer => {
   if (!existsSync(path)) throw new Error(`missing ${path}: run tests/probe-parity/make-windows.ts and expected.py first`);
   return readFileSync(path);

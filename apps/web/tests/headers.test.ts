@@ -59,7 +59,8 @@ describe('contentSecurityPolicy', () => {
   it('never allows the WorldCover bucket, a basemap host, a wildcard or unsafe-eval in production', () => {
     const csp = contentSecurityPolicy(PROD);
     expect(csp).not.toMatch(/worldcover/i);
-    expect(csp).not.toContain('unsafe-eval');
+    // 'wasm-unsafe-eval' (WebAssembly compilation for the probe's encoder) is not 'unsafe-eval'.
+    expect(csp).not.toMatch(/(^|\s)'unsafe-eval'/);
     expect(csp).not.toMatch(/\*/);
     expect(csp).not.toMatch(/\bhttps?:(?![/])/);
     expect(csp).toContain('upgrade-insecure-requests');
@@ -72,7 +73,7 @@ describe('contentSecurityPolicy', () => {
     expect(d.get('frame-ancestors')).toEqual(["'none'"]);
     expect(d.get('base-uri')).toEqual(["'self'"]);
     expect(d.get('form-action')).toEqual(["'self'"]);
-    expect(d.get('script-src')).toEqual(["'self'", "'unsafe-inline'"]);
+    expect(d.get('script-src')).toEqual(["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'"]);
     expect(d.get('connect-src')).toContain(COPERNICUS_DEM_ORIGIN);
   });
 
@@ -93,9 +94,9 @@ describe('next.config.ts headers()', () => {
 
   it('sets COOP same-origin and COEP require-corp on /probe and /explore/earth only', async () => {
     const rules = (await nextConfig.headers?.()) ?? [];
-    const isolated = rules.filter((r) =>
-      r.headers.some((h) => h.key === COOP_HEADER.key || h.key === COEP_HEADER.key),
-    );
+    const isolated = rules.filter((r) => r.headers.some((h) => h.key === COOP_HEADER.key));
+    // The probe worker's scripts carry COEP too, or the isolated page could not start the worker.
+    expect(rules.find((r) => r.source === '/_next/static/:path*')?.headers).toEqual([COEP_HEADER]);
     expect(isolated.map((r) => r.source)).toEqual([...ISOLATED_ROUTES]);
     expect(ISOLATED_ROUTES).toEqual(['/probe', '/explore/earth']);
     for (const rule of isolated) {
@@ -111,6 +112,7 @@ describe('next.config.ts headers()', () => {
     expect(csp?.headers.map((h) => h.key)).toEqual(['Content-Security-Policy']);
     expect(rules.flatMap((r) => r.headers.map((h) => h.key)).sort()).toEqual([
       'Content-Security-Policy',
+      'Cross-Origin-Embedder-Policy',
       'Cross-Origin-Embedder-Policy',
       'Cross-Origin-Embedder-Policy',
       'Cross-Origin-Opener-Policy',
