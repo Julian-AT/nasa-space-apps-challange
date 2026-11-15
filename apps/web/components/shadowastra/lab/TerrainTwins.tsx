@@ -10,7 +10,7 @@ import type { Body } from "@/lib/shadowastra/data/sites";
 import type { TerrainGrid } from "@/lib/shadowastra/terrain";
 import type { RoutePoint, TeamMode } from "@/lib/shadowastra-lab/fieldtest";
 import { ctrlWheelZoom } from "@/lib/shadowastra/wheel";
-import { AdaptiveDpr, createOrbit, ReleaseGPU } from "@/components/shadowastra/three/Controls";
+import { createOrbit, ReleaseGPU } from "@/components/shadowastra/three/Controls";
 
 export type Overlay = "imagery" | "light" | "relief";
 
@@ -39,6 +39,8 @@ interface Props {
   field?: FieldScene | null;
   /** Full-screen view: there is no page to scroll, so the plain mouse wheel zooms. */
   fullScreen?: boolean;
+  /** Slide/hero use: no orbit input, a slow automatic turn instead. */
+  showcase?: boolean;
 }
 
 const SIZE = 10;
@@ -160,13 +162,19 @@ function TerrainSlab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grid, footprintKm, exaggeration]);
 
+  const maxAniso = useThree((s) => s.gl.capabilities.getMaxAnisotropy());
   const texture = useMemo(() => {
     if (!drape) return null;
     const t = new THREE.CanvasTexture(drape);
     t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 8;
+    // trilinear mipmaps plus full anisotropy keep the drape crisp at grazing angles instead of shimmering
+    t.generateMipmaps = true;
+    t.minFilter = THREE.LinearMipmapLinearFilter;
+    t.magFilter = THREE.LinearFilter;
+    t.anisotropy = Math.min(16, maxAniso || 8);
+    t.needsUpdate = true;
     return t;
-  }, [drape]);
+  }, [drape, maxAniso]);
 
   useEffect(() => {
     const n = grid.n;
@@ -367,7 +375,8 @@ function Walkers() {
 function TeamMarker({ grid, route, upm, progress, mode }: { grid: TerrainGrid; route: RoutePoint[]; upm: number; progress: { current: number }; mode: TeamMode }) {
   const ref = useRef<THREE.Group>(null);
   const n = grid.n;
-  useFrame(() => {
+  const tilt = useRef<number | null>(null);
+  useFrame((_, dt) => {
     const g = ref.current;
     if (!g || route.length < 2) return;
     const last = route.length - 1;
@@ -382,7 +391,10 @@ function TeamMarker({ grid, route, upm, progress, mode }: { grid: TerrainGrid; r
     // tilt with the ground as drawn (relief exaggeration included)
     const ka = Math.max(0, k0 - 1);
     const kb = Math.min(last, k0 + 2);
-    g.rotation.z = Math.atan2(y(route[kb].height) - y(route[ka].height), colX(route[kb].i, n) - colX(route[ka].i, n));
+    const want = Math.atan2(y(route[kb].height) - y(route[ka].height), colX(route[kb].i, n) - colX(route[ka].i, n));
+    // ease the tilt so the rover rolls over grid steps instead of snapping between them
+    tilt.current = tilt.current === null ? want : tilt.current + (want - tilt.current) * (1 - Math.exp(-Math.min(dt, 0.1) * 7));
+    g.rotation.z = tilt.current;
   });
   return (
     <group ref={ref}>
@@ -471,7 +483,7 @@ function fitDistance(camera: THREE.PerspectiveCamera, width: number, height: num
  * Orbit controls for the stage (same settings and wheel policy as `Orbit`), plus the fit: whenever
  * the canvas changes size (a phone, a resized window, full screen) the camera moves so both blocks fit.
  */
-function StageOrbit({ top, wheel }: { top: number; wheel: "ctrl" | "zoom" }) {
+function StageOrbit({ top, wheel, showcase = false }: { top: number; wheel: "ctrl" | "zoom"; showcase?: boolean }) {
   const { camera, gl, size, scene } = useThree();
   const ctl = useRef<ReturnType<typeof createOrbit> | null>(null);
   useEffect(() => {
@@ -485,15 +497,23 @@ function StageOrbit({ top, wheel }: { top: number; wheel: "ctrl" | "zoom" }) {
     c.maxDistance = 36;
     c.maxPolarAngle = 1.45;
     c.target.set(0, 0, 0);
+    if (showcase) {
+      c.enableRotate = false;
+      c.enableZoom = false;
+      c.autoRotate = true;
+      c.autoRotateSpeed = 0.35;
+      c.minAzimuthAngle = -0.5;
+      c.maxAzimuthAngle = 0.5;
+    }
     ctl.current = c;
     // in the page the wheel scrolls (Ctrl or ⌘ + wheel zooms); full screen zooms on a plain wheel
-    const off = wheel === "ctrl" ? ctrlWheelZoom(gl.domElement, (on) => (c.enableZoom = on)) : null;
+    const off = wheel === "ctrl" && !showcase ? ctrlWheelZoom(gl.domElement, (on) => (c.enableZoom = on)) : null;
     return () => {
       off?.();
       c.dispose();
       ctl.current = null;
     };
-  }, [camera, gl, wheel]);
+  }, [camera, gl, wheel, showcase]);
   const framed = useRef("");
   useEffect(() => {
     if (!size.width || !size.height) return;
@@ -528,7 +548,7 @@ function StageOrbit({ top, wheel }: { top: number; wheel: "ctrl" | "zoom" }) {
 }
 
 function TerrainTwins(props: Props) {
-  const { earth, target, drapeEarth, drapeTarget, litEarth, litTarget, footprintKm, exaggeration, overlay, field, fullScreen } = props;
+  const { earth, target, drapeEarth, drapeTarget, litEarth, litTarget, footprintKm, exaggeration, overlay, field, fullScreen, showcase } = props;
   const narrow = typeof window !== "undefined" && window.innerWidth < 640;
   const upm = (SIZE / (footprintKm * 1000)) * exaggeration;
   const top = Math.max(earth ? earth.max - earth.min : 0, target ? target.max - target.min : 0) * upm;
@@ -542,11 +562,20 @@ function TerrainTwins(props: Props) {
         </div>
       }
     >
-    <Canvas shadows dpr={[1, 1.75]} camera={{ position: narrow ? [0, 22, 30] : [0, 9.5, 17], fov: 36 }} gl={{ antialias: true }}>
+    <Canvas
+      shadows="soft"
+      dpr={[1, 1.5]}
+      camera={{ position: narrow ? [0, 22, 30] : [0, 9.5, 17], fov: 36 }}
+      gl={{ antialias: true, powerPreference: "high-performance" }}
+      onCreated={({ gl }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.toneMappingExposure = 1.05;
+      }}
+    >
       <color attach="background" args={["#0b0c0f"]} />
       <fog attach="fog" args={["#0b0c0f", 30, 55]} />
-      <ambientLight intensity={overlay === "imagery" ? 0.35 : 0.08} />
-      <hemisphereLight args={["#c9d6f0", "#2a2420", overlay === "imagery" ? 0.35 : 0.12]} />
+      <ambientLight intensity={overlay === "imagery" ? 0.28 : 0.08} />
+      <hemisphereLight args={["#d6e0f2", "#3a3128", overlay === "imagery" ? 0.55 : 0.18]} />
       <SunLight {...props} />
       {earth && <TerrainSlab grid={earth} drape={drapeEarth} lit={litEarth} x={-(SIZE + GAP) / 2} footprintKm={footprintKm} exaggeration={exaggeration} overlay={overlay} field={sideE} />}
       {target && <TerrainSlab grid={target} drape={drapeTarget} lit={litTarget} x={(SIZE + GAP) / 2} footprintKm={footprintKm} exaggeration={exaggeration} overlay={overlay} field={sideT} />}
@@ -554,9 +583,8 @@ function TerrainTwins(props: Props) {
         <planeGeometry args={[80, 60]} />
         <meshStandardMaterial color="#0b0c0f" roughness={1} />
       </mesh>
-      <StageOrbit top={top} wheel={fullScreen ? "zoom" : "ctrl"} />
+      <StageOrbit top={top} wheel={fullScreen ? "zoom" : "ctrl"} showcase={showcase} />
       <ReleaseGPU />
-      <AdaptiveDpr />
     </Canvas>
     </Scene>
   );
