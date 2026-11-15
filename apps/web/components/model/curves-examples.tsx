@@ -151,7 +151,7 @@ function EntryList({ title, entries }: { readonly title: string; readonly entrie
               {isEvidenceLabel(e.evidence_label) ? <EvidenceLabel label={e.evidence_label} /> : null}
               <span className="text-sm text-muted-foreground">
                 {e.distance_family}:{' '}
-                {e.distance === null ? 'distance not recorded' : String(e.distance)}
+                {e.distance === null ? 'distance not recorded' : <span title={String(e.distance)} className="font-mono tabular-nums">{e.distance.toFixed(3)}</span>}
               </span>
             </li>
           ))}

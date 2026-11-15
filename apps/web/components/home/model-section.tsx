@@ -59,7 +59,7 @@ function Bullet({ children }: { readonly children: ReactNode }) {
 export function ModelStats({ facts, compact = false }: { readonly facts: ModelFacts; readonly compact?: boolean }) {
   const { parameters, trainingWindows, embeddingDim, wasmParity } = facts;
   return (
-    <div className={compact ? 'grid grid-cols-1 gap-4 min-[420px]:grid-cols-2' : 'grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4'}>
+    <div className={compact ? 'grid grid-cols-2 gap-3 sm:gap-4' : 'grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4'}>
       <Tile
         label="Parameters"
         fact={parameters}
