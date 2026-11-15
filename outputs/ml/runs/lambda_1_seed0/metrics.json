@@ -1,0 +1,313 @@
+{
+  "backbone_sha256": "97876abcbd7b95c2c1420a082d3179a958f921c589d83f84cc1753a00dbc6f27",
+  "config": {
+    "alpha_phys": 1.0,
+    "base_lr_per_1024": 0.001,
+    "batch_size": 128,
+    "bodies_included": [
+      "moon",
+      "mars",
+      "earth"
+    ],
+    "epochs": 12,
+    "lambda_max": 1.0,
+    "name": "lambda_1",
+    "precision": "fp32",
+    "seed": 0,
+    "stem_stride": 2,
+    "sub_crop_m": null,
+    "use_body_head": true,
+    "use_phys_head": true,
+    "use_vicreg": true,
+    "warmup_epochs": 2,
+    "weight_decay": 0.05,
+    "windows_per_epoch": 10000
+  },
+  "config_hash": "22a62d5805d3b43c1090ebda7072bd72cbf40b1b2bc547d4ef64ef2ebd3fbbe4",
+  "cpu_core_hours": 1.9259,
+  "data_manifest_sha256": "53f0c2614945436ba7e89460ed365d1aefa7e86b55ed34c9a58f0a65d5227b3e",
+  "deviations_from_prd": {
+    "batch_size": {
+      "prd": 1024,
+      "used": 128
+    },
+    "epochs": {
+      "prd": 40,
+      "used": 12
+    },
+    "precision": {
+      "prd": "bf16",
+      "used": "fp32"
+    },
+    "stem_stride": {
+      "prd": 1,
+      "used": 2
+    },
+    "windows_per_epoch": {
+      "prd": null,
+      "used": 10000
+    }
+  },
+  "epochs": [
+    {
+      "epoch": 0,
+      "epoch_train_s": 274.87,
+      "head_val_body_acc": 0.412,
+      "head_val_phys_mse": 0.2656714179515839,
+      "lambda_end": 0.38997004447044614,
+      "lr_end": 6.25e-05,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 36.32,
+      "train": {
+        "body": 1.0595285854278467,
+        "phys": 0.8278399843436021,
+        "total": 41.5146060356727,
+        "vicreg": 39.62723731994629,
+        "vicreg_cov": 1.8623159512495384,
+        "vicreg_inv": 0.18572350018299544,
+        "vicreg_var": 1.3248733587754078
+      }
+    },
+    {
+      "epoch": 1,
+      "epoch_train_s": 391.06,
+      "head_val_body_acc": 0.5385,
+      "head_val_phys_mse": 0.13166648215055465,
+      "lambda_end": 0.6798725505436134,
+      "lr_end": 0.000125,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 25.53,
+      "train": {
+        "body": 0.8455349527872525,
+        "phys": 0.22990346050415283,
+        "total": 37.86795474321414,
+        "vicreg": 36.79251651274852,
+        "vicreg_cov": 2.8397129575411477,
+        "vicreg_inv": 0.12127438569680238,
+        "vicreg_var": 1.2368377615243962
+      }
+    },
+    {
+      "epoch": 2,
+      "epoch_train_s": 281.43,
+      "head_val_body_acc": 0.6505,
+      "head_val_phys_mse": 0.10352900743484497,
+      "lambda_end": 0.8471551480911044,
+      "lr_end": 0.0001220183388295436,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 35.48,
+      "train": {
+        "body": 0.647079023031088,
+        "phys": 0.12867831668028465,
+        "total": 33.622725144410744,
+        "vicreg": 32.8469679905818,
+        "vicreg_cov": 4.858935160514636,
+        "vicreg_inv": 0.02970906563150959,
+        "vicreg_var": 1.0898122527660468
+      }
+    },
+    {
+      "epoch": 3,
+      "epoch_train_s": 375.32,
+      "head_val_body_acc": 0.685,
+      "head_val_phys_mse": 0.0964914361834526,
+      "lambda_end": 0.9306337533927771,
+      "lr_end": 0.00011321111490978583,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 26.6,
+      "train": {
+        "body": 0.5692167205688281,
+        "phys": 0.11804004529347786,
+        "total": 31.6919738084842,
+        "vicreg": 31.004717093247635,
+        "vicreg_cov": 5.553463727999956,
+        "vicreg_inv": 0.02080701420513483,
+        "vicreg_var": 0.9972431132426629
+      }
+    },
+    {
+      "epoch": 4,
+      "epoch_train_s": 414.24,
+      "head_val_body_acc": 0.6845,
+      "head_val_phys_mse": 0.09109081673622131,
+      "lambda_end": 0.9692775329570626,
+      "lr_end": 9.943993373754464e-05,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 24.1,
+      "train": {
+        "body": 0.5383926610916089,
+        "phys": 0.1054347833761802,
+        "total": 30.514235985584747,
+        "vicreg": 29.87040837605794,
+        "vicreg_cov": 5.954186965257693,
+        "vicreg_inv": 0.017381030899018813,
+        "vicreg_var": 0.9392678332634461
+      }
+    },
+    {
+      "epoch": 5,
+      "epoch_train_s": 314.17,
+      "head_val_body_acc": 0.694,
+      "head_val_phys_mse": 0.09150991523265839,
+      "lambda_end": 0.9865430080472031,
+      "lr_end": 8.205281447542019e-05,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 31.78,
+      "train": {
+        "body": 0.5274004932397451,
+        "phys": 0.10463810081665333,
+        "total": 29.80174336066613,
+        "vicreg": 29.169704706240925,
+        "vicreg_cov": 6.2063646622193165,
+        "vicreg_inv": 0.0159269955355483,
+        "vicreg_var": 0.9026066049551352
+      }
+    },
+    {
+      "epoch": 6,
+      "epoch_train_s": 389.81,
+      "head_val_body_acc": 0.688,
+      "head_val_phys_mse": 0.08339974582195282,
+      "lambda_end": 0.9941344961091678,
+      "lr_end": 6.275172949997252e-05,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 25.61,
+      "train": {
+        "body": 0.5160681991240917,
+        "phys": 0.0991419633038533,
+        "total": 29.194087297488483,
+        "vicreg": 28.578877155597393,
+        "vicreg_cov": 6.409910996754964,
+        "vicreg_inv": 0.014719974757052766,
+        "vicreg_var": 0.8720386761885422
+      }
+    },
+    {
+      "epoch": 7,
+      "epoch_train_s": 226.34,
+      "head_val_body_acc": 0.696,
+      "head_val_phys_mse": 0.08321007347106933,
+      "lambda_end": 0.9974489003761826,
+      "lr_end": 4.3426003487165025e-05,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 44.11,
+      "train": {
+        "body": 0.5217822916232623,
+        "phys": 0.09462776980721034,
+        "total": 28.79741392380152,
+        "vicreg": 28.18100379063533,
+        "vicreg_cov": 6.544538069994021,
+        "vicreg_inv": 0.014591815027718743,
+        "vicreg_var": 0.8508668159827207
+      }
+    },
+    {
+      "epoch": 8,
+      "epoch_train_s": 208.54,
+      "head_val_body_acc": 0.695,
+      "head_val_phys_mse": 0.07910879826545715,
+      "lambda_end": 0.9988914843758157,
+      "lr_end": 2.596737314938196e-05,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 47.88,
+      "train": {
+        "body": 0.5297378626389381,
+        "phys": 0.09717298241762015,
+        "total": 28.543060009296124,
+        "vicreg": 27.916149188310673,
+        "vicreg_cov": 6.649876380578066,
+        "vicreg_inv": 0.013719173345284967,
+        "vicreg_var": 0.8369317398621485
+      }
+    },
+    {
+      "epoch": 9,
+      "epoch_train_s": 179.07,
+      "head_val_body_acc": 0.6995,
+      "head_val_phys_mse": 0.07772152602672577,
+      "lambda_end": 0.9995185192905212,
+      "lr_end": 1.2084810865515806e-05,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 55.75,
+      "train": {
+        "body": 0.5371405902581338,
+        "phys": 0.09820276064177354,
+        "total": 28.362337723756447,
+        "vicreg": 27.72699434329302,
+        "vicreg_cov": 6.685176720985999,
+        "vicreg_inv": 0.014093504496253071,
+        "vicreg_var": 0.8275792025602781
+      }
+    },
+    {
+      "epoch": 10,
+      "epoch_train_s": 171.37,
+      "head_val_body_acc": 0.6955,
+      "head_val_phys_mse": 0.07828423458337784,
+      "lambda_end": 0.9997909072809035,
+      "lr_end": 3.137238557410431e-06,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 58.26,
+      "train": {
+        "body": 0.5356997006978744,
+        "phys": 0.09628406940744473,
+        "total": 28.22272095313439,
+        "vicreg": 27.590737098302597,
+        "vicreg_cov": 6.737910258464324,
+        "vicreg_inv": 0.013821937436333451,
+        "vicreg_var": 0.820291130970686
+      }
+    },
+    {
+      "epoch": 11,
+      "epoch_train_s": 162.27,
+      "head_val_body_acc": 0.6985,
+      "head_val_phys_mse": 0.07664924386143684,
+      "lambda_end": 0.9999092042625952,
+      "lr_end": 5.069439851859703e-10,
+      "mask_skipped_batches": 0,
+      "throughput_windows_per_s_measured": 61.53,
+      "train": {
+        "body": 0.5387508177604431,
+        "phys": 0.09859562507615639,
+        "total": 28.216383836208244,
+        "vicreg": 27.57903744624211,
+        "vicreg_cov": 6.738800525665283,
+        "vicreg_inv": 0.013908433136888422,
+        "vicreg_var": 0.8197010426949232
+      }
+    }
+  ],
+  "git_sha": "2e846652efd86ccc041d1565dc201df836dd508a",
+  "gpu_hours": 0.0,
+  "gpu_hours_note": "measured: 0 GPU hours, CPU only",
+  "hardware": {
+    "accelerator": "none (CPU only, team rule)",
+    "cpu_count": 8,
+    "device": "cpu",
+    "device_name": "x86_64",
+    "threads": 2,
+    "torch": "2.15.0+cpu"
+  },
+  "lambda_max": 1.0,
+  "mock": false,
+  "n_train_rows": 19393,
+  "n_val_rows_used": 2000,
+  "name": "lambda_1",
+  "parameter_count_backbone": 2795040,
+  "precision_used": "fp32",
+  "probe_metrics_per_epoch": {
+    "reason": "probes run once after training in evaluate.py (reduced scope)",
+    "status": "Unavailable"
+  },
+  "seed": 0,
+  "status": "completed",
+  "steps_per_epoch": 78,
+  "train_bodies": [
+    "moon",
+    "mars",
+    "earth"
+  ],
+  "use_phys_head": true,
+  "wall_clock_s": 3466.7
+}
