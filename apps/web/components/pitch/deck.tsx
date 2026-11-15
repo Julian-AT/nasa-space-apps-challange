@@ -8,10 +8,11 @@ import { AnimatePresence, motion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { EarthIcon } from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
 
-import { ACCENT, CountUp, EASE, FAINT, INK, LagProfile, LINE, MUTED, NuChart, PAPER, WORLD } from './bits';
+import { Globe } from '@/components/globe';
+
+import { ACCENT, EASE, FAINT, HillTile, INK, LINE, MUTED, PAPER } from './bits';
+import { C, FigureCard, LineFigure, type LineSeries } from './figure';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
 import { SslExplainer, SSL_STEPS } from './ssl-explainer';
@@ -29,46 +30,22 @@ function Unavailable({ reason }: { reason: string }) {
   return <span className="text-base font-normal text-zinc-400">Unavailable ({reason})</span>;
 }
 
-/** Staggered blur-fade entrance for slide elements. */
-function In({ d = 0, children, className }: { d?: number; children: ReactNode; className?: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14, filter: 'blur(8px)' }}
-      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-      transition={{ duration: 0.7, delay: 0.1 + d, ease: EASE }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
+/** A slide block. Slide changes are instant: no entrance animation. `d` is kept for call sites. */
+function In({ children, className }: { d?: number; children: ReactNode; className?: string }) {
+  return <div className={className}>{children}</div>;
 }
 
 /** Emphasis by weight, never by colour. */
 function A({ children }: { children: ReactNode }) {
-  return <span className="font-semibold text-zinc-950">{children}</span>;
+  return <span className="font-medium text-zinc-950">{children}</span>;
 }
 
-/** The brand mark and wordmark, large on the title and closing slides. */
-function Brand({ size = 'lg' }: { size?: 'lg' | 'xl' }) {
-  const big = size === 'xl';
-  return (
-    <div className={`flex items-center ${big ? 'gap-7' : 'gap-5'}`}>
-      <span className={`grid shrink-0 place-items-center ${big ? 'size-24 rounded-[1.6rem]' : 'size-20 rounded-2xl'}`} style={{ background: INK }}>
-        <HugeiconsIcon icon={EarthIcon} strokeWidth={1.8} className={big ? 'size-14' : 'size-11'} style={{ color: PAPER }} aria-hidden />
-      </span>
-      <span className={`${big ? 'text-[7.25rem]' : 'text-[6.5rem]'} font-bold leading-none tracking-[-0.035em]`} style={{ color: INK }}>
-        Terraluna
-      </span>
-    </div>
-  );
-}
-
-/** Content slide grid: bold title top-left with a one-line subtitle, content below. */
+/** Content slide grid: a calm title top-left with a one-line subtitle, content below. */
 function Frame({ title, sub, children }: { title: ReactNode; sub?: ReactNode; children: ReactNode }) {
   return (
-    <div className="flex h-full flex-col gap-10">
+    <div className="flex h-full flex-col gap-9">
       <In className="flex flex-col gap-2">
-        <h2 className="text-[2.75rem] font-semibold leading-tight tracking-tight">{title}</h2>
+        <h2 className="text-[2.75rem] font-medium leading-[1.1] tracking-[-0.025em]">{title}</h2>
         {sub ? <p className="text-xl" style={{ color: MUTED }}>{sub}</p> : null}
       </In>
       <div className="min-h-0 flex-1">{children}</div>
@@ -76,68 +53,13 @@ function Frame({ title, sub, children }: { title: ReactNode; sub?: ReactNode; ch
   );
 }
 
-/** A stats column: bold label, big accent number, small label, grey caption. */
-function Stat({ label, children, unit, caption, d }: { label: string; children: ReactNode; unit: string; caption?: string | undefined; d: number }) {
+/** A key number in weight 500 with a small grey label. */
+function Key({ value, label }: { value: ReactNode; label: string }) {
   return (
-    <In d={d} className="flex flex-col items-center gap-1 text-center">
-      <span className="text-xl font-semibold">{label}</span>
-      <span className="text-6xl font-bold tracking-tight" style={{ color: ACCENT }}>
-        {children}
-      </span>
-      <span className="mt-1 text-lg">{unit}</span>
-      {caption ? <span className="max-w-[22rem] text-sm leading-snug" style={{ color: MUTED }}>{caption}</span> : null}
-    </In>
-  );
-}
-
-/** One numbered step of the fingerprint slide: number, title, visual. */
-function Step({ n, title, d, children }: { n: number; title: string; d: number; children: ReactNode }) {
-  return (
-    <In d={d} className="flex h-full flex-col gap-5 rounded-3xl border border-zinc-200 bg-zinc-50 p-6">
-      <div className="flex items-center gap-3">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full font-mono text-sm" style={{ background: INK, color: PAPER }}>{n}</span>
-        <span className="text-xl font-semibold leading-tight tracking-tight">{title}</span>
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">{children}</div>
-    </In>
-  );
-}
-
-/** Step 1 diagram: a 5 km square window on a regular sample grid, with dimension brackets. */
-function GridSquare() {
-  const n = 8;
-  const S = 210;
-  const x0 = 50;
-  const y0 = 10;
-  return (
-    <svg viewBox="0 0 300 270" className="mx-auto w-full max-w-[16rem]" role="img" aria-label="A 5 by 5 kilometre square window divided into a regular sample grid">
-      <rect x={x0} y={y0} width={S} height={S} rx={6} fill="#ffffff" stroke={INK} strokeWidth={2} />
-      {Array.from({ length: n - 1 }, (_, k) => {
-        const t = ((k + 1) * S) / n;
-        return (
-          <g key={k} stroke="rgba(26,22,19,0.12)" strokeWidth={1}>
-            <line x1={x0 + t} x2={x0 + t} y1={y0} y2={y0 + S} />
-            <line x1={x0} x2={x0 + S} y1={y0 + t} y2={y0 + t} />
-          </g>
-        );
-      })}
-      {Array.from({ length: n * n }, (_, k) => (
-        <circle key={k} cx={x0 + ((k % n) + 0.5) * (S / n)} cy={y0 + (Math.floor(k / n) + 0.5) * (S / n)} r={2} fill={FAINT} />
-      ))}
-      <circle cx={x0 + S / 2} cy={y0 + S / 2} r={6} fill={ACCENT} />
-      <g stroke={MUTED} strokeWidth={1.2}>
-        <line x1={x0} x2={x0 + S} y1={y0 + S + 24} y2={y0 + S + 24} />
-        <line x1={x0} x2={x0} y1={y0 + S + 18} y2={y0 + S + 30} />
-        <line x1={x0 + S} x2={x0 + S} y1={y0 + S + 18} y2={y0 + S + 30} />
-        <line x1={x0 - 22} x2={x0 - 22} y1={y0} y2={y0 + S} />
-        <line x1={x0 - 28} x2={x0 - 16} y1={y0} y2={y0} />
-        <line x1={x0 - 28} x2={x0 - 16} y1={y0 + S} y2={y0 + S} />
-      </g>
-      <rect x={x0 + S / 2 - 28} y={y0 + S + 14} width={56} height={20} fill="#FCFBF9" />
-      <text x={x0 + S / 2} y={y0 + S + 29} textAnchor="middle" fontSize={14} className="font-mono" fill={INK}>5 km</text>
-      <rect x={x0 - 32} y={y0 + S / 2 - 26} width={20} height={52} fill="#FCFBF9" />
-      <text x={x0 - 22} y={y0 + S / 2 + 5} textAnchor="middle" fontSize={14} className="font-mono" fill={INK} transform={`rotate(-90 ${x0 - 22} ${y0 + S / 2})`}>5 km</text>
-    </svg>
+    <div className="flex flex-col gap-1 border-t pt-4" style={{ borderColor: C.hair }}>
+      <span className="text-[2rem] font-medium leading-none tracking-[-0.02em] tabular-nums">{value}</span>
+      <span className="text-sm" style={{ color: FAINT }}>{label}</span>
+    </div>
   );
 }
 
@@ -153,29 +75,40 @@ function slides(d: PitchData, qr: string | null): Slide[] {
   const m = d.model;
   // the Jezero and Rosamond Dry Lake card: the finder and fingerprint story
   const jr = d.results.find((r) => r.targetName.includes('Jezero')) ?? null;
+  const nuSeries: LineSeries[] = d.curves.map((c, k) => ({
+    id: c.id,
+    label: k === 0 ? c.role.replace(' crater', '') : c.role.replace(' Dry Lake', ''),
+    color: k === 0 ? C.orange : C.blue,
+    points: c.points.map((p) => ({ x: p.lag_m, y: p.nu })),
+  }));
+  const nuYs = d.curves.flatMap((c) => c.points.map((p) => p.nu));
+  const nuTicks = nuYs.length ? (() => {
+    const lo = Math.floor(Math.min(...nuYs) / 5) * 5;
+    const hi = Math.ceil(Math.max(...nuYs) / 5) * 5;
+    const step = Math.max(5, Math.round((hi - lo) / 4 / 5) * 5);
+    return Array.from({ length: Math.floor((hi - lo) / step) + 1 }, (_, k) => lo + k * step).filter((v) => v > 0);
+  })() : [];
   return [
     {
       id: 'title',
       steps: 1,
       bare: true,
       body: () => (
-        <div className="relative flex h-full flex-col justify-center">
-          <div className="flex max-w-[68rem] flex-col gap-10">
+        <div className="relative grid h-full grid-cols-[1fr_1fr] items-center gap-8">
+          <div className="flex flex-col gap-7">
             <In>
-              <Brand size="xl" />
+              <h1 className="text-[6.5rem] font-medium leading-none tracking-[-0.045em]">Terraluna</h1>
             </In>
-            <div className="flex flex-col gap-3">
-              <In d={0.15}>
-                <p className="text-[2.4rem] font-bold leading-tight tracking-tight">Find the Moon and Mars on Earth.</p>
-              </In>
-              <In d={0.25}>
-                <p className="max-w-[60rem] text-[1.6rem] leading-snug" style={{ color: MUTED }}>
-                  A physics fingerprint and a learned terrain model that compare any place on Earth with Moon and Mars landing sites, live in the browser.
-                </p>
-              </In>
-            </div>
+            <In d={0.12}>
+              <p className="text-[1.75rem] leading-snug tracking-[-0.01em]" style={{ color: MUTED }}>Find the Moon and Mars on Earth.</p>
+            </In>
           </div>
-          <p className="absolute bottom-0 left-0 text-base" style={{ color: MUTED }}>
+          <In d={0.2} className="relative mx-auto aspect-square h-[72vh] max-w-full">
+            <div className="absolute inset-0" style={{ clipPath: 'circle(39% at 50% 50%)' }} onClick={(e) => e.stopPropagation()}>
+              <Globe body="earth" pins={[]} autoRotate />
+            </div>
+          </In>
+          <p className="absolute bottom-0 left-0 text-sm" style={{ color: FAINT }}>
             NASA Space Apps 2026, Team Terraluna
           </p>
         </div>
@@ -185,81 +118,72 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       id: 'problem',
       steps: 1,
       body: () => (
-        <div className="flex h-full flex-col">
-          <In>
-            <h2 className="text-[2.75rem] font-bold leading-tight tracking-tight">Problem</h2>
-          </In>
-          <div className="flex flex-1 flex-col justify-center gap-24 pb-[4vh]">
+        <Frame title="Problem">
+          <div className="flex h-full flex-col justify-center gap-20 pb-[4vh]">
             <In d={0.1}>
-              <p className="mx-auto max-w-[62rem] text-center text-[2rem] font-medium leading-snug tracking-tight">
+              <p className="max-w-[60rem] text-[2.25rem] font-normal leading-[1.25] tracking-[-0.02em]">
                 Astronauts and rovers train on Earth first. But <span style={{ color: ACCENT }}>which place on Earth really matches the target?</span>
               </p>
             </In>
-            <div className="grid grid-cols-3 gap-12">
+            <div className="grid grid-cols-3 gap-10">
               {[
-                { label: 'Few targets', big: String(d.targets.length), unit: 'target sites', caption: d.targets.map((t) => `${t.name} (${BODY[t.body]})`).join(', ') },
-                { label: 'No yardstick', big: 'By eye', unit: 'how analogs are picked', caption: 'Analog sites are chosen by experience, not by one shared terrain measure.' },
-                { label: 'Everywhere', big: 'Any', unit: 'point on Earth', caption: 'Terraluna measures it live in the browser, in seconds.' },
+                { big: String(d.targets.length), unit: 'target sites', caption: d.targets.map((t) => `${t.name} (${BODY[t.body]})`).join(', ') },
+                { big: 'By eye', unit: 'how analogs are picked', caption: 'Chosen by experience, not by one shared terrain measure.' },
+                { big: 'Any', unit: 'point on Earth', caption: 'Terraluna measures it live in the browser, in seconds.' },
               ].map((c, k) => (
-                <In key={c.label} d={0.25 + k * 0.1} className="flex flex-col items-center gap-1 text-center">
-                  <span className="text-2xl font-semibold tracking-tight">{c.label}</span>
-                  <span className="mt-1 text-[4.5rem] font-bold leading-none tracking-tight" style={{ color: ACCENT }}>{c.big}</span>
-                  <span className="mt-2 text-xl">{c.unit}</span>
-                  <span className="mt-1 max-w-[22rem] text-base leading-snug" style={{ color: MUTED }}>{c.caption}</span>
+                <In key={c.unit} d={0.2 + k * 0.08} className="flex flex-col gap-2 border-t pt-5">
+                  <span className="mb-2 size-2 rounded-full" style={{ background: [C.orange, C.green, C.blue][k] }} />
+                  <span className="text-[3.5rem] font-medium leading-none tracking-[-0.03em]">{c.big}</span>
+                  <span className="mt-1 text-lg">{c.unit}</span>
+                  <span className="max-w-[22rem] text-base leading-snug" style={{ color: FAINT }}>{c.caption}</span>
                 </In>
               ))}
             </div>
           </div>
-        </div>
+        </Frame>
       ),
     },
     {
       id: 'physics',
       steps: 1,
       body: () => (
-        <div className="flex h-full flex-col gap-8">
-          <In className="flex flex-col gap-2">
-            <h2 className="text-[2.75rem] font-bold leading-tight tracking-tight">Physics fingerprint</h2>
-            <p className="text-xl" style={{ color: MUTED }}>Three steps, the same code in Python and in your browser.</p>
-          </In>
-          <div className="grid min-h-0 flex-1 grid-cols-[1fr_1fr_1.3fr] gap-6">
-            <Step n={1} title="Take a 5 km window" d={0.15}>
-              <GridSquare />
-              <p className="text-lg font-medium leading-snug">The same 5 km square on both worlds, sampled on a regular grid.</p>
-              <p className="-mt-2 text-sm" style={{ color: MUTED }}>
-                {jr ? <>{jr.targetName} ({BODY[jr.body]}) and {jr.earthName.split(',')[0]} (Earth)</> : <Unavailable reason="no Jezero and Rosamond card" />}
-              </p>
-            </Step>
-            <Step n={2} title="Measure the bumps at three scales" d={0.3}>
-              {d.lags.length ? <LagProfile lags={d.lags} /> : <Unavailable reason="no lags in bundle" />}
-              <p className="text-lg font-medium leading-snug">How much the height changes over each distance.</p>
-              <p className="-mt-2 text-sm" style={{ color: MUTED }}>schematic profile, lags from the bundle</p>
-            </Step>
-            <Step n={3} title="Compare the two curves" d={0.45}>
-              {d.curves.length ? <NuChart curves={d.curves} lags={d.lags} /> : <Unavailable reason="no fingerprint curve in bundle" />}
-              <div className="flex items-end justify-between gap-4">
-                <div className="flex shrink-0 flex-col gap-1.5 text-sm" style={{ color: MUTED }}>
-                  {d.curves.map((c, k) => (
-                    <span key={c.id} className="flex items-center gap-2">
-                      <span className="h-1 w-5 rounded" style={{ background: k === 0 ? WORLD.mars : WORLD.earth }} />
-                      {c.role.replace(' Dry Lake', '')}
-                    </span>
-                  ))}
-                </div>
-                {jr ? (
-                  <div className="text-right">
-                    <p className="text-6xl font-bold tracking-tight tabular-nums" style={{ color: ACCENT }}>{jr.relief.toFixed(3)}</p>
-                    <p className="text-sm font-semibold">relief distance</p>
-                    <p className="text-sm" style={{ color: MUTED }}>
-                      lower = more alike
-                      {jr.closerThan !== null ? <><br />closer than {jr.closerThan}% of windows</> : null}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            </Step>
+        <Frame title="Physics fingerprint" sub="How much the height changes over each distance, the same code in Python and in your browser.">
+          <div className="grid h-full grid-cols-[1fr_17rem] gap-10">
+            <In d={0.12} className="h-full">
+              <FigureCard
+                title="Structure function"
+                sub="Relief nu(L) per lag, closer curves mean more alike terrain"
+                caption={`Figure 1. Relief structure function nu(L) at ${d.lags.length ? `${d.lags[0]} to ${d.lags[d.lags.length - 1]} m` : 'the stored'} lags.${jr ? ` Relief distance ${jr.relief.toFixed(3)}.` : ''}`}
+              >
+                {nuSeries.length ? (
+                  <LineFigure
+                    series={nuSeries}
+                    xTicks={d.lags}
+                    yTicks={nuTicks}
+                    xLog
+                    yLog
+                    dots
+                    xLabel="Lag L (m)"
+                    yLabel="nu(L) (m)"
+                    fmtX={(x) => String(x)}
+                    fmtY={(y) => (y >= 10 ? y.toFixed(1) : y.toFixed(2))}
+                    ariaLabel="Relief structure function nu(L), log-log, for the Jezero and Rosamond windows"
+                    height={340}
+                  />
+                ) : <Unavailable reason="no fingerprint curve in bundle" />}
+              </FigureCard>
+            </In>
+            <div className="flex flex-col justify-end gap-8 pb-2">
+              {jr ? (
+                <In d={0.3} className="flex flex-col gap-6">
+                  <Key value={<span style={{ color: ACCENT }}>{jr.relief.toFixed(3)}</span>} label="relief distance, lower is closer" />
+                  {jr.closerThan !== null ? <Key value={`${jr.closerThan}%`} label="of candidate windows are farther" /> : null}
+                  <Key value="5 km" label="square window on both worlds" />
+                </In>
+              ) : <Unavailable reason="no Jezero and Rosamond card" />}
+            </div>
           </div>
-        </div>
+        </Frame>
       ),
     },
     {
@@ -283,37 +207,22 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       ),
     },
     {
+      id: 'training',
+      steps: 1,
+      body: () => (
+        <Frame title="Training" sub="Self-supervised on Moon, Mars and Earth windows, losses read from the release bundle.">
+          {/* figure area: components/pitch/fig-training.tsx is wired in here */}
+          <div className="h-full w-full" data-figure="training" />
+        </Frame>
+      ),
+    },
+    {
       id: 'metrics',
       steps: 1,
       body: () => (
-        <Frame title="Model metrics" sub="Experimental learned similarity, evidence label Predicted, a second opinion beside the physics.">
-          <div className="flex h-full flex-col justify-center gap-16">
-            <div className="grid grid-cols-3 gap-12">
-              <Stat d={0.15} label="Small" unit="parameters" caption="ResNet backbone with three training heads">
-                {m.parameters === null ? <Unavailable reason="model card" /> : <CountUp value={m.parameters} />}
-              </Stat>
-              <Stat d={0.25} label="Trained" unit="training windows" caption={m.totalWindows === null ? undefined : `of ${m.totalWindows.toLocaleString('en-US')} windows from the Moon, Mars and Earth`}>
-                {m.trainWindows === null ? <Unavailable reason="model card" /> : <CountUp value={m.trainWindows} />}
-              </Stat>
-              <Stat d={0.35} label="Fast" unit="faster training on Apple MPS" caption={m.mpsMedian !== null && m.cpuMedian !== null ? `${m.mpsMedian} vs ${m.cpuMedian} windows per second, median, laptop GPU vs CPU server` : undefined}>
-                {m.mpsMedian !== null && m.cpuMedian ? (
-                  <>
-                    ~<CountUp value={Math.round(m.mpsMedian / m.cpuMedian)} />x
-                  </>
-                ) : (
-                  <Unavailable reason="run records" />
-                )}
-              </Stat>
-            </div>
-            <div className="mx-auto grid w-2/3 grid-cols-2 gap-12">
-              <Stat d={0.45} label="In the browser" unit="parity, min cosine" caption="ONNX in WebAssembly vs the training model">
-                {m.wasmMinCosine === null ? <Unavailable reason="numbers.tex" /> : <CountUp value={m.wasmMinCosine} digits={6} />}
-              </Stat>
-              <Stat d={0.55} label="Knows physics" unit="probe R², lower bound" caption="pooled relief ν at every lag, 95% CI">
-                {m.probeR2Low === null ? <Unavailable reason="model card" /> : <CountUp value={Number(m.probeR2Low.toFixed(3))} digits={3} />}
-              </Stat>
-            </div>
-          </div>
+        <Frame title="Benchmarks" sub="Experimental learned similarity, evidence label Predicted, a second opinion beside the physics.">
+          {/* figure area: components/pitch/fig-benchmarks.tsx is wired in here */}
+          <div className="h-full w-full" data-figure="benchmarks" />
         </Frame>
       ),
     },
@@ -334,37 +243,40 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       id: 'results',
       steps: 1,
       body: () => (
-        <Frame title="Results" sub={<><A><CountUp value={d.cardCount} duration={0.8} /> evidence cards</A> in the release bundle. Two of them:</>}>
-          <div className="grid h-full grid-cols-2 gap-8">
+        <Frame title="Results" sub={<><A>{d.cardCount} evidence cards</A> in the release bundle. Two of them:</>}>
+          <div className="grid h-full grid-cols-2 gap-6">
             {d.results.map((r, k) => (
-              <In key={r.cardId} d={0.2 + k * 0.15} className="h-full">
-                <div className="flex h-full flex-col justify-between rounded-3xl border border-zinc-200 bg-zinc-50 p-10">
-                  <div className="flex flex-col gap-2">
-                    <span className="font-mono text-sm uppercase tracking-[0.14em]" style={{ color: FAINT }}>{BODY[r.body]} vs Earth</span>
-                    <p className="text-[2rem] font-semibold leading-tight tracking-tight">
-                      {r.targetName}
-                      <span style={{ color: FAINT }}> and </span>
-                      {r.earthName.split(',')[0]}
-                    </p>
+              <In key={r.cardId} d={0.15 + k * 0.1} className="h-full">
+                <FigureCard
+                  title={<>{r.targetName} <span style={{ color: FAINT }}>and</span> {r.earthName.split(',')[0]}</>}
+                  sub={`${BODY[r.body]} vs Earth, ${r.label}`}
+                  caption="Candidate windows found by this search, not proven analogs."
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <HillTile tile={r.targetTile} className="rounded-lg" />
+                      <span className="text-xs" style={{ color: FAINT }}>{r.targetName}, hillshade</span>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <HillTile tile={r.earthTile} className="rounded-lg" />
+                      <span className="text-xs" style={{ color: FAINT }}>{r.earthName.split(',')[0]}, hillshade</span>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-8 border-t border-zinc-200 pt-8">
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[4.5rem] font-bold leading-none tracking-tight tabular-nums" style={{ color: ACCENT }}>
-                        <CountUp value={Number(r.relief.toPrecision(3))} digits={Math.max(0, 2 - Math.floor(Math.log10(r.relief)))} delay={0.5 + k * 0.15} />
-                      </p>
-                      <p className="mt-2 text-xl">relief distance</p>
-                      <p className="text-base" style={{ color: MUTED }}>{r.unit}, lower is closer</p>
+                  <div className="mt-6 grid grid-cols-2 gap-8">
+                    <div className="flex flex-col gap-2">
+                      <p className="text-[2.75rem] font-medium leading-none tracking-[-0.03em] tabular-nums" style={{ color: k === 0 ? ACCENT : INK }}>{r.relief.toFixed(3)}</p>
+                      <p className="text-lg">relief distance</p>
+                      <p className="text-sm" style={{ color: FAINT }}>{r.unit}, lower is closer</p>
                     </div>
                     {r.closerThan !== null ? (
-                      <div className="flex flex-col gap-1">
-                        <p className="text-[4.5rem] font-bold leading-none tracking-tight tabular-nums">{r.closerThan}%</p>
-                        <p className="mt-2 text-xl">closer than</p>
-                        <p className="text-base" style={{ color: MUTED }}>of candidate windows searched</p>
+                      <div className="flex flex-col gap-2">
+                        <p className="text-[2.75rem] font-medium leading-none tracking-[-0.03em] tabular-nums">{r.closerThan}%</p>
+                        <p className="text-lg">closer than</p>
+                        <p className="text-sm" style={{ color: FAINT }}>of candidate windows searched</p>
                       </div>
                     ) : null}
                   </div>
-                  <p className="text-sm" style={{ color: FAINT }}>{r.label}, candidate windows found by this search, not proven analogs</p>
-                </div>
+                </FigureCard>
               </In>
             ))}
           </div>
@@ -379,29 +291,27 @@ function slides(d: PitchData, qr: string | null): Slide[] {
         <div className="relative grid h-full grid-cols-[1.4fr_1fr] items-center gap-16">
           <div className="flex flex-col gap-6">
             <In>
-              <Brand />
+              <h2 className="text-[5.5rem] font-medium leading-none tracking-[-0.045em]">Terraluna</h2>
             </In>
-            <In d={0.15}>
-              <p className="text-3xl font-semibold tracking-tight">
-                Measure any point on Earth, <A>live.</A>
-              </p>
+            <In d={0.12}>
+              <p className="text-[1.75rem] tracking-[-0.01em]" style={{ color: MUTED }}>Measure any point on Earth, live.</p>
             </In>
-            <In d={0.25} className="flex flex-col gap-2 text-xl" >
-              <a href={`https://${SITE}`} onClick={(e) => e.stopPropagation()} className="font-medium underline decoration-zinc-300 underline-offset-8">
+            <In d={0.2} className="mt-4 flex flex-col gap-2 text-xl">
+              <a href={`https://${SITE}`} onClick={(e) => e.stopPropagation()} className="underline decoration-zinc-300 underline-offset-8">
                 {SITE}
               </a>
-              <a href={`https://${GITHUB}`} onClick={(e) => e.stopPropagation()} className="text-base underline decoration-zinc-200 underline-offset-8" style={{ color: MUTED }}>
+              <a href={`https://${GITHUB}`} onClick={(e) => e.stopPropagation()} className="text-base underline decoration-zinc-200 underline-offset-8" style={{ color: FAINT }}>
                 {GITHUB}
               </a>
             </In>
           </div>
           {qr ? (
             <In d={0.3} className="flex flex-col items-center gap-3">
-              <div className="w-[min(24vw,340px)] rounded-2xl bg-white p-6 [&_svg]:h-auto [&_svg]:w-full" role="img" aria-label={`QR code for https://${SITE}`} dangerouslySetInnerHTML={{ __html: qr }} />
-              <span className="text-sm" style={{ color: MUTED }}>scan to open</span>
+              <div className="w-[min(22vw,300px)] rounded-xl border bg-white p-6 [&_svg]:h-auto [&_svg]:w-full" style={{ borderColor: C.hair }} role="img" aria-label={`QR code for https://${SITE}`} dangerouslySetInnerHTML={{ __html: qr }} />
+              <span className="text-sm" style={{ color: FAINT }}>scan to open</span>
             </In>
           ) : null}
-          <p className="absolute bottom-0 left-0 text-sm">
+          <p className="absolute bottom-0 left-0 text-sm" style={{ color: FAINT }}>
             NASA Space Apps 2026, Team Terraluna, bundle {d.bundleVersion}
             {d.shippingMode ? `, mode ${d.shippingMode}` : ''}
           </p>
@@ -410,7 +320,6 @@ function slides(d: PitchData, qr: string | null): Slide[] {
     },
   ];
 }
-
 /** Renders **bold** and *italic* markers of the script. */
 function Script({ text }: { text: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
@@ -559,42 +468,29 @@ export function Deck({ data, qr, fonts = '' }: { data: PitchData; qr: string | n
       ) : null}
 
       {/* slim progress line */}
-      <div className="absolute inset-x-0 top-0 z-10 h-[3px] bg-zinc-100">
-        <motion.div className="h-full" style={{ background: INK }} animate={{ width: `${((i + 1) / n) * 100}%` }} transition={{ duration: 0.5, ease: EASE }} />
+      <div className="absolute inset-x-0 top-0 z-10 h-px" style={{ background: 'rgba(26,22,19,0.15)' }}>
+        <div className="h-full" style={{ background: ACCENT, width: `${((i + 1) / n) * 100}%` }} />
       </div>
 
-      <AnimatePresence mode="wait" custom={pos.dir}>
-        <motion.section
-          key={slide?.id}
-          aria-roledescription="slide"
-          aria-label={`${i + 1} of ${n}: ${note?.title ?? ''}`}
-          initial={{ opacity: 0, x: pos.dir * 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: pos.dir * -30 }}
-          transition={{ duration: 0.4, ease: EASE }}
-          className="absolute inset-0 px-[6vw] pb-[10vh] pt-[8vh]"
-        >
-          {slide?.body(step)}
-        </motion.section>
-      </AnimatePresence>
+      <section
+        key={slide?.id}
+        aria-roledescription="slide"
+        aria-label={`${i + 1} of ${n}: ${note?.title ?? ''}`}
+        className="absolute inset-0 px-[6vw] pb-[10vh] pt-[8vh]"
+      >
+        {slide?.body(step)}
+      </section>
 
       {/* the Lab's 3D stage: mounted one slide early, shown only on the Lab slide */}
       {labMounted && data.lab ? (
         <motion.div
-          className="absolute bottom-[9vh] left-[6vw] right-[6vw] top-[23vh] overflow-hidden rounded-2xl border border-zinc-200 bg-white"
-          initial={false}
-          animate={{ opacity: i === labIndex ? 1 : 0, scale: i === labIndex ? 1 : 0.985 }}
-          transition={{ duration: 0.6, delay: i === labIndex ? 0.25 : 0, ease: EASE }}
-          style={{ pointerEvents: i === labIndex ? 'auto' : 'none', visibility: i === labIndex || i === labIndex - 1 ? 'visible' : 'hidden' }}
+          className="absolute bottom-[9vh] left-[6vw] right-[6vw] top-[23vh] overflow-hidden rounded-xl border border-zinc-200 bg-white"
+          style={{ opacity: i === labIndex ? 1 : 0, pointerEvents: i === labIndex ? 'auto' : 'none', visibility: i === labIndex || i === labIndex - 1 ? 'visible' : 'hidden' }}
           onClick={(e) => e.stopPropagation()}
           aria-hidden={i !== labIndex}
         >
           <LabTwin earth={data.lab.earth} target={data.lab.target} earthName={data.lab.earthName} targetName={data.lab.targetName} />
-          <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-between p-6 text-sm text-zinc-500">
-            <span>40 km blocks, real elevation tiles</span>
-            <span>drag to orbit</span>
-          </div>
-          <span aria-hidden className="pitch-border-beam pointer-events-none absolute inset-0 rounded-2xl" />
+          <span className="pointer-events-none absolute bottom-5 left-6 text-sm text-zinc-400">Figure 6. Terrain twin, 40 km blocks of real elevation, same rover route, same scale. Drag to orbit.</span>
         </motion.div>
       ) : null}
 

@@ -14,7 +14,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Title',
     from: 0,
     to: 8,
-    text: 'Before anyone walks on the Moon or drives on Mars, they **practise on Earth**. Terraluna finds **the Moon and Mars on Earth**: a physics fingerprint and a learned terrain model that compare **any place on Earth** with Moon and Mars landing sites, live in the browser.',
+    text: 'Before anyone walks on the Moon or drives on Mars, they **practise on Earth**. Terraluna finds **the Moon and Mars on Earth**, live in the browser.',
   },
   {
     title: 'Problem',
@@ -26,7 +26,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Physics fingerprint',
     from: 20,
     to: 34,
-    text: 'Take the same **five-kilometre square** on both worlds, here Jezero and Rosamond. Measure how much the height changes over **270, 540 and 1080 metres**. **Compare the curves**: relief distance **0.094**, closer than **91%** of windows.',
+    text: 'Take the same **five-kilometre square** on both worlds, here Jezero and Rosamond. This figure shows how much the height changes from **270 to 1080 metres**. The two curves almost overlap: relief distance **0.094**. Hover to read the values.',
   },
   {
     title: 'Live finder',
@@ -37,18 +37,24 @@ export const NOTES: readonly SlideNote[] = [
   {
     title: 'Our model: architecture',
     from: 48,
-    to: 66,
+    to: 62,
     text: "On top we trained **our own model**, self-supervised. *(Right arrow per step.)* The **input** is one 5 km window: height, slope and a mask. We make **two augmented views** of it. **One shared encoder** turns both into **256-number embeddings**. **VICReg** makes the views agree and keeps features spread out. A **physics head** predicts the fingerprint. A **body adversary** makes it learn terrain, **not which planet**. And here is the **full architecture**.",
   },
   {
-    title: 'Model metrics',
-    from: 66,
-    to: 75,
-    text: '**2.8 million parameters**, trained on **19,000 windows** from the Moon, Mars and Earth. It trains **34 times faster** on a laptop GPU than on our server, and it runs **in the browser** with **0.99999** agreement to the training model.',
+    title: 'Training',
+    from: 62,
+    to: 70,
+    text: 'Here is **training**, straight from the release bundle: every loss term **falls and settles** over twelve epochs, averaged over three seeds. The physics head learns the fingerprint fast.',
+  },
+  {
+    title: 'Benchmarks',
+    from: 70,
+    to: 80,
+    text: '**2.8 million parameters**, **19,000 training windows**. Training runs **34 times faster** on a laptop GPU than on our CPU server. In the browser the model agrees with training at **0.99999** cosine. And the best Earth match for **Jezero** sits at relief distance **0.094**.',
   },
   {
     title: 'The Lab',
-    from: 75,
+    from: 80,
     to: 96,
     text: 'Then the **Lab**: **real elevation** for both places, side by side **at the same scale**. A simulated **rover drives the same route** on **Holuhraun in Iceland** and in **Jezero crater**, so you see the slopes it would face on each.',
   },
