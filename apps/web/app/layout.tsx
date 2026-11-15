@@ -8,7 +8,8 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Instrument_Serif, Michroma } from 'next/font/google';
+import { Instrument_Serif, Michroma } from 'next/font/google';
+import localFont from 'next/font/local';
 import type { ReactNode } from 'react';
 
 import { SiteChrome } from '../components/shadowastra/chrome/SiteChrome.tsx';
@@ -22,8 +23,8 @@ import { SITE_TITLE } from '../lib/shell.ts';
 
 // next/font/google downloads the font files at build time and serves them from this origin
 // (/_next/static/media), so the CSP stays 'self' and the browser makes no request to Google.
-const sans = Geist({ subsets: ['latin'], variable: '--font-geist', display: 'swap' });
-const mono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono', display: 'swap' });
+const sans = localFont({ src: '../public/fonts/dm-sans-variable.woff2', variable: '--font-dm-sans', display: 'swap', weight: '100 1000' });
+const mono = localFont({ src: '../public/fonts/dm-mono-regular.woff2', variable: '--font-dm-mono', display: 'swap', weight: '400' });
 const serif = Instrument_Serif({
   subsets: ['latin'],
   weight: '400',
