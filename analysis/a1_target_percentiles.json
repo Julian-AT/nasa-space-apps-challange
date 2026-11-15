@@ -1,6 +1,6 @@
 {
   "clone_limits": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6).",
-  "command": "python -m terraluna_pipeline.checks analysis moon-distributions",
+  "command": "python -m terraluna_pipeline.checks analysis moon-distributions --windows-dir data/processed/t5-windows",
   "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
   "evidence_label": "Derived",
   "input_hashes": [
