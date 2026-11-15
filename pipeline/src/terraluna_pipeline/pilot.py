@@ -3588,6 +3588,8 @@ _JEZERO_LOCATION: Final = re.compile(
     r"Jezero is located at Longitude Latitude [0-9.]+ E, [0-9.]+ N in mc[0-9]+"
 )
 _HTML_TAG: Final = re.compile(r"<[^>]*>")
+_HTML_HIDDEN: Final = re.compile(r"(?is)<(script|style)\b[^>]*>.*?</\1\s*>|<!--.*?-->")
+"""Markup a browser does not show as text: script and style elements and comments."""
 _GAZETTEER_NETWORK: Final = re.compile(r'<option label="([^"]+)" value="([0-9]+)"\s*selected')
 _GAZETTEER_SYSTEM_ID: Final = re.compile(
     r'id="selected_coordinate_system" type="hidden" value="([0-9]+)"'
@@ -3616,8 +3618,12 @@ def _stac_page_name(probe: str, number: int) -> str:
 
 
 def _page_text(html: str) -> str:
-    """The visible text of an HTML page: tags removed, entities decoded, whitespace collapsed."""
-    return _collapse(unescape(_HTML_TAG.sub(" ", html)))
+    """The visible text of an HTML page: tags removed, entities decoded, whitespace collapsed.
+
+    Script and style elements and comments are dropped with their content first, so a quote is
+    never taken from data a page embeds for scripts, such as JSON-LD with escaped markup.
+    """
+    return _collapse(unescape(_HTML_TAG.sub(" ", _HTML_HIDDEN.sub(" ", html))))
 
 
 def _strict_json(path: Path) -> Any:
