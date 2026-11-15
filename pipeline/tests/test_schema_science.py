@@ -55,6 +55,7 @@ from terraluna_pipeline.schema import (
 )
 
 PRD = Path(__file__).resolve().parents[2] / "PRD.md"
+SCHEMA_JSON = Path(__file__).resolve().parents[2] / "packages" / "schema" / "json"
 HEX64 = "0123456789abcdef" * 4
 RUN_ID = "sha256:" + HEX64
 FAMILIES = ["terrain_relief", "terrain_texture", "radar_cpr", "model_embedding"]
@@ -1421,14 +1422,25 @@ def test_a_window_entry_round_trips_through_json_unchanged() -> None:
 # --- Contracts ----------------------------------------------------------------------------------
 
 
+T0B_01_CONTRACTS = [
+    ("WindowRecord", "window-record.schema.json"),
+    ("FingerprintRecord", "fingerprint-record.schema.json"),
+    ("Windows", "windows.schema.json"),
+    ("ComparisonRecord", "comparison-record.schema.json"),
+    ("Comparisons", "comparisons.schema.json"),
+]
+
+
 def test_new_records_are_appended_to_contracts_with_their_schema_files() -> None:
-    assert [(c.name, c.file_name) for c in CONTRACTS][-5:] == [
-        ("WindowRecord", "window-record.schema.json"),
-        ("FingerprintRecord", "fingerprint-record.schema.json"),
-        ("Windows", "windows.schema.json"),
-        ("ComparisonRecord", "comparison-record.schema.json"),
-        ("Comparisons", "comparisons.schema.json"),
-    ]
+    # The five records of this story stay one contiguous block in this order, each with its
+    # committed schema file. Later stories append their own contracts after the block, so it
+    # need not be the tail of CONTRACTS.
+    files = [(c.name, c.file_name) for c in CONTRACTS]
+    assert T0B_01_CONTRACTS[0] in files
+    start = files.index(T0B_01_CONTRACTS[0])
+    assert files[start : start + len(T0B_01_CONTRACTS)] == T0B_01_CONTRACTS
+    for _, file_name in T0B_01_CONTRACTS:
+        assert (SCHEMA_JSON / file_name).is_file(), file_name
 
 
 def test_examples_do_not_share_state() -> None:
