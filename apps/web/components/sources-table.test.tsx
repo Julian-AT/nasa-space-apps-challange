@@ -279,8 +279,12 @@ describe('SourcesTable', () => {
     (field) => {
       const omitted = Object.fromEntries(Object.entries(product('test-product')).filter(([key]) => key !== field));
       const nulled = product('test-product-2', { [field]: null });
-      const [table] = readTables(render([omitted, nulled]));
-      for (const row of table?.rows ?? []) {
+      const tables = readTables(render([omitted, nulled]));
+      expect(tables).toHaveLength(1);
+      const rows = tables[0]?.rows ?? [];
+      expect(rows.map((row) => row[0]?.text)).toEqual(['test-product', 'test-product-2']);
+      for (const row of rows) {
+        expect(row.map((cell) => cell.field)).toEqual([...SOURCE_FIELDS]);
         const cell = row.find((each) => each.field === field);
         expect(cell).toMatchObject({ label: 'Unavailable', reason: omittedReason(field) });
       }
