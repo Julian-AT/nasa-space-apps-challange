@@ -1,0 +1,811 @@
+// @ts-nocheck -- vendored verbatim; type-checks clean under upstream strict:true, not under Terraluna's extra noUncheckedIndexedAccess/exactOptionalPropertyTypes/noImplicitOverride.
+'use client';
+
+// Copied from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
+// src/pages/Home.tsx, everything below the hero. Terraluna changes: next/link, routes mapped to
+// Terraluna's (/discover -> /find, /atlas -> /explore/earth), the Astra mascot left out (ported
+// separately), Meet Astra and the team teaser dropped, and each section labelled as ShadowAstra's
+// content: the numbers, sites and scores here are ShadowAstra Atlas results, not Terraluna results.
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
+import { useGSAP } from "@gsap/react";
+import { AnimatePresence, motion } from "motion/react";
+import clsx from "clsx";
+import { ArrowRight, ArrowUpRight, Award, Check, CircleDashed, Gamepad2, Globe, GraduationCap, Layers, Leaf, Lock, MapPin, Orbit, Radar, ShieldCheck, Target } from "lucide-react";
+import { Github, REPO_URL, WorldDot } from "../ui/Chrome";
+import { Astronaut, type Action, type Mood } from "../../../lib/shadowastra-home/astra-stub";
+import { Counter, EASE, GlyphTile, Kicker, Magnetic } from "../ui/kit";
+import { EarthOrMars } from "./EarthOrMars";
+import { CheckTown } from "./CheckTown";
+import { EARTH_SITES, TARGETS, TARGET_BY_ID, TASKS } from "../../../lib/shadowastra/data/sites";
+import { formatCoord, polarPixel, POLAR_IMAGE_SIZE } from "../../../lib/shadowastra/geo";
+import { useMotionReduced } from "../../../lib/shadowastra/motionPref";
+import { BADGES, useFieldLog } from "../../../lib/shadowastra/fieldlog";
+import { useValidation } from "../../../lib/shadowastra/validation";
+import { MODEL_MIX } from "../../../lib/shadowastra/grid";
+import "../shadowastra.css";
+import "./home.css";
+
+gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
+
+const GSAP_EASE = "expo.out";
+
+export default function HomeSections() {
+  const root = useRef<HTMLDivElement>(null);
+  const reduced = useMotionReduced();
+
+  useGSAP(
+    () => {
+      if (reduced) {
+        gsap.set("[data-reveal]", { opacity: 1 });
+        return;
+      }
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        ScrollTrigger.batch("[data-reveal]", {
+          start: "top 90%",
+          once: true,
+          onEnter: (els) => gsap.fromTo(els, { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 1.1, stagger: 0.08, ease: GSAP_EASE }),
+        });
+
+        gsap.utils.toArray<HTMLElement>(".split-reveal").forEach((el) => {
+          const s = SplitText.create(el, { type: "words", mask: "words" });
+          gsap.from(s.words, { yPercent: 100, duration: 1.15, stagger: 0.03, ease: GSAP_EASE, scrollTrigger: { trigger: el, start: "top 86%" } });
+        });
+      });
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        gsap.set("[data-reveal]", { opacity: 1 });
+      });
+    },
+    { scope: root, dependencies: [reduced], revertOnUpdate: true },
+  );
+
+  // Deep links such as /#play scroll once the page has laid out.
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+    const t = setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }), 700);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div ref={root} className="sa-home bg-void">
+      <SourceMarquee />
+      <Numbers />
+      <MoonBase />
+      <FalseFriend />
+      <TryIt />
+      <HowItWorks />
+      <TownSection />
+      <PlaySection />
+      <Sustainability />
+      <Library />
+      <Progress />
+      <FinalCta />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ helpers */
+
+/** Terraluna addition: marks content whose copy, sites and numbers are ShadowAstra Atlas's own. */
+function FromShadowAstra({ className }: { className?: string }) {
+  return <p className={clsx("mb-6 font-mono text-[10.5px] tracking-[0.18em] text-dim uppercase", className)}>From ShadowAstra Atlas (MIT, Team ShadowAstra)</p>;
+}
+
+function H2({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <h2 className={`split-reveal text-[clamp(30px,4.2vw,62px)] leading-[1.03] font-medium tracking-[-0.038em] ${className ?? ""}`}>{children}</h2>;
+}
+
+function Em({ children }: { children: React.ReactNode }) {
+  return <span className="font-serif font-normal text-chrome italic">{children}</span>;
+}
+
+function Section({ id, children, className, ink }: { id?: string; children: React.ReactNode; className?: string; ink?: boolean }) {
+  return (
+    <section id={id} className={clsx("relative scroll-mt-16 border-t border-line px-4 py-28 sm:px-6 md:py-36", ink && "bg-ink", className)}>
+      <div className="mx-auto max-w-[1400px]">
+        <FromShadowAstra />
+        {children}
+      </div>
+    </section>
+  );
+}
+
+/** Astra appears in each chapter, doing that chapter's job (the mascot is ported separately). */
+function Guide({ mood, action, say, className, size = 130 }: { mood: Mood; action: Action; say?: string; className?: string; size?: number }) {
+  return (
+    <div data-reveal className={className}>
+      <Astronaut mood={mood} action={action} say={say} size={size} />
+    </div>
+  );
+}
+
+
+function SourceMarquee() {
+  const items = ["NASA POWER", "NASA GIBS · MODIS", "LRO LOLA", "MGS MOLA", "SRTM terrain", "LRO LROC", "Mars Odyssey THEMIS", "Viking MDIM", "ASTER GDEM", "Smithsonian GVP", "ESA Sentinel-2", "Natural Earth"];
+  return (
+    <div className="relative overflow-hidden border-y border-line bg-ink py-4">
+      <p className="sr-only">Data sources: {items.join(", ")}.</p>
+      <div className="animate-marquee flex w-max gap-12 whitespace-nowrap" aria-hidden>
+        {[...items, ...items].map((n, k) => (
+          <span key={k} className="flex items-center gap-12 font-mono text-[11px] tracking-[0.22em] text-dim uppercase">
+            {n}
+            <span className="h-3 w-px rotate-[20deg] bg-line-2" />
+          </span>
+        ))}
+      </div>
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-ink to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-ink to-transparent" />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------- numbers */
+
+function Numbers() {
+  const { v } = useValidation();
+  const newSites = v?.independent.all.blend?.median ?? null;
+  const stats = [
+    { n: 80206, d: 0, s: "", label: "land areas measured", note: "every 55 km square of land on Earth", icon: Globe },
+    { n: 24, d: 0, s: "", label: "measurements each", note: "slopes, cold, heat, rain, plants, volcanoes, craters, plus EMIT minerals in dry land", icon: Layers },
+    { n: 38, d: 0, s: "", label: "known sites learned from", note: "used by NASA, ESA, CSA and universities", icon: Target },
+    {
+      n: newSites ?? 0,
+      d: 1,
+      s: "%",
+      label: "typical rank of 28 new test sites",
+      note: newSites === null ? "published test sites kept out of training" : `published sites kept out of training typically land in the top ${newSites.toFixed(1)}% of all land`,
+      icon: Radar,
+    },
+  ];
+  return (
+    <Section>
+      <div className="flex items-start justify-between gap-6">
+        <Kicker n="01">The challenge</Kicker>
+        <Guide mood="thinking" action="idle" size={96} className="-mt-6 hidden md:block" />
+      </div>
+      <H2 className="mt-8 max-w-[1100px]">
+        NASA asked for new places on Earth that copy the Moon and Mars. <Em>So we measured all of them.</Em>
+      </H2>
+      <div className="mt-14 grid gap-10 md:grid-cols-2">
+        <p data-reveal className="max-w-xl text-[17px] leading-relaxed text-chrome">
+          The 2026 challenge asks teams to use open Earth, Moon and Mars data to <span className="text-platinum">find and describe new analog sites</span>: places on
+          Earth that are similar enough to practise a mission.
+        </p>
+        <p data-reveal className="max-w-xl text-[17px] leading-relaxed text-chrome">
+          We start with the job, not the picture. A rover test and an ice hunt need different places. So ShadowAstra Atlas compares{" "}
+          <span className="text-platinum">ground shape, rocks, cold, sunlight and bare ground</span> for the job you pick, and tells you plainly what Earth can't copy.
+        </p>
+      </div>
+      <div className="mt-16 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {stats.map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.9, ease: EASE, delay: i * 0.07 }}
+            className="surface lift rounded-2xl p-5 md:p-7"
+          >
+            <GlyphTile>
+              <s.icon size={18} strokeWidth={1.5} />
+            </GlyphTile>
+            <div className="mt-7 font-mono text-[clamp(34px,4.4vw,64px)] leading-none font-light tracking-tight text-platinum">
+              <Counter value={s.n} decimals={s.d} suffix={s.s} duration={1.8} />
+            </div>
+            <div className="mt-3 text-sm text-platinum">{s.label}</div>
+            <div className="mt-1 text-xs leading-relaxed text-dim">{s.note}</div>
+          </motion.div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* --------------------------------------------------------------- try it */
+
+function MiniHeat() {
+  return (
+    <div className="relative h-36 overflow-hidden rounded-xl border border-line bg-void">
+      <img src="/shadowastra/textures/earth_day_1k.webp" alt="" className="absolute inset-0 size-full object-cover opacity-40 saturate-50" />
+      {[
+        [62, 38, 0],
+        [55, 46, 0.6],
+        [28, 70, 1.2],
+        [76, 34, 1.8],
+        [52, 57, 0.9],
+      ].map(([x, y, d], k) => (
+        <span
+          key={k}
+          className="absolute size-10 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ left: `${x}%`, top: `${y}%`, background: "radial-gradient(circle, rgba(242,200,121,0.9), rgba(224,138,95,0.4) 45%, transparent 70%)", animation: `heatPulse 3.2s ${d}s ease-in-out infinite` }}
+        />
+      ))}
+      <style>{`@keyframes heatPulse{0%,100%{transform:translate(-50%,-50%) scale(.7);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.15);opacity:1}}`}</style>
+    </div>
+  );
+}
+
+function MiniRidges() {
+  return (
+    <div className="relative h-36 overflow-hidden rounded-xl border border-line bg-void">
+      <svg viewBox="0 0 300 140" className="absolute inset-0 size-full" preserveAspectRatio="none">
+        {[0, 1, 2, 3, 4, 5].map((k) => (
+          <motion.path
+            key={k}
+            d={`M0,${110 - k * 12} C40,${96 - k * 12 - (k % 2) * 14} 80,${118 - k * 12} 120,${92 - k * 12} S200,${70 - k * 10} 240,${96 - k * 12} S290,${84 - k * 12} 300,${90 - k * 12}`}
+            fill="none"
+            style={{ stroke: k < 3 ? "var(--color-earth)" : "var(--color-mars)" }}
+            strokeWidth="1"
+            strokeOpacity={0.35 + k * 0.1}
+            initial={{ pathLength: 0 }}
+            whileInView={{ pathLength: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.6, delay: k * 0.12, ease: EASE }}
+          />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+function MiniTown() {
+  return (
+    <div className="relative grid h-36 place-items-center overflow-hidden rounded-xl border border-line bg-void">
+      <div className="flex w-[78%] flex-col gap-3">
+        {[
+          ["Moon-like", 0.34, "var(--color-moon)"],
+          ["Mars-like", 0.81, "var(--color-mars)"],
+        ].map(([k, v, c]) => (
+          <div key={k as string}>
+            <div className="flex justify-between text-[11px] text-chrome">
+              <span>{k}</span>
+              <span className="font-mono">{Math.round((v as number) * 100)}</span>
+            </div>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line">
+              <motion.div className="h-full rounded-full" style={{ background: c as string }} initial={{ width: 0 }} whileInView={{ width: `${(v as number) * 100}%` }} viewport={{ once: true }} transition={{ duration: 1.3, ease: EASE }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MiniGame() {
+  return (
+    <div className="relative grid h-36 grid-cols-2 gap-2 overflow-hidden rounded-xl border border-line bg-void p-2">
+      <img src="/shadowastra/thumbs/atacama.webp" alt="" className="size-full rounded-lg object-cover grayscale" />
+      <div className="grid place-items-center rounded-lg bg-[url(/shadowastra/textures/mars_viking_1k.webp)] bg-[length:600%] bg-[position:40%_45%] grayscale">
+        <span className="rounded-full bg-void/70 px-2 py-0.5 font-mono text-[11px] text-platinum">?</span>
+      </div>
+    </div>
+  );
+}
+
+function MiniTwins() {
+  const still = useMotionReduced();
+  return (
+    <div className="relative flex h-36 items-center justify-center gap-10 overflow-hidden rounded-xl border border-line bg-void">
+      <motion.span className="block size-16 rounded-full bg-[url(/shadowastra/textures/mars_viking_1k.webp)] bg-[length:200%_100%] shadow-[inset_-10px_-4px_14px_rgba(0,0,0,0.85)]" animate={{ backgroundPositionX: still ? "0%" : ["0%", "-200%"] }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} />
+      <span className="absolute top-1/2 left-1/2 h-px w-16 -translate-x-1/2 bg-gradient-to-r from-mars/60 via-flare to-earth/60" />
+      <motion.span className="absolute top-1/2 left-1/2 size-1.5 -translate-y-1/2 rounded-full bg-flare shadow-[0_0_10px_#f2c879]" animate={{ x: [-34, 30] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }} />
+      <motion.span className="block size-16 rounded-full bg-[url(/shadowastra/textures/earth_day_1k.webp)] bg-[length:200%_100%] shadow-[inset_-10px_-4px_14px_rgba(0,0,0,0.85)]" animate={{ backgroundPositionX: still ? "0%" : ["0%", "-200%"] }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} />
+    </div>
+  );
+}
+
+function MiniLearn() {
+  return (
+    <div className="relative flex h-36 flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border border-line bg-void">
+      <span className="text-[26px] font-medium text-platinum">Practise on Earth.</span>
+      <span className="font-bn text-[22px] text-flare">পৃথিবীতে অনুশীলন।</span>
+    </div>
+  );
+}
+
+function TryIt() {
+  const cards = [
+    { to: "/find", t: "Find new test sites", d: "See the whole Earth ranked live for the job you pick. Click any place to see why it scores.", cta: "Open the finder", visual: <MiniHeat />, icon: Globe },
+    { to: "/lab", t: "Compare two places in 3D", d: "Real ground from Earth and the Moon or Mars, cut to the same size, with a Sun you can move.", cta: "Open compare", visual: <MiniRidges />, icon: Layers },
+    { to: "#town", t: "Check your town", d: "Type any town. See how Moon-like and Mars-like it is, and the nearest strong site.", cta: "Check a town", visual: <MiniTown />, icon: MapPin },
+    { to: "#play", t: "Play: Earth or Mars?", d: "Two real images at the same scale, colour off. Can you spot which one is not Earth?", cta: "Play now", visual: <MiniGame />, icon: Gamepad2 },
+    { to: "/explore/earth", t: "Earth twins of any spot", d: "Tap anywhere on the Moon or Mars. We find the places on Earth with the same ground.", cta: "Open the map", visual: <MiniTwins />, icon: Orbit },
+    { to: "/learn", t: "Learn, in English or Bangla", d: "Short lessons, a quiz scored with real NASA data, and a worksheet to print for class.", cta: "Start learning", visual: <MiniLearn />, icon: GraduationCap },
+  ];
+  return (
+    <Section ink>
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <Kicker n="04">Things to try</Kicker>
+          <H2 className="mt-8 max-w-[860px]">
+            Six ways in. <Em>Pick one and start exploring.</Em>
+          </H2>
+        </div>
+        <Guide mood="happy" action="point" size={104} className="hidden md:block" />
+      </div>
+      <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((c, i) => {
+          const inner = (
+            <>
+              {c.visual}
+              <div className="mt-5 flex items-center gap-3">
+                <GlyphTile className="size-10">
+                  <c.icon size={16} strokeWidth={1.6} />
+                </GlyphTile>
+                <h3 className="text-[18px] leading-tight font-medium tracking-tight">{c.t}</h3>
+              </div>
+              <p className="mt-3 flex-1 text-[13.5px] leading-relaxed text-chrome">{c.d}</p>
+              <span className="mt-5 inline-flex items-center gap-1.5 text-[13px] text-flare">
+                {c.cta} <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
+              </span>
+            </>
+          );
+          const cls = "surface lift group flex h-full flex-col rounded-2xl p-4";
+          return (
+            <motion.div key={c.t} initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.9, ease: EASE, delay: i * 0.08 }}>
+              {c.to.startsWith("#") ? (
+                <a href={c.to} className={cls}>
+                  {inner}
+                </a>
+              ) : (
+                <Link href={c.to} className={cls}>
+                  {inner}
+                </Link>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
+function TownSection() {
+  return (
+    <Section id="town">
+      <Kicker n="06">Your town</Kicker>
+      <H2 className="mt-8 max-w-[900px]">
+        How Mars-like is your town? <Em>Ask the same model that ranks the planet.</Em>
+      </H2>
+      <div className="mt-14">
+        <CheckTown />
+      </div>
+    </Section>
+  );
+}
+
+function PlaySection() {
+  return (
+    <Section id="play" ink>
+      <Kicker n="07">A quick game</Kicker>
+      <H2 className="mt-8 max-w-[900px]">
+        Earth or Mars? <Em>It is harder than you think.</Em>
+      </H2>
+      <p data-reveal className="mt-6 max-w-[620px] text-[16px] leading-relaxed text-chrome">
+        Each pair is a real Earth test site and the Moon or Mars place it is used to practise for. Same size, colour off. If you can't tell them apart, the site is
+        doing its job.
+      </p>
+      <div className="mt-12">
+        <EarthOrMars />
+      </div>
+    </Section>
+  );
+}
+
+// Illustrative profiles only, drawn to explain the idea, not measured.
+const PROFILE_A = "M0,120 C60,118 90,96 140,100 S230,128 280,110 S380,84 430,96 S520,120 600,104";
+const PROFILE_B = "M0,128 C40,126 60,60 90,58 S120,140 160,132 S200,30 240,40 S290,150 330,138 S380,48 420,60 S470,146 520,128 S570,70 600,80";
+const PROFILE_T = "M0,126 C40,124 70,64 100,62 S130,138 170,130 S210,36 250,44 S300,146 340,136 S390,52 430,62 S480,142 530,126 S570,76 600,84";
+
+function FalseFriend() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(0);
+  const steps = [
+    { k: "01", title: "It looks like Mars.", text: "Red rock, no plants, a crater on the horizon. Site A is the obvious place to practise a rover drive." },
+    { k: "02", title: "The mission asks a different question.", text: "The real route crosses steep, broken ground. What matters is the slope and bumps under the wheels, not the colour." },
+    { k: "03", title: "Compare the job, at the same scale.", text: "Site B has the obstacle the mission cares about. ShadowAstra Atlas changes the choice while the plan can still change." },
+  ];
+  const astra: { mood: Mood; action: Action; say: string }[] = [
+    { mood: "wow", action: "walk", say: "Looks just like Mars!" },
+    { mood: "sad", action: "slump", say: "Site A is too gentle. The rover test would prove nothing." },
+    { mood: "happy", action: "celebrate", say: "Site B matches the route. That's our practice ground." },
+  ];
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
+        ScrollTrigger.create({
+          trigger: ref.current,
+          start: "top top",
+          end: "+=180%",
+          pin: true,
+          scrub: true,
+          onUpdate: (self) => setStep(Math.min(2, Math.floor(self.progress * 3))),
+        });
+      });
+    },
+    { scope: ref },
+  );
+
+  return (
+    <section ref={ref} className="relative border-t border-line bg-ink px-4 py-24 sm:px-6 min-[900px]:flex min-[900px]:h-dvh min-[900px]:items-center min-[900px]:py-0">
+      <div className="mx-auto grid w-full max-w-[1400px] items-center gap-14 min-[900px]:grid-cols-[0.9fr_1.1fr]">
+        <div>
+          <FromShadowAstra />
+          <Kicker n="03">Looks alike is not enough</Kicker>
+          <div className="mt-10 space-y-8">
+            {steps.map((s, k) => (
+              <button
+                key={s.k}
+                onClick={() => setStep(k)}
+                aria-pressed={step === k}
+                className={`group block w-full border-l pl-6 text-left transition-colors duration-700 ease-[cubic-bezier(.22,1,.36,1)] ${step === k ? "border-flare" : "border-line"}`}
+              >
+                <div className={`font-mono text-xs ${step === k ? "text-flare" : "text-dim"}`}>{s.k}</div>
+                <div className={`mt-1 text-[clamp(22px,2.4vw,34px)] leading-tight font-medium tracking-tight transition-colors duration-700 ${step === k ? "text-platinum" : "text-chrome group-hover:text-platinum"}`}>{s.title}</div>
+                <p className={`mt-2 max-w-md text-[15px] leading-relaxed transition-colors duration-700 ${step === k ? "text-chrome" : "text-dim"}`}>{s.text}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="relative">
+          <div className="absolute -top-28 right-6 z-10 hidden md:block">
+            <Astronaut size={104} {...astra[step]} sayAlign="left" />
+          </div>
+          <div className="surface rounded-2xl p-6 md:p-8">
+            <div className="flex items-center justify-between font-mono text-[10px] tracking-widest text-dim uppercase">
+              <span>Route height profile</span>
+              <span className="rounded-full border border-dashed border-line-2 px-2 py-0.5">Drawing to explain · not measured</span>
+            </div>
+            <svg viewBox="0 0 600 170" className="mt-6 w-full overflow-visible" role="img" aria-label="Two route profiles compared against the target route">
+              {[40, 80, 120, 160].map((y) => (
+                <line key={y} x1="0" x2="600" y1={y} y2={y} style={{ stroke: "var(--color-line)" }} strokeWidth="1" />
+              ))}
+              <path d={PROFILE_T} fill="none" style={{ stroke: "var(--color-mars)", transition: "opacity .8s" }} strokeWidth="1.8" strokeDasharray="5 5" opacity={step >= 1 ? 0.95 : 0} />
+              <path d={PROFILE_A} fill="none" strokeWidth="2" opacity={step === 2 ? 0.25 : 1} style={{ stroke: "var(--color-chrome)", transition: "opacity .8s" }} />
+              <path
+                d={PROFILE_B}
+                fill="none"
+                strokeWidth="2.4"
+                pathLength={1}
+                strokeDasharray="1"
+                strokeDashoffset={step === 2 ? 0 : 1}
+                style={{ stroke: "var(--color-platinum)", transition: "stroke-dashoffset 1.6s cubic-bezier(.22,1,.36,1)" }}
+              />
+            </svg>
+            <div className="mt-6 grid gap-3 text-[13px] sm:grid-cols-3">
+              <Legend color="var(--color-mars)" dashed label="Mars route" on={step >= 1} />
+              <Legend color="var(--color-chrome)" label="Site A: looks right" on />
+              <Legend color="var(--color-platinum)" label="Site B: tests right" on={step === 2} />
+            </div>
+            <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line text-[13px]">
+              <div className="bg-panel p-4">
+                <div className="text-dim">Site A</div>
+                <div className="mt-1 text-platinum">Same colour · gentle ground</div>
+                <div className="mt-2 text-weak">✕ Misses the hard part of the drive</div>
+              </div>
+              <div className="bg-panel p-4">
+                <div className="text-dim">Site B</div>
+                <div className="mt-1 text-platinum">Same slopes and bumps</div>
+                <div className={`mt-2 transition-opacity duration-700 ${step === 2 ? "text-strong opacity-100" : "opacity-0"}`}>✓ Practises the real obstacle</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Legend({ color, label, dashed, on }: { color: string; label: string; dashed?: boolean; on: boolean }) {
+  return (
+    <div className={`flex items-center gap-2 transition-opacity duration-700 ${on ? "opacity-100" : "opacity-30"}`}>
+      <span className="h-0.5 w-6" style={{ background: dashed ? `repeating-linear-gradient(90deg, ${color} 0 4px, transparent 4px 8px)` : color }} />
+      <span className="text-chrome">{label}</span>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------- moon base */
+
+function MoonBase() {
+  const polar = TARGETS.filter((t) => t.body === "moon" && t.lat < -80);
+  const [hover, setHover] = useState<string | null>("shackleton");
+  return (
+    <section className="relative overflow-hidden border-t border-line px-4 py-28 sm:px-6 md:py-36">
+      <div className="mx-auto grid max-w-[1400px] items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
+        <div data-reveal className="relative mx-auto w-full max-w-[640px]">
+          <div className="relative aspect-square overflow-hidden rounded-full border border-line-2">
+            <div className="absolute inset-0 scale-[1.55]">
+              <img src="/shadowastra/textures/moon_south_pole_lola.webp" alt="Lunar south pole, LRO LOLA hillshade" loading="lazy" className="polar-image size-full object-cover" />
+              <svg viewBox={`0 0 ${POLAR_IMAGE_SIZE} ${POLAR_IMAGE_SIZE}`} className="absolute inset-0 size-full">
+                {[0.25, 0.5, 0.75].map((r) => (
+                  <circle key={r} cx={700} cy={700} r={700 * r} fill="none" stroke="rgba(242,200,121,0.22)" strokeDasharray="3 9" />
+                ))}
+                {polar.map((t) => {
+                  const [x, y] = polarPixel(t.lat, t.lon);
+                  const on = hover === t.id;
+                  return (
+                    <g key={t.id} onMouseEnter={() => setHover(t.id)} className="cursor-pointer">
+                      <circle cx={x} cy={y} r={on ? 24 : 14} fill="none" stroke="#f2c879" strokeWidth={on ? 2 : 1.2} opacity={on ? 1 : 0.6} style={{ transition: "all .4s cubic-bezier(.22,1,.36,1)" }} />
+                      <circle cx={x} cy={y} r={4.5} fill={on ? "#ffffff" : "#f2c879"} />
+                      {on && (
+                        <text x={x + 30} y={y + 7} fill="#edeae4" fontSize="22" fontFamily="Geist" style={{ paintOrder: "stroke" }} stroke="#07080a" strokeWidth="7">
+                          {t.name}
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+          </div>
+          <div className="mt-4 text-center font-mono text-[10px] tracking-widest text-dim uppercase">LRO LOLA shaded relief · seen from above the pole · 84°S to the pole</div>
+        </div>
+        <div>
+          <FromShadowAstra />
+          <div className="flex items-end justify-between gap-6">
+            <Kicker n="02">A base at the Moon's south pole</Kicker>
+            <Guide mood="happy" action="flag" size={96} className="-mb-2 hidden md:block" />
+          </div>
+          <H2 className="mt-8">
+            Light on the ridges, <Em>ice in the dark.</Em>
+          </H2>
+          <p data-reveal className="mt-6 max-w-lg text-[16px] leading-relaxed text-chrome">
+            NASA's Artemis landing regions sit around the lunar south pole, where the Sun never climbs more than a few degrees. The base will live between light
+            and shadow, so its practice ground must too.
+          </p>
+          <ul className="mt-10 border-t border-line">
+            {polar.map((t) => (
+              <li key={t.id}>
+                <button
+                  onMouseEnter={() => setHover(t.id)}
+                  onFocus={() => setHover(t.id)}
+                  className={`flex w-full items-center justify-between gap-4 border-b border-line py-3.5 text-left transition-colors duration-300 ${hover === t.id ? "text-platinum" : "text-chrome"}`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className={`size-1.5 rounded-full transition-colors ${hover === t.id ? "bg-flare" : "bg-line-2"}`} />
+                    {t.name}
+                  </span>
+                  <span className="font-mono text-[11px] text-dim tabular">{formatCoord(t.lat, t.lon)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Link href={`/find?target=${hover ?? "shackleton"}&task=polar`} className="link-wipe inline-flex items-center gap-2 text-sm text-flare">
+              Find Earth sites for {TARGETS.find((t) => t.id === hover)?.name ?? "Shackleton"} <ArrowRight size={15} />
+            </Link>
+            <Link href="/lab?earth=dry-valleys&target=shackleton&task=polar" className="link-wipe inline-flex items-center gap-2 text-sm text-chrome hover:text-platinum">
+              Dry Valleys vs Shackleton in 3D <ArrowUpRight size={15} />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------------------------------------------- how it works */
+
+function HowItWorks() {
+  const steps = [
+    { k: "01", t: "Pick a job", d: `${TASKS.length} kinds of practice: living at a base, rover drives, ice hunts, lava tubes, craters and more.` },
+    { k: "02", t: "Pick a destination", d: `${TARGETS.length} Moon and Mars places: Artemis regions, rover craters, ice plains and cave skylights.` },
+    { k: "03", t: "Every land area is scored", d: "80,206 places on Earth, five measured scores plus a learned model, re-ranked live as you move the sliders." },
+    { k: "04", t: "Check, compare, plan", d: "Open a place, compare it in 3D, see the best months for the light and the travel CO₂." },
+  ];
+  return (
+    <Section ink>
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <Kicker n="05">How it works</Kicker>
+          <H2 className="mt-8 max-w-[820px]">From a mission question to a place you can visit.</H2>
+        </div>
+        <Guide mood="focused" action="scan" size={110} className="hidden md:block" />
+      </div>
+      <ol className="mt-16 grid gap-4 md:grid-cols-4">
+        {steps.map((s, i) => (
+          <motion.li key={s.k} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.9, ease: EASE, delay: i * 0.08 }} className="surface relative flex flex-col rounded-2xl p-6">
+            <span className="outline-num text-[56px] leading-none">{s.k}</span>
+            <div className="mt-6 text-lg font-medium">{s.t}</div>
+            <p className="mt-2 flex-1 text-[13.5px] leading-relaxed text-chrome">{s.d}</p>
+            {i < steps.length - 1 && <span className="absolute top-1/2 -right-3 hidden h-px w-6 bg-line-2 md:block" />}
+          </motion.li>
+        ))}
+      </ol>
+      <Link href="/methods" className="link-wipe mt-10 inline-flex items-center gap-2 text-sm text-chrome hover:text-platinum">
+        Read the full method and data list <ArrowUpRight size={15} />
+      </Link>
+    </Section>
+  );
+}
+
+/* ---------------------------------------------------------- sustainability */
+
+function Sustainability() {
+  const cards = [
+    { icon: Leaf, t: "Fewer, smarter field trips", d: "Remote checks narrow the shortlist before anyone flies. Compare shows each trip's distance and a rough CO₂ number, and the closest good site." },
+    { icon: ShieldCheck, t: "Respect for the land", d: "Sites carry their protection status: Antarctic Treaty, national parks, sacred and Indigenous land. Permission comes before coordinates." },
+    { icon: Target, t: "Local impact, classrooms first", d: "A Bangla classroom mode and a university workshop, so students who can't reach Atacama can still do real planetary science." },
+  ];
+  return (
+    <Section>
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <Kicker n="09">Explore responsibly</Kicker>
+          <H2 className="mt-8 max-w-[880px]">
+            Care for this planet <Em>so we can explore the next ones.</Em>
+          </H2>
+        </div>
+        <Guide mood="neutral" action="walk" size={100} className="hidden md:block" />
+      </div>
+      <div className="mt-16 grid gap-4 md:grid-cols-3">
+        {cards.map((c, i) => (
+          <motion.article key={c.t} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.9, ease: EASE, delay: i * 0.08 }} className="surface lift rounded-2xl p-7" style={{ ["--spot" as string]: "var(--color-strong)" }}>
+            <GlyphTile tone="var(--color-strong)">
+              <c.icon size={18} strokeWidth={1.5} />
+            </GlyphTile>
+            <h3 className="mt-8 text-[19px] font-medium tracking-tight">{c.t}</h3>
+            <p className="mt-2 text-[14px] leading-relaxed text-chrome">{c.d}</p>
+          </motion.article>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ---------------------------------------------------------------- library */
+
+function Library() {
+  return (
+    <section className="relative border-t border-line bg-ink py-28 md:py-36">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+        <FromShadowAstra />
+        <div className="flex items-end justify-between gap-6">
+          <Kicker n="10">Known test sites</Kicker>
+          <Guide mood="happy" action="sample" size={96} className="hidden md:block" />
+        </div>
+        <div className="mt-8 flex flex-wrap items-end justify-between gap-6">
+          <H2 className="max-w-[820px]">
+            The places teams already use. <Em>Our model learned from them.</Em>
+          </H2>
+          <p className="max-w-sm text-sm text-dim">These are {EARTH_SITES.length} of the 38 known sites the model learned from, not our discoveries. New places live in Find new sites.</p>
+        </div>
+      </div>
+      <div className="scrollbar-thin mt-14 flex snap-x gap-4 overflow-x-auto px-4 pb-6 sm:px-6 lg:px-[max(24px,calc((100vw-1400px)/2+24px))]">
+        {EARTH_SITES.map((s) => (
+          <Link key={s.id} href={`/lab?earth=${s.id}&target=${s.pairs[0]}`} className="surface group relative w-[300px] shrink-0 snap-start overflow-hidden rounded-2xl">
+            <div className="relative h-44 overflow-hidden">
+              <img src={`/shadowastra/thumbs/${s.id}.webp`} alt={`NASA Blue Marble view around ${s.name}`} loading="lazy" className="size-full object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.04]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-panel via-transparent to-transparent" />
+              <div className="absolute top-3 left-3 flex gap-1.5">
+                {s.worlds.map((w) => (
+                  <span key={w} className="flex items-center gap-1.5 rounded-full bg-void/75 px-2 py-0.5 text-[10px] tracking-wide text-platinum uppercase backdrop-blur">
+                    <WorldDot world={w} /> {w}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="p-5">
+              <div className="text-[16px] font-medium">{s.name}</div>
+              <div className="mt-0.5 font-mono text-[11px] text-dim">
+                {s.country} · {formatCoord(s.lat, s.lon)}
+              </div>
+              <p className="mt-3 line-clamp-3 text-[13px] leading-relaxed text-chrome">{s.summary}</p>
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {s.pairs.slice(0, 3).map((p) => (
+                  <span key={p} className="rounded-full border border-line-2 px-2 py-0.5 text-[11px] text-chrome">
+                    → {TARGET_BY_ID[p].name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------- progress */
+
+function Progress() {
+  const { v } = useValidation();
+  const hidden = v?.mixing?.curve.find((c) => Math.abs(c.mix - MODEL_MIX) < 0.01)?.known_median;
+  const fresh = v?.independent.all.blend?.median;
+  const done = [
+    "Global data engine: 80,206 land areas measured from NASA POWER, MODIS, SRTM terrain, NASA EMIT minerals, volcanoes and craters",
+    "The Moon and Mars measured everywhere at full precision (LRO LOLA, MGS MOLA), with Diviner ground temperature at all ten Moon targets and ice at the south pole, Lunar Prospector iron and titanium, and Odyssey water on Mars",
+    hidden !== undefined && fresh !== undefined
+      ? `A learned model picked from nine on Kaggle: a hidden known site typically comes back in the top ${hidden.toFixed(1)}% of land as the site scores it, and the 28 published sites it never saw typically rank in the top ${fresh.toFixed(1)}%`
+      : "A learned model picked from nine on Kaggle and tested on 28 published sites it never saw",
+    "A terrain AI, trained on Kaggle GPUs with heights from three worlds, that finds Earth twins for any spot on the Moon or Mars",
+    "Find new sites: a mission builder that searches the planet, compares places and prints a site report",
+    "Compare any place in 3D with a movable Sun, a shadow map, minerals and travel CO₂; lessons in English, Spanish and Bangla",
+    "An open dataset of every score on Hugging Face (CC BY 4.0), for anyone to check or reuse",
+    "The best 10 km spot inside each 55 km place, as an experimental ground-shape hint",
+    "Caves and lava tubes on Maps: 1,062 Mars cave candidates (USGS) and 278 lunar pits (LROC)",
+    "Signs of ice at all ten Moon targets from NASA's 2026 challenge resources: LRO LEND neutrons and Mini-RF radar, shown as facts next to Diviner's ice",
+  ];
+  const next = [
+    "Expert review of the top new sites by our scientific validation lead",
+    "Mars SWIM ice and a finer rock map, once that data can be downloaded",
+  ];
+  return (
+    <Section>
+      <div className="flex items-end justify-between gap-6">
+        <Kicker n="11">Progress</Kicker>
+        <Guide mood="focused" action="drill" size={96} className="hidden md:block" />
+      </div>
+      <H2 className="mt-8 max-w-[900px]">
+        What works today, <Em>and what we build next.</Em>
+      </H2>
+      <div className="mt-16 grid gap-4 md:grid-cols-2">
+        <div data-reveal className="surface rounded-2xl p-7" style={{ ["--spot" as string]: "var(--color-strong)" }}>
+          <div className="flex items-center gap-2 text-sm text-strong">
+            <Check size={16} /> Built and live
+          </div>
+          <ul className="mt-6 space-y-3.5">
+            {done.map((d) => (
+              <li key={d} className="flex gap-3 text-[15px] text-platinum">
+                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-strong" />
+                {d}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div data-reveal className="rounded-2xl border border-dashed border-line-2 p-7">
+          <div className="flex items-center gap-2 text-sm text-chrome">
+            <CircleDashed size={16} /> Next, for the hackathon weekend
+          </div>
+          <ul className="mt-6 space-y-3.5">
+            {next.map((d) => (
+              <li key={d} className="flex gap-3 text-[15px] text-chrome">
+                <span className="mt-2 size-1.5 shrink-0 rounded-full border border-chrome" />
+                {d}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+/* -------------------------------------------------------------------- team */
+
+function FinalCta() {
+  // the challenge is about permanent Moon base sites first: end on the Artemis base region
+  const pick = useMemo(() => TARGETS.find((x) => x.id === "shackleton") ?? TARGETS[0], []);
+  return (
+    <section className="relative overflow-hidden border-t border-line px-4 py-32 sm:px-6 md:py-44">
+      <div className="absolute inset-0 bg-[radial-gradient(50%_70%_at_50%_120%,rgba(242,200,121,0.14),transparent_70%)]" />
+      <div className="relative mx-auto max-w-[1000px] text-center">
+        <FromShadowAstra className="text-center" />
+        <div className="mb-8 flex justify-center">
+          <Astronaut size={110} mood="happy" action="celebrate" />
+        </div>
+        <h2 className="split-reveal text-[clamp(36px,6vw,92px)] leading-[0.98] font-medium tracking-[-0.045em]">
+          Find where Earth <span className="font-serif font-normal text-flare italic">can teach us.</span>
+        </h2>
+        <div data-reveal className="mt-10 flex flex-wrap justify-center gap-3">
+          <Magnetic>
+            <Link href={`/find?target=${pick.id}&task=${pick.tasks.includes("base") ? "base" : pick.tasks[0]}`} className="btn-primary inline-flex items-center gap-2 rounded-full px-7 py-4 text-sm font-medium">
+              Find sites for {pick.name} <ArrowRight size={16} />
+            </Link>
+          </Magnetic>
+          <a href={REPO_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-line-2 px-7 py-4 text-sm text-platinum hover:border-chrome">
+            <Github size={16} /> View ShadowAstra Atlas code
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}

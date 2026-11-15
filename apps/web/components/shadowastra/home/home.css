@@ -1,0 +1,6 @@
+/* Terraluna addition for the copied ShadowAstra home sections: their cards and buttons are links
+   told apart by shape, icon and arrow, so the global link underline is dropped inside them
+   (inline .link-wipe links keep their drawn underline from shadowastra.css). */
+.sa-home a {
+  text-decoration-line: none;
+}
