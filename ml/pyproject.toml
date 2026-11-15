@@ -8,10 +8,24 @@ dependencies = [
     "numpy>=2.5,<3",
     "pyarrow>=26.0,<27",
     "terraluna-pipeline",
+    "torch>=2.9",
+    "scipy>=1.18,<2",
+    "scikit-learn>=1.7",
+    "onnx>=1.19",
+    "onnxruntime>=1.23",
+    "onnxscript>=0.5",
 ]
 
 [tool.uv.sources]
 terraluna-pipeline = { workspace = true }
+# Linux (CI and the CPU data server) takes the PyTorch CPU wheels, never the CUDA ones; macOS
+# keeps the default PyPI wheel, which carries MPS.
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [build-system]
 requires = ["uv_build>=0.9.26,<0.10.0"]

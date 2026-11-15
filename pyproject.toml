@@ -35,7 +35,7 @@ known-first-party = ["terraluna_pipeline", "terraluna_ml"]
 python_version = "3.12"
 strict = true
 files = ["pipeline/src", "ml/src", "pipeline/tests", "ml/tests"]
-mypy_path = ["pipeline/src", "ml/src"]
+mypy_path = ["pipeline/src", "ml/src", "ml/tests"]
 explicit_package_bases = true
 plugins = ["pydantic.mypy"]
 warn_unreachable = true
@@ -49,3 +49,13 @@ warn_required_dynamic_aliases = true
 testpaths = ["pipeline/tests", "ml/tests"]
 addopts = ["--strict-markers", "--strict-config", "-ra"]
 xfail_strict = true
+
+# fast/ml: torch pulls sympy, which caps mpmath below 1.4 while the pipeline's dev oracle needs
+# mpmath 1.4; sympy works with 1.4 for torch's use, so the cap is overridden.
+[tool.uv]
+override-dependencies = ["mpmath>=1.4,<2"]
+
+# fast/ml: third-party packages without type information.
+[[tool.mypy.overrides]]
+module = ["pyarrow.*", "sklearn.*", "onnxruntime.*", "onnx.*", "rasterio.*", "pyproj.*"]
+ignore_missing_imports = true
