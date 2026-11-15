@@ -1019,7 +1019,7 @@ function EarthDetail({ id, world, onTarget, onClose }: { id: string; world: Worl
         <a
           target="_blank"
           rel="noreferrer"
-          href={`${SA_SITE}/lab?earth=${s.id}&target=${s.pairs[0]}`}
+          href={`/lab?earth=${s.id}&target=${s.pairs[0]}`}
           className="flex items-center justify-center gap-2 rounded-full bg-platinum py-3 text-sm font-medium text-void transition-transform hover:bg-white active:scale-[0.99]"
         >
           Compare in 3D <ArrowRight size={15} />
@@ -1087,7 +1087,7 @@ function TargetDetail({ id, onEarth, onClose }: { id: string; onEarth: (id: stri
         <a
           target="_blank"
           rel="noreferrer"
-          href={`${SA_SITE}/lab?earth=${grounds[0].id}&target=${t.id}`}
+          href={`/lab?earth=${grounds[0].id}&target=${t.id}`}
           className="btn-primary flex items-center justify-center gap-2 rounded-full py-3 text-sm font-medium"
         >
           Compare with {grounds[0].name.split(",")[0]} <ArrowRight size={15} />
@@ -1152,12 +1152,12 @@ function ScreenDetail({ id, onClose }: { id: string; onClose: () => void }) {
         <a
           target="_blank"
           rel="noreferrer"
-          href={`${SA_SITE}/discover?target=${r.worlds[0] === "moon" ? "shackleton" : "jezero"}&task=${r.worlds[0] === "moon" ? "base" : "traverse"}&at=${r.lat.toFixed(2)},${r.lon.toFixed(2)}`}
+          href={`/report?target=${r.worlds[0] === "moon" ? "shackleton" : "jezero"}&task=${r.worlds[0] === "moon" ? "base" : "traverse"}&at=${r.lat.toFixed(2)},${r.lon.toFixed(2)}`}
           className="btn-primary flex items-center justify-center gap-2 rounded-full py-3 text-sm font-medium"
         >
           Open the full report <ArrowRight size={15} />
         </a>
-        <a target="_blank" rel="noreferrer" href={`${SA_SITE}/methods`} className="inline-flex items-center gap-1.5 text-sm text-chrome hover:text-platinum">
+        <a href="/methods" className="inline-flex items-center gap-1.5 text-sm text-chrome hover:text-platinum">
           How places are measured <ExternalLink size={13} />
         </a>
       </div>
