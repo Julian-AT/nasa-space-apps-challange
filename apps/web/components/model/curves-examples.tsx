@@ -185,7 +185,7 @@ export function ExamplesSection({ examples }: { readonly examples: Examples | nu
             {t.deterministic_top5.length === 0 ? null : <EntryList title="Physics fingerprint top 5" entries={t.deterministic_top5} />}
             <EntryList title="Learned encoder neighbours (experimental)" entries={t.encoder_top5} />
             {t.deterministic_top5.length === 0 ? (
-              <p className="text-sm text-muted-foreground">The physics-fingerprint ranking for this target is on its evidence cards.</p>
+              <p className="text-sm text-muted-foreground">Physics-fingerprint rankings are shown on the evidence cards.</p>
             ) : null}
           </div>
           </Card>

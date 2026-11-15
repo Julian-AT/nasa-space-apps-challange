@@ -27,13 +27,12 @@ export default function ProbePage() {
         title="Live Earth probe"
         lead="Enter any point on Earth; your browser measures its terrain fingerprint from Copernicus GLO-30."
       />
-      <div>
-      <p className="mt-3 max-w-3xl rounded-lg bg-card px-4 py-3 ring-1 ring-foreground/10 text-sm text-muted-foreground">
+      <p className="max-w-3xl text-sm text-muted-foreground">
+        The physics fingerprint (Derived) is measured for every probe.{' '}
         {encoder.encoder === null
-          ? 'Encoder (experimental): not loaded.'
-          : `Experimental encoder ${encoder.encoder.spec.model_id} runs alongside the fingerprint (Predicted).`}
-        </p>
-      </div>
+          ? 'The experimental learned encoder is not loaded in this build.'
+          : `The experimental learned encoder ${encoder.encoder.spec.model_id} adds a learned terrain similarity alongside it (Predicted).`}
+      </p>
       <Suspense fallback={<p className="mt-4">Loading the probe…</p>}>
         <ProbeClient
           targets={targets.fingerprints}

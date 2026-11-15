@@ -8,20 +8,22 @@ const ms = (v: number): string => `${String(Math.round(v))} ms`;
 
 const fmt = (v: number, digits = 3): string => (Math.abs(v) >= 1000 || (Math.abs(v) < 0.001 && v !== 0) ? v.toExponential(digits) : v.toFixed(digits));
 
-function Distance({ d }: Readonly<{ d: DistanceValue }>) {
+function Distance({ d, label }: Readonly<{ d: DistanceValue; label?: string }>) {
   if (d.status === 'unavailable') {
     return (
       <span>
-        <span className="font-medium">Unavailable</span>: {d.reason}
+        <span className="font-medium">Unavailable</span>
+        <span className="text-muted-foreground">: {d.reason.replaceAll('_', ' ')}</span>
       </span>
     );
   }
   return (
     <span>
-      {fmt(d.value)} <span className="text-sm">{d.unit}</span> · <span className="text-sm">{d.label}</span> ·{' '}
-      {d.shared_lags_m.length > 0 ? <span className="text-sm">lags {d.shared_lags_m.join(', ')} m</span> : null}
+      <span className="font-mono font-medium tabular-nums">{fmt(d.value)}</span> <span className="text-muted-foreground">{d.unit}</span>
+      <span className="text-muted-foreground"> · {label ?? d.label}</span>
+      {d.shared_lags_m.length > 0 ? <span className="text-muted-foreground"> · lags {d.shared_lags_m.join(', ')} m</span> : null}
       {d.background_percentile === undefined ? null : (
-        <span className="text-sm">
+        <span className="text-muted-foreground">
           {' '}
           · background percentile{' '}
           {d.background_percentile === null ? `Unavailable: ${d.background_percentile_reason ?? ''}` : fmt(d.background_percentile, 1)}
@@ -51,19 +53,19 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
   const lags = Object.keys(r.terrain.relief.nu_m);
   return (
     <>
-      <p className="font-medium">{r.sentence}</p>
-      <p className="text-sm">{r.surface_notice}</p>
+      <p className="text-lg font-semibold tracking-tight">{r.sentence}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{r.surface_notice}</p>
       <h3 className="mt-8 text-base font-semibold">
-        Terrain fingerprint · <span className="text-sm">{r.terrain.label}</span>
+        Terrain fingerprint <span className="text-sm font-normal text-muted-foreground">· {r.terrain.label}</span>
       </h3>
-      <p className="text-sm">
+      <p className="mt-1 text-sm text-muted-foreground">
         5 km window at {fmt(r.centre.lat_deg, 5)}°, {fmt(r.centre.lon_deg, 5)}° on a {r.terrain.analysis_grid_m} m D29 grid; valid
         fraction {fmt(r.terrain.valid_fraction, 3)}; isotropic rule {r.terrain.isotropic_rule}. Source: {r.source_product} (
         {r.dem.tiles_read.join(', ')}).
       </p>
-      <div className="overflow-x-auto">
-        <table className="mt-2 text-sm [&_td]:py-1 [&_th]:py-1">
-          <caption className="text-left">nu(L) in metres by lag, and H</caption>
+      <div className="mt-3 overflow-x-auto rounded-lg ring-1 ring-foreground/10">
+        <table className="w-full text-sm [&_td]:px-3 [&_td]:py-2 [&_th]:px-3 [&_th]:py-2 [&_thead]:bg-muted/50 [&_tr]:border-b [&_tbody_tr:last-child]:border-b-0">
+          <caption className="caption-bottom px-3 py-2 text-left text-xs text-muted-foreground">ν(L) in metres by lag, and the Hurst exponent H</caption>
           <thead>
             <tr>
               <th scope="col" className="pr-4 text-left">
@@ -99,9 +101,9 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
         <p>Unavailable: {r.targets_reason ?? 'no targets'}</p>
       ) : (
         r.targets.map((t) => (
-          <section key={t.target_id} aria-label={`Distances to ${names[t.target_id] ?? t.target_id}`} className="mt-4 rounded-md bg-muted p-4">
-            <h4 className="font-medium">
-              {names[t.target_id] ?? t.target_id} <span className="text-sm">({t.target_window_id})</span>
+          <section key={t.target_id} aria-label={`Distances to ${names[t.target_id] ?? t.target_id}`} className="mt-4 rounded-xl bg-muted/40 p-4 ring-1 ring-foreground/10 sm:p-5">
+            <h4 className="font-semibold">
+              {names[t.target_id] ?? t.target_id} <span className="font-mono text-xs font-normal text-muted-foreground">{t.target_window_id}</span>
             </h4>
             <div className="grid gap-4 md:grid-cols-2">
               <ProbeCurves
@@ -119,7 +121,7 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
                 />
               )}
             </div>
-            <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-[max-content_1fr] [&_dd]:mb-2 sm:[&_dd]:mb-0 [&_dt]:text-muted-foreground">
+            <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-1.5 border-t pt-4 text-sm sm:grid-cols-[max-content_1fr] [&_dd]:mb-2 sm:[&_dd]:mb-0 [&_dt]:text-muted-foreground">
               <dt>Terrain relief</dt>
               <dd>
                 <Distance d={t.terrain_relief} />
@@ -132,18 +134,18 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
               <dd>
                 <Distance d={t.radar} />
               </dd>
-              <dt>EXPERIMENTAL encoder (never ranked)</dt>
+              <dt>Learned encoder (experimental)</dt>
               <dd>
-                <Distance d={t.encoder} />
+                <Distance d={t.encoder} label="Predicted, experimental" />
               </dd>
             </dl>
           </section>
         ))
       )}
-      <p className="mt-2 text-sm">Smaller is closer within one family. Families are never added together, and targets are listed, not ranked.</p>
-      <p className="mt-2 text-sm">Land cover: Unavailable: {r.worldcover.reason}.</p>
+      <p className="mt-4 text-sm text-muted-foreground">Smaller is closer within one family. Families are never added together, and targets are listed, not ranked.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Land cover: Unavailable: {r.worldcover.reason}.</p>
       <h3 className="mt-10 text-base font-semibold">Measured in this browser</h3>
-      <p className="text-sm tabular-nums">
+      <p className="mt-1 text-sm text-muted-foreground tabular-nums">
         DEM read {ms(r.timings.dem_read_ms)} ({fmt(r.dem.bytes / 1e6, 2)} MB in {r.dem.requests} requests,{' '}
         {r.dem.within_prd_budget ? 'within' : 'over'} the 4 MB budget), resample {ms(r.timings.resample_ms)}, fingerprint{' '}
         {ms(r.timings.fingerprint_ms)}, total {ms(r.timings.total_ms)}.
@@ -173,8 +175,8 @@ export function ProbeCard({ result, names }: Readonly<{ result: ProbeResult; nam
     <>
       <Success r={result} names={names} />
       <details className="mt-4 text-sm">
-        <summary>Result record (JSON)</summary>
-        <pre id="probe-result-json" className="overflow-x-auto whitespace-pre-wrap">
+        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Result record (JSON)</summary>
+        <pre id="probe-result-json" className="mt-2 max-h-96 overflow-auto rounded-lg bg-muted/50 p-3 font-mono text-xs whitespace-pre-wrap">
           {JSON.stringify(result, null, 2)}
         </pre>
       </details>
