@@ -267,7 +267,10 @@ def loss_curves(run_dirs: Sequence[Path]) -> tuple[list[dict[str, Any]], dict[st
         terms: dict[str, dict[int, list[float]]] = {}
         for d, metrics, _ in runs:
             for entry in metrics.get("epochs", []):
-                for key, value in entry.items():
+                flat = dict(entry)
+                for key, value in entry.get("train", {}).items():
+                    flat[f"loss_{key}"] = value  # train.py nests the loss terms under "train"
+                for key, value in flat.items():
                     if (
                         key == "epoch"
                         or isinstance(value, bool)

@@ -4,8 +4,9 @@ Backbone: ResNet-18 layout (BasicBlock, [2, 2, 2, 2]) at half width (32, 64, 128
 stem without max-pooling and global average pooling to a 256-value embedding
 (``ml.embedding_dim``). PRD 11.3 specifies a stride-1 stem; ``stem_stride`` keeps that default
 and allows 2 (stride-2 stem conv, a quarter of the compute) or 4 (stride-2 stem conv plus a
-2 x 2 max-pool, as the standard ResNet stem downsamples; a sixteenth of the compute). The reduced-scope CPU run (team rule: no GPU) records
-the stem stride it used as a deviation; the parameter count does not depend on it.
+2 x 2 max-pool, as the standard ResNet stem downsamples; a sixteenth of the compute). The
+reduced-scope CPU run (team rule: no GPU) records the stem stride it used as a deviation; the
+parameter count does not depend on it.
 
 Heads: a VICReg projector (3-layer MLP, 2048 wide), a physics head (2-layer MLP, 11 outputs)
 and a body head (2-layer MLP, 3 logits) behind a gradient-reversal function whose lambda is set
