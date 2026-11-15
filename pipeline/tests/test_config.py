@@ -195,9 +195,20 @@ def test_document_is_the_parsed_yaml_with_nothing_filled_in() -> None:
         "uncertainty.background_sample_size",
     ],
 )
-def test_requested_kickoff_entry_stays_none(key: str) -> None:
-    assert key in set(null_paths(raw_run_yaml()))
-    assert load_run_config().value(key) is None
+def test_requested_kickoff_entry_stays_none(key: str, tmp_path: Path) -> None:
+    # Kickoff entries are filled by people at kickoff and G0 (PRD 13, 23.6), so this checks the
+    # loader on a copy of run.yaml where the entry is null, not the live file's current state.
+    def null_out(document: dict[str, Any]) -> None:
+        *parents, leaf = key.split(".")
+        node: Any = document
+        for part in parents:
+            node = node[int(part)] if isinstance(node, list) else node[part]
+        node[int(leaf) if isinstance(node, list) else leaf] = None
+
+    path = write_config(tmp_path, null_out)
+    run = load_run_config(path)
+    assert key in set(null_paths(run.document))
+    assert run.value(key) is None
 
 
 def test_every_null_entry_stays_none() -> None:
