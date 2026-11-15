@@ -134,7 +134,11 @@ lies within 3% of ``NU_REF_M (L / 90 m)^H``.
 Reason: the alias tail enters as its integral (estimated under 0.5% of nu at 3 cells) and the
 central cell as a tilt; the Riemann sum over the first ring of lattice frequencies around it
 still misses about 1 to 2% of nu^2 at 12 cells for H = 0.8. A 3% band keeps the generator's own
-log-log slope within ln(1.03 / 0.97) / ln 4 = 0.04 of H in the worst case.
+log-log slope within 0.053 of H in the worst case. The fit is least squares over the five lags
+(3, 4, 6, 8, 12 cells), whose weights on ln nu sum to 0.872 on each side of zero, so the worst
+case puts -3% on the negative weights and +3% on the positive ones:
+0.872 ln(1.03 / 0.97) = 0.0524. (An endpoint slope, ln(1.03 / 0.97) / ln 4 = 0.043, understates
+it.) This text was corrected after review round 1; the 3% value is unchanged.
 """
 
 H_TOLERANCE: Final = 0.1
