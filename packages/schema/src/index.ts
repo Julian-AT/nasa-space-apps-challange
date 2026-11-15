@@ -10,3 +10,5 @@ export { FingerprintRecordSchema, type FingerprintRecord } from './generated/fin
 export { WindowsSchema, type Windows } from './generated/windows.ts';
 export { ComparisonRecordSchema, type ComparisonRecord } from './generated/comparison-record.ts';
 export { ComparisonsSchema, type Comparisons } from './generated/comparisons.ts';
+export { TargetsSchema, type Targets } from './generated/targets.ts';
+export { CardRecordSchema, type CardRecord } from './generated/card-record.ts';

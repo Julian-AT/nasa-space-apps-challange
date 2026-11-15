@@ -1,0 +1,762 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "ClassesLegend": {
+      "additionalProperties": false,
+      "description": "The legend of a categorical layer: one entry per class code, each code once.",
+      "properties": {
+        "kind": {
+          "const": "classes",
+          "title": "Kind",
+          "type": "string"
+        },
+        "classes": {
+          "items": {
+            "$ref": "#/$defs/LegendClass"
+          },
+          "minItems": 1,
+          "title": "Classes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "classes"
+      ],
+      "title": "ClassesLegend",
+      "type": "object"
+    },
+    "Hillshade": {
+      "additionalProperties": false,
+      "description": "The light of a hillshade layer, in degrees.",
+      "properties": {
+        "azimuth_deg": {
+          "maximum": 360,
+          "minimum": 0,
+          "title": "Azimuth Deg",
+          "type": "number"
+        },
+        "altitude_deg": {
+          "maximum": 90,
+          "minimum": 0,
+          "title": "Altitude Deg",
+          "type": "number"
+        }
+      },
+      "required": [
+        "azimuth_deg",
+        "altitude_deg"
+      ],
+      "title": "Hillshade",
+      "type": "object"
+    },
+    "LegendClass": {
+      "additionalProperties": false,
+      "description": "One class of a categorical layer, such as a WorldCover code.",
+      "properties": {
+        "code": {
+          "maximum": 9007199254740991,
+          "minimum": -9007199254740991,
+          "title": "Code",
+          "type": "integer"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "rgba": {
+          "items": {
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Rgba",
+          "type": "array"
+        }
+      },
+      "required": [
+        "code",
+        "label",
+        "rgba"
+      ],
+      "title": "LegendClass",
+      "type": "object"
+    },
+    "NumericLegend": {
+      "additionalProperties": false,
+      "description": "The legend of a numeric layer on a colour-blind-safe scale (PRD 8.10). ``min`` is below\n``max``, so the scale has a range.",
+      "properties": {
+        "kind": {
+          "const": "numeric",
+          "title": "Kind",
+          "type": "string"
+        },
+        "min": {
+          "title": "Min",
+          "type": "number"
+        },
+        "max": {
+          "title": "Max",
+          "type": "number"
+        },
+        "scale": {
+          "enum": [
+            "viridis",
+            "cividis"
+          ],
+          "title": "Scale",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "kind",
+        "min",
+        "max",
+        "scale",
+        "unit"
+      ],
+      "title": "NumericLegend",
+      "type": "object"
+    },
+    "Projection": {
+      "additionalProperties": false,
+      "description": "The target's map projection and its parameters, as read from the product.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "polar_stereographic",
+            "equirectangular",
+            "geographic"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "params": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "minLength": 1,
+                "type": "string"
+              }
+            ]
+          },
+          "propertyNames": {
+            "minLength": 1
+          },
+          "title": "Params",
+          "type": "object"
+        }
+      },
+      "required": [
+        "kind",
+        "params"
+      ],
+      "title": "Projection",
+      "type": "object"
+    },
+    "Shortlist": {
+      "additionalProperties": false,
+      "description": "The Earth windows shortlisted for a target (PRD 6.5 step 4), and the rule used.",
+      "properties": {
+        "earth_window_ids": {
+          "items": {
+            "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+            "type": "string"
+          },
+          "title": "Earth Window Ids",
+          "type": "array"
+        },
+        "rule": {
+          "minLength": 1,
+          "title": "Rule",
+          "type": "string"
+        },
+        "n_compared": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Compared"
+        }
+      },
+      "required": [
+        "earth_window_ids",
+        "rule",
+        "n_compared"
+      ],
+      "title": "Shortlist",
+      "type": "object"
+    },
+    "TargetRecord": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "shortlist_reason": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "shortlist": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "shortlist"
+            ]
+          },
+          "then": {
+            "properties": {
+              "shortlist_reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "description": "A target in targets.json (PRD 8.4). The footprint and primary window are null until G0\nfreezes them, and exactly one of ``shortlist`` and ``shortlist_reason`` is null.",
+      "properties": {
+        "target_id": {
+          "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+          "title": "Target Id",
+          "type": "string"
+        },
+        "mock": {
+          "title": "Mock",
+          "type": "boolean"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Run Id"
+        },
+        "body": {
+          "enum": [
+            "moon",
+            "mars",
+            "earth"
+          ],
+          "title": "Body",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "product_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Product Ids",
+          "type": "array"
+        },
+        "crs": {
+          "minLength": 1,
+          "title": "Crs",
+          "type": "string"
+        },
+        "projection": {
+          "$ref": "#/$defs/Projection"
+        },
+        "footprint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WindowPolygon"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "primary_window_id": {
+          "anyOf": [
+            {
+              "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Primary Window Id"
+        },
+        "window_grid": {
+          "$ref": "#/$defs/WindowGrid"
+        },
+        "reference_window_ids": {
+          "items": {
+            "pattern": "^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$",
+            "type": "string"
+          },
+          "title": "Reference Window Ids",
+          "type": "array"
+        },
+        "shortlist": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Shortlist"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "shortlist_reason": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Shortlist Reason"
+        },
+        "shipping_mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Shipping Mode"
+        },
+        "tile_layers": {
+          "items": {
+            "$ref": "#/$defs/TileLayer"
+          },
+          "title": "Tile Layers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "target_id",
+        "mock",
+        "run_id",
+        "body",
+        "name",
+        "description",
+        "product_ids",
+        "crs",
+        "projection",
+        "footprint",
+        "primary_window_id",
+        "window_grid",
+        "reference_window_ids",
+        "shortlist",
+        "shortlist_reason",
+        "shipping_mode",
+        "tile_layers"
+      ],
+      "title": "TargetRecord",
+      "type": "object"
+    },
+    "TileEncoding": {
+      "additionalProperties": false,
+      "description": "How the tiles are encoded: always WebP (PRD 8.4).",
+      "properties": {
+        "format": {
+          "const": "webp",
+          "title": "Format",
+          "type": "string"
+        },
+        "lossless": {
+          "title": "Lossless",
+          "type": "boolean"
+        },
+        "quality": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Quality"
+        }
+      },
+      "required": [
+        "format",
+        "lossless",
+        "quality"
+      ],
+      "title": "TileEncoding",
+      "type": "object"
+    },
+    "TileLayer": {
+      "additionalProperties": false,
+      "description": "A tiled raster layer of a target, at tiles/{layer}/{z}/{x}/{y}.webp (PRD 8.4).\n\n``metres_per_pixel_by_zoom`` holds one pixel size per zoom level, from ``zoom_min`` to\n``zoom_max``. ``omitted_tiles`` lists the all-nodata tiles, as ``[z, x, y]`` within that zoom\nrange, which are never written as images. ``extent_m`` is ``[min_x, min_y, max_x, max_y]``.",
+      "properties": {
+        "layer": {
+          "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._-]*$",
+          "title": "Layer",
+          "type": "string"
+        },
+        "body": {
+          "enum": [
+            "moon",
+            "mars",
+            "earth"
+          ],
+          "title": "Body",
+          "type": "string"
+        },
+        "crs": {
+          "minLength": 1,
+          "title": "Crs",
+          "type": "string"
+        },
+        "units": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Units"
+        },
+        "evidence_label": {
+          "enum": [
+            "Observed",
+            "Derived",
+            "Predicted",
+            "Assumed",
+            "Unavailable"
+          ],
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "source_product_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Source Product Ids",
+          "type": "array"
+        },
+        "origin_x_m": {
+          "title": "Origin X M",
+          "type": "number"
+        },
+        "origin_y_m": {
+          "title": "Origin Y M",
+          "type": "number"
+        },
+        "y_direction": {
+          "enum": [
+            "down",
+            "up"
+          ],
+          "title": "Y Direction",
+          "type": "string"
+        },
+        "tile_px": {
+          "const": 512,
+          "title": "Tile Px",
+          "type": "integer"
+        },
+        "metres_per_pixel_by_zoom": {
+          "items": {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          "title": "Metres Per Pixel By Zoom",
+          "type": "array"
+        },
+        "zoom_min": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Zoom Min",
+          "type": "integer"
+        },
+        "zoom_max": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Zoom Max",
+          "type": "integer"
+        },
+        "extent_m": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Extent M",
+          "type": "array"
+        },
+        "omitted_tiles": {
+          "items": {
+            "items": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "type": "array"
+          },
+          "title": "Omitted Tiles",
+          "type": "array"
+        },
+        "legend": {
+          "discriminator": {
+            "mapping": {
+              "classes": "#/$defs/ClassesLegend",
+              "numeric": "#/$defs/NumericLegend"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ClassesLegend"
+            },
+            {
+              "$ref": "#/$defs/NumericLegend"
+            }
+          ],
+          "title": "Legend"
+        },
+        "hillshade": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Hillshade"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "encoding": {
+          "$ref": "#/$defs/TileEncoding"
+        },
+        "bytes_total": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Bytes Total",
+          "type": "integer"
+        },
+        "mock": {
+          "title": "Mock",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "layer",
+        "body",
+        "crs",
+        "units",
+        "evidence_label",
+        "source_product_ids",
+        "origin_x_m",
+        "origin_y_m",
+        "y_direction",
+        "tile_px",
+        "metres_per_pixel_by_zoom",
+        "zoom_min",
+        "zoom_max",
+        "extent_m",
+        "omitted_tiles",
+        "legend",
+        "hillshade",
+        "encoding",
+        "bytes_total",
+        "mock"
+      ],
+      "title": "TileLayer",
+      "type": "object"
+    },
+    "WindowGrid": {
+      "additionalProperties": false,
+      "description": "The window grid over a target; the counts are null until the grid is built.",
+      "properties": {
+        "window_m": {
+          "exclusiveMinimum": 0,
+          "title": "Window M",
+          "type": "number"
+        },
+        "stride_m": {
+          "exclusiveMinimum": 0,
+          "title": "Stride M",
+          "type": "number"
+        },
+        "n_generated": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Generated"
+        },
+        "n_eligible": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "N Eligible"
+        }
+      },
+      "required": [
+        "window_m",
+        "stride_m",
+        "n_generated",
+        "n_eligible"
+      ],
+      "title": "WindowGrid",
+      "type": "object"
+    },
+    "WindowPolygon": {
+      "additionalProperties": false,
+      "description": "A window outline in its frame's metres and in degrees (WGS84 for Earth, planetocentric\nfor the Moon and Mars). ``crs`` is read from the product, never assumed.",
+      "properties": {
+        "frame": {
+          "enum": [
+            "utm",
+            "polar_stereographic",
+            "equirectangular",
+            "aeqd_sphere"
+          ],
+          "title": "Frame",
+          "type": "string"
+        },
+        "crs": {
+          "minLength": 1,
+          "title": "Crs",
+          "type": "string"
+        },
+        "epsg": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Epsg"
+        },
+        "utm_zone": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Utm Zone"
+        },
+        "ring_m": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "minItems": 4,
+          "title": "Ring M",
+          "type": "array"
+        },
+        "ring_lonlat": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "minItems": 4,
+          "title": "Ring Lonlat",
+          "type": "array"
+        }
+      },
+      "required": [
+        "frame",
+        "crs",
+        "epsg",
+        "utm_zone",
+        "ring_m",
+        "ring_lonlat"
+      ],
+      "title": "WindowPolygon",
+      "type": "object"
+    }
+  },
+  "description": "targets.json: the TargetRecords (PRD 8.4).",
+  "items": {
+    "$ref": "#/$defs/TargetRecord"
+  },
+  "title": "Targets",
+  "type": "array"
+}

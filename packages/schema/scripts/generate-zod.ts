@@ -102,6 +102,18 @@ export const CONTRACTS: readonly Contract[] = [
     schemaName: 'ComparisonsSchema',
     typeName: 'Comparisons',
   },
+  {
+    json: 'targets.schema.json',
+    module: 'targets.ts',
+    schemaName: 'TargetsSchema',
+    typeName: 'Targets',
+  },
+  {
+    json: 'card-record.schema.json',
+    module: 'card-record.ts',
+    schemaName: 'CardRecordSchema',
+    typeName: 'CardRecord',
+  },
 ];
 
 /** The JSON Schema could not be translated faithfully, or is missing or malformed. */
