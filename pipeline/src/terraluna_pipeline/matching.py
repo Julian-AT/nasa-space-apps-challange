@@ -55,10 +55,16 @@ Band parsing
 
 from __future__ import annotations
 
+import argparse
 import bisect
 import itertools
+import json
 import math
+import os
 import re
+import struct
+import subprocess
+import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -877,3 +883,240 @@ def compare_windows(
         source_ids=ids,
         run_id=provenance.run_id(config_path, source_ids),
     )
+
+
+# --- Parity fixture (PRD 8.8; T10-08 and T13-03 mirror these) --------------------------------
+
+PARITY_SCHEMA_VERSION: Final = 1
+PARITY_FILE_NAME: Final = "matching_synthetic.json"
+PARITY_ATOL: Final = 1e-9
+"""PRD 8.8 parity tolerance, absolute, for every float output."""
+REPOSITORY_ROOT: Final[Path] = DEFAULT_RUN_CONFIG.parents[1]
+DEFAULT_PARITY_PATH: Final[Path] = REPOSITORY_ROOT / "fixtures" / "parity" / PARITY_FILE_NAME
+PARITY_SOURCE: Final = "pipeline/src/terraluna_pipeline/matching.py"
+_UNCOMPARED: Final = frozenset({"git_commit"})
+"""Fields ``--check`` does not compare: a commit hash changes with the next commit."""
+
+_E: Final = math.e
+_TerrainCase = tuple[str, str, list[float], list[float | None], list[float], list[float | None]]
+_TERRAIN_CASES: Final[tuple[_TerrainCase, ...]] = (
+    (
+        "hand_case",
+        "relief",
+        [270.0, 360.0, 540.0],
+        [1.0, _E, _E * _E],
+        [270.0, 360.0, 540.0],
+        [1.0, 1.0, 1.0],
+    ),
+    (
+        "hand_case_texture",
+        "texture",
+        [270.0, 360.0, 540.0],
+        [1.0, _E, _E * _E],
+        [270.0, 360.0, 540.0],
+        [1.0, 1.0, 1.0],
+    ),
+    (
+        "identical",
+        "relief",
+        [270.0, 360.0, 540.0, 720.0],
+        [1.5, 2.0, 2.5, 3.0],
+        [270.0, 360.0, 540.0, 720.0],
+        [1.5, 2.0, 2.5, 3.0],
+    ),
+    (
+        "shared_lag_intersection",
+        "relief",
+        [270.0, 360.0, 540.0],
+        [1.0, _E, 5.0],
+        [360.0, 540.0, 720.0],
+        [1.0, 1.0, 7.0],
+    ),
+    (
+        "shared_lag_intersection_texture",
+        "texture",
+        [270.0, 360.0, 540.0, 1080.0],
+        [0.75, 1.25, 2.5, 4.0],
+        [360.0, 1080.0],
+        [1.5, 3.5],
+    ),
+    ("no_shared_lags", "relief", [270.0], [1.0], [360.0], [1.0]),
+    ("nu_zero", "texture", [270.0, 360.0], [0.0, 1.0], [270.0, 360.0], [1.0, 1.0]),
+)
+_PERCENTILE_CASES: Final[tuple[tuple[str, float, list[float], list[int]], ...]] = (
+    ("inside", 1.5, [0.0, 1.0, 2.0, 3.0], [2, 3, 5]),
+    ("interior_edge", 1.0, [0.0, 1.0, 2.0, 3.0], [2, 3, 5]),
+    ("first_edge", 0.0, [0.0, 1.0, 2.0, 3.0], [2, 3, 5]),
+    ("last_edge", 3.0, [0.0, 1.0, 2.0, 3.0], [2, 3, 5]),
+    ("below", -1.0, [0.0, 1.0, 2.0, 3.0], [2, 3, 5]),
+    ("above", 4.0, [0.0, 1.0, 2.0, 3.0], [2, 3, 5]),
+    ("uneven_bins", 0.3, [0.0, 0.1, 0.25, 0.7, 1.9], [7, 0, 11, 3]),
+    ("empty_histogram", 1.5, [0.0, 1.0, 2.0, 3.0], [0, 0, 0]),
+)
+
+
+def _parity_variant(lags: list[float], nus: list[float | None], detrend: str) -> TerrainVariant:
+    return TerrainVariant.model_validate(
+        {
+            "detrend": "none" if detrend == "relief" else "plane",
+            "supported_lags_m": lags,
+            "unsupported_lags": [],
+            "nu_m": {
+                (str(int(lag)) if lag.is_integer() else repr(lag)): nu
+                for lag, nu in zip(lags, nus, strict=True)
+            },
+            "nu_by_direction_m": {},
+            "hurst": None,
+            "hurst_reason": "insufficient_lags",
+            "tilt": None,
+        }
+    )
+
+
+def _outcome_json(outcome: Outcome) -> dict[str, object]:
+    return {
+        "value": outcome.value,
+        "reason": None if outcome.reason is None else str(outcome.reason),
+    }
+
+
+def parity_document(
+    *, config_path: Path = DEFAULT_RUN_CONFIG, git_commit: str | None = None
+) -> dict[str, object]:
+    """The matching parity document: synthetic inputs and the Python outputs (PRD 8.8)."""
+    terrain_cases: list[dict[str, object]] = []
+    for name, variant_name, lags_a, nus_a, lags_b, nus_b in _TERRAIN_CASES:
+        a = _parity_variant(lags_a, nus_a, variant_name)
+        b = _parity_variant(lags_b, nus_b, variant_name)
+        outcome = terrain_distance(a, b)
+        terrain_cases.append(
+            {
+                "name": name,
+                "family": f"terrain_{variant_name}",
+                "a": {"supported_lags_m": lags_a, "nu_m": dict(a.nu_m)},
+                "b": {"supported_lags_m": lags_b, "nu_m": dict(b.nu_m)},
+                "expected": {
+                    **_outcome_json(outcome),
+                    "shared_lags_m": list(outcome.lags_m),
+                    "unit": TERRAIN_UNIT,
+                },
+            }
+        )
+    percentile_cases = [
+        {
+            "name": name,
+            "d": d,
+            "bin_edges": edges,
+            "counts": counts,
+            "expected": _outcome_json(background_percentile(d, edges, counts)),
+        }
+        for name, d, edges, counts in _PERCENTILE_CASES
+    ]
+    return {
+        "schema_version": PARITY_SCHEMA_VERSION,
+        "data_kind": "synthetic",
+        "description": (
+            "Python reference outputs of matching.terrain_distance (RMS of log nu over the "
+            "shared supported lags, relief and texture separately) and "
+            "matching.background_percentile (linear_within_bin_v1, smaller_is_closer). Null "
+            "marks an unavailable value with its reason, never 0."
+        ),
+        "generator": "python -m terraluna_pipeline.matching parity",
+        "producing_source": PARITY_SOURCE,
+        "git_commit": git_commit,
+        "config_sha256": provenance.config_version(config_path),
+        "tolerance": {"atol": PARITY_ATOL, "rtol": 0.0},
+        "terrain_distance": terrain_cases,
+        "background_percentile": percentile_cases,
+    }
+
+
+def parity_text(document: Mapping[str, object]) -> str:
+    """Canonical JSON; every float is its shortest round-trip repr, checked bit-equal on reload."""
+    text = provenance.canonical_json(document).decode("utf-8")
+    _same_floats(document, json.loads(text), "$")
+    return text
+
+
+def _same_floats(original: object, reloaded: object, path: str) -> None:
+    if isinstance(original, float):
+        if not isinstance(reloaded, float) or struct.pack("<d", original) != struct.pack(
+            "<d", reloaded
+        ):
+            raise ValueError(f"{path}: {original!r} did not survive JSON as {reloaded!r}")
+    elif isinstance(original, Mapping):
+        if not isinstance(reloaded, dict) or set(reloaded) != set(original):
+            raise ValueError(f"{path}: keys changed in JSON")
+        for key, value in original.items():
+            _same_floats(value, reloaded[key], f"{path}.{key}")
+    elif isinstance(original, list | tuple):
+        if not isinstance(reloaded, list) or len(reloaded) != len(original):
+            raise ValueError(f"{path}: list changed in JSON")
+        for index, (a, b) in enumerate(zip(original, reloaded, strict=True)):
+            _same_floats(a, b, f"{path}[{index}]")
+
+
+def producing_commit(repo_root: Path = REPOSITORY_ROOT) -> str:
+    """The last commit that changed matching.py, which must be unmodified."""
+
+    def git(*args: str) -> str:
+        environment = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        return subprocess.run(
+            ["git", "-C", str(repo_root), *args],
+            check=True,
+            capture_output=True,
+            text=True,
+            env=environment,
+        ).stdout.strip()
+
+    if git("status", "--porcelain", "--", PARITY_SOURCE):
+        raise ValueError(f"commit {PARITY_SOURCE} before writing the parity fixture")
+    commit = git("log", "-1", "--format=%H", "--", PARITY_SOURCE)
+    if re.fullmatch(r"[0-9a-f]{40}", commit) is None:
+        raise ValueError(f"no commit holds {PARITY_SOURCE} (got {commit!r})")
+    return commit
+
+
+def parity_differences(committed: Mapping[str, object], fresh: Mapping[str, object]) -> list[str]:
+    """Top-level fields that differ, ignoring :data:`_UNCOMPARED`."""
+    keys = (set(committed) | set(fresh)) - _UNCOMPARED
+    return sorted(key for key in keys if committed.get(key) != fresh.get(key))
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """``python -m terraluna_pipeline.matching parity [--check] [--output PATH]``."""
+    parser = argparse.ArgumentParser(prog="python -m terraluna_pipeline.matching")
+    commands = parser.add_subparsers(dest="command", required=True)
+    parity = commands.add_parser("parity", help="write or check the matching parity fixture")
+    parity.add_argument("--check", action="store_true", help="compare only; write nothing")
+    parity.add_argument("--output", type=Path, default=DEFAULT_PARITY_PATH)
+    parity.add_argument("--config", type=Path, default=DEFAULT_RUN_CONFIG)
+    arguments = parser.parse_args(argv)
+    output: Path = arguments.output
+    if arguments.check:
+        fresh = json.loads(parity_text(parity_document(config_path=arguments.config)))
+        try:
+            committed = json.loads(output.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+            print(f"error: cannot read {output}: {error}", file=sys.stderr)
+            return 1
+        differences = parity_differences(committed, fresh)
+        if differences:
+            print(f"error: {output} differs in {', '.join(differences)}", file=sys.stderr)
+            return 1
+        print(f"{output} is current")
+        return 0
+    try:
+        commit = producing_commit()
+    except (ValueError, OSError, subprocess.CalledProcessError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+    text = parity_text(parity_document(config_path=arguments.config, git_commit=commit))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_bytes(text.encode("utf-8"))
+    print(output)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
