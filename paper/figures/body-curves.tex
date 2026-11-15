@@ -1,0 +1,29 @@
+\begin{figure}[tbp]
+\centering
+\begin{tikzpicture}
+\begin{semilogxaxis}[tlplot, width=0.62\linewidth, height=0.42\linewidth,
+  xlabel={lag $L$ (m)}, ylabel={relief $\ln(\nu / 1\,\mathrm{m})$},
+  xtick={270,360,540,720,1080}, xticklabels={270,360,540,720,1080},
+  legend pos=outer north east, legend cell align=left]
+\addplot[okblue, thick, mark=*] coordinates {(270,\CurveMoonOneMed) (360,\CurveMoonTwoMed) (540,\CurveMoonThreeMed) (720,\CurveMoonFourMed) (1080,\CurveMoonFiveMed)};
+\addlegendentry{Moon, target site}
+\addplot[okblue, thin, dashed, forget plot] coordinates {(270,\CurveMoonOneLo) (360,\CurveMoonTwoLo) (540,\CurveMoonThreeLo) (720,\CurveMoonFourLo) (1080,\CurveMoonFiveLo)};
+\addplot[okblue, thin, dashed, forget plot] coordinates {(270,\CurveMoonOneHi) (360,\CurveMoonTwoHi) (540,\CurveMoonThreeHi) (720,\CurveMoonFourHi) (1080,\CurveMoonFiveHi)};
+\addplot[okorange, thick, mark=triangle*] coordinates {(270,\CurveMarsOneMed) (360,\CurveMarsTwoMed) (540,\CurveMarsThreeMed) (720,\CurveMarsFourMed) (1080,\CurveMarsFiveMed)};
+\addlegendentry{Mars, CTX windows}
+\addplot[okorange, thin, dashed, forget plot] coordinates {(270,\CurveMarsOneLo) (360,\CurveMarsTwoLo) (540,\CurveMarsThreeLo) (720,\CurveMarsFourLo) (1080,\CurveMarsFiveLo)};
+\addplot[okorange, thin, dashed, forget plot] coordinates {(270,\CurveMarsOneHi) (360,\CurveMarsTwoHi) (540,\CurveMarsThreeHi) (720,\CurveMarsFourHi) (1080,\CurveMarsFiveHi)};
+\addplot[okvermilion, thick, mark=square*] coordinates {(270,\CurveEarthOneMed) (360,\CurveEarthTwoMed) (540,\CurveEarthThreeMed) (720,\CurveEarthFourMed) (1080,\CurveEarthFiveMed)};
+\addlegendentry{Earth, search regions}
+\addplot[okvermilion, thin, dashed, forget plot] coordinates {(270,\CurveEarthOneLo) (360,\CurveEarthTwoLo) (540,\CurveEarthThreeLo) (720,\CurveEarthFourLo) (1080,\CurveEarthFiveLo)};
+\addplot[okvermilion, thin, dashed, forget plot] coordinates {(270,\CurveEarthOneHi) (360,\CurveEarthTwoHi) (540,\CurveEarthThreeHi) (720,\CurveEarthFourHi) (1080,\CurveEarthFiveHi)};
+\end{semilogxaxis}
+\end{tikzpicture}
+\caption{Relief structure functions per body over the windows that the search read: the
+\BodyMoonWindows{} windows of the lunar target site, \BodyMarsWindows{} windows from
+\BodyMarsGroups{} CTX models and \BodyEarthWindows{} Earth windows from the declared regions.
+Solid lines are medians of $\ln \nu$ over windows and dashed lines the quartiles. The samples are
+small and contiguous, so the curves describe these windows, not the bodies. Generated from the cross
+body record of Appendix~\ref{sec:appendix-data-analysis}.}
+\label{fig:body-curves}
+\end{figure}
