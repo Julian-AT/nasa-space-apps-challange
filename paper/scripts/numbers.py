@@ -1898,6 +1898,49 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
         "/*/distances_by_family/terrain_relief/background_percentile",
         "min:.1f",
     ),
+    ArtifactMacro(
+        "OnnxSnapshotEpoch", "outputs/ml/model/export_record.json", "/interim_snapshot/epoch", "?d"
+    ),
+    ArtifactMacro(
+        "OnnxSnapshotOf", "outputs/ml/model/export_record.json", "/interim_snapshot/of_epochs", "?d"
+    ),
+    ArtifactMacro(
+        "OnnxSourceStatus", "outputs/ml/model/export_record.json", "/source_run_status", "?text"
+    ),
+    ArtifactMacro(
+        "OnnxParityN", "outputs/ml/model/export_record.json", "/python_parity/n_windows", "?d"
+    ),
+    ArtifactMacro(
+        "OnnxFpDiff",
+        "outputs/ml/model/export_record.json",
+        "/python_parity/fp32_max_abs_diff",
+        "?.1e",
+    ),
+    ArtifactMacro(
+        "OnnxFpThreshold",
+        "outputs/ml/model/export_record.json",
+        "/python_parity/fp32_threshold",
+        "?.0e",
+    ),
+    ArtifactMacro(
+        "OnnxHalfCosine",
+        "outputs/ml/model/export_record.json",
+        "/python_parity/fp16_min_cosine",
+        "?.6f",
+    ),
+    ArtifactMacro(
+        "OnnxHalfThreshold",
+        "outputs/ml/model/export_record.json",
+        "/python_parity/fp16_threshold",
+        "?.3f",
+    ),
+    ArtifactMacro(
+        "OnnxHalfBytes",
+        "outputs/ml/model/export_record.json",
+        "/files/encoder.fp16.onnx/bytes",
+        "?,d",
+    ),
+    ArtifactMacro("OnnxOpset", "outputs/ml/model/export_record.json", "/opset", "?d"),
     ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
     ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
     ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),

@@ -1,11 +1,11 @@
 {
-  "command": "python -m terraluna_pipeline.checks analysis bodies --windows-dir data/processed/t5-windows --ctx-dir /Users/julianschmidt/terraluna-data/raw/ctx_dtm",
-  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "command": "python -m terraluna_pipeline.checks analysis bodies --windows-dir data/processed/windows --ctx-dir /Users/julianschmidt/terraluna-data/raw/ctx_dtm",
+  "config_version": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
   "evidence_label": "Derived",
   "input_hashes": [
     {
       "path": "config/run.yaml",
-      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+      "sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675"
     }
   ],
   "log_base": "natural",
@@ -379,9 +379,9 @@
   },
   "record_type": "terraluna appendix A Mars CTX QA effect",
   "uncommitted_inputs_sha256": {
-    "t5-windows/earth.json": "1ed6fcc446b81505a6c427f74a361aea1cd9e9a1778f299cdfb437e0902f0207",
-    "t5-windows/mars.json": "5693c0b80100ad29f93f94409921d4a267c749a32ebaca747f63df788eed2308",
-    "t5-windows/moon.json": "9882b84b2c204eefd8aee80f1441fd9ca54227fe4e43acac5d1a9479cb80e132"
+    "windows/earth.json": "fb7f8911aff25ce3aa75621e20188f04350eb1b87ef131d6ce7fbdcf1e39a101",
+    "windows/mars.json": "5693c0b80100ad29f93f94409921d4a267c749a32ebaca747f63df788eed2308",
+    "windows/moon.json": "9882b84b2c204eefd8aee80f1441fd9ca54227fe4e43acac5d1a9479cb80e132"
   },
   "windows_source": "T5 search windows/<body>.json (data/processed, not committed); sha256 recorded"
 }

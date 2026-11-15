@@ -11,6 +11,7 @@
     "start": "next start",
     "smoke": "node scripts/smoke.ts",
     "probe:bench": "node scripts/probe-bench.ts",
+    "probe:model": "node scripts/probe-model.ts",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p server/api",
     "test": "vitest run",

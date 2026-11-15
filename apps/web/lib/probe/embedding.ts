@@ -40,6 +40,14 @@ export interface EncoderSpec {
   readonly output_name: string;
   /** From export_record.json: whether L2 normalisation is inside the graph. Never guessed. */
   readonly l2_normalized: boolean;
+  /**
+   * SHA-256s of every file of the same export (the fp16 model and the fp32 model it was converted
+   * from, with measured parity in export_record.json). A background made with either is the same
+   * network's; any other file is a different model.
+   */
+  readonly export_sha256s?: readonly string[];
+  /** e.g. "interim snapshot, epoch 1 of 12" from the export record; null for a final export. */
+  readonly snapshot_note?: string | null;
 }
 
 /** ModelBackground (CONTRACTS a.4) of reference/background_<target_id>.json. */
@@ -79,11 +87,19 @@ export function cosineDistance(a: ArrayLike<number>, b: ArrayLike<number>): Scal
  * The percentile of a model distance against the model_embedding background of the same target,
  * model_id and onnx_sha256 only; any other histogram is Unavailable with its reason.
  */
-export function modelPercentile(distance: number, targetId: string, background: ModelBackground | null, session: Pick<EncoderSpec, 'model_id' | 'onnx_sha256'>): Scalar {
+export function modelPercentile(
+  distance: number,
+  targetId: string,
+  background: ModelBackground | null,
+  session: Pick<EncoderSpec, 'model_id' | 'onnx_sha256' | 'export_sha256s'>,
+  targetWindowId?: string,
+): Scalar {
   if (background === null) return unavailable('encoder_not_evaluated');
   if (background.family !== 'model_embedding') return unavailable('background_family_mismatch');
-  if (background.target_id !== targetId) return unavailable('background_target_mismatch');
-  if (background.model_id !== session.model_id || background.onnx_sha256 !== session.onnx_sha256) {
+  // A background names its target by target id or by the target's primary window id.
+  if (background.target_id !== targetId && background.target_id !== targetWindowId) return unavailable('background_target_mismatch');
+  const sameExport = background.onnx_sha256 === session.onnx_sha256 || (session.export_sha256s ?? []).includes(background.onnx_sha256);
+  if (background.model_id !== session.model_id || !sameExport) {
     return unavailable('background_model_mismatch');
   }
   if (background.counts.reduce((s, c) => s + c, 0) === 0) return unavailable('background_empty');

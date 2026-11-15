@@ -769,7 +769,11 @@ def run(argv_for_record: Sequence[str] = ("run",)) -> int:
         "protocol_path": PROTOCOL_REL,
         "protocol_commit": commit,
         "protocol_sha256": _sha256(REPO_ROOT / PROTOCOL_REL),
-        "input_hashes": provenance.file_hashes([REPO_ROOT / PROTOCOL_REL]),
+        # Repo-relative paths, so the record verifies on any checkout.
+        "input_hashes": [
+            {"path": str(PROTOCOL_REL), "sha256": item["sha256"]}
+            for item in provenance.file_hashes([REPO_ROOT / PROTOCOL_REL])
+        ],
         "raw_inputs_sha256": dict(sorted(hashes.items())),
         "evidence_labels": {
             "facies_polygons": "Observed (published mapping, Voigt et al. 2021)",

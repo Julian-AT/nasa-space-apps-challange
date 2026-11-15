@@ -8,12 +8,12 @@
     "sha256": "cd40fd79956a9f3d555502de8b143c2d32d424909f099aa2de373427ce2aebfc"
   },
   {
-    "bytes": 9006,
+    "bytes": 9000,
     "card_id": "mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "B",
     "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_B.svg",
-    "sha256": "cae85609e61459db6208b5766f44b108cbffcc1e531daeb93c21cd66cecc2a67"
+    "sha256": "acfacd433be6cdb5bc3562f3124a552a674eaeb885a54b890ec80a5ecfeba43b"
   },
   {
     "bytes": 1295,
@@ -32,12 +32,12 @@
     "sha256": "fd036240f07f01110f9e93ff867a8486b1ac41eb7a239617cef62778ab2aff78"
   },
   {
-    "bytes": 9299,
+    "bytes": 9293,
     "card_id": "mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "B",
     "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879_B.svg",
-    "sha256": "9f8c8ae839a7659414760ba8166d9d9a9921af2a6fe0c5798392609af3bde899"
+    "sha256": "ec15c85160bffa6ccc4c84368b95f05cfb9e73d954e18fbd10043e57b9d2d742"
   },
   {
     "bytes": 1295,
@@ -56,12 +56,12 @@
     "sha256": "9eace154dbab17646548845680d13d5c5d27f978db0210f224176722a58023df"
   },
   {
-    "bytes": 9283,
+    "bytes": 9277,
     "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "B",
     "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_B.svg",
-    "sha256": "0dda5a06007ebfbad57a6fdab1f5e99c69e7be2d00d597b0032410f10b87d896"
+    "sha256": "63848710ff122cf84893e6ef0c956d03a962a8fb11b04b0ddbc076ced24eb7b8"
   },
   {
     "bytes": 1290,
@@ -80,12 +80,12 @@
     "sha256": "5a6f6a7ada441d5d767b248629dcfddb7d22d9d7a3a7c379a310af9b7c27afb0"
   },
   {
-    "bytes": 9431,
+    "bytes": 9425,
     "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "B",
     "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882_B.svg",
-    "sha256": "9d667997d94f39faac97012fa694919c2e8f9a3a076223e390ac4ab7b117f0eb"
+    "sha256": "6d848a3649807bfc25273381be3c96d7f260d22a557134781c9d4c2a8c6927d4"
   },
   {
     "bytes": 1290,
@@ -104,12 +104,12 @@
     "sha256": "aa4b425f8baca38b330e8bb03511e78125535fda1ce5e619e28c0c3642f1eac0"
   },
   {
-    "bytes": 9433,
+    "bytes": 9427,
     "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "B",
     "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_B.svg",
-    "sha256": "e1f66c351fcc26c3a5d42bb1540a005f05fc313970f3396f788d45e25b4bd2fc"
+    "sha256": "daae3afbe43135e0324be9cf1f1d1a00163ba178f99385ff337feb1b3620123c"
   },
   {
     "bytes": 1290,

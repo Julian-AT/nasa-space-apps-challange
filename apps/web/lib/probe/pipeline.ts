@@ -257,7 +257,7 @@ export async function runProbe(request: ProbeRequest, deps: ProbeDeps, signal?: 
         inferenceMs = now() - tInfer;
         if (signal?.aborted) return aborted(request);
         for (const t of deps.targets.fingerprints) {
-          const background = enc.backgrounds[t.target_id] ?? null;
+          const background = enc.backgrounds[t.target_id] ?? enc.backgrounds[t.window_id] ?? null;
           if (background === null || background.target_embedding.length === 0) {
             encoderFor.set(t.target_id, ENCODER_UNAVAILABLE(ENCODER_NOT_EVALUATED));
             continue;
@@ -267,7 +267,7 @@ export async function runProbe(request: ProbeRequest, deps: ProbeDeps, signal?: 
             encoderFor.set(t.target_id, ENCODER_UNAVAILABLE(d.reason));
             continue;
           }
-          const p = modelPercentile(d.value, t.target_id, background, enc.spec);
+          const p = modelPercentile(d.value, t.target_id, background, enc.spec, t.window_id);
           encoderFor.set(t.target_id, {
             status: 'available',
             value: d.value,

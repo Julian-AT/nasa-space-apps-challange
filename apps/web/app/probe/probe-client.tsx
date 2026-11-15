@@ -64,8 +64,8 @@ export function ProbeClient({
       setShown({ requestToResultMs: t - requestedAt.current, pageToResultMs: t, probeIndex: probeCount.current });
       setRunning(false);
     };
-    w.onerror = () => {
-      setWorkerError('The probe worker failed to start.');
+    w.onerror = (event: ErrorEvent) => {
+      setWorkerError(`The probe worker failed: ${event.message || 'unknown error'}`);
       setRunning(false);
     };
     w.postMessage({ type: 'init', mode: COP30_MODE, targets, targetsReason, bundleVersion, encoder });

@@ -33,23 +33,23 @@
     "status": "PASS"
   },
   {
-    "command": "python -m terraluna_pipeline.polarimetry record-g1 --junit /tmp/terraluna-g1-t4/junit.xml --out fixtures/polarimetry/g1-record.json --pytest-command 'TERRALUNA_UAVSAR_SCENE=<local UAVSAR scene dir> uv run pytest --junitxml=/tmp/terraluna-g1-t4/junit.xml -q -p no:cacheprovider'",
-    "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+    "command": "python -m terraluna_pipeline.polarimetry record-g1 --junit /tmp/terraluna-g1-t5/junit.xml --out fixtures/polarimetry/g1-record.json --pytest-command 'TERRALUNA_UAVSAR_SCENE=<local UAVSAR scene dir> uv run pytest --junitxml=/tmp/terraluna-g1-t5/junit.xml -q -p no:cacheprovider pipeline/tests/test_polarimetry_covariance.py pipeline/tests/test_polarimetry_decode.py pipeline/tests/test_polarimetry_derive.py pipeline/tests/test_polarimetry_mchi.py pipeline/tests/test_polarimetry_oracle.py pipeline/tests/test_polarimetry_stokes.py'",
+    "config_version": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
     "consequence": null,
     "evidence_path": "fixtures/polarimetry/g1-record.json",
     "gate_id": "G1",
     "input_hashes": [
       {
         "path": "config/run.yaml",
-        "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+        "sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675"
       },
       {
         "path": "fixtures/polarimetry/g1_required_tests.json",
         "sha256": "dd7ca958a38ae84ac439ba5af37de5dc1e67489e0178f05bac758197b92bbfc0"
       }
     ],
-    "result": "{\"notes\": {\"command\": \"python -m terraluna_pipeline.polarimetry record-g1 --junit /tmp/terraluna-g1-t4/junit.xml --out fixtures/polarimetry/g1-record.json --pytest-command 'TERRALUNA_UAVSAR_SCENE=<local UAVSAR scene dir> uv run pytest --junitxml=/tmp/terraluna-g1-t4/junit.xml -q -p no:cacheprovider'\", \"pytest_command\": \"TERRALUNA_UAVSAR_SCENE=<local UAVSAR scene dir> uv run pytest --junitxml=/tmp/terraluna-g1-t4/junit.xml -q -p no:cacheprovider\", \"commit\": \"795a855ab7769c7209603e4c16ad8166c49c8f73\", \"uncommitted_changes\": []}, \"junit_sha256\": \"41b3003f2949a8a679a49a7aa72d50234ead21661778a326008bd30a1d409bc6\", \"junit_timestamps\": [\"2026-11-15T02:21:22.616938+01:00\"], \"required_tests\": \"fixtures/polarimetry/g1_required_tests.json\", \"required_tests_sha256\": \"dd7ca958a38ae84ac439ba5af37de5dc1e67489e0178f05bac758197b92bbfc0\", \"fixtures\": {\"F1\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"F2\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"F3\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"F4\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"F5\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"F6\": {\"tests\": 7, \"passed\": 7, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 14}, \"F7\": {\"tests\": 6, \"passed\": 6, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 9}, \"F8\": {\"tests\": 2, \"passed\": 2, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 2}, \"F9\": {\"tests\": 1, \"passed\": 1, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 1}, \"F10\": {\"tests\": 1, \"passed\": 1, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 1}}, \"conventions\": {\"T2-01\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"T2-02\": {\"tests\": 4, \"passed\": 4, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 4}, \"T2-03\": {\"tests\": 8, \"passed\": 8, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 10}}, \"invalid_data\": {\"T2-01\": {\"tests\": 54, \"passed\": 54, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 295}, \"T2-02\": {\"tests\": 56, \"passed\": 56, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 94}, \"T2-03\": {\"tests\": 39, \"passed\": 39, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 109}}, \"other\": {\"T2-01\": {\"tests\": 18, \"passed\": 18, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 28}, \"T2-02\": {\"tests\": 10, \"passed\": 10, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 17}, \"T2-03\": {\"tests\": 14, \"passed\": 14, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 20}}, \"real_scene_check\": {\"tests\": 1, \"passed\": 1, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 1}, \"failed\": [], \"skipped\": [], \"incomplete\": [], \"absent\": [], \"absent_cases\": [], \"other_failed\": []}",
-    "run_id": "sha256:ac8815c2bab51f726cce07e86be1b71d20fef5ed30bb8a59018d0f6696922a3e",
+    "result": "{\"notes\": {\"command\": \"python -m terraluna_pipeline.polarimetry record-g1 --junit /tmp/terraluna-g1-t5/junit.xml --out fixtures/polarimetry/g1-record.json --pytest-command 'TERRALUNA_UAVSAR_SCENE=<local UAVSAR scene dir> uv run pytest --junitxml=/tmp/terraluna-g1-t5/junit.xml -q -p no:cacheprovider pipeline/tests/test_polarimetry_covariance.py pipeline/tests/test_polarimetry_decode.py pipeline/tests/test_polarimetry_derive.py pipeline/tests/test_polarimetry_mchi.py pipeline/tests/test_polarimetry_oracle.py pipeline/tests/test_polarimetry_stokes.py'\", \"pytest_command\": \"TERRALUNA_UAVSAR_SCENE=<local UAVSAR scene dir> uv run pytest --junitxml=/tmp/terraluna-g1-t5/junit.xml -q -p no:cacheprovider pipeline/tests/test_polarimetry_covariance.py pipeline/tests/test_polarimetry_decode.py pipeline/tests/test_polarimetry_derive.py pipeline/tests/test_polarimetry_mchi.py pipeline/tests/test_polarimetry_oracle.py pipeline/tests/test_polarimetry_stokes.py\", \"commit\": \"11bba2dfc544abe54c9069555f29b168d73c1684\", \"uncommitted_changes\": []}, \"junit_sha256\": \"bee9491127d4b47669c5997a456ae21c4cc4c9f2f73caac9b3507ee1526036b1\", \"junit_timestamps\": [\"2026-11-15T03:45:33.175637+01:00\"], \"required_tests\": \"fixtures/polarimetry/g1_required_tests.json\", \"required_tests_sha256\": \"dd7ca958a38ae84ac439ba5af37de5dc1e67489e0178f05bac758197b92bbfc0\", \"fixtures\": {\"F1\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"F2\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"F3\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"F4\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"F5\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"F6\": {\"tests\": 7, \"passed\": 7, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 14}, \"F7\": {\"tests\": 6, \"passed\": 6, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 9}, \"F8\": {\"tests\": 2, \"passed\": 2, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 2}, \"F9\": {\"tests\": 1, \"passed\": 1, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 1}, \"F10\": {\"tests\": 1, \"passed\": 1, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 1}}, \"conventions\": {\"T2-01\": {\"tests\": 3, \"passed\": 3, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 3}, \"T2-02\": {\"tests\": 4, \"passed\": 4, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 4}, \"T2-03\": {\"tests\": 8, \"passed\": 8, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 10}}, \"invalid_data\": {\"T2-01\": {\"tests\": 54, \"passed\": 54, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 295}, \"T2-02\": {\"tests\": 56, \"passed\": 56, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 94}, \"T2-03\": {\"tests\": 39, \"passed\": 39, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 109}}, \"other\": {\"T2-01\": {\"tests\": 18, \"passed\": 18, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 28}, \"T2-02\": {\"tests\": 10, \"passed\": 10, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 17}, \"T2-03\": {\"tests\": 14, \"passed\": 14, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 20}}, \"real_scene_check\": {\"tests\": 1, \"passed\": 1, \"failed\": 0, \"skipped\": 0, \"incomplete\": 0, \"absent\": 0, \"cases\": 1}, \"failed\": [], \"skipped\": [], \"incomplete\": [], \"absent\": [], \"absent_cases\": [], \"other_failed\": []}",
+    "run_id": "sha256:9cf2b5ea7d32520d9017c443ee4c4db32bf366e8eb13679811d36bee977f773e",
     "scope": "G1 conversion correctness (PRD 9): fixtures F1-F10 against an independent basis transformation, and every test of T2-01 to T2-03 (the convention tests, the invalid-data tests and the others), in every listed case, as listed in fixtures/polarimetry/g1_required_tests.json and read from a pytest junit report. The real-scene polsartools oracle check (T2-07, PRD 12): included and passed.",
     "status": "PASS"
   },
@@ -67,18 +67,18 @@
   },
   {
     "command": "python -m terraluna_pipeline.holuhraun run; python -m terraluna_pipeline.lunar_context run",
-    "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+    "config_version": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
     "consequence": "G3 is PARTIAL, not PASS: the shadow behaviour check is Unavailable (decision G0-10: no permanent-shadow product), so not every G3 part is recorded. The Neish et al. 2017 values are not compared (region and convention not matching). Claims narrowed to the Holuhraun facies-overlap plausibility check and a context-only melt range.",
     "evidence_path": "analysis/holuhraun_reproduction.json",
     "gate_id": "G3",
     "input_hashes": [
       {
         "path": "analysis/g3_impact_melt_context.json",
-        "sha256": "f1c38c294055aa44320f414f434a1b26b058457dbd5b0e8985d025bacfdb060b"
+        "sha256": "86f2ffa3ccd7e89c2a44c7afaa1a10736bba2360988b332d743a643daadd859c"
       },
       {
         "path": "analysis/g3_shadow.json",
-        "sha256": "d2c77d7f641bdc342b2d60a431713f310556d74d6a13d006008bddcf7ef94ba7"
+        "sha256": "f9967cd3ed2a0557464f49965c599b25e88a0f77ce2b6a4f30b44263864e913d"
       },
       {
         "path": "analysis/holuhraun_protocol.json",
@@ -86,48 +86,48 @@
       },
       {
         "path": "analysis/holuhraun_reproduction.json",
-        "sha256": "018b9b27b622606931380535403c77de7db38171751f4229b3525c516a3f294c"
+        "sha256": "308fe47579b1952b40a7f6dd5e55226bdcfb76bb73efc09bc5dd820809bcc84b"
       }
     ],
     "result": "Holuhraun: facies CPR overlap 91.8% to 95.6% against 88-89% (Tolometti et al. 2022), outcome consistent. Shadow: Unavailable (permanent-shadow fraction per window not available: no shadow product is named (decision G0-10); every window is in the unknown group). Impact-melt context: 2.6% of valid Site01 window CPR pixels in 0.7 to 1.0 (12 above 1, kept valid), context only.",
-    "run_id": "sha256:4ca7cfc05df22a780127b65dba9b30872b4de08462e57e1fa22578e55124fe77",
+    "run_id": "sha256:391a0a56ab5dbd16576103b5c4f536264ab2546cfe59b5c9988f07cf8a77c58a",
     "scope": "Holuhraun UAVSAR CPR facies reproduction; lunar shadow behaviour (analysis/g3_shadow.json); impact-melt context (analysis/g3_impact_melt_context.json)",
     "status": "PARTIAL"
   },
   {
-    "command": "python -m terraluna_pipeline.checks g4",
-    "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+    "command": "python -m terraluna_pipeline.checks g4 --target-id moon-cr-site01-w000",
+    "config_version": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
     "consequence": null,
     "evidence_path": "analysis/g4_candidates.json",
     "gate_id": "G4",
     "input_hashes": [
       {
         "path": "analysis/g4_candidates.json",
-        "sha256": "dfcfbe3409dc8176a248e77e71f8639158f51f1bac59c189de8c87a006ef1045"
+        "sha256": "b6764ca237992f8561cf2660f28293a34d50c9c9512c128eaa496ef1d5f75c0c"
       },
       {
         "path": "analysis/g4_counterexample.json",
-        "sha256": "9e314f03ca97bcd3f48b08bddd34e29ffc9aaf00fe328f5aacec7f913da2a503"
+        "sha256": "d556865b9b054da77f4dd6f38731c7e36d82a7dde0770a0fe9f72c1ad9cc3fd7"
       },
       {
         "path": "config/run.yaml",
-        "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+        "sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675"
       },
       {
         "path": "outputs/comparisons/moon-cr-site01-w000.json",
-        "sha256": "8a5c12462d0d5564584ce3fdaea9a3c00ca6c6f001e8ddde4c715bb793871e07"
+        "sha256": "e252bcdba17bb38f0ad739c36ba7088d0af48ab217f2ff6c6c28780a4c6daf90"
       },
       {
         "path": "outputs/search/targets.json",
-        "sha256": "6ab65f388126b3b1f4bbfe5cb59bc3b158ef623199b5222663500e1c9c0ec9d9"
+        "sha256": "140aa37f13d5c5ea22b69017ef0a22d7c3c135ae4f2f34ae01c8d847f670aa3c"
       },
       {
         "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
-        "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+        "sha256": "c1ded889eba244aa074d042c9ad415a78ea2bec250301a5824d259a1e44ac2d2"
       }
     ],
     "result": "71 candidates, 2 excluded windows listed; first Pareto layer 1 window(s); 1 window(s) in the first layer in all 100 clone runs",
-    "run_id": "sha256:be9100e66745748eb1e4ff1eb7466c4607f937cda0f2089d528867abd58e6b07",
+    "run_id": "sha256:eca8fd8e34804fe37e1d24bb5358a6f12497c91adb147a2b45e191ceb22747bb",
     "scope": "moon-cr-site01-w000 (moon-sps-x2-y2) against 71 eligible Earth windows of the slice search; terrain families only (Mode C)",
     "status": "PASS"
   },

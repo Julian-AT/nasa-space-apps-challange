@@ -86,7 +86,7 @@ describe('import boundary', () => {
         if (f === 'node_modules' || f.startsWith('.')) continue;
         const p = join(dir, f);
         if (statSync(p).isDirectory()) walk(p);
-        else if (/\.(ts|tsx)$/.test(f) && !/\.test\.tsx?$/.test(f) && /onnxruntime-web/.test(readFileSync(p, 'utf8'))) hits.push(p.slice(root.length + 1));
+        else if (/\.(ts|tsx)$/.test(f) && !/\.test\.tsx?$/.test(f) && /(from|import\()\s*['"]onnxruntime-web/.test(readFileSync(p, 'utf8'))) hits.push(p.slice(root.length + 1));
       }
     };
     for (const d of ['app', 'components', 'lib', 'workers']) walk(join(root, d));

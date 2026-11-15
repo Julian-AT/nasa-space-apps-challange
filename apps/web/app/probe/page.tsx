@@ -30,7 +30,7 @@ export default function ProbePage() {
       <p className="mt-1 max-w-prose text-sm">
         {encoder.encoder === null
           ? `Encoder (experimental): Unavailable: ${encoder.reason}.`
-          : `Encoder (experimental, ${encoder.encoder.spec.model_id}, G5 ${encoder.encoder.spec.g5_status}): its distances are Predicted and never rank anything.`}
+          : `Encoder: EXPERIMENTAL, ${encoder.encoder.spec.model_id}${encoder.encoder.spec.snapshot_note ? ` (${encoder.encoder.spec.snapshot_note}, not the final model)` : ''}, G5 ${encoder.encoder.spec.g5_status}. Its distances are Predicted and never rank anything.`}
       </p>
       <Suspense fallback={<p className="mt-4">Loading the probe…</p>}>
         <ProbeClient

@@ -1,4 +1,5 @@
 {
+  "body": "moon",
   "candidates": [
     {
       "area_m2": 25000000.0,
@@ -30,7 +31,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 4.141925894958538,
+        "base": 4.1419258949585736,
         "max": 4.141665848636359,
         "median": 4.14152694692797,
         "min": 4.141417676935984,
@@ -41,7 +42,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 4.756741105325033,
+        "base": 4.756741105325064,
         "max": 4.756472342170776,
         "median": 4.7563188388850275,
         "min": 4.756205665946516,
@@ -64,11 +65,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9355371900826446,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.012892561983471074
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9355371900826446
       },
       "window_id": "earth-utm11n-e157-n1541"
     },
@@ -102,7 +100,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.6265569038985488,
+        "base": 1.626556903898585,
         "max": 1.6263057257466094,
         "median": 1.6261675984221764,
         "min": 1.6260598032410223,
@@ -113,7 +111,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.631102015359249,
+        "base": 1.6311020153592803,
         "max": 1.6308341690207433,
         "median": 1.630680868468406,
         "min": 1.630567775272196,
@@ -136,11 +134,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9758677685950413,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9758677685950413
       },
       "window_id": "earth-utm11n-e157-n1544"
     },
@@ -174,7 +169,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 2.21992051434915,
+        "base": 2.2199205143491865,
         "max": 2.219659985849979,
         "median": 2.2195210551080478,
         "min": 2.2194117151502146,
@@ -185,7 +180,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.1933078811322493,
+        "base": 2.1933078811322804,
         "max": 2.193029230546956,
         "median": 2.1928738458398414,
         "min": 2.192759763476669,
@@ -208,11 +203,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9732231404958678,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9732231404958678
       },
       "window_id": "earth-utm11n-e157-n1545"
     },
@@ -246,7 +238,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 2.60562258619239,
+        "base": 2.605622586192426,
         "max": 2.605369394151756,
         "median": 2.6052312723999838,
         "min": 2.6051228967401405,
@@ -257,7 +249,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.6747421945470307,
+        "base": 2.674742194547062,
         "max": 2.6744736096000112,
         "median": 2.6743201602526434,
         "min": 2.6742069543936617,
@@ -280,11 +272,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9692561983471074,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.00033057851239669424
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9692561983471074
       },
       "window_id": "earth-utm11n-e157-n1546"
     },
@@ -318,7 +307,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.2372102025910052,
+        "base": 1.2372102025910412,
         "max": 1.236965300426907,
         "median": 1.2368281337264049,
         "min": 1.2367212373543115,
@@ -329,7 +318,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.2624332797715572,
+        "base": 1.2624332797715885,
         "max": 1.2621729130547619,
         "median": 1.2620213414349681,
         "min": 1.261909032715492,
@@ -352,11 +341,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9742148760330579,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.00033057851239669424
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9742148760330579
       },
       "window_id": "earth-utm11n-e157-n1547"
     },
@@ -390,7 +376,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 4.1904499612819075,
+        "base": 4.190449961281943,
         "max": 4.190192193455445,
         "median": 4.190053772924774,
         "min": 4.189944544571573,
@@ -401,7 +387,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 4.41738817396976,
+        "base": 4.417388173969791,
         "max": 4.4171168418322955,
         "median": 4.416962856092351,
         "min": 4.416849356515154,
@@ -424,11 +410,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9877685950413223,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.008925619834710744
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9877685950413223
       },
       "window_id": "earth-utm11n-e158-n1541"
     },
@@ -462,7 +445,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.9720795491861844,
+        "base": 1.9720795491862206,
         "max": 1.9718367953337887,
         "median": 1.971700073280854,
         "min": 1.9715934682027132,
@@ -473,7 +456,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.9817988181017616,
+        "base": 1.9817988181017927,
         "max": 1.981540264860182,
         "median": 1.9813891812292606,
         "min": 1.9812771290322715,
@@ -496,11 +479,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9781818181818182,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.011239669421487603
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9781818181818182
       },
       "window_id": "earth-utm11n-e158-n1542"
     },
@@ -534,7 +514,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.6233614497601059,
+        "base": 1.6233614497601419,
         "max": 1.6231149690110045,
         "median": 1.6229775050612503,
         "min": 1.6228703925882948,
@@ -545,7 +525,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.7604807641717797,
+        "base": 1.7604807641718112,
         "max": 1.7602248346654952,
         "median": 1.7600745080141054,
         "min": 1.7599626827573083,
@@ -568,11 +548,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9927272727272727,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9927272727272727
       },
       "window_id": "earth-utm11n-e158-n1543"
     },
@@ -606,24 +583,24 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.6602862986576485,
-        "max": 1.6600328493078091,
-        "median": 1.6598947012049914,
-        "min": 1.6597863038987244,
+        "base": 1.660286298657786,
+        "max": 1.6600328493079108,
+        "median": 1.6598947012050926,
+        "min": 1.6597863038988259,
         "n": 100,
-        "p2_5": 1.6598090286377065,
-        "p97_5": 1.6599861286616486,
-        "spread_half_width_95": 8.855001197105583e-05,
+        "p2_5": 1.659809028637808,
+        "p97_5": 1.6599861286617499,
+        "spread_half_width_95": 8.855001197094481e-05,
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.7524101873669384,
-        "max": 1.75214262601457,
-        "median": 1.7519893782456788,
-        "min": 1.7518763264422321,
+        "base": 1.7524101873671605,
+        "max": 1.7521426260147606,
+        "median": 1.7519893782458695,
+        "min": 1.7518763264424226,
         "n": 100,
-        "p2_5": 1.7519011359593926,
-        "p97_5": 1.752081623814606,
+        "p2_5": 1.7519011359595833,
+        "p97_5": 1.7520816238147967,
         "spread_half_width_95": 9.024392760670352e-05,
         "unit": "RMS of log nu"
       },
@@ -640,11 +617,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e158-n1544"
     },
@@ -678,7 +652,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.676460276425624,
+        "base": 1.67646027642566,
         "max": 1.6762027247590274,
         "median": 1.6760643931996677,
         "min": 1.6759551566825004,
@@ -689,7 +663,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.6605560142687954,
+        "base": 1.6605560142688265,
         "max": 1.660281095294087,
         "median": 1.6601263653915947,
         "min": 1.6600126372716633,
@@ -712,11 +686,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9976859504132232,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9976859504132232
       },
       "window_id": "earth-utm11n-e158-n1545"
     },
@@ -750,7 +721,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 2.5195542821485137,
+        "base": 2.5195542821485497,
         "max": 2.5192937486839626,
         "median": 2.519154813492409,
         "min": 2.519045479319396,
@@ -761,7 +732,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.576613234208864,
+        "base": 2.576613234208895,
         "max": 2.5763347748440313,
         "median": 2.5761794240777034,
         "min": 2.576065357732931,
@@ -784,11 +755,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9923966942148761,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9923966942148761
       },
       "window_id": "earth-utm11n-e158-n1546"
     },
@@ -822,7 +790,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 4.7008939315049165,
+        "base": 4.700893931504953,
         "max": 4.700644646744087,
         "median": 4.700506659255446,
         "min": 4.700399275963955,
@@ -833,7 +801,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 4.672684297832328,
+        "base": 4.67268429783236,
         "max": 4.672417379880689,
         "median": 4.672264243291037,
         "min": 4.672151294495625,
@@ -856,11 +824,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9993388429752066,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9993388429752066
       },
       "window_id": "earth-utm11n-e159-n1541"
     },
@@ -894,7 +859,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 2.0628558750603743,
+        "base": 2.0628558750604107,
         "max": 2.0626132066280563,
         "median": 2.062476501178806,
         "min": 2.0623699111797062,
@@ -905,7 +870,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.063715467674519,
+        "base": 2.06371546767455,
         "max": 2.0634564220067686,
         "median": 2.0633052016057984,
         "min": 2.063193093777843,
@@ -928,11 +893,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.996694214876033,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.996694214876033
       },
       "window_id": "earth-utm11n-e159-n1542"
     },
@@ -966,7 +928,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.713573174457185,
+        "base": 1.7135731744572211,
         "max": 1.71332137095509,
         "median": 1.7131833012523208,
         "min": 1.7130752381844052,
@@ -977,7 +939,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.9050551780537717,
+        "base": 1.905055178053803,
         "max": 1.9047934856644304,
         "median": 1.9046415113495854,
         "min": 1.9045291494918242,
@@ -1000,11 +962,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9993388429752066,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9993388429752066
       },
       "window_id": "earth-utm11n-e159-n1543"
     },
@@ -1038,7 +997,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.4403047473476274,
+        "base": 1.4403047473476633,
         "max": 1.440050178102141,
         "median": 1.4399119591377043,
         "min": 1.4398033585002141,
@@ -1049,7 +1008,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.5553864407853624,
+        "base": 1.5553864407853935,
         "max": 1.5551208569891626,
         "median": 1.5549679597429857,
         "min": 1.5548553526130304,
@@ -1072,11 +1031,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e159-n1544"
     },
@@ -1110,7 +1066,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.3956680180700334,
+        "base": 1.3956680180700693,
         "max": 1.3954116395875429,
         "median": 1.3952734030426344,
         "min": 1.3951643537789808,
@@ -1121,7 +1077,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.3823518822867558,
+        "base": 1.3823518822867868,
         "max": 1.3820790273959267,
         "median": 1.3819246844391904,
         "min": 1.3818111590866358,
@@ -1144,11 +1100,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e159-n1545"
     },
@@ -1182,7 +1135,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 2.4898139785919047,
+        "base": 2.4898139785919406,
         "max": 2.489552483873676,
         "median": 2.489413302298706,
         "min": 2.489304006011919,
@@ -1193,7 +1146,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.672791657084514,
+        "base": 2.672791657084545,
         "max": 2.672513136769493,
         "median": 2.672357753450747,
         "min": 2.6722437191212425,
@@ -1216,11 +1169,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e159-n1546"
     },
@@ -1254,7 +1204,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 4.949509597480752,
+        "base": 4.949509597480788,
         "max": 4.949258026958298,
         "median": 4.9491198466440185,
         "min": 4.949012015757864,
@@ -1265,7 +1215,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 4.920485806513405,
+        "base": 4.920485806513437,
         "max": 4.920216477350028,
         "median": 4.920062846355071,
         "min": 4.919949643986031,
@@ -1288,11 +1238,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9993388429752066,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9993388429752066
       },
       "window_id": "earth-utm11n-e160-n1541"
     },
@@ -1326,7 +1273,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 2.592623139753714,
+        "base": 2.59262313975375,
         "max": 2.5923660773607518,
         "median": 2.59222779532415,
         "min": 2.592118615874115,
@@ -1337,7 +1284,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.671916313431391,
+        "base": 2.6719163134314226,
         "max": 2.6716419503308058,
         "median": 2.6714873442141682,
         "min": 2.6713736240952946,
@@ -1360,11 +1307,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9973553719008265,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9973553719008265
       },
       "window_id": "earth-utm11n-e160-n1542"
     },
@@ -1398,7 +1342,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.8258419162557877,
+        "base": 1.8258419162558237,
         "max": 1.8255766451493805,
         "median": 1.825436649204864,
         "min": 1.825327397229375,
@@ -1409,13 +1353,13 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.399327843994352,
-        "max": 2.3990514259630036,
-        "median": 2.3988964297522295,
-        "min": 2.3987825498499014,
+        "base": 2.399327843994384,
+        "max": 2.3990514259630045,
+        "median": 2.398896429752231,
+        "min": 2.3987825498499027,
         "n": 100,
-        "p2_5": 2.3988076599125607,
-        "p97_5": 2.3989899831535326,
+        "p2_5": 2.3988076599125616,
+        "p97_5": 2.3989899831535335,
         "spread_half_width_95": 9.116162048594667e-05,
         "unit": "RMS of log nu"
       },
@@ -1432,11 +1376,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9960330578512396,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9960330578512396
       },
       "window_id": "earth-utm11n-e160-n1543"
     },
@@ -1470,24 +1411,24 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.3154452444925577,
-        "max": 1.3151878937425119,
-        "median": 1.3150495896300431,
-        "min": 1.3149403756644167,
+        "base": 1.3154452444926206,
+        "max": 1.315187893742539,
+        "median": 1.3150495896300702,
+        "min": 1.3149403756644438,
         "n": 100,
-        "p2_5": 1.3149631542818898,
-        "p97_5": 1.3151408696961442,
+        "p2_5": 1.314963154281917,
+        "p97_5": 1.3151408696961713,
         "spread_half_width_95": 8.885770712718788e-05,
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.335656824735685,
-        "max": 1.33538423826639,
-        "median": 1.3352299200886615,
-        "min": 1.3351164900195112,
+        "base": 1.3356568247356595,
+        "max": 1.3353842382663332,
+        "median": 1.3352299200886044,
+        "min": 1.3351164900194543,
         "n": 100,
-        "p2_5": 1.3351414925084977,
-        "p97_5": 1.3353229314334545,
+        "p2_5": 1.3351414925084408,
+        "p97_5": 1.3353229314333976,
         "spread_half_width_95": 9.071946247840579e-05,
         "unit": "RMS of log nu"
       },
@@ -1504,11 +1445,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e160-n1544"
     },
@@ -1542,7 +1480,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.4252133553883553,
+        "base": 1.4252133553883912,
         "max": 1.4249580607863803,
         "median": 1.4248198035342905,
         "min": 1.4247110647474062,
@@ -1553,7 +1491,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.435213123346556,
+        "base": 1.435213123346587,
         "max": 1.4349432857352973,
         "median": 1.4347895018004229,
         "min": 1.4346763862385397,
@@ -1576,11 +1514,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e160-n1545"
     },
@@ -1614,24 +1549,24 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 2.3252914327286907,
-        "max": 2.325029604014281,
-        "median": 2.3248903279644013,
-        "min": 2.3247810457067772,
+        "base": 2.325291432728598,
+        "max": 2.3250296040141514,
+        "median": 2.324890327964272,
+        "min": 2.324781045706648,
         "n": 100,
-        "p2_5": 2.3248038209801956,
-        "p97_5": 2.324982333598435,
-        "spread_half_width_95": 8.925630911971183e-05,
+        "p2_5": 2.3248038209800663,
+        "p97_5": 2.324982333598306,
+        "spread_half_width_95": 8.925630911993387e-05,
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.48397691570096,
-        "max": 2.4836990704089934,
-        "median": 2.483543812559518,
-        "min": 2.4834298192569166,
+        "base": 2.4839769157009415,
+        "max": 2.4836990704089437,
+        "median": 2.4835438125594687,
+        "min": 2.483429819256867,
         "n": 100,
-        "p2_5": 2.4834549787182296,
-        "p97_5": 2.4836375669888295,
+        "p2_5": 2.48345497871818,
+        "p97_5": 2.48363756698878,
         "spread_half_width_95": 9.129413529995745e-05,
         "unit": "RMS of log nu"
       },
@@ -1648,11 +1583,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e160-n1546"
     },
@@ -1686,7 +1618,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 3.898275980540987,
+        "base": 3.8982759805410234,
         "max": 3.898021097342725,
         "median": 3.897882911515261,
         "min": 3.8977741713625282,
@@ -1697,7 +1629,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.9413285138100784,
+        "base": 3.94132851381011,
         "max": 3.9410574883146756,
         "median": 3.9409035235297987,
         "min": 3.940790122789205,
@@ -1720,11 +1652,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e161-n1541"
     },
@@ -1758,7 +1687,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 2.391536739772285,
+        "base": 2.3915367397723206,
         "max": 2.3912730351702542,
         "median": 2.3911334249159086,
         "min": 2.3910240878719833,
@@ -1769,7 +1698,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.628934534895612,
+        "base": 2.628934534895643,
         "max": 2.6286539343285993,
         "median": 2.6284982307758966,
         "min": 2.628383981167362,
@@ -1792,11 +1721,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9947107438016529,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9947107438016529
       },
       "window_id": "earth-utm11n-e161-n1542"
     },
@@ -1830,7 +1756,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.7329663226545058,
+        "base": 1.7329663226545418,
         "max": 1.7327027571428806,
         "median": 1.7325631759774431,
         "min": 1.732453835834476,
@@ -1841,7 +1767,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.4005601355999175,
+        "base": 2.400560135599949,
         "max": 2.400288937900158,
         "median": 2.4001349005275,
         "min": 2.4000216022074388,
@@ -1864,11 +1790,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.996694214876033,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.996694214876033
       },
       "window_id": "earth-utm11n-e161-n1543"
     },
@@ -1902,25 +1825,25 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.3955982635184292,
-        "max": 1.3953405462824713,
-        "median": 1.3952021631132512,
-        "min": 1.3950929167514232,
+        "base": 1.3955982635183828,
+        "max": 1.395340546282389,
+        "median": 1.395202163113169,
+        "min": 1.395092916751341,
         "n": 100,
-        "p2_5": 1.3951157022510061,
-        "p97_5": 1.3952935461252602,
-        "spread_half_width_95": 8.89219371270622e-05,
+        "p2_5": 1.3951157022509242,
+        "p97_5": 1.3952935461251779,
+        "spread_half_width_95": 8.892193712684016e-05,
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.3762199990422395,
-        "max": 1.3759444470882969,
-        "median": 1.3757896457289913,
-        "min": 1.3756757800191608,
+        "base": 1.3762199990422215,
+        "max": 1.3759444470882478,
+        "median": 1.375789645728942,
+        "min": 1.3756757800191115,
         "n": 100,
-        "p2_5": 1.375700872561103,
-        "p97_5": 1.375883068285645,
-        "spread_half_width_95": 9.10978622710168e-05,
+        "p2_5": 1.3757008725610538,
+        "p97_5": 1.375883068285596,
+        "spread_half_width_95": 9.109786227112782e-05,
         "unit": "RMS of log nu"
       },
       "ties": {
@@ -1936,11 +1859,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e161-n1544"
     },
@@ -1974,7 +1894,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 1.6215966159866946,
+        "base": 1.6215966159867308,
         "max": 1.62134321284565,
         "median": 1.621204981504211,
         "min": 1.6210967116638784,
@@ -1985,7 +1905,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.6324471787018533,
+        "base": 1.6324471787018844,
         "max": 1.6321775614077894,
         "median": 1.6320238522314519,
         "min": 1.6319106770545109,
@@ -2008,11 +1928,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e161-n1545"
     },
@@ -2046,7 +1963,7 @@
       },
       "search_region_id": "rosamond-dry-lake",
       "terrain_relief": {
-        "base": 2.0452859356854844,
+        "base": 2.0452859356855204,
         "max": 2.0450248872747108,
         "median": 2.044885798500216,
         "min": 2.0447764980597998,
@@ -2057,7 +1974,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.111640918605919,
+        "base": 2.11164091860595,
         "max": 2.1113633655471626,
         "median": 2.111208162151231,
         "min": 2.1110941881613687,
@@ -2080,11 +1997,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm11n-e161-n1546"
     },
@@ -2118,7 +2032,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.7102816178245404,
+        "base": 1.7102816178245763,
         "max": 1.7100196570397137,
         "median": 1.7098803854920264,
         "min": 1.709771066362657,
@@ -2129,7 +2043,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.1146148635103357,
+        "base": 2.114614863510367,
         "max": 2.114343310088641,
         "median": 2.1141892741117942,
         "min": 2.1140757688917104,
@@ -2152,11 +2066,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9947107438016529,
-        "worldcover_snow_ice": 0.3831404958677686,
-        "worldcover_water": 0.0049586776859504135
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9947107438016529
       },
       "window_id": "earth-utm27n-e280-n2877"
     },
@@ -2190,7 +2101,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 2.6794794768783867,
+        "base": 2.6794794768784227,
         "max": 2.679232416413663,
         "median": 2.6790948425400964,
         "min": 2.6789876483418342,
@@ -2201,7 +2112,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.8724443759934255,
+        "base": 2.8724443759934566,
         "max": 2.8721864244390427,
         "median": 2.872035497036969,
         "min": 2.871923442923609,
@@ -2224,11 +2135,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9963636363636363,
-        "worldcover_snow_ice": 0.003305785123966942,
-        "worldcover_water": 0.0036363636363636364
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9963636363636363
       },
       "window_id": "earth-utm27n-e280-n2878"
     },
@@ -2262,7 +2170,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.3005901651063314,
+        "base": 3.300590165106367,
         "max": 3.300330221081017,
         "median": 3.3001913886120393,
         "min": 3.3000820721683635,
@@ -2273,7 +2181,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.788050271030787,
+        "base": 3.788050271030818,
         "max": 3.787780545879572,
         "median": 3.7876268089844656,
         "min": 3.7875136426389324,
@@ -2296,11 +2204,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm27n-e280-n2879"
     },
@@ -2334,7 +2239,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.3722848971248363,
+        "base": 3.372284897124872,
         "max": 3.372024998708099,
         "median": 3.3718861713272705,
         "min": 3.371776857334297,
@@ -2345,7 +2250,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.8107800656789257,
+        "base": 3.8107800656789568,
         "max": 3.8105094923555,
         "median": 3.810355600423584,
         "min": 3.810242298244613,
@@ -2368,11 +2273,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm27n-e280-n2880"
     },
@@ -2406,7 +2308,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.3122360674032434,
+        "base": 3.3122360674032794,
         "max": 3.3119790545421632,
         "median": 3.3118407577006908,
         "min": 3.311731594351878,
@@ -2417,7 +2319,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.573873359497605,
+        "base": 3.5738733594976364,
         "max": 3.5736038182823116,
         "median": 3.5734501358048556,
         "min": 3.573336937329246,
@@ -2440,11 +2342,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm27n-e280-n2881"
     },
@@ -2478,7 +2377,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 2.529014627406676,
+        "base": 2.529014627406712,
         "max": 2.5287577009779367,
         "median": 2.528619414301277,
         "min": 2.528510264715828,
@@ -2489,7 +2388,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.7505023879364425,
+        "base": 2.7505023879364736,
         "max": 2.7502323034633536,
         "median": 2.750078527999314,
         "min": 2.749965236924497,
@@ -2512,11 +2411,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm27n-e280-n2882"
     },
@@ -2550,7 +2446,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.3750744696544446,
+        "base": 1.3750744696544803,
         "max": 1.3748196192713185,
         "median": 1.3746813510586269,
         "min": 1.374572750261438,
@@ -2561,7 +2457,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.5010256324001674,
+        "base": 1.5010256324001985,
         "max": 1.5007557924345005,
         "median": 1.500602021466862,
         "min": 1.5004888676417556,
@@ -2584,11 +2480,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9702479338842975,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9702479338842975
       },
       "window_id": "earth-utm27n-e280-n2883"
     },
@@ -2622,7 +2515,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.9632627720166442,
+        "base": 1.9632627720166802,
         "max": 1.9630045047381446,
         "median": 1.9628660222135226,
         "min": 1.962756733535878,
@@ -2633,7 +2526,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.2062900278112725,
+        "base": 2.2062900278113036,
         "max": 2.206019814539946,
         "median": 2.205866052948102,
         "min": 2.2057526627352027,
@@ -2656,11 +2549,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9884297520661157,
-        "worldcover_snow_ice": 0.16462809917355373,
-        "worldcover_water": 0.011570247933884297
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9884297520661157
       },
       "window_id": "earth-utm27n-e281-n2877"
     },
@@ -2694,7 +2584,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.0404425754857494,
+        "base": 3.0404425754857853,
         "max": 3.0401900296343456,
         "median": 3.040051901263779,
         "min": 3.0399437081016023,
@@ -2705,7 +2595,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.2224278567349396,
+        "base": 3.222427856734971,
         "max": 3.2221622434140733,
         "median": 3.222009393056217,
         "min": 3.2218965692151365,
@@ -2728,11 +2618,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9851239669421488,
-        "worldcover_snow_ice": 0.006611570247933884,
-        "worldcover_water": 0.01487603305785124
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9851239669421488
       },
       "window_id": "earth-utm27n-e281-n2878"
     },
@@ -2766,7 +2653,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.227103112826113,
+        "base": 3.2271031128261485,
         "max": 3.2268504496069665,
         "median": 3.2267123652956147,
         "min": 3.226604087843337,
@@ -2777,7 +2664,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.490398871086186,
+        "base": 3.4903988710862177,
         "max": 3.4901362056083665,
         "median": 3.489983986693957,
         "min": 3.489871530422836,
@@ -2800,11 +2687,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9900826446280991,
-        "worldcover_snow_ice": 0.010578512396694216,
-        "worldcover_water": 0.009917355371900827
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9900826446280991
       },
       "window_id": "earth-utm27n-e281-n2879"
     },
@@ -2838,7 +2722,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.153432113046412,
+        "base": 3.153432113046448,
         "max": 3.153180967468564,
         "median": 3.1530428802617934,
         "min": 3.1529350322685836,
@@ -2849,7 +2733,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.374360144747495,
+        "base": 3.3743601447475267,
         "max": 3.3740982822579695,
         "median": 3.373946280178618,
         "min": 3.3738339239522204,
@@ -2872,11 +2756,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9943801652892562,
-        "worldcover_snow_ice": 0.003966942148760331,
-        "worldcover_water": 0.0049586776859504135
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9943801652892562
       },
       "window_id": "earth-utm27n-e281-n2880"
     },
@@ -2910,7 +2791,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.203251894643705,
+        "base": 3.2032518946437416,
         "max": 3.2029961893186565,
         "median": 3.2028580005617,
         "min": 3.2027490562809176,
@@ -2921,7 +2802,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.3959794449750755,
+        "base": 3.3959794449751066,
         "max": 3.39571046418361,
         "median": 3.395556899095259,
         "min": 3.395443747567166,
@@ -2944,11 +2825,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9996694214876033,
-        "worldcover_snow_ice": 0.00033057851239669424,
-        "worldcover_water": 0.00033057851239669424
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9996694214876033
       },
       "window_id": "earth-utm27n-e281-n2881"
     },
@@ -2982,7 +2860,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 2.933926187480091,
+        "base": 2.9339261874801275,
         "max": 2.933666578730425,
         "median": 2.9335278340572657,
         "min": 2.933418503589911,
@@ -2993,7 +2871,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.1194632886030718,
+        "base": 3.119463288603103,
         "max": 3.119189167674515,
         "median": 3.119034605166454,
         "min": 3.1189209112222147,
@@ -3016,11 +2894,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm27n-e281-n2882"
     },
@@ -3054,9 +2929,9 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 2.4921994200134074,
+        "base": 2.4921994200134434,
         "max": 2.491939246758297,
-        "median": 2.49180035496727,
+        "median": 2.4918003549672694,
         "min": 2.4916910488374384,
         "n": 100,
         "p2_5": 2.4917138108948826,
@@ -3065,7 +2940,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.770553907401214,
+        "base": 2.770553907401245,
         "max": 2.770280159758607,
         "median": 2.7701256690710867,
         "min": 2.7700120112123523,
@@ -3088,11 +2963,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.988099173553719,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.988099173553719
       },
       "window_id": "earth-utm27n-e281-n2883"
     },
@@ -3126,7 +2998,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 2.4427061613312615,
+        "base": 2.4427061613312975,
         "max": 2.4424522628239744,
         "median": 2.4423141337694996,
         "min": 2.4422055778324285,
@@ -3137,7 +3009,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.6004241938575112,
+        "base": 2.6004241938575423,
         "max": 2.6001574870505513,
         "median": 2.6000044118915175,
         "min": 2.5998914487584157,
@@ -3160,11 +3032,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9943801652892562,
-        "worldcover_snow_ice": 0.001652892561983471,
-        "worldcover_water": 0.005619834710743801
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9943801652892562
       },
       "window_id": "earth-utm27n-e282-n2877"
     },
@@ -3198,7 +3067,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.0315013664274097,
+        "base": 3.0315013664274457,
         "max": 3.0312496017110533,
         "median": 3.031111533028213,
         "min": 3.0310034822476,
@@ -3209,7 +3078,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.218568054774306,
+        "base": 3.218568054774337,
         "max": 3.218303725107249,
         "median": 3.2181511662686555,
         "min": 3.2180384384639877,
@@ -3232,11 +3101,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9897520661157024,
-        "worldcover_snow_ice": 0.007603305785123967,
-        "worldcover_water": 0.010247933884297521
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9897520661157024
       },
       "window_id": "earth-utm27n-e282-n2878"
     },
@@ -3270,7 +3136,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.218412480100319,
+        "base": 3.2184124801003553,
         "max": 3.218161015913523,
         "median": 3.2180229376929335,
         "min": 3.2179149856729325,
@@ -3281,7 +3147,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.4022196927451236,
+        "base": 3.4022196927451547,
         "max": 3.4019561188226417,
         "median": 3.401803711832833,
         "min": 3.4016911217719397,
@@ -3304,11 +3170,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9904132231404958,
-        "worldcover_snow_ice": 0.013884297520661157,
-        "worldcover_water": 0.009586776859504133
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9904132231404958
       },
       "window_id": "earth-utm27n-e282-n2879"
     },
@@ -3342,7 +3205,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.1280396987422647,
+        "base": 3.1280396987423007,
         "max": 3.127789143714719,
         "median": 3.1276510764905114,
         "min": 3.1275433682175544,
@@ -3353,7 +3216,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.288064006191623,
+        "base": 3.288064006191654,
         "max": 3.287801028657901,
         "median": 3.2876487532509566,
         "min": 3.2875362420611265,
@@ -3376,11 +3239,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9937190082644628,
-        "worldcover_snow_ice": 0.003966942148760331,
-        "worldcover_water": 0.00628099173553719
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9937190082644628
       },
       "window_id": "earth-utm27n-e282-n2880"
     },
@@ -3414,7 +3274,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.1985041158891026,
+        "base": 3.198504115889139,
         "max": 3.1982468397471755,
         "median": 3.1981085066024524,
         "min": 3.197999315833973,
@@ -3425,7 +3285,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.35250102887373,
+        "base": 3.352501028873761,
         "max": 3.3522288841825154,
         "median": 3.3520747049815696,
         "min": 3.351961192233418,
@@ -3448,11 +3308,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9957024793388429,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.003966942148760331
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9957024793388429
       },
       "window_id": "earth-utm27n-e282-n2881"
     },
@@ -3486,7 +3343,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.064544677364567,
+        "base": 3.0645446773646023,
         "max": 3.0642861451855588,
         "median": 3.06414767172296,
         "min": 3.064038328298097,
@@ -3497,7 +3354,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.099257804259756,
+        "base": 3.099257804259787,
         "max": 3.0989821305016765,
         "median": 3.0988272850638325,
         "min": 3.098713439934844,
@@ -3520,11 +3377,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9933884297520661,
-        "worldcover_snow_ice": 0.00033057851239669424,
-        "worldcover_water": 0.006611570247933884
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9933884297520661
       },
       "window_id": "earth-utm27n-e282-n2882"
     },
@@ -3558,7 +3412,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 2.7730814099531087,
+        "base": 2.7730814099531447,
         "max": 2.772825126721629,
         "median": 2.7726868848086146,
         "min": 2.7725778686001163,
@@ -3569,7 +3423,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.813267976809312,
+        "base": 2.813267976809343,
         "max": 2.8129948319235396,
         "median": 2.8128404399327476,
         "min": 2.8127268669553436,
@@ -3592,11 +3446,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.979504132231405,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.020165289256198347
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.979504132231405
       },
       "window_id": "earth-utm27n-e282-n2883"
     },
@@ -3630,7 +3481,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.4842121327864355,
+        "base": 1.4842121327864717,
         "max": 1.4839784344351876,
         "median": 1.483843999010577,
         "min": 1.483738136735743,
@@ -3641,7 +3492,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.5138530687595133,
+        "base": 1.5138530687595448,
         "max": 1.51360528471666,
         "median": 1.5134571953873368,
         "min": 1.513346173560368,
@@ -3664,11 +3515,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9993388429752066,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0006611570247933885
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9993388429752066
       },
       "window_id": "earth-utm27n-e283-n2877"
     },
@@ -3702,7 +3550,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.792722565892121,
+        "base": 1.792722565892157,
         "max": 1.7924878654124599,
         "median": 1.792353188668339,
         "min": 1.7922472561150917,
@@ -3713,7 +3561,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.7914483907576606,
+        "base": 1.791448390757692,
         "max": 1.791198292173877,
         "median": 1.7910495488868525,
         "min": 1.7909383138705328,
@@ -3736,11 +3584,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9993388429752066,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0006611570247933885
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9993388429752066
       },
       "window_id": "earth-utm27n-e283-n2878"
     },
@@ -3774,7 +3619,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 2.9413357963981563,
+        "base": 2.9413357963981923,
         "max": 2.9410842763212743,
         "median": 2.940946213084989,
         "min": 2.94083821820027,
@@ -3785,7 +3630,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.0978365202207945,
+        "base": 3.0978365202208256,
         "max": 3.09757214425281,
         "median": 3.0974195671542963,
         "min": 3.097306835303262,
@@ -3808,11 +3653,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9993388429752066,
-        "worldcover_snow_ice": 0.0019834710743801653,
-        "worldcover_water": 0.0006611570247933885
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9993388429752066
       },
       "window_id": "earth-utm27n-e283-n2879"
     },
@@ -3846,24 +3688,24 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.3523667229933123,
-        "max": 3.3521066930788024,
-        "median": 3.3519677755165973,
-        "min": 3.351858521536187,
+        "base": 3.3523667229933483,
+        "max": 3.352106693078803,
+        "median": 3.3519677755165977,
+        "min": 3.3518585215361876,
         "n": 100,
-        "p2_5": 3.351881260488781,
-        "p97_5": 3.3520595890797065,
+        "p2_5": 3.3518812604887813,
+        "p97_5": 3.352059589079707,
         "spread_half_width_95": 8.91642954627958e-05,
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.7170222872189194,
-        "max": 3.71675043379901,
-        "median": 3.7165963243727305,
-        "min": 3.7164828066754034,
+        "base": 3.717022287218951,
+        "max": 3.7167504337990103,
+        "median": 3.7165963243727314,
+        "min": 3.716482806675404,
         "n": 100,
-        "p2_5": 3.716507764395044,
-        "p97_5": 3.7166892231717403,
+        "p2_5": 3.7165077643950446,
+        "p97_5": 3.7166892231717408,
         "spread_half_width_95": 9.072938834808753e-05,
         "unit": "RMS of log nu"
       },
@@ -3880,11 +3722,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9986776859504132,
-        "worldcover_snow_ice": 0.001652892561983471,
-        "worldcover_water": 0.001322314049586777
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9986776859504132
       },
       "window_id": "earth-utm27n-e283-n2880"
     },
@@ -3918,7 +3757,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 3.1603418485795016,
+        "base": 3.1603418485795376,
         "max": 3.1600839614738954,
         "median": 3.1599455678142663,
         "min": 3.15983629790779,
@@ -3929,7 +3768,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 3.368408661236116,
+        "base": 3.3684086612361472,
         "max": 3.368136484007318,
         "median": 3.3679822772184567,
         "min": 3.36786880767983,
@@ -3952,11 +3791,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.996694214876033,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.003305785123966942
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.996694214876033
       },
       "window_id": "earth-utm27n-e283-n2881"
     },
@@ -3990,7 +3826,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 2.498309033466224,
+        "base": 2.49830903346626,
         "max": 2.498058320650298,
         "median": 2.497920140608903,
         "min": 2.497812551949513,
@@ -4001,7 +3837,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 2.466348730871957,
+        "base": 2.4663487308719887,
         "max": 2.466080463150022,
         "median": 2.465927023113578,
         "min": 2.4658139786875886,
@@ -4024,11 +3860,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9738842975206612,
-        "worldcover_snow_ice": 0.0006611570247933885,
-        "worldcover_water": 0.025454545454545455
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9738842975206612
       },
       "window_id": "earth-utm27n-e283-n2882"
     },
@@ -4062,7 +3895,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.2075956132022163,
+        "base": 1.2075956132022523,
         "max": 1.2073363304413243,
         "median": 1.2071976494103471,
         "min": 1.2070883251120943,
@@ -4073,7 +3906,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.2505885700570933,
+        "base": 1.2505885700571246,
         "max": 1.2503128695028911,
         "median": 1.2501580632624558,
         "min": 1.2500441524501786,
@@ -4096,11 +3929,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9388429752066115,
-        "worldcover_snow_ice": 0.0006611570247933885,
-        "worldcover_water": 0.05553719008264463
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9388429752066115
       },
       "window_id": "earth-utm27n-e283-n2883"
     },
@@ -4134,24 +3964,24 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 0.8810676870385872,
-        "max": 0.880857107449614,
-        "median": 0.8807279112399868,
-        "min": 0.8806257812714349,
+        "base": 0.8810676870385997,
+        "max": 0.8808571074495908,
+        "median": 0.8807279112399636,
+        "min": 0.8806257812714117,
         "n": 100,
-        "p2_5": 0.8806480611235873,
-        "p97_5": 0.8808140623343949,
-        "spread_half_width_95": 8.30006054037824e-05,
+        "p2_5": 0.8806480611235641,
+        "p97_5": 0.8808140623343715,
+        "spread_half_width_95": 8.300060540372689e-05,
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 0.9161744667758429,
-        "max": 0.9159545002545223,
-        "median": 0.9158129861482762,
-        "min": 0.9157075498052348,
+        "base": 0.9161744667758412,
+        "max": 0.9159545002544895,
+        "median": 0.9158129861482435,
+        "min": 0.9157075498052021,
         "n": 100,
-        "p2_5": 0.915730624310028,
-        "p97_5": 0.9158971588552397,
+        "p2_5": 0.9157306243099953,
+        "p97_5": 0.915897158855207,
         "spread_half_width_95": 8.326727260582478e-05,
         "unit": "RMS of log nu"
       },
@@ -4168,11 +3998,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9996694214876033,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9996694214876033
       },
       "window_id": "earth-utm27n-e284-n2877"
     },
@@ -4206,7 +4033,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.0913891118091341,
+        "base": 1.0913891118091699,
         "max": 1.0911651709248096,
         "median": 1.0910327441634213,
         "min": 1.0909285415854377,
@@ -4217,7 +4044,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.0901294750400676,
+        "base": 1.090129475040099,
         "max": 1.0898919273627092,
         "median": 1.08974628578583,
         "min": 1.089637102537361,
@@ -4240,11 +4067,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9996694214876033,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9996694214876033
       },
       "window_id": "earth-utm27n-e284-n2878"
     },
@@ -4278,7 +4102,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.4235923881845225,
+        "base": 1.4235923881845582,
         "max": 1.4233682933547447,
         "median": 1.4232357642901419,
         "min": 1.4231316999975374,
@@ -4289,7 +4113,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.41778972748267,
+        "base": 1.4177897274827012,
         "max": 1.4175517381330887,
         "median": 1.4174059636248721,
         "min": 1.4172968664190466,
@@ -4312,11 +4136,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 1.0,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 1.0
       },
       "window_id": "earth-utm27n-e284-n2879"
     },
@@ -4350,7 +4171,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.4520641308248217,
+        "base": 1.4520641308248576,
         "max": 1.451839043403335,
         "median": 1.4517062663170777,
         "min": 1.4516021206879632,
@@ -4361,7 +4182,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.4345472577612426,
+        "base": 1.434547257761274,
         "max": 1.4343071663279054,
         "median": 1.4341609387293168,
         "min": 1.4340514209595712,
@@ -4384,11 +4205,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9993388429752066,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0006611570247933885
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9993388429752066
       },
       "window_id": "earth-utm27n-e284-n2880"
     },
@@ -4422,7 +4240,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.7980177300076503,
+        "base": 1.7980177300076863,
         "max": 1.7977865756026166,
         "median": 1.7976526324181301,
         "min": 1.7975472177583076,
@@ -4433,7 +4251,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.7927456567208317,
+        "base": 1.792745656720863,
         "max": 1.7924993504600881,
         "median": 1.792351678245769,
         "min": 1.7922408595732013,
@@ -4456,11 +4274,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9980165289256199,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0019834710743801653
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9980165289256199
       },
       "window_id": "earth-utm27n-e284-n2881"
     },
@@ -4494,7 +4309,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.587747521349063,
+        "base": 1.5877475213490992,
         "max": 1.5874967950251913,
         "median": 1.587358570922246,
         "min": 1.5872511580517648,
@@ -4505,7 +4320,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.5599370317442642,
+        "base": 1.5599370317442955,
         "max": 1.5596686751142257,
         "median": 1.5595151827921625,
         "min": 1.5594023107238766,
@@ -4528,11 +4343,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.955702479338843,
-        "worldcover_snow_ice": 0.00033057851239669424,
-        "worldcover_water": 0.03305785123966942
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.955702479338843
       },
       "window_id": "earth-utm27n-e284-n2882"
     },
@@ -4566,7 +4378,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 0.9692777314286047,
+        "base": 0.9692777314286407,
         "max": 0.9690191504810587,
         "median": 0.9688806466681343,
         "min": 0.9687713092307279,
@@ -4577,7 +4389,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.0995259034694211,
+        "base": 1.0995259034694524,
         "max": 1.099256444869815,
         "median": 1.0991027802974025,
         "min": 1.0989895947028647,
@@ -4600,11 +4412,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9322314049586777,
-        "worldcover_snow_ice": 0.00033057851239669424,
-        "worldcover_water": 0.05223140495867769
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9322314049586777
       },
       "window_id": "earth-utm27n-e284-n2883"
     },
@@ -4638,7 +4447,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 0.695768970037015,
+        "base": 0.6957689700370495,
         "max": 0.6955894840581542,
         "median": 0.6954680921586737,
         "min": 0.6953730124621715,
@@ -4649,7 +4458,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 0.7007430718199338,
+        "base": 0.7007430718199641,
         "max": 0.700555192754779,
         "median": 0.7004218752348518,
         "min": 0.7003249978247188,
@@ -4672,11 +4481,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9996694214876033,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9996694214876033
       },
       "window_id": "earth-utm27n-e285-n2877"
     },
@@ -4710,7 +4516,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 0.755214169719386,
+        "base": 0.7552141697194209,
         "max": 0.7550251771666554,
         "median": 0.7549011928397441,
         "min": 0.7548042608492153,
@@ -4721,7 +4527,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 0.7352036253083369,
+        "base": 0.7352036253083675,
         "max": 0.7350038812723576,
         "median": 0.734867446295751,
         "min": 0.7347675698681703,
@@ -4744,11 +4550,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9871074380165289,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9871074380165289
       },
       "window_id": "earth-utm27n-e285-n2878"
     },
@@ -4782,24 +4585,24 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 0.6785492291449117,
-        "max": 0.6783643661419403,
-        "median": 0.6782415106880959,
-        "min": 0.6781454182649851,
+        "base": 0.6785492291449825,
+        "max": 0.6783643661419763,
+        "median": 0.678241510688132,
+        "min": 0.6781454182650212,
         "n": 100,
-        "p2_5": 0.6781669758203216,
-        "p97_5": 0.6783236906737982,
-        "spread_half_width_95": 7.835742673828472e-05,
+        "p2_5": 0.6781669758203577,
+        "p97_5": 0.6783236906738341,
+        "spread_half_width_95": 7.835742673822921e-05,
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 0.6584769659701529,
-        "max": 0.6582819479124309,
-        "median": 0.6581463947346531,
-        "min": 0.658048058605133,
+        "base": 0.6584769659702211,
+        "max": 0.6582819479124687,
+        "median": 0.6581463947346909,
+        "min": 0.6580480586051708,
         "n": 100,
-        "p2_5": 0.6580699151365077,
-        "p97_5": 0.6582272988870773,
+        "p2_5": 0.6580699151365456,
+        "p97_5": 0.6582272988871152,
         "spread_half_width_95": 7.86918752848087e-05,
         "unit": "RMS of log nu"
       },
@@ -4816,11 +4619,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9682644628099174,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9682644628099174
       },
       "window_id": "earth-utm27n-e285-n2879"
     },
@@ -4854,7 +4654,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 0.7400721916935837,
+        "base": 0.7400721916936188,
         "max": 0.7398780216154588,
         "median": 0.7397526646891317,
         "min": 0.7396545450976745,
@@ -4865,7 +4665,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 0.765958714265169,
+        "base": 0.7659587142651997,
         "max": 0.7657550087629398,
         "median": 0.7656174540410423,
         "min": 0.7655166229268777,
@@ -4888,11 +4688,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9785123966942149,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.0
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9785123966942149
       },
       "window_id": "earth-utm27n-e285-n2880"
     },
@@ -4926,7 +4723,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.129073417661801,
+        "base": 1.1290734176618367,
         "max": 1.1288553346327443,
         "median": 1.1287240111375336,
         "min": 1.1286214482518402,
@@ -4937,7 +4734,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.135216719855006,
+        "base": 1.1352167198550371,
         "max": 1.1349850840068598,
         "median": 1.1348406302495295,
         "min": 1.1347333329300906,
@@ -4960,11 +4757,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9943801652892562,
-        "worldcover_snow_ice": 0.0,
-        "worldcover_water": 0.005619834710743801
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9943801652892562
       },
       "window_id": "earth-utm27n-e285-n2881"
     },
@@ -4998,7 +4792,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.5155884497750698,
+        "base": 1.5155884497751058,
         "max": 1.5153466118619037,
         "median": 1.515210127988142,
         "min": 1.5151037831049303,
@@ -5009,7 +4803,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.4823077551671873,
+        "base": 1.4823077551672186,
         "max": 1.482048997748781,
         "median": 1.4818978906844937,
         "min": 1.481785998167069,
@@ -5032,11 +4826,8 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9295867768595041,
-        "worldcover_snow_ice": 0.001322314049586777,
-        "worldcover_water": 0.0571900826446281
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9295867768595041
       },
       "window_id": "earth-utm27n-e285-n2882"
     },
@@ -5070,7 +4861,7 @@
       },
       "search_region_id": "holuhraun",
       "terrain_relief": {
-        "base": 1.1069546294306916,
+        "base": 1.1069546294307273,
         "max": 1.1066950386304921,
         "median": 1.1065562930624446,
         "min": 1.1064469620977695,
@@ -5081,7 +4872,7 @@
         "unit": "RMS of log nu"
       },
       "terrain_texture": {
-        "base": 1.2541165004473402,
+        "base": 1.2541165004473716,
         "max": 1.2538454559040078,
         "median": 1.2536914684663838,
         "min": 1.2535781208596377,
@@ -5104,18 +4895,15 @@
         }
       },
       "valid_fraction_by_observable": {
-        "radar_cpr": null,
-        "terrain": 1.0,
-        "worldcover_allowed": 0.9272727272727272,
-        "worldcover_snow_ice": 0.00033057851239669424,
-        "worldcover_water": 0.05884297520661157
+        "dem_90m": 1.0,
+        "worldcover_allowed": 0.9272727272727272
       },
       "window_id": "earth-utm27n-e285-n2883"
     }
   ],
   "clone_limits": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6).",
-  "command": "python -m terraluna_pipeline.checks g4",
-  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "command": "python -m terraluna_pipeline.checks g4 --target-id moon-cr-site01-w000",
+  "config_version": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
   "counterexample": {
     "present": true,
     "reason": null
@@ -5146,23 +4934,23 @@
   "input_hashes": [
     {
       "path": "analysis/g4_counterexample.json",
-      "sha256": "9e314f03ca97bcd3f48b08bddd34e29ffc9aaf00fe328f5aacec7f913da2a503"
+      "sha256": "d556865b9b054da77f4dd6f38731c7e36d82a7dde0770a0fe9f72c1ad9cc3fd7"
     },
     {
       "path": "config/run.yaml",
-      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+      "sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675"
     },
     {
       "path": "outputs/comparisons/moon-cr-site01-w000.json",
-      "sha256": "8a5c12462d0d5564584ce3fdaea9a3c00ca6c6f001e8ddde4c715bb793871e07"
+      "sha256": "e252bcdba17bb38f0ad739c36ba7088d0af48ab217f2ff6c6c28780a4c6daf90"
     },
     {
       "path": "outputs/search/targets.json",
-      "sha256": "6ab65f388126b3b1f4bbfe5cb59bc3b158ef623199b5222663500e1c9c0ec9d9"
+      "sha256": "140aa37f13d5c5ea22b69017ef0a22d7c3c135ae4f2f34ae01c8d847f670aa3c"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
-      "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+      "sha256": "c1ded889eba244aa074d042c9ad415a78ea2bec250301a5824d259a1e44ac2d2"
     }
   ],
   "masks": {
@@ -5248,13 +5036,13 @@
       "name": "region_rosamond-dry-lake_only"
     }
   ],
-  "scope": "Slice search over the configured Earth regions (outputs/search/targets.json n_compared = 71), terrain families only (Mode C). Not the full T5 search universe.",
+  "scope": "T5 search over the configured Earth regions (outputs/search/targets.json n_compared = 71), terrain families only (Mode C). Earth search universe = the declared regions only.",
   "shipping_mode": "C",
   "shortlist_earth_window_ids": [
     "earth-utm27n-e285-n2879"
   ],
   "sort_note": "No single order: Pareto layers over terrain_relief and terrain_texture, then window_id; no family sorts first (ANA-03 undecided). No composite exists.",
-  "sort_rule": "first Pareto layer over terrain_relief, terrain_texture (smaller is closer; encoder excluded while G5 is not PASS); then window_id",
+  "sort_rule": "Pareto set over terrain_relief and terrain_texture RMS log-nu distances (PRD 6.5 step 4)",
   "status": "PASS",
   "target_id": "moon-cr-site01-w000",
   "target_window_id": "moon-sps-x2-y2",
@@ -5991,7 +5779,7 @@
     }
   },
   "uncommitted_inputs_sha256": {
-    "data/processed/windows/earth.json": "dee5072d9896d5ae458eaaa0280914f5affa01873625ac413ce09b158ccde8f4",
-    "data/processed/windows/moon.json": "b9c6f0ba05a65b5a572c5a49ae999a78e8c8c9fc7ef23e506dbfc635f41e8747"
+    "data/processed/windows/earth.json": "fb7f8911aff25ce3aa75621e20188f04350eb1b87ef131d6ce7fbdcf1e39a101",
+    "data/processed/windows/moon.json": "9882b84b2c204eefd8aee80f1441fd9ca54227fe4e43acac5d1a9479cb80e132"
   }
 }

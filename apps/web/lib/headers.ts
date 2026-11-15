@@ -79,7 +79,9 @@ export function contentSecurityPolicy(env: HeaderEnv = {}): string {
   const directives: [string, string[]][] = [
     ['default-src', ["'self'"]],
     // 'unsafe-inline': see the module comment. 'unsafe-eval' only for next dev.
-    ['script-src', ["'self'", "'unsafe-inline'", ...(dev ? ["'unsafe-eval'"] : [])]],
+    // 'wasm-unsafe-eval' lets the probe worker compile onnxruntime-web's WebAssembly; it allows
+    // WebAssembly compilation only, not eval of JavaScript.
+    ['script-src', ["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'", ...(dev ? ["'unsafe-eval'"] : [])]],
     ['style-src', ["'self'", "'unsafe-inline'"]],
     ['img-src', ["'self'", 'blob:', 'data:', ...hosts]],
     ['font-src', ["'self'"]],
@@ -103,5 +105,8 @@ export function securityHeaders(env: HeaderEnv = {}): NextHeaderRule[] {
       headers: [{ key: CSP_HEADER_NAME, value: contentSecurityPolicy(env) }],
     },
     ...ISOLATED_ROUTES.map((source) => ({ source, headers: [COOP_HEADER, COEP_HEADER] })),
+    // A dedicated worker started from a COEP require-corp page must itself be served with COEP
+    // require-corp, or the browser refuses to run it; the probe worker's scripts are Next chunks.
+    { source: '/_next/static/:path*', headers: [COEP_HEADER] },
   ];
 }
