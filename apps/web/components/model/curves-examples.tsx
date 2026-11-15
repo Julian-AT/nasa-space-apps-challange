@@ -182,9 +182,11 @@ export function ExamplesSection({ examples }: { readonly examples: Examples | nu
           <Card key={t.target_id} size="sm">
           <div data-retrieval-target={t.target_id} className="grid gap-4 px-4 md:grid-cols-2">
             <h3 className="font-semibold md:col-span-2 wrap-anywhere">{t.target_id}</h3>
-            <EntryList title="Physics fingerprint top 5" entries={t.deterministic_top5} />
+            {t.deterministic_top5.length === 0 ? null : <EntryList title="Physics fingerprint top 5" entries={t.deterministic_top5} />}
             <EntryList title="Learned encoder neighbours (experimental)" entries={t.encoder_top5} />
-            {t.shortfall_reason === null ? null : <p className="md:col-span-2">Shortfall: {t.shortfall_reason}</p>}
+            {t.deterministic_top5.length === 0 ? (
+              <p className="text-sm text-muted-foreground">The physics-fingerprint ranking for this target is on its evidence cards.</p>
+            ) : null}
           </div>
           </Card>
         ))

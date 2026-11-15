@@ -346,9 +346,6 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
           <ArchitectureDiagram facts={facts} />
           <div className="flex flex-col gap-4 lg:pt-8">
             <ModelStats facts={facts} compact />
-            {modelCard === null ? null : (
-              <p className="text-sm leading-relaxed text-muted-foreground">{modelCard.architecture}</p>
-            )}
           </div>
         </div>
       )}
