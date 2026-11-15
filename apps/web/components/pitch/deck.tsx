@@ -95,11 +95,49 @@ function Step({ n, title, d, children }: { n: number; title: string; d: number; 
   return (
     <In d={d} className="flex h-full flex-col gap-5 rounded-3xl border border-zinc-200 bg-zinc-50 p-6">
       <div className="flex items-center gap-3">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-zinc-950 text-sm font-bold text-white">{n}</span>
+        <span className="grid size-8 shrink-0 place-items-center rounded-full font-mono text-sm" style={{ background: INK, color: PAPER }}>{n}</span>
         <span className="text-xl font-semibold leading-tight tracking-tight">{title}</span>
       </div>
       <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">{children}</div>
     </In>
+  );
+}
+
+/** Step 1 diagram: a 5 km square window on a regular sample grid, with dimension brackets. */
+function GridSquare() {
+  const n = 8;
+  const S = 210;
+  const x0 = 50;
+  const y0 = 10;
+  return (
+    <svg viewBox="0 0 300 270" className="mx-auto w-full max-w-[16rem]" role="img" aria-label="A 5 by 5 kilometre square window divided into a regular sample grid">
+      <rect x={x0} y={y0} width={S} height={S} rx={6} fill="#ffffff" stroke={INK} strokeWidth={2} />
+      {Array.from({ length: n - 1 }, (_, k) => {
+        const t = ((k + 1) * S) / n;
+        return (
+          <g key={k} stroke="rgba(26,22,19,0.12)" strokeWidth={1}>
+            <line x1={x0 + t} x2={x0 + t} y1={y0} y2={y0 + S} />
+            <line x1={x0} x2={x0 + S} y1={y0 + t} y2={y0 + t} />
+          </g>
+        );
+      })}
+      {Array.from({ length: n * n }, (_, k) => (
+        <circle key={k} cx={x0 + ((k % n) + 0.5) * (S / n)} cy={y0 + (Math.floor(k / n) + 0.5) * (S / n)} r={2} fill={FAINT} />
+      ))}
+      <circle cx={x0 + S / 2} cy={y0 + S / 2} r={6} fill={ACCENT} />
+      <g stroke={MUTED} strokeWidth={1.2}>
+        <line x1={x0} x2={x0 + S} y1={y0 + S + 24} y2={y0 + S + 24} />
+        <line x1={x0} x2={x0} y1={y0 + S + 18} y2={y0 + S + 30} />
+        <line x1={x0 + S} x2={x0 + S} y1={y0 + S + 18} y2={y0 + S + 30} />
+        <line x1={x0 - 22} x2={x0 - 22} y1={y0} y2={y0 + S} />
+        <line x1={x0 - 28} x2={x0 - 16} y1={y0} y2={y0} />
+        <line x1={x0 - 28} x2={x0 - 16} y1={y0 + S} y2={y0 + S} />
+      </g>
+      <rect x={x0 + S / 2 - 28} y={y0 + S + 14} width={56} height={20} fill="#FCFBF9" />
+      <text x={x0 + S / 2} y={y0 + S + 29} textAnchor="middle" fontSize={14} className="font-mono" fill={INK}>5 km</text>
+      <rect x={x0 - 32} y={y0 + S / 2 - 26} width={20} height={52} fill="#FCFBF9" />
+      <text x={x0 - 22} y={y0 + S / 2 + 5} textAnchor="middle" fontSize={14} className="font-mono" fill={INK} transform={`rotate(-90 ${x0 - 22} ${y0 + S / 2})`}>5 km</text>
+    </svg>
   );
 }
 
@@ -186,24 +224,11 @@ function slides(d: PitchData, qr: string | null): Slide[] {
           </In>
           <div className="grid min-h-0 flex-1 grid-cols-[1fr_1fr_1.3fr] gap-6">
             <Step n={1} title="Take a 5 km window" d={0.15}>
-              <div className="grid grid-cols-2 gap-3">
-                {jr ? (
-                  [
-                    { t: jr.targetTile, name: jr.targetName, body: BODY[jr.body] },
-                    { t: jr.earthTile, name: jr.earthName.split(',')[0] ?? jr.earthName, body: 'Earth' },
-                  ].map((w) => (
-                    <figure key={w.body} className="flex flex-col gap-2">
-                      <HillTile tile={w.t} className="w-full" />
-                      <figcaption className="text-sm leading-tight">
-                        <span className="block font-semibold">{w.name}</span>
-                        <span style={{ color: MUTED }}>{w.body}</span>
-                      </figcaption>
-                    </figure>
-                  ))
-                ) : (
-                  <Unavailable reason="no Jezero and Rosamond card" />
-                )}
-              </div>
+              <GridSquare />
+              <p className="text-lg font-medium leading-snug">The same 5 km square on both worlds, sampled on a regular grid.</p>
+              <p className="-mt-2 text-sm" style={{ color: MUTED }}>
+                {jr ? <>{jr.targetName} ({BODY[jr.body]}) and {jr.earthName.split(',')[0]} (Earth)</> : <Unavailable reason="no Jezero and Rosamond card" />}
+              </p>
             </Step>
             <Step n={2} title="Measure the bumps at three scales" d={0.3}>
               {d.lags.length ? <LagProfile lags={d.lags} /> : <Unavailable reason="no lags in bundle" />}
@@ -223,11 +248,11 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                 </div>
                 {jr ? (
                   <div className="text-right">
-                    <p className="text-6xl font-black tracking-tight tabular-nums">{jr.relief.toFixed(3)}</p>
+                    <p className="text-6xl font-bold tracking-tight tabular-nums" style={{ color: ACCENT }}>{jr.relief.toFixed(3)}</p>
                     <p className="text-sm font-semibold">relief distance</p>
                     <p className="text-sm" style={{ color: MUTED }}>
                       lower = more alike
-                      {jr.closerThan !== null ? <><br />closer than {jr.closerThan}% of candidate windows</> : null}
+                      {jr.closerThan !== null ? <><br />closer than {jr.closerThan}% of windows</> : null}
                     </p>
                   </div>
                 ) : null}
