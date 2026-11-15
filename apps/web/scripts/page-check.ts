@@ -47,6 +47,7 @@ export const LAYOUT_LABELS: readonly string[] = [
   'Maps',
   'Model',
   'Methods',
+  'Learn',
   'Paper',
   'API docs',
   SITE_TITLE,

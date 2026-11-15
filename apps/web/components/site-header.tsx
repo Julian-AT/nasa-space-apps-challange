@@ -27,12 +27,13 @@ export const NAV_ITEMS = [
   { label: 'Maps', href: '/explore/earth' },
   { label: 'Model', href: '/model' },
   { label: 'Methods', href: '/methods' },
+  { label: 'Learn', href: '/learn' },
   { label: 'Paper', href: '/paper' },
   { label: 'API docs', href: '/api/docs' },
 ] as const;
 
 /** Index in NAV_ITEMS after which a group divider is drawn: Home | Cards Compare Lab Find Maps | Model Methods Paper | API docs. */
-const GROUP_ENDS: ReadonlySet<number> = new Set([0, 5, 8]);
+const GROUP_ENDS: ReadonlySet<number> = new Set([0, 5, 9]);
 
 const LINK =
   'block rounded-full px-3.5 py-2 text-[13px] whitespace-nowrap no-underline transition-colors duration-200 lg:inline-block lg:py-1.5';
