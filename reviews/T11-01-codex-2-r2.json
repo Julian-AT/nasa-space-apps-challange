@@ -1,0 +1,48 @@
+{
+  "task_id": "T11-01",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "c520a4c4cfd1549785edbb647682e5afc7275768",
+    "head": "63e111914bd1ee5873bde77b9bdf86a7fc8ec709",
+    "files": [
+      {
+        "path": "ml/pyproject.toml",
+        "sha256": "82b7d3e998d7842cbd5f583599440b1ca32150510875b2cd0642f9c51730c9e0"
+      },
+      {
+        "path": "ml/src/terraluna_ml/dataset.py",
+        "sha256": "c19179376fbb7a57609fd07cc3f4308850d80f617dd3f36f31102bb677abda08"
+      },
+      {
+        "path": "ml/src/terraluna_ml/synthetic.py",
+        "sha256": "8b2818e9d80654c731072055349bc8dd99d23a08c437d34e5d56eb66adbcf45c"
+      },
+      {
+        "path": "ml/tests/test_dataset_window.py",
+        "sha256": "62264c7a9d103187aeb815f589448d72eb35e3a8c53819cff0fa46c8f19b1f4a"
+      },
+      {
+        "path": "ml/tests/test_synthetic_dems.py",
+        "sha256": "8f5fb89a99c9fa53c1a145a15583b9a0833d791c0f5701149ddd451ef7fff357"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "a35ef31a99eb383c7f1641df46ddecee189b354f6446836b2488276a4293e94e"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:41:53Z",
+  "finished_utc": "2026-11-15T00:45:14Z",
+  "status": "NOT_RUN",
+  "not_run_reason": "codex exited 0: /Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/t11-dataset/scripts/ralph/review.sh: line 40: 40228 Terminated: 15          perl -e 'alarm shift; exec @ARGV or die \"exec failed: $!\\n\"' \"$s\" \"$@\" ",
+  "verdict": "NOT_RUN",
+  "summary": null,
+  "checks": [],
+  "findings": []
+}
