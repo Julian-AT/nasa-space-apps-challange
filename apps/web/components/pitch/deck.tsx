@@ -263,7 +263,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
                     <p className="text-sm font-semibold">relief distance</p>
                     <p className="text-sm" style={{ color: MUTED }}>
                       lower = more alike
-                      {jr.closerThan !== null ? <><br />closer than {jr.closerThan}% of windows</> : null}
+                      {jr.closerThan !== null ? <><br />closer than {jr.closerThan}% of candidate windows</> : null}
                     </p>
                   </div>
                 ) : null}
