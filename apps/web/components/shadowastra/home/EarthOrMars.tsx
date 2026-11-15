@@ -169,7 +169,7 @@ export function EarthOrMars() {
                 <motion.img
                   key={t.src.slice(-40)}
                   src={t.src}
-                  alt=""
+                  alt="" data-figure
                   initial={{ opacity: 0, scale: 1.04 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.7, ease: EASE }}

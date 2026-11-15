@@ -957,7 +957,7 @@ function EarthDetail({ id, world, onTarget, onClose }: { id: string; world: Worl
   const gapsWorld: World = world === "both" ? s.worlds[0] : world;
   return (
     <div>
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative hidden h-48 overflow-hidden">
         <img src={`/shadowastra/thumbs/${s.id}.webp`} alt={`NASA Blue Marble regional view around ${s.name}`} className="size-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-void via-void/20 to-transparent" />
         <span className="absolute right-3 bottom-3 rounded-full bg-void/70 px-2 py-0.5 font-mono text-[10px] text-chrome backdrop-blur">
@@ -1135,10 +1135,6 @@ function ScreenDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const volc = grid && k >= 0 ? grid.volcano(k) : null;
   return (
     <div>
-      <div className="relative h-44 overflow-hidden">
-        <img src={`/shadowastra/thumbs/${r.id}.webp`} alt={`NASA Blue Marble regional view around ${r.name}`} className="size-full object-cover opacity-80" />
-        <div className="absolute inset-0 bg-gradient-to-t from-void via-void/20 to-transparent" />
-      </div>
       <div className="space-y-7 p-5">
         <PanelHeader eyebrow={`Region we checked · ${r.country}`} title={r.name} sub={formatCoord(r.lat, r.lon)} onClose={onClose} />
         <div>

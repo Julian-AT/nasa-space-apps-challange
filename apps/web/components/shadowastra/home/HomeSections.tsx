@@ -780,9 +780,7 @@ function Library() {
       <div className="scrollbar-thin mt-14 flex snap-x gap-4 overflow-x-auto px-4 pb-6 sm:px-6 lg:px-[max(24px,calc((100vw-1400px)/2+24px))]">
         {EARTH_SITES.map((s) => (
           <Link key={s.id} href={`/lab?earth=${s.id}&target=${s.pairs[0]}`} className="surface group relative w-[300px] shrink-0 snap-start overflow-hidden rounded-2xl">
-            <div className="relative h-44 overflow-hidden">
-              <img src={`/shadowastra/thumbs/${s.id}.webp`} alt={`NASA Blue Marble view around ${s.name}`} loading="lazy" className="size-full object-cover transition-transform duration-[1.2s] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.04]" />
-              <div className="absolute inset-0 bg-gradient-to-t from-panel via-transparent to-transparent" />
+            <div className="relative h-12 overflow-hidden">
               <div className="absolute top-3 left-3 flex gap-1.5">
                 {s.worlds.map((w) => (
                   <span key={w} className="flex items-center gap-1.5 rounded-full bg-void/75 px-2 py-0.5 text-[10px] tracking-wide text-platinum uppercase backdrop-blur">
