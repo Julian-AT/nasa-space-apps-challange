@@ -1,0 +1,386 @@
+{
+  "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882",
+  "claim_limits": [
+    "candidate window identified by this search; not a proven analog",
+    "Copernicus GLO-30 heights are a digital surface model including vegetation and buildings, referenced to EGM2008 (PRD 5)",
+    "Mars target: terrain only, radar unavailable for this body",
+    "the encoder is EXPERIMENTAL and not used in any ranking",
+    "WorldCover v200 2021 land-cover mask, nearest class at 90 m centres (ANA-05 default)",
+    "Mars targets are compared on terrain only; no radar product is used.",
+    "Mode C: radar comparison not completed. The radar inputs were not qualified within the pilot, so no radar distance or radar signature is part of this card.",
+    "The encoder is EXPERIMENTAL (G5 NOT_RUN); its distance, if shown, is Predicted and takes no part in any ranking.",
+    "Field confirmation is future work; similarity here does not establish block sizes, soil strength, buried structure or low-gravity mobility (PRD 3)."
+  ],
+  "comparison_ref": {
+    "earth_window_id": "earth-utm27n-e280-n2882",
+    "path": "comparisons/mars-jezero-w000.json",
+    "target_window_id": "mars-jezero-d12-031871-x2-y9"
+  },
+  "distances_by_family": {
+    "model_embedding": {
+      "background_percentile": null,
+      "background_percentile_reason": "encoder_not_evaluated",
+      "evidence_label": "Unavailable",
+      "reason": "encoder_not_evaluated",
+      "reference_spread": null,
+      "reference_spread_reason": "encoder_not_evaluated",
+      "status": "unavailable",
+      "tie_group": null,
+      "tie_reason": null,
+      "tied": null,
+      "unit": "cosine distance",
+      "value": null
+    },
+    "radar_cpr": {
+      "background_percentile": null,
+      "background_percentile_reason": "radar_unavailable_for_body",
+      "evidence_label": "Unavailable",
+      "reason": "radar_unavailable_for_body",
+      "reference_spread": null,
+      "reference_spread_reason": "radar_unavailable_for_body",
+      "status": "unavailable",
+      "tie_group": null,
+      "tie_reason": null,
+      "tied": null,
+      "unit": "CPR Wasserstein-1",
+      "value": null
+    },
+    "terrain_relief": {
+      "background_percentile": 5.027862464608607,
+      "background_percentile_reason": null,
+      "evidence_label": "Derived",
+      "reason": null,
+      "reference_spread": {
+        "max": 2.695824907988517,
+        "median": 0.9347056712827074,
+        "min": 0.010823518798428891,
+        "n": 194
+      },
+      "reference_spread_reason": null,
+      "status": "available",
+      "tie_group": null,
+      "tie_reason": "spread_unavailable",
+      "tied": null,
+      "unit": "RMS of log nu",
+      "value": 0.05440175710202982
+    },
+    "terrain_texture": {
+      "background_percentile": 5.375773773956891,
+      "background_percentile_reason": null,
+      "evidence_label": "Derived",
+      "reason": null,
+      "reference_spread": {
+        "max": 2.5561675376743653,
+        "median": 0.8295574976274446,
+        "min": 0.011197106054210789,
+        "n": 194
+      },
+      "reference_spread_reason": null,
+      "status": "available",
+      "tie_group": null,
+      "tie_reason": "spread_unavailable",
+      "tied": null,
+      "unit": "RMS of log nu",
+      "value": 0.10813814931181176
+    }
+  },
+  "earth": {
+    "earth_window_id": "earth-utm27n-e280-n2882",
+    "polygon": {
+      "crs": "EPSG:32627",
+      "epsg": 32627,
+      "frame": "utm",
+      "ring_lonlat": [
+        [
+          -16.770733743102788,
+          64.908982762511
+        ],
+        [
+          -16.665364558272866,
+          64.90594910753703
+        ],
+        [
+          -16.658119114644325,
+          64.95068493785952
+        ],
+        [
+          -16.763663125739498,
+          64.9537247464277
+        ],
+        [
+          -16.770733743102788,
+          64.908982762511
+        ]
+      ],
+      "ring_m": [
+        [
+          700000.0,
+          7205000.0
+        ],
+        [
+          705000.0,
+          7205000.0
+        ],
+        [
+          705000.0,
+          7210000.0
+        ],
+        [
+          700000.0,
+          7210000.0
+        ],
+        [
+          700000.0,
+          7205000.0
+        ]
+      ],
+      "utm_zone": "27N"
+    },
+    "product_ids": [
+      "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif"
+    ],
+    "search_region_id": "holuhraun"
+  },
+  "figures": [
+    {
+      "alt": "Location maps: the Earth polygon and the Mars target window, each with a scale bar",
+      "figure": "A",
+      "path": null,
+      "reason": "figure_not_rendered"
+    },
+    {
+      "alt": "nu(L) on log-log axes for the target and the Earth window, relief and texture",
+      "figure": "B",
+      "path": null,
+      "reason": "figure_not_rendered"
+    },
+    {
+      "alt": "Radar block distributions with band labels, or the reason they are unavailable",
+      "figure": "C",
+      "path": null,
+      "reason": "figure_not_rendered"
+    }
+  ],
+  "g5_status": "NOT_RUN",
+  "mock": false,
+  "q1_compared": "Earth window earth-utm27n-e280-n2882 (holuhraun; EPSG:32627, UTM zone 27N) compared with the Mars target window mars-jezero-d12-031871-x2-y9 of Jezero crater (azimuthal equidistant on the Mars sphere (product CRS)), each a 5000 m window on a 90 m analysis grid. Mode C.",
+  "q2_interpretation": {
+    "evidence_label": "Assumed",
+    "text": "Assumed: this Earth window could help investigate how surfaces with comparable supported descriptors (terrain_relief, terrain_texture) behave, as a candidate window identified by this search for the Mars target. It is an interpretation to test, not a measured result."
+  },
+  "q3_measurements": [
+    {
+      "band": null,
+      "evidence_label": "Derived",
+      "geometry": "aeqd_sphere target window; utm Earth",
+      "observable": "terrain_relief distance",
+      "product_id": null,
+      "reason": null,
+      "support": "90 m analysis grid in 5000 m windows",
+      "unit": "RMS of log nu",
+      "value": 0.05440175710202982
+    },
+    {
+      "band": null,
+      "evidence_label": "Derived",
+      "geometry": "aeqd_sphere target window; utm Earth",
+      "observable": "terrain_texture distance",
+      "product_id": null,
+      "reason": null,
+      "support": "90 m analysis grid in 5000 m windows",
+      "unit": "RMS of log nu",
+      "value": 0.10813814931181176
+    },
+    {
+      "band": null,
+      "evidence_label": "Unavailable",
+      "geometry": null,
+      "observable": "radar_cpr distance",
+      "product_id": null,
+      "reason": "radar_unavailable_for_body",
+      "support": "no qualified radar pair",
+      "unit": "CPR Wasserstein-1",
+      "value": null
+    },
+    {
+      "band": null,
+      "evidence_label": "Unavailable",
+      "geometry": null,
+      "observable": "model_embedding distance",
+      "product_id": null,
+      "reason": "encoder_not_evaluated",
+      "support": "encoder embedding of each window (experimental)",
+      "unit": "cosine distance",
+      "value": null
+    }
+  ],
+  "q4_differences": {
+    "ambiguous": [],
+    "differing": [],
+    "limits": [
+      "Gravity: about 0.38 of Earth's on Mars.",
+      "Atmosphere: a thin CO₂ atmosphere in which wind and dust act but rain does not.",
+      "Water and life: no liquid surface water or biology today.",
+      "Temperature and radiation: lower temperatures and higher surface radiation than on Earth.",
+      "Resolution: CTX DTMs resolve only features of roughly 100 m and larger, so finer roughness is not compared."
+    ],
+    "not_observed": [
+      "radar_cpr: radar_unavailable_for_body",
+      "model_embedding: encoder_not_evaluated",
+      "radar_cpr: unavailable (radar_unavailable_for_body)",
+      "model_embedding: unavailable (encoder_not_evaluated)"
+    ]
+  },
+  "q5_stability": {
+    "tie_group_by_family": {
+      "model_embedding": null,
+      "radar_cpr": null,
+      "terrain_relief": null,
+      "terrain_texture": null
+    },
+    "tied_by_family": {
+      "model_embedding": null,
+      "radar_cpr": null,
+      "terrain_relief": null,
+      "terrain_texture": null
+    },
+    "uncertainty_components": {
+      "heterogeneity": {
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "rank_frequency": null,
+        "reason": "uncertainty_not_annotated",
+        "scenarios": null,
+        "status": "unavailable"
+      },
+      "measurement_error": {
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "rank_frequency": null,
+        "reason": "uncertainty_not_annotated",
+        "scenarios": null,
+        "status": "unavailable"
+      },
+      "scenario_sensitivity": {
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "rank_frequency": null,
+        "reason": "uncertainty_not_annotated",
+        "scenarios": null,
+        "status": "unavailable"
+      },
+      "statistical_prediction_error": {
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "rank_frequency": null,
+        "reason": "uncertainty_not_annotated",
+        "scenarios": null,
+        "status": "unavailable"
+      }
+    }
+  },
+  "q6_campaign": {
+    "access": {
+      "source": null,
+      "value": "unknown"
+    },
+    "land_status": {
+      "source": null,
+      "value": "unknown"
+    },
+    "logistics": {
+      "source": null,
+      "value": "unknown"
+    },
+    "permits": {
+      "source": null,
+      "value": "unknown"
+    },
+    "season": {
+      "source": null,
+      "value": "unknown"
+    }
+  },
+  "q7_field_experiment": {
+    "evidence_label": "Assumed",
+    "status": "proposed",
+    "text": "Proposed, not yet carried out: survey a surface patch in this Earth window with a clast-size and coverage distribution, material and moisture notes, and calibrated radar observations under controlled geometry. Dimensions and sampling would be chosen for the sensor and site; none of these measurements has been made."
+  },
+  "radar_context": [],
+  "run_id": "sha256:a74139dcb906900b20b8f0ced6097d984f8a9d55d2ef66ce01bb273a509c534d",
+  "shipping_mode": "C",
+  "target": {
+    "body": "mars",
+    "polygon": {
+      "crs": "+proj=aeqd +lat_0=18.514266816886714 +lon_0=77.8178193626033 +R=3396190.0",
+      "epsg": null,
+      "frame": "aeqd_sphere",
+      "ring_lonlat": [
+        [
+          77.59559088110943,
+          18.387607702499245
+        ],
+        [
+          77.68448223084309,
+          18.38769063234332
+        ],
+        [
+          77.68441670303105,
+          18.4720435651631
+        ],
+        [
+          77.59548166851083,
+          18.471960472704687
+        ],
+        [
+          77.59559088110943,
+          18.387607702499245
+        ]
+      ],
+      "ring_m": [
+        [
+          -12500.0,
+          -7500.0
+        ],
+        [
+          -7500.0,
+          -7500.0
+        ],
+        [
+          -7500.0,
+          -2500.0
+        ],
+        [
+          -12500.0,
+          -2500.0
+        ],
+        [
+          -12500.0,
+          -7500.0
+        ]
+      ],
+      "utm_zone": null
+    },
+    "product_ids": [
+      "CTX/mro_ctx_controlled_usgs_dtms/D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W/D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W_dtm.tif",
+      "CTX/mro_ctx_controlled_usgs_dtms/D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W/qa_metrics.txt"
+    ],
+    "target_id": "mars-jezero-w000",
+    "target_window_id": "mars-jezero-d12-031871-x2-y9"
+  },
+  "title": "Terrain analog pilot for Jezero crater; radar comparison not completed",
+  "wording": "candidate window identified by this search"
+}

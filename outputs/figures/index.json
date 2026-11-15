@@ -8,12 +8,12 @@
     "sha256": "a82852c3cb3ccf6d49783d5660d1ef58f173e704c3800a705add461b08fccb73"
   },
   {
-    "bytes": 10820,
+    "bytes": 10416,
     "card_id": "moon-sps-x2-y2__earth-utm27n-e280-n2880",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "B",
     "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_B.svg",
-    "sha256": "262e0b66fa496c35355098f15ac3a01d1f3ab748315548b97bdf546a63a3a1f8"
+    "sha256": "36fc5747349336eaf0117c7d3b1967703e5d8e4de22189e4d492e867be5b1e64"
   },
   {
     "bytes": 1206,
@@ -32,12 +32,12 @@
     "sha256": "b568ddc5adb14670f86d41034f0e22852440426758e7b51f669b398e95c42d84"
   },
   {
-    "bytes": 9975,
+    "bytes": 9565,
     "card_id": "moon-sps-x2-y2__earth-utm27n-e285-n2879",
     "command": "python -m terraluna_pipeline.figures cards",
     "figure": "B",
     "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_B.svg",
-    "sha256": "d94ff774471ee97b1f871397f7718f55949afac947fa0815ea131238da3d0fbe"
+    "sha256": "8614d7b7d5d588f470849f80b4d2971cef295e052be2805acdbd0a83d1a6e505"
   },
   {
     "bytes": 1206,
