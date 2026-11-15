@@ -728,7 +728,7 @@ function WorldTitle({ body, shown, layer, left }: { body: Body; shown: number; l
   return (
     <div className={clsx("pointer-events-none absolute top-24 z-[550] hidden transition-[left] duration-500 lg:block", left ? "left-[336px]" : "left-8")}>
       <AnimatePresence mode="wait">
-        <motion.div key={body} initial="hide" animate="show" exit="hide" variants={{ show: { transition: { staggerChildren: 0.05 } }, hide: {} }} className="rounded-xl border bg-card p-4 text-card-foreground shadow-xs">
+        <motion.div key={body} initial="hide" animate="show" exit="hide" variants={{ show: { transition: { staggerChildren: 0.05 } }, hide: {} }} className="w-fit max-w-[380px] rounded-xl border bg-card p-4 text-card-foreground shadow-xs">
           <motion.div variants={{ hide: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }} className="text-xs text-muted-foreground">
             {WORLD_FACTS[body].kicker}
           </motion.div>
