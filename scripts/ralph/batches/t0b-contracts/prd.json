@@ -165,9 +165,9 @@
         "make check"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "review": {
-        "state": "resolved",
+        "state": "passed",
         "round": 1,
         "base": "dd1f7f7431c0889bf4e6d41af64c064dda5b66f5",
         "head": "eb0cb54493aff923b836ed26be1b9f6f4ea13ba2",
