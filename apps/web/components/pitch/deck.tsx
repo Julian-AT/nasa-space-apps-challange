@@ -56,7 +56,7 @@ function Brand({ size = 'lg' }: { size?: 'lg' | 'xl' }) {
       <span className={`grid shrink-0 place-items-center ${big ? 'size-24 rounded-[1.6rem]' : 'size-20 rounded-2xl'}`} style={{ background: INK }}>
         <HugeiconsIcon icon={EarthIcon} strokeWidth={1.8} className={big ? 'size-14' : 'size-11'} style={{ color: PAPER }} aria-hidden />
       </span>
-      <span className={`${big ? 'text-[7.25rem]' : 'text-[6.5rem]'} font-bold leading-none tracking-[-0.05em]`} style={{ color: INK }}>
+      <span className={`${big ? 'text-[7.25rem]' : 'text-[6.5rem]'} font-bold leading-none tracking-[-0.035em]`} style={{ color: INK }}>
         Terraluna
       </span>
     </div>
