@@ -1,0 +1,558 @@
+{
+  "command": "python -m terraluna_pipeline.checks analysis bodies --windows-dir data/processed/t5-windows --ctx-dir /Users/julianschmidt/terraluna-data/raw/ctx_dtm",
+  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "earth": {
+    "by_climate_zone": {
+      "reason": "no climate-zone product pinned",
+      "status": "unavailable"
+    },
+    "by_declared_region": {
+      "holuhraun": {
+        "descriptors": {
+          "log_relief.nu_m@1080": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 3.1486998859600357,
+              "level": 0.95,
+              "lo": 1.6824166216209724,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 4.004278525647872,
+            "median": 2.4302580418600193,
+            "min": 1.5244515521298463,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 1.7084483152274732,
+            "q75": 3.434074451090112
+          },
+          "log_relief.nu_m@270": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.433751358741879,
+              "level": 0.95,
+              "lo": 0.944798783320113,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.4944569667793313,
+            "median": 1.5232629844114882,
+            "min": 0.5063785569474809,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 0.941069010303494,
+            "q75": 2.6835554007925806
+          },
+          "log_relief.nu_m@360": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.6254465571581926,
+              "level": 0.95,
+              "lo": 1.0696530120498857,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.620427609560237,
+            "median": 1.7045275095857122,
+            "min": 0.7139541355247018,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 1.0604407044157949,
+            "q75": 2.8582168182055097
+          },
+          "log_relief.nu_m@540": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.891295802932824,
+              "level": 0.95,
+              "lo": 1.2454823781828,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.77396564090538,
+            "median": 1.9266129959367866,
+            "min": 1.013213115519295,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 1.2653981464263366,
+            "q75": 3.0350239888268966
+          },
+          "log_relief.nu_m@720": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 3.0392504404531695,
+              "level": 0.95,
+              "lo": 1.4078903084397199,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.8702598388783027,
+            "median": 2.127831961098023,
+            "min": 1.2302371922893471,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 1.4461247254507201,
+            "q75": 3.2114941438386104
+          },
+          "log_texture.nu_m@1080": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 3.0926537266196266,
+              "level": 0.95,
+              "lo": 1.3543335414010382,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.978462363702159,
+            "median": 2.1516673484935795,
+            "min": 0.7639621654054358,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 1.3547898953049828,
+            "q75": 3.268634669470181
+          },
+          "log_texture.nu_m@270": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.4298939388901752,
+              "level": 0.95,
+              "lo": 0.8497759433868792,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.4848916499011953,
+            "median": 1.4822614401463514,
+            "min": 0.25300550136849814,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 0.835636091186691,
+            "q75": 2.6027804489014956
+          },
+          "log_texture.nu_m@360": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.62508080964622,
+              "level": 0.95,
+              "lo": 0.9925491378939364,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.6122915465631182,
+            "median": 1.6495911626554731,
+            "min": 0.3974259279842953,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 0.9911410068219507,
+            "q75": 2.8119981349057364
+          },
+          "log_texture.nu_m@540": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.8624869044565058,
+              "level": 0.95,
+              "lo": 1.0893954505859516,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.767054181914079,
+            "median": 1.8408825097649073,
+            "min": 0.5823214472241998,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 1.0977705529156998,
+            "q75": 2.9991850173645065
+          },
+          "log_texture.nu_m@720": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 3.0286285073424315,
+              "level": 0.95,
+              "lo": 1.166448627042219,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.8599992972534705,
+            "median": 1.9679273478909032,
+            "min": 0.6796221421612147,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 1.1784193628824298,
+            "q75": 3.081623906432365
+          },
+          "relief.H": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 0.6464972056186642,
+              "level": 0.95,
+              "lo": 0.42966821821370255,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 0.8743065191881183,
+            "median": 0.5106497990401379,
+            "min": 0.25234896716094846,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 0.407330031004004,
+            "q75": 0.7366030148957541
+          },
+          "texture.H": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 0.506686563657939,
+              "level": 0.95,
+              "lo": 0.29980878514617754,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 0.8041873182224749,
+            "median": 0.386107928122852,
+            "min": 0.13521804245903846,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 0.29891222792988903,
+            "q75": 0.582951448683928
+          },
+          "valid_fraction": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 1.0,
+              "level": 0.95,
+              "lo": 1.0,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "n": 42,
+            "n_unavailable": 0,
+            "q25": 1.0,
+            "q75": 1.0
+          }
+        },
+        "groups": [
+          "holuhraun"
+        ],
+        "n_windows": 42,
+        "status": "available"
+      },
+      "rosamond-dry-lake": {
+        "descriptors": {
+          "log_relief.nu_m@1080": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 3.2339323376929694,
+              "level": 0.95,
+              "lo": 2.5850407771072628,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.6114196064485875,
+            "median": 2.916430742338984,
+            "min": -0.43947873401217064,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 2.4152922832424464,
+            "q75": 3.2352051654816827
+          },
+          "log_relief.nu_m@270": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.2835223430607834,
+              "level": 0.95,
+              "lo": 1.3970297432397827,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 2.7218682861745163,
+            "median": 2.0359978179567113,
+            "min": -0.7024340774224548,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 1.3160168318255667,
+            "q75": 2.311525289838328
+          },
+          "log_relief.nu_m@360": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.4969228352919925,
+              "level": 0.95,
+              "lo": 1.6402463395646385,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 2.9030524204122665,
+            "median": 2.192593136404695,
+            "min": -0.6340420567754412,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 1.5519293755372052,
+            "q75": 2.4996344567590327
+          },
+          "log_relief.nu_m@540": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.774636934106184,
+              "level": 0.95,
+              "lo": 2.0122865997590242,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.1695117307482246,
+            "median": 2.460420494394314,
+            "min": -0.5405372854504018,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 1.890617618223125,
+            "q75": 2.7756921648387087
+          },
+          "log_relief.nu_m@720": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.9555520846462953,
+              "level": 0.95,
+              "lo": 2.272363784562664,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.347749619261225,
+            "median": 2.5985577864599607,
+            "min": -0.48840197720810063,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 2.119931124620621,
+            "q75": 2.9650310701593035
+          },
+          "log_texture.nu_m@1080": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 3.158041112659083,
+              "level": 0.95,
+              "lo": 2.3178322351821827,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.528166678623589,
+            "median": 2.6163707068485684,
+            "min": -0.4464539153698153,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 2.200486068913684,
+            "q75": 3.163225827150741
+          },
+          "log_texture.nu_m@270": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.2553817965438663,
+              "level": 0.95,
+              "lo": 1.3271792319722537,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 2.688139128812216,
+            "median": 1.693416770508868,
+            "min": -0.7038169990076926,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 1.2222019328730647,
+            "q75": 2.2897574243729233
+          },
+          "log_texture.nu_m@360": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.4678355046695204,
+              "level": 0.95,
+              "lo": 1.487448775034376,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 2.8611890217365525,
+            "median": 1.9389066293998285,
+            "min": -0.6360090845331814,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 1.4267115162259305,
+            "q75": 2.4696226875243528
+          },
+          "log_texture.nu_m@540": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.7217646423780764,
+              "level": 0.95,
+              "lo": 1.800773565310409,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.116025785827763,
+            "median": 2.2701229746146354,
+            "min": -0.544007791249311,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 1.716447123025292,
+            "q75": 2.7390962569650688
+          },
+          "log_texture.nu_m@720": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 2.9290575342380607,
+              "level": 0.95,
+              "lo": 2.0267025123241953,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 3.2833699830835568,
+            "median": 2.4223172723729682,
+            "min": -0.49330400598150126,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 1.9370625620910245,
+            "q75": 2.93660890493171
+          },
+          "relief.H": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 0.7948610395216585,
+              "level": 0.95,
+              "lo": 0.6460788609998611,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 0.9431975729375154,
+            "median": 0.7377939506640669,
+            "min": 0.1118098612546834,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 0.6284165364048132,
+            "q75": 0.8011867237579519
+          },
+          "texture.H": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 0.7413482914920375,
+              "level": 0.95,
+              "lo": 0.4232198113926815,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 0.8557077017988619,
+            "median": 0.6329472923557693,
+            "min": 0.10693436552817688,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 0.406705718001522,
+            "q75": 0.7514630075610254
+          },
+          "valid_fraction": {
+            "bootstrap_median": {
+              "block": 2,
+              "hi": 1.0,
+              "level": 0.95,
+              "lo": 1.0,
+              "method": "2-D moving-block bootstrap of the median, percentile interval",
+              "replicates": 2000,
+              "replicates_with_data": 2000,
+              "seed": 20261115
+            },
+            "max": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "n": 29,
+            "n_unavailable": 0,
+            "q25": 1.0,
+            "q75": 1.0
+          }
+        },
+        "groups": [
+          "rosamond-dry-lake"
+        ],
+        "n_windows": 29,
+        "status": "available"
+      }
+    },
+    "by_worldcover_class": {
+      "reason": "per-window dominant WorldCover class not recorded in windows/earth.json (only allowed, snow_ice and water fractions)",
+      "status": "unavailable"
+    },
+    "pilot_label": "each declared region is one contiguous area of overlapping windows, so it is a pilot sample, not independent groups (PRD 9)",
+    "regions_vs_global_background": {
+      "reason": "the global background sample (T5, ANA-02 n = 1000) is not in the search outputs read; an empirical background comparison, not a physical truth test, once it exists",
+      "status": "unavailable"
+    },
+    "rejected_by_reason": {
+      "land_cover_below_min_fraction": 2
+    },
+    "surface_model_mask_effect": {
+      "reason": "no surface-model (DSM vegetation and building) mask is defined",
+      "status": "unavailable"
+    },
+    "windows_with_snow_ice": {
+      "n": 0
+    }
+  },
+  "evidence_label": "Derived",
+  "input_hashes": [
+    {
+      "path": "config/run.yaml",
+      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+    }
+  ],
+  "log_base": "natural",
+  "record_type": "terraluna appendix A Earth groups",
+  "uncommitted_inputs_sha256": {
+    "t5-windows/earth.json": "1ed6fcc446b81505a6c427f74a361aea1cd9e9a1778f299cdfb437e0902f0207",
+    "t5-windows/mars.json": "5693c0b80100ad29f93f94409921d4a267c749a32ebaca747f63df788eed2308",
+    "t5-windows/moon.json": "9882b84b2c204eefd8aee80f1441fd9ca54227fe4e43acac5d1a9479cb80e132"
+  },
+  "windows_source": "T5 search windows/<body>.json (data/processed, not committed); sha256 recorded"
+}
