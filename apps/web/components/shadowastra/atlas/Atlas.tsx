@@ -385,17 +385,14 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
               />
             </Section>
             <Section title="Practising for">
-              <div className="relative grid grid-cols-3 gap-1 rounded-xl border border-line bg-ink p-1">
+              <ToggleGroup type="single" variant="outline" size="sm" spacing={0} value={world} onValueChange={(v) => v && setWorld(v as WorldFilter)} aria-label="Practising for" className="grid w-full grid-cols-3">
                 {(["moon", "both", "mars"] as WorldFilter[]).map((w) => (
-                  <button key={w} onClick={() => setWorld(w)} aria-pressed={world === w} className={clsx("relative flex items-center justify-center gap-2 rounded-lg py-2 text-[13px] capitalize transition-colors duration-150", world === w ? "text-platinum" : "text-dim hover:text-chrome")}>
-                    {world === w && <motion.span layoutId="practise-pill" className="absolute inset-0 rounded-lg bg-platinum/[0.08]" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
-                    <span className="relative flex items-center gap-2">
-                      {w !== "both" && <WorldDot world={w} />}
-                      {w}
-                    </span>
-                  </button>
+                  <ToggleGroupItem key={w} value={w} aria-label={w} className="gap-2 capitalize">
+                    {w !== "both" && <WorldDot world={w} />}
+                    {w}
+                  </ToggleGroupItem>
                 ))}
-              </div>
+              </ToggleGroup>
             </Section>
 
             <Section title="Mission task" hint={task ? "clear" : undefined} onHint={() => setTask(null)}>

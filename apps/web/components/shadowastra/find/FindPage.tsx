@@ -11,6 +11,7 @@ import { AnimatePresence, animate, motion } from "motion/react";
 import clsx from "clsx";
 import { ArrowLeft, ArrowRight, Bookmark, BookmarkCheck, Copy, ExternalLink, FileText, LocateFixed, MapPin, Plane, RotateCcw, Search, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
 import { WorldDot } from "@/components/shadowastra/ui/Chrome";
+import { Button } from "@/components/ui/button";
 import { FactorBreakdown, FactorProvenance } from "@/components/shadowastra/factors";
 import { TerralunaFingerprint, type TerralunaProbeProps } from "@/components/shadowastra/terraluna-fingerprint";
 import "@/components/shadowastra/shadowastra.css";
@@ -381,15 +382,9 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
               </li>
             ))}
           </motion.ol>
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: EASE, delay: 0.45 }}
-            onClick={onBuild}
-            className="btn-primary group mt-9 inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px] font-medium"
-          >
-            <Wand2 size={17} /> Build my mission <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-          </motion.button>
+          <Button size="lg" onClick={onBuild} className="mt-9">
+            <Wand2 /> Build my mission <ArrowRight />
+          </Button>
         </div>
 
         <div className="mt-16 flex items-center gap-4">
