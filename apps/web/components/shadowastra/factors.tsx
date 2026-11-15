@@ -48,8 +48,6 @@ export function FactorBreakdown({ lat, lon, targetId, task, className }: FactorB
         <div className="flex flex-wrap gap-1">
           <KindBadge kind="computed" />
           <KindBadge kind="model" />
-          <KindBadge kind="demo" />
-          <KindBadge kind="gap" />
         </div>
       </div>
       <FactorProvenance className="mt-1.5" />

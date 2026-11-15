@@ -27,30 +27,29 @@ export function TerralunaAttribution({ className }: { className?: string }) {
 }
 
 function Relief({ r, what }: { r: WindowRelief | null; what: string }) {
-  if (r === null || r.evidenceLabel === "Unavailable") {
-    return (
-      <span className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-chrome">
-        {what}: —
-      </span>
-    );
-  }
+  const ok = r !== null && r.evidenceLabel !== "Unavailable";
   return (
-    <span className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-chrome">
-      {what} ν {r.lagM} m lag: <span className="font-mono text-platinum">{r.valueM.toFixed(2)} m</span>
-      <EvidenceLabel label={isEvidenceLabel(r.evidenceLabel) ? r.evidenceLabel : "Unavailable"} />
-    </span>
+    <div className="flex items-center justify-between gap-3 text-[12px] text-chrome">
+      <span className="truncate">
+        {what}
+        {ok ? <span className="text-dim"> · ν {r.lagM} m</span> : null}
+      </span>
+      <span className="flex shrink-0 items-center gap-2 tabular-nums">
+        <span className="font-mono text-platinum">{ok ? `${r.valueM.toFixed(2)} m` : "—"}</span>
+        {ok ? <EvidenceLabel label={isEvidenceLabel(r.evidenceLabel) ? r.evidenceLabel : "Unavailable"} /> : null}
+      </span>
+    </div>
   );
 }
 
 function CardRow({ c, onPin }: { c: TlCard; onPin: (id: string) => void }) {
   return (
-    <li className="border-b border-line py-3">
+    <li className="border-b border-line py-4">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-[13px] text-platinum">
-            {c.targetName} <span className="text-dim">↔</span> <span className="font-mono text-[11.5px] text-chrome">{c.earthWindowId}</span>
-          </div>
-          <div className="mt-1.5 space-y-1">
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[13px] font-medium text-platinum">{c.targetName}</div>
+          <div className="truncate font-mono text-[11px] text-dim" title={c.earthWindowId}>↔ {c.earthWindowId}</div>
+          <div className="mt-2 space-y-1.5">
             <Relief r={c.targetRelief} what={`${BODY_NAME[c.targetBody]} window`} />
             <Relief r={c.earthRelief} what="Earth window" />
           </div>
