@@ -50,7 +50,7 @@ from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from html import unescape
 from pathlib import Path
-from typing import Any, Final, Protocol
+from typing import Any, Final, Literal, Protocol
 
 import numpy as np
 import numpy.typing as npt
@@ -65,6 +65,7 @@ from rasterio.windows import Window  # type: ignore[import-untyped]
 
 from terraluna_pipeline.export import canonical_json
 from terraluna_pipeline.io import (
+    HTTP_EXCHANGE_BODY_LIMIT_BYTES,
     RANGE_BLOCK_BYTES,
     WHOLE_FILE_LIMIT_BYTES,
     ByteRanges,
@@ -101,6 +102,7 @@ from terraluna_pipeline.io import (
     read_product,
     read_remote_cog_window,
     read_remote_geotiff_window,
+    send_http_exchange,
     sha256_file,
     stac_search_url,
 )
@@ -6473,12 +6475,440 @@ class WorldcoverSource:
         )
 
 
+# --- cors: Origin-header requests to the GLO-30 and WorldCover buckets --------------------------
+
+CORS_HEADERS_THAT_MATTER: Final = (
+    "access-control-allow-origin",
+    "access-control-allow-methods",
+    "access-control-allow-headers",
+    "access-control-expose-headers",
+    "access-control-max-age",
+    "vary",
+    "content-range",
+    "accept-ranges",
+    "content-length",
+)
+"""The response headers the CORS record reports for every request, lower case, in this order."""
+
+CorsEvidence = Literal["direct_read", "proxy_needed", "inconclusive"]
+
+_CORS_STATEMENT: Final = (
+    "This is a server-side request that sends an Origin header (Python http.client through "
+    "io.send_http_exchange), not a real browser fetch. The header evidence implies but does not "
+    "replace a browser run: a browser applies its own CORS checks, caching and preflight rules, "
+    "which this record does not observe."
+)
+_COP30_MODE_NOTE: Final = (
+    "cop30_mode (direct or proxy) is chosen by the team at G0 (PRD 9, PRD 15 architecture "
+    "review); this record is evidence for that choice and does not set it, and T1-07 writes it "
+    "nowhere, config/run.yaml included"
+)
+_CORS_RULE: Final = (
+    "Per URL, over every origin tested. direct_read: the preflight answers 2xx with "
+    "Access-Control-Allow-Origin equal to the origin or *, Access-Control-Allow-Methods listing "
+    "GET or *, and Access-Control-Allow-Headers listing range or *; and the Range GET answers "
+    "206 with Access-Control-Allow-Origin equal to the origin or * and "
+    "Access-Control-Expose-Headers listing Content-Range and Accept-Ranges or being *. "
+    "proxy_needed: for every origin the Range GET's response has no single "
+    "Access-Control-Allow-Origin equal to the origin or *, so a browser's CORS check fails and "
+    "script cannot read the response (Fetch standard, CORS check). inconclusive: anything else. "
+    "A missing header counts as absent, never as allowing. The top-level value is the GLO-30 "
+    "URL's, which bears on cop30_mode; the WorldCover URL's value bears on the live WorldCover "
+    "check (PRD 8.7 step 4)."
+)
+_CORS_ORIGIN_REASONS: Final = {
+    "neutral": (
+        "a neutral HTTPS origin reserved for documentation (example.org), so no project or "
+        "personal name is sent"
+    ),
+    "localhost": (
+        "a local development origin, as a browser on a developer's machine would send it"
+    ),
+}
+_CORS_TARGETS: Final = (
+    ("glo30", "outputs/pilot/cop30_range_read.json", ("dem", "range_read", "url")),
+    ("worldcover", "outputs/pilot/worldcover_window.json", ("range_read", "url")),
+)
+
+
+def _tokens(values: Sequence[str], *, lower: bool) -> list[str]:
+    tokens = [token.strip() for value in values for token in value.split(",")]
+    return [token.lower() if lower else token for token in tokens if token]
+
+
+def _headers_that_matter(headers: Sequence[Sequence[str]]) -> dict[str, dict[str, Any]]:
+    found: dict[str, dict[str, Any]] = {}
+    for name in CORS_HEADERS_THAT_MATTER:
+        values = [str(value) for key, value in headers if str(key).lower() == name]
+        found[name] = {"state": "present" if values else "absent", "values": values}
+    return found
+
+
+def _allows_origin(matter: Mapping[str, Mapping[str, Any]], origin: str) -> bool:
+    values = matter["access-control-allow-origin"]["values"]
+    return len(values) == 1 and values[0].strip() in ("*", origin)
+
+
+def cors_preflight_observations(
+    status: int, matter: Mapping[str, Mapping[str, Any]], origin: str
+) -> dict[str, bool]:
+    """What a preflight response allows for a GET with a range header from ``origin``."""
+    methods = _tokens(matter["access-control-allow-methods"]["values"], lower=False)
+    headers = _tokens(matter["access-control-allow-headers"]["values"], lower=True)
+    return {
+        "ok_status": 200 <= status <= 299,
+        "allows_origin": _allows_origin(matter, origin),
+        "allows_get": "GET" in methods or "*" in methods,
+        "allows_range_header": "range" in headers or "*" in headers,
+    }
+
+
+def cors_range_get_observations(
+    status: int, matter: Mapping[str, Mapping[str, Any]], origin: str
+) -> dict[str, bool]:
+    """What a Range GET response with ``origin`` shows: 206, the origin check, exposed headers."""
+    exposed = _tokens(matter["access-control-expose-headers"]["values"], lower=True)
+    return {
+        "returned_206": status == 206,
+        "allows_origin": _allows_origin(matter, origin),
+        "expose_headers_lists_content_range": "content-range" in exposed,
+        "expose_headers_lists_accept_ranges": "accept-ranges" in exposed,
+        "expose_headers_wildcard": "*" in exposed,
+    }
+
+
+def cors_evidence(origins: Sequence[Mapping[str, Any]]) -> tuple[CorsEvidence, list[str]]:
+    """The evidence value for one URL and its reasons, from each origin's observations.
+
+    ``origins`` holds, per origin, ``origin``, ``preflight`` and ``range_get`` entries with
+    ``status`` and ``observations``.
+    """
+    reasons: list[str] = []
+    direct = True
+    blocked = 0
+    for item in origins:
+        origin = item["origin"]
+        pre = item["preflight"]["observations"]
+        get = item["range_get"]["observations"]
+        pre_status, get_status = item["preflight"]["status"], item["range_get"]["status"]
+        if not pre["ok_status"]:
+            reasons.append(f"{origin}: the preflight answered HTTP {pre_status}, not 2xx")
+        for key, text in (
+            ("allows_origin", "no Access-Control-Allow-Origin equal to the origin or *"),
+            ("allows_get", "no Access-Control-Allow-Methods listing GET or *"),
+            ("allows_range_header", "no Access-Control-Allow-Headers listing range or *"),
+        ):
+            if not pre[key]:
+                reasons.append(f"{origin}: the preflight response has {text}")
+        if not get["returned_206"]:
+            reasons.append(f"{origin}: the Range GET answered HTTP {get_status}, not 206")
+        if not get["allows_origin"]:
+            blocked += 1
+            reasons.append(
+                f"{origin}: the Range GET response has no Access-Control-Allow-Origin equal to "
+                "the origin or *, so a browser's CORS check would fail"
+            )
+        wildcard = get["expose_headers_wildcard"]
+        for key, header in (
+            ("expose_headers_lists_content_range", "Content-Range"),
+            ("expose_headers_lists_accept_ranges", "Accept-Ranges"),
+        ):
+            if not (get[key] or wildcard):
+                reasons.append(
+                    f"{origin}: Access-Control-Expose-Headers on the Range GET does not list "
+                    f"{header} and is not *"
+                )
+        direct = direct and all(pre.values()) and get["returned_206"] and get["allows_origin"]
+        direct = direct and (
+            wildcard
+            or (
+                get["expose_headers_lists_content_range"]
+                and get["expose_headers_lists_accept_ranges"]
+            )
+        )
+    if origins and blocked == len(origins):
+        return "proxy_needed", reasons
+    if origins and direct:
+        return "direct_read", [
+            "for every origin tested, the preflight and the Range GET carry every header the "
+            "rule requires"
+        ]
+    return "inconclusive", reasons or ["no origin was tested"]
+
+
+@dataclass(frozen=True)
+class CorsSource:
+    """The Origin-header check of the GLO-30 and WorldCover buckets (PRD 8.7 step 2, 9 G0, 15).
+
+    fetch reads the tile URLs the T1-06 and wc records committed, then sends to each, for each
+    stated origin, an OPTIONS preflight (Origin, Access-Control-Request-Method: GET,
+    Access-Control-Request-Headers: range) and a GET with ``Range: bytes=0-1023`` and Origin.
+    It saves every status line, response header list, body and request time under
+    data/raw/cors/. record reads only those files and the two records. Nothing here chooses
+    cop30_mode.
+    """
+
+    origins: tuple[tuple[str, str], ...] = (
+        ("neutral", "https://example.org"),
+        ("localhost", "http://localhost:3000"),
+    )
+    range_header: str = "bytes=0-1023"
+    max_body_bytes: int = HTTP_EXCHANGE_BODY_LIMIT_BYTES
+
+    @property
+    def name(self) -> str:
+        return "cors"
+
+    @property
+    def origin_reasons(self) -> dict[str, str]:
+        return dict(_CORS_ORIGIN_REASONS)
+
+    def _requests(self, origin: str) -> tuple[tuple[str, str, dict[str, str]], ...]:
+        return (
+            (
+                "preflight",
+                "OPTIONS",
+                {
+                    "Origin": origin,
+                    "Access-Control-Request-Method": "GET",
+                    "Access-Control-Request-Headers": "range",
+                },
+            ),
+            ("range_get", "GET", {"Origin": origin, "Range": self.range_header}),
+        )
+
+    def _urls(self, root: Path) -> list[tuple[str, str, str]]:
+        urls = []
+        for key, record, path in _CORS_TARGETS:
+            try:
+                value: Any = json.loads((root / record).read_bytes())
+                for part in path:
+                    value = value[part]
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                raise PilotError(
+                    f"{record} does not state the {key} tile URL at {'.'.join(path)} "
+                    f"({error!r}); record that source first"
+                ) from error
+            if not isinstance(value, str):
+                raise PilotError(f"{record} states no {key} tile URL at {'.'.join(path)}")
+            urls.append((key, value, f"{record}: {'.'.join(path)}"))
+        return urls
+
+    # -- fetch --
+
+    def fetch(
+        self, raw_dir: Path, download: Downloader, read_range: RangeFetcher, now: Clock
+    ) -> None:
+        urls = self._urls(raw_dir.parent.parent.parent)
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=raw_dir, prefix=".fetch-") as staging_name:
+            staging = Path(staging_name)
+            files: list[dict[str, Any]] = []
+            for key, url, _ in urls:
+                for origin_key, origin in self.origins:
+                    for kind, method, headers in self._requests(origin):
+                        requested_at = now()
+                        exchange = send_http_exchange(
+                            url, method, headers, max_body_bytes=self.max_body_bytes
+                        )
+                        retrieved_at = now()
+                        file_name = f"{key}_{origin_key}_{kind}.body"
+                        (staging / file_name).write_bytes(exchange.body)
+                        files.append(
+                            {
+                                "url_key": key,
+                                "url": url,
+                                "origin_key": origin_key,
+                                "origin": origin,
+                                "kind": kind,
+                                "method": method,
+                                "request_headers": [list(h) for h in exchange.request_headers],
+                                "status_line": exchange.status_line,
+                                "http_version": exchange.http_version,
+                                "status": exchange.status,
+                                "reason": exchange.reason,
+                                "response_headers": [list(h) for h in exchange.headers],
+                                "file_name": file_name,
+                                "bytes_received": len(exchange.body),
+                                "body_truncated": exchange.body_truncated,
+                                "sha256": hashlib.sha256(exchange.body).hexdigest(),
+                                "requested_at": utc_timestamp(requested_at),
+                                "retrieved_at": utc_timestamp(retrieved_at),
+                            }
+                        )
+            metadata = {
+                "source": self.name,
+                "command": f"{COMMAND} fetch {self.name}",
+                "urls": [{"key": key, "url": url, "from": where} for key, url, where in urls],
+                "origins": [{"key": key, "origin": origin} for key, origin in self.origins],
+                "max_body_bytes": self.max_body_bytes,
+                "documents": [],
+                "files": files,
+            }
+            (raw_dir / FETCH_METADATA).unlink(missing_ok=True)
+            for entry in files:
+                os.replace(staging / entry["file_name"], raw_dir / entry["file_name"])
+            _write_atomically(raw_dir / FETCH_METADATA, canonical_json(metadata))
+
+    # -- build --
+
+    def build(self, raw_dir: Path, root: Path) -> Build:
+        fetched = _load_fetch(raw_dir, self.name)
+        try:
+            return self._build(root, fetched)
+        except (KeyError, TypeError) as error:
+            raise PilotError(
+                f"data/raw/{self.name}/{FETCH_METADATA} lacks an expected entry ({error!r}); "
+                f"run: {COMMAND} fetch {self.name}"
+            ) from error
+
+    def _build(self, root: Path, fetched: Mapping[str, Any]) -> Build:
+        refetch = f"; run: {COMMAND} fetch {self.name}"
+        urls = self._urls(root)
+        stated = [(item["key"], item["url"], item["from"]) for item in fetched["urls"]]
+        for (key, url, where), before in itertools.zip_longest(urls, stated):
+            if before is None or (key, url, where) != tuple(before):
+                raise PilotError(
+                    f"the {key} URL now stated by {where.split(':')[0]} differs from the URL the "
+                    f"fetch used{refetch}"
+                )
+        if fetched["origins"] != [{"key": k, "origin": o} for k, o in self.origins]:
+            raise PilotError(f"fetch.json was fetched with other origins{refetch}")
+        entries = iter(fetched["files"])
+        results: list[dict[str, Any]] = []
+        for key, url, where in urls:
+            per_origin: list[dict[str, Any]] = []
+            for origin_key, origin in self.origins:
+                item: dict[str, Any] = {"origin_key": origin_key, "origin": origin}
+                for kind, method, headers in self._requests(origin):
+                    entry = next(entries, None)
+                    if entry is None or (
+                        entry["url_key"],
+                        entry["url"],
+                        entry["origin"],
+                        entry["kind"],
+                        entry["method"],
+                    ) != (key, url, origin, kind, method):
+                        raise PilotError(
+                            f"fetch.json does not list the {kind} of {url} from {origin} in "
+                            f"order{refetch}"
+                        )
+                    sent = dict(tuple(pair) for pair in entry["request_headers"])
+                    if any(sent.get(name) != value for name, value in headers.items()):
+                        raise PilotError(
+                            f"fetch.json's {kind} of {url} from {origin} did not send the "
+                            f"stated headers{refetch}"
+                        )
+                    matter = _headers_that_matter(entry["response_headers"])
+                    status = int(entry["status"])
+                    observe = (
+                        cors_preflight_observations
+                        if kind == "preflight"
+                        else cors_range_get_observations
+                    )
+                    item[kind] = {
+                        "method": method,
+                        "request_headers": entry["request_headers"],
+                        "status_line": entry["status_line"],
+                        "status": status,
+                        "headers_that_matter": matter,
+                        "response_headers": entry["response_headers"],
+                        "observations": observe(status, matter, origin),
+                        "body": {
+                            "local_path": f"{RAW_DIR.as_posix()}/{self.name}/{entry['file_name']}",
+                            "bytes": entry["bytes_received"],
+                            "sha256": entry["sha256"],
+                            "truncated": entry["body_truncated"],
+                        },
+                        "requested_at": entry["requested_at"],
+                        "retrieved_at": entry["retrieved_at"],
+                    }
+                per_origin.append(item)
+            value, reasons = cors_evidence(per_origin)
+            results.append(
+                {
+                    "key": key,
+                    "url": url,
+                    "url_from": where,
+                    "cors_evidence_supports": value,
+                    "reasons": reasons,
+                    "origins": per_origin,
+                }
+            )
+        if next(entries, None) is not None:
+            raise PilotError(f"fetch.json lists more requests than the check sends{refetch}")
+        glo30 = results[0]
+        times = sorted(entry["retrieved_at"] for entry in fetched["files"])
+        result = {
+            "record": "cors_check",
+            "description": (
+                "Origin-header requests to one Copernicus GLO-30 tile and one ESA WorldCover map "
+                "(the tiles the T1-06 and wc records read), with the response headers that "
+                "decide whether a browser may read them cross-origin (PRD 8.7 step 2 and 4; 9 "
+                "G0; 15 architecture review). Raw observations and a derived evidence value "
+                "only: the G0 status and cop30_mode are human decisions (PRD 23.6)."
+            ),
+            "source": self.name,
+            "method": {
+                "statement": _CORS_STATEMENT,
+                "client": (
+                    "io.send_http_exchange: Host, Accept-Encoding: identity and the request "
+                    "headers listed per request; no User-Agent, cookie, credential or project "
+                    "identifier; redirects are not followed"
+                ),
+                "origins": [
+                    {"key": key, "origin": origin, "why": _CORS_ORIGIN_REASONS[key]}
+                    for key, origin in self.origins
+                ],
+                "requests": {
+                    "preflight": (
+                        "OPTIONS with Origin, Access-Control-Request-Method: GET and "
+                        "Access-Control-Request-Headers: range"
+                    ),
+                    "range_get": f"GET with Origin and Range: {self.range_header}",
+                },
+                "headers_that_matter": list(CORS_HEADERS_THAT_MATTER),
+                "absent_header": (
+                    "a header the response does not carry is recorded with state absent and no "
+                    "values, and never counts as allowing"
+                ),
+            },
+            "cors_evidence_supports": glo30["cors_evidence_supports"],
+            "cors_evidence_reasons": glo30["reasons"],
+            "cors_evidence_scope": (
+                "the GLO-30 tile URL, which bears on cop30_mode; each URL's own value is under "
+                "urls[].cors_evidence_supports"
+            ),
+            "cop30_mode_note": _COP30_MODE_NOTE,
+            "derivation_rule": _CORS_RULE,
+            "browser_run": (
+                "not performed by this record; G0 asks for a Copernicus COG read from a browser "
+                "origin with the CORS result recorded (PRD 9), which this header evidence "
+                "implies but does not replace"
+            ),
+            "urls": results,
+            "retrieval": {
+                "first_retrieved_at": times[0] if times else None,
+                "last_retrieved_at": times[-1] if times else None,
+                "fetch_metadata": f"{RAW_DIR.as_posix()}/{self.name}/{FETCH_METADATA}",
+                "command": fetched["command"],
+            },
+            "tool_versions": tool_versions(),
+        }
+        return Build(
+            files={"outputs/pilot/cors_check.json": canonical_json(result)},
+            records=(),
+            record_prefix="CORS/",
+        )
+
+
 SOURCES: Mapping[str, Source] = {
     "pgda78": Pgda78Source(),
     "minirf": MinirfSource(),
     "ctx": CtxSource(),
     "cop30": Cop30Source(),
     "wc": WorldcoverSource(),
+    "cors": CorsSource(),
 }
 """The registered pilot sources, by the name used on the command line."""
 
