@@ -1,109 +1,121 @@
 'use client';
 
-// The Lab slide's 3D twin: the Lab's TerrainTwins (real elevation tiles, imagery drapes) with a
-// rover driving the centre route on both slabs in sync. Loaded client-only from the deck.
+// The Lab slide's 3D twin: the Lab's TerrainTwins (ShadowAstra Atlas, MIT; real elevation and
+// imagery tiles) as in LabShowcase, with the field-test rover driving the centre slice on a loop
+// and drag-to-orbit left on. Loaded client-only from the deck, mounted one slide early.
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import TerrainTwins, { type FieldScene } from '@/components/shadowastra/lab/TerrainTwins';
-import { earthSun, sampleRoute, shadowMask, targetSun } from '@/lib/shadowastra-lab/fieldtest';
+import { TARGET_BY_ID } from '@/lib/shadowastra/data/sites';
+import { useMotionReduced } from '@/lib/shadowastra/motionPref';
+import { earthSite } from '@/lib/shadowastra/places';
+import { lightTwin } from '@/lib/shadowastra/sun';
+import { earthSun, sampleRoute, shadowMask, startHour, startMonth, targetSun } from '@/lib/shadowastra-lab/fieldtest';
 import { DEM, earthVisible, IMAGERY, nativeKm, sampleImagery, sampleTerrain, type TerrainGrid } from '@/lib/shadowastra/terrain';
 
-import type { LonLat } from './pitch-data';
+const FOOTPRINT_KM = 40;
+const LOOP_SECONDS = 16;
 
-const FOOTPRINT_KM = 80;
-const LAP_S = 16;
-
-interface Props {
-  readonly earth: LonLat;
-  readonly target: LonLat;
-  readonly body: 'moon' | 'mars';
+interface Loaded {
+  readonly e: TerrainGrid;
+  readonly t: TerrainGrid;
+  readonly de: HTMLCanvasElement | null;
+  readonly dt: HTMLCanvasElement | null;
 }
 
-export default function LabTwin({ earth, target, body }: Props) {
-  const [grids, setGrids] = useState<{ e: TerrainGrid; t: TerrainGrid } | null>(null);
-  const [drapes, setDrapes] = useState<{ e: HTMLCanvasElement | null; t: HTMLCanvasElement | null }>({ e: null, t: null });
+export default function LabTwin({ earth, target }: { readonly earth: string; readonly target: string }) {
+  const site = earthSite(earth);
+  const tgt = TARGET_BY_ID[target];
+  const reduce = useMotionReduced();
+  const [data, setData] = useState<Loaded | null>(null);
   const [progress, setProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const run = useRef({ current: 0 });
+  const [error, setError] = useState(false);
+  const lat = site?.lat ?? 0;
+  const lon = site?.lon ?? 0;
 
   useEffect(() => {
+    if (!tgt || !site) return;
     let alive = true;
-    const spacing = Math.max(nativeKm(DEM[body], DEM[body].maxZoom, 0), FOOTPRINT_KM / 128);
+    const spacing = Math.max(nativeKm(DEM[tgt.body], DEM[tgt.body].maxZoom, 0), FOOTPRINT_KM / 128);
     const prog = { a: 0, b: 0 };
     const tick = () => alive && setProgress((prog.a + prog.b) / 2);
     Promise.all([
-      sampleTerrain({ body: 'earth', lat: earth.lat, lon: earth.lon, footprintKm: FOOTPRINT_KM, spacingKm: spacing, onProgress: (d: number, n: number) => ((prog.a = d / n), tick()) }),
-      sampleTerrain({ body, lat: target.lat, lon: target.lon, footprintKm: FOOTPRINT_KM, spacingKm: spacing, onProgress: (d: number, n: number) => ((prog.b = d / n), tick()) }),
+      sampleTerrain({ body: 'earth', lat, lon, footprintKm: FOOTPRINT_KM, spacingKm: spacing, onProgress: (d: number, n: number) => ((prog.a = d / n), tick()) }),
+      sampleTerrain({ body: tgt.body, lat: tgt.lat, lon: tgt.lon, footprintKm: FOOTPRINT_KM, spacingKm: spacing, onProgress: (d: number, n: number) => ((prog.b = d / n), tick()) }),
+      sampleImagery(earthVisible(lat), lat, lon, FOOTPRINT_KM, 1024).catch(() => null),
+      sampleImagery(IMAGERY[tgt.body].visible, tgt.lat, tgt.lon, FOOTPRINT_KM, 1024).catch(() => null),
     ])
-      .then(([e, t]) => alive && setGrids({ e, t }))
-      .catch(() => alive && setError('Elevation tiles could not be loaded.'));
-    sampleImagery(earthVisible(earth.lat), earth.lat, earth.lon, FOOTPRINT_KM, 512)
-      .then((c: HTMLCanvasElement) => alive && setDrapes((d) => ({ ...d, e: c })))
-      .catch(() => {});
-    sampleImagery(IMAGERY[body].visible, target.lat, target.lon, FOOTPRINT_KM, 512)
-      .then((c: HTMLCanvasElement) => alive && setDrapes((d) => ({ ...d, t: c })))
-      .catch(() => {});
+      .then(([e, t, de, dt]) => alive && setData({ e, t, de, dt }))
+      .catch(() => alive && setError(true));
     return () => {
       alive = false;
     };
-  }, [earth.lat, earth.lon, target.lat, target.lon, body]);
+    // site is derived from `earth`; lat/lon carry it
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lat, lon, tgt]);
 
+  const run = useRef(0);
   const field = useMemo<FieldScene | null>(() => {
-    if (grids === null) return null;
-    const month = 6;
-    const hour = 15;
-    const shadeE = shadowMask(grids.e, earthSun(earth.lat, month, hour));
-    const shadeT = shadowMask(grids.t, targetSun(body, target.lat, month, hour));
+    if (!data || !tgt) return null;
+    const month = startMonth(lat, lightTwin(lat, tgt.body, tgt.lat).months.map((m: { score: number }) => m.score));
+    const hour = startHour(lat, tgt.body, tgt.lat, month);
+    const shadeE = shadowMask(data.e, earthSun(lat, month, hour));
+    const shadeT = shadowMask(data.t, targetSun(tgt.body, tgt.lat, month, hour));
     return {
-      progress: run.current,
+      progress: run,
       mode: 'rover',
-      earth: { route: sampleRoute(grids.e, shadeE, 15), shade: shadeE },
-      target: { route: sampleRoute(grids.t, shadeT, 15), shade: shadeT },
+      earth: { route: sampleRoute(data.e, shadeE, 15), shade: shadeE },
+      target: { route: sampleRoute(data.t, shadeT, 15), shade: shadeT },
     };
-  }, [grids, earth.lat, target.lat, body]);
+  }, [data, lat, tgt]);
 
-  // the rover drives the route back and forth, read every frame by the scene
   useEffect(() => {
-    if (field === null) return;
+    if (!field) return;
+    if (reduce) {
+      run.current = 0.5;
+      return;
+    }
     let raf = 0;
-    const start = performance.now();
+    let last = performance.now();
     const loop = (now: number) => {
-      const t = ((now - start) / 1000 / LAP_S) % 2;
-      const p = t < 1 ? t : 2 - t;
-      run.current.current = p * p * (3 - 2 * p);
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      run.current = (run.current + dt / LOOP_SECONDS) % 1;
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [field]);
+  }, [field, reduce]);
 
-  if (grids === null) {
+  if (!data) {
     return (
-      <div className="grid h-full place-items-center bg-[#0b0c0f] text-sm text-zinc-400">
-        <div className="flex w-56 flex-col items-center gap-3">
-          <span>{error ?? `Streaming real elevation tiles · ${Math.round(progress * 100)}%`}</span>
+      <div className="grid size-full place-items-center bg-[#0b0c0f] text-sm text-zinc-400">
+        <div className="flex w-64 flex-col items-center gap-3">
+          <span>{error ? 'Elevation tiles could not be loaded.' : `Streaming real elevation tiles · ${Math.round(progress * 100)}%`}</span>
           <span className="h-px w-full bg-zinc-800">
-            <span className="block h-px bg-[var(--primary)] transition-[width]" style={{ width: `${Math.max(4, progress * 100)}%` }} />
+            <span className="block h-px bg-[#C8962E] transition-[width]" style={{ width: `${Math.max(4, progress * 100)}%` }} />
           </span>
         </div>
       </div>
     );
   }
   return (
-    <TerrainTwins
-      earth={grids.e}
-      target={grids.t}
-      drapeEarth={drapes.e}
-      drapeTarget={drapes.t}
-      litEarth={null}
-      litTarget={null}
-      footprintKm={FOOTPRINT_KM}
-      sunElev={50}
-      sunAz={225}
-      playing={false}
-      exaggeration={4}
-      overlay="imagery"
-      field={field}
-    />
+    <div className="size-full" role="img" aria-label={`3D terrain: ${site?.name ?? 'Earth site'} beside ${tgt?.name ?? 'target'}, ${FOOTPRINT_KM} km blocks, drag to orbit`}>
+      <TerrainTwins
+        earth={data.e}
+        target={data.t}
+        drapeEarth={data.de}
+        drapeTarget={data.dt}
+        litEarth={null}
+        litTarget={null}
+        footprintKm={FOOTPRINT_KM}
+        sunElev={50}
+        sunAz={135}
+        playing={false}
+        exaggeration={3}
+        overlay="imagery"
+        field={field}
+      />
+    </div>
   );
 }

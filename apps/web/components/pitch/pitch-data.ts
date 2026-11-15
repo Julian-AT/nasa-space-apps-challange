@@ -5,8 +5,11 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { buildCardVisual, type TileView } from '@/components/cards/card-visual';
 import { buildNuSeries, variantOf } from '@/components/charts/series';
 import type { PulledBundle } from '@/lib/bundle';
+import type { ProbeTargetFingerprint } from '@/lib/probe/result';
+import { probeTargets } from '@/lib/probe/targets';
 
 export interface NuCurve {
   readonly id: string;
@@ -27,6 +30,27 @@ export interface CardRange {
 export interface LonLat {
   readonly lon: number;
   readonly lat: number;
+}
+
+export interface TargetTile {
+  readonly targetId: string;
+  readonly name: string;
+  readonly body: 'moon' | 'mars';
+  readonly tile: TileView | null;
+}
+
+export interface ResultCard {
+  readonly cardId: string;
+  readonly targetName: string;
+  readonly earthName: string;
+  readonly body: 'moon' | 'mars';
+  readonly relief: number;
+  readonly unit: string;
+  /** 100 - background_percentile, floored (as the card atlas shows it), or null. */
+  readonly closerThan: number | null;
+  readonly label: string;
+  readonly targetTile: TileView | null;
+  readonly earthTile: TileView | null;
 }
 
 export interface PitchData {
@@ -53,6 +77,23 @@ export interface PitchData {
   };
   readonly twin: { readonly earth: LonLat; readonly target: LonLat; readonly earthName: string; readonly targetName: string } | null;
   readonly paperHref: string | null;
+  readonly targets: readonly TargetTile[];
+  readonly results: readonly ResultCard[];
+  /** The finder slide: one evidence card's Earth window centre, probed live against its target. */
+  readonly finder: {
+    readonly lat: number;
+    readonly lon: number;
+    readonly earthName: string;
+    readonly targetId: string;
+    readonly targetName: string;
+    readonly relief: number | null;
+    readonly texture: number | null;
+    readonly closerThan: number | null;
+    readonly fingerprints: ProbeTargetFingerprint[];
+    readonly bundleVersion: string;
+  } | null;
+  /** The Lab slide: an Earth window centre ("@lat,lon") and the Lab's target site id. */
+  readonly lab: { readonly earth: string; readonly earthName: string; readonly target: string; readonly targetName: string } | null;
 }
 
 const TARGET_NAMES: Record<string, string> = {
@@ -178,6 +219,60 @@ export function buildPitchData(bundle: PulledBundle): PitchData {
     }
   }
 
+  // Problem slide: one hillshade per target, from its first card. Results slide: Jezero's
+  // Rosamond Dry Lake card and Arcadia's closest card, values read from the cards.
+  const targets: TargetTile[] = order.flatMap((id) => {
+    const card = cards.find((c) => c.target.target_id === id);
+    if (card === undefined) return [];
+    const v = buildCardVisual(bundle, card);
+    return [{ targetId: id, name: v.targetName, body: v.body, tile: v.targetTile }];
+  });
+  const relOf = (c: (typeof cards)[number]) => c.distances_by_family.terrain_relief;
+  const closest = (list: typeof cards) =>
+    list.filter((c) => relOf(c).value !== null).sort((a, b) => (relOf(a).value ?? 0) - (relOf(b).value ?? 0))[0];
+  const picks = [
+    closest(cards.filter((c) => c.target.target_id === 'mars-jezero-w000' && c.earth.search_region_id === 'rosamond-dry-lake')),
+    closest(cards.filter((c) => c.target.target_id === 'mars-arcadia-w000')),
+  ];
+  const results: ResultCard[] = picks.flatMap((card) => {
+    if (card === undefined) return [];
+    const r = relOf(card);
+    if (r.value === null) return [];
+    const v = buildCardVisual(bundle, card);
+    return [{
+      cardId: card.card_id,
+      targetName: v.targetName,
+      earthName: v.earthName,
+      body: v.body,
+      relief: r.value,
+      unit: r.unit ?? '',
+      closerThan: r.background_percentile === null ? null : Math.floor(100 - r.background_percentile),
+      label: r.evidence_label,
+      targetTile: v.targetTile,
+      earthTile: v.earthTile,
+    }];
+  });
+  const fc = picks[0];
+  const fcC = fc === undefined ? null : centroid(fc.earth.polygon.ring_lonlat);
+  const finder: PitchData['finder'] =
+    fc === undefined || fcC === null
+      ? null
+      : {
+          lat: fcC.lat,
+          lon: fcC.lon,
+          earthName: buildCardVisual(bundle, fc).earthName,
+          targetId: fc.target.target_id,
+          targetName: targetName(fc.target.target_id),
+          relief: relOf(fc).value,
+          texture: fc.distances_by_family.terrain_texture.value,
+          closerThan: relOf(fc).background_percentile === null ? null : Math.floor(100 - (relOf(fc).background_percentile ?? 0)),
+          fingerprints: probeTargets(bundle).fingerprints.filter((f) => f.target_id === fc.target.target_id),
+          bundleVersion: manifest.bundle_version,
+        };
+  const holu = cards.find((c) => c.earth.search_region_id === 'holuhraun');
+  const holuC = holu === undefined ? null : centroid(holu.earth.polygon.ring_lonlat);
+  const lab = holuC === null ? null : { earth: `@${holuC.lat.toFixed(2)},${holuC.lon.toFixed(2)}`, earthName: 'Holuhraun, Iceland', target: 'jezero', targetName: 'Jezero crater' };
+
   const paper = join(process.cwd(), 'public/paper/terraluna-paper.pdf');
 
   return {
@@ -204,5 +299,9 @@ export function buildPitchData(bundle: PulledBundle): PitchData {
     },
     twin,
     paperHref: existsSync(paper) ? '/paper/terraluna-paper.pdf' : null,
+    targets,
+    results,
+    finder,
+    lab,
   };
 }
