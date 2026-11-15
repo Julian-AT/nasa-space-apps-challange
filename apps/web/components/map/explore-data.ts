@@ -35,6 +35,14 @@ export interface MapWindow {
   readonly isPrimary: boolean;
   readonly isReference: boolean;
   readonly cardId: string | null;
+  /** nu of terrain relief at the smallest supported lag, or null when the window has none (never 0). */
+  readonly relief?: WindowRelief | null;
+}
+
+export interface WindowRelief {
+  readonly lagM: string;
+  readonly valueM: number;
+  readonly evidenceLabel: 'Observed' | 'Derived' | 'Predicted' | 'Assumed' | 'Unavailable';
 }
 
 export interface NuRow {
@@ -147,6 +155,20 @@ function nuSummary(target: Targets[number], entries: readonly WindowEntry[] | un
   };
 }
 
+function windowRelief(entry: WindowEntry): WindowRelief | null {
+  const fingerprint = entry.terrain;
+  const relief = fingerprint?.terrain?.relief;
+  if (fingerprint === null || fingerprint === undefined || relief === undefined) return null;
+  const lags = Object.keys(relief.nu_m).sort((a, b) => Number(a) - Number(b));
+  for (const lag of lags) {
+    const value = relief.nu_m[lag];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return { lagM: lag, valueM: value, evidenceLabel: fingerprint.evidence_label };
+    }
+  }
+  return null;
+}
+
 function targetWindows(
   target: Targets[number],
   entries: readonly WindowEntry[],
@@ -174,6 +196,7 @@ function targetWindows(
       isPrimary,
       isReference,
       cardId: entry.card_id,
+      relief: windowRelief(entry),
     });
   }
   return out;

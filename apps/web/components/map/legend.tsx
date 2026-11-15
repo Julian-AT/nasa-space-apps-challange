@@ -16,13 +16,15 @@ export function LayerLegend({ layer }: { readonly layer: TileLayerRecord }) {
           className="h-3 w-full rounded-sm border border-border"
           style={{ backgroundImage: scaleGradient(legend.scale) }}
         />
-        <figcaption className="flex justify-between text-xs text-muted-foreground">
-          <span>{String(legend.min)}</span>
-          <span>
+        <figcaption className="flex flex-col gap-0.5 font-mono text-[11px] text-dim">
+          <span className="flex justify-between text-chrome">
+            <span>{String(legend.min)}</span>
+            <span>{String(legend.max)}</span>
+          </span>
+          <span className="break-words">
             {legend.scale}
             {unit === null ? '' : `, ${unit}`}
           </span>
-          <span>{String(legend.max)}</span>
         </figcaption>
       </figure>
     );

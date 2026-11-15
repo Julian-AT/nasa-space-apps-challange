@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // Numbered candidate cards for the Earth results panel (PRD 8.6, 10, D07). Each card shows the
 // separate per-family distances with unit and evidence label; there is no single match score and
 // no rank number other than the position in the comparisons file. The encoder distance appears only
@@ -60,70 +61,77 @@ export interface EarthCardsProps {
   readonly selected: number | null;
   readonly onSelect: (index: number) => void;
   readonly modelInBundle: boolean;
+  /** The family chosen on the switch: its value leads each row. */
+  readonly family?: Family;
 }
 
-export function EarthCards({ candidates, selected, onSelect, modelInBundle }: EarthCardsProps) {
+export function EarthCards({ candidates, selected, onSelect, modelInBundle, family = 'terrain_relief' }: EarthCardsProps) {
   return (
-    <ol className="flex flex-col gap-3" aria-label="Candidate windows, in comparisons file order">
+    <ol className="flex flex-col gap-1.5" aria-label="Candidate windows, in comparisons file order">
       {candidates.map((c, index) => (
         <li
           key={`${c.targetWindowId}|${c.earthWindowId}`}
           data-selected={selected === index}
           className={cn(
-            'flex flex-col gap-2 rounded-xl border bg-background/50 p-3',
-            selected === index ? 'border-primary' : 'border-border',
+            'flex flex-col gap-2 rounded-xl border bg-ink px-3 py-2.5',
+            selected === index ? 'border-flare/70' : 'border-line',
           )}
         >
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-2.5">
             <span
               aria-hidden="true"
-              className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-primary text-sm font-bold text-primary-foreground"
+              className="flex size-6 shrink-0 items-center justify-center rounded-full bg-earth font-mono text-[11px] font-bold text-void"
             >
               {index + 1}
             </span>
-            {c.figureDataUrl === null ? null : (
-              // A bundle figure, not a placeholder; a data URL so no extra request is made.
-              <img src={c.figureDataUrl} alt={`Figure ${c.figurePath ?? ''} for ${c.earthWindowId}`} className="h-14 w-20 rounded-md border border-border object-cover" />
-            )}
             <div className="min-w-0 flex-1">
               <button
                 type="button"
                 onClick={() => {
                   onSelect(index);
                 }}
-                className="text-left text-sm font-semibold break-all underline-offset-2 hover:underline"
+                className="block w-full text-left text-[13px] font-medium break-all text-platinum underline-offset-2 hover:underline"
                 aria-label={`Candidate ${String(index + 1)}: show ${c.earthWindowId} on the map`}
               >
                 {c.earthWindowId}
               </button>
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                {c.regionId === null ? null : <Chip>region {c.regionId}</Chip>}
-                {c.windowStatus === null ? <Chip>no window record</Chip> : <Chip>window {c.windowStatus}</Chip>}
-                {c.centroidLonLat === null ? <Chip>not on map: no footprint in windows/earth.json</Chip> : null}
-              </div>
+              <p className="text-[11px] text-dim">
+                {c.regionId === null ? 'no region' : c.regionId} {'\u00b7'} {c.windowStatus === null ? 'no window record' : `window ${c.windowStatus}`}
+                {c.centroidLonLat === null ? ' \u00b7 not on map: no footprint in windows/earth.json' : ''}
+              </p>
             </div>
+            {c.figureDataUrl === null ? null : (
+              // A bundle figure, not a placeholder; a data URL so no extra request is made.
+              <img src={c.figureDataUrl} alt={`Figure ${c.figurePath ?? ''} for ${c.earthWindowId}`} className="h-10 w-14 shrink-0 rounded-md border border-line-2 object-cover" />
+            )}
           </div>
-          {CARD_FAMILIES.map((f) => (
-            <FamilyLine key={f} family={f} candidate={c} modelInBundle={modelInBundle} />
-          ))}
-          {c.exclusions.length === 0 ? null : (
-            <p className="text-xs text-muted-foreground">
-              Excluded: {c.exclusions.map((x) => `${x.observable} (${x.reasons.join(', ')})`).join('; ')}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-3 text-sm">
+          <FamilyLine family={family} candidate={c} modelInBundle={modelInBundle} />
+          <details className="text-sm">
+            <summary className="cursor-pointer text-[11px] text-dim">All distance families</summary>
+            <div className="mt-2 flex flex-col gap-2">
+              {CARD_FAMILIES.map((f) => (
+                <FamilyLine key={f} family={f} candidate={c} modelInBundle={modelInBundle} />
+              ))}
+              {c.exclusions.length === 0 ? null : (
+                <p className="text-xs text-muted-foreground">
+                  Excluded: {c.exclusions.map((x) => `${x.observable} (${x.reasons.join(', ')})`).join('; ')}
+                </p>
+              )}
+            </div>
+          </details>
+          <div className="flex flex-wrap gap-2 text-[12px]">
             {c.cardId === null ? null : (
-              <Link className="underline" href={`/site/${c.cardId}`}>
+              <Link className="rounded-full border border-flare/50 px-2.5 py-0.5 text-flare hover:bg-flare/10" href={`/site/${c.cardId}`}>
                 Evidence card
               </Link>
             )}
-            <Link className="underline" href={`/compare/${c.targetWindowId}/${c.earthWindowId}`}>
+            <Link className="rounded-full border border-line-2 px-2.5 py-0.5 text-chrome hover:text-platinum" href={`/compare/${c.targetWindowId}/${c.earthWindowId}`}>
               Compare curves
             </Link>
           </div>
         </li>
       ))}
-      <li className="list-none">
+      <li className="list-none pt-1">
         <EvidenceLabel label="Derived" /> <span className="text-xs text-muted-foreground">Numbers are as serialized in the bundle.</span>
       </li>
     </ol>

@@ -2,13 +2,14 @@
 // nu(L) summary of the target window, layer list with legends and evidence labels, products and
 // frames, and the window eligibility tally with reasons. Every figure is read from the serialised
 // bundle records; a missing record renders an Unavailable panel that names the missing file.
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { EvidenceLabel } from '@/components/evidence-label';
 import { LabelledValue } from '@/components/labelled-value';
 
 import { ELIGIBILITY_TONES, summariseWindows } from './eligibility.ts';
-import type { MapTarget, NuSummary } from './explore-data.ts';
+import type { MapTarget, MapWindow, NuSummary } from './explore-data.ts';
 import { roleStatuses, unmatchedLayers } from './layer-roles.ts';
 import { LayerLegend } from './legend.tsx';
 import type { TileLayerRecord } from './tile-frame.ts';
@@ -16,8 +17,8 @@ import { UnavailablePanel } from './unavailable-panel.tsx';
 
 function PanelSection({ title, children }: { readonly title: string; readonly children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-2 border-t border-border pt-3 first:border-t-0 first:pt-0">
-      <h3 className="text-sm font-semibold tracking-wide text-foreground uppercase">{title}</h3>
+    <section className="flex flex-col gap-2 border-t border-line pt-4 first:border-t-0 first:pt-0">
+      <h3 className="font-mono text-[0.7rem] font-semibold tracking-[0.2em] text-dim uppercase">{title}</h3>
       {children}
     </section>
   );
@@ -153,7 +154,7 @@ function LayerRow({
 }) {
   const id = `layer-${layer.layer}`;
   return (
-    <li className="flex flex-col gap-1 rounded-md border border-border bg-background/40 p-2">
+    <li className="flex flex-col gap-1.5 rounded-xl border border-line-2 bg-ink p-3">
       <div className="flex flex-wrap items-center gap-2">
         {onToggle === null ? null : (
           <input
@@ -170,7 +171,7 @@ function LayerRow({
         <EvidenceLabel label={layer.evidence_label} />
         {layer.mock ? <span className="text-xs font-semibold">mock layer</span> : null}
       </div>
-      <p className="text-xs text-muted-foreground">
+      <p className="font-mono text-[11px] leading-relaxed break-all text-dim">
         {layer.units === null ? 'no unit' : `unit ${layer.units}`}; zoom {String(layer.zoom_min)} to {String(layer.zoom_max)};
         sources {layer.source_product_ids.join(', ') || 'none listed'}
         {layer.hillshade === null
@@ -276,7 +277,7 @@ export function ProductsPanel({ target }: { readonly target: MapTarget }) {
   );
 }
 
-export function WindowsPanel({ target }: { readonly target: MapTarget }) {
+export function WindowsPanel({ target, hideList = false }: { readonly target: MapTarget; readonly hideList?: boolean }) {
   const summary = summariseWindows(target.windows);
   return (
     <PanelSection title="Window grid">
@@ -322,7 +323,7 @@ export function WindowsPanel({ target }: { readonly target: MapTarget }) {
               </ul>
             </div>
           )}
-          {target.windows.length === 0 ? null : (
+          {target.windows.length === 0 || hideList ? null : (
             <details>
               <summary className="cursor-pointer text-sm font-medium">Numbered window list</summary>
               <ol className="mt-1 text-xs">
@@ -342,5 +343,78 @@ export function WindowsPanel({ target }: { readonly target: MapTarget }) {
         </>
       )}
     </PanelSection>
+  );
+}
+
+const DOT: Readonly<Record<MapWindow['status'], string>> = {
+  eligible: 'bg-emerald-400',
+  rejected: 'bg-amber-400',
+  unknown: 'bg-slate-400',
+};
+
+/** The window id without its source-product stem: the grid cell, e.g. x2-y9. */
+function cellOf(id: string): string {
+  return /-(x\d+-y\d+)$/u.exec(id)?.[1] ?? id;
+}
+
+function windowRank(w: MapWindow): number {
+  if (w.isPrimary) return 0;
+  if (w.cardId !== null) return 1;
+  if (w.isReference) return 2;
+  return w.status === 'eligible' ? 3 : 4;
+}
+
+/** The right-panel target list of the explorer: one row per window record, as serialized. */
+export function WindowList({ target, windows }: { readonly target: MapTarget; readonly windows: readonly MapWindow[] }) {
+  const sorted = windows
+    .map((w, i) => ({ w, i }))
+    .sort((a, b) => windowRank(a.w) - windowRank(b.w) || a.i - b.i)
+    .map(({ w }) => w);
+  if (!target.windowsFilePresent) {
+    return (
+      <UnavailablePanel title="Window records" reason="No window list without the target windows." missing={target.windowsFile} />
+    );
+  }
+  if (sorted.length === 0) return <p className="text-sm text-dim">No window matches this filter.</p>;
+  return (
+    <ul aria-label="Windows in the bundle's top-N subset" className="flex flex-col gap-1.5" data-slot="window-list">
+      {sorted.map((w) => {
+        const tone = ELIGIBILITY_TONES[w.status];
+        return (
+          <li key={w.id} className="flex flex-col gap-1.5 rounded-xl border border-line bg-ink px-3 py-2">
+            <div className="flex items-center gap-2">
+              <span aria-hidden="true" className={`size-2.5 shrink-0 rounded-full ${DOT[w.status]}`} />
+              <code title={w.id} className="min-w-0 flex-1 truncate text-[13px] text-platinum">
+                {cellOf(w.id)}
+              </code>
+              {w.cardId === null ? null : (
+                <Link className="shrink-0 rounded-full border border-flare/50 px-2 py-0.5 text-[11px] text-flare hover:bg-flare/10" href={`/site/${w.cardId}`}>
+                  Evidence card
+                </Link>
+              )}
+            </div>
+            <p className="text-[11px] text-dim">
+              {tone.label}
+              {w.isPrimary ? ' \u00b7 target window' : w.isReference ? ' \u00b7 reference window' : ''}
+              {w.reasons.length === 0 ? '' : ` \u00b7 ${w.reasons.join(', ')}`}
+            </p>
+            <div className="flex flex-wrap items-center gap-2 text-[12px] [&_[data-slot=source]]:hidden">
+              <span className="font-mono text-[10px] tracking-widest text-dim uppercase">Relief</span>
+              {w.relief === null || w.relief === undefined || w.relief.evidenceLabel === 'Unavailable' ? (
+                <LabelledValue
+                  label="Unavailable"
+                  reason={w.reasons.length === 0 ? 'no relief fingerprint in the bundle' : `not computed: ${w.reasons.join(', ')}`}
+                />
+              ) : (
+                <>
+                  <LabelledValue label={w.relief.evidenceLabel} value={w.relief.valueM} unit="m" source="windows file terrain fingerprint" />
+                  <span className="font-mono text-[10px] text-dim">nu at {w.relief.lagM} m lag</span>
+                </>
+              )}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

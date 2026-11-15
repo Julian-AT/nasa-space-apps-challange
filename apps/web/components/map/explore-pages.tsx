@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // The server-rendered bodies of the /explore routes (PRD 8.6, 10). They read the bundle through
 // the loader the route passes in, project it into serialisable props (explore-data.ts) and render
 // the page header, the shipping-mode and bundle-version line, the map and the evidence legend.
@@ -28,35 +29,33 @@ const LEAD: Readonly<Record<'moon' | 'mars', string>> = {
 export function ExploreBodyPage({ body, bundle }: { readonly body: 'moon' | 'mars'; readonly bundle: LoadedBundle }) {
   const data = buildBodyData(bundle, body);
   return (
-    <div data-full-bleed className="px-4 pb-8 sm:px-6">
-      <h1 className="sr-only">{body === 'moon' ? 'Moon explorer' : 'Mars explorer'}</h1>
+    <>
       <p className="sr-only">{LEAD[body]}</p>
-      <div className="mt-3">
-        <ExplorerMap data={data} body={body} assetBase={assetBase()} />
+      <ExplorerMap data={data} body={body} assetBase={assetBase()} />
+      <div className="px-4 pb-8 sm:px-6">
+        <Section title="Evidence labels">
+          <EvidenceLegend headingLevel={3} />
+        </Section>
       </div>
-      <Section title="Evidence labels">
-        <EvidenceLegend headingLevel={3} />
-      </Section>
-    </div>
+    </>
   );
 }
 
 export function ExploreEarthPage({ bundle }: { readonly bundle: LoadedBundle }) {
   const data = buildEarthData(bundle);
   return (
-    <div data-full-bleed className="px-4 pb-8 sm:px-6">
-      <h1 className="sr-only">Earth candidates</h1>
-      <div className="mt-3">
-        <EarthExplorer
-          data={data}
-          mapsEnabled={process.env.NEXT_PUBLIC_MAPS_ENABLED !== '0'}
-          probeEnabled={process.env.NEXT_PUBLIC_PROBE_ENABLED === '1'}
-        />
+    <>
+      <EarthExplorer
+        data={data}
+        mapsEnabled={process.env.NEXT_PUBLIC_MAPS_ENABLED !== '0'}
+        probeEnabled={process.env.NEXT_PUBLIC_PROBE_ENABLED === '1'}
+      />
+      <div data-full-bleed className="px-4 pb-8 sm:px-6">
+        <Section title="Evidence labels">
+          <EvidenceLegend headingLevel={3} />
+        </Section>
       </div>
-      <Section title="Evidence labels">
-        <EvidenceLegend headingLevel={3} />
-      </Section>
-    </div>
+    </>
   );
 }
 
