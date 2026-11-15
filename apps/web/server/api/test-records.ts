@@ -20,6 +20,7 @@ import {
 } from '@terraluna/schema';
 
 import { type PulledBundle } from '../../lib/bundle.ts';
+import { gate } from '../../tests/helpers.ts';
 import { mockReader } from './test-support.ts';
 
 export const RUN_ID = `sha256:${'a'.repeat(64)}`;
@@ -300,9 +301,8 @@ export interface MemoryBundle {
  */
 export function memoryReader(options: MemoryBundle = {}): () => PulledBundle {
   const base = mockReader();
-  const template = base.validation[0];
-  if (template === undefined) throw new Error('the mock validation.json has no gates');
-  const g5 = options.g5 === null ? [] : [{ ...template, gate_id: 'G5', status: options.g5 ?? 'NOT_RUN' }];
+  // gate() fills the evidence fields the GateRecord schema requires for every status but NOT_RUN.
+  const g5 = options.g5 === null ? [] : [gate('G5', options.g5 ?? 'NOT_RUN')];
   const validation = [
     ...base.validation.filter((r) => r.gate_id !== 'G5'),
     ...g5,
