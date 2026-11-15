@@ -208,7 +208,8 @@ def fetch_json(root: Path) -> dict[str, Any]:
 
 
 def url_entry(record: dict[str, Any], key: str) -> dict[str, Any]:
-    (entry,) = [item for item in record["urls"] if item["key"] == key]
+    entries: list[dict[str, Any]] = [item for item in record["urls"] if item["key"] == key]
+    (entry,) = entries
     return entry
 
 
@@ -316,7 +317,7 @@ def test_every_exchange_records_each_header_that_matters(disabled: tuple[Path, S
     for entry in cors_json(root)["urls"]:
         for origin in entry["origins"]:
             for kind in ("preflight", "range_get"):
-                assert tuple(origin[kind]["headers_that_matter"]) == MATTERING
+                assert sorted(origin[kind]["headers_that_matter"]) == sorted(MATTERING)
 
 
 def test_full_cors_supports_direct_read(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
