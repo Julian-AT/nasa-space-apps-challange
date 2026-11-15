@@ -1,0 +1,338 @@
+/* Copied from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
+   Their design tokens that Terraluna lacks, and their component classes scoped to .sa-atlas. */
+@theme {
+  --color-cobalt: #4f74c8;
+  --color-amethyst: #a197cf;
+  --color-strong: #7cc8a0;
+  --color-partial: #e3b35e;
+  --color-weak: #e47a63;
+  --color-chart-1: #bd871c;
+  --color-chart-2: #5296df;
+  --color-chart-3: #d47452;
+  --color-chart-4: #9f7ed6;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sa-atlas ::selection {
+  background: color-mix(in oklab, var(--color-flare) 35%, transparent);
+  color: #fff;
+}
+.sa-atlas :focus-visible {
+  outline: 1.5px solid var(--color-flare);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.sa-atlas .tabular {
+  font-variant-numeric: tabular-nums;
+}
+.sa-atlas .bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-line) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-line) 60%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+.sa-atlas .panel {
+  background: color-mix(in oklab, var(--color-panel) 88%, transparent);
+  border: 1px solid var(--color-line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+@property --glow {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+.sa-atlas .surface {
+  --glow: 0;
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--color-line);
+  background:
+    radial-gradient(520px circle at var(--mx, 50%) var(--my, 0%), color-mix(in oklab, var(--spot, var(--color-flare)) calc(9% * var(--glow)), transparent), transparent 46%),
+    linear-gradient(180deg, color-mix(in oklab, var(--color-platinum) 3%, transparent), transparent 42%),
+    var(--color-panel);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-platinum) 5%, transparent),
+    0 26px 44px -34px rgb(0 0 0 / 0.75);
+  transition:
+    --glow 0.5s var(--ease-out-quint),
+    border-color 0.4s var(--ease-out-quint),
+    transform 0.5s var(--ease-out-quint);
+}
+.sa-atlas .surface::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 0%), color-mix(in oklab, var(--spot, var(--color-flare)) 60%, transparent), transparent 70%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: var(--glow);
+}
+@media (hover: hover) {
+  .sa-atlas .surface:hover {
+    --glow: 1;
+    border-color: var(--color-line-2);
+  }
+  .sa-atlas .surface.lift:hover {
+    transform: translateY(-3px);
+  }
+}
+html[data-theme="light"] .surface {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    0 24px 50px -36px rgb(60 45 20 / 0.35);
+}
+.sa-atlas .glass {
+  background:
+    linear-gradient(145deg, color-mix(in oklab, var(--color-platinum) 9%, transparent), color-mix(in oklab, var(--color-platinum) 2%, transparent) 55%),
+    color-mix(in oklab, var(--color-panel) 72%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-platinum) 14%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-platinum) 14%, transparent),
+    0 24px 60px -24px rgb(0 0 0 / 0.6);
+}
+.sa-atlas .outline-num {
+  font-family: var(--font-wide);
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--color-platinum) 28%, transparent);
+  letter-spacing: -0.02em;
+}
+.sa-atlas .glyph-orbit {
+  transition: transform 1.6s var(--ease-out-quint);
+}
+.sa-atlas .surface:hover .glyph-orbit,
+.sa-atlas .glyph-tile:hover .glyph-orbit {
+  transform: rotate(140deg);
+}
+.sa-atlas input[type="range"].range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  background: transparent;
+  cursor: pointer;
+}
+.sa-atlas input[type="range"].range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--color-flare) var(--fill, 50%), var(--color-line-2) var(--fill, 50%));
+}
+.sa-atlas input[type="range"].range::-moz-range-track {
+  height: 3px;
+  border-radius: 99px;
+  background: var(--color-line-2);
+}
+.sa-atlas input[type="range"].range::-moz-range-progress {
+  height: 3px;
+  border-radius: 99px;
+  background: var(--color-flare);
+}
+.sa-atlas input[type="range"].range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  margin-top: -6.5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 99px;
+  background: var(--color-platinum);
+  border: 3px solid var(--color-void);
+  box-shadow: 0 0 0 1px var(--color-flare);
+  transition: transform 0.2s var(--ease-out-quint);
+}
+.sa-atlas input[type="range"].range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 99px;
+  background: var(--color-platinum);
+  border: 3px solid var(--color-void);
+  box-shadow: 0 0 0 1px var(--color-flare);
+}
+.sa-atlas input[type="range"].range:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.sa-atlas .shimmer {
+  background: linear-gradient(90deg, var(--color-panel-2) 0%, var(--color-line) 40%, var(--color-panel-2) 80%) 0 0 / 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+.sa-atlas .link-wipe {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.45s var(--ease-out-quint), color 0.2s;
+}
+.sa-atlas .link-wipe:hover {
+  background-size: 100% 1px;
+}
+.sa-atlas .btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-platinum);
+  color: var(--color-void);
+  transition: transform 0.18s var(--ease-out-quint);
+}
+.sa-atlas .btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, color-mix(in oklab, var(--color-flare) 55%, transparent) 50%, transparent 70%);
+  transform: translateX(-110%);
+  transition: transform 0.7s var(--ease-out-quint);
+}
+.sa-atlas .btn-primary:hover::after {
+  transform: translateX(110%);
+}
+.sa-atlas .btn-primary:active {
+  transform: scale(0.98);
+}
+.sa-atlas .scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-2) transparent;
+}
+.sa-atlas .leaflet-container {
+  background: var(--color-void);
+  font-family: var(--font-sans);
+}
+.sa-atlas .leaflet-control-attribution {
+  background: rgb(7 8 10 / 0.75) !important;
+  color: var(--color-dim) !important;
+  font-size: 10px !important;
+}
+.sa-atlas .leaflet-control-attribution a {
+  color: var(--color-chrome) !important;
+}
+.sa-atlas .leaflet-bar a {
+  background: rgb(16 17 20 / 0.92) !important;
+  color: var(--color-platinum) !important;
+  border-color: var(--color-line) !important;
+}
+.sa-atlas .leaflet-bar {
+  border: 1px solid var(--color-line) !important;
+}
+.sa-atlas .leaflet-tooltip.sa-tip {
+  background: rgb(11 12 15 / 0.94);
+  color: var(--color-platinum);
+  border: 1px solid var(--color-line-2);
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 4px 8px;
+  box-shadow: none;
+}
+.sa-atlas .leaflet-tooltip.sa-tip::before {
+  display: none;
+}
+.sa-atlas .sa-pin {
+  position: relative;
+  width: 18px;
+  height: 18px;
+}
+.sa-atlas .sa-pin .core {
+  position: absolute;
+  inset: 5px;
+  border-radius: 999px;
+  background: var(--pin);
+  box-shadow: 0 0 0 2px rgb(7 8 10 / 0.9);
+}
+.sa-atlas .sa-pin .ring {
+  position: absolute;
+  inset: 1px;
+  border-radius: 999px;
+  border: 1px solid var(--pin);
+  opacity: 0.45;
+}
+.sa-atlas .sa-pin.dim {
+  opacity: 0.3;
+}
+.sa-atlas .sa-pin.active .core {
+  inset: 4px;
+  background: #fff;
+}
+.sa-atlas .sa-pin.active .ring {
+  animation: pin-breathe 2.8s var(--ease-out-quint) infinite;
+}
+@keyframes pin-breathe {
+  from {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+.sa-atlas .sa-pin.dashed .core {
+  background: transparent;
+  box-shadow: none;
+  border: 1.5px dashed var(--pin);
+  inset: 2px;
+}
+.sa-atlas .sa-pin.dashed .ring {
+  opacity: 0;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.sa-atlas .animate-marquee {
+  animation: marquee 80s linear infinite;
+}
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+@keyframes spin-tex {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.sa-atlas .polar-image {
+  filter: contrast(1.4) brightness(0.9) sepia(0.08);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sa-atlas *,
+.sa-atlas *::before,
+.sa-atlas *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+.sa-atlas .font-bn {
+  font-family: "Noto Sans Bengali", var(--font-sans);
+}
+html.gpu-lite .glass,
+html.gpu-lite .panel,
+html.gpu-lite [class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html.gpu-lite .glass {
+  background: color-mix(in oklab, var(--color-panel) 94%, transparent);
+}
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

@@ -10,8 +10,8 @@ import { Section } from '@/components/section';
 
 import type { Bundle } from '../../lib/bundle.ts';
 import type { ExplorerBundle } from './explore-data.ts';
-import { Atlas } from '../atlas/atlas.tsx';
-import { buildAtlasBody, buildAtlasEarth } from '../atlas/atlas-data.ts';
+import { AtlasClient } from '../shadowastra/atlas/AtlasClient.tsx';
+import { buildTerralunaAtlas } from '../shadowastra/atlas/terraluna-data.ts';
 
 export type LoadedBundle = Bundle & { readonly records: ExplorerBundle['records'] };
 
@@ -24,7 +24,7 @@ export function ExploreBodyPage({ body, bundle }: { readonly body: 'moon' | 'mar
   return (
     <>
       <p className="sr-only">{LEAD[body]}</p>
-      <Atlas data={buildAtlasBody(bundle, body)} />
+      <AtlasClient body={body} terraluna={buildTerralunaAtlas(bundle)} />
       <div className="px-4 pt-6 pb-8 sm:px-6">
         <Section title="Evidence labels">
           <EvidenceLegend headingLevel={3} />
@@ -38,7 +38,7 @@ export function ExploreEarthPage({ bundle }: { readonly bundle: LoadedBundle }) 
   return (
     <>
       <p className="sr-only">Earth analog windows from the release bundle on a globe and a NASA basemap, with the bundle hillshade tiles on top.</p>
-      <Atlas data={buildAtlasEarth(bundle)} />
+      <AtlasClient body="earth" terraluna={buildTerralunaAtlas(bundle)} />
       <div data-full-bleed className="px-4 pt-6 pb-8 sm:px-6">
         <Section title="Evidence labels">
           <EvidenceLegend headingLevel={3} />
