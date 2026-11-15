@@ -465,3 +465,42 @@ html.reduce-motion *::after {
 body:has(.sa-ui, .sa-atlas)::before {
   display: none;
 }
+/* Pill-shaped buttons and links become shadcn's rounded-md controls. */
+.sa-ui :is(a, button).rounded-full:not([class*="size-"]),
+.sa-atlas :is(a, button).rounded-full:not([class*="size-"]) {
+  border-radius: calc(var(--radius) - 2px);
+}
+.sa-ui :is(a, button).rounded-full.border,
+.sa-atlas :is(a, button).rounded-full.border {
+  border-color: var(--border);
+  background-color: color-mix(in oklab, var(--input) 30%, transparent);
+}
+.sa-ui :is(a, button).rounded-full.border:hover,
+.sa-atlas :is(a, button).rounded-full.border:hover {
+  background-color: color-mix(in oklab, var(--input) 55%, transparent);
+  color: var(--foreground);
+}
+/* Segmented groups (world switcher, view modes): shadcn toggle-group shape and selected state. */
+.sa-ui div.rounded-full.border:has(> button, > a),
+.sa-atlas div.rounded-full.border:has(> button, > a) {
+  border-radius: var(--radius);
+  border-color: var(--border);
+  background-color: var(--muted);
+}
+.sa-ui :is(div, span).rounded-full.border:has(> button, > a) > :is(button, a),
+.sa-atlas :is(div, span).rounded-full.border:has(> button, > a) > :is(button, a) {
+  border-radius: calc(var(--radius) - 3px);
+}
+.sa-ui span.absolute.rounded-full.bg-platinum,
+.sa-atlas span.absolute.rounded-full.bg-platinum,
+.sa-ui :is(button, a).rounded-full.bg-platinum,
+.sa-atlas :is(button, a).rounded-full.bg-platinum {
+  border-radius: calc(var(--radius) - 3px);
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.1);
+}
+.sa-ui :is(button, a).bg-platinum.text-void,
+.sa-atlas :is(button, a).bg-platinum.text-void {
+  color: var(--foreground);
+}
