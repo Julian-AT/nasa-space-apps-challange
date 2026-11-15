@@ -7,11 +7,11 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 
-import { Globe } from '@/components/globe';
 import { COP30_MODE } from '@/lib/probe/mode';
 import { type ProbeResult, isProbeResult } from '@/lib/probe/result';
 
 import { EASE } from './bits';
+import { EarthHero } from './earth-hero';
 import type { PitchData } from './pitch-data';
 
 type Finder = NonNullable<PitchData['finder']>;
@@ -54,7 +54,8 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
   const closerFromCard = !(isLive && typeof livePct === 'number');
   const why = error ?? (result !== null && result.kind !== 'result' ? (result.kind === 'stop' ? 'too few valid cells' : result.reason) : null);
 
-  const pin = { id: 'finder', lat: finder.lat, lon: finder.lon, label: finder.earthName, href: '/find', tone: 'earth' as const };
+  // the card's Earth window centroid; the globe opens on the Americas and turns to it on →
+  const at = step >= 1 ? { lat: finder.lat, lon: finder.lon } : null;
 
   return (
     <div className="grid h-full grid-cols-[1.05fr_1fr] items-center gap-12">
@@ -71,22 +72,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
             />
           ))}
         </div>
-        {/* clipped to the planet disc: no atmosphere rim on the white slide */}
-        <div className="absolute inset-0" style={{ clipPath: 'circle(39% at 50% 50%)' }}>
-          <Globe body="earth" pins={[pin]} selectedId={step >= 1 ? 'finder' : null} autoRotate={step === 0} />
-        </div>
-        <AnimatePresence>
-          {step >= 1 ? (
-            <motion.span
-              aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
-              style={{ borderColor: '#CC5800' }}
-              initial={{ scale: 0.4, opacity: 0.9 }}
-              animate={{ scale: [0.4, 3.2], opacity: [0.9, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut', delay: 1.1 }}
-            />
-          ) : null}
-        </AnimatePresence>
+        <EarthHero className="absolute inset-0" focus={at} pin={at} startLon={-65} shadow={false} />
       </div>
       <div className="flex flex-col gap-6">
         <AnimatePresence mode="wait">
