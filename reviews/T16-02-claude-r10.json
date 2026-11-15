@@ -1,0 +1,109 @@
+{
+  "task_id": "T16-02",
+  "round": 10,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "ef9a2e1f73a329ba96617820c8c8fc3f5e45043c",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "bcd14b36861854f50304b62e2191281fcd7a52aab9972676bb1a8599701d82a5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "e38fd48c8ee57a805e5c2984e124b977b24530b276f01a2af351d8cb883b7267"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "9d51541a021c15632f149e0eef93c8b659112127828cdf2d8a140f4a7b4eaf6d"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "31c61c9d6fd0b4875dfe44129accb3e55db95abfa439b1ccabec0eede83b13af"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "5fd0e9b6d3ba056cff10c2385969b7cf470cd0d6d79508f1a80d52d0e74e5880"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "561ef4757db3377c1ac35ba58d9fe95d4851a2e2f0d63c1138a373e946127d6e"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:24:26Z",
+  "finished_utc": "2026-11-15T00:24:41Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T16-02 round 10, reviewed at ef9a2e1f73a3. All five story checks passed when I ran them. These were make -C paper check, lint, overlap, test (874 passed) and the default all target, which ran numbers, lint, overlap, test and pdf in that order. I did not re-inspect the source, so criteria other than command results are judged only from these runs and the previous-round resolutions. I found nothing new.",
+  "checks": [
+    {
+      "criterion": "make -C paper check",
+      "command": "make -C paper check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check found 12 files already formatted, and mypy --strict reported no issues in 12 source files."
+    },
+    {
+      "criterion": "make -C paper lint (the manuscript passes the prose linter)",
+      "command": "make -C paper lint",
+      "outcome": "PASS",
+      "evidence": "lint_prose.py: no findings in 15 .tex files"
+    },
+    {
+      "criterion": "make -C paper overlap (the manuscript passes the overlap check)",
+      "command": "make -C paper overlap",
+      "outcome": "PASS",
+      "evidence": "overlap_check.py: 15 .tex files, 0 abstracts, 0 references without an abstract skipped; no run of 12 or more shared words. The record file is empty, so no abstract was compared."
+    },
+    {
+      "criterion": "make -C paper test (the test files exist and pass)",
+      "command": "make -C paper test",
+      "outcome": "PASS",
+      "evidence": "874 passed in 0.85s. test_lint_prose.py, test_overlap_check.py and test_tex_prose.py were among the collected files. I did not re-check that the tests failed before the scripts existed. That is judged from the commit order, with fbf3c38 adding the tests first."
+    },
+    {
+      "criterion": "make -C paper (all runs numbers, lint, overlap, test and pdf in that order)",
+      "command": "make -C paper",
+      "outcome": "PASS",
+      "evidence": "The output ran numbers.py, lint, overlap, pytest (874 passed) and tectonic in that order. check_log.py then reported main.log clean."
+    },
+    {
+      "criterion": "AC1 and AC2: shared extraction module, and the 22.6 lint rules with exit 1 on any finding",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Judged only from the passing tests and the clean runs, covering the 874 tests including test_tex_prose.py and test_lint_prose.py. I did not read the source. The earlier-round fixes appear covered by regression tests in the suite."
+    },
+    {
+      "criterion": "AC4 and AC5: overlap check and the {\"references\": {}} record file",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_overlap_check.py passes, and the overlap run printed the summary line including the count of references without an abstract. I did not read reference-verification.json myself, but the overlap run read it, and it reported 0 abstracts."
+    },
+    {
+      "criterion": "AC6: README gains a line for each new command",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "I did not read paper/README.md this round. The previous rounds raised no finding on it."
+    }
+  ],
+  "findings": []
+}
