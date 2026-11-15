@@ -74,18 +74,18 @@ function Q({ n, children }: { readonly n: number; readonly children: ReactNode }
     <section
       data-question={`q${String(n)}`}
       aria-labelledby={`q${String(n)}-title`}
-      className="flex flex-col gap-4 rounded-3xl border border-line bg-card p-5 text-card-foreground sm:p-7"
+      className="flex flex-col gap-4 rounded-xl border bg-card p-5 text-card-foreground shadow-xs sm:p-6"
     >
       <div className="flex items-center gap-4">
         <span
           aria-hidden="true"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full border border-flare/60 font-mono text-sm text-flare"
+          className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/15 font-mono text-sm font-semibold text-primary"
         >
           {String(n).padStart(2, '0')}
         </span>
         <div className="min-w-0">
-          <p className="font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">Question {n}</p>
-          <h2 id={`q${String(n)}-title`} className="font-serif text-2xl leading-tight font-normal">
+          <p className="text-xs font-medium text-muted-foreground">Question {n}</p>
+          <h2 id={`q${String(n)}-title`} className="text-lg leading-tight font-semibold">
             {QUESTIONS[n - 1]}
           </h2>
         </div>
@@ -132,7 +132,7 @@ function Polygon({
     .filter((x) => x !== null)
     .join(' · ');
   return (
-    <div className="min-w-0 rounded-lg border border-border bg-background/40 p-3 text-sm">
+    <div className="min-w-0 rounded-lg border bg-muted/30 p-3 text-sm">
       <p className="font-semibold wrap-anywhere">{title}</p>
       <p className="text-muted-foreground">
         {short} · {polygon.ring_lonlat.length} vertices
@@ -158,16 +158,16 @@ function Distances({ card, g5Passed }: { readonly card: CardRecord; readonly g5P
             key={family}
             data-family={family}
             data-status={d.status}
-            className="flex flex-col gap-3 rounded-2xl border border-line bg-card p-4"
+            className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-xs"
           >
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
+              <span className="text-xs font-medium text-muted-foreground">
                 {FAMILY_NAMES[family]}
               </span>
               {experimental ? <Badge variant="outline">EXPERIMENTAL</Badge> : null}
             </div>
             {has ? (
-              <p className="font-mono text-3xl leading-none">
+              <p className="font-mono text-3xl leading-none font-semibold tabular-nums">
                 <span data-slot="value">{show(d.value)}</span>{' '}
                 <span data-slot="unit" className="text-sm text-muted-foreground">
                   {d.unit}
@@ -267,8 +267,8 @@ function Figures({ card, figures }: Pick<EvidenceCardViewProps, 'card' | 'figure
       {card.figures.map((f) => {
         const svg = f.path === null ? undefined : figures.get(f.path);
         return (
-          <figure key={f.figure} data-figure={f.figure} className="m-0 flex min-w-0 flex-col gap-3 rounded-2xl border border-line bg-card p-4">
-            <figcaption className="font-mono text-[11px] tracking-[0.22em] text-flare uppercase">Figure {f.figure}</figcaption>
+          <figure key={f.figure} data-figure={f.figure} className="m-0 flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4 shadow-xs">
+            <figcaption className="text-sm font-medium text-primary">Figure {f.figure}</figcaption>
             {svg !== undefined && f.path !== null ? (
               <>
                 <img src={dataUri(svg)} alt={f.alt} className="w-full rounded-lg bg-white" />
@@ -303,8 +303,8 @@ function Figures({ card, figures }: Pick<EvidenceCardViewProps, 'card' | 'figure
 function SectionTitle({ id, eyebrow, children }: { readonly id: string; readonly eyebrow: string; readonly children: ReactNode }) {
   return (
     <div>
-      <p className="font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">{eyebrow}</p>
-      <h2 id={id} className="font-serif text-3xl font-normal">{children}</h2>
+      <p className="text-xs font-medium text-muted-foreground">{eyebrow}</p>
+      <h2 id={id} className="text-2xl font-semibold tracking-tight">{children}</h2>
     </div>
   );
 }
@@ -321,10 +321,10 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
           MOCK PREVIEW: synthetic data, not production evidence
         </p>
       ) : null}
-      <header className="grid gap-8 rounded-3xl border border-line bg-card p-6 text-card-foreground sm:p-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      <header className="grid gap-8 rounded-xl border bg-card p-6 text-card-foreground shadow-xs sm:p-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-5">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="font-mono text-[11px] tracking-[0.24em] text-muted-foreground uppercase">
+            <span className="text-xs font-medium text-muted-foreground">
               Evidence card
             </span>
             <Badge data-slot="mode-pill" className="h-auto max-w-full py-1 whitespace-normal">
@@ -334,18 +334,18 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
             </Badge>
           </div>
           {visual === undefined ? null : (
-            <p className="font-serif text-xl text-flare">{visual.headline}</p>
+            <p className="text-base font-medium text-primary">{visual.headline}</p>
           )}
-          <h1 className="font-serif text-4xl leading-tight font-normal text-balance sm:text-5xl">{card.title}</h1>
+          <h1 className="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">{card.title}</h1>
           <div className="flex flex-wrap gap-2 text-sm">
-            <span className="rounded-full border border-line px-3 py-1">
+            <span className="rounded-md border bg-muted/40 px-2.5 py-1">
               <span className="text-muted-foreground">Target</span> {t.target_id} ({t.body})
             </span>
-            <span className="rounded-full border border-line px-3 py-1">
+            <span className="rounded-md border bg-muted/40 px-2.5 py-1">
               <span className="text-muted-foreground">Earth window</span> {card.earth.earth_window_id}
             </span>
           </div>
-          <p className="text-sm italic text-muted-foreground">{card.wording}</p>
+          <p className="text-sm text-muted-foreground">{card.wording}</p>
           <p className="mt-auto font-mono text-[11px] tracking-wider text-muted-foreground uppercase">
             Bundle version {bundleVersion} · {g5Gate === null ? 'G5 not recorded' : `G5 ${g5Gate}`}
           </p>
@@ -378,7 +378,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
       <section
         aria-labelledby="claim-limits"
         data-slot="limits"
-        className="flex flex-col gap-3 rounded-3xl border border-flare/50 bg-flare/5 p-5 sm:p-7"
+        className="flex flex-col gap-3 rounded-xl border border-primary/40 bg-primary/5 p-5 sm:p-6"
       >
         <SectionTitle id="claim-limits" eyebrow="What this card does not claim">Claim limits</SectionTitle>
         <List items={card.claim_limits} empty="The record lists no claim limits." />
@@ -402,7 +402,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
           <EvidenceLabel label={card.q2_interpretation.evidence_label} />
         </Q>
         <Q n={3}>
-          <div className="overflow-x-auto rounded-xl border border-border bg-background/40">
+          <div className="overflow-x-auto rounded-lg border">
             <Table data-slot="table-d">
               <TableHeader>
                 <TableRow>

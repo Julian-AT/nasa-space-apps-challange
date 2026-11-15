@@ -4,6 +4,8 @@
 // filter only hides them. State lives in the URL (?target=<segment id>).
 import { useEffect, useState, type ReactNode } from 'react';
 
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
 export interface AtlasSegment {
   readonly id: string;
   readonly label: string;
@@ -33,25 +35,26 @@ export function CardAtlas({ segments, items }: { readonly segments: readonly Atl
   const all: AtlasSegment = { id: 'all', label: 'All', colour: 'transparent' };
   return (
     <div className="flex flex-col gap-6">
-      <div role="group" aria-label="Filter cards by target" className="flex flex-wrap gap-2">
+      <ToggleGroup
+        type="single"
+        variant="outline"
+        spacing={0}
+        value={active}
+        onValueChange={(v) => { if (v !== '') choose(v); }}
+        aria-label="Filter cards by target"
+        className="flex-wrap"
+      >
         {[all, ...segments].map((s) => {
           const n = s.id === 'all' ? items.length : items.filter((i) => i.segment === s.id).length;
-          const on = s.id === active;
           return (
-            <button
-              key={s.id}
-              type="button"
-              aria-pressed={on}
-              onClick={() => { choose(s.id); }}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm transition-colors motion-reduce:transition-none ${on ? 'border-flare bg-flare/15 text-foreground' : 'border-line text-muted-foreground hover:border-line-2 hover:text-foreground'}`}
-            >
-              {s.id === 'all' ? null : <span aria-hidden="true" className="size-2.5 rounded-full" style={{ background: s.colour }} />}
+            <ToggleGroupItem key={s.id} value={s.id} aria-label={`${s.label}, ${String(n)} cards`} className="h-10 gap-2 px-4">
+              {s.id === 'all' ? null : <span aria-hidden="true" className="size-2 rounded-full" style={{ background: s.colour }} />}
               {s.label}
-              <span className="font-mono text-xs text-muted-foreground">{n}</span>
-            </button>
+              <span className="font-mono text-xs text-muted-foreground tabular-nums">{n}</span>
+            </ToggleGroupItem>
           );
         })}
-      </div>
+      </ToggleGroup>
       <p role="status" className="sr-only">{shown.length} cards shown</p>
       <ul className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
         {shown.map((i) => (
