@@ -22,6 +22,9 @@ import { CurvesSection, ExamplesSection } from './curves-examples.tsx';
 import { UnavailablePanel } from './unavailable-panel.tsx';
 
 type MetricRecord = Metrics['tests'][number];
+// The full ablation run record lives in the paper; the page keeps the headline figures.
+const SHOW_RUN_RECORD = false as boolean;
+
 type Condition = Metrics['g5']['conditions'][number];
 
 const VARIANT = { PASS: 'pass', FAIL: 'fail', PARTIAL: 'partial', NOT_RUN: 'not-run', NOT_APPLICABLE: 'not-applicable' } as const;
@@ -400,7 +403,7 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
               </Accordion>
             )}
           </Section>
-          {metrics === null ? null : (
+          {metrics === null || !SHOW_RUN_RECORD ? null : (
             <Section title="Ablations and run record">
               {metrics.ablations.length === 0 ? (
                 <LabelledValue label="Unavailable" reason="report/metrics.json lists no ablation run" source="report/metrics.json" />
