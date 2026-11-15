@@ -9,9 +9,12 @@ these functions, so they never guess a value:
   band units), never a default such as 0 or an identity transform.
 - ``read_product`` records units only as stated by the caller's metadata or by the file, and
   records ``"unknown"`` otherwise.
-- ``fetch_range`` and ``fetch_file`` are the only functions here that use the network. They send
-  no project or personal identifiers and refuse URLs with credentials or signatures.
+- ``fetch_range``, ``fetch_file`` and ``send_http_exchange`` are the only functions here that use
+  the network. They send no project or personal identifiers and refuse URLs with credentials or
+  signatures.
   ``fetch_range`` sends a Range header; ``fetch_file`` downloads one whole file below a size limit.
+  ``send_http_exchange`` sends one GET, HEAD or OPTIONS request with the caller's headers (an
+  Origin header, for the CORS check) and returns the status line, headers and body as received.
   ``read_remote_geotiff_window`` reads one window of a remote GeoTIFF through GDAL and uses the
   network only through its ``fetch`` argument (``fetch_range`` by default), so only the byte
   ranges GDAL needs are transferred. ``ByteRanges`` keeps those bytes so the window can be
@@ -1032,6 +1035,122 @@ def fetch_file(
         etag=etag,
         sha256=digest.hexdigest(),
         path=dest,
+    )
+
+
+# --- Raw HTTP exchanges (the CORS header check) -------------------------------------------------
+
+HTTP_EXCHANGE_BODY_LIMIT_BYTES: Final = 1 << 16
+"""The most body bytes ``send_http_exchange`` reads; a longer body is cut and flagged."""
+
+_EXCHANGE_METHODS: Final = ("GET", "HEAD", "OPTIONS")
+_IDENTIFYING_HEADERS: Final = frozenset(
+    {"user-agent", "cookie", "authorization", "proxy-authorization", "referer", "from"}
+)
+
+
+class HttpExchangeError(DownloadError):
+    """A request could not be sent or its response could not be read (no HTTP answer)."""
+
+
+@dataclass(frozen=True)
+class HttpExchange:
+    """One HTTP request and its response exactly as ``http.client`` received it.
+
+    ``request_headers`` are the headers sent, Host included, in order. ``headers`` are the
+    response headers as (name, value) pairs in the order received, names in the case the server
+    sent and repeated headers kept. ``body`` is the body after the transfer coding is removed
+    (no content coding is asked for), at most the body limit; ``body_truncated`` says that more
+    followed and was not read.
+    """
+
+    url: str
+    method: str
+    request_headers: tuple[tuple[str, str], ...]
+    http_version: str
+    status: int
+    reason: str
+    headers: tuple[tuple[str, str], ...]
+    body: bytes = field(repr=False)
+    body_truncated: bool
+
+    @property
+    def status_line(self) -> str:
+        return f"{self.http_version} {self.status} {self.reason}"
+
+    def header(self, name: str) -> list[str]:
+        """Every value of the response header ``name`` (any case), in order; [] if absent."""
+        wanted = name.lower()
+        return [value for key, value in self.headers if key.lower() == wanted]
+
+
+def send_http_exchange(
+    url: str,
+    method: str,
+    headers: dict[str, str],
+    *,
+    max_body_bytes: int = HTTP_EXCHANGE_BODY_LIMIT_BYTES,
+    timeout: float = 60.0,
+) -> HttpExchange:
+    """Send one ``method`` request to ``url`` with ``headers`` and return the raw response.
+
+    The request goes through ``http.client`` (TLS verified against ``tls_context``) with Host,
+    ``Accept-Encoding: identity`` and the given headers only: no User-Agent, cookie or other
+    identifying header, and a caller's attempt to add one raises ValueError. Any HTTP status is
+    returned as an observation; redirects are not followed. Only GET, HEAD and OPTIONS are
+    sent. Non-http(s) URLs and URLs with credentials or signatures raise ValueError before any
+    request. DNS, connection and read failures raise HttpExchangeError naming the URL.
+    """
+    _check_public_http_url(url, "send_http_exchange")
+    if method not in _EXCHANGE_METHODS:
+        raise ValueError(f"send_http_exchange sends {', '.join(_EXCHANGE_METHODS)}, not {method}")
+    for name in headers:
+        if name.lower() in _IDENTIFYING_HEADERS or name.lower() in ("host", "accept-encoding"):
+            raise ValueError(f"send_http_exchange does not send a {name} header from the caller")
+    if max_body_bytes < 0:
+        raise ValueError(f"max_body_bytes must not be negative, got {max_body_bytes}")
+    parts = urllib.parse.urlsplit(url)
+    host = parts.hostname
+    if host is None:
+        raise ValueError(f"{url!r} names no host")
+    connection: http.client.HTTPConnection
+    if parts.scheme.lower() == "https":
+        connection = http.client.HTTPSConnection(
+            host, parts.port, timeout=timeout, context=tls_context()
+        )
+    else:
+        connection = http.client.HTTPConnection(host, parts.port, timeout=timeout)
+    target = parts.path or "/"
+    if parts.query:
+        target = f"{target}?{parts.query}"
+    sent = (("Host", parts.netloc), ("Accept-Encoding", "identity"), *headers.items())
+    try:
+        connection.putrequest(method, target, skip_host=True, skip_accept_encoding=True)
+        for name, value in sent:
+            connection.putheader(name, value)
+        connection.endheaders()
+        response = connection.getresponse()
+        try:
+            body = response.read(max_body_bytes + 1) if method != "HEAD" else b""
+        finally:
+            response.close()
+    except (OSError, http.client.HTTPException) as error:
+        raise HttpExchangeError(f"{url}: {method} failed: {error!r}") from error
+    finally:
+        connection.close()
+    version = {9: "HTTP/0.9", 10: "HTTP/1.0", 11: "HTTP/1.1"}.get(
+        response.version, f"HTTP/{response.version}"
+    )
+    return HttpExchange(
+        url=url,
+        method=method,
+        request_headers=tuple(sent),
+        http_version=version,
+        status=response.status,
+        reason=response.reason,
+        headers=tuple(response.getheaders()),
+        body=body[:max_body_bytes],
+        body_truncated=len(body) > max_body_bytes,
     )
 
 
