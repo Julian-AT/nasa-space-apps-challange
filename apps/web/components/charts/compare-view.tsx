@@ -38,7 +38,7 @@ function DistanceValue({ entry, source }: { readonly entry: Entry; readonly sour
 function DistanceRow({ name, entry, source }: { readonly name: string; readonly entry: Entry; readonly source: string }) {
   const spread = entry.reference_spread;
   return (
-    <div data-family={name} className="flex flex-col gap-2 border-b border-line py-4 last:border-0">
+    <div data-family={name} className="[&_[data-slot=source]]:wrap-anywhere flex flex-col gap-2 border-b border-line py-4 last:border-0">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h4 className="font-semibold">{name}</h4>
         <span className="font-mono text-lg">
@@ -133,7 +133,7 @@ function WindowCard({ role, id, entry }: { readonly role: string; readonly id: s
         </p>
         <CardTitle className="font-serif text-2xl font-normal wrap-anywhere">{id}</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-2 text-sm">
+      <CardContent className="flex flex-col gap-2 text-sm [&_[data-slot=labelled-value]]:max-w-full [&_[data-slot=source]]:max-w-full [&_[data-slot=source]]:wrap-anywhere">
         {entry === null ? (
           <LabelledValue label="Unavailable" reason="window_not_in_bundle_top_n_subset" source="windows/<body>.json" />
         ) : (
@@ -200,18 +200,31 @@ export function CompareView({ records, a, b }: { readonly records: PairRecords; 
   const mode = record.shipping_mode;
   return (
     <>
-      <PageHeader
-        eyebrow="Compare"
-        title={`${a} and ${b}`}
-        lead={`Shipping mode ${mode ?? 'not set'}. Curves and distances are read from the release bundle; nothing is computed on request.`}
-      />
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
+      <div className="flex flex-col gap-3 pt-2">
+        <p className="font-mono text-xs tracking-[0.18em] text-primary uppercase">Compare</p>
+        <h1 className="font-serif text-4xl">Compare two windows</h1>
+        <p className="flex flex-wrap items-center gap-2 font-mono text-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1 wrap-anywhere">
+            <span aria-hidden="true" className="size-2.5 rounded-full bg-[#56B4E9]" />
+            {a}
+          </span>
+          <span className="text-muted-foreground">vs</span>
+          <span className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1 wrap-anywhere">
+            <span aria-hidden="true" className="size-2.5 rounded-full bg-[#E69F00]" />
+            {b}
+          </span>
+        </p>
+        <p className="max-w-3xl text-muted-foreground">
+          Shipping mode {mode ?? 'not set'}. Curves and distances are read from the release bundle; nothing is computed on request.
+        </p>
+      </div>
+      <div className="mt-6 grid gap-4 md:grid-cols-2 [&>*]:min-w-0">
         <WindowCard role="Target" id={a} entry={wa} />
         <WindowCard role="Earth candidate" id={b} entry={wb} />
       </div>
 
       <Section title="Structure function ν(L)" description="Log-log axes. Solid blue with circles is the target; dashed orange with squares is the Earth candidate. Dotted vertical lines mark lags without a value, and the reason is in the table.">
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
           {(['relief', 'texture'] as const).map((observable) => {
             const series = [namedSeries('Target', wa, a, observable), namedSeries('Earth candidate', wb, b, observable)].filter(
               (s): s is NamedSeries => s !== null,
