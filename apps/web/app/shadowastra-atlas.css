@@ -504,3 +504,24 @@ body:has(.sa-ui, .sa-atlas)::before {
 .sa-atlas :is(button, a).bg-platinum.text-void {
   color: var(--foreground);
 }
+/* Active pills with a sliding indicator: readable text on the shadcn selected surface. */
+.sa-ui .text-void:has(> span.absolute.bg-platinum),
+.sa-atlas .text-void:has(> span.absolute.bg-platinum) {
+  color: var(--foreground);
+}
+.sa-ui .text-void:has(> span.absolute.bg-platinum) .bg-void,
+.sa-atlas .text-void:has(> span.absolute.bg-platinum) .bg-void {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+/* Accent text: the preset primary is too dark for text on the dark theme, so use its light tint. */
+.sa-ui,
+.sa-atlas {
+  --flare: oklch(0.74 0.19 322);
+  --color-flare: var(--flare);
+}
+[data-theme="light"] .sa-ui,
+[data-theme="light"] .sa-atlas {
+  --flare: var(--primary);
+  --color-flare: var(--flare);
+}
