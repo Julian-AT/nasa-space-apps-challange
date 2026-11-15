@@ -95,9 +95,11 @@ from terraluna_pipeline.io import (
     pds3_image_layout,
     pds3_polar_stereographic,
     pds3_row_byte_range,
+    read_cog_layout,
     read_geotiff_header,
     read_geotiff_tags,
     read_product,
+    read_remote_cog_window,
     read_remote_geotiff_window,
     sha256_file,
     stac_search_url,
@@ -4665,10 +4667,1113 @@ def _gazetteer_confirms(stated: Mapping[str, str], bbox: Sequence[float]) -> boo
         return False
 
 
+# --- cop30: Copernicus DEM GLO-30 Public COGs on AWS Open Data (PRD 5 row 11, 8.7, 9 G0) --------
+
+_COP30_PREFIX: Final = "COP30/"
+_COP30_TILE: Final = re.compile(r"Copernicus_DSM_COG_10_[NS][0-9]{2}_00_[EW][0-9]{3}_00_DEM")
+_TILE_LIST_MAGIC: Final = (b"Copernicus_DSM_COG_",)
+_REQUESTED_RANGE: Final = re.compile(r"bytes=([0-9]+)-([0-9]+)")
+_LICENCE_LINK: Final = re.compile(
+    r'(?is)>\s*Licen[cs]e\s*</h[1-6]>\s*<p>(?:(?!</p>).)*?href\s*=\s*"([^"]+)"'
+)
+COP30_BUDGET_BYTES: Final = 4_000_000
+"""The live-probe DEM budget of PRD 8.7 ("DEM reads ≤ 4 MB"), read as 4,000,000 bytes."""
+COP30_VALID_FRACTION_RULE: Final = 0.8
+"""PRD 8.7 step 4: a live probe needs a valid fraction of at least 0.8, or it stops."""
+_COP30_CANDIDATE_RULE: Final = (
+    "the first candidate, in the order listed, whose tile name appears in the bucket's "
+    "tileList.txt; a tile absent from it is withheld from the GLO-30 Public release or missing, "
+    "and the next candidate is used"
+)
+_SURFACE_MODEL_CAVEAT: Final = (
+    "Copernicus GLO-30 is a digital surface model: its heights include vegetation, buildings "
+    "and infrastructure, so terrain statistics from it are not bare-ground statistics unless the "
+    "window is masked to bare or sparse cover (PRD 5 row 11, D31); no such mask is applied here"
+)
+
+
+@dataclass(frozen=True)
+class _Cop30Quote:
+    """A statement read from a saved provider page: its key, the page's role and the pattern."""
+
+    key: str
+    role: str
+    pattern: re.Pattern[str]
+
+
+_COP30_QUOTES: Final = (
+    _Cop30Quote(
+        "readme_dsm",
+        "bucket_readme",
+        re.compile(r"The Copernicus DEM is a Digital Surface Model \(DSM\)[^.]*\."),
+    ),
+    _Cop30Quote(
+        "readme_withheld_tiles",
+        "bucket_readme",
+        re.compile(r"GLO-30 Public provides limited worldwide coverage[^.]*\."),
+    ),
+    _Cop30Quote(
+        "readme_source_dataset",
+        "bucket_readme",
+        re.compile(r"For source data, we used the ([A-Za-z0-9_-]+) dataset for 30 meters"),
+    ),
+    _Cop30Quote(
+        "readme_tile_list",
+        "bucket_readme",
+        re.compile(r"The list of tiles is saved in each bucket as tileList\.txt ?\."),
+    ),
+    _Cop30Quote(
+        "readme_tile_size",
+        "bucket_readme",
+        re.compile(
+            r"GLO-30 Public The properties of COG files specific to this dataset:"
+            r"(?:(?!GLO-90).)*?TIFF tile size: ([0-9]+) \* ([0-9]+) pixels"
+        ),
+    ),
+    _Cop30Quote(
+        "readme_licence",
+        "bucket_readme",
+        re.compile(r"GLO-30 Public and GLO-90 are available on a free basis[^.]*\."),
+    ),
+    _Cop30Quote(
+        "registry_version",
+        "registry_entry",
+        re.compile(
+            r"Data is provided as Cloud Optimized GeoTIFFs and comes from Copernicus DEM "
+            r"([0-9]{4}) release\."
+        ),
+    ),
+    _Cop30Quote(
+        "registry_licence",
+        "registry_entry",
+        re.compile(r"GLO-30 Public and GLO-90 are available on a free basis[^.]*\."),
+    ),
+    _Cop30Quote(
+        "collection_dsm",
+        "collection_description",
+        re.compile(r"The Copernicus DEM is a Digital Surface Model \(DSM\) that represents[^.]*\."),
+    ),
+    _Cop30Quote(
+        "collection_vertical_datum",
+        "collection_description",
+        re.compile(r"Vertical (EGM[0-9]+) \(EPSG ([0-9]+)\)"),
+    ),
+    _Cop30Quote(
+        "collection_vertical_unit",
+        "collection_description",
+        re.compile(r"Vertical Unit: ([A-Za-z]+)"),
+    ),
+    _Cop30Quote(
+        "collection_licence",
+        "collection_description",
+        re.compile(r"The GLO-30 and GLO-90 datasets are available worldwide with a free license\."),
+    ),
+    _Cop30Quote(
+        "collection_notice",
+        "collection_description",
+        re.compile(
+            r"distributing the Copernicus WorldDEM-30 \(GLO-30\), the User shall inform the "
+            r"General Public of the source by using the following notice: "
+            r"(©[^;]*; all rights reserved)"
+        ),
+    ),
+    _Cop30Quote(
+        "collection_acquisition",
+        "collection_description",
+        re.compile(r"Data were acquired by the TanDEM-X mission between [0-9]{4} and [0-9]{4}\."),
+    ),
+)
+
+
+def cop30_tile_name(latitude: float, longitude: float) -> str:
+    """The GLO-30 tile holding a point: the 1-degree cell whose south-west corner is floored.
+
+    The bucket readme names tiles ``Copernicus_DSM_COG_10_<northing>_<easting>_DEM``, where 10 is
+    the resolution in arc seconds and the northing and easting are whole degrees with ``_00``
+    (``N64_00``, ``W017_00``) at the cell's south and west edges.
+    """
+    if not (math.isfinite(latitude) and math.isfinite(longitude)) or not (
+        -90.0 <= latitude < 90.0 and -180.0 <= longitude < 180.0
+    ):
+        raise PilotError(
+            f"({latitude}, {longitude}) is not a latitude in [-90, 90) and a longitude in "
+            "[-180, 180), so it lies in no GLO-30 tile"
+        )
+    south, west = math.floor(latitude), math.floor(longitude)
+    northing = f"{'N' if south >= 0 else 'S'}{abs(south):02d}_00"
+    easting = f"{'E' if west >= 0 else 'W'}{abs(west):03d}_00"
+    return f"Copernicus_DSM_COG_10_{northing}_{easting}_DEM"
+
+
+@dataclass(frozen=True)
+class Cop30Candidate:
+    """A tile the cop30 source may read, the window centre in it, and where the centre is from."""
+
+    key: str
+    name: str
+    latitude: float
+    longitude: float
+    basis: str
+
+    @property
+    def tile(self) -> str:
+        return cop30_tile_name(self.latitude, self.longitude)
+
+
+_HOLUHRAUN: Final = Cop30Candidate(
+    key="holuhraun",
+    name="Holuhraun, Iceland",
+    latitude=64.85,
+    longitude=-16.83,
+    basis=(
+        "the coordinates the English Wikipedia article 'Holuhraun' states (64.85° N, 16.83° W; "
+        "https://en.wikipedia.org/wiki/Holuhraun, read on 2026-11-14 when this source was "
+        "written). The pilot does not download that page (Wikipedia answers Python's default "
+        "HTTP client with HTTP 403), so the centre is a stated choice of the pilot, not an "
+        "observation; PRD 5 names Holuhraun as the first Earth region"
+    ),
+)
+_N65_W017: Final = Cop30Candidate(
+    key="fallback_n65_w017",
+    name="the GLO-30 tile north of the Holuhraun tile",
+    latitude=65.5,
+    longitude=-16.5,
+    basis=(
+        "the centre of the 1-degree cell N65 W017, the next cell north of the Holuhraun tile; "
+        "the documented fallback, read only when the Holuhraun tile is absent from tileList.txt"
+    ),
+)
+
+
+@dataclass(frozen=True)
+class Cop30ProbeWindow:
+    """The live-probe window in one GLO-30 tile (PRD 5 Earth windows, 8.7 footprint).
+
+    ``utm_bounds`` and ``geographic_bounds`` are (west, south, east, north), in metres of
+    ``utm_epsg`` and in degrees of EPSG:4326. The pixel window holds every pixel whose cell, as
+    the file's geotransform defines it, intersects the geographic bounds.
+    """
+
+    utm_epsg: int
+    centre_utm: tuple[float, float]
+    utm_bounds: tuple[float, float, float, float]
+    geographic_bounds: tuple[float, float, float, float]
+    col_off: int
+    row_off: int
+    width: int
+    height: int
+
+    @property
+    def window(self) -> Window:
+        return Window(self.col_off, self.row_off, self.width, self.height)
+
+    def pixel_window(self) -> dict[str, int]:
+        return {
+            "col_off": self.col_off,
+            "row_off": self.row_off,
+            "width": self.width,
+            "height": self.height,
+        }
+
+
+def cop30_probe_window(
+    header: GeoTiffHeader,
+    latitude: float,
+    longitude: float,
+    side_m: float,
+    *,
+    densify_points: int = 21,
+) -> Cop30ProbeWindow:
+    """The ``side_m`` square around a point, in the local UTM zone, as a pixel window of a tile.
+
+    PRD 5: Earth windows are computed in the local UTM zone with pyproj. The zone is the
+    standard 6-degree zone of the longitude (north or south by the latitude); the Norway and
+    Svalbard exceptions are not applied. The square's edges, densified to ``densify_points``
+    points each, are transformed to EPSG:4326 and bounded. Raises PilotError when the tile's CRS
+    as read is not EPSG:4326, when it has no north-up geotransform, or when the window leaves
+    the tile, because the pilot reads one tile.
+    """
+    if header.crs is None:
+        raise PilotError("the tile states no CRS, so the probe window cannot be placed in it")
+    crs = pyproj.CRS.from_wkt(header.crs)
+    if crs.to_epsg() != 4326:
+        raise PilotError(
+            f"the tile's CRS as read is {crs.name!r}, not EPSG:4326; the probe window is "
+            "computed for EPSG:4326 tiles only"
+        )
+    t = header.transform
+    if t is None or t.b != 0 or t.d != 0 or t.a <= 0 or t.e >= 0:
+        raise PilotError("the tile has no north-up geotransform, so the window cannot be placed")
+    if not -80.0 <= latitude <= 84.0 or not -180.0 <= longitude < 180.0:
+        raise PilotError(f"({latitude}, {longitude}) lies outside the UTM zones")
+    zone = min(math.floor((longitude + 180.0) / 6.0) + 1, 60)
+    epsg = (32600 if latitude >= 0 else 32700) + zone
+    forward = pyproj.Transformer.from_crs(4326, epsg, always_xy=True)
+    x, y = (float(value) for value in forward.transform(longitude, latitude))
+    half = side_m / 2.0
+    utm_bounds = (x - half, y - half, x + half, y + half)
+    back = pyproj.Transformer.from_crs(epsg, 4326, always_xy=True)
+    west, south, east, north = (
+        float(value) for value in back.transform_bounds(*utm_bounds, densify_pts=densify_points)
+    )
+    col_off = math.floor((west - t.c) / t.a)
+    col_end = math.ceil((east - t.c) / t.a)
+    row_off = math.floor((t.f - north) / -t.e)
+    row_end = math.ceil((t.f - south) / -t.e)
+    if col_off < 0 or row_off < 0 or col_end > header.width or row_end > header.height:
+        raise PilotError(
+            f"the {side_m:g} m window around ({latitude}, {longitude}) leaves the "
+            f"{header.width} x {header.height} tile (pixel columns {col_off} to {col_end - 1}, "
+            f"rows {row_off} to {row_end - 1}); the pilot reads one tile"
+        )
+    return Cop30ProbeWindow(
+        utm_epsg=epsg,
+        centre_utm=(x, y),
+        utm_bounds=utm_bounds,
+        geographic_bounds=(west, south, east, north),
+        col_off=col_off,
+        row_off=row_off,
+        width=col_end - col_off,
+        height=row_end - row_off,
+    )
+
+
+def _phased_exchange_entry(exchange: RangeExchange) -> dict[str, Any]:
+    return {**_exchange_entry(exchange), "phase": exchange.phase}
+
+
+def _tile_names(path: Path) -> tuple[list[str], int, int]:
+    """The tile names tileList.txt lists, its line count and the lines that are not tile names."""
+    lines = [line.strip() for line in _decode(path).splitlines()]
+    names = [line for line in lines if _COP30_TILE.fullmatch(line)]
+    others = sum(1 for line in lines if line and _COP30_TILE.fullmatch(line) is None)
+    return names, len(lines), others
+
+
+@dataclass(frozen=True)
+class Cop30Source:
+    """Copernicus DEM GLO-30 Public (PRD 5 row 11; 9 G0: one Copernicus COG read).
+
+    fetch downloads the bucket's tileList.txt, its readme, the AWS registry entry and the
+    Copernicus DEM collection description (the licence page the registry entry links), picks
+    the first candidate tile tileList.txt lists, and reads the live-probe window (PRD 8.7) of
+    that tile's COG through HTTP range requests, header and layout included; only the byte
+    ranges read are stored, with the HTTP metadata of every request. The bucket is read
+    anonymously over HTTPS: no account, key, token or signature. record reads only those files.
+    """
+
+    bucket: str = "copernicus-dem-30m"
+    region: str = "eu-central-1"
+    endpoint: str | None = None
+    registry_url: str = "https://registry.opendata.aws/copernicus-dem/"
+    collection_url: str = (
+        "https://dataspace.copernicus.eu/explore-data/data-collections/"
+        "copernicus-contributing-missions/collections-description/COP-DEM"
+    )
+    candidates: tuple[Cop30Candidate, ...] = (_HOLUHRAUN, _N65_W017)
+    window_side_m: float = 5000.0
+    densify_points: int = 21
+    budget_bytes: int = COP30_BUDGET_BYTES
+    range_block_bytes: int = RANGE_BLOCK_BYTES
+    whole_file_limit_bytes: int = WHOLE_FILE_LIMIT_BYTES
+
+    @property
+    def name(self) -> str:
+        return "cop30"
+
+    @property
+    def base_url(self) -> str:
+        """The bucket's S3 virtual-hosted-style HTTPS endpoint in its region (or a test stub)."""
+        if self.endpoint is not None:
+            return self.endpoint.rstrip("/")
+        return f"https://{self.bucket}.s3.{self.region}.amazonaws.com"
+
+    @property
+    def tile_list_url(self) -> str:
+        return f"{self.base_url}/tileList.txt"
+
+    @property
+    def readme_url(self) -> str:
+        return f"{self.base_url}/readme.html"
+
+    def tile_url(self, tile: str) -> str:
+        return f"{self.base_url}/{tile}/{tile}.tif"
+
+    def s3_uri(self, tile: str) -> str:
+        return f"s3://{self.bucket}/{tile}/{tile}.tif"
+
+    def _documents(self) -> tuple[tuple[str, str, str], ...]:
+        return (
+            ("tile_list", self.tile_list_url, "tileList.txt"),
+            ("bucket_readme", self.readme_url, "readme.html"),
+            ("registry_entry", self.registry_url, "aws_registry_copernicus_dem.html"),
+            ("collection_description", self.collection_url, "cdse_cop_dem_collection.html"),
+        )
+
+    def _choose(self, listed: Sequence[str]) -> Cop30Candidate | None:
+        present = set(listed)
+        return next((c for c in self.candidates if c.tile in present), None)
+
+    def _probe(self, header: GeoTiffHeader, candidate: Cop30Candidate) -> Cop30ProbeWindow:
+        return cop30_probe_window(
+            header,
+            candidate.latitude,
+            candidate.longitude,
+            self.window_side_m,
+            densify_points=self.densify_points,
+        )
+
+    # -- fetch --
+
+    def fetch(
+        self, raw_dir: Path, download: Downloader, read_range: RangeFetcher, now: Clock
+    ) -> None:
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=raw_dir, prefix=".fetch-") as staging_name:
+            staging = Path(staging_name)
+            documents: list[dict[str, Any]] = []
+            for role, url, file_name in self._documents():
+                magic = _TILE_LIST_MAGIC if role == "tile_list" else ()
+                fetched = download(
+                    url, staging / file_name, max_bytes=self.whole_file_limit_bytes, magic=magic
+                )
+                documents.append(_fetch_entry(fetched, now(), role=role))
+            listed, _, _ = _tile_names(staging / "tileList.txt")
+            chosen = self._choose(listed)
+            files: list[dict[str, Any]] = []
+            if chosen is not None:
+                tile = chosen.tile
+                provider_name = f"{tile}.tif"
+                remote = read_remote_cog_window(
+                    self.tile_url(tile),
+                    lambda header: self._probe(header, chosen).window,
+                    fetch=read_range,
+                    block_bytes=self.range_block_bytes,
+                    max_bytes=self.whole_file_limit_bytes,
+                    now=now,
+                )
+                local_name = f"{provider_name}{_RANGES_SUFFIX}"
+                (staging / local_name).write_bytes(remote.ranges.data)
+                files.append(
+                    _window_entry(
+                        remote,
+                        local_name,
+                        now(),
+                        role="dem_window",
+                        candidate=chosen.key,
+                        tile=tile,
+                        s3_uri=self.s3_uri(tile),
+                        provider_file_name=provider_name,
+                        range_block_bytes=self.range_block_bytes,
+                        exchanges=[_phased_exchange_entry(e) for e in remote.exchanges],
+                    )
+                )
+            metadata = {
+                "source": self.name,
+                "command": f"{COMMAND} fetch {self.name}",
+                "bucket": self.bucket,
+                "region": self.region,
+                "base_url": self.base_url,
+                "whole_file_limit_bytes": self.whole_file_limit_bytes,
+                "documents": documents,
+                "files": files,
+                "choice": {
+                    "rule": _COP30_CANDIDATE_RULE,
+                    "candidates": [candidate.key for candidate in self.candidates],
+                    "chosen": None if chosen is None else chosen.key,
+                },
+            }
+            (raw_dir / FETCH_METADATA).unlink(missing_ok=True)
+            for entry in [*documents, *files]:
+                os.replace(staging / entry["file_name"], raw_dir / entry["file_name"])
+            _write_atomically(raw_dir / FETCH_METADATA, canonical_json(metadata))
+
+    # -- build --
+
+    def build(self, raw_dir: Path, root: Path) -> Build:
+        fetched = _load_fetch(raw_dir, self.name)
+        try:
+            return self._build(raw_dir, root, fetched)
+        except (KeyError, TypeError) as error:
+            raise PilotError(
+                f"data/raw/{self.name}/{FETCH_METADATA} lacks an expected entry ({error!r}); "
+                f"run: {COMMAND} fetch {self.name}"
+            ) from error
+
+    def _local(self, file_name: str) -> str:
+        return f"{RAW_DIR.as_posix()}/{self.name}/{file_name}"
+
+    def _refetch(self, what: str) -> PilotError:
+        return PilotError(f"{what}; run: {COMMAND} fetch {self.name}")
+
+    def _build(self, raw_dir: Path, root: Path, fetched: Mapping[str, Any]) -> Build:
+        documents = {entry["role"]: entry for entry in fetched["documents"]}
+        for role, url, file_name in self._documents():
+            entry = documents[role]
+            if entry["url"] != url or entry["file_name"] != file_name:
+                raise self._refetch(f"fetch.json's {role} is not {url}")
+        quotes = self._quotes(raw_dir, documents)
+        links = self._licence_links(raw_dir, documents)
+
+        list_entry = documents["tile_list"]
+        listed, line_count, others = _tile_names(raw_dir / list_entry["file_name"])
+        chosen = self._choose(listed)
+        choice = fetched["choice"]
+        if choice["candidates"] != [candidate.key for candidate in self.candidates] or (
+            choice["chosen"] != (None if chosen is None else chosen.key)
+        ):
+            raise self._refetch(
+                f"fetch.json chose {choice['chosen']!r}, but the rule gives "
+                f"{None if chosen is None else chosen.key!r} on the saved tileList.txt"
+            )
+        tile_choice = self._tile_choice(set(listed), chosen)
+
+        records: list[ProductRecord] = []
+        verification: dict[str, dict[str, str]] = {}
+        attribution = self._attribution(quotes, links)
+        dem: dict[str, Any] | None = None
+        if chosen is not None:
+            dem, product, basis = self._dem(raw_dir, root, fetched, chosen, quotes, attribution)
+            records.append(product)
+            verification[product.product_id] = {
+                "status": product.verification_status,
+                "basis": basis,
+            }
+        elif fetched["files"]:
+            raise self._refetch("fetch.json lists a tile window, but no candidate tile is listed")
+
+        retrieved = sorted(
+            entry["retrieved_at"] for entry in [*fetched["documents"], *fetched["files"]]
+        )
+        result = {
+            "record": "cop30_range_read",
+            "description": (
+                "One window of one Copernicus DEM GLO-30 Public COG read by HTTP range requests "
+                "from the public AWS bucket, server-side, as fetched by the T1 pilot (PRD 5 row "
+                "11; 8.7 live-probe footprint and budget; 9 G0, one Copernicus COG read). Raw "
+                "observations only: this read sends no Origin header and is not the "
+                "browser-origin CORS check (T1-07), cop30_mode is chosen by the team at G0, and "
+                "the shipping mode and the G0 status are a human checkpoint (PRD 23.6)."
+            ),
+            "source": self.name,
+            "bucket": {
+                "s3_uri": f"s3://{self.bucket}/",
+                "region": self.region,
+                "https_base_url": self.base_url,
+                "url_rule": (
+                    "https://<bucket>.s3.<region>.amazonaws.com/<tile>/<tile>.tif, the S3 "
+                    "virtual-hosted-style URL of s3://<bucket>/<tile>/<tile>.tif"
+                ),
+                "credentials": (
+                    "none: anonymous HTTPS GET requests with a Range header; no account, key, "
+                    "token or signature"
+                ),
+            },
+            "tile_list": {
+                "url": list_entry["url"],
+                "local_path": self._local(list_entry["file_name"]),
+                "http_status": list_entry["http_status"],
+                "bytes_received": list_entry["bytes_received"],
+                "sha256": list_entry["sha256"],
+                "last_modified": list_entry["last_modified"],
+                "retrieved_at": list_entry["retrieved_at"],
+                "lines": line_count,
+                "tiles_listed": len(set(listed)),
+                "lines_not_tile_names": others,
+                "readme_statement": quotes["readme_tile_list"],
+                "withheld_tiles_statement": quotes["readme_withheld_tiles"],
+            },
+            "tile_choice": tile_choice,
+            "dem": dem,
+            "surface_model_caveat": {
+                "caveat": _SURFACE_MODEL_CAVEAT,
+                "quotes": [
+                    quotes[key]
+                    for key in ("readme_dsm", "collection_dsm")
+                    if quotes[key]["quote"] is not None
+                ],
+            },
+            "licence": {
+                "license_or_attribution": attribution,
+                "collection_licence": quotes["collection_licence"],
+                "collection_notice": quotes["collection_notice"],
+                "registry_licence": quotes["registry_licence"] | links["registry_entry"],
+                "readme_licence": quotes["readme_licence"] | links["bucket_readme"],
+                "note": (
+                    "the AWS registry entry links its licence statement to the Copernicus DEM "
+                    "collection description, which fetch saved; the readme's licence link is "
+                    "recorded as stated and not fetched"
+                ),
+            },
+            "version": {
+                "value": self._version(quotes),
+                "quote": quotes["registry_version"],
+                "file_states": None,
+            },
+            "acquisition": quotes["collection_acquisition"],
+            "documents": [
+                {
+                    key: entry[key]
+                    for key in (
+                        "role",
+                        "file_name",
+                        "url",
+                        "final_url",
+                        "http_status",
+                        "content_type",
+                        "bytes_received",
+                        "sha256",
+                        "last_modified",
+                        "retrieved_at",
+                    )
+                }
+                | {"local_path": self._local(entry["file_name"])}
+                for entry in fetched["documents"]
+            ],
+            "retrieval": {
+                "first_retrieved_at": retrieved[0],
+                "last_retrieved_at": retrieved[-1],
+                "fetch_metadata": self._local(FETCH_METADATA),
+                "command": fetched["command"],
+            },
+            "verification": verification,
+            "open_g0_items": [
+                "G0 needs a Copernicus COG read from a browser origin with the CORS result "
+                "recorded (PRD 9); this read is server-side and sends no Origin header. The "
+                "Origin-header check is T1-07, and cop30_mode is chosen by the team at G0",
+                "The effective support of GLO-30 (PRD 5 row 11, R16) is not established here",
+                "No WorldCover or other bare-ground mask is applied (D31)",
+                "The G0 status and the shipping mode are a human checkpoint (PRD 23.6)",
+            ],
+            "field_notes": self._field_notes(),
+            "tool_versions": tool_versions(),
+        }
+        return Build(
+            files={"outputs/pilot/cop30_range_read.json": canonical_json(result)},
+            records=tuple(records),
+            record_prefix=_COP30_PREFIX,
+        )
+
+    # -- build: provider statements --
+
+    def _quotes(
+        self, raw_dir: Path, documents: Mapping[str, Mapping[str, Any]]
+    ) -> dict[str, dict[str, Any]]:
+        texts = {
+            role: _page_text(_decode(raw_dir / documents[role]["file_name"]))
+            for role in ("bucket_readme", "registry_entry", "collection_description")
+        }
+        quotes: dict[str, dict[str, Any]] = {}
+        for spec in _COP30_QUOTES:
+            match = spec.pattern.search(texts[spec.role])
+            entry = documents[spec.role]
+            quotes[spec.key] = {
+                "quote": None if match is None else match.group(0),
+                "groups": [] if match is None else list(match.groups()),
+                "document": entry["url"],
+                "local_path": self._local(entry["file_name"]),
+            }
+        return quotes
+
+    def _licence_links(
+        self, raw_dir: Path, documents: Mapping[str, Mapping[str, Any]]
+    ) -> dict[str, dict[str, Any]]:
+        links: dict[str, dict[str, Any]] = {}
+        for role in ("bucket_readme", "registry_entry"):
+            entry = documents[role]
+            html = _decode(raw_dir / entry["file_name"])
+            match = _LICENCE_LINK.search(html)
+            href = None if match is None else urllib.parse.urljoin(entry["final_url"], match[1])
+            links[role] = {
+                "link": href,
+                "links_to_collection_description": href == self.collection_url,
+            }
+        return links
+
+    def _attribution(
+        self, quotes: Mapping[str, Mapping[str, Any]], links: Mapping[str, Mapping[str, Any]]
+    ) -> str:
+        licence = quotes["collection_licence"]["quote"]
+        notice = quotes["collection_notice"]["groups"]
+        parts = []
+        if licence is not None:
+            parts.append(
+                f"licence as the Copernicus DEM collection description states: '{licence}'"
+            )
+        if notice:
+            parts.append(f"required notice for GLO-30, as it states: '{notice[0]}'")
+        if not parts:
+            return UNKNOWN
+        linked = links["registry_entry"]["links_to_collection_description"]
+        where = f"source: {self.collection_url}" + (
+            ", the page the AWS registry entry links as the licence" if linked else ""
+        )
+        return f"{'; '.join(parts)} ({where})"
+
+    @staticmethod
+    def _version(quotes: Mapping[str, Mapping[str, Any]]) -> str:
+        groups = quotes["registry_version"]["groups"]
+        if not groups:
+            return UNKNOWN
+        return f"Copernicus DEM {groups[0]} release, as the AWS registry entry states"
+
+    def _provider(self, quotes: Mapping[str, Mapping[str, Any]]) -> str:
+        groups = quotes["readme_source_dataset"]["groups"]
+        dataset = f" (source dataset {groups[0]}, as the bucket readme states)" if groups else ""
+        return (
+            f"Copernicus DEM GLO-30 Public{dataset}; AWS Open Data bucket s3://{self.bucket} "
+            f"({self.region})"
+        )
+
+    def _tile_choice(self, listed: set[str], chosen: Cop30Candidate | None) -> dict[str, Any]:
+        candidates = []
+        seen_chosen = False
+        for candidate in self.candidates:
+            present = candidate.tile in listed
+            if candidate == chosen:
+                status, seen_chosen = "chosen", True
+            elif not present:
+                status = "absent"
+            else:
+                status = "not_needed" if seen_chosen else "absent"
+            candidates.append(
+                {
+                    "key": candidate.key,
+                    "name": candidate.name,
+                    "tile": candidate.tile,
+                    "centre": {"latitude": candidate.latitude, "longitude": candidate.longitude},
+                    "centre_basis": candidate.basis,
+                    "listed_in_tile_list": present,
+                    "status": status,
+                }
+            )
+        first = self.candidates[0]
+        reason: str | None = None
+        if chosen is None:
+            tiles = ", ".join(candidate.tile for candidate in self.candidates)
+            reason = (
+                f"none of the candidate tiles ({tiles}) is listed in tileList.txt (withheld from "
+                "the GLO-30 Public release or missing), so no tile was read"
+            )
+        elif chosen != first:
+            reason = (
+                f"{first.tile} is not listed in tileList.txt (withheld from the GLO-30 Public "
+                f"release or missing), so the next documented candidate, {chosen.tile}, was read"
+            )
+        return {
+            "rule": _COP30_CANDIDATE_RULE,
+            "candidates": candidates,
+            "chosen": None if chosen is None else chosen.key,
+            "chosen_tile": None if chosen is None else chosen.tile,
+            "fallback_used": chosen is not None and chosen != first,
+            "reason": reason,
+        }
+
+    # -- build: the tile window --
+
+    def _ranges(self, path: Path, entry: Mapping[str, Any]) -> ByteRanges:
+        try:
+            return ByteRanges(
+                name=_provider_name(entry),
+                size=int(entry["remote_bytes"]),
+                ranges=tuple((int(first), int(last)) for first, last in entry["ranges"]),
+                data=path.read_bytes(),
+            )
+        except ValueError as error:
+            raise self._refetch(
+                f"data/raw/{self.name}/{FETCH_METADATA} describes the byte ranges in {path.name} "
+                f"wrongly ({error})"
+            ) from error
+
+    def _exchanges(self, entry: Mapping[str, Any], ranges: ByteRanges) -> dict[str, Any]:
+        exchanges = entry["exchanges"]
+        requested = 0
+        phases: dict[str, dict[str, int]] = {
+            phase: {"requests": 0, "bytes_received": 0} for phase in ("header", "window")
+        }
+        for exchange in exchanges:
+            match = _REQUESTED_RANGE.fullmatch(str(exchange["requested_range"]))
+            if match is None or exchange["phase"] not in phases:
+                raise self._refetch("fetch.json's range request log cannot be read")
+            requested += int(match[2]) - int(match[1]) + 1
+            phases[exchange["phase"]]["requests"] += 1
+            phases[exchange["phase"]]["bytes_received"] += int(exchange["bytes_received"])
+        received = sum(int(exchange["bytes_received"]) for exchange in exchanges)
+        if (
+            not exchanges
+            or len(exchanges) != entry["range_requests"]
+            or received != entry["bytes_received"]
+            or received != len(ranges.data)
+            or exchanges[0]["http_status"] != entry["http_status"]
+        ):
+            raise self._refetch(
+                "fetch.json's range request log does not match the stored byte ranges"
+            )
+        return {
+            "http_status": exchanges[0]["http_status"],
+            "content_range": exchanges[0]["content_range"],
+            "bytes_requested": requested,
+            "bytes_by_phase": phases,
+            "phase_definition": (
+                "header: the requests sent before the window's pixels were decoded (the first "
+                "block, which states the object size, the COG header and the layout); window: "
+                "the requests sent while the window was decoded"
+            ),
+        }
+
+    def _dem(
+        self,
+        raw_dir: Path,
+        root: Path,
+        fetched: Mapping[str, Any],
+        chosen: Cop30Candidate,
+        quotes: Mapping[str, Mapping[str, Any]],
+        attribution: str,
+    ) -> tuple[dict[str, Any], ProductRecord, str]:
+        (entry,) = fetched["files"]
+        tile = chosen.tile
+        url = self.tile_url(tile)
+        if (
+            entry["role"] != "dem_window"
+            or entry["tile"] != tile
+            or entry["candidate"] != chosen.key
+            or entry["url"] != url
+            or not _is_window_read(entry)
+            or _provider_name(entry) != f"{tile}.tif"
+        ):
+            raise self._refetch(f"fetch.json's tile window is not a window read of {url}")
+        path = raw_dir / entry["file_name"]
+        ranges = self._ranges(path, entry)
+        if ranges.covers_whole_file:
+            raise self._refetch(
+                f"the byte ranges in data/raw/{self.name}/{path.name} hold all {ranges.size} "
+                f"bytes of {url}, so the tile was downloaded whole, not read by window"
+            )
+        header = read_geotiff_header(path, ranges=ranges)
+        probe = self._probe(header, chosen)
+        if entry["window"] != probe.pixel_window():
+            raise self._refetch(
+                f"fetch.json's window {entry['window']} is not the probe window "
+                f"{probe.pixel_window()} that the saved header gives"
+            )
+        layout = read_cog_layout(path, probe.window, ranges=ranges)
+        tiles = [
+            {
+                "row": block.row,
+                "col": block.col,
+                "offset": block.offset,
+                "size": block.size,
+                "held_in_ranges": (
+                    block.offset is not None
+                    and block.size is not None
+                    and block.size > 0
+                    and ranges.holds(block.offset, block.offset + block.size - 1)
+                ),
+            }
+            for block in layout.blocks
+        ]
+        exchange_summary = self._exchanges(entry, ranges)
+
+        band_units = header.units[0] if header.units else None
+        nodata = header.nodata[0] if header.nodata else None
+        unit_groups = quotes["collection_vertical_unit"]["groups"]
+        if band_units is None and unit_groups:
+            units = (
+                f"{unit_groups[0]}, as the Copernicus DEM collection description states "
+                f"('{quotes['collection_vertical_unit']['quote']}'); the COG states no band units"
+            )
+        else:
+            units = UNKNOWN
+        if nodata is None:
+            mask_text = "the COG declares no nodata value, so only non-finite values are masked"
+        else:
+            mask_text = f"nodata {_json_number(nodata)} as the file declares it"
+        metadata: ProductMetadata = {
+            "body": "earth",
+            "provider": self._provider(quotes),
+            "version": self._version(quotes),
+            "source_url": url,
+            "acquisition_time": UNKNOWN,
+            "frequency_or_wavelength": None,
+            "transmit_receive_convention": None,
+            "calibration_type": None,
+            "effective_resolution": UNKNOWN,
+            "incidence_source": None,
+            "qa_definition": (
+                f"{mask_text} (quality.validity_mask); no WorldCover or other bare-ground mask is "
+                "applied (D31) and the Copernicus DEM quality layers are not read"
+            ),
+            "license_or_attribution": attribution,
+        }
+        if units != UNKNOWN:
+            metadata["units"] = units
+        product_id = f"{_COP30_PREFIX}{self.bucket}/{tile}/{tile}.tif"
+        bands, record = read_product(
+            product_id, [path], metadata, root=root, window=probe.window, ranges=ranges
+        )
+        band = bands[0]
+        mask = validity_mask(band.array, nodata=band.nodata)
+        fraction = valid_fraction(mask)
+        values = band.array[mask.valid]
+        crs = pyproj.CRS.from_wkt(header.crs) if header.crs is not None else None
+        vertical = (
+            [sub.name for sub in crs.sub_crs_list if sub.is_vertical]
+            if crs is not None and crs.is_compound
+            else []
+        )
+        datum_groups = quotes["collection_vertical_datum"]["groups"]
+        west, south, east, north = probe.utm_bounds
+        g_west, g_south, g_east, g_north = probe.geographic_bounds
+        total = int(entry["bytes_received"])
+        default_budget = self.budget_bytes == COP30_BUDGET_BYTES
+        dem = {
+            "product_id": product_id,
+            "tile": tile,
+            "candidate": chosen.key,
+            "window": {
+                "role": (
+                    "the live-probe footprint of PRD 8.7 (a 5 km x 5 km window) at a stated "
+                    "centre; a pilot probe of the read path, not a target or search window"
+                ),
+                "side_m": self.window_side_m,
+                "centre": {"latitude": chosen.latitude, "longitude": chosen.longitude},
+                "centre_basis": chosen.basis,
+                "utm_crs": f"EPSG:{probe.utm_epsg}",
+                "utm_zone_rule": (
+                    "the standard 6-degree UTM zone of the centre longitude, north or south by "
+                    "the centre latitude; the Norway and Svalbard exceptions are not applied"
+                ),
+                "centre_utm_m": {"x": probe.centre_utm[0], "y": probe.centre_utm[1]},
+                "utm_bounds_m": {"west": west, "south": south, "east": east, "north": north},
+                "geographic_bounds_deg": {
+                    "west": g_west,
+                    "south": g_south,
+                    "east": g_east,
+                    "north": g_north,
+                },
+                "densify_points": self.densify_points,
+                "pixel_window": probe.pixel_window(),
+                "definition": (
+                    "the square of side_m metres centred on the centre in the UTM CRS (PRD 5: "
+                    "Earth windows are computed in the local UTM zone with pyproj); its edges, "
+                    "densified to densify_points points each, are transformed to EPSG:4326 and "
+                    "bounded, and the pixel window holds every pixel whose cell, as the COG's "
+                    "geotransform defines it, intersects that bounding box"
+                ),
+            },
+            "range_read": {
+                "url": url,
+                "s3_uri": entry["s3_uri"],
+                "final_url": entry["final_url"],
+                "http_status": exchange_summary["http_status"],
+                "content_range": exchange_summary["content_range"],
+                "content_type": entry["content_type"],
+                "etag": entry["etag"],
+                "last_modified": entry["last_modified"],
+                "object_size_bytes": entry["remote_bytes"],
+                "range_requests": entry["range_requests"],
+                "bytes_requested": exchange_summary["bytes_requested"],
+                "bytes_received": total,
+                "bytes_by_phase": exchange_summary["bytes_by_phase"],
+                "phase_definition": exchange_summary["phase_definition"],
+                "range_block_bytes": entry["range_block_bytes"],
+                "ranges": entry["ranges"],
+                "exchanges": entry["exchanges"],
+                "whole_file_downloaded": ranges.covers_whole_file,
+                "local_path": record.local_path,
+                "local_sha256": record.checksum,
+                "sha256_note": (
+                    "the tile was not downloaded whole, so its SHA-256 is unknown; local_sha256 "
+                    "is that of the fetched byte ranges held in local_path, at the positions "
+                    "listed in ranges"
+                ),
+                "retrieved_at": entry["retrieved_at"],
+            },
+            "live_probe_budget": {
+                "rule": "PRD 8.7: the first live probe reads at most 4 MB of DEM",
+                "limit_bytes": self.budget_bytes,
+                "limit_definition": (
+                    "'DEM reads ≤ 4 MB' read as 4,000,000 bytes"
+                    if default_budget
+                    else f"{self.budget_bytes} bytes, as set for this run"
+                ),
+                "bytes_fetched": total,
+                "within_budget": total <= self.budget_bytes,
+                "tiles_touched": len(layout.blocks),
+                "touched_tile_bytes": layout.stored_bytes,
+                "reader": (
+                    f"io.read_remote_cog_window with {entry['range_block_bytes']}-byte aligned "
+                    "blocks, so bytes_fetched also holds the header, the block alignment and any "
+                    "other bytes GDAL read; touched_tile_bytes are the touched tiles' sizes as "
+                    "the TIFF tile index states them"
+                ),
+                "note": (
+                    "an observation of this server-side read, not a browser measurement; an "
+                    "over-budget read is recorded as over budget and does not fail the command"
+                ),
+            },
+            "cog": {
+                "header": _header_entry(header),
+                "internal_tile_shape": {
+                    "rows": layout.block_shape[0],
+                    "columns": layout.block_shape[1],
+                },
+                "tile_grid": {"across": layout.blocks_across, "down": layout.blocks_down},
+                "overviews": [
+                    {
+                        "level": overview.level,
+                        "factor": overview.factor,
+                        "width": overview.width,
+                        "height": overview.height,
+                        "block_shape": list(overview.block_shape),
+                    }
+                    for overview in layout.overviews
+                ],
+                "tiles_touched": {
+                    "count": len(layout.blocks),
+                    "tiles": tiles,
+                    "stored_bytes": layout.stored_bytes,
+                    "definition": (
+                        "the internal COG tiles of band 1 that the pixel window intersects, with "
+                        "the byte offset and size the TIFF tile index states (GDAL TIFF "
+                        "metadata BLOCK_OFFSET and BLOCK_SIZE); held_in_ranges says whether "
+                        "every byte of the tile is in the stored byte ranges"
+                    ),
+                },
+                "readme_tile_size": self._readme_tile_size(quotes, layout.block_shape),
+            },
+            "crs": {
+                "wkt": header.crs,
+                "name": None if crs is None else crs.name,
+                "epsg_identified": None if crs is None else crs.to_epsg(),
+                "is_geographic": None if crs is None else crs.is_geographic,
+                "stated_by": "the COG's GeoTIFF keys, as GDAL reads them",
+            },
+            "pixel_size": _header_entry(header)["pixel_size"],
+            "vertical_datum": {
+                "stated_by_file": ", ".join(vertical) if vertical else UNKNOWN,
+                "file_note": (
+                    "the COG's CRS is a compound CRS with a vertical part"
+                    if vertical
+                    else "the COG's CRS has no vertical part, so the file does not state the "
+                    "vertical datum"
+                ),
+                "product_documentation": (
+                    None
+                    if not datum_groups
+                    else {
+                        "quote": quotes["collection_vertical_datum"]["quote"],
+                        "datum": datum_groups[0],
+                        "epsg": int(datum_groups[1]),
+                        "document": quotes["collection_vertical_datum"]["document"],
+                        "local_path": quotes["collection_vertical_datum"]["local_path"],
+                    }
+                ),
+            },
+            "nodata": {
+                "stated_by_file": _json_number(nodata),
+                "note": mask_text,
+            },
+            "units": {
+                "stated_by_file": band_units,
+                "product_documentation": (
+                    None
+                    if not unit_groups
+                    else {
+                        "quote": quotes["collection_vertical_unit"]["quote"],
+                        "unit": unit_groups[0],
+                        "document": quotes["collection_vertical_unit"]["document"],
+                        "local_path": quotes["collection_vertical_unit"]["local_path"],
+                    }
+                ),
+                "record_units": record.units,
+            },
+            "values": {
+                "method": (
+                    "quality.validity_mask(window, nodata=the file's nodata) and "
+                    "quality.valid_fraction over the stored values; min and max over valid pixels"
+                ),
+                "valid_pixels": fraction.valid_pixels,
+                "invalid_pixels": fraction.invalid_pixels,
+                "total_pixels": fraction.total_pixels,
+                "valid_fraction": fraction.fraction,
+                "invalid_by_reason": {
+                    reason.label: count
+                    for reason, count in mask.reason_counts().items()
+                    if reason != InvalidReason.VALID
+                },
+                "elevation_min": float(np.min(values)) if values.size else None,
+                "elevation_max": float(np.max(values)) if values.size else None,
+                "elevation_units": record.units,
+                "live_probe_quality_rule": {
+                    "rule": "PRD 8.7 step 4: a live probe needs a valid fraction of at least 0.8",
+                    "threshold": COP30_VALID_FRACTION_RULE,
+                    "met": fraction.fraction >= COP30_VALID_FRACTION_RULE,
+                },
+            },
+        }
+        basis = (
+            f"the {self.window_side_m:g} m probe window ({probe.width} x {probe.height} pixels) "
+            f"read through {entry['range_requests']} HTTP range requests ({total} of the "
+            f"{entry['remote_bytes']} bytes; the COG is not downloaded whole), header, layout and "
+            "window decoded and masked with quality.validity_mask; not plotted, so the PRD 5 "
+            "entry rule is not complete"
+        )
+        return dem, record, basis
+
+    @staticmethod
+    def _readme_tile_size(
+        quotes: Mapping[str, Mapping[str, Any]], block_shape: tuple[int, int]
+    ) -> dict[str, Any]:
+        stated = quotes["readme_tile_size"]
+        groups = stated["groups"]
+        if not groups:
+            return {"quote": None, "rows": None, "columns": None, "matches_file": None}
+        # The readme writes "width * height"; GDAL's block shape is (rows, columns).
+        columns, rows = int(groups[0]), int(groups[1])
+        return {
+            "quote": stated["quote"],
+            "rows": rows,
+            "columns": columns,
+            "matches_file": (rows, columns) == block_shape,
+            "document": stated["document"],
+        }
+
+    @staticmethod
+    def _field_notes() -> dict[str, str]:
+        return {
+            "units": (
+                "the COG states no band units; the record's units are those the Copernicus DEM "
+                "collection description states for the vertical axis, else unknown"
+            ),
+            "vertical_datum": (
+                "read from the file's CRS where it has a vertical part, else unknown for the "
+                "file; the collection description's statement is quoted beside it"
+            ),
+            "version": (
+                "the release the AWS registry entry states; the COG states no version, so the "
+                "release of this tile is not read from the file"
+            ),
+            "acquisition_time": (
+                "unknown for this tile: the COG states no acquisition time; acquisition quotes "
+                "the collection-level statement of the collection description"
+            ),
+            "effective_resolution": (
+                "unknown: the COG states none and this record derives none (PRD 5 row 11, R16)"
+            ),
+            "crs_and_frame": "the horizontal CRS WKT the COG states",
+            "centre": (
+                "the window centre is a stated pilot choice with its basis in tile_choice; it "
+                "is not a target window and sets nothing in config/run.yaml"
+            ),
+        }
+
+
 SOURCES: Mapping[str, Source] = {
     "pgda78": Pgda78Source(),
     "minirf": MinirfSource(),
     "ctx": CtxSource(),
+    "cop30": Cop30Source(),
 }
 """The registered pilot sources, by the name used on the command line."""
 

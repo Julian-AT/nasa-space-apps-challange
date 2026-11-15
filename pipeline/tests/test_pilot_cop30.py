@@ -473,8 +473,8 @@ def test_the_probe_window_is_the_smallest_pixel_window_holding_the_utm_square() 
     lon, lat = to_geo.transform(x, y)
     assert (lat, lon) == (pytest.approx(64.85, abs=1e-9), pytest.approx(-16.83, abs=1e-9))
     t = REAL_TILE_TRANSFORM
-    left, top = t * (probe.col_off, probe.row_off)
-    right, bottom = t * (probe.col_off + probe.width, probe.row_off + probe.height)
+    left, top = t @ (probe.col_off, probe.row_off)
+    right, bottom = t @ (probe.col_off + probe.width, probe.row_off + probe.height)
     # Every point of the square's edges lies inside the pixel window.
     steps = np.linspace(0.0, 1.0, 201)
     edge_x = np.concatenate([west + steps * 5000, np.full(201, east), east - steps * 5000])
