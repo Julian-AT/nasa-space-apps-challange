@@ -331,9 +331,42 @@ def load_backbone(run_dir: Path) -> Encoder:
     return enc
 
 
+def snapshot(run_dir: Path, out_dir: Path) -> Path:
+    """Copy a running job's latest epoch backbone into ``out_dir`` (an interim snapshot).
+
+    The snapshot has the run's config.json, a metrics.json marked ``interim_snapshot`` with the
+    epoch, and a backbone.pt in the format :func:`load_backbone` reads. The run is untouched.
+    """
+    config = RunConfig.model_validate_json((run_dir / "config.json").read_text())
+    state = torch.load(run_dir / "checkpoint.pt", map_location="cpu", weights_only=True)
+    backbone = {
+        k[len("backbone.") :]: v for k, v in state["model"].items() if k.startswith("backbone.")
+    }
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "config.json").write_text((run_dir / "config.json").read_text(), encoding="utf-8")
+    metrics = json.loads((run_dir / "metrics.json").read_text())
+    metrics["interim_snapshot"] = {"epoch": int(state["epoch"]), "of_epochs": config.epochs}
+    metrics["status"] = "interim snapshot"
+    torch.save(
+        {
+            "backbone": backbone,
+            "stem_stride": config.stem_stride,
+            "config_hash": state["config_hash"],
+            "data_manifest_sha256": state["data_manifest_sha256"],
+        },
+        out_dir / "backbone.pt",
+    )
+    metrics["backbone_sha256"] = sha256_path(out_dir / "backbone.pt")
+    _atomic_write(out_dir / "metrics.json", canonical_json(metrics))
+    return out_dir
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="terraluna_ml.train")
     sub = parser.add_subparsers(dest="cmd", required=True)
+    snap = sub.add_parser("snapshot")
+    snap.add_argument("--run", type=Path, required=True)
+    snap.add_argument("--out", type=Path, required=True)
     r = sub.add_parser("run")
     r.add_argument("--manifest", type=Path)
     r.add_argument("--name", required=True)
@@ -351,6 +384,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     r.add_argument("--out", type=Path)
     r.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
+    if args.cmd == "snapshot":
+        snapshot(args.run, args.out)
+        return 0
     config = RunConfig(
         name=args.name,
         seed=args.seed,
