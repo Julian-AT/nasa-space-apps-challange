@@ -193,7 +193,7 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
       id: 'metrics',
       steps: 1,
       body: () => (
-        <Frame title="Benchmarks" sub="Experimental learned similarity, evidence label Predicted, a second opinion beside the physics.">
+        <Frame title="Benchmarks" sub="Fast to train, and identical in the browser.">
           {/* figure area: components/pitch/fig-benchmarks.tsx is wired in here */}
           <div className="h-full w-full" data-figure="benchmarks"><FigBenchmarks data={bench} /></div>
         </Frame>
@@ -232,7 +232,7 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
           <h2 className="text-[5rem] font-medium leading-none tracking-[-0.045em]">Terraluna</h2>
           <div className="grid grid-cols-3 gap-[5vw]">
             {qr.map((l) => (
-              <a key={l.label} href={l.url} onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-4">
+              <a key={l.label} href={l.url} onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-4 no-underline" style={{ textDecoration: 'none', color: INK }}>
                 <div className="w-[min(16vw,220px)] rounded-xl border bg-white p-5 [&_svg]:h-auto [&_svg]:w-full" style={{ borderColor: C.hair }} role="img" aria-label={`QR code for ${l.url}`} dangerouslySetInnerHTML={{ __html: l.svg }} />
                 <span className="text-lg font-medium">{l.label}</span>
               </a>
