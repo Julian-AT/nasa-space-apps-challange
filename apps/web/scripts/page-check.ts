@@ -57,8 +57,20 @@ const COMPARED_ELEMENTS: ReadonlySet<string> = new Set(['main', 'footer']);
  * and ignores a head tag anywhere else, so a title outside it is page text.
  */
 function isDocumentTitle(block: Block): boolean {
-  const head = block.parent;
-  return block.name === 'title' && head?.name === 'head' && head.parent?.name === 'html' && head.parent.parent === undefined;
+  return block.name === 'title' && block.parent !== undefined && isDocumentHead(block.parent);
+}
+
+/** Whether a block is the document head: the head that is the child of the one html element. */
+function isDocumentHead(block: Block): boolean {
+  return block.name === 'head' && block.parent?.name === 'html' && block.parent.parent === undefined;
+}
+
+/** Whether a block is the document head or sits in it, such as the document's title. */
+function inDocumentHead(block: Block): boolean {
+  for (let at: Block | undefined = block; at !== undefined; at = at.parent) {
+    if (isDocumentHead(at)) return true;
+  }
+  return false;
 }
 
 const SHIPPING_MODE = 'Shipping mode:';
@@ -209,12 +221,13 @@ interface BannerCheck {
 }
 
 /**
- * A banner is held by the block whose own text holds its first words (the marker). The banner's
- * container and every live region around it (bannerParts) must each read the banner and nothing
- * else, inline and nested elements included.
+ * A banner is held by the block whose own text holds its first words (the marker). The document
+ * head, its title included, holds none, as a browser shows the title in the tab, not on the page. The banner's container and
+ * every live region around it (bannerParts) must each read the banner and nothing else, inline and
+ * nested elements included.
  */
 function checkBanner(blocks: readonly Block[], marker: string, banner: string, name: string): BannerCheck {
-  const holders = blocks.filter((block) => block.own.includes(marker));
+  const holders = blocks.filter((block) => block.own.includes(marker) && !inDocumentHead(block));
   if (holders.length === 0) return { problem: `the ${name} "${banner}" is missing`, parts: [] };
   const parts = holders.flatMap(bannerParts);
   const wrong = parts.find((block) => block.full !== banner);
