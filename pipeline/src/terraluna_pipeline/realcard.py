@@ -556,6 +556,7 @@ def write_targets_merged(path: Path, records: list[Any]) -> bytes:
     """
     import json
 
+    from terraluna_pipeline import export
     from terraluna_pipeline.schema import TargetRecord
 
     mine = {r.target_id for r in records}
