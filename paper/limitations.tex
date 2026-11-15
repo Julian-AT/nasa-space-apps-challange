@@ -15,8 +15,7 @@ return, but the short lag statistics of the target still depend on the interpola
 provider's error clones measure this uncertainty under the published error model; they were
 propagated to the shortlist distances, but not to the background or to the encoder.
 
-\paragraph{Earth surface model.} Copernicus GLO-30 is a digital surface model, so canopy, buildings
-are part of the height \citep{airbus2022copernicus}, and so is any snow present when the elevation was acquired. The land cover mask keeps windows that are mostly bare or sparse, grassland, shrubland, or snow and ice, so it removes forest, cropland, built up land and water but not low vegetation, and it is a single year of a land cover product at
+\paragraph{Earth surface model.} Copernicus GLO-30 is a digital surface model, so canopy and buildings are part of the height \citep{airbus2022copernicus}, and so is any snow present when the elevation was acquired. The land cover mask keeps windows that are mostly bare or sparse, grassland, shrubland, or snow and ice, for at least \ConfigMinAllowedPct\% of their analysis cells, so a retained window can still contain other classes, low vegetation is kept, and the mask is a single year of a land cover product at
 the analysis cell centres. Surface change since the elevation was acquired, seasonal snow and
 moisture were not checked.
 

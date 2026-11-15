@@ -7,7 +7,7 @@ is a generated macro; a value that the training record does not contain yet is p
 
 \paragraph{Data and batching.} Training windows are drawn from the training blocks of the spatial
 split of Section~\ref{sec:data}, with each batch balanced so that each body contributes a third of
-its windows. The training split holds \DatasetMoonWindows{} lunar, \DatasetMarsWindows{} Martian and \DatasetEarthWindows{} terrestrial windows (Section~\ref{sec:data}); building the dataset took at most \DatasetCpuHours{} CPU hours by its manifest. Physics targets are computed for every window by the same fingerprint code that ranks
+its windows. The training split holds \DatasetMoonWindows{} lunar, \DatasetMarsWindows{} Martian and \DatasetEarthWindows{} terrestrial windows (Section~\ref{sec:data}); the manifest records an upper estimate of about \DatasetCpuHours{} CPU hours for building the dataset. Physics targets are computed for every window by the same fingerprint code that ranks
 candidates (Section~\ref{sec:fingerprint}) and standardised with statistics of the training blocks
 only. Morphology labels, the crater densities of the lunar and Martian crater catalogues \citep{robbins2019,robbins2012}, are reserved for the probes and never used in training; the evaluation code records the morphology probe as unavailable until these labels are built.
 
