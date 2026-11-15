@@ -849,6 +849,36 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
         "/g0_04_earth_and_g0_05/earth/holuhraun/windows/*/fingerprint/direction_mean/texture/nu_m/4",
         "median:.2f",
     ),
+    ArtifactMacro(
+        "HillAzimuth", "paper/figures/generated/hillshades.json", "/hillshade/azimuth_deg", ".0f"
+    ),
+    ArtifactMacro(
+        "HillAltitude", "paper/figures/generated/hillshades.json", "/hillshade/altitude_deg", ".0f"
+    ),
+    ArtifactMacro(
+        "HillMoonLat",
+        "paper/figures/generated/hillshades.json",
+        "/panels/hillshade-moon/centre_lonlat_deg/1",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "HillMoonLon",
+        "paper/figures/generated/hillshades.json",
+        "/panels/hillshade-moon/centre_lonlat_deg/0",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "HillEarthLat",
+        "paper/figures/generated/hillshades.json",
+        "/panels/hillshade-earth/centre_lonlat_deg/1",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "HillEarthLon",
+        "paper/figures/generated/hillshades.json",
+        "/panels/hillshade-earth/centre_lonlat_deg/0",
+        ".2f",
+    ),
     ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
     ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
     ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),

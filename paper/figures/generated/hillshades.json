@@ -1,0 +1,41 @@
+{
+  "generated_by": "paper/scripts/figures.py",
+  "hillshade": {
+    "altitude_deg": 45.0,
+    "azimuth_deg": 315.0
+  },
+  "inputs": {
+    "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json": "db275be2226cdf7e3ed066dbe9b88ba2dee2487602c81a0c9b58e1995531ad5d",
+    "outputs/g0/windows-evidence.json": "670a8083ffae28dafd7f709a2c58e0c9bb98c0ae9e6b7c64ae0ff8f5c5f2ecff"
+  },
+  "panels": {
+    "hillshade-earth": {
+      "centre_lonlat_deg": [
+        -16.462273678349845,
+        64.85493475346743
+      ],
+      "input_sha256": "ef1caf534b843ebb0bc3226c99f29f23bd08e8d2aa6d7096ab9c02a4bf1544b4",
+      "product": "COP30/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "relief_range_m": [
+        658.9575512477064,
+        966.1203006395234
+      ],
+      "sampling": "D29 bilinear resampling onto a 10 m grid about the window centre",
+      "window_id": "earth-utm27n-e285-n2879"
+    },
+    "hillshade-moon": {
+      "centre_lonlat_deg": [
+        -137.38594403038883,
+        -89.43986557440068
+      ],
+      "input_sha256": "3ba7b97cb00a2bcf21189c3aeb535f65afc21207154ab9f0d43c5bdc1f7e747e",
+      "product": "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif",
+      "relief_range_m": [
+        1145.93701171875,
+        1959.12060546875
+      ],
+      "sampling": "provider grid, every second 5 m pixel (10 m)",
+      "window_id": "moon-sps-x2-y2"
+    }
+  }
+}

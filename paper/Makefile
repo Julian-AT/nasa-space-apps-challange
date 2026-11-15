@@ -20,7 +20,7 @@ PYTHON = $(UV_RUN) python -P
 PYTHON_MODULE = PYTHONPATH=. $(PYTHON) -m
 NUMBERS_ARGS = $(if $(BUNDLE_VERSION),--bundle ../release/$(BUNDLE_VERSION))
 
-.PHONY: all numbers numbers-check bib refs refs-check lint overlap test check pdf
+.PHONY: all numbers numbers-check bib refs refs-check figures lint overlap test check pdf
 
 all: numbers bib refs lint overlap test pdf
 
@@ -57,6 +57,11 @@ refs-check: refs
 		echo "refs-check: refs.bib drifted; run make -C paper bib" >&2; \
 		exit 1; \
 	fi
+
+# Hillshades from the raw DEMs (outside the repository); needs TERRALUNA_DATA. Not part of all,
+# because the raw data are not in the repository; the generated PDFs are committed.
+figures:
+	$(PYTHON_MODULE) scripts.figures
 
 # PRD 22.6 check 2: the prose rules, on every .tex file except figures/styles.tex.
 lint:

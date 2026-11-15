@@ -25,3 +25,7 @@ hand.
 - `make -C paper overlap` fails on any run of 12 or more consecutive words shared with an abstract
   in `reference-verification.json`.
 - `make -C paper pdf` builds `main.pdf` and fails on undefined citations, references or log errors.
+- `make -C paper bib` regenerates `refs.bib` for the cited keys from `reference-verification.json`;
+  `make -C paper refs` validates the record and `make -C paper refs-check` fails if `refs.bib` drifted.
+- `TERRALUNA_DATA=<dir> make -C paper figures` redraws the hillshades in `figures/generated/` from the
+  raw DEMs under `<dir>/raw/`; the PDFs and their input digests are committed.
