@@ -451,7 +451,7 @@ export function BackToTop() {
 /* ------------------------------------------------------------- glyph tile */
 
 /** Icon on a softly rotating orbit, used to give text cards a visual anchor. */
-export function GlyphTile({ children, tone = "var(--primary)", className }: { children: ReactNode; tone?: string; className?: string }) {
+export function GlyphTile({ children, tone = "var(--color-flare)", className }: { children: ReactNode; tone?: string; className?: string }) {
   return (
     <span className={clsx("glyph-tile relative grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-muted", className)} style={{ color: tone }}>
       <span className="relative">{children}</span>
