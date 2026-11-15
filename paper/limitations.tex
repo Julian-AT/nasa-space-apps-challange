@@ -24,7 +24,7 @@ artefacts that survive the filter can mimic roughness. The Martian elevation mod
 
 \paragraph{Radar.} The radar comparison was not completed. The Mini-RF mosaic mixes viewing
 geometries and states no transmit handedness, the UAVSAR handedness convention is not verified
-against Mini-RF, and no radar pair has passed the comparison eligibility gate. Even a completed comparison would face a band difference and the
+against Mini-RF, and no radar pair has passed the eligibility check of band, convention, geometry and support. Even a completed comparison would face a band difference and the
 ambiguity that CPR is not monotonic with rock abundance \citep{riveravalentin2026}.
 
 \paragraph{Search universe and independence.} Two regions were searched, and overlapping windows
@@ -32,7 +32,10 @@ on a half window stride are not independent samples. A short distance makes an E
 candidate for interpreting the lunar signature under these observables, not a confirmed analog,
 and a window that was not evaluated is not a negative.
 
-\paragraph{The encoder.} No GPU cluster was available, so the encoder is limited to the reduced
-scope of Section~\ref{sec:training}, and its promotion gate is \GateFiveStatus. It is reported as experimental, labelled
-Predicted, and kept out of every ranking. Its probes test agreement with our own fingerprint and
-with crater densities; they do not show that it captures geology.
+\paragraph{The encoder.} The encoder was trained on only \DatasetWindows{} windows at the reduced
+scope of Section~\ref{sec:training}, and it did not meet its acceptance criteria (\GFiveVerdict). An
+untrained copy of the network is a strong baseline on these probes. The validation sweep of
+Section~\ref{sec:benchmarks} chose the probe penalty on the scored rows and rests its seed
+stability on one target window. The morphology probe and the image baselines were not run. The
+encoder is reported as experimental, labelled Predicted, and kept out of every ranking. Its probes
+test agreement with our own fingerprint; they do not show that it captures geology.

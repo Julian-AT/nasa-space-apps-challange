@@ -11,7 +11,7 @@ its windows. The training split holds \DatasetMoonWindows{} lunar, \DatasetMarsW
 candidates (Section~\ref{sec:fingerprint}) and standardised with statistics of the training blocks
 only. Morphology labels, the crater densities of the lunar and Martian crater catalogues \citep{robbins2019,robbins2012}, are reserved for the probes and never used in training; the evaluation code records the morphology probe as unavailable until these labels are built.
 
-\paragraph{Hardware and schedule.} No GPU cluster was available. Training therefore runs on CPUs at a reduced scope. Table~\ref{tab:training} gives the schedule as the evaluation record states it.
+\paragraph{Hardware and schedule.} The runs evaluated on test blocks were trained on a CPU server at a reduced scope, without a GPU. Table~\ref{tab:training} gives the schedule as the training record states it; Section~\ref{sec:benchmarks} adds later runs on a laptop accelerator, evaluated on validation blocks only.
 
 \begin{table}[tbp]
 \centering
@@ -22,7 +22,7 @@ only. Morphology labels, the crater densities of the lunar and Martian crater ca
 \toprule
 Item & Value \\
 \midrule
-Accelerator & \TrainDevice{} \\
+Hardware & CPU only, \ThruCpuCount{} virtual CPUs \\
 CPU threads per run & \TrainThreads{} \\
 Epochs & \TrainEpochs{} \\
 Windows per epoch & \TrainWindowsPerEpoch{} \\

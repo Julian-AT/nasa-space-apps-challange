@@ -1,0 +1,23 @@
+{
+  "alpha_phys": 1.0,
+  "base_lr_per_1024": 0.001,
+  "batch_size": 128,
+  "bodies_included": [
+    "moon",
+    "mars",
+    "earth"
+  ],
+  "epochs": 40,
+  "lambda_max": 0.3,
+  "name": "main",
+  "precision": "fp32",
+  "seed": 2,
+  "stem_stride": 2,
+  "sub_crop_m": null,
+  "use_body_head": true,
+  "use_phys_head": true,
+  "use_vicreg": true,
+  "warmup_epochs": 2,
+  "weight_decay": 0.05,
+  "windows_per_epoch": 10000
+}

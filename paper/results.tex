@@ -1,48 +1,26 @@
 \section{Results}
 \label{sec:results}
 
-All results come from the committed artifacts named in the generated macro file, and a value that
-an artifact does not contain yet is printed as \NotAvailable. The study ships in mode
-\ConfigShippingMode: a terrain analog pilot for Connecting Ridge in which the radar comparison was
-not completed. Table~\ref{tab:gates} gives the state of every release gate as recorded in the
-validation record.
+All results come from the recorded artifacts named in the generated macro file, and a value that
+an artifact does not contain is printed as \NotAvailable. The study is terrain only: the radar
+products were decoded, but no radar pair was qualified and no radar distance enters any ranking.
 
-\begin{table}[tbp]
-\centering
-\caption{Release gates as recorded in the validation record. A gate that has not been executed is NOT\_RUN, never a pass.}
-\label{tab:gates}
-\footnotesize
-\begin{tabular}{@{}llW@{}}
-\toprule
-Gate & Status & What it checks \\
-\midrule
-Data pilot & \GateZeroStatus{} & real lunar and Earth products decoded with metadata, masks and units \\
-Conversion correctness & \GateOneStatus{} & radar conversions against independent fixtures \\
-Comparison eligibility & \GateTwoStatus{} & band, convention, geometry and support of each radar pair \\
-Literature check & \GateThreeStatus{} & reproduction of the Holuhraun facies overlap \\
-Shortlist and uncertainty & \GateFourStatus{} & candidate table, rank sensitivity and a counterexample \\
-Encoder promotion & \GateFiveStatus{} & the six conditions of Section~\ref{sec:results-ml} on test blocks \\
-Release consistency & \GateSixStatus{} & application, interface, exports and report agree \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Encoder probes}
+\subsection{Encoder probes on test blocks}
 \label{sec:results-ml}
 
-The encoder is promoted to a third distance family only if, on test blocks, the lower bound of
+The encoder would be accepted as a third distance family only if, on test blocks, the lower bound of
 the physics probe \Rsq{} reaches \GFivePhysRMin{} for relief $\ln \nu$ at every lag, the morphology
 probe gains at least \GFiveMorphGainMin{} in \Rsq{} over a ridge on the fingerprint for the Moon or
 Mars, a logistic body probe stays at or below a balanced accuracy of \GFiveBodyAccMax, the Spearman
 correlation between embedding and fingerprint distances reaches \GFiveRhoMin, the top twenty
 neighbours agree across seeds with a Jaccard index of at least \GFiveJaccardMin, and the encoder
-beats both frozen image baselines on the two probes with paired bootstrap intervals that exclude zero, the morphology gain having a positive lower bound, and the exported model matches the training model within the parity tolerance. These thresholds were fixed in the
+beats both frozen image baselines on the two probes with paired bootstrap intervals that exclude zero, the morphology gain having a positive lower bound, and the exported model matches the training model within the parity tolerance. These acceptance criteria were fixed in the
 configuration before training. Table~\ref{tab:probes} reports the probes from the evaluation
-record. The encoder promotion gate is \GateFiveStatus, so the encoder is reported as experimental and every ranking in this paper uses the fingerprint alone.
+record. The recorded outcome of the criteria is \GFiveVerdict, so the encoder is reported as experimental and every ranking in this paper uses the fingerprint alone.
 
 The probes explain the verdict. The physics probe passes its threshold: the smallest lower bound of the relief \Rsq{} over the lags is \EncoderPhysRReliefMin. But an untrained copy of the same network reaches a smallest lower bound of \RandomPhysRReliefMin, so a linear readout of the fingerprint from these windows does not show that training added anything. The body probe classifies the body with a balanced accuracy of \EncoderBodyAcc{} (interval \EncoderBodyAccLow{} to \EncoderBodyAccHigh), above the threshold of \GFiveBodyAccMax{} and close to the \NoAdvBodyAcc{} of the run without gradient reversal, so the adversarial head at the trained weight did not remove body information. Agreement between embedding distances and fingerprint distances is \EncoderAgreementRho{} (interval \EncoderAgreementLow{} to \EncoderAgreementHigh), against \RandomAgreementRho{} for the untrained network: training moved the embedding away from the physics that the fingerprint measures. The top twenty Earth neighbours agree across seeds with a mean Jaccard index of \EncoderSeedJaccard, above the \RandomSeedJaccard{} of a random ranking but below the threshold. The morphology probe and the comparison with the ImageNet and DINO baselines could not be run, because no crater labels were ingested and the baseline weights were not fetched. At this reduced scope the encoder is therefore a negative result, and the paper makes no claim for learned similarity. The model report is built in the model card form of \citet{mitchell2019}, with intended use, evaluation conditions and limitations stated beside the metrics.
 
-The browser export can already be checked. An ONNX export of the backbone of the first main run (opset \OnnxOpset; training run status in the export record: \OnnxSourceStatus) reproduces the training model on \OnnxParityN{} validation windows with a largest absolute difference of \OnnxFpDiff{} in single precision (tolerance \OnnxFpThreshold) and a smallest cosine similarity of \OnnxHalfCosine{} in half precision (tolerance \OnnxHalfThreshold), for a half precision file of \OnnxHalfBytes{} bytes. This shows that the exported graph computes the same function; it says nothing about the quality of the embedding. The web probe's own check runs the half precision file in ONNX Runtime Web \WasmOrtVersion{} under \WasmRuntime{} with \WasmThreads{} thread on \WasmWindows{} windows, with a smallest cosine similarity to the single precision Python model of \WasmMinCosine{} (tolerance \WasmThreshold) and \WasmMs{} ms per window; that timing comes from Node.js, not from a browser on a typical laptop.
+The browser export can be checked independently of the embedding quality. An ONNX export of the backbone of the first main run (opset \OnnxOpset; training run status in the export record: \OnnxSourceStatus) reproduces the training model on \OnnxParityN{} validation windows with a largest absolute difference of \OnnxFpDiff{} in single precision (tolerance \OnnxFpThreshold) and a smallest cosine similarity of \OnnxHalfCosine{} in half precision (tolerance \OnnxHalfThreshold), for a half precision file of \OnnxHalfBytes{} bytes. This shows that the exported graph computes the same function; it says nothing about the quality of the embedding. The web probe's own check runs the half precision file in ONNX Runtime Web \WasmOrtVersion{} under \WasmRuntime{} with \WasmThreads{} thread on \WasmWindows{} windows, with a smallest cosine similarity to the single precision Python model of \WasmMinCosine{} (tolerance \WasmThreshold) and \WasmMs{} ms per window; that timing comes from Node.js, not from a browser on a typical laptop.
 
 \begin{table}[tbp]
 \centering
@@ -62,7 +40,7 @@ DINO & \DinoPhysRReliefMin{} & & & \\
 Terraluna encoder & \EncoderPhysRReliefMin{} & \EncoderMorphGain{} & \EncoderBodyAcc{} & \EncoderAgreementRho{} \\
 Encoder without gradient reversal & & & \NoAdvBodyAcc{} & \\
 \midrule
-Promotion threshold & \GFivePhysRMin{} & \GFiveMorphGainMin{} & \GFiveBodyAccMax{} & \GFiveRhoMin{} \\
+Acceptance threshold & \GFivePhysRMin{} & \GFiveMorphGainMin{} & \GFiveBodyAccMax{} & \GFiveRhoMin{} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -92,7 +70,7 @@ Figure~\ref{fig:candidate-distances} shows the two distances for every compared 
 
 \input{figures/candidate-distances}
 
-The shortlist and uncertainty gate (status \GateFourStatus) inspected this window as a counterexample. The target is one broad massif whose relief keeps growing with
+We inspected this window as a counterexample. The target is one broad massif whose relief keeps growing with
 lag, while the candidate is a mostly flat plain crossed by narrow ridges and a trough, whose
 relief is close to the target's at the shortest lags but grows much more slowly with lag. Equation~\eqref{eq:distance} averages over lags and does not read the Hurst exponent, so a
 window that matches at short lags can rank first against a target that is rougher at long lags.
@@ -176,6 +154,82 @@ Physics head only & \VarPhysOnlyPhysR{} & \VarPhysOnlyBodyAcc{} & \VarPhysOnlyRh
 \end{tabular}
 \end{table}
 
+\subsection{Benchmarks}
+\label{sec:benchmarks}
+
+\paragraph{Validation sweep.} After the test evaluation above, we trained additional runs and
+evaluated them, together with the earlier runs, on the validation blocks only; the test blocks were
+not read again, and no number in this subsection was used to select a model on test. The probes are
+those of Table~\ref{tab:probes}, with one caveat recorded in the evaluation record: the ridge
+penalty of the probes was chosen on the same validation rows that are scored, so these values are
+optimistic. Table~\ref{tab:benchmarks} lists every run. Three findings hold across the table. The
+body probe stays between \ValFortyCBody{} and \ValLamZeroSBody{} for every trained run, whatever the
+adversarial weight, including the run without gradient reversal, so the adversary at these weights
+does not remove body information; every value lies above the acceptance threshold of
+\GFiveBodyAccMax. The untrained network reaches a physics probe of \ValRandomSPhys{} and an agreement
+of \ValRandomSRho, against at most \ValLamThreeSBRho{} for any trained run: training lowers the
+agreement between embedding and fingerprint distances instead of raising it. And training the
+main configuration for \ThruMpsFortyEpochs{} rather than \TrainEpochs{} epochs lowers the agreement
+of every seed, from \ValLamThreeSCRho{} to \ValLamThreeSBRho{} at \TrainEpochs{} epochs to
+\ValFortyCRho{} to \ValFortyARho{} at \ThruMpsFortyEpochs{} epochs. The mean Jaccard index of the
+top twenty Earth neighbours across three seeds is \ValFortyJaccard{} for the
+\ThruMpsFortyEpochs{} epoch runs and \ValSweepJaccard{} for the \TrainEpochs{} epoch group
+\texttt{\ValSweepJaccardArm}, against \ValSweepRandomJaccard{} for a random ranking; both rest on a
+single target window, and the two groups differ in adversarial weight as well as in length, so they
+do not isolate the effect of training length.
+
+\begin{table}[tbp]
+\centering
+\caption{Validation benchmark of the encoder (\ValSweepParams{} backbone parameters). Validation
+blocks only; the probe penalty was chosen on the scored rows, so the values are optimistic. Physics:
+smallest lower bound of the relief probe \Rsq{} over the lags. Body: balanced accuracy of the body
+probe, where chance is one third. Agreement: Spearman correlation of embedding and fingerprint
+distances. $\lambda_{\max}$ is the adversarial weight of Equation~\eqref{eq:total}.}
+\label{tab:benchmarks}
+\footnotesize
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Run & $\lambda_{\max}$ & Epochs & Seed & Physics & Body & Agreement \\
+\midrule
+Untrained network & & 0 & 0 & \ValRandomSPhys{} & \ValRandomSBody{} & \ValRandomSRho{} \\
+No gradient reversal & 0 & \TrainEpochs{} & 0 & \ValLamZeroSPhys{} & \ValLamZeroSBody{} & \ValLamZeroSRho{} \\
+Weaker gradient reversal & 0.1 & \TrainEpochs{} & 0 & \ValLamTenthSPhys{} & \ValLamTenthSBody{} & \ValLamTenthSRho{} \\
+Main configuration & 0.3 & \TrainEpochs{} & 0 & \ValLamThreeSAPhys{} & \ValLamThreeSABody{} & \ValLamThreeSARho{} \\
+Main configuration & 0.3 & \TrainEpochs{} & 1 & \ValLamThreeSBPhys{} & \ValLamThreeSBBody{} & \ValLamThreeSBRho{} \\
+Main configuration & 0.3 & \TrainEpochs{} & 2 & \ValLamThreeSCPhys{} & \ValLamThreeSCBody{} & \ValLamThreeSCRho{} \\
+Stronger gradient reversal & 1 & \TrainEpochs{} & 0 & \ValLamOneSAPhys{} & \ValLamOneSABody{} & \ValLamOneSARho{} \\
+Stronger gradient reversal & 1 & \TrainEpochs{} & 1 & \ValLamOneSBPhys{} & \ValLamOneSBBody{} & \ValLamOneSBRho{} \\
+Stronger gradient reversal & 1 & \TrainEpochs{} & 2 & \ValLamOneSCPhys{} & \ValLamOneSCBody{} & \ValLamOneSCRho{} \\
+No physics head & 0.3 & \TrainEpochs{} & 0 & \ValNoPhysSPhys{} & \ValNoPhysSBody{} & \ValNoPhysSRho{} \\
+Main configuration, longer & 0.3 & \ThruMpsFortyEpochs{} & 0 & \ValFortyAPhys{} & \ValFortyABody{} & \ValFortyARho{} \\
+Main configuration, longer & 0.3 & \ThruMpsFortyEpochs{} & 1 & \ValFortyBPhys{} & \ValFortyBBody{} & \ValFortyBRho{} \\
+Main configuration, longer & 0.3 & \ThruMpsFortyEpochs{} & 2 & \ValFortyCPhys{} & \ValFortyCBody{} & \ValFortyCRho{} \\
+\midrule
+Acceptance threshold & & & & \GFivePhysRMin{} & \GFiveBodyAccMax{} & \GFiveRhoMin{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Training throughput.} The run records give the measured training throughput per epoch at
+a batch of \TrainBatch{} with the same model and data. On a server with \ThruCpuCount{} virtual
+CPUs, the first main run trained at a median of \ThruCpuMedian{} windows per second (\ThruCpuMin{}
+to \ThruCpuMax{} over its epochs). On an Apple M4 Pro with the Metal Performance Shaders backend,
+a \TrainEpochs{} epoch run of the sweep trained at a median of \ThruMpsTwelveMedian{} windows per
+second (\ThruMpsTwelveMin{} to \ThruMpsTwelveMax), and a \ThruMpsFortyEpochs{} epoch run at
+\ThruMpsFortyMedian{} (\ThruMpsFortyMin{} to \ThruMpsFortyMax), finishing in
+\ThruMpsFortyWallSeconds\,s of wall clock time. The CPU throughput varied widely between epochs,
+and the records do not state why. The reduced schedule of Section~\ref{sec:training} was set for the
+CPU server; on the accelerator the longer runs of Table~\ref{tab:benchmarks} took minutes, and
+on validation blocks they still miss the body and agreement thresholds.
+
+\paragraph{Browser parity.} The half precision ONNX encoder run in ONNX Runtime Web
+\WasmOrtVersion{} reproduces the single precision Python model on \WasmWindows{} windows with a
+smallest cosine similarity of \WasmMinCosine{} against a tolerance of \WasmThreshold, at
+\WasmMs{} ms per window in \WasmRuntime{} with \WasmThreads{} thread
+(Section~\ref{sec:results-ml}). The fingerprint and the window resampling have a TypeScript port
+that the browser worker runs; shared fixtures hold it to the Python implementation within the
+tolerances recorded in each fixture file.
+
 \subsection{Held out body}
 \label{sec:results-heldout}
 
@@ -193,9 +247,10 @@ side, a region of interest of \UavsarRoiSide\,m at Holuhraun was decoded from th
 covariance product, with \UavsarPixels{} valid pixels at \UavsarLooks{} nominal looks and a median
 local incidence of \UavsarIncidenceMedian{} degrees. The median ratio of the handedness dependent
 term to the base same sense power is \UavsarHandednessRatioMedian, but the handedness convention is
-not verified against the Mini-RF convention. The conversion correctness gate is \GateOneStatus, but
-the comparison eligibility gate is \GateTwoStatus, so no radar pair is qualified, no radar distance
-exists, and no Earth value is presented as equivalent to Mini-RF.
+not verified against the Mini-RF convention. The radar conversions pass their checks against
+independent fixtures, but the eligibility check of band, convention, geometry and support was not
+run for any pair, so no radar pair is qualified, no radar distance exists, and no Earth value is
+presented as equivalent to Mini-RF.
 
 As a literature check of the Earth radar processing, we repeated the facies comparison of
 \citet{tolometti2022holuhraun} on the same UAVSAR scene, with \HoluhraunValidPixels{} valid pixels
@@ -205,6 +260,6 @@ for spiny and \HoluhraunUndiffMedian{} for undifferentiated lava. The pairwise d
 overlaps are \HoluhraunOverlapRS\%, \HoluhraunOverlapRU\% and \HoluhraunOverlapSU\% (rubbly and
 spiny, rubbly and undifferentiated, spiny and undifferentiated). Applied to the published radar
 values of that study, the same overlap definition gives \PublishedOverlapRS\%,
-\PublishedOverlapRU\% and \PublishedOverlapSU\%. Two of our three overlaps exceed the published comparators and one is slightly lower, so our facies are not markedly better separated than the published ones, which is the plausibility condition of the check, but the overlaps differ in detail; the authors' mosaic combined two data takes, their histogram binning and whether their low pass filter acts on CPR or on the covariance are not stated, and the handedness convention is not verified against theirs. The literature check gate is \GateThreeStatus{} because its shadow behaviour part is unavailable without a permanent shadow product; its Holuhraun part is recorded as consistent. Mini-RF and UAVSAR also differ in band, look geometry
+\PublishedOverlapRU\% and \PublishedOverlapSU\%. Two of our three overlaps exceed the published comparators and one is slightly lower, so our facies are not markedly better separated than the published ones, which is the plausibility condition of the check, but the overlaps differ in detail; the authors' mosaic combined two data takes, their histogram binning and whether their low pass filter acts on CPR or on the covariance are not stated, and the handedness convention is not verified against theirs. The literature check is only partial, because its shadow behaviour part is unavailable without a permanent shadow product; its Holuhraun part is recorded as consistent. Mini-RF and UAVSAR also differ in band, look geometry
 and processing, so even a completed comparison would show the signatures side by side rather than
 as a distance.
