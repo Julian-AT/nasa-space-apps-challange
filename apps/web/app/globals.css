@@ -31,31 +31,29 @@
   --moon: #6d685d;
   --mars: #9c4523;
   --earth: #2d62ad;
-  --ink: #ebe5d9;
-  --panel-2: #f2ede3;
-  --line-2: #c9c0ae;
-  --dim: #6a665e;
-  --background: #f3efe6;
-  --foreground: #1c1a16;
-  --card: #fbf8f2;
-  --card-foreground: #1c1a16;
-  --popover: #fbf8f2;
-  --popover-foreground: #1c1a16;
-  /* Sunlight accent, darkened for paper: 5.3:1 on the page, 5.8:1 on cards, 4.9:1 on muted. */
-  --primary: #8f5414;
-  --primary-foreground: #fbf8f2;
-  --secondary: #ebe5d9;
-  --secondary-foreground: #1c1a16;
-  --muted: #ebe5d9;
-  --muted-foreground: #55514a;
-  --accent: #ebe5d9;
-  --accent-foreground: #1c1a16;
-  /* Hairlines between surfaces; input borders meet 3:1 against page and card (WCAG 1.4.11). */
-  --border: #dcd5c7;
-  --input: #8f8775;
-  --ring: #8f5414;
-  --destructive: #9e3520;
-  --destructive-foreground: #fbf8f2;
+  --ink: oklch(0.97 0 0);
+  --panel-2: oklch(0.985 0 0);
+  --line-2: oklch(0.87 0 0);
+  --dim: oklch(0.556 0 0);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
   /* Mock-bundle banner (PRD 8.4, 8.6): shown only when manifest.mock is true. */
   --mock: #b91c1c;
   --mock-foreground: #ffffff;
@@ -80,23 +78,23 @@
   --world-earth: #2d62ad;
 
   /* Cards 0.75rem, controls 0.5rem (see the radius scale in @theme). */
-  --radius: 0.75rem;
+  --radius: 0.625rem;
 
   /* Chart marks in the world colours plus the sunlight accent (fixed order, never cycled). */
-  --chart-1: #2a76c3;
-  --chart-2: #996a06;
-  --chart-3: #b6522d;
-  --chart-4: #6d685d;
-  --chart-5: #825eb9;
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
 
-  --sidebar: #fbf8f2;
-  --sidebar-foreground: #1c1a16;
-  --sidebar-primary: #8f5414;
-  --sidebar-primary-foreground: #fbf8f2;
-  --sidebar-accent: #ebe5d9;
-  --sidebar-accent-foreground: #1c1a16;
-  --sidebar-border: #dcd5c7;
-  --sidebar-ring: #8f5414;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 html {
@@ -169,9 +167,9 @@ html {
 
   /* ShadowAstra evidence-state hues, used by the ported /find factor breakdown
      (components/shadowastra, copied from ShadowAstra_Atlas). */
-  --color-strong: #7cc8a0;
-  --color-partial: #e3b35e;
-  --color-weak: #e47a63;
+  --color-strong: var(--status-pass);
+  --color-partial: var(--status-partial);
+  --color-weak: var(--status-fail);
   --color-cobalt: #4f74c8;
   --color-amethyst: #a197cf;
 
@@ -313,7 +311,7 @@ html {
   .bg-observatory {
     background-image:
       radial-gradient(60rem 30rem at 85% -10%, rgb(143 180 234 / 0.09), transparent 60%),
-      radial-gradient(40rem 24rem at 0% 0%, rgb(242 200 121 / 0.06), transparent 60%);
+      none;
     background-repeat: no-repeat;
   }
 
@@ -371,7 +369,7 @@ html {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(100deg, transparent 30%, color-mix(in oklab, var(--flare) 55%, transparent) 50%, transparent 70%);
+    background: linear-gradient(100deg, transparent 30%, color-mix(in oklab, var(--background) 25%, transparent) 50%, transparent 70%);
     transform: translateX(-110%);
     transition: transform 0.7s var(--ease-out-quint);
   }
@@ -439,10 +437,10 @@ html {
   --moon: #c9c5bc;
   --mars: #e08a5f;
   --earth: #8fb4ea;
-  --ink: #0b0c0f;
-  --panel-2: #16171b;
-  --line-2: #2f3035;
-  --dim: #807e78;
+  --ink: oklch(0.205 0 0);
+  --panel-2: oklch(0.269 0 0);
+  --line-2: oklch(1 0 0 / 18%);
+  --dim: oklch(0.708 0 0);
   --evidence-observed: #8fb4ea;
   --evidence-derived: #7cc8a0;
   --evidence-predicted: #b7aee3;
@@ -456,38 +454,38 @@ html {
   --world-moon: #c9c5bc;
   --world-mars: #e08a5f;
   --world-earth: #8fb4ea;
-  --background: #07080a;
-  --foreground: #edeae4;
-  --card: #101114;
-  --card-foreground: #edeae4;
-  --popover: #101114;
-  --popover-foreground: #edeae4;
-  --primary: #f2c879;
-  --primary-foreground: #07080a;
-  --secondary: #16171b;
-  --secondary-foreground: #edeae4;
-  --muted: #1a1b1f;
-  --muted-foreground: #a8a59e;
-  --accent: #1b1c20;
-  --accent-foreground: #edeae4;
-  --destructive: #e47a63;
-  --destructive-foreground: #07080a;
-  --border: #212226;
-  --input: #64656b;
-  --ring: #f2c879;
-  --chart-1: #8fb4ea;
-  --chart-2: #f2c879;
-  --chart-3: #e08a5f;
-  --chart-4: #c9c5bc;
-  --chart-5: #a197cf;
-  --sidebar: #101114;
-  --sidebar-foreground: #edeae4;
-  --sidebar-primary: #f2c879;
-  --sidebar-primary-foreground: #07080a;
-  --sidebar-accent: #16171b;
-  --sidebar-accent-foreground: #edeae4;
-  --sidebar-border: #212226;
-  --sidebar-ring: #f2c879;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.145 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 /*
  * Legacy token mapping: the Terraluna and ShadowAstra names follow the shadcn semantic variables,

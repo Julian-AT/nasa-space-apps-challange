@@ -35,7 +35,7 @@ const BODIES: readonly { readonly id: AtlasBody; readonly label: string }[] = [
 const TEX: Record<AtlasBody, string> = { earth: '/textures/earth_day_1k.webp', moon: '/textures/moon_lroc_1k.webp', mars: '/textures/mars_viking_1k.webp' };
 const WORLD_COLOR: Record<AtlasBody, string> = { earth: '#8fb4ea', moon: '#c9c5bc', mars: '#e08a5f' };
 const STATUS_DOT: Record<'eligible' | 'rejected' | 'unknown', string> = { eligible: '#34d399', rejected: '#fbbf24', unknown: '#94a3b8' };
-const FLARE = '#f2c879';
+const FLARE = '#ffffff';
 const MAX_ROWS = 40;
 const MODE_C_NOTE = 'Mode C: terrain only; radar comparison not completed';
 

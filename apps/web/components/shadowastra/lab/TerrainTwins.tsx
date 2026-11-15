@@ -55,10 +55,10 @@ const RAMP: Record<Body, string[]> = {
 const WALL_TOP: Record<Body, string> = { earth: "#6b5a46", moon: "#5c5a55", mars: "#6e3824" };
 
 const SHADOW = new THREE.Color("#101a3a");
-const SUN = new THREE.Color("#f2c879");
+const SUN = new THREE.Color("#ffffff");
 
 // field test route colours: sunlit and drivable, steeper than the limit, in shadow
-const ROUTE_OK = new THREE.Color("#f2c879");
+const ROUTE_OK = new THREE.Color("#ffffff");
 const ROUTE_OVER = new THREE.Color("#e47a63");
 const ROUTE_SHADE = new THREE.Color("#8d9ab8");
 
@@ -158,7 +158,7 @@ function TerrainSlab({
     const row = Math.floor(n / 2);
     const pts: THREE.Vector3[] = [];
     for (let i = 0; i < n; i++) pts.push(new THREE.Vector3(-SIZE / 2 + (i / (n - 1)) * SIZE, yOf(row * n + i) + 0.04, -SIZE / 2 + (row / (n - 1)) * SIZE));
-    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: "#f2c879", transparent: true, opacity: 0.9 }));
+    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.9 }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grid, footprintKm, exaggeration]);
 
@@ -339,7 +339,7 @@ function Rover() {
       </mesh>
       <mesh position={[0.16, 0.37, 0]}>
         <sphereGeometry args={[0.035, 14, 10]} />
-        <meshBasicMaterial color="#f2c879" toneMapped={false} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} />
       </mesh>
     </group>
   );
@@ -363,7 +363,7 @@ function Walkers() {
           </mesh>
           <mesh position={[0.045, 0.25, 0]}>
             <sphereGeometry args={[0.022, 10, 8]} />
-            <meshBasicMaterial color="#f2c879" toneMapped={false} />
+            <meshBasicMaterial color="#ffffff" toneMapped={false} />
           </mesh>
         </group>
       ))}
@@ -401,7 +401,7 @@ function TeamMarker({ grid, route, upm, progress, mode }: { grid: TerrainGrid; r
       {mode === "rover" ? <Rover /> : <Walkers />}
       <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={10}>
         <ringGeometry args={[0.32, 0.36, 48]} />
-        <meshBasicMaterial color="#f2c879" transparent opacity={0.6} depthTest={false} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.6} depthTest={false} depthWrite={false} toneMapped={false} />
       </mesh>
     </group>
   );

@@ -179,7 +179,7 @@ export function CompareStage({ pair, current, options }: CompareStageProps) {
         )}
         <div className="flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
-            Gold outline: the 5 km analysis window. Each map stays in its own projection; scroll with Ctrl or ⌘ to zoom, arrow keys pan a focused map.
+            Dashed outline: the 5 km analysis window. Each map stays in its own projection; scroll with Ctrl or ⌘ to zoom, arrow keys pan a focused map.
           </p>
           <div className="flex shrink-0 items-center gap-2">
             <Button

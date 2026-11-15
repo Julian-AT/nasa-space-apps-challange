@@ -104,7 +104,7 @@ function H2({ children, className }: { children: React.ReactNode; className?: st
 }
 
 function Em({ children }: { children: React.ReactNode }) {
-  return <span className="font-serif font-normal text-chrome italic">{children}</span>;
+  return <span className="text-muted-foreground">{children}</span>;
 }
 
 function Section({ id, children, className, ink }: { id?: string; children: React.ReactNode; className?: string; ink?: boolean }) {
@@ -225,7 +225,7 @@ function MiniHeat() {
         <span
           key={k}
           className="absolute size-10 -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{ left: `${x}%`, top: `${y}%`, background: "radial-gradient(circle, rgba(242,200,121,0.9), rgba(224,138,95,0.4) 45%, transparent 70%)", animation: `heatPulse 3.2s ${d}s ease-in-out infinite` }}
+          style={{ left: `${x}%`, top: `${y}%`, background: "radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.3) 45%, transparent 70%)", animation: `heatPulse 3.2s ${d}s ease-in-out infinite` }}
         />
       ))}
       <style>{`@keyframes heatPulse{0%,100%{transform:translate(-50%,-50%) scale(.7);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.15);opacity:1}}`}</style>
@@ -296,7 +296,7 @@ function MiniTwins() {
     <div className="relative flex h-36 items-center justify-center gap-10 overflow-hidden rounded-xl border border-line bg-void">
       <motion.span className="block size-16 rounded-full bg-[url(/shadowastra/textures/mars_viking_1k.webp)] bg-[length:200%_100%] shadow-[inset_-10px_-4px_14px_rgba(0,0,0,0.85)]" animate={{ backgroundPositionX: still ? "0%" : ["0%", "-200%"] }} transition={{ duration: 30, repeat: Infinity, ease: "linear" }} />
       <span className="absolute top-1/2 left-1/2 h-px w-16 -translate-x-1/2 bg-gradient-to-r from-mars/60 via-flare to-earth/60" />
-      <motion.span className="absolute top-1/2 left-1/2 size-1.5 -translate-y-1/2 rounded-full bg-flare shadow-[0_0_10px_#f2c879]" animate={{ x: [-34, 30] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }} />
+      <motion.span className="absolute top-1/2 left-1/2 size-1.5 -translate-y-1/2 rounded-full bg-flare " animate={{ x: [-34, 30] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }} />
       <motion.span className="block size-16 rounded-full bg-[url(/shadowastra/textures/earth_day_1k.webp)] bg-[length:200%_100%] shadow-[inset_-10px_-4px_14px_rgba(0,0,0,0.85)]" animate={{ backgroundPositionX: still ? "0%" : ["0%", "-200%"] }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} />
     </div>
   );
@@ -545,15 +545,15 @@ function MoonBase() {
               <img src="/shadowastra/textures/moon_south_pole_lola.webp" alt="Lunar south pole, LRO LOLA hillshade" loading="lazy" className="polar-image size-full object-cover" />
               <svg viewBox={`0 0 ${POLAR_IMAGE_SIZE} ${POLAR_IMAGE_SIZE}`} className="absolute inset-0 size-full">
                 {[0.25, 0.5, 0.75].map((r) => (
-                  <circle key={r} cx={700} cy={700} r={700 * r} fill="none" stroke="rgba(242,200,121,0.22)" strokeDasharray="3 9" />
+                  <circle key={r} cx={700} cy={700} r={700 * r} fill="none" stroke="currentColor" strokeDasharray="3 9" />
                 ))}
                 {polar.map((t) => {
                   const [x, y] = polarPixel(t.lat, t.lon);
                   const on = hover === t.id;
                   return (
                     <g key={t.id} onMouseEnter={() => setHover(t.id)} className="cursor-pointer">
-                      <circle cx={x} cy={y} r={on ? 24 : 14} fill="none" stroke="#f2c879" strokeWidth={on ? 2 : 1.2} opacity={on ? 1 : 0.6} style={{ transition: "all .4s cubic-bezier(.22,1,.36,1)" }} />
-                      <circle cx={x} cy={y} r={4.5} fill={on ? "#ffffff" : "#f2c879"} />
+                      <circle cx={x} cy={y} r={on ? 24 : 14} fill="none" stroke="currentColor" strokeWidth={on ? 2 : 1.2} opacity={on ? 1 : 0.6} style={{ transition: "all .4s cubic-bezier(.22,1,.36,1)" }} />
+                      <circle cx={x} cy={y} r={4.5} fill="currentColor" />
                       {on && (
                         <text x={x + 30} y={y + 7} fill="#edeae4" fontSize="22" fontFamily="Geist" style={{ paintOrder: "stroke" }} stroke="#07080a" strokeWidth="7">
                           {t.name}
@@ -818,7 +818,7 @@ function TeamTeaser() {
           {TEAM_SLOTS.map((n) => (
             <Link href="/about" key={n} data-reveal className="group">
               <div className="grid aspect-[4/5] place-items-center overflow-hidden rounded-xl border border-dashed border-line-2 bg-panel">
-                <span aria-hidden="true" className="font-serif text-[64px] text-dim italic transition-colors duration-500 group-hover:text-flare">
+                <span aria-hidden="true" className="text-[64px] font-medium text-dim transition-colors duration-500 group-hover:text-foreground">
                   T
                 </span>
               </div>
@@ -845,7 +845,7 @@ function FinalCta() {
           <Astronaut size={64} mood="happy" action="celebrate" />
         </div>
         <h2 className="split-reveal text-4xl sm:text-5xl leading-[0.98] font-medium tracking-[-0.045em]">
-          Find where Earth <span className="font-serif font-normal text-flare italic">can teach us.</span>
+          Find where Earth <span className="text-muted-foreground">can teach us.</span>
         </h2>
         <div data-reveal className="mt-10 flex flex-wrap justify-center gap-3">
           <Magnetic>

@@ -73,7 +73,7 @@ const earthFragment = /* glsl */ `
     vec3 lit = day * (0.16 + 1.2 * pow(max(d, 0.0), 0.75));
     vec3 col = mix(night, lit, dayMix);
     float fres = pow(1.0 - max(dot(n, vViewDir), 0.0), 3.4);
-    col += vec3(0.55, 0.7, 0.95) * fres * 0.45 * smoothstep(-0.2, 0.4, d);
+    col += vec3(0.0) * fres * d;
     gl_FragColor = vec4(col, 1.0);
     #include <colorspace_fragment>
   }
@@ -101,10 +101,8 @@ const atmoFragment = /* glsl */ `
   }
 `;
 
-const ATMO: Partial<Record<Body, { color: string; strength: number }>> = {
-  earth: { color: "#9cc0ff", strength: 1.9 },
-  mars: { color: "#e5a27c", strength: 0.9 },
-};
+// No atmosphere shell: clean textured spheres with soft lighting only.
+const ATMO: Partial<Record<Body, { color: string; strength: number }>> = {};
 
 export function Planet({
   body,
@@ -120,7 +118,7 @@ export function Planet({
   lod,
   onPick,
   dots,
-  dotColor = "#f2c879",
+  dotColor = "#ffffff",
 }: PlanetProps) {
   const tiltRef = useRef<THREE.Group>(null);
   const downAt = useRef<{ x: number; y: number } | null>(null);
