@@ -1,0 +1,10 @@
+[
+  {
+    "command_line": "/data/terraluna/code/fast-ml/ml/src/terraluna_ml/evaluate.py run --manifest /data/terraluna/ml/real-v1/manifest.json --runs /data/terraluna/ml/runs/main_seed0 /data/terraluna/ml/runs/main_seed1 /data/terraluna/ml/runs/main_seed2 /data/terraluna/ml/runs/lambda_0_seed0 /data/terraluna/ml/runs/lambda_1_seed0 /data/terraluna/ml/runs/no_phys_head_seed0 random_init:0 --split test --out /data/terraluna/ml/final/evaluation/test --freeze /data/terraluna/ml/final/evaluation/val/freeze.json --read-log /data/terraluna/ml/final/test_read_log.json --threads 6 --operator orchestrator, delegated by the team --confirm READ-TEST-BLOCKS-ONCE",
+    "freeze_sha256": "a903a6e10a32fb72d78ad5e6c6552b6bca44f92d70a3c49b637022cf62fbee68",
+    "git_sha": null,
+    "operator": "orchestrator, delegated by the team",
+    "reread": false,
+    "timestamp_utc": "2026-11-15T03:56:25Z"
+  }
+]
