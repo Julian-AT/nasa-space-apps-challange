@@ -29,7 +29,7 @@ export function MineralCard({ grid, k, target, targetName, compact = false }: { 
         <span className="flex items-center gap-2 text-[13px] text-platinum">
           <Gem size={14} className="text-flare" /> Minerals from orbit <KindBadge kind="computed" />
         </span>
-        <span className="font-mono text-[10px] tracking-wider text-dim uppercase">NASA EMIT · ISS</span>
+        <span className="text-xs font-medium text-muted-foreground">NASA EMIT · ISS</span>
       </div>
 
       {share ? (
@@ -54,7 +54,7 @@ export function MineralCard({ grid, k, target, targetName, compact = false }: { 
                       {!compact && <span className="ml-1.5 text-[10.5px] text-dim">{MINERAL_INFO[f].plain}</span>}
                     </span>
                     <span className="flex items-center gap-2">
-                      {hit && <span className="rounded-full border border-flare/40 bg-flare/10 px-1.5 py-px font-mono text-[9px] tracking-wider text-flare uppercase" title={`This mineral family is also found at ${targetName}`}>also at {targetName.split(" ")[0]}</span>}
+                      {hit && <span className="rounded-full border border-flare/40 bg-flare/10 px-1.5 py-px text-xs font-medium text-primary" title={`This mineral family is also found at ${targetName}`}>also at {targetName.split(" ")[0]}</span>}
                       <span className="font-mono text-platinum tabular">{sharePct(share[f])}</span>
                     </span>
                   </div>

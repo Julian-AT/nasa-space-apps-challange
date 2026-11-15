@@ -6,7 +6,6 @@ import Link from 'next/link';
 
 import { EvidenceLegend } from '@/components/evidence-legend';
 import { PageHeader } from '@/components/page-header';
-import { Section } from '@/components/section';
 
 import type { Bundle } from '../../lib/bundle.ts';
 import type { ExplorerBundle } from './explore-data.ts';
@@ -25,10 +24,8 @@ export function ExploreBodyPage({ body, bundle }: { readonly body: 'moon' | 'mar
     <>
       <p className="sr-only">{LEAD[body]}</p>
       <AtlasClient body={body} terraluna={buildTerralunaAtlas(bundle)} />
-      <div className="px-4 pt-6 pb-8 sm:px-6">
-        <Section title="Evidence labels">
-          <EvidenceLegend headingLevel={3} />
-        </Section>
+      <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6">
+        <EvidenceLegend headingLevel={2} />
       </div>
     </>
   );
@@ -39,10 +36,8 @@ export function ExploreEarthPage({ bundle }: { readonly bundle: LoadedBundle }) 
     <>
       <p className="sr-only">Earth analog windows from the release bundle on a globe and a NASA basemap, with the bundle hillshade tiles on top.</p>
       <AtlasClient body="earth" terraluna={buildTerralunaAtlas(bundle)} />
-      <div data-full-bleed className="px-4 pt-6 pb-8 sm:px-6">
-        <Section title="Evidence labels">
-          <EvidenceLegend headingLevel={3} />
-        </Section>
+      <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6">
+        <EvidenceLegend headingLevel={2} />
       </div>
     </>
   );

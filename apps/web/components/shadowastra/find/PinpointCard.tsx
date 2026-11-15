@@ -30,7 +30,7 @@ export function PinpointCard({ lat, lon, targetHist, targetId, targetName, task 
         <span className="flex items-center gap-2 text-[13px] text-platinum">
           <Crosshair size={14} className="text-flare" /> Best 10 km spot <KindBadge kind="computed" />
         </span>
-        <span className="font-mono text-[10px] tracking-wider text-dim uppercase">{lat <= 60 && lat >= -56 ? "SRTM" : "Terrain Tiles"} · 1.2 km grid</span>
+        <span className="text-xs font-medium text-muted-foreground">{lat <= 60 && lat >= -56 ? "SRTM" : "Terrain Tiles"} · 1.2 km grid</span>
       </div>
       {pin === null && <div className="shimmer mt-3 h-[58px] rounded-xl" />}
       {pin === "failed" && <p className="mt-2 text-[12px] text-dim">Terrain tiles are still on their way.</p>}

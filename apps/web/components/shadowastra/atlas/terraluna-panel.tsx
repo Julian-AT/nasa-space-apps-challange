@@ -72,7 +72,7 @@ function CardRow({ c, onPin }: { c: TlCard; onPin: (id: string) => void }) {
 export function TerralunaEvidence({ data, onPin }: { data: TerralunaAtlas; onPin: (id: string) => void }) {
   return (
     <section aria-labelledby="tl-evidence" className="border-b border-line p-5">
-      <div className="flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-flare uppercase">
+      <div className="flex items-center gap-2 text-xs font-medium text-primary">
         <span className="size-2 rounded-full" style={{ background: TERRALUNA_COLOR }} aria-hidden />
         Terraluna
       </div>
@@ -80,7 +80,7 @@ export function TerralunaEvidence({ data, onPin }: { data: TerralunaAtlas; onPin
         Terraluna evidence
       </h2>
       <p className="mt-1 font-mono text-[10.5px] text-dim">Bundle {data.bundleVersion}{data.mock ? " · MOCK, not production" : ""}</p>
-      <div className="mt-4 font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Evidence cards · {data.cards.length}</div>
+      <div className="mt-4 text-xs font-medium text-muted-foreground">Evidence cards · {data.cards.length}</div>
       {data.cards.length === 0 ? (
         <p className="mt-2 text-[12.5px] text-chrome">No evidence cards yet.</p>
       ) : (
@@ -103,7 +103,7 @@ export function TerralunaDetail({ id, data, onClose, onPin }: { id: string; data
     <div className="space-y-4 p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="font-mono text-[10px] tracking-[0.2em] text-flare uppercase">Terraluna · {pin.kind === "target" ? `${BODY_NAME[pin.body]} target` : "Earth card window"}</div>
+          <div className="text-xs font-medium text-primary">Terraluna · {pin.kind === "target" ? `${BODY_NAME[pin.body]} target` : "Earth card window"}</div>
           <h2 className="mt-1.5 text-xl leading-tight font-medium tracking-tight">{pin.label}</h2>
           <p className="mt-1 font-mono text-[11px] text-dim">
             {pin.lat.toFixed(3)}°, {pin.lon.toFixed(3)}° · bundle {data.bundleVersion}

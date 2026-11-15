@@ -150,7 +150,7 @@ export function Ring({ value, size = 112, stroke = 6, label, sub, color, classNa
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
-          {label && <div className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">{label}</div>}
+          {label && <div className="text-xs text-muted-foreground">{label}</div>}
           <div className="leading-none font-semibold tracking-tight text-foreground tabular" style={{ fontSize: size * 0.24 }}>
             {value === null ? "··" : <Counter value={v} decimals={2} duration={1.1} />}
           </div>
@@ -345,7 +345,7 @@ export function Kicker({ n, children, className }: { n?: string; children: React
     <div className={clsx("flex items-center gap-4", className)}>
       {n && <Badge variant="outline" className="h-6 px-2 font-mono text-[11px] text-muted-foreground tabular">{n}</Badge>}
       <motion.span className="h-px w-10 origin-left bg-border" initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.1, ease: EASE }} />
-      <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">{children}</span>
+      <span className="text-xs font-medium text-muted-foreground">{children}</span>
     </div>
   );
 }

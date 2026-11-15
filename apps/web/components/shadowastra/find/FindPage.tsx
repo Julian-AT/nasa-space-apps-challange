@@ -388,7 +388,7 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
         </div>
 
         <div className="mt-16 flex items-center gap-4">
-          <span className="font-mono text-[11px] tracking-[0.24em] text-chrome uppercase">Or start from a real mission</span>
+          <span className="text-xs font-medium text-muted-foreground">Or start from a real mission</span>
           <span className="h-px flex-1 bg-line" />
         </div>
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -674,7 +674,7 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
         </div>
       </div>
       <div className="mt-5 rounded-2xl border border-earth/30 bg-earth/[0.06] p-6">
-        <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Places still possible</div>
+        <div className="text-xs font-medium text-muted-foreground">Places still possible</div>
         <div className="mt-1 font-mono text-[34px] leading-none font-light text-platinum">{screening ? <Counter value={screening.passCount} duration={0.6} /> : "…"}</div>
         <div className="mt-1 text-[12px] text-chrome">of {grid ? grid.n.toLocaleString() : "80,206"} land areas · shown in blue on the globe</div>
         {lines.length > 0 && (
@@ -736,7 +736,7 @@ function StageLoading({ label, progress, onRetry }: { label: string; progress: n
   return (
     <div className="grid size-full place-items-center" role="status" aria-live="polite">
       <div className="flex max-w-sm flex-col items-center text-center">
-        <div className="mt-4 font-mono text-[11px] tracking-widest text-chrome uppercase">{label}</div>
+        <div className="mt-4 text-xs font-medium text-muted-foreground">{label}</div>
         {onRetry ? (
           <button onClick={onRetry} className="btn-primary mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-medium">
             <RotateCcw size={14} /> Try again
@@ -914,7 +914,7 @@ function ResultsPanel({
   const task = TASKS.find((x) => x.id === m.task)!;
   return (
     <div>
-      <div className="font-mono text-[10px] tracking-[0.24em] text-flare uppercase">Results</div>
+      <div className="text-xs font-medium text-primary">Results</div>
       <h2 className="mt-2 text-[24px] leading-tight font-medium tracking-[-0.025em]">
         {result.places.length ? `${result.places.length} best ${m.onlyNew ? "new " : ""}places` : "No place fits every need"}
       </h2>
@@ -1015,7 +1015,7 @@ function CompareSheet({ grid, m, ks, onClose, onOpen }: { grid: Grid; m: Mission
       <motion.div initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16 }} transition={{ duration: 0.45, ease: EASE }} onClick={(e) => e.stopPropagation()} className="scrollbar-thin max-h-full w-full max-w-[1100px] overflow-auto rounded-3xl border border-line bg-panel shadow-[0_40px_120px_-30px_rgba(0,0,0,0.9)]">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-panel/95 px-5 py-4 backdrop-blur">
           <div>
-            <div className="font-mono text-[10px] tracking-[0.22em] text-flare uppercase">Side by side</div>
+            <div className="text-xs font-medium text-primary">Side by side</div>
             <div className="mt-0.5 text-[17px] text-platinum">
               {TASKS.find((x) => x.id === m.task)!.label} · {T.name}
             </div>
@@ -1031,7 +1031,7 @@ function CompareSheet({ grid, m, ks, onClose, onOpen }: { grid: Grid; m: Mission
               <CompareHead key={c.k} grid={grid} k={c.k} score={c.cs.total} best={c.cs.total === top} delay={i * 0.06} onOpen={() => onOpen(c.k)} conf={c.conf} />
             ))}
           </div>
-          <div className="mt-5 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">The four factors</div>
+          <div className="mt-5 text-xs font-medium text-muted-foreground">The four factors</div>
           {FACTORS.map((f, fi) => {
             const vals = cols.map((c) => c.factors[fi]);
             const best = Math.max(...vals);
@@ -1049,7 +1049,7 @@ function CompareSheet({ grid, m, ks, onClose, onOpen }: { grid: Grid; m: Mission
               </div>
             );
           })}
-          <div className="mt-5 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">Measured, and the trip</div>
+          <div className="mt-5 text-xs font-medium text-muted-foreground">Measured, and the trip</div>
           {rows.map((r) => {
             const b = r.better ? bestOf(r.vals, r.better) : null;
             return (
@@ -1279,7 +1279,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
 
       <PinpointCard lat={lat} lon={lon} targetHist={t.terrain.hist} targetId={m.target} targetName={T.name} task={m.task} />
 
-      <h3 className="mt-7 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">The four challenge factors, side by side</h3>
+      <h3 className="mt-7 text-xs font-medium text-muted-foreground">The four challenge factors, side by side</h3>
       <FactorProvenance className="mt-1.5" />
       <div className="mt-3 space-y-3">
         {rows.map((r) => (
@@ -1325,7 +1325,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
 
       <TerralunaFingerprint lat={lat} lon={lon} shadowAstraTarget={m.target} probe={probe} className="mt-5" />
 
-      <h3 className="mt-7 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">Planning the trip</h3>
+      <h3 className="mt-7 text-xs font-medium text-muted-foreground">Planning the trip</h3>
       <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line text-[12.5px]">
         {[
           [<Plane key="p" size={13} />, "From " + m.home.name, `${Math.round(km).toLocaleString()} km`],
@@ -1342,7 +1342,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
         ))}
       </div>
 
-      <h3 className="mt-7 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">Tests a team could run here</h3>
+      <h3 className="mt-7 text-xs font-medium text-muted-foreground">Tests a team could run here</h3>
       <ul className="mt-2 space-y-1.5">
         {fieldTestsFor(FIELD_TESTS[m.task], v("f_snowice")).map((x) => (
           <li key={x} className="flex gap-2 text-[13px] leading-snug text-chrome">
@@ -1367,7 +1367,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
         <p className="mt-2 text-[12.5px] leading-relaxed text-platinum">Use this place for {gaps.useFor.join(" and ")}.</p>
       </div>
 
-      <h3 className="mt-7 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">Check it in NASA's own tools</h3>
+      <h3 className="mt-7 text-xs font-medium text-muted-foreground">Check it in NASA's own tools</h3>
       <div className="mt-2 flex flex-wrap gap-2">
         {[
           ["NASA Worldview", worldviewUrl(lat, lon)],

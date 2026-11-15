@@ -349,7 +349,7 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
 
           <WorldTitle body={body} shown={visibleCount} layer={view === "2d" ? (layer?.name ?? null) : null} left={panels.left} />
 
-          <div className="pointer-events-none absolute bottom-4 left-1/2 z-[600] hidden -translate-x-1/2 items-center gap-4 rounded-full border border-line bg-void/75 px-4 py-2 text-[11px] whitespace-nowrap text-chrome backdrop-blur-xl md:flex">
+          <div className="pointer-events-none absolute bottom-4 left-1/2 z-[600] hidden -translate-x-1/2 items-center gap-4 rounded-lg border bg-background/80 px-4 py-2 text-xs whitespace-nowrap text-foreground shadow-xs backdrop-blur-md md:flex lg:left-[calc(50%-40px)]">
             {body === "earth" ? (
               <>
                 <Key color={WORLD_COLOR.moon} label="Moon analog" />
@@ -364,7 +364,7 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
               </>
             )}
             {showTl && terraluna.pins.some((p) => p.body === body) && <Key color={TERRALUNA_COLOR} label="Terraluna evidence" />}
-            <span className="font-mono text-dim">{visibleCount} shown</span>
+            <span className="text-muted-foreground tabular-nums">{visibleCount} shown</span>
           </div>
         </main>
 
@@ -414,7 +414,7 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
                 {task && (
                   <motion.div key={task} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="mt-3 rounded-xl border border-line bg-ink p-3">
                     <p className="text-[13px] leading-relaxed text-platinum">{TASKS.find((t) => t.id === task)!.question}</p>
-                    <div className="mt-3 font-mono text-[10px] tracking-widest text-dim uppercase">What to compare</div>
+                    <div className="mt-3 text-xs font-medium text-muted-foreground">What to compare</div>
                     <ul className="mt-1.5 space-y-1">
                       {TASKS.find((t) => t.id === task)!.evidence.map((e) => (
                         <li key={e} className="flex items-center gap-2 text-[12px] text-chrome">
@@ -515,7 +515,7 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
               {!sel && body === "earth" && earthFocus && twinFrom && (
                 <div className="space-y-4 p-5">
                   <TwinTitle body={twinFrom.body} lat={earthFocus.lat} lon={earthFocus.lon} onClose={() => setEarthFocus(null)} />
-                  <p className="text-[12.5px] leading-relaxed text-chrome">The gold pin marks the middle of the place. Twins are matched on ground shape only, so check its cold, light and rocks in Find new sites before planning a trip.</p>
+                  <p className="text-[13px] leading-relaxed text-muted-foreground">The gold pin marks the middle of the place. Twins are matched on ground shape only, so check its cold, light and rocks in Find new sites before planning a trip.</p>
                   <button
                     onClick={() => {
                       setBody(twinFrom.body);
@@ -636,7 +636,7 @@ function SpotTwins({ body, spot, onClose, onEarth }: { body: "moon" | "mars"; sp
         ))}
       </div>
       <AnimatePresence mode="wait" initial={false}>
-        <motion.p key={mode} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }} className="text-[12.5px] leading-relaxed text-chrome">
+        <motion.p key={mode} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }} className="text-[13px] leading-relaxed text-muted-foreground">
           {mode === "like"
             ? `Places on Earth with the same slopes and height range as this spot, that are also like the places experts use to practise for ${name} (half and half).`
             : mode === "ground"
@@ -688,7 +688,7 @@ function TwinRow({ grid, c, rank, ai = false, onShow }: { grid: Grid; c: Candida
             <span className="h-1 w-full overflow-hidden rounded-full bg-line-2">
               <span className="block h-full rounded-full bg-flare" style={{ width: `${Math.round(c.score * 100)}%` }} />
             </span>
-            <span className="font-mono text-[9.5px] tracking-wider text-dim uppercase">AI score</span>
+            <span className="text-xs font-medium text-muted-foreground">AI score</span>
           </span>
         ) : (
           <span className="font-mono text-[13px] text-flare">{c.score.toFixed(2)}</span>
@@ -739,9 +739,9 @@ function WorldTitle({ body, shown, layer, left }: { body: Body; shown: number; l
               </motion.span>
             ))}
           </div>
-          <motion.div variants={{ hide: { opacity: 0 }, show: { opacity: 1 } }} transition={{ delay: 0.3 }} className="mt-2 max-w-[340px] text-[12.5px] leading-relaxed text-chrome">
+          <motion.div variants={{ hide: { opacity: 0 }, show: { opacity: 1 } }} transition={{ delay: 0.3 }} className="mt-2 max-w-[340px] text-[13px] leading-relaxed text-muted-foreground">
             {WORLD_FACTS[body].line}
-            <span className="block font-mono text-[11px] text-dim">
+            <span className="mt-1 block text-xs text-muted-foreground tabular-nums">
               {shown} places shown{layer ? ` · ${layer}` : ""}
             </span>
           </motion.div>
@@ -819,7 +819,7 @@ function LayerCard({ layer: l, on, onClick }: { layer: (typeof LAYERS)[number]; 
 function Section({ title, children, hint, onHint }: { title: string; children: React.ReactNode; hint?: string; onHint?: () => void }) {
   return (
     <section>
-      <div className="mb-3 flex items-center justify-between font-mono text-[10px] tracking-[0.2em] text-dim uppercase">
+      <div className="mb-3 flex items-center justify-between text-xs font-medium text-muted-foreground">
         <span>{title}</span>
         {hint && (
           <button onClick={onHint} className="normal-case tracking-normal text-chrome hover:text-platinum">
@@ -860,7 +860,7 @@ function Key({ color, label, dashed }: { color: string; label: string; dashed?: 
 function StageLoading() {
   return (
     <div className="grid h-full place-items-center">
-      <div className="flex items-center gap-3 font-mono text-[11px] tracking-widest text-chrome uppercase">
+      <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
         <span className="size-2 animate-ping rounded-full bg-earth" /> Loading NASA mosaic
       </div>
     </div>
@@ -879,7 +879,7 @@ function PanelHeader({ eyebrow, title, sub, onClose }: { eyebrow: string; title:
   return (
     <div className="flex items-start justify-between gap-3">
       <div>
-        <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">{eyebrow}</div>
+        <div className="text-xs font-medium text-muted-foreground">{eyebrow}</div>
         <h2 className="mt-1.5 text-2xl leading-tight font-medium tracking-tight">{title}</h2>
         <div className="mt-1 font-mono text-[11px] text-chrome tabular">{sub}</div>
       </div>
@@ -907,7 +907,7 @@ function Overview({
   const targets = TARGETS.filter((t) => (world === "both" || t.body === world) && (!task || t.tasks.includes(task)));
   return (
     <div className="p-5">
-      <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Overview</div>
+      <div className="text-xs font-medium text-muted-foreground">Overview</div>
       <h2 className="mt-1.5 text-2xl leading-tight font-medium tracking-tight">
         {task ? TASKS.find((t) => t.id === task)!.label : "All jobs"}
       </h2>
@@ -915,7 +915,7 @@ function Overview({
         Select a pin on the {body === "earth" ? "Earth" : body === "moon" ? "Moon" : "Mars"} {""}globe, or pick from the lists below.
       </p>
 
-      <div className="mt-6 font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Targets · {targets.length}</div>
+      <div className="mt-6 text-xs font-medium text-muted-foreground">Targets · {targets.length}</div>
       <ul className="mt-2 border-t border-line">
         {targets.map((t) => (
           <li key={t.id}>
@@ -929,7 +929,7 @@ function Overview({
         ))}
       </ul>
 
-      <div className="mt-6 font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Earth reference analogs · {earth.length}</div>
+      <div className="mt-6 text-xs font-medium text-muted-foreground">Earth reference analogs · {earth.length}</div>
       <ul className="mt-2 border-t border-line">
         {earth.map((s) => (
           <li key={s.id}>
@@ -978,7 +978,7 @@ function EarthDetail({ id, world, onTarget, onClose }: { id: string; world: Worl
 
         <div>
           <div className="flex items-center justify-between">
-            <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">What it is like</div>
+            <div className="text-xs font-medium text-muted-foreground">What it is like</div>
             <span className="rounded-full border border-dashed border-line-2 px-2 py-0.5 text-[10px] text-dim">prototype · literature-based</span>
           </div>
           <ul className="mt-2 border-t border-line">
@@ -992,7 +992,7 @@ function EarthDetail({ id, world, onTarget, onClose }: { id: string; world: Worl
         </div>
 
         <div>
-          <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Practises for</div>
+          <div className="text-xs font-medium text-muted-foreground">Practises for</div>
           <div className="mt-2 grid gap-1.5">
             {s.pairs.map((p) => {
               const t = TARGET_BY_ID[p];
@@ -1017,7 +1017,7 @@ function EarthDetail({ id, world, onTarget, onClose }: { id: string; world: Worl
         </div>
 
         <div>
-          <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Earth can't copy</div>
+          <div className="text-xs font-medium text-muted-foreground">Earth can't copy</div>
           <ul className="mt-2 space-y-1.5">
             {s.gaps.map((g) => (
               <li key={g} className="flex gap-2 text-[13px] text-chrome">
@@ -1070,7 +1070,7 @@ function TargetDetail({ id, onEarth, onClose }: { id: string; onEarth: (id: stri
       </div>
 
       <div>
-        <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Earth practice sites · {grounds.length}</div>
+        <div className="text-xs font-medium text-muted-foreground">Earth practice sites · {grounds.length}</div>
         <div className="mt-2 grid gap-1.5">
           {grounds.map((s) => (
             <button key={s.id} onClick={() => onEarth(s.id)} className="group flex items-center gap-3 rounded-xl border border-line p-2 text-left hover:border-line-2">
@@ -1091,7 +1091,7 @@ function TargetDetail({ id, onEarth, onClose }: { id: string; onEarth: (id: stri
       </div>
 
       <div>
-        <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Earth can't copy</div>
+        <div className="text-xs font-medium text-muted-foreground">Earth can't copy</div>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {REALITY_GAPS[t.body].map((g) => (
             <span key={g} className="rounded-full border border-line px-2 py-0.5 text-[11px] text-dim">
@@ -1135,12 +1135,12 @@ function ScreenDetail({ id, onClose }: { id: string; onClose: () => void }) {
       <div className="space-y-7 p-5">
         <PanelHeader eyebrow={`Region we checked · ${r.country}`} title={r.name} sub={formatCoord(r.lat, r.lon)} onClose={onClose} />
         <div>
-          <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Our idea</div>
+          <div className="text-xs font-medium text-muted-foreground">Our idea</div>
           <p className="mt-1.5 text-[14px] leading-relaxed text-platinum">{r.hypothesis}</p>
           <p className="mt-1 text-[12px] text-dim">{r.terrain}</p>
         </div>
         <div>
-          <div className="flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-dim uppercase">
+          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             <Radar size={12} className="text-amethyst" /> What the data says
           </div>
           {grid ? (
