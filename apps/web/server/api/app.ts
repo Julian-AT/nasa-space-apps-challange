@@ -32,6 +32,7 @@ import {
   type PulledBundle,
 } from '../../lib/bundle.ts';
 import { compareHandler, compareRoute } from './compare.ts';
+import { demHandler, demRoute } from './dem.ts';
 import { DOCS_ALIAS_PATH, DOCS_PATH, docsHandler, docsRedirect, docsRoute } from './docs.ts';
 import { gatesHandler, gatesRoute } from './gates.ts';
 import { healthHandler, healthRoute } from './health.ts';
@@ -64,6 +65,8 @@ export interface ApiOptions {
    * on every request.
    */
   readonly env?: BundleEnv;
+  /** The fetch the DEM range proxy uses upstream (./dem.ts); global fetch by default. */
+  readonly demFetch?: typeof fetch;
 }
 
 const ALLOW = 'GET, HEAD';
@@ -148,6 +151,7 @@ export function createApi({
     console.error(error);
   },
   env = process.env,
+  demFetch,
 }: ApiOptions = {}) {
   const root = new OpenAPIHono({
     // The shared validation hook for path and query parameters (VALIDATION_STATUS, ./problem.ts).
@@ -187,6 +191,8 @@ export function createApi({
   api.openapi(windowRoute, windowHandler(read));
   api.openapi(compareRoute, compareHandler(read));
   api.openapi(modelRoute, modelHandler(read));
+  // The Copernicus GLO-30 range proxy (G0-03): reads no bundle, so no mock guard applies.
+  api.openapi(demRoute, demHandler(demFetch));
   // The contract and its reference, fixed per deploy (./openapi.ts, ./docs.ts).
   const generate = () => api.getOpenAPI31Document({ openapi: OPENAPI_VERSION, info: API_INFO });
   api.openapi(openApiRoute, openApiHandler(generate));

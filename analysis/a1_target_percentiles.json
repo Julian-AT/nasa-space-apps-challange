@@ -1,0 +1,313 @@
+{
+  "clone_limits": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6).",
+  "command": "python -m terraluna_pipeline.checks analysis moon-distributions",
+  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "evidence_label": "Derived",
+  "input_hashes": [
+    {
+      "path": "config/run.yaml",
+      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+    },
+    {
+      "path": "outputs/g0/windows-evidence.json",
+      "sha256": "670a8083ffae28dafd7f709a2c58e0c9bb98c0ae9e6b7c64ae0ff8f5c5f2ecff"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y0.json",
+      "sha256": "076a1471da905a8e2c0d90bcb247fb644ca7de0480167397ecfbbdb6e0e70ae6"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y1.json",
+      "sha256": "d04d44ddcea81a7c24cece4862ccf59c35d8b2bbb38bb189636c5d1ca037094e"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y2.json",
+      "sha256": "9f9f1622eefbe18bb2a425fd83d8813cfb0897b882fe83d1288b93cb4a63ede0"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y3.json",
+      "sha256": "cb496170edb7162477d1b03c12ef90d5a09fd29b36b80a2422f53a01b4c58c93"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y4.json",
+      "sha256": "890b87c6d6c8d4e2ed2606f6b32e12b6d10d27c2eb439de2b49af3fc2996ffbd"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y0.json",
+      "sha256": "7721b475843e34e165e3fe632f524026683a19d479a13e8d0285e8a9c4427843"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y1.json",
+      "sha256": "6db080aa35b1909ce013a57cbca533f243e5bf559d55acee24f5cf96ed0f3039"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y2.json",
+      "sha256": "12c3db9c7923dee6939f130f9f22283147eb29d0a972ac5c9a0ac98fdd9514c3"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y3.json",
+      "sha256": "139e604d2f15cadd01ca471c3e63fb4067e627165c5ac723ca3a6082d0be73b5"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y4.json",
+      "sha256": "7d2c60c93acfd25d4ac39d269f37190f5d8520609023e13f1bbd8a9ecd837847"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y0.json",
+      "sha256": "c034febc2062032a996ce6800050c3aa7c6ba0aebc668d0ec69e6c37695d903e"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y1.json",
+      "sha256": "64fbbfbe095ba79acda5eb05911bc0b50d3eb3c5d2b6fb6a832f9cf6e7a7cbb3"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
+      "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y3.json",
+      "sha256": "371a5c0fc99918b3d2eb515bf26a07d3e378cda49c03c3fbca835b1b4b111377"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y4.json",
+      "sha256": "cf00ceed0eb6f2b63be28aa9aa2fde4d069aaa9fe944082e10afdf5b7cb92b75"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y0.json",
+      "sha256": "31db09e3e5fd40fe5d2bb8c7255a9c3aa36abdd34082f5b7cc7df49121ee43be"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y1.json",
+      "sha256": "aa4f2040e8c150b9b7de1ef8b8287e80de6cfaf34e53b4faf1bf0531321a4578"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y2.json",
+      "sha256": "8dae4664f873fe4c3592c685bd579758b37a63f549e40cc672385d71bbf41f28"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y3.json",
+      "sha256": "eaafb2add92cd0df91ba30e69dd67c48da988fab53753776c009e42cd3ccd2e2"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y4.json",
+      "sha256": "65d49c12914752236e28373f2dc65d3f509b29a395644cd09d86757d1cfdcc13"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y0.json",
+      "sha256": "538972d9b7e0b892af7dcff072b49b8638df2e13461ffc31b2f2384030a7c5ef"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y1.json",
+      "sha256": "d5202d078a708255310397460bbcdbc34cced8bd520156f130c525dec8ce064a"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y2.json",
+      "sha256": "84350e1d1004b3e532bfc7680211e2dd42e304fb8cb5ac99f1ae513b8bf7580e"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y3.json",
+      "sha256": "2bead5b320b8e4ccfa3f727ee87e987acb551495f06d94ed32a683b854f351f5"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y4.json",
+      "sha256": "4ea8c3a8499b6df687e9e81a4b1e9c41679d2cc9e8f96fcd20279fc995f2b1a5"
+    }
+  ],
+  "isotropic_rule": "direction_mean",
+  "log_base": "natural",
+  "not_run": {
+    "earth_and_mars_distributions": "t5_search_outputs_not_available",
+    "mars_targets": "no Mars primary window frozen (config targets.mars)"
+  },
+  "record_type": "terraluna appendix A target percentiles",
+  "targets": {
+    "moon-sps-x2-y2": {
+      "body": "moon",
+      "distribution": "PGDA78 Site01 windows (the target is one of them)",
+      "n_clones_requested": 100,
+      "n_clones_used": 100,
+      "percentiles": {
+        "relief.H": {
+          "clone_spread": {
+            "max": 24.0,
+            "median": 24.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 24.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 24.0,
+          "status": "available",
+          "value": 0.8899796282772006
+        },
+        "relief.nu_m@1080": {
+          "clone_spread": {
+            "max": 44.0,
+            "median": 44.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 44.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 44.0,
+          "status": "available",
+          "value": 4.998620729338497
+        },
+        "relief.nu_m@270": {
+          "clone_spread": {
+            "max": 60.0,
+            "median": 60.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 60.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 60.0,
+          "status": "available",
+          "value": 3.7694315719151334
+        },
+        "relief.nu_m@360": {
+          "clone_spread": {
+            "max": 56.0,
+            "median": 56.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 56.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 56.0,
+          "status": "available",
+          "value": 4.038378399639225
+        },
+        "relief.nu_m@540": {
+          "clone_spread": {
+            "max": 52.0,
+            "median": 52.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 52.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 52.0,
+          "status": "available",
+          "value": 4.410065932252256
+        },
+        "relief.nu_m@720": {
+          "clone_spread": {
+            "max": 52.0,
+            "median": 52.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 52.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 52.0,
+          "status": "available",
+          "value": 4.666957658947433
+        },
+        "texture.H": {
+          "clone_spread": {
+            "max": 68.0,
+            "median": 68.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 68.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 68.0,
+          "status": "available",
+          "value": 0.8857605410691898
+        },
+        "texture.nu_m@1080": {
+          "clone_spread": {
+            "max": 92.0,
+            "median": 92.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 92.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 92.0,
+          "status": "available",
+          "value": 4.961998466822889
+        },
+        "texture.nu_m@270": {
+          "clone_spread": {
+            "max": 96.0,
+            "median": 96.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 96.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 96.0,
+          "status": "available",
+          "value": 3.7388523867022605
+        },
+        "texture.nu_m@360": {
+          "clone_spread": {
+            "max": 96.0,
+            "median": 96.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 96.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 96.0,
+          "status": "available",
+          "value": 4.007254582006236
+        },
+        "texture.nu_m@540": {
+          "clone_spread": {
+            "max": 96.0,
+            "median": 96.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 96.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 96.0,
+          "status": "available",
+          "value": 4.377788899320041
+        },
+        "texture.nu_m@720": {
+          "clone_spread": {
+            "max": 96.0,
+            "median": 96.0,
+            "method": "target re-ranked within all windows of the same clone",
+            "min": 96.0,
+            "n": 100,
+            "n_skipped": 0
+          },
+          "kind": "weak (fraction at or below), x 100",
+          "n_distribution": 25,
+          "percentile": 96.0,
+          "status": "available",
+          "value": 4.633415635175604
+        }
+      }
+    }
+  }
+}

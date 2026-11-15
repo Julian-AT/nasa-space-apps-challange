@@ -125,8 +125,10 @@ describe('shadcn/ui components.json', () => {
 });
 
 describe('the web shell stays light (PRD 8.10, D35)', () => {
-  // Map, 3D, chart and ONNX libraries load only on the pages that use them, and none of those
-  // pages exist in the T7 shell.
+  // Map, 3D, chart and ONNX libraries load only on the pages that use them (T7B). The explorer
+  // adds deck.gl (maps, /explore/*) and Observable Plot (/compare, cards), loaded by dynamic import
+  // only; the e2e budget test checks they never reach /, /methods, /data or /model. three.js,
+  // MapLibre (LIC-02: no third-party basemap) and onnxruntime stay out of the web package.
   const HEAVY = [
     /^deck\.gl$/,
     /^@deck\.gl\//,
@@ -138,9 +140,15 @@ describe('the web shell stays light (PRD 8.10, D35)', () => {
     /^react-map-gl$/,
   ];
 
-  it('adds no map, 3D, chart or ONNX dependency', () => {
+  it('adds only the explorer map and chart dependencies, and no 3D, basemap or ONNX one', () => {
     const heavy = Object.keys(dependencies).filter((name) => HEAVY.some((re) => re.test(name)));
-    expect(heavy).toEqual([]);
+    expect(heavy.sort()).toEqual([
+      '@deck.gl/core',
+      '@deck.gl/geo-layers',
+      '@deck.gl/layers',
+      '@deck.gl/react',
+      '@observablehq/plot',
+    ]);
   });
 
   it('pins every dependency exactly (PRD 8.2)', () => {

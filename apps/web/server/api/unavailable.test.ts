@@ -349,15 +349,8 @@ describe('/compare computes nothing', () => {
     }
   });
 
-  it('has no @terraluna/core dependency in the web app', () => {
-    const pkg = JSON.parse(readFileSync(join(WEB_DIR, 'package.json'), 'utf8')) as Record<
-      string,
-      Record<string, string> | undefined
-    >;
-    for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
-      expect(Object.keys(pkg[field] ?? {}), field).not.toContain('@terraluna/core');
-    }
-  });
+  // The web app depends on @terraluna/core since the live probe (T13), which runs it in a
+  // Web Worker; the import check above keeps /compare from computing anything with it.
 });
 
 describe('the unavailable-data routes in the OpenAPI document', () => {

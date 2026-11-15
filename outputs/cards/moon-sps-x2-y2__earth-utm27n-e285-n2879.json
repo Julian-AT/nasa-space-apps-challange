@@ -7,7 +7,11 @@
     "The nu values use the direction_mean isotropic summary of T3.",
     "Copernicus GLO-30 is a surface model (DSM) of one epoch; snow, moisture and surface change since acquisition were not checked on the Earth window.",
     "This is a slice search over the configured regions, not the full t5 search; the shortlist is the first Pareto layer of the windows compared.",
+<<<<<<< HEAD
     "PGDA78 error spatial correlation is not propagated: the uncertainty components (clones, scenarios) have not been run.",
+=======
+    "PGDA78 clone measurement error is propagated for the lunar target window only (clone counts in uncertainty_components); no Earth DEM error model is applied, and ties are not set in distances_by_family because the target has no reference set (schema: tied needs a reference spread); clone-based ties are listed in analysis/g4_candidates.json.",
+>>>>>>> origin/main
     "PGDA78 Site01 interpolation: 0.1045 of the target window's valid 90 m cells sit on a 5 m pixel with at least one LOLA return; the rest of the 5 m DEM there is interpolated.",
     "WorldCover 2021 at the Earth window's 90 m cell centres: allowed classes 0.9683, of which snow_ice 0.0000 (allowed by config earth_search.masks; PRD-04 reports snow and ice separately), permanent water 0.0000.",
     "Mode C: radar comparison not completed. The radar inputs were not qualified within the pilot, so no radar distance or radar signature is part of this card.",
@@ -245,13 +249,20 @@
         "evidence_label": "Unavailable",
         "n_requested": null,
         "n_used": null,
+<<<<<<< HEAD
         "note": null,
         "rank_frequency": null,
         "reason": "uncertainty_not_run",
+=======
+        "note": "Within-window spread of the distance is not computed for this slice.",
+        "rank_frequency": null,
+        "reason": "heterogeneity_not_computed",
+>>>>>>> origin/main
         "scenarios": null,
         "status": "unavailable"
       },
       "measurement_error": {
+<<<<<<< HEAD
         "by_family": null,
         "evidence_label": "Unavailable",
         "n_requested": null,
@@ -272,15 +283,128 @@
         "reason": "uncertainty_not_run",
         "scenarios": null,
         "status": "unavailable"
+=======
+        "by_family": {
+          "terrain_relief": {
+            "n": 100,
+            "spread_max": 0.6783643661419403,
+            "spread_median": 0.6782415106880959,
+            "spread_min": 0.6781454182649851
+          },
+          "terrain_texture": {
+            "n": 100,
+            "spread_max": 0.6582819479124309,
+            "spread_median": 0.6581463947346531,
+            "spread_min": 0.658048058605133
+          }
+        },
+        "evidence_label": "Derived",
+        "n_requested": 100,
+        "n_used": 100,
+        "note": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6). Spread of this candidate's distance when the target is replaced by each clone.",
+        "rank_frequency": null,
+        "reason": null,
+        "scenarios": null,
+        "status": "available"
+      },
+      "scenario_sensitivity": {
+        "by_family": null,
+        "evidence_label": "Derived",
+        "n_requested": null,
+        "n_used": null,
+        "note": "Named mask and region scenarios with the rank by family in each; rank_frequency is how often this candidate ranked first by that family over the PGDA78 clone runs, a frequency and never a probability (PRD 6.6). Mode C: no radar scenario.",
+        "rank_frequency": {
+          "terrain_relief": {
+            "count": 100,
+            "frequency": 1.0,
+            "n": 100
+          },
+          "terrain_texture": {
+            "count": 100,
+            "frequency": 1.0,
+            "n": 100
+          }
+        },
+        "reason": null,
+        "scenarios": [
+          {
+            "change": "WorldCover allowed fraction >= 0.9 (config), both regions",
+            "name": "pipeline",
+            "rank_by_family": {
+              "terrain_relief": 1,
+              "terrain_texture": 1
+            },
+            "values_by_family": {
+              "terrain_relief": 0.6785492291449117,
+              "terrain_texture": 0.6584769659701529
+            }
+          },
+          {
+            "change": "WorldCover allowed fraction >= 0.95 instead of 0.9",
+            "name": "worldcover_allowed_ge_0.95",
+            "rank_by_family": {
+              "terrain_relief": 1,
+              "terrain_texture": 1
+            },
+            "values_by_family": {
+              "terrain_relief": 0.6785492291449117,
+              "terrain_texture": 0.6584769659701529
+            }
+          },
+          {
+            "change": "WorldCover allowed fraction >= 1 instead of 0.9",
+            "name": "worldcover_allowed_ge_1",
+            "rank_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            },
+            "values_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            }
+          },
+          {
+            "change": "search only the holuhraun region",
+            "name": "region_holuhraun_only",
+            "rank_by_family": {
+              "terrain_relief": 1,
+              "terrain_texture": 1
+            },
+            "values_by_family": {
+              "terrain_relief": 0.6785492291449117,
+              "terrain_texture": 0.6584769659701529
+            }
+          },
+          {
+            "change": "search only the rosamond-dry-lake region",
+            "name": "region_rosamond-dry-lake_only",
+            "rank_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            },
+            "values_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            }
+          }
+        ],
+        "status": "available"
+>>>>>>> origin/main
       },
       "statistical_prediction_error": {
         "by_family": null,
         "evidence_label": "Unavailable",
         "n_requested": null,
         "n_used": null,
+<<<<<<< HEAD
         "note": null,
         "rank_frequency": null,
         "reason": "uncertainty_not_run",
+=======
+        "note": "no predictor evaluated",
+        "rank_frequency": null,
+        "reason": "no_predictor_evaluated",
+>>>>>>> origin/main
         "scenarios": null,
         "status": "unavailable"
       }

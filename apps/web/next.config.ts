@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // @terraluna/schema exports its TypeScript source (packages/schema/src/index.ts).
-  transpilePackages: ['@terraluna/schema'],
+  transpilePackages: ['@terraluna/schema', '@terraluna/core'],
   poweredByHeader: false,
   reactStrictMode: true,
   // next dev otherwise writes apps/web/AGENTS.md when it detects a coding agent. The repository's
