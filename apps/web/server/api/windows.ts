@@ -1,40 +1,24 @@
-// GET /api/v1/windows/{id} (PRD 8.5): a WindowRecord with its fingerprint and card link. The API
-// reads window records only from the pulled files that hold them: targets.json (target windows)
-// and windows/<body>.json (the top-N subset of windows/<body>.parquet, which is never pulled)
-// (PRD 8.4, 8.5). Neither has a @terraluna/schema schema yet (no WindowRecord), so nothing is read
-// from them. Which of them could hold a window follows from manifest.json alone (windowSources):
-//
-//   - targets.json holds the target windows, whose ids manifest.targets lists: a target id is the
-//     id of its target window (moon-cr-site01-w000 in PRD 8.4, which also keys
-//     comparisons/<target_id>.json), so it could hold the window only if manifest.targets lists it;
-//   - windows/<body>.json could hold any window: its ids are known only by reading it.
-//
-// By the rule in ./unavailable.ts:
-//
-//   - 404 when no file manifest.json lists could hold the window: the bundle does not hold it;
-//   - 501 when one could: the window could be in it, but the file is not read, so the id is not
-//     looked up in it. Telling an unknown window id from a known one there would mean parsing a
-//     file that has no schema, which the API never does.
+// GET /api/v1/windows/{id} (PRD 8.5): the WindowEntry of a window, from the loader's validated
+// windows/<body>.json records (PRD 8.4), with the link to its card. The card link names the
+// card_id and bundle path the WindowEntry stores, and says whether cards/<card_id>.json is in the
+// bundle; a window without a card_id has no link (null), never an invented one. A window id the
+// bundle does not hold is a 404 problem; an id outside WINDOW_ID_PATTERN is a 400 problem.
 import { createRoute, type RouteHandler, z } from '@hono/zod-openapi';
-import type { BundleManifest } from '@terraluna/schema';
 
-import { isPulledPath, type PulledBundle, TARGETS } from '../../lib/bundle.ts';
-import { TARGET_ID_MAX_LENGTH, TARGET_ID_PATTERN } from './targets.ts';
+import type { PulledBundle } from '../../lib/bundle.ts';
 import {
-  listedPaths,
-  notInBundle,
-  notServedYet,
-  readManifest,
-  unavailableResponses,
-} from './unavailable.ts';
+  bundleCacheHeaders,
+  bundleCacheResponseHeaders,
+  conditionalGet,
+  notModifiedResponse,
+} from './cache.ts';
+import { findWindow } from './lookup.ts';
+import { WindowEntrySchema } from './records.ts';
+import { notInBundle, problemResponses, readManifest } from './unavailable.ts';
 
-/**
- * A window id the API accepts. WindowRecord has no schema yet, so window ids follow the target id
- * rule (./targets.ts): target ids are window ids in the PRD 8.4 example (moon-cr-site01-w000), and
- * a ComparisonRecord pairs a target window id with an Earth window id.
- */
-export const WINDOW_ID_PATTERN = TARGET_ID_PATTERN;
-export const WINDOW_ID_MAX_LENGTH = TARGET_ID_MAX_LENGTH;
+/** WindowId (@terraluna/schema, CONTRACTS a.2): body prefix, then lowercase letters, digits, "-". */
+export const WINDOW_ID_PATTERN = '^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$';
+export const WINDOW_ID_MAX_LENGTH = 128;
 
 export const WindowIdSchema = z
   .string()
@@ -42,77 +26,81 @@ export const WindowIdSchema = z
   .regex(new RegExp(WINDOW_ID_PATTERN))
   .openapi({
     description:
-      `A window id: at most ${String(WINDOW_ID_MAX_LENGTH)} ASCII letters, digits, ".", "_" or ` +
-      '"-", not starting with ".". Any other id is a 400 problem.',
+      `A window id: moon-, mars- or earth- and lowercase letters, digits or "-", at most ` +
+      `${String(WINDOW_ID_MAX_LENGTH)} characters. Any other id is a 400 problem.`,
   });
 
-/** True for a pulled top-N window file, windows/<body>.json. */
-function isTopNWindowFile(path: string): boolean {
-  return path.startsWith('windows/') && isPulledPath(path);
-}
+export const CardLinkSchema = z
+  .object({
+    card_id: z.string(),
+    path: z.string().openapi({ description: 'The bundle path of the card, cards/<card_id>.json.' }),
+    in_bundle: z.boolean().openapi({
+      description: 'True when the loaded bundle holds the card file.',
+    }),
+  })
+  .strict()
+  .openapi('CardLink');
 
-/** True for a pulled bundle file that holds window records: targets.json or windows/<body>.json. */
-export function isWindowFile(path: string): boolean {
-  return path === TARGETS || isTopNWindowFile(path);
-}
+export const WindowResponseSchema = z
+  .object({
+    bundle_version: z.string(),
+    body: z.string().openapi({ description: 'The body of the windows/<body>.json that holds it.' }),
+    window: WindowEntrySchema,
+    card: CardLinkSchema.nullable(),
+  })
+  .strict()
+  .openapi('WindowResponse');
 
-/**
- * The files manifest.json lists that could hold the WindowRecord of window `id`, sorted:
- * targets.json when manifest.targets lists the id, and every windows/<body>.json.
- */
-export function windowSources(manifest: BundleManifest, id: string): string[] {
-  const target = manifest.targets.includes(id);
-  return listedPaths(manifest, (path) =>
-    path === TARGETS ? target : isTopNWindowFile(path),
-  ).sort();
-}
+export type WindowResponse = z.infer<typeof WindowResponseSchema>;
 
 export const windowRoute = createRoute({
   method: 'get',
   path: '/windows/{id}',
-  request: {
-    params: z.object({ id: WindowIdSchema.openapi({ param: { name: 'id', in: 'path' } }) }),
-  },
-  summary: 'One window of the bundle (not served yet)',
+  middleware: [conditionalGet],
+  request: { params: z.object({ id: WindowIdSchema.openapi({ param: { name: 'id', in: 'path' } }) }) },
+  summary: 'One window of the bundle',
   description:
-    'Window records are not served yet: @terraluna/schema has no WindowRecord schema. When no ' +
-    'file manifest.json lists could hold the window, as on the mock bundle, the answer is a 404 ' +
-    'problem: targets.json holds only the target windows manifest.json lists, and ' +
-    'windows/<body>.json could hold any window. When one could, the answer is a 501 problem, since ' +
-    'the id is not looked up in a file without a schema. Problems are never cached.',
-  responses: unavailableResponses({
-    invalid: 'The id does not match the window id pattern or is too long.',
-    notInBundle: 'No file manifest.json lists could hold the window: the bundle does not hold it.',
-    notServed:
-      'A window file that could hold the window is in the bundle, but window records are not ' +
-      'served yet.',
-  }),
+    'Returns the WindowEntry (window record, fingerprints, eligibility) and the link to its ' +
+    'card. card is null when the entry stores no card_id. An id the bundle does not hold is a ' +
+    '404 problem. Cached per bundle.',
+  responses: {
+    200: {
+      description: 'The window.',
+      headers: bundleCacheResponseHeaders('per-bundle'),
+      content: { 'application/json': { schema: WindowResponseSchema } },
+    },
+    304: notModifiedResponse,
+    ...problemResponses({
+      invalid: 'The id does not match the window id pattern or is too long.',
+      404: 'The bundle holds no window with this id.',
+    }),
+  },
 });
 
-/** The window handler over a bundle reader: 404 or 501, as the module comment says. */
+/** The window handler over a bundle reader. */
 export function windowHandler(read: () => PulledBundle): RouteHandler<typeof windowRoute> {
   return (c) => {
     const { id } = c.req.valid('param');
-    const manifest = readManifest(read());
-    const bundle = `bundle ${manifest.bundle_version}`;
-    const sources = windowSources(manifest, id);
-    if (sources.length > 0) {
-      throw notServedYet(
-        `Window files that could hold window ${id} are in ${bundle} (${sources.join(', ')}), ` +
-          'but window records are not served yet: @terraluna/schema has no WindowRecord schema, ' +
-          'so the id is not looked up in them.',
-      );
+    const bundle = read();
+    const manifest = readManifest(bundle);
+    const found = findWindow(bundle, id);
+    if (found === null) {
+      throw notInBundle(`Window ${id} is not in bundle ${manifest.bundle_version}.`);
     }
-    if (listedPaths(manifest, isWindowFile).length === 0) {
-      throw notInBundle(
-        `Window ${id} is not in ${bundle}: it lists no window file the API reads ` +
-          '(targets.json or windows/<body>.json).',
-      );
-    }
-    // Only targets.json is listed, and manifest.targets does not list the id.
-    throw notInBundle(
-      `Window ${id} is not in ${bundle}: targets.json holds only the target windows ` +
-        'manifest.json lists, which do not include it, and the bundle lists no windows/<body>.json.',
-    );
+    const cardId = found.entry.card_id;
+    const response: WindowResponse = {
+      bundle_version: manifest.bundle_version,
+      body: found.body,
+      window: found.entry,
+      card:
+        cardId === null
+          ? null
+          : {
+              card_id: cardId,
+              path: `cards/${cardId}.json`,
+              in_bundle: bundle.records.cards.has(cardId),
+            },
+    };
+    return c.json(response, 200, bundleCacheHeaders('per-bundle', manifest.bundle_version));
   };
 }

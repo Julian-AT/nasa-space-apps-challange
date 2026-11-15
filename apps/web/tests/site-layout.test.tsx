@@ -27,6 +27,12 @@ interface TestState {
 
 const state: TestState = vi.hoisted((): TestState => ({ pathname: '/', bundle: null }));
 
+// next/font/google runs only inside next build, which downloads and self-hosts the font files.
+vi.mock('next/font/google', () => {
+  const font = () => ({ variable: 'font-test-variable', className: 'font-test', style: {} });
+  return { Geist: font, Geist_Mono: font, Instrument_Serif: font, Michroma: font };
+});
+
 vi.mock('next/navigation', () => ({ usePathname: () => state.pathname }));
 
 vi.mock('../lib/bundle.ts', async (importOriginal) => {
@@ -44,7 +50,9 @@ function bundle(fields: Record<string, unknown>, records: unknown[] = ALL_GATES_
   return {
     manifest: BundleManifestSchema.parse(manifestFor(toBytes(records), fields)),
     validation: ValidationSchema.parse(records),
-  };
+    // The landing page reads counts from the records; this bundle lists no optional files.
+    records: { cards: new Map(), targets: null },
+  } as unknown as Bundle;
 }
 
 const MOCK = bundle({ mock: true, shipping_mode: null, bundle_version: 'mock-0', schema_version: '1.0.0' });
@@ -60,6 +68,8 @@ const EXPECTED_NAV = [
   ['Model', '/model'],
   ['Methods', '/methods'],
   ['Data', '/data'],
+  ['Paper', '/paper'],
+  ['API docs', '/api/docs'],
 ] as const;
 
 beforeEach(() => {
@@ -102,7 +112,7 @@ function appSources(): string[] {
 }
 
 describe('primary navigation', () => {
-  it('links Home, Moon, Mars, Earth, Model, Methods and Data, in that DOM order', () => {
+  it('links Home, Moon, Mars, Earth, Model, Methods, Data, Paper and API docs, in that DOM order', () => {
     expect(NAV_ITEMS.map(({ label, href }) => [label, href])).toEqual(EXPECTED_NAV);
     const html = renderToStaticMarkup(<SiteNav pathname="/" />);
     const nav = only(
@@ -113,9 +123,9 @@ describe('primary navigation', () => {
     expect(links(html).map((link) => [link.text, link.attributes.get('href')])).toEqual(EXPECTED_NAV);
   });
 
-  it('links to no route this batch does not build', () => {
+  it('links to no route the app does not build', () => {
     const hrefs = links(renderToStaticMarkup(<SiteNav pathname="/" />)).map((link) => link.attributes.get('href'));
-    for (const href of hrefs) expect(href).not.toMatch(/^\/(api\/docs|paper|probe|compare)(\/|$|\?)/);
+    for (const href of hrefs) expect(href).not.toMatch(/^\/(probe|compare)(\/|$|\?)/);
   });
 
   it.each(EXPECTED_NAV)('marks only %s with aria-current="page" on its own route', (_, href) => {
@@ -154,14 +164,17 @@ describe('primary navigation', () => {
     expect(current(renderToStaticMarkup(<SiteHeader />))).toEqual([]);
   });
 
-  it('is the only client module: next/link and usePathname, no bundle data and no provider', () => {
+  it('is the only client module of the shell: next/link and usePathname, no bundle data and no provider', () => {
     const clients = appSources().filter((file) => isClientModule(readFileSync(join(WEB_DIR, file), 'utf8')));
     // The live probe (T13-07) hosts its Web Worker in its own client module under app/probe/.
-    expect(clients.filter((file) => !file.startsWith('app/probe/'))).toEqual(['components/site-header.tsx']);
+    // The map and chart components are client modules by design (loaded lazily, off the landing
+    // bundle); the page shell itself has exactly one.
+    const shell = clients.filter((file) => !/^components\/(map|charts)\//.test(file) && !file.startsWith('app/probe/'));
+    expect(shell).toEqual(['components/site-header.tsx']);
     const header = readFileSync(join(WEB_DIR, 'components', 'site-header.tsx'), 'utf8');
     const imports = [...header.matchAll(/^import\b[^'"]*['"]([^'"]+)['"]/gm)].map((match) => match[1]);
     expect(imports).toEqual(expect.arrayContaining(['next/link', 'next/navigation']));
-    for (const name of imports) expect(['next/link', 'next/navigation', 'react']).toContain(name);
+    for (const name of imports) expect(['next/link', 'next/navigation', 'react', '@/lib/utils']).toContain(name);
     expect(header).not.toMatch(/Provider|createContext|useContext|Adapter/);
   });
 });
@@ -209,9 +222,18 @@ describe('site footer', () => {
       elements(html).filter((element) => element.tag === 'footer'),
       '<footer>',
     );
-    expect(footer.text).toBe('Bundle version: mock-0 · Schema 1.0.0');
+    expect(footer.text).toContain('Bundle version: mock-0 · Schema 1.0.0');
     expect(footer.text).toContain(shellText(MOCK).footer);
-    expect(textOf(renderToStaticMarkup(<SiteFooter bundle={MODE_B} />))).toBe('Bundle version: v1 · Schema 1.2.3');
+    expect(textOf(renderToStaticMarkup(<SiteFooter bundle={MODE_B} />))).toContain('Bundle version: v1 · Schema 1.2.3');
+  });
+
+  it('names the team and links to the data sources and methods', () => {
+    const html = renderToStaticMarkup(<SiteFooter bundle={MOCK} />);
+    expect(textOf(html)).toContain('Gradient Descent');
+    expect(links(html).map((link) => [link.text, link.attributes.get('href')])).toEqual([
+      ['Data sources', '/data'],
+      ['Methods', '/methods'],
+    ]);
   });
 });
 
@@ -254,7 +276,7 @@ describe('root layout', () => {
     );
     expect(mock.text).toBe(MOCK_BANNER);
     expect(mode.text).toBe('Shipping mode: not chosen (G0 NOT_RUN)');
-    expect(footer.text).toBe('Bundle version: mock-0 · Schema 1.0.0');
+    expect(footer.text).toContain('Bundle version: mock-0 · Schema 1.0.0');
     expect(main.text).toBe('test-page-heading');
     expect(main.attributes.get('id')).toBe(skip.attributes.get('href')?.slice(1));
   });
@@ -265,7 +287,7 @@ describe('root layout', () => {
       all.filter((element) => element.tag === 'header'),
       '<header>',
     );
-    for (const text of [MOCK_BANNER, 'Shipping mode: not chosen (G0 NOT_RUN)', 'Home Moon Mars Earth Model Methods Data']) {
+    for (const text of [MOCK_BANNER, 'Shipping mode: not chosen (G0 NOT_RUN)', 'Home Moon Mars Earth Model Methods Data Paper API docs']) {
       expect(header.text).toContain(text);
     }
     const main = only(
@@ -291,7 +313,7 @@ describe('root layout', () => {
   });
 
   it('shows outside main only the labels the web-smoke page check allows there', () => {
-    expect(LAYOUT_LABELS).toStrictEqual([SKIP_LINK_TEXT, ...NAV_ITEMS.map(({ label }) => label)]);
+    expect(LAYOUT_LABELS).toStrictEqual([SKIP_LINK_TEXT, ...NAV_ITEMS.map(({ label }) => label), SITE_TITLE]);
   });
 
   it('sets the document language', () => {
@@ -310,12 +332,28 @@ describe('root layout', () => {
 });
 
 describe('home page', () => {
-  it('shows the title and one factual line, with no numbers, targets or claims', () => {
+  it('shows the title, the factual line and entry links, with counts only from the bundle', () => {
+    state.bundle = MODE_B;
     const html = renderToStaticMarkup(<Home />);
-    expect(textOf(html)).toBe(`${SITE_TITLE} ${HOME_LINE}`);
+    expect(textOf(html)).toContain(`${SITE_TITLE} `);
+    expect(textOf(html)).toContain(HOME_LINE);
     expect(HOME_LINE).toBe('These pages show records from the bundle named in the footer.');
     expect(HOME_LINE).not.toMatch(/\d/);
     expect(elements(html).filter((element) => element.tag === 'main')).toEqual([]);
+    const hrefs = links(html).map((link) => link.attributes.get('href'));
+    for (const href of ['/explore/moon', '/explore/mars', '/explore/earth', '/model', '/methods', '/data', '/paper']) {
+      expect(hrefs, href).toContain(href);
+    }
+    // The synthetic bundle has no cards and no targets: the page says Unavailable, never zero.
+    expect(textOf(html)).toContain('the bundle lists no targets.json');
+  });
+
+  it('states the Mode C limits and calls the encoder experimental, without a best-analog claim', () => {
+    state.bundle = MODE_B;
+    const text = textOf(renderToStaticMarkup(<Home />));
+    expect(text).toContain('experimental');
+    expect(text).toContain('radar comparison was not completed');
+    expect(text).not.toMatch(/\bbest\b/i);
   });
 
   it.each([

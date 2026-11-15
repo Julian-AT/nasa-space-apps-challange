@@ -34,24 +34,6 @@ export function releaseReader(dataDir: string, version = RELEASE_VERSION): Bundl
   return () => loadBundle({ dataDir, env: { BUNDLE_VERSION: version } });
 }
 
-/** Marks test bytes, so a test can see whether any response carries them. */
-export const TEST_BYTES_MARKER = 'test-only-bundle-file-bytes';
-
-/**
- * Bytes standing in for a bundle file that has no schema (a comparison or window file). They are
- * test input, not a record and not an observation: the numbers only let a test see whether a
- * response ever passes such a file through. The loader keeps them as checksum-only bytes.
- */
-export function testBytes(what: string): Uint8Array {
-  return toBytes({
-    note: `test bytes standing in for ${what}, not a record`,
-    marker: TEST_BYTES_MARKER,
-    distances_by_family: { terrain: 0.125, radar: 0.25, model: 0.375 },
-    rank: 1,
-    fingerprint: [0.5, 0.625],
-  });
-}
-
 export interface ReleaseBundleOptions {
   /** manifest.targets; none by default. */
   readonly targets?: readonly string[];

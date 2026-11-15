@@ -42,6 +42,12 @@ interface TestState {
 
 const state: TestState = vi.hoisted((): TestState => ({ bundle: null }));
 
+// next/font/google runs only inside next build, which downloads and self-hosts the font files.
+vi.mock('next/font/google', () => {
+  const font = () => ({ variable: 'font-test-variable', className: 'font-test', style: {} });
+  return { Geist: font, Geist_Mono: font, Instrument_Serif: font, Michroma: font };
+});
+
 vi.mock('next/navigation', () => ({ usePathname: () => '/data' }));
 
 vi.mock('../lib/bundle.ts', async (importOriginal) => {

@@ -1,38 +1,31 @@
-// GET /api/v1/targets and GET /api/v1/targets/{id} (PRD 8.5), served from manifest.json only.
+// GET /api/v1/targets and GET /api/v1/targets/{id} (PRD 8.5), served from the loader's validated
+// targets.json (TargetRecord) and windows/<body>.json (WindowEntry) records.
 //
-// PRD 8.5 lists each target with its body, footprint and shipping mode, and the detail with its
-// windows, fingerprints and radar context. Those live in targets.json and other files that have no
-// schema in @terraluna/schema yet: there is no TargetRecord schema (a decision left to a human).
-// Until one exists the API serves only what the BundleManifest schema validates: the target ids
-// manifest.json lists, with its bundle_version and shipping_mode. No target field is derived from
-// an id, and targets.json is never read here, so its records are never passed through unvalidated
-// and its absence is never an error.
+// The list gives each TargetRecord's target_id, body, footprint and shipping_mode, and nothing
+// else; a footprint that is null (before G0-02) stays null and is never filled from an id or a
+// bbox. A bundle without targets.json lists no targets.
 //
-// The detail answers with a problem in every case, by one rule:
-//   - 404 when the manifest does not list the id: the bundle holds no such target;
-//   - 501 when it does: the target exists in the bundle, but no record of it can be served yet.
-// Both are expected answers (ProblemError), never logged. An id outside TARGET_ID_PATTERN is a
-// VALIDATION_STATUS problem before the bundle is read, and a manifest that fails its schema is a
-// 500 problem, never a 404 or 501.
+// The detail returns the TargetRecord, its target window (primary_window_id) and reference
+// windows (reference_window_ids) as the WindowEntries windows/<body>.json stores them, and the
+// radar context: the stored radar fingerprints of the target window. A window the files lack is
+// absent from the response, not a default. A radar fingerprint without data carries its stored
+// reason and is Unavailable, never zero.
+//
+// An unknown id is a 404 problem; an id outside TARGET_ID_PATTERN is a VALIDATION_STATUS problem
+// before the bundle is read; a bundle file that fails its schema is a 500 problem.
 import { createRoute, type RouteHandler, z } from '@hono/zod-openapi';
-import { BundleManifestSchema } from '@terraluna/schema';
+import type { FingerprintRecord } from '@terraluna/schema';
 
-import { MANIFEST, type PulledBundle } from '../../lib/bundle.ts';
+import type { PulledBundle } from '../../lib/bundle.ts';
 import {
   bundleCacheHeaders,
   bundleCacheResponseHeaders,
   conditionalGet,
   notModifiedResponse,
 } from './cache.ts';
-import {
-  MOCK_REFUSED_STATUS,
-  mockRefusedResponse,
-  PROBLEM_MEDIA_TYPE,
-  ProblemError,
-  ProblemSchema,
-  VALIDATION_STATUS,
-} from './problem.ts';
-import { BundleManifestRecord, parseBundleFile } from './records.ts';
+import { findWindow } from './lookup.ts';
+import { FingerprintRecordSchema, TargetRecordSchema, WindowEntrySchema } from './records.ts';
+import { notInBundle, problemResponses, readManifest } from './unavailable.ts';
 
 /**
  * A target id the API accepts: one segment of a bundle path, as BundlePath in @terraluna/schema
@@ -60,32 +53,66 @@ export const TargetIdSchema = z
       'letters, digits, ".", "_" or "-", not starting with ".". Any other id is a 400 problem.',
   });
 
-/**
- * The target list: bundle_version, shipping_mode and targets (as items) are the BundleManifest
- * schemas themselves, picked from @terraluna/schema, so no field is redeclared (PRD 8.5, D23).
- */
-export const TargetListSchema = BundleManifestSchema.pick({
-  bundle_version: true,
-  shipping_mode: true,
-})
-  .extend({ items: BundleManifestSchema.shape.targets })
+/** One row of the target list: the four fields PRD 8.5 names, as the TargetRecord stores them. */
+export const TargetListItemSchema = z
+  .object({
+    target_id: TargetRecordSchema.shape.target_id,
+    body: TargetRecordSchema.shape.body,
+    footprint: TargetRecordSchema.shape.footprint,
+    shipping_mode: TargetRecordSchema.shape.shipping_mode,
+  })
+  .strict()
+  .openapi('TargetListItem');
+
+export const TargetListSchema = z
+  .object({
+    bundle_version: z.string(),
+    shipping_mode: TargetRecordSchema.shape.shipping_mode,
+    items: z.array(TargetListItemSchema),
+  })
   .strict()
   .openapi('TargetList', {
     description:
-      'The targets of the release bundle: the target ids manifest.json lists, in its order, ' +
-      'with its bundle_version and shipping_mode (null when no mode has been chosen). ' +
-      'The body and footprint of each target are not served until @terraluna/schema has a ' +
-      'TargetRecord schema.',
+      'The targets of targets.json, in file order, with the bundle_version and shipping_mode ' +
+      'of the bundle this deploy serves (null when no mode has been chosen). Empty when the ' +
+      'bundle has no targets.json. A footprint that is null is not filled in.',
   });
 
 export type TargetList = z.infer<typeof TargetListSchema>;
 
-const problemContent = { [PROBLEM_MEDIA_TYPE]: { schema: ProblemSchema } };
+/**
+ * One stored radar fingerprint of the target window. `status` is unavailable when the fingerprint
+ * holds no radar data or states a reason; `reason` is then the stored reason (null when the file
+ * stores none), and the stored fingerprint is returned as is.
+ */
+export const RadarContextEntrySchema = z
+  .object({
+    window_id: z.string(),
+    product_id: z.string().nullable(),
+    evidence_label: FingerprintRecordSchema.shape.evidence_label,
+    status: z.enum(['available', 'unavailable']),
+    reason: z.string().nullable(),
+    fingerprint: FingerprintRecordSchema,
+  })
+  .strict()
+  .openapi('RadarContextEntry');
 
-const serverError = {
-  description: 'A bundle file is missing or invalid, or an unexpected error occurred.',
-  content: problemContent,
-};
+export const TargetDetailSchema = z
+  .object({
+    bundle_version: z.string(),
+    target: TargetRecordSchema,
+    target_window: WindowEntrySchema.optional(),
+    reference_windows: z.array(WindowEntrySchema),
+    radar_context: z.array(RadarContextEntrySchema),
+  })
+  .strict()
+  .openapi('TargetDetail', {
+    description:
+      'The TargetRecord, its target and reference WindowEntries as windows/<body>.json stores ' +
+      'them (a window the files lack is absent), and the radar context of the target window.',
+  });
+
+export type TargetDetail = z.infer<typeof TargetDetailSchema>;
 
 export const targetListRoute = createRoute({
   method: 'get',
@@ -93,81 +120,105 @@ export const targetListRoute = createRoute({
   middleware: [conditionalGet],
   summary: 'The targets of the bundle',
   description:
-    'Returns the target ids manifest.json lists, in its order, with the bundle_version and ' +
-    'shipping_mode of the bundle this deploy serves. The list is empty when the bundle lists no ' +
-    'targets, as the mock bundle does. The body and footprint of each target are not served ' +
-    'until @terraluna/schema has a TargetRecord schema, and no target field is derived from an ' +
-    'id. Cached per bundle; the ETag holds the bundle_version, and a matching If-None-Match is ' +
-    'answered with 304.',
+    'Returns each TargetRecord of targets.json as target_id, body, footprint and shipping_mode, ' +
+    'in file order, with the bundle_version and shipping_mode of the bundle this deploy serves. ' +
+    'A null footprint stays null. Cached per bundle; the ETag holds the bundle_version, and a ' +
+    'matching If-None-Match is answered with 304.',
   responses: {
     200: {
-      description: 'The target ids of the bundle.',
+      description: 'The targets of the bundle.',
       headers: bundleCacheResponseHeaders('per-bundle'),
       content: { 'application/json': { schema: TargetListSchema } },
     },
     304: notModifiedResponse,
-    500: serverError,
-    [MOCK_REFUSED_STATUS]: mockRefusedResponse,
+    ...problemResponses({}),
   },
 });
 
 export const targetRoute = createRoute({
   method: 'get',
   path: '/targets/{id}',
+  middleware: [conditionalGet],
   request: { params: z.object({ id: TargetIdSchema }) },
-  summary: 'One target of the bundle (not served yet)',
+  summary: 'One target of the bundle',
   description:
-    'Target records (windows, fingerprints, radar context) are not served yet: ' +
-    '@terraluna/schema has no TargetRecord schema. An id manifest.json does not list is a 404 ' +
-    'problem; an id it lists is a 501 problem. Problems are never cached.',
+    'Returns the TargetRecord, its target window and reference windows as stored in ' +
+    'windows/<body>.json, and the radar context from the stored radar fingerprints of the target ' +
+    'window. A window the bundle lacks is absent; a radar fingerprint without data is ' +
+    'Unavailable with its stored reason, never zero. An id the bundle does not hold is a 404 ' +
+    'problem. Cached per bundle.',
   responses: {
-    [VALIDATION_STATUS]: {
-      description: 'The id does not match the target id pattern or is too long.',
-      content: problemContent,
+    200: {
+      description: 'The target and its windows.',
+      headers: bundleCacheResponseHeaders('per-bundle'),
+      content: { 'application/json': { schema: TargetDetailSchema } },
     },
-    404: {
-      description: 'manifest.json does not list the id: the bundle holds no such target.',
-      content: problemContent,
-    },
-    500: serverError,
-    [MOCK_REFUSED_STATUS]: mockRefusedResponse,
-    501: {
-      description: 'manifest.json lists the id, but target records are not served yet.',
-      content: problemContent,
-    },
+    304: notModifiedResponse,
+    ...problemResponses({
+      invalid: 'The id does not match the target id pattern or is too long.',
+      404: 'The bundle holds no target with this id.',
+    }),
   },
 });
 
-function readManifest(read: () => PulledBundle) {
-  return parseBundleFile(BundleManifestRecord, read().manifest, MANIFEST);
+/** The radar context entries of one window row: its stored radar fingerprints, none invented. */
+function radarContext(radar: readonly FingerprintRecord[]): TargetDetail['radar_context'] {
+  return radar.map((fingerprint) => {
+    const data = fingerprint.radar;
+    const reason = data?.reason ?? null;
+    return {
+      window_id: fingerprint.window_id,
+      product_id: data?.product_id ?? fingerprint.product_ids[0] ?? null,
+      evidence_label: fingerprint.evidence_label,
+      status: data === null || reason !== null ? ('unavailable' as const) : ('available' as const),
+      reason,
+      fingerprint,
+    };
+  });
 }
 
-/** The target list handler over a bundle reader. Only the validated manifest is read. */
+/** The target list handler over a bundle reader. */
 export function targetListHandler(read: () => PulledBundle): RouteHandler<typeof targetListRoute> {
   return (c) => {
-    const manifest = readManifest(read);
+    const bundle = read();
+    const manifest = readManifest(bundle);
     const list: TargetList = {
       bundle_version: manifest.bundle_version,
       shipping_mode: manifest.shipping_mode,
-      items: manifest.targets,
+      items: (bundle.records.targets ?? []).map((t) => ({
+        target_id: t.target_id,
+        body: t.body,
+        footprint: t.footprint,
+        shipping_mode: t.shipping_mode,
+      })),
     };
     return c.json(list, 200, bundleCacheHeaders('per-bundle', manifest.bundle_version));
   };
 }
 
-/** The target detail handler over a bundle reader: 404 or 501, as the module comment says. */
+/** The target detail handler over a bundle reader. */
 export function targetHandler(read: () => PulledBundle): RouteHandler<typeof targetRoute> {
   return (c) => {
     const { id } = c.req.valid('param');
-    const manifest = readManifest(read);
-    const bundle = `bundle ${manifest.bundle_version}`;
-    if (!manifest.targets.includes(id)) {
-      throw new ProblemError(404, `Target ${id} is not in ${bundle}.`);
+    const bundle = read();
+    const manifest = readManifest(bundle);
+    const target = bundle.records.targets?.find((t) => t.target_id === id);
+    if (target === undefined) {
+      throw notInBundle(`Target ${id} is not in bundle ${manifest.bundle_version}.`);
     }
-    throw new ProblemError(
-      501,
-      `Target ${id} is in ${bundle}, but target records are not served yet: ` +
-        '@terraluna/schema has no TargetRecord schema.',
-    );
+    const targetWindow =
+      target.primary_window_id === null ? null : findWindow(bundle, target.primary_window_id);
+    const references = target.reference_window_ids.flatMap((windowId) => {
+      const found = findWindow(bundle, windowId);
+      return found === null ? [] : [found.entry];
+    });
+    const detail: TargetDetail = {
+      bundle_version: manifest.bundle_version,
+      target,
+      ...(targetWindow === null ? {} : { target_window: targetWindow.entry }),
+      reference_windows: references,
+      radar_context: targetWindow === null ? [] : radarContext(targetWindow.entry.radar),
+    };
+    return c.json(detail, 200, bundleCacheHeaders('per-bundle', manifest.bundle_version));
   };
 }
