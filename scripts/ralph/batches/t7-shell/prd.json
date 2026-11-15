@@ -218,12 +218,18 @@
       "priority": 4,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 0,
+        "state": "reviewed",
+        "round": 1,
         "base": "32b1f21ade7db5b0a158bcfeb9c3578ff93c74cc",
-        "head": null,
-        "files": [],
-        "digests": {}
+        "head": "b4b06ff8810a24a3029aa180c07a7c45ab5d170b",
+        "files": [
+          "reviews/T7-04-claude.json",
+          "reviews/T7-04-codex.json"
+        ],
+        "digests": {
+          "reviews/T7-04-claude.json": "e7c74b369955664eed263d69677d76c45d8c7b58aa256fb5564ff9a432080ab6",
+          "reviews/T7-04-codex.json": "90372245fa7092ea89003f564c9eb2d7518492dd1aed574abc68217007495dd1"
+        }
       },
       "notes": "Removed the manifest.model-conditional encoder sentence: encoder content stays off every page until G5 is PASS (orchestrator decision 4). G5 appears only as an ordinary GateRecord row."
     },
