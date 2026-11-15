@@ -1,0 +1,275 @@
+/* Copied from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
+   From src/styles.css: the utility classes the ported /find page uses. Classes Terraluna already
+   defines in app/globals.css (.bg-grid, .surface, .glass, .btn-primary) are left out. */
+:root {
+  --color-void: var(--void);
+  --color-ink: var(--ink);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-platinum: var(--platinum);
+  --color-chrome: var(--chrome);
+  --color-dim: var(--dim);
+  --color-flare: var(--flare);
+  --color-moon: var(--moon);
+  --color-mars: var(--mars);
+  --color-earth: var(--earth);
+  --color-strong: #7cc8a0;
+  --color-partial: #e3b35e;
+  --color-weak: #e47a63;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.panel {
+  background: color-mix(in oklab, var(--color-panel) 88%, transparent);
+  border: 1px solid var(--color-line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Big outlined chapter numbers */
+.outline-num {
+  font-family: var(--font-wide);
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--color-platinum) 28%, transparent);
+  letter-spacing: -0.02em;
+}
+
+/* Icon tile with a slow orbit */
+.glyph-orbit {
+  transition: transform 1.6s var(--ease-out-quint);
+}
+.surface:hover .glyph-orbit,
+.glyph-tile:hover .glyph-orbit {
+  transform: rotate(140deg);
+}
+
+/* Range inputs in the warm style */
+input[type="range"].range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"].range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--color-flare) var(--fill, 50%), var(--color-line-2) var(--fill, 50%));
+}
+input[type="range"].range::-moz-range-track {
+  height: 3px;
+  border-radius: 99px;
+  background: var(--color-line-2);
+}
+input[type="range"].range::-moz-range-progress {
+  height: 3px;
+  border-radius: 99px;
+  background: var(--color-flare);
+}
+input[type="range"].range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  margin-top: -6.5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 99px;
+  background: var(--color-platinum);
+  border: 3px solid var(--color-void);
+  box-shadow: 0 0 0 1px var(--color-flare);
+  transition: transform 0.2s var(--ease-out-quint);
+}
+input[type="range"].range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 99px;
+  background: var(--color-platinum);
+  border: 3px solid var(--color-void);
+  box-shadow: 0 0 0 1px var(--color-flare);
+}
+input[type="range"].range:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+/* Shimmer for loading placeholders */
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--color-panel-2) 0%, var(--color-line) 40%, var(--color-panel-2) 80%) 0 0 / 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Link with an underline that draws in from the left */
+.link-wipe {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.45s var(--ease-out-quint), color 0.2s;
+}
+.link-wipe:hover {
+  background-size: 100% 1px;
+}
+
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-2) transparent;
+}
+
+/* Leaflet theming */
+.leaflet-container {
+  background: var(--color-void);
+  font-family: var(--font-sans);
+}
+.leaflet-control-attribution {
+  background: rgb(7 8 10 / 0.75) !important;
+  color: var(--color-dim) !important;
+  font-size: 10px !important;
+}
+.leaflet-control-attribution a {
+  color: var(--color-chrome) !important;
+}
+.leaflet-bar a {
+  background: rgb(16 17 20 / 0.92) !important;
+  color: var(--color-platinum) !important;
+  border-color: var(--color-line) !important;
+}
+.leaflet-bar {
+  border: 1px solid var(--color-line) !important;
+}
+.leaflet-tooltip.sa-tip {
+  background: rgb(11 12 15 / 0.94);
+  color: var(--color-platinum);
+  border: 1px solid var(--color-line-2);
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 4px 8px;
+  box-shadow: none;
+}
+.leaflet-tooltip.sa-tip::before {
+  display: none;
+}
+
+/* Map pins — still by default; only the selected one breathes */
+.sa-pin {
+  position: relative;
+  width: 18px;
+  height: 18px;
+}
+.sa-pin .core {
+  position: absolute;
+  inset: 5px;
+  border-radius: 999px;
+  background: var(--pin);
+  box-shadow: 0 0 0 2px rgb(7 8 10 / 0.9);
+}
+.sa-pin .ring {
+  position: absolute;
+  inset: 1px;
+  border-radius: 999px;
+  border: 1px solid var(--pin);
+  opacity: 0.45;
+}
+.sa-pin.dim {
+  opacity: 0.3;
+}
+.sa-pin.active .core {
+  inset: 4px;
+  background: #fff;
+}
+.sa-pin.active .ring {
+  animation: pin-breathe 2.8s var(--ease-out-quint) infinite;
+}
+@keyframes pin-breathe {
+  from {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+.sa-pin.dashed .core {
+  background: transparent;
+  box-shadow: none;
+  border: 1.5px dashed var(--pin);
+  inset: 2px;
+}
+.sa-pin.dashed .ring {
+  opacity: 0;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 80s linear infinite;
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes spin-tex {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.polar-image {
+  filter: contrast(1.4) brightness(0.9) sepia(0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Bangla text (Learn page): a Bengali face with the site's fallbacks */
+.font-bn {
+  font-family: "Noto Sans Bengali", var(--font-sans);
+}
+
+/* Slow or software graphics (see enableLiteGraphics in components/ui/Safe.tsx): keep the tint, drop
+   the frosted blur that would be redrawn under every frame of a moving 3D scene. */
+html.gpu-lite .glass,
+html.gpu-lite .panel,
+html.gpu-lite [class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html.gpu-lite .glass {
+  background: color-mix(in oklab, var(--color-panel) 94%, transparent);
+}
+
+/* Less motion (lib/motionPref.ts): the system setting or the footer's "Pause motion" switch. */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

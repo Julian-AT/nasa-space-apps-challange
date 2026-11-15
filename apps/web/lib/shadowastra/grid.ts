@@ -1,0 +1,876 @@
+// @ts-nocheck -- vendored verbatim; type-checks clean under upstream strict:true, not under Terraluna's extra noUncheckedIndexedAccess/exactOptionalPropertyTypes/noImplicitOverride.
+// Copied from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
+/**
+ * The global discovery grid: every land cell on Earth at 0.5° (about 55 km), built by
+ * pipeline/s06_build.py from NASA POWER, NASA GIBS (MODIS), AWS Terrain Tiles,
+ * Smithsonian GVP, impact craters and Natural Earth names.
+ *
+ * Everything here runs in the browser, so every slider re-ranks the whole planet live.
+ */
+import { useEffect, useState } from "react";
+import type { TaskId, World } from "./data/sites";
+import { TASK_WEIGHTS, type Weights } from "./scoring";
+import { timed, timedAsync } from "./perf";
+
+/* ------------------------------------------------------------------ types */
+
+type DType = "uint8" | "int8" | "int16" | "uint16";
+interface Field {
+  name: string;
+  dtype: DType;
+  offset: number;
+  scale: number;
+  nodata: number;
+  kind: string;
+}
+
+export interface GridTarget {
+  id: string;
+  body: World;
+  name: string;
+  lat: number;
+  lon: number;
+  terrain: { hist: number[]; mean_slope: number; p90_slope: number; relief: number; rough: number };
+  /** Best-month sunlight match per Earth latitude row, 0 to 100. */
+  light: number[];
+  /** Month index (0 = Jan) of that best match, per row. */
+  light_month: number[];
+  /** The target's main rocks and how close each Earth rock class (GLiM) is to them, 0 to 1. */
+  rock?: { family: string; label: string; aff: number[] };
+  /** Water-made mineral families found at the target from orbit or by rovers (Mars only). */
+  minerals?: { families: MineralFamily[]; source: string };
+  /** Measured on the target itself (pipeline/s20, s26): LRO Diviner, Lunar Prospector, LRO LEND and Mini-RF on the Moon, Mars Odyssey GRS on Mars. */
+  resources?: TargetResources;
+}
+
+export interface TargetResources {
+  source: string;
+  /** Moon: yearly average and maximum ground temperature within radius_km, and where water ice is stable. */
+  temp_avg_c?: number;
+  temp_avg_coldest_c?: number;
+  temp_max_c?: number;
+  temp_max_hottest_c?: number;
+  ice_surface_share?: number;
+  ice_1m_share?: number;
+  radius_km?: number;
+  /** Moon away from the pole: coldest point of the day-and-night curve (Diviner global product). */
+  temp_min_c?: number;
+  local_time_bins?: number;
+  /** Moon: Lunar Prospector gamma-ray oxides (weight %) and thorium (ppm), about 150 km footprint. */
+  feo_wt_pct?: number;
+  tio2_wt_pct?: number;
+  th_ppm?: number;
+  oxides_source?: string;
+  /** Mars: water-equivalent hydrogen in the top tens of cm, weight %. */
+  h2o_wt_pct?: number | null;
+  /**
+   * Moon (pipeline/s26): LRO LEND collimated epithermal neutrons, nominal-mission map 2009 to 2011.
+   * Count rate in the map cells within lend_radius_km, compared with the Moon's average for 80°S to 80°N:
+   * negative = fewer neutrons = more hydrogen. lend_dip_err_pct is the 1 sigma counting error.
+   */
+  lend_dip_pct?: number;
+  lend_dip_err_pct?: number;
+  lend_rate_cps?: number;
+  lend_ref_cps?: number;
+  lend_cells?: number;
+  lend_radius_km?: number;
+  lend_map_deg?: number;
+  lend_source?: string;
+  /**
+   * Moon (pipeline/s26): LRO Mini-RF S-band circular polarization ratio within cpr_radius_km.
+   * cpr_median is null when the mosaic does not cover the target ("not covered"); cpr_ref_* are the same
+   * statistics for the surrounding region (cpr_ref_region), for context.
+   */
+  cpr_median?: number | null;
+  cpr_above1_share?: number | null;
+  cpr_coverage?: number;
+  cpr_pixels?: number;
+  cpr_radius_km?: number;
+  cpr_pixel_m?: number;
+  cpr_ref_median?: number;
+  cpr_ref_above1_share?: number;
+  cpr_ref_region?: string;
+  minirf_source?: string;
+}
+
+export const MINERAL_FAMILIES = ["clay", "sulfate", "carbonate", "iron"] as const;
+export type MineralFamily = (typeof MINERAL_FAMILIES)[number];
+export const MINERAL_INFO: Record<MineralFamily, { label: string; plain: string; mars: string }> = {
+  clay: { label: "Clays", plain: "Kaolinite, smectite, illite, chlorite", mars: "Form when water and rock sit together for a long time" },
+  sulfate: { label: "Sulfates", plain: "Gypsum", mars: "Left behind when salty water dries out" },
+  carbonate: { label: "Carbonates", plain: "Calcite, dolomite", mars: "Form in lakes and can trap signs of life" },
+  iron: { label: "Iron oxides", plain: "Hematite, goethite", mars: "The rust that makes Mars red; grey hematite needs water" },
+};
+/**
+ * Whether the EMIT mineral match counts in "Rocks & craters" for Mars targets with known minerals.
+ * Tested in pipeline/s14_validate.py section 6: it ranked the known Mars sites a little worse, so it is off
+ * and minerals are shown as facts. Keep it identical to s14's USE_MINERALS.
+ */
+export const USE_MINERALS = false;
+/** Mineral match where EMIT saw nothing: unknown, so neutral (pipeline/s14_validate.py MIN_UNSEEN). */
+export const MIN_UNSEEN = 0.5;
+/** Share of "Rocks & craters" given to the mineral match, by job; other jobs 0.2 (s14 MIN_WEIGHT). */
+export const MIN_WEIGHT: Partial<Record<TaskId, number>> = { astrobio: 0.4, isru: 0.35 };
+export const MIN_WEIGHT_DEFAULT = 0.2;
+
+export interface KnownSite {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  worlds: World[];
+  cell: number;
+}
+
+export interface Evaluation {
+  positives: number;
+  model_median_top_pct: number;
+  baseline_median_top_pct: number;
+  model_in_top10_pct: number;
+  baseline_in_top10_pct: number;
+  per_site: Record<string, [number, number]>;
+  importance: [string, number][];
+}
+
+export interface GridMeta {
+  version: number;
+  res: number;
+  rows: number;
+  cols: number;
+  count: number;
+  mask_bytes: number;
+  bin_bytes?: number;
+  layout: Field[];
+  slope_bins: number[];
+  targets: GridTarget[];
+  names: { country: string[]; region: string[]; place: string[]; place_ll?: [number, number][]; volcano: string[]; impact: string[] };
+  /** GLiM rock classes, indexed by the f_lith value. */
+  lithology?: { code: string; label: string }[];
+  known: KnownSite[];
+  evaluation: Record<World, Evaluation>;
+  sources: Record<string, string>;
+  /** Confidence badge limits (pipeline/s06_build.py). */
+  confidence?: { spread_medium: number; spread_low: number; cover_medium: number; cover_low: number };
+}
+
+type Arr = Uint8Array | Int8Array | Int16Array | Uint16Array;
+const CTOR = { uint8: Uint8Array, int8: Int8Array, int16: Int16Array, uint16: Uint16Array } as const;
+
+export const INDICATORS = ["dry", "bare", "cold", "swing", "airdry", "hot", "volcanic", "impact", "ice", "remote", "rugged"] as const;
+export type Indicator = (typeof INDICATORS)[number];
+
+/* ------------------------------------------------------------------ grid */
+
+export class Grid {
+  readonly meta: GridMeta;
+  readonly n: number;
+  readonly row: Uint16Array;
+  readonly col: Uint16Array;
+  /** rows × cols → cell index, or -1 for sea and ice-free gaps. */
+  readonly index: Int32Array;
+  private a: Record<string, Arr> = {};
+  private f: Record<string, Field> = {};
+  readonly targets: Record<string, GridTarget>;
+
+  constructor(meta: GridMeta, buf: ArrayBuffer) {
+    this.meta = meta;
+    this.n = meta.count;
+    for (const fl of meta.layout) {
+      this.a[fl.name] = new CTOR[fl.dtype](buf, fl.offset, meta.count);
+      this.f[fl.name] = fl;
+    }
+    const mask = new Uint8Array(buf, 0, meta.mask_bytes);
+    this.row = new Uint16Array(this.n);
+    this.col = new Uint16Array(this.n);
+    this.index = new Int32Array(meta.rows * meta.cols).fill(-1);
+    let k = 0;
+    for (let p = 0; p < meta.rows * meta.cols && k < this.n; p++) {
+      if (mask[p >> 3] & (0x80 >> (p & 7))) {
+        this.row[k] = Math.floor(p / meta.cols);
+        this.col[k] = p % meta.cols;
+        this.index[p] = k++;
+      }
+    }
+    this.targets = Object.fromEntries(meta.targets.map((t) => [t.id, t]));
+  }
+
+  lat(k: number) {
+    return 90 - (this.row[k] + 0.5) * this.meta.res;
+  }
+  lon(k: number) {
+    return -180 + (this.col[k] + 0.5) * this.meta.res;
+  }
+  has(name: string) {
+    return name in this.a;
+  }
+  /** Raw typed array (fast loops). */
+  arr(name: string): Arr {
+    return this.a[name];
+  }
+  /** A measured value in real units, or null where the source has no data. */
+  value(name: string, k: number): number | null {
+    const fl = this.f[name];
+    if (!fl) return null;
+    const v = this.a[name][k];
+    return v === fl.nodata ? null : v / fl.scale;
+  }
+  ind(name: Indicator, k: number) {
+    return this.a[`i_${name}`][k] / 254;
+  }
+  /** Learned-model rank (0 to 1) for a world. */
+  model(world: World, k: number) {
+    return this.a[`model_${world}`][k] / this.f[`model_${world}`].scale;
+  }
+  scale(name: string) {
+    return this.f[name]?.scale ?? 1;
+  }
+  hist(k: number) {
+    const h: number[] = [];
+    for (let b = 0; b < 8; b++) h.push(this.a[`h${b}`][k] / 254);
+    return h;
+  }
+
+  /** Nearest land cell to a point (searches a few cells around coasts). */
+  cellAt(lat: number, lon: number, maxRing = 4): number {
+    const r0 = Math.min(this.meta.rows - 1, Math.max(0, Math.floor((90 - lat) / this.meta.res)));
+    const c0 = Math.floor((((lon + 180) % 360) + 360) % 360 / this.meta.res);
+    for (let ring = 0; ring <= maxRing; ring++) {
+      let best = -1;
+      let bd = Infinity;
+      for (let dr = -ring; dr <= ring; dr++) {
+        for (let dc = -ring; dc <= ring; dc++) {
+          if (Math.max(Math.abs(dr), Math.abs(dc)) !== ring) continue;
+          const r = r0 + dr;
+          if (r < 0 || r >= this.meta.rows) continue;
+          const c = (c0 + dc + this.meta.cols) % this.meta.cols;
+          const k = this.index[r * this.meta.cols + c];
+          if (k >= 0 && dr * dr + dc * dc < bd) {
+            bd = dr * dr + dc * dc;
+            best = k;
+          }
+        }
+      }
+      if (best >= 0) return best;
+    }
+    return -1;
+  }
+
+  name(k: number) {
+    const N = this.meta.names;
+    const ci = this.value("n_country", k);
+    const ri = this.value("n_region", k);
+    const pi = this.value("n_place", k);
+    const country = ci === null ? null : N.country[ci];
+    const region = ri === null ? null : N.region[ri];
+    const place = pi === null ? null : N.place[pi];
+    const placeKm = this.value("n_place_km", k);
+    const lat = this.lat(k);
+    const where = country ?? (lat < -60 ? "Antarctica" : null);
+    const title = region ?? (place ? `Near ${place}` : where ?? "Remote land");
+    const near = region && place && (placeKm ?? 0) < 400 ? `${Math.round(placeKm ?? 0)} km from ${place}` : null;
+    const parts = [near, where].filter(Boolean);
+    return { title, subtitle: parts.join(" · "), country: where, region, place, placeKm };
+  }
+
+  /** Main rock type of a place (GLiM, 0.5° dominant class), or null where unknown. */
+  rock(k: number): { code: string; label: string } | null {
+    const v = this.value("f_lith", k);
+    const L = this.meta.lithology;
+    if (v === null || !L || !L[v] || L[v].code === "nd") return null;
+    return L[v];
+  }
+
+  /** How close this place's rock is to the target's main rocks (0 to 1); 0.5 if unknown. */
+  rockMatch(k: number, t: GridTarget) {
+    const v = this.value("f_lith", k);
+    return v === null || !t.rock ? 0.5 : (t.rock.aff[v] ?? 0.5);
+  }
+
+  /**
+   * How much to trust a score here: share of measurements that are real (not gap-filled)
+   * and how much the learned model's single runs (three models × eight bags) disagree about the place.
+   */
+  confidence(k: number, world: World): { level: "high" | "medium" | "low"; cover: number; spread: number } {
+    const cover = this.value("q_cover", k) ?? 1;
+    const spread = this.value(`u_${world}`, k) ?? 0;
+    const c = this.meta.confidence ?? { spread_medium: 0.12, spread_low: 0.2, cover_medium: 0.85, cover_low: 0.6 };
+    const level = cover < c.cover_low || spread > c.spread_low ? "low" : cover < c.cover_medium || spread > c.spread_medium ? "medium" : "high";
+    return { level, cover, spread };
+  }
+
+  /** EMIT mineral shares (0 to 1) of a place, or null where EMIT has no clear view. */
+  minerals(k: number): Record<MineralFamily, number> | null {
+    if (!this.has("f_min_clay")) return null;
+    const out = {} as Record<MineralFamily, number>;
+    for (const f of MINERAL_FAMILIES) {
+      const v = this.value(`f_min_${f}`, k);
+      if (v === null) return null;
+      out[f] = v;
+    }
+    return out;
+  }
+
+  private mpct: Partial<Record<MineralFamily, Float32Array>> = {};
+  /** Percentile (0 to 1) of a place's mineral share among all places EMIT saw; NaN where unseen. */
+  mineralPct(f: MineralFamily): Float32Array {
+    let p = this.mpct[f];
+    if (!p) {
+      const a = this.a[`f_min_${f}`];
+      const nod = this.f[`f_min_${f}`]?.nodata;
+      p = new Float32Array(this.n).fill(NaN);
+      if (a) {
+        const idx: number[] = [];
+        for (let k = 0; k < this.n; k++) if (a[k] !== nod) idx.push(k);
+        idx.sort((x, y) => a[x] - a[y]);
+        const d = Math.max(1, idx.length - 1);
+        // equal shares (many places have exactly no gypsum) share their average rank
+        for (let i = 0; i < idx.length; ) {
+          let j = i;
+          while (j + 1 < idx.length && a[idx[j + 1]] === a[idx[i]]) j++;
+          const r = (i + j) / 2 / d;
+          for (let q = i; q <= j; q++) p[idx[q]] = r;
+          i = j + 1;
+        }
+      }
+      this.mpct[f] = p;
+    }
+    return p;
+  }
+
+  private mmAll = new Map<string, Float32Array | null>();
+  /** mineralMatch() for every place at once (cached per target), or null if the target has no minerals. */
+  mineralMatchAll(t: GridTarget): Float32Array | null {
+    if (!this.mmAll.has(t.id)) {
+      const fams = t.minerals?.families;
+      if (!fams?.length || !this.has("f_min_clay")) this.mmAll.set(t.id, null);
+      else {
+        const P = fams.map((f) => this.mineralPct(f));
+        const out = new Float32Array(this.n);
+        for (let k = 0; k < this.n; k++) {
+          let s = 0;
+          for (const p of P) s += p[k];
+          const m = s / P.length;
+          out[k] = Number.isFinite(m) ? m : MIN_UNSEEN;
+        }
+        this.mmAll.set(t.id, out);
+      }
+    }
+    return this.mmAll.get(t.id)!;
+  }
+
+  /** How strongly a place shows the target's water-made minerals (0 to 1), or null if the target has none. */
+  mineralMatch(k: number, t: GridTarget): number | null {
+    const fams = t.minerals?.families;
+    if (!fams?.length || !this.has("f_min_clay")) return null;
+    let s = 0;
+    for (const f of fams) s += this.mineralPct(f)[k];
+    const m = s / fams.length;
+    return Number.isFinite(m) ? m : MIN_UNSEEN;
+  }
+
+  volcano(k: number) {
+    const v = this.value("n_volc", k);
+    const d = this.value("f_volc_km", k);
+    return v === null || d === null ? null : { name: this.meta.names.volcano[v], km: d };
+  }
+  crater(k: number) {
+    const v = this.value("n_impact", k);
+    return v === null ? null : { name: this.meta.names.impact[v], score: this.ind("impact", k) };
+  }
+}
+
+/* ------------------------------------------------------------------ loading */
+
+let cache: Promise<Grid> | null = null;
+const listeners = new Set<(p: number) => void>();
+let lastProgress = 0;
+
+async function fetchWithProgress(url: string, expected: number | undefined, onChunk: (got: number, total: number) => void) {
+  const res = await fetch(url);
+  if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+  const total = Number(res.headers.get("content-length")) || expected || 0;
+  const reader = res.body.getReader();
+  const parts: Uint8Array[] = [];
+  let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parts.push(value);
+    got += value.length;
+    onChunk(got, total);
+  }
+  const out = new Uint8Array(got);
+  let o = 0;
+  for (const p of parts) {
+    out.set(p, o);
+    o += p.length;
+  }
+  return out.buffer;
+}
+
+export function loadGrid(): Promise<Grid> {
+  if (!cache) {
+    const emit = (p: number) => {
+      lastProgress = p;
+      listeners.forEach((l) => l(p));
+    };
+    cache = (async () => {
+      const [meta, buf] = await timedAsync("grid-download", async () => {
+        const meta: GridMeta = await (await fetch("/shadowastra/data/grid.json")).json();
+        emit(0.08);
+        const buf = await fetchWithProgress("/shadowastra/data/grid.bin", meta.bin_bytes, (got, total) => total && emit(0.08 + 0.9 * Math.min(1, got / total)));
+        return [meta, buf] as const;
+      });
+      const g = timed("grid-parse", () => {
+        checkGrid(meta, buf);
+        return new Grid(meta, buf);
+      });
+      emit(1);
+      return g;
+    })();
+    cache.catch(() => {
+      cache = null;
+    });
+  }
+  return cache;
+}
+
+/**
+ * The data contract between pipeline/s06_build.py and this file: refuse files that do not match
+ * (wrong size, a field outside the file, an unknown type) instead of drawing nonsense.
+ */
+export function checkGrid(meta: GridMeta, buf: ArrayBuffer) {
+  if (meta.bin_bytes !== undefined && buf.byteLength !== meta.bin_bytes) throw new Error(`grid.bin is ${buf.byteLength} bytes, grid.json expects ${meta.bin_bytes}`);
+  if (buf.byteLength < meta.mask_bytes) throw new Error("grid.bin is too short for its land mask");
+  for (const f of meta.layout) {
+    const ctor = CTOR[f.dtype];
+    if (!ctor) throw new Error(`grid field ${f.name} has an unknown type ${f.dtype}`);
+    if (f.offset % ctor.BYTES_PER_ELEMENT !== 0 || f.offset + meta.count * ctor.BYTES_PER_ELEMENT > buf.byteLength) throw new Error(`grid field ${f.name} does not fit in grid.bin`);
+  }
+  for (const need of ["model_moon", "model_mars", "f_relief", "q_cover", "h0"]) if (!meta.layout.some((f) => f.name === need)) throw new Error(`grid.json has no ${need}`);
+}
+
+/** React hook: the grid once loaded, download progress (0 to 1), and a retry after a failure. */
+export function useGrid() {
+  const [grid, setGrid] = useState<Grid | null>(null);
+  const [progress, setProgress] = useState(lastProgress);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    const on = (p: number) => alive && setProgress(p);
+    listeners.add(on);
+    setError(null);
+    loadGrid()
+      .then((g) => alive && setGrid(g))
+      .catch((e: Error) => {
+        console.error("Grid load failed:", e.message);
+        if (alive) setError("The global data could not be loaded. Check your connection and try again.");
+      });
+    return () => {
+      alive = false;
+      listeners.delete(on);
+    };
+  }, [attempt]);
+  return { grid, progress, error, retry: () => setAttempt((a) => a + 1) };
+}
+
+/* ------------------------------------------------------------------ scoring */
+
+export type Dim = keyof Weights;
+/** Default share of the learned model in the match score, chosen on the known sites (pipeline/s14_validate.py). */
+export const MODEL_MIX = 0.6;
+
+export const DIMS: Dim[] = ["topography", "geology", "temperature", "lighting", "regolith"];
+
+export const DIM_INFO: Record<Dim, { label: string; plain: string; source: string }> = {
+  topography: { label: "Ground shape", plain: "Slopes and height range across 50 km, compared with the target at the same scale.", source: "AWS Terrain Tiles (SRTM) vs LRO LOLA / MGS MOLA" },
+  geology: { label: "Rocks & craters", plain: "Volcanic ground, impact craters and bare rock, the raw material of Moon and Mars surfaces.", source: "Smithsonian GVP volcanoes, Earth Impact Database, MODIS land cover" },
+  temperature: { label: "Cold & heat swing", plain: "How cold the nights get and how big the day to night change is.", source: "MODIS land surface temperature, NASA POWER air temperature" },
+  lighting: { label: "Sunlight angle", plain: "How high the Sun climbs. Low Sun means long shadows, like the lunar poles.", source: "Our solar geometry (best month)" },
+  regolith: { label: "Bare, dry ground", plain: "Little rain and no plants, so loose soil and rock are exposed.", source: "NASA POWER rainfall, MODIS vegetation (NDVI)" },
+};
+
+/**
+ * Rocks & craters: depends on the job and the world. Kept identical to pipeline/s14_validate.py.
+ * (A version that also scored GLiM rock types ranked the known sites worse at 0.5°, so rock
+ * types are shown as facts, not scored. See validation.json, "ablation".)
+ */
+function geology(world: World, task: TaskId, volc: number, imp: number, bare: number, dry: number) {
+  const hard = Math.max(volc, imp);
+  switch (task) {
+    case "caves":
+      return 0.85 * volc + 0.15 * bare;
+    case "impact":
+      return 0.85 * imp + 0.15 * bare;
+    case "landing":
+      return 0.5 * imp + 0.2 * volc + 0.3 * bare;
+    case "astrobio":
+      return 0.5 * dry + 0.3 * bare + 0.2 * hard;
+    case "isru":
+      return world === "moon" ? 0.6 * volc + 0.2 * imp + 0.2 * bare : 0.5 * volc + 0.2 * imp + 0.3 * bare;
+    default:
+      return world === "moon" ? 0.6 * hard + 0.4 * bare : 0.45 * hard + 0.3 * bare + 0.25 * dry;
+  }
+}
+
+function temperature(world: World, task: TaskId, cold: number, swing: number, airdry: number, ice: number) {
+  if (task === "ice" || task === "polar") return 0.6 * cold + 0.4 * ice;
+  return world === "moon" ? 0.55 * cold + 0.45 * swing : 0.45 * cold + 0.3 * swing + 0.25 * airdry;
+}
+
+export function topoSimilarity(hist: ArrayLike<number>, relief: number, t: GridTarget) {
+  let overlap = 0;
+  for (let b = 0; b < 8; b++) overlap += Math.min(hist[b], t.terrain.hist[b]);
+  const ratio = Math.max(relief, 1) / Math.max(t.terrain.relief, 1);
+  const rel = Math.min(1, Math.max(0, 1 - Math.abs(Math.log10(ratio))));
+  return 0.65 * overlap + 0.35 * rel;
+}
+
+export interface ScoreOptions {
+  target: GridTarget;
+  task: TaskId;
+  weights?: Weights;
+  /** 0 = only the mission formula, 1 = only the learned model. */
+  modelMix?: number;
+  /** Neural ground-shape similarity for this target (one byte per cell), if loaded. */
+  shape?: Uint8Array | null;
+  /** Share of the ground-shape score taken from the neural network (0 to 1). */
+  shapeMix?: number;
+}
+
+export interface CellScore {
+  total: number;
+  mission: number;
+  model: number;
+  dims: Record<Dim, number>;
+  /** Ground shape from the hand-made formula and from the neural network (null if not loaded). */
+  formula: number;
+  neural: number | null;
+}
+
+/** Full breakdown for one cell. */
+export function scoreCell(g: Grid, k: number, o: ScoreOptions): CellScore {
+  const w = o.weights ?? TASK_WEIGHTS[o.task];
+  const world = o.target.body;
+  const I = (n: Indicator) => g.ind(n, k);
+  const formula = topoSimilarity(g.hist(k), g.value("f_relief", k) ?? 0, o.target);
+  const sm = o.shape ? (o.shapeMix ?? 0.5) : 0;
+  const neural = o.shape ? o.shape[k] / 254 : null;
+  const mm = USE_MINERALS ? g.mineralMatch(k, o.target) : null;
+  const mw = MIN_WEIGHT[o.task] ?? MIN_WEIGHT_DEFAULT;
+  const geo = geology(world, o.task, I("volcanic"), I("impact"), I("bare"), I("dry"));
+  const dims: Record<Dim, number> = {
+    topography: neural === null ? formula : (1 - sm) * formula + sm * neural,
+    geology: mm === null ? geo : (1 - mw) * geo + mw * mm,
+    temperature: temperature(world, o.task, I("cold"), I("swing"), I("airdry"), I("ice")),
+    lighting: o.target.light[g.row[k]] / 100,
+    regolith: 0.6 * I("bare") + 0.4 * I("dry"),
+  };
+  let s = 0;
+  let ws = 0;
+  for (const d of DIMS) {
+    s += dims[d] * w[d];
+    ws += w[d];
+  }
+  const mission = ws ? s / ws : 0;
+  const model = g.model(world, k);
+  const m = o.modelMix ?? MODEL_MIX;
+  return { total: (1 - m) * mission + m * model, mission, model, dims, formula, neural };
+}
+
+/** Scores for every land cell (fast typed-array loop). */
+export function scoreAll(g: Grid, o: ScoreOptions): Float32Array {
+  return timed("score-all", () => scoreAllCells(g, o));
+}
+
+function scoreAllCells(g: Grid, o: ScoreOptions): Float32Array {
+  const w = o.weights ?? TASK_WEIGHTS[o.task];
+  const world = o.target.body;
+  const ws = DIMS.reduce((a, d) => a + w[d], 0) || 1;
+  const m = o.modelMix ?? MODEL_MIX;
+  const A = (n: string) => g.arr(n);
+  const [volc, imp, bare, dry, cold, swing, airdry, ice] = (["volcanic", "impact", "bare", "dry", "cold", "swing", "airdry", "ice"] as const).map((n) => A(`i_${n}`));
+  const H = [0, 1, 2, 3, 4, 5, 6, 7].map((b) => A(`h${b}`));
+  const relief = A("f_relief");
+  const reliefNod = 65535;
+  const model = A(`model_${world}`);
+  const MK = 1 / g.scale(`model_${world}`);
+  const th = o.target.terrain.hist;
+  const tRel = Math.max(o.target.terrain.relief, 1);
+  const light = o.target.light;
+  const shape = o.shape ?? null;
+  const sm = shape ? (o.shapeMix ?? 0.5) : 0;
+  const mm = USE_MINERALS ? g.mineralMatchAll(o.target) : null;
+  const mw = MIN_WEIGHT[o.task] ?? MIN_WEIGHT_DEFAULT;
+  const out = new Float32Array(g.n);
+  const K = 1 / 254;
+  for (let k = 0; k < g.n; k++) {
+    let ov = 0;
+    for (let b = 0; b < 8; b++) ov += Math.min(H[b][k] * K, th[b]);
+    const r = relief[k] === reliefNod ? 1 : Math.max(relief[k], 1);
+    const rel = Math.min(1, Math.max(0, 1 - Math.abs(Math.log10(r / tRel))));
+    const topo = shape ? (1 - sm) * (0.65 * ov + 0.35 * rel) + sm * shape[k] * K : 0.65 * ov + 0.35 * rel;
+    const g0 = geology(world, o.task, volc[k] * K, imp[k] * K, bare[k] * K, dry[k] * K);
+    const geo = mm ? (1 - mw) * g0 + mw * mm[k] : g0;
+    const tem = temperature(world, o.task, cold[k] * K, swing[k] * K, airdry[k] * K, ice[k] * K);
+    const lit = light[g.row[k]] / 100;
+    const reg = 0.6 * bare[k] * K + 0.4 * dry[k] * K;
+    const mission = (topo * w.topography + geo * w.geology + tem * w.temperature + lit * w.lighting + reg * w.regolith) / ws;
+    out[k] = (1 - m) * mission + m * model[k] * MK;
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ ranking */
+
+export function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number) {
+  const r = Math.PI / 180;
+  const h = Math.sin(((bLat - aLat) * r) / 2) ** 2 + Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(((bLon - aLon) * r) / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+export interface Candidate {
+  k: number;
+  lat: number;
+  lon: number;
+  score: number;
+  /** A known test site within 150 km, if any. */
+  known: KnownSite | null;
+  knownKm: number;
+}
+
+export interface RankOptions {
+  count?: number;
+  spacingKm?: number;
+  onlyNew?: boolean;
+  skipAntarctica?: boolean;
+  /** Keep only cells in this country / region (name tables index), if set. */
+  within?: { field: "n_country" | "n_region"; value: number } | null;
+}
+
+export function nearestKnown(g: Grid, lat: number, lon: number) {
+  let best: KnownSite | null = null;
+  let bd = Infinity;
+  for (const s of g.meta.known) {
+    const d = haversineKm(lat, lon, s.lat, s.lon);
+    if (d < bd) {
+      bd = d;
+      best = s;
+    }
+  }
+  return { site: best, km: bd };
+}
+
+/** Best distinct places: highest scores, at least `spacingKm` apart. */
+export function rankPlaces(g: Grid, scores: Float32Array, o: RankOptions = {}): Candidate[] {
+  const count = o.count ?? 12;
+  const spacing = o.spacingKm ?? 400;
+  const idx: number[] = [];
+  // a cheap pre-filter: only the top ~4% can make the list (every 7th score, native typed sort)
+  const sample = new Float32Array(Math.ceil(scores.length / 7));
+  for (let i = 0, j = 0; i < scores.length; i += 7) sample[j++] = scores[i];
+  sample.sort(); // ascending, so the value 4% from the top sits 4% from the end
+  const cut = sample.length ? sample[sample.length - 1 - Math.floor(sample.length * 0.04)] : 0;
+  const within = o.within ? g.arr(o.within.field) : null;
+  for (let k = 0; k < g.n; k++) {
+    if (!within && scores[k] < cut) continue;
+    if (within && within[k] !== o.within!.value) continue;
+    if (o.skipAntarctica && g.lat(k) < -60) continue;
+    idx.push(k);
+  }
+  idx.sort((a, b) => scores[b] - scores[a]);
+  const out: Candidate[] = [];
+  for (const k of idx) {
+    const lat = g.lat(k);
+    const lon = g.lon(k);
+    if (out.some((c) => haversineKm(lat, lon, c.lat, c.lon) < spacing)) continue;
+    const nk = nearestKnown(g, lat, lon);
+    const known = nk.km < 150 ? nk.site : null;
+    if (o.onlyNew && known) continue;
+    out.push({ k, lat, lon, score: scores[k], known, knownKm: nk.km });
+    if (out.length >= count) break;
+  }
+  return out;
+}
+
+/** Percentile (0 to 1) of a value among all land cells. */
+export function percentileOf(scores: Float32Array, v: number) {
+  let below = 0;
+  for (let k = 0; k < scores.length; k++) if (scores[k] < v) below++;
+  return below / scores.length;
+}
+
+/* ------------------------------------------------------------------ search */
+
+export interface SearchHit {
+  kind: "place" | "region" | "country" | "known";
+  label: string;
+  sub: string;
+  lat?: number;
+  lon?: number;
+  field?: "n_country" | "n_region";
+  value?: number;
+}
+
+function norm(s: string) {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
+export function searchGrid(g: Grid, q: string, limit = 8): SearchHit[] {
+  const n = norm(q.trim());
+  if (n.length < 2) return [];
+  const hits: (SearchHit & { rank: number })[] = [];
+  const score = (name: string) => {
+    const x = norm(name);
+    if (x === n) return 0;
+    if (x.startsWith(n)) return 1;
+    if (x.includes(` ${n}`)) return 2;
+    if (x.includes(n)) return 3;
+    return -1;
+  };
+  g.meta.known.forEach((s) => {
+    const r = score(s.name);
+    if (r >= 0) hits.push({ kind: "known", label: s.name, sub: "Known test site", lat: s.lat, lon: s.lon, rank: r - 0.5 });
+  });
+  g.meta.names.country.forEach((c, i) => {
+    const r = score(c);
+    if (r >= 0) hits.push({ kind: "country", label: c, sub: "Country · best spot inside", field: "n_country", value: i, rank: r });
+  });
+  g.meta.names.region.forEach((c, i) => {
+    const r = score(c);
+    if (r >= 0) hits.push({ kind: "region", label: c, sub: "Region · best spot inside", field: "n_region", value: i, rank: r + 0.2 });
+  });
+  const ll = g.meta.names.place_ll;
+  if (ll)
+    g.meta.names.place.forEach((p, i) => {
+      const r = score(p);
+      if (r >= 0) hits.push({ kind: "place", label: p, sub: "City or town", lat: ll[i][0], lon: ll[i][1], rank: r + 0.4 });
+    });
+  return hits.sort((a, b) => a.rank - b.rank || a.label.length - b.label.length).slice(0, limit);
+}
+
+/* ------------------------------------------------------------------ colour */
+
+/** Warm sunlight ramp used for every score map (transparent → ember → flare → bone). */
+const STOPS: [number, [number, number, number]][] = [
+  [0, [60, 26, 18]],
+  [0.35, [150, 62, 34]],
+  [0.65, [224, 138, 95]],
+  [0.85, [242, 200, 121]],
+  [1, [255, 246, 226]],
+];
+
+export function ramp(t: number): [number, number, number] {
+  const x = Math.min(1, Math.max(0, t));
+  for (let i = 1; i < STOPS.length; i++) {
+    if (x <= STOPS[i][0]) {
+      const [a, ca] = STOPS[i - 1];
+      const [b, cb] = STOPS[i];
+      const f = (x - a) / (b - a);
+      return [0, 1, 2].map((j) => Math.round(ca[j] + (cb[j] - ca[j]) * f)) as [number, number, number];
+    }
+  }
+  return STOPS[STOPS.length - 1][1];
+}
+
+export const RAMP_CSS = `linear-gradient(90deg, ${STOPS.map(([p, c]) => `rgb(${c.join(",")}) ${p * 100}%`).join(", ")})`;
+
+/** Low and high display limits so the map always shows contrast. */
+export function displayRange(scores: Float32Array) {
+  const s = Array.from(scores).filter((_, i) => i % 5 === 0).sort((a, b) => a - b);
+  return { lo: s[Math.floor(s.length * 0.55)], hi: s[Math.floor(s.length * 0.997)] };
+}
+
+/** Paint scores into an equirectangular RGBA canvas (cols × rows). */
+export function paintScores(g: Grid, scores: Float32Array, canvas: HTMLCanvasElement, range = displayRange(scores)) {
+  const { rows, cols } = g.meta;
+  canvas.width = cols;
+  canvas.height = rows;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })!; // CPU canvas: no slow GPU read-back when WebGL or toDataURL reads it
+  const img = ctx.createImageData(cols, rows);
+  const span = Math.max(1e-6, range.hi - range.lo);
+  for (let k = 0; k < g.n; k++) {
+    const t = (scores[k] - range.lo) / span;
+    if (t <= 0) continue;
+    const [r, gg, b] = ramp(t);
+    const p = (g.row[k] * cols + g.col[k]) * 4;
+    img.data[p] = r;
+    img.data[p + 1] = gg;
+    img.data[p + 2] = b;
+    img.data[p + 3] = Math.round(255 * Math.min(1, 0.25 + 0.75 * t));
+  }
+  ctx.putImageData(img, 0, 0);
+  return range;
+}
+
+export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/* ------------------------------------------------------------------ neural ground shape */
+
+export interface ShapeEval {
+  pairs: number;
+  learned_median_top_pct: number;
+  formula_median_top_pct: number;
+  both_median_top_pct: number;
+  learned_top20_pct: number;
+  formula_top20_pct: number;
+  epochs: number;
+}
+
+export interface ShapeData {
+  ids: string[];
+  n: number;
+  data: Uint8Array;
+  eval: ShapeEval;
+  /** The similarity row for one target, or null if that target has none. */
+  row: (targetId: string) => Uint8Array | null;
+}
+
+let shapeCache: Promise<ShapeData> | null = null;
+let shapeReady: ShapeData | null = null;
+
+export type ShapeSource = "formula" | "ai" | "both";
+
+/** Score options for a ground-shape choice, if the terrain AI maps are loaded (otherwise the formula). */
+export function shapeOptions(src: ShapeSource, targetId: string): Pick<ScoreOptions, "shape" | "shapeMix"> {
+  if (src === "formula" || !shapeReady) return {};
+  const row = shapeReady.row(targetId);
+  return row ? { shape: row, shapeMix: src === "ai" ? 1 : 0.5 } : {};
+}
+
+/** Similarity of every land cell to every target, from the K3 terrain AI (loaded on demand). */
+export function loadShape(): Promise<ShapeData> {
+  if (!shapeCache) {
+    shapeCache = (async () => {
+      const meta = await (await fetch("/shadowastra/data/shape.json")).json();
+      const data = new Uint8Array(await (await fetch("/shadowastra/data/shape.bin")).arrayBuffer());
+      const ids: string[] = meta.targets;
+      const n: number = meta.count;
+      shapeReady = { ids, n, data, eval: meta.eval, row: (id: string) => (ids.includes(id) ? data.subarray(ids.indexOf(id) * n, (ids.indexOf(id) + 1) * n) : null) };
+      return shapeReady;
+    })();
+    shapeCache.catch(() => {
+      shapeCache = null;
+    });
+  }
+  return shapeCache;
+}
+
+export function useShape(enabled: boolean) {
+  const [shape, setShape] = useState<ShapeData | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let alive = true;
+    loadShape()
+      .then((s) => alive && setShape(s))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [enabled]);
+  return enabled ? shape : null;
+}
