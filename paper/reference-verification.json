@@ -1,4 +1,2256 @@
 {
-  "method": "Each reference is read at a primary source: the publisher landing page through https://doi.org/<doi> or the publisher-deposited Crossref record, the arXiv abstract page, NASA ADS, or the data provider's own page. Author, title, venue, year, volume, pages and the identifier are compared with that page and listed in verifiedFields. The abstract is copied verbatim from the page named in abstractSource. Each supports entry states, in the checker's own words with a location, a claim that the source itself makes. Records that could not be read at an allowed source are unresolved with the reason and are never cited.",
-  "references": {}
+  "method": "Each reference is read at a primary source: the publisher-deposited Crossref record (https://api.crossref.org/works/<doi>) with the DOI confirmed at doi.org, the arXiv abstract page, the DataCite record for data DOIs, or the data provider's own page for data products and documentation. Author, title, venue, year, volume, issue, pages and identifier are compared with that source and listed in verifiedFields. The abstract is copied verbatim from the page named in abstractSource: the Crossref record or arXiv page where they carry it, and otherwise a copy of the published abstract on a repository run by the authors' institution or agency (NASA NTRS, CaltechAUTHORS, university research portals, the publisher's article page), because the Wiley, Elsevier, IEEE and NASA ADS pages refuse automated reads. Each supports entry states, in the checker's own words with a location, a claim that the source itself makes; numbers are copied exactly. Records that no allowed source could confirm are unresolved with the reason and are never cited. Checked on 2026-11-15.",
+  "references": {
+    "airbus2022copernicus": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "techreport",
+      "fields": {
+        "author": "{Airbus Defence and Space}",
+        "title": "{Copernicus DEM} Product Handbook",
+        "year": "2022",
+        "institution": "Airbus Defence and Space GmbH",
+        "number": "Version 5.0, Campaign ID GEO.2018-1988-2",
+        "url": "https://dataspace.copernicus.eu/sites/default/files/media/files/2024-06/geo1988-copernicusdem-spe-002_producthandbook_i5.0.pdf",
+        "note": "29 November 2022. The Copernicus DEM data DOI requested by ESA is 10.5270/ESA-c5d3d65, which resolves to the Copernicus Data Space COP-DEM collection page."
+      },
+      "primaryUrl": "https://dataspace.copernicus.eu/sites/default/files/media/files/2024-06/geo1988-copernicusdem-spe-002_producthandbook_i5.0.pdf",
+      "sourceKind": "provider",
+      "metadataUrl": null,
+      "searchQuery": "Copernicus DEM GLO-30 DOI 10.5270/ESA-c5d3d65 product handbook",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "institution",
+        "number",
+        "url",
+        "note"
+      ],
+      "evidence": "Read pages 1, 2, 5-8 of the handbook PDF (cover: Copernicus DEM Product Handbook, Airbus Defence and Space, Version 5.0, 29 November 2022, Campaign ID GEO.2018-1988-2; change-control table; 'Copernicus DEM: Product Specification' on PDF page 8, including Figure 1). Also confirmed that doi.org/10.5270/ESA-c5d3d65 redirects to https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM, and that this page asks ESA-EU users to cite that DOI and states the attribution notice for GLO-30 (credit to DLR e.V. and Airbus Defence and Space GmbH, 'provided under COPERNICUS by the European Union and ESA'; modified data must say 'produced using Copernicus WorldDEM-30'). Licensing: page says GLO-30 and GLO-90 are freely licensed worldwide; orchestrator should confirm attribution wording for the paper and app credits. The page also gives the accuracy figures (absolute vertical < 4 m LE90, relative vertical < 2 m on slopes up to 20 percent, absolute horizontal < 6 m CE90), but these were read only from the web page via a summarising fetch tool, not from the handbook sections, so they are not recorded as supports.",
+      "abstract": null,
+      "abstractSource": null,
+      "abstractUnavailableReason": "Product handbook (official documentation) has no abstract.",
+      "supports": [
+        {
+          "claim": "The Copernicus DEM is a Digital Surface Model that includes buildings, infrastructure and vegetation, derived from an edited WorldDEM product with water bodies flattened and shores, coastlines and implausible terrain structures edited.",
+          "location": "page 8"
+        },
+        {
+          "claim": "WorldDEM is based on radar data from the TanDEM-X mission, and the Copernicus DEM is offered as EEA-10, GLO-30 and GLO-90 instances; GLO-30 is global with 1.0 arc-second spacing in DGED and DTED formats.",
+          "location": "page 8 (Figure 1)"
+        }
+      ]
+    },
+    "aussel2025": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Aussel, B. and R{\\\"u}sch, O. and Gundlach, B. and Bickel, V. T. and Kruk, S. and Sefton-Nash, E.",
+        "title": "{Global Lunar Boulder Map From LRO NAC Optical Images Using Deep Learning: Implications for Regolith and Protolith}",
+        "year": "2025",
+        "journal": "Journal of Geophysical Research: Planets",
+        "volume": "130",
+        "number": "7",
+        "pages": "e2025JE008981",
+        "doi": "10.1029/2025je008981"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2025je008981",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2025je008981",
+      "searchQuery": "Aussel global lunar boulder map 2025",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.1029/2025je008981 and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.1029/2025je008981.",
+      "abstract": "Boulders on the lunar surface indicate relatively recent surface activity, related to mass wasting or bedrock excavation by impact cratering, and degrade over time, producing regolith. Previously, the distribution of boulders was indirectly assessed using the anisothermality effects observed by the Lunar Reconnaissance Orbiter (LRO) Diviner instrument. Here, we develop a pipeline based on a convolutional neural network to automatically identify and map individual boulders in LRO Narrow Angle Camera (NAC) images between 60°S and 60°N. Using 635,000 NAC images, we derive the first quasi‐global inventory of lunar boulders consisting of about 94 million features with diameters larger than m. We determine relationships between crater diameter and sizes of ejecta boulders and find that the previously known higher boulder density in the mare regions relative to the highlands is due to a preferential location of boulders smaller than 10 m in the maria. The cumulative boulder size‐frequency distributions (CSFDs) of simple crater ejecta are distinct between maria and highlands up to 130 m crater depth. This difference can likely be attributed to distinct subsurface rock contents, with a higher average mature regolith thickness in the highlands compared to the maria. Comparison of the derived boulder data set with the Diviner rock abundance map reveals broad, global agreement yet localized differences, attributable to different sensitivities of the two methods (optical images vs. thermal radiation) and variable geologic context. Diviner‐NAC differences pinpoint to distinct lithologies, such as clast‐rich zones and zones of fractured impact melt, typically extending for a few hundreds of meters laterally.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2025je008981",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "A convolutional neural network maps individual boulders in about 635,000 LRO NAC images between 60°S and 60°N, giving a quasi-global inventory of about 94 million boulders.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Boulder maps from optical images agree broadly with the Diviner rock abundance map but differ locally, because the two methods have different sensitivities.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "bardes2021": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Bardes, Adrien and Ponce, Jean and LeCun, Yann",
+        "title": "{VICReg: Variance-Invariance-Covariance Regularization for Self-Supervised Learning}",
+        "year": "2021",
+        "eprint": "2105.04906",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2105.04906",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2105.04906",
+      "searchQuery": "arXiv 2105.04906",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2105.04906 and compared authors, title, first submission date and identifier.",
+      "abstract": "Recent self-supervised methods for image representation learning are based on maximizing the agreement between embedding vectors from different views of the same image. A trivial solution is obtained when the encoder outputs constant vectors. This collapse problem is often avoided through implicit biases in the learning architecture, that often lack a clear justification or interpretation. In this paper, we introduce VICReg (Variance-Invariance-Covariance Regularization), a method that explicitly avoids the collapse problem with a simple regularization term on the variance of the embeddings along each dimension individually. VICReg combines the variance term with a decorrelation mechanism based on redundancy reduction and covariance regularization, and achieves results on par with the state of the art on several downstream tasks. In addition, we show that incorporating our new variance term into other methods helps stabilize the training and leads to performance improvements.",
+      "abstractSource": "https://arxiv.org/abs/2105.04906",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "VICReg avoids the collapse of joint-embedding self-supervised learning with an explicit variance term on each embedding dimension, combined with an invariance term and a covariance decorrelation term.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "barker2021": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Barker, Michael K. and Mazarico, Erwan and Neumann, Gregory A. and Smith, David E. and Zuber, Maria T. and Head, James W.",
+        "title": "Improved {LOLA} elevation maps for south pole landing sites: Error estimates and their impact on illumination conditions",
+        "journal": "Planetary and Space Science",
+        "year": "2021",
+        "volume": "203",
+        "pages": "105119",
+        "doi": "10.1016/j.pss.2020.105119"
+      },
+      "primaryUrl": "https://doi.org/10.1016/j.pss.2020.105119",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1016/j.pss.2020.105119",
+      "searchQuery": "Improved LOLA elevation maps for south pole landing sites: Error estimates and their impact on illumination conditions",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref record for the DOI (read 2026-11-15) compared for authors (6), title, journal, volume 203, article number 105119, issued 2021. The Elsevier landing page was not readable (redirect, 403), so the abstract was read from the NASA NTRS record 20205009660, which holds the NASA-authored (accepted-manuscript) version; its abstract should be compared against the Elsevier abstract at final check. The PGDA product 78 page independently asks users to cite this paper with this DOI.",
+      "abstract": "We present new high-resolution topographic models of 4 high-priority lunar south pole landing sites based exclusively on the laser altimetry data acquired by the Lunar Orbiter Laser Altimeter (LOLA) onboard the Lunar Reconnaissance Orbiter. By iteratively adjusting the LOLA tracks to the LOLA-based digital elevation model (LDEM) in a self-consistent fashion, we reduce the orbital geolocation errors by over a factor of 10 such that the new ground track geolocation uncertainty is ~10–20 ​cm horizontally and ~2–4 ​cm vertically over each 16 ​× ​km region. These new and improved 5 ​m/pix LDEMs will be useful to constrain higher-resolution topographic models derived from imagery, which are not as well controlled geodetically and which can be hindered by shadows. We developed a method to estimate surface height uncertainty in the new LDEMs, which accounts for the reduced orbital errors and interpolation errors by assuming a fractal behavior for the short-scale topography. The LDEM surface height and slope uncertainties have typical RMS values of ~0.30–0.50 ​m and ~1.5–2.5°, respectively. Finally, we examine how height uncertainties propagate to variations in horizon elevation and thus the predicted illumination conditions at these polar latitudes, and we show how this error characterization can inform landing site studies.",
+      "abstractSource": "https://ntrs.nasa.gov/api/citations/20205009660",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "The authors built 5 m/pix LOLA-only digital elevation models (LDEMs) of 4 lunar south pole landing sites, each covering a 16 × 16 km region.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Iterative adjustment of the laser tracks to the LDEM reduces orbital geolocation errors by over a factor of 10, to ~10–20 cm horizontally and ~2–4 cm vertically.",
+          "location": "abstract"
+        },
+        {
+          "claim": "They give a height-uncertainty estimation method for the LDEMs, and report typical RMS surface height and slope uncertainties of ~0.30–0.50 m and ~1.5–2.5° respectively.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Height uncertainties are propagated to horizon elevation and predicted illumination conditions at polar latitudes.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The surface height uncertainty method accounts for orbital and interpolation errors by assuming fractal behaviour of the short-scale topography.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "beyer2018": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Beyer, Ross A. and Alexandrov, Oleg and McMichael, Scott",
+        "title": "{The Ames Stereo Pipeline: NASA's Open Source Software for Deriving and Processing Terrain Data}",
+        "year": "2018",
+        "journal": "Earth and Space Science",
+        "volume": "5",
+        "number": "9",
+        "pages": "537--548",
+        "doi": "10.1029/2018ea000409"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2018ea000409",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2018ea000409",
+      "searchQuery": "Beyer Alexandrov McMichael Ames Stereo Pipeline 2018",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.1029/2018ea000409 and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.1029/2018ea000409.",
+      "abstract": "The NASA Ames Stereo Pipeline is a suite of free and open source automated geodesy and stereogrammetry tools designed for processing stereo images captured from satellites (around Earth and other planets), robotic rovers, aerial cameras, and historical images, with and without accurate camera pose information. It produces cartographic products, including digital terrain models, ortho‐projected images, 3‐D models, and bundle‐adjusted networks of cameras. Ames Stereo Pipeline's data products are suitable for science analysis, mission planning, and public outreach.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2018ea000409",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "The Ames Stereo Pipeline is a free and open source suite of geodesy and stereogrammetry tools that produces digital terrain models and orthoimages from satellite, rover, aerial and historical stereo images.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "campbell1996": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Campbell, Bruce A. and Shepard, Michael K.",
+        "title": "Lava flow surface roughness and depolarized radar scattering",
+        "journal": "Journal of Geophysical Research: Planets",
+        "year": "1996",
+        "volume": "101",
+        "number": "E8",
+        "pages": "18941--18951",
+        "doi": "10.1029/95JE01804"
+      },
+      "primaryUrl": "https://doi.org/10.1029/95JE01804",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/95je01804",
+      "searchQuery": "Crossref bibliographic query: Campbell Shepard 1996 Lava flow surface roughness and depolarized radar scattering",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref record for 10.1029/95je01804 (two authors, JGR Planets 101 E8, 18941-18951, Aug 1996) and its abstract field. The 'Campbell and Shepard 1996' cited in the PRD is taken to be this paper (best match for a Campbell/Shepard 1996 roughness-and-radar paper); the orchestrator should confirm. The abstract read in pieces; the phrase 'scale of measurement' appeared with a duplicated 'of' in one retrieved piece, treated as a line-break artifact. Body not read.",
+      "abstract": "Surface roughness has a strong controlling influence on radar scattering and other types of remote sensing observations. We compare field measurements of surface topography and dielectric constant for a range of lava flow textures to aircraft multipolarization radar observations at 5.7, 24, and 68 cm (C, L, and P band) wavelengths. The roughness is found to vary with scale in a self‐affine (fractal) manner for scale lengths between 25 cm (the smallest horizontal step size) and 3–5 m. This result is used to demonstrate that a two‐component surface description, consisting of the fractal dimension and rms height or slope at some reference scale, can resolve some of the ambiguities in previous efforts to quantify roughness. At all three radar wavelengths, the HV backscatter cross section is found to vary in an approximately exponential fashion with the rms height or Allan deviation at some reference scale, up to a saturation point, where the surface appears entirely diffusely scattering to the radar. Based on these observations, we use a parameter, γ, defined as the ratio of rms height to the particular scale of measurement. Backscatter values at 24‐cm wavelength and the topographic profile data were used to derive expressions which link the HV radar cross section to γ or to the analogous wavelength‐scale rms slope. These equations provide a reasonable fit to 24‐ and 68‐cm echoes and for rough surfaces at 5.7 cm, but yield poor results for 5.7‐cm echoes on smooth terrain. We conclude that the roughness at the two larger scales is well described by a single fractal dimension and rms height, but that texture at very small scales is characterized by different statistics. This inference is supported by analysis of 5‐cm horizontal spacing topographic profiles. The relationships defined here allow determination of the surface rms height or slope at the scale of the radar wavelength. Given radar data at additional wavelengths, a more complete view of the statistical properties of the surface can be developed. Such techniques may be useful in analyses of synthetic aperture radar images for terrestrial volcanic areas, Magellan data for Venus, and other planetary radar observations.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/95je01804",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Lava-flow roughness behaves in a self-affine (fractal) manner only over a limited range of scale lengths, from 25 cm to 3-5 m in this dataset.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Texture at very small scales is characterized by different statistics than the larger scales, so a single fractal dimension and rms height do not describe all scales.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Roughness can be described by a fractal dimension plus an rms height or slope at a reference scale, which helps resolve ambiguities in earlier roughness quantification.",
+          "location": "abstract"
+        },
+        {
+          "claim": "HV radar backscatter at C, L and P band varies roughly exponentially with rms height or Allan deviation at a reference scale up to a saturation point, where the surface appears fully diffuse.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "campbell2012": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Campbell, Bruce A.",
+        "title": "High circular polarization ratios in radar scattering from geologic targets",
+        "journal": "Journal of Geophysical Research: Planets",
+        "year": "2012",
+        "volume": "117",
+        "number": "E6",
+        "doi": "10.1029/2012JE004061"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2012JE004061",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2012JE004061",
+      "searchQuery": "Campbell 2012 High circular polarization ratios in radar scattering from geologic targets Journal of Geophysical Research Planets doi",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "doi"
+      ],
+      "evidence": "DOI found by web search, then confirmed at the Crossref record (sole author, JGR Planets 117 E6, 2012; no page range, article number 2012JE004061 deposited) and the Crossref abstract field. Body not read.",
+      "abstract": "We examine and model the occurrence of circular polarization ratio (CPR or μ c ) values greater than unity in terrestrial and planetary radar observations as a guide to the range of associated surface morphology. Lunar crater deposits exhibit maximum μ c values at 12.6 and 70‐cm wavelength of 2 to 3. CPR values for Maxwell Montes on Venus range up to about 1.5 at 12.6‐cm wavelength. Echoes from SP Flow in Arizona exhibit μ c up to 2 at 24‐cm wavelength. Scattering from rock edges and cracks (dipole‐like) produces μ c of unity for single scattering and up to about 2 for multiple reflections. Scattering from natural corner reflectors (dihedrals) formed by pairs of rock facets can yield an average μ c of 3–4, but likely requires non‐random or scale‐limited surface roughness properties in order to dominate the observed echo. The dihedral mechanism is required to satisfy the highest lunar μ c observations, while echoes from SP Flow and Maxwell Montes could be explained by just the dipole mechanism. The dihedral scenario requires rocky facets on scales many times the radar wavelength, which the blocks at SP Flow (and the unknown surface texture of Maxwell) may not provide. The random dipole model is less demanding in terms of structures and scales, and likely increases the CPR of lunar or asteroid regoliths through scattering from and between rocks.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2012je004061",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Genuine circular polarization ratio values above unity occur in terrestrial and planetary radar data: lunar crater deposits reach 2 to 3 at 12.6 and 70 cm, Maxwell Montes on Venus up to about 1.5 at 12.6 cm, and SP Flow (Arizona) up to 2 at 24 cm.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Dipole-like scattering from rock edges and cracks gives CPR of unity for single scattering and up to about 2 for multiple reflections.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Dihedral scattering from pairs of rock facets can give an average CPR of 3-4 but likely needs non-random or scale-limited roughness; the highest lunar CPR values require this mechanism.",
+          "location": "abstract"
+        },
+        {
+          "claim": "A random-dipole model, scattering from and between rocks, likely raises the CPR of lunar or asteroid regoliths and is less demanding in structure and scale than the dihedral model.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "caron2021": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Caron, Mathilde and Touvron, Hugo and Misra, Ishan and J{\\'e}gou, Herv{\\'e} and Mairal, Julien and Bojanowski, Piotr and Joulin, Armand",
+        "title": "{Emerging Properties in Self-Supervised Vision Transformers}",
+        "year": "2021",
+        "eprint": "2104.14294",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2104.14294",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2104.14294",
+      "searchQuery": "arXiv 2104.14294",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2104.14294 and compared authors, title, first submission date and identifier.",
+      "abstract": "In this paper, we question if self-supervised learning provides new properties to Vision Transformer (ViT) that stand out compared to convolutional networks (convnets). Beyond the fact that adapting self-supervised methods to this architecture works particularly well, we make the following observations: first, self-supervised ViT features contain explicit information about the semantic segmentation of an image, which does not emerge as clearly with supervised ViTs, nor with convnets. Second, these features are also excellent k-NN classifiers, reaching 78.3% top-1 on ImageNet with a small ViT. Our study also underlines the importance of momentum encoder, multi-crop training, and the use of small patches with ViTs. We implement our findings into a simple self-supervised method, called DINO, which we interpret as a form of self-distillation with no labels. We show the synergy between DINO and ViTs by achieving 80.1% top-1 on ImageNet in linear evaluation with ViT-Base.",
+      "abstractSource": "https://arxiv.org/abs/2104.14294",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "DINO is a self-distillation method without labels; self-supervised ViT features obtained with it contain explicit information about image segmentation and work well as k-NN classifiers.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "carter2012": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Carter, Lynn M. and Neish, Catherine D. and Bussey, D. B. J. and Spudis, Paul D. and Patterson, G. Wesley and Cahill, Joshua T. and Raney, R. Keith",
+        "title": "Initial observations of lunar impact melts and ejecta flows with the {Mini-RF} radar",
+        "journal": "Journal of Geophysical Research: Planets",
+        "year": "2012",
+        "volume": "117",
+        "number": "E12",
+        "doi": "10.1029/2011JE003911"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2011JE003911",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2011JE003911",
+      "searchQuery": "Crossref bibliographic query: Carter Initial observations of lunar impact melts and ejecta flows with the Mini-RF radar",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "doi"
+      ],
+      "evidence": "Crossref record and abstract field for 10.1029/2011JE003911 (seven authors, JGR Planets 117 E12, Dec 2012, article number 2011JE003911, no page range). Page/article number not included in fields because only the DOI-style article number was deposited. Body not read.",
+      "abstract": "The Mini‐RF radar on the Lunar Reconnaissance Orbiter spacecraft has revealed a great variety of crater ejecta flow and impact melt deposits, some of which were not observed in prior radar imaging. The craters Tycho and Glushko have long melt flows that exhibit variations in radar backscatter and circular polarization ratio along the flow. Comparison with optical imaging reveals that these changes are caused by features commonly seen in terrestrial lava flows, such as rafted plates, pressure ridges, and ponding. Small (<20 km) sized craters also show a large variety of deposits, including melt flows and ponds. Two craters have flow features that may be ejecta flows caused by entrained debris flowing across the surface rather than by melted rock. The circular polarization ratios (CPRs) of the impact melt flows are typically very high; even ponded areas have CPR values between 0.7 and 1.0. This high CPR suggests that deposits that appear smooth in optical imagery may be rough at centimeter‐ and decimeter‐ scales. In some places, ponds and flows are visible with no easily discernable source crater. These melt deposits may have come from oblique impacts that are capable of ejecting melted material farther downrange. They may also be associated with older, nearby craters that no longer have a radar‐bright proximal ejecta blanket. The observed morphology of the lunar crater flows has implications for similar features observed on Venus. In particular, changes in backscatter along many of the ejecta flows are probably caused by features typical of lava flows.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2011je003911",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Mini-RF reveals many crater ejecta-flow and impact-melt deposits on the Moon, some not seen in earlier radar imaging; Tycho and Glushko have long melt flows with backscatter and CPR varying along the flow.",
+          "location": "abstract"
+        },
+        {
+          "claim": "CPR of impact melt flows is typically very high; even ponded areas have CPR between 0.7 and 1.0.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The high CPR suggests deposits that look smooth in optical imagery may be rough at centimeter to decimeter scales.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "chen2020": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Chen, Ting and Kornblith, Simon and Norouzi, Mohammad and Hinton, Geoffrey",
+        "title": "{A Simple Framework for Contrastive Learning of Visual Representations}",
+        "year": "2020",
+        "eprint": "2002.05709",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2002.05709",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2002.05709",
+      "searchQuery": "arXiv 2002.05709",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2002.05709 and compared authors, title, first submission date and identifier.",
+      "abstract": "This paper presents SimCLR: a simple framework for contrastive learning of visual representations. We simplify recently proposed contrastive self-supervised learning algorithms without requiring specialized architectures or a memory bank. In order to understand what enables the contrastive prediction tasks to learn useful representations, we systematically study the major components of our framework. We show that (1) composition of data augmentations plays a critical role in defining effective predictive tasks, (2) introducing a learnable nonlinear transformation between the representation and the contrastive loss substantially improves the quality of the learned representations, and (3) contrastive learning benefits from larger batch sizes and more training steps compared to supervised learning. By combining these findings, we are able to considerably outperform previous methods for self-supervised and semi-supervised learning on ImageNet. A linear classifier trained on self-supervised representations learned by SimCLR achieves 76.5% top-1 accuracy, which is a 7% relative improvement over previous state-of-the-art, matching the performance of a supervised ResNet-50. When fine-tuned on only 1% of the labels, we achieve 85.8% top-5 accuracy, outperforming AlexNet with 100X fewer labels.",
+      "abstractSource": "https://arxiv.org/abs/2002.05709",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "SimCLR learns visual representations by contrasting augmented views, and the composition of data augmentations is found important for good representations.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "dosovitskiy2020": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Dosovitskiy, Alexey and Beyer, Lucas and Kolesnikov, Alexander and Weissenborn, Dirk and Zhai, Xiaohua and Unterthiner, Thomas and Dehghani, Mostafa and Minderer, Matthias and Heigold, Georg and Gelly, Sylvain and Uszkoreit, Jakob and Houlsby, Neil",
+        "title": "{An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale}",
+        "year": "2020",
+        "eprint": "2010.11929",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2010.11929",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2010.11929",
+      "searchQuery": "arXiv 2010.11929",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2010.11929 and compared authors, title, first submission date and identifier.",
+      "abstract": "While the Transformer architecture has become the de-facto standard for natural language processing tasks, its applications to computer vision remain limited. In vision, attention is either applied in conjunction with convolutional networks, or used to replace certain components of convolutional networks while keeping their overall structure in place. We show that this reliance on CNNs is not necessary and a pure transformer applied directly to sequences of image patches can perform very well on image classification tasks. When pre-trained on large amounts of data and transferred to multiple mid-sized or small image recognition benchmarks (ImageNet, CIFAR-100, VTAB, etc.), Vision Transformer (ViT) attains excellent results compared to state-of-the-art convolutional networks while requiring substantially fewer computational resources to train.",
+      "abstractSource": "https://arxiv.org/abs/2010.11929",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "A pure Transformer applied to sequences of image patches performs well on image classification, so convolutional networks are not required.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "efron1979": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Efron, B.",
+        "title": "{Bootstrap Methods: Another Look at the Jackknife}",
+        "year": "1979",
+        "journal": "The Annals of Statistics",
+        "volume": "7",
+        "number": "1",
+        "pages": "1--26",
+        "doi": "10.1214/aos/1176344552"
+      },
+      "primaryUrl": "https://doi.org/10.1214/aos/1176344552",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1214/aos/1176344552",
+      "searchQuery": "Efron bootstrap methods another look at the jackknife 1979",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.1214/aos/1176344552 and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.1214/aos/1176344552.",
+      "abstract": "We discuss the following problem: given a random sample $\\mathbf{X} = (X_1, X_2, \\cdots, X_n)$ from an unknown probability distribution $F$, estimate the sampling distribution of some prespecified random variable $R(\\mathbf{X}, F)$, on the basis of the observed data $\\mathbf{x}$. (Standard jackknife theory gives an approximate mean and variance in the case $R(\\mathbf{X}, F) = \\theta(\\hat{F}) - \\theta(F), \\theta$ some parameter of interest.) A general method, called the \"bootstrap,\" is introduced, and shown to work satisfactorily on a variety of estimation problems. The jackknife is shown to be a linear approximation method for the bootstrap. The exposition proceeds by a series of examples: variance of the sample median, error rates in a linear discriminant analysis, ratio estimation, estimating regression parameters, etc.",
+      "abstractSource": "https://api.crossref.org/works/10.1214/aos/1176344552",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "The bootstrap estimates the sampling distribution of a statistic from a random sample of an unknown distribution by resampling the observed data.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "fa2013": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Fa, Wenzhe and Cai, Yuzhen",
+        "title": "Circular polarization ratio characteristics of impact craters from {Mini-RF} observations and implications for ice detection at the polar regions of the {Moon}",
+        "journal": "Journal of Geophysical Research: Planets",
+        "year": "2013",
+        "volume": "118",
+        "number": "8",
+        "pages": "1582--1608",
+        "doi": "10.1002/jgre.20110"
+      },
+      "primaryUrl": "https://doi.org/10.1002/jgre.20110",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1002/jgre.20110",
+      "searchQuery": "Crossref bibliographic query: Fa Cai Circular polarization ratio characteristics of impact craters from Mini-RF observations",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref search record and abstract field for 10.1002/jgre.20110 (two authors, JGR Planets 118(8), 1582-1608, 2013). Body not read.",
+      "abstract": "In an attempt to reduce the ambiguity on radar detection of water ice at the permanently shadowed regions near the lunar poles, radar echo strength and circular polarization ratio (CPR) of impact craters are analyzed using the Miniature Radio Frequency (Mini‐RF) radar data from the Lunar Reconnaissance Orbiter mission. Eight typical craters, among over 70 craters, are selected and classified into four categories based on their locations and CPR characteristics: polar anomalous, polar fresh, nonpolar anomalous, and nonpolar fresh. The influences on CPR caused by surface slope, rocks, and dielectric constant are analyzed quantitatively using high‐resolution topography data and optical images. A two‐component mixed model for CPR that consists of a normal surface and a rocky surface is developed to study the effect of rocks that are perched on lunar surface and buried in regolith. Our analyses show that inner wall of a typical bowl‐shaped crater can give rise to a change of about 30° in local incidence angle of radar wave, which can further result in a CPR difference of about 0.2. There is a strong correlation between Mini‐RF CPR and rock abundance that is obtained from high‐resolution optical images, and predictions from the two‐component mixed model match well with the observed CPRs and the estimated rock abundances. Statistical results show that there is almost no apparent difference in CPR characteristics between the polar and nonpolar anomalous craters, or between the polar and nonpolar fresh craters. The enhanced CPR in the interior of anomalous craters is most probably caused by rocks that are perched on lunar surface or buried in regolith, instead of ice deposits as suggested in previous studies.",
+      "abstractSource": "https://api.crossref.org/works/10.1002/jgre.20110",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "On the inner wall of a typical bowl-shaped crater, local incidence angle changes by about 30 degrees, which can change CPR by about 0.2.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Mini-RF CPR correlates strongly with rock abundance derived from high-resolution optical images, and a two-component (normal plus rocky surface) mixing model reproduces observed CPRs and estimated rock abundances.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The enhanced CPR inside anomalous craters is most probably caused by rocks perched on or buried in the regolith rather than by ice deposits.",
+          "location": "abstract"
+        },
+        {
+          "claim": "CPR characteristics of polar and nonpolar anomalous craters, and of polar and nonpolar fresh craters, show almost no apparent difference.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "fang2026": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Fang, Jichao and Zhang, Lei and Phillips, Michael and Luo, Wei",
+        "title": "{CraterBench-R: Instance-Level Crater Retrieval for Planetary Scale}",
+        "year": "2026",
+        "eprint": "2604.06245",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2604.06245",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2604.06245",
+      "searchQuery": "arXiv 2604.06245",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2604.06245 and compared authors, title, first submission date and identifier.",
+      "abstract": "Impact craters are a cornerstone of planetary surface analysis. However, while most deep learning pipelines treat craters solely as a detection problem, critical scientific workflows such as catalog deduplication, cross-observation matching, and morphological analog discovery are inherently retrieval tasks. To address this, we formulate crater analysis as an instance-level image retrieval problem and introduce CraterBench-R, a curated benchmark featuring about 25,000 crater identities with multi-scale gallery views and manually verified queries spanning diverse scales and contexts. Our baseline evaluations across various architectures reveal that self-supervised Vision Transformers (ViTs), particularly those with in-domain pretraining, dominate the task, outperforming generic models with significantly more parameters. Furthermore, we demonstrate that retaining multiple ViT patch tokens for late-interaction matching dramatically improves accuracy over standard single-vector pooling. However, storing all tokens per image is operationally inefficient at a planetary scale. To close this efficiency gap, we propose instance-token aggregation, a scalable, training-free method that selects K seed tokens, assigns the remaining tokens to these seeds via cosine similarity, and aggregates each cluster into a single representative token. This approach yields substantial gains: at K=16, aggregation improves mAP by 17.9 points over raw token selection, and at K=64, it matches the accuracy of using all 196 tokens with significantly less storage. Finally, we demonstrate that a practical two-stage pipeline, with single-vector shortlisting followed by instance-token reranking, recovers 89-94% of the full late-interaction accuracy while searching only a small candidate set. The benchmark is publicly available at hf.co/datasets/jfang/CraterBench-R.",
+      "abstractSource": "https://arxiv.org/abs/2604.06245",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "CraterBench-R treats crater analysis as instance-level image retrieval, with about 25,000 crater identities.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Self-supervised Vision Transformers, especially with in-domain pretraining, outperform generic models with many more parameters on this retrieval task.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "fassett2024": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Fassett, Caleb I. and Bramson, Ali M. and Cahill, Joshua T. S. and Harris, Cameron P. and Morgan, Gareth A. and Neish, Catherine D. and Nypaver, Cole A. and Patterson, G. Wesley and Rivera-Valent{\\'\\i}n, Edgard and Taylor, Patrick A. and Thomson, Bradley J. and {the Mini-RF Team}",
+        "title": "Improved Orthorectification and Empirical Reduction of Topographic Effects in Monostatic {Mini-RF} {S}-band Observations of the {Moon}",
+        "journal": "The Planetary Science Journal",
+        "year": "2024",
+        "volume": "5",
+        "number": "1",
+        "pages": "4",
+        "doi": "10.3847/PSJ/ad0a61"
+      },
+      "primaryUrl": "https://doi.org/10.3847/PSJ/ad0a61",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.3847/psj/ad0a61",
+      "searchQuery": "Fassett 2024 Mini-RF orthorectification topographic correction delta-CPR S1 lunar",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "DOI from a search result, confirmed at the Crossref record (authors, PSJ 5(1), article 4, 2024) and its abstract field. The abstract does not name the delta-CPR / delta-S1 layers; the statement that these are empirically normalised quantities (not equivalent to single-collect values) was seen only in a search-result excerpt of a data note and is NOT recorded as supported. Body not read.",
+      "abstract": "The Miniature Radio Frequency instrument (Mini-RF) on the Lunar Reconnaissance Orbiter obtained widespread synthetic aperture radar observations of the Moon in the S band (12.6 cm), including nearly complete coverage at both lunar poles. The currently archived monostatic data have spatial offsets from the lunar reference frame, making them more difficult to compare to other data sets. To address this issue, we have developed a new algorithm for spatially controlling the Mini-RF S-band monostatic data set and orthorectifying these data onto lunar topography. Additionally, as the influence of incidence angle changes on radar observations is well known, we describe an empirical approach to account for variations in observation geometry and surface topography. Individual radar swaths and mosaics produced using this method more clearly show the variability in scattering behavior due to changes in lunar regolith properties and suppress some of the behavior arising from these topographic effects alone. Once these terrain effects are taken into account, we find that areas of permanent shadow at both poles have a higher median radar reflectivity than nonpermanently shadowed regions, but the polarization behavior of shadowed versus unshadowed areas is largely similar. The higher radar reflectivity in permanent shadow is likely the result of physical or compositional differences in these unique environments, though the precise cause remains uncertain. The results here illustrate how reducing the influence of topography and geometry effects in Mini-RF radar data may enable better characterization of lunar geologic units, regolith structure, and potential areas hosting volatile deposits at the lunar poles.",
+      "abstractSource": "https://api.crossref.org/works/10.3847/psj/ad0a61",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Archived monostatic Mini-RF S-band (12.6 cm) data are spatially offset from the lunar reference frame; the authors develop an algorithm to spatially control them and orthorectify them onto lunar topography.",
+          "location": "abstract"
+        },
+        {
+          "claim": "An empirical approach, based on the well-known influence of incidence angle on radar observations, is used to account for variations in observation geometry and surface topography.",
+          "location": "abstract"
+        },
+        {
+          "claim": "After the terrain effects are reduced, permanently shadowed areas at both poles have a higher median radar reflectivity than non-permanently shadowed regions, while polarization behavior of the two is largely similar.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "fraccaro2026": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Fraccaro, Paolo and Nyirjesy, Gabby and Szwarcman, Daniela and Patil, Himanshu and Gaur, Vishal and Lal, Rohit and Slank, Rachel A. and Dawson, Geoffrey and Debary, Hiyam and Barker, Michael K. and Annex, Andrew and Viswanathan, Vishnu and Morse, Zachary and Schaefer, Ethan I. and Dionelis, Nikolaos and Kumar, Ankur and Watson, Campbell D. and Maskey, Manil and Dawson-Rigas, Rebekah I. and Bernab{\\'e}-Moreno, Juan and Ramachandran, Rahul and Roy, Sujit",
+        "title": "{Multimodal-Multiresolution Foundation Model for Lunar Remote Sensing}",
+        "year": "2026",
+        "eprint": "2609.13283",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2609.13283",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2609.13283",
+      "searchQuery": "arXiv 2609.13283",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2609.13283 and compared authors, title, first submission date and identifier.",
+      "abstract": "We present a multimodal foundation model for lunar remote sensing, pretrained from scratch on SomBench, a geographically partitioned corpus of nearly two million co-registered tile bundles spanning 11 modalities at two spatial scales (1 m/pixel and 100 m/pixel). The model adapts the TerraMind masked-token architecture with two lunar-specific extensions: acquisition geometry is provided as explicit context, and meter- and hundred-meter-scale tiles are trained jointly so that a single set of weights covers both resolutions. FlexiViT patch embeddings allow adaptation to different patch sizes without retraining, while modality-wise inputs enable flexible multimodal fine-tuning. Qualitative generation experiments suggest the model learns meaningful cross-modal correspondences, including terrain derivatives from elevation and illumination-consistent reflectance from geometry. We evaluate on four benchmarks: crater detection at WAC and NAC scales, irregular mare patch (IMP) segmentation, and polar ice prospectivity regression. Across tasks, the pretrained model matches or outperforms ImageNet-pretrained baselines and an architecturally identical random-init control. On multimodal ice prospectivity regression, pretrained variants achieve the best results, while the random-init model outperforms most baselines, suggesting gains arise from both the architecture and pretraining. Label efficiency is notable for WAC crater detection, where the pretrained model trained on 50% of the data exceeds the strongest ImageNet baseline trained on the full dataset. Among adaptation strategies, LoRA matches or surpasses full fine-tuning on crater detection and IMP segmentation while using far fewer trainable parameters, whereas full fine-tuning performs best for ice prospectivity regression. We release the pretrained checkpoint, benchmark datasets, and fine-tuning code to support reproducible lunar AI research.",
+      "abstractSource": "https://arxiv.org/abs/2609.13283",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "A multimodal foundation model for lunar remote sensing is pretrained from scratch on SomBench tiles at 1 m and 100 m per pixel, with acquisition geometry given as context.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "ganin2015": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Ganin, Yaroslav and Ustinova, Evgeniya and Ajakan, Hana and Germain, Pascal and Larochelle, Hugo and Laviolette, Fran{\\c c}ois and Marchand, Mario and Lempitsky, Victor",
+        "title": "{Domain-Adversarial Training of Neural Networks}",
+        "year": "2015",
+        "eprint": "1505.07818",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/1505.07818",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/1505.07818",
+      "searchQuery": "arXiv 1505.07818",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/1505.07818 and compared authors, title, first submission date and identifier.",
+      "abstract": "We introduce a new representation learning approach for domain adaptation, in which data at training and test time come from similar but different distributions. Our approach is directly inspired by the theory on domain adaptation suggesting that, for effective domain transfer to be achieved, predictions must be made based on features that cannot discriminate between the training (source) and test (target) domains. The approach implements this idea in the context of neural network architectures that are trained on labeled data from the source domain and unlabeled data from the target domain (no labeled target-domain data is necessary). As the training progresses, the approach promotes the emergence of features that are (i) discriminative for the main learning task on the source domain and (ii) indiscriminate with respect to the shift between the domains. We show that this adaptation behaviour can be achieved in almost any feed-forward model by augmenting it with few standard layers and a new gradient reversal layer. The resulting augmented architecture can be trained using standard backpropagation and stochastic gradient descent, and can thus be implemented with little effort using any of the deep learning packages. We demonstrate the success of our approach for two distinct classification problems (document sentiment analysis and image classification), where state-of-the-art domain adaptation performance on standard benchmarks is achieved. We also validate the approach for descriptor learning task in the context of person re-identification application.",
+      "abstractSource": "https://arxiv.org/abs/1505.07818",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Domain-adversarial training adds a gradient reversal layer so that a network learns features that are discriminative for the main task and indiscriminate with respect to the shift between domains.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The approach trains with standard backpropagation and fits almost any feed-forward model.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "gironamata2026": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Girona-Mata, Marc and Gawlikowski, Jakob and Goski, Sumit and de Fourtou, Gautier Bardi and Bickel, Valentin T. and Moseley, Ben and Calzada-Diaz, Abigail and Kaczmarek, Sylvester and Ramos-Poll{\\'a}n, Raúl",
+        "title": "{LunarFM: A Shared Multimodal Representation of the Moon's Surface}",
+        "year": "2026",
+        "eprint": "2607.22408",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2607.22408",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2607.22408",
+      "searchQuery": "arXiv 2607.22408",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2607.22408 and compared authors, title, first submission date and identifier.",
+      "abstract": "The renewed global focus on lunar exploration, driven by the prospect of in-situ resource utilization and a sustained human presence on the Moon, has created growing demand for accurate, large-scale characterization of the lunar surface. Although vast quantities of orbital remote-sensing data have been collected, scientific analysis and resource mapping remain fragmented by heterogeneous multiinstrument observations, sparse labels, and bespoke task-specific modelling workflows. Here we introduce LunarFM, a multimodal foundation model that learns a general representation of the lunar surface from diverse orbital measurements. LunarFM assimilates observations from six instruments across three lunar missions, mapping 18 input channels to a shared embedding space. We demonstrate that this embedding space supports a diverse range of downstream applications, including similarity search, few-shot resource mapping, mineral abundance regression, and geological unit classification, enabling efficient scientific investigation and resource-oriented analysis. We provide a machine-learning-ready dataset of co-registered multimodal observations spanning latitudes from 70{\\deg}S to 70{\\deg}N, a pretrained multimodal masked autoencoder, and a companion embedding dataset providing a joint 768-dimensional representation of lunar surface properties. All code and data are available at https://lunarfm.trillium.tech/",
+      "abstractSource": "https://arxiv.org/abs/2607.22408",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "LunarFM is a multimodal masked autoencoder that maps 18 input channels from six instruments on three lunar missions into a shared 768-dimensional embedding.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Its machine learning ready dataset spans latitudes from 70 degrees south to 70 degrees north.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The embedding supports similarity search, few-shot resource mapping, mineral abundance regression and geological unit classification.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "goyal2017": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Goyal, Priya and Doll{\\'a}r, Piotr and Girshick, Ross and Noordhuis, Pieter and Wesolowski, Lukasz and Kyrola, Aapo and Tulloch, Andrew and Jia, Yangqing and He, Kaiming",
+        "title": "{Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour}",
+        "year": "2017",
+        "eprint": "1706.02677",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/1706.02677",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/1706.02677",
+      "searchQuery": "arXiv 1706.02677",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/1706.02677 and compared authors, title, first submission date and identifier.",
+      "abstract": "Deep learning thrives with large neural networks and large datasets. However, larger networks and larger datasets result in longer training times that impede research and development progress. Distributed synchronous SGD offers a potential solution to this problem by dividing SGD minibatches over a pool of parallel workers. Yet to make this scheme efficient, the per-worker workload must be large, which implies nontrivial growth in the SGD minibatch size. In this paper, we empirically show that on the ImageNet dataset large minibatches cause optimization difficulties, but when these are addressed the trained networks exhibit good generalization. Specifically, we show no loss of accuracy when training with large minibatch sizes up to 8192 images. To achieve this result, we adopt a hyper-parameter-free linear scaling rule for adjusting learning rates as a function of minibatch size and develop a new warmup scheme that overcomes optimization challenges early in training. With these simple techniques, our Caffe2-based system trains ResNet-50 with a minibatch size of 8192 on 256 GPUs in one hour, while matching small minibatch accuracy. Using commodity hardware, our implementation achieves ~90% scaling efficiency when moving from 8 to 256 GPUs. Our findings enable training visual recognition models on internet-scale data with high efficiency.",
+      "abstractSource": "https://arxiv.org/abs/1706.02677",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Large minibatch SGD training of ImageNet is made accurate with a linear scaling rule for the learning rate as a function of minibatch size and a warm-up scheme.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "he2015": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian",
+        "title": "{Deep Residual Learning for Image Recognition}",
+        "year": "2015",
+        "eprint": "1512.03385",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/1512.03385",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/1512.03385",
+      "searchQuery": "arXiv 1512.03385",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/1512.03385 and compared authors, title, first submission date and identifier.",
+      "abstract": "Deeper neural networks are more difficult to train. We present a residual learning framework to ease the training of networks that are substantially deeper than those used previously. We explicitly reformulate the layers as learning residual functions with reference to the layer inputs, instead of learning unreferenced functions. We provide comprehensive empirical evidence showing that these residual networks are easier to optimize, and can gain accuracy from considerably increased depth. On the ImageNet dataset we evaluate residual nets with a depth of up to 152 layers---8x deeper than VGG nets but still having lower complexity. An ensemble of these residual nets achieves 3.57% error on the ImageNet test set. This result won the 1st place on the ILSVRC 2015 classification task. We also present analysis on CIFAR-10 with 100 and 1000 layers. The depth of representations is of central importance for many visual recognition tasks. Solely due to our extremely deep representations, we obtain a 28% relative improvement on the COCO object detection dataset. Deep residual nets are foundations of our submissions to ILSVRC & COCO 2015 competitions, where we also won the 1st places on the tasks of ImageNet detection, ImageNet localization, COCO detection, and COCO segmentation.",
+      "abstractSource": "https://arxiv.org/abs/1512.03385",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Residual networks learn residual functions with reference to layer inputs, which makes much deeper networks easier to optimise; they were evaluated on ImageNet.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "ioffe2015": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Ioffe, Sergey and Szegedy, Christian",
+        "title": "{Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift}",
+        "year": "2015",
+        "eprint": "1502.03167",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/1502.03167",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/1502.03167",
+      "searchQuery": "arXiv 1502.03167",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/1502.03167 and compared authors, title, first submission date and identifier.",
+      "abstract": "Training Deep Neural Networks is complicated by the fact that the distribution of each layer's inputs changes during training, as the parameters of the previous layers change. This slows down the training by requiring lower learning rates and careful parameter initialization, and makes it notoriously hard to train models with saturating nonlinearities. We refer to this phenomenon as internal covariate shift, and address the problem by normalizing layer inputs. Our method draws its strength from making normalization a part of the model architecture and performing the normalization for each training mini-batch. Batch Normalization allows us to use much higher learning rates and be less careful about initialization. It also acts as a regularizer, in some cases eliminating the need for Dropout. Applied to a state-of-the-art image classification model, Batch Normalization achieves the same accuracy with 14 times fewer training steps, and beats the original model by a significant margin. Using an ensemble of batch-normalized networks, we improve upon the best published result on ImageNet classification: reaching 4.9% top-5 validation error (and 4.8% test error), exceeding the accuracy of human raters.",
+      "abstractSource": "https://arxiv.org/abs/1502.03167",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Batch normalization normalises layer inputs over each mini-batch, allowing higher learning rates and less careful initialisation.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "kavitzky2021": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Kavitzky, Jonathan and Zarecki, Jonathan and Brusilovsky, Idan and Singer, Uriel",
+        "title": "{Topo2vec: Topography Embedding Using the Fractal Effect}",
+        "year": "2021",
+        "eprint": "2108.08870",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2108.08870",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2108.08870",
+      "searchQuery": "arXiv 2108.08870",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2108.08870 and compared authors, title, first submission date and identifier.",
+      "abstract": "Recent advances in deep learning have transformed many fields by introducing generic embedding spaces, capable of achieving great predictive performance with minimal labeling effort. The geology field has not yet met such success. In this work, we introduce an extension for self-supervised learning techniques tailored for exploiting the fractal-effect in remote-sensing images. The fractal-effect assumes that the same structures (for example rivers, peaks and saddles) will appear in all scales. We demonstrate our method's effectiveness on elevation data, we also use the effect in inference. We perform an extensive analysis on several classification tasks and emphasize its effectiveness in detecting the same class on different scales. To the best of our knowledge, it is the first attempt to build a generic representation for topographic images.",
+      "abstractSource": "https://arxiv.org/abs/2108.08870",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "topo2vec extends self-supervised learning with the fractal effect, the assumption that the same structures appear at all scales, and applies it to elevation data.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "kreslavsky2000": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Kreslavsky, Mikhail A. and Head, III, James W.",
+        "title": "Kilometer-scale roughness of {Mars}: Results from {MOLA} data analysis",
+        "journal": "Journal of Geophysical Research: Planets",
+        "year": "2000",
+        "volume": "105",
+        "number": "E11",
+        "pages": "26695--26711",
+        "doi": "10.1029/2000JE001259"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2000JE001259",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2000je001259",
+      "searchQuery": "Crossref bibliographic query: Kreslavsky Head 2000 Kilometer-scale roughness of Mars MOLA",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref search record (title, authors, JGR Planets 105 E11, 26695-26711, 2000, DOI) and the Crossref abstract field of 10.1029/2000je001259. Abstract was read in sentence-length pieces; non-breaking hyphens normalised to ordinary hyphens. Body not read.",
+      "abstract": "The Mars Orbiter Laser Altimeter (MOLA) data are used to characterize the kilometer‐scale surface roughness of Mars. The median absolute value of the differential slope at a given baseline is proposed as a data‐derived measure of the surface roughness at this scale. Study of the scale dependence of roughness for the smoothest terrains gives an independent estimate of 20 cm for MOLA ranging accuracy. The baseline lengths from 0.6 to ∼20 km are used, and kilometer‐scale roughness is mapped for the entire surface. The maps show that different geological units have distinctive roughness characteristics. Scale dependence of roughness for a number of geological units is presented and discussed. The southern polar cap is rougher than the northern at kilometer and subkilometer scale, which suggests differences in the sublimation/condensation balance. The Vastitas Borealis Formation has a distinctive 3‐km‐scale background surface topography, which suggests a nonvolcanic origin for its upper layer. Young volcanic plains in Amazonis Planitia and the eastern part of Elysium Planitia are very similar to each other in their roughness characteristics and differ from other volcanic plains on Mars, which suggests a distinctive eruption style. There are systematic latitudinal variations of roughness in both the southern highlands and the northern lowlands: terrains at high latitude are smoother at short baselines; the characteristic vertical scale related to this difference is several meters. Processes that could be responsible for formation of this trend include creep of ice‐rich near‐surface material at high latitudes, treatment of the surface with repetitive deposition and sublimation of seasonal frost, climate‐controlled deposition and/or cementation of dust at high latitudes, and repetitive sublimation and accumulation of subsurface ice at low latitudes with climate variations. All mechanisms of origin could operate more effectively under different climate conditions. Relevant morphological observations favor mechanisms involving deposition of smooth blankets at high latitudes.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2000je001259",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Kilometer-scale roughness of Mars is measured from MOLA as the median absolute differential slope at a given baseline, using baselines from 0.6 to about 20 km, and mapped globally.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Different geological units on Mars have distinctive roughness characteristics, and roughness depends on baseline (scale dependence is presented for several units).",
+          "location": "abstract"
+        },
+        {
+          "claim": "The scale dependence of roughness on the smoothest terrains yields an independent estimate of 20 cm for MOLA ranging accuracy.",
+          "location": "abstract"
+        },
+        {
+          "claim": "High-latitude terrains on Mars are smoother at short baselines than lower-latitude terrains, with a characteristic vertical scale of several meters.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "kreslavsky2013": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Kreslavsky, Mikhail A. and Head, James W. and Neumann, Gregory A. and Rosenburg, Margaret A. and Aharonson, Oded and Smith, David E. and Zuber, Maria T.",
+        "title": "Lunar topographic roughness maps from {Lunar Orbiter Laser Altimeter} ({LOLA}) data: Scale dependence and correlation with geologic features and units",
+        "journal": "Icarus",
+        "year": "2013",
+        "volume": "226",
+        "number": "1",
+        "pages": "52--66",
+        "doi": "10.1016/j.icarus.2013.04.027"
+      },
+      "primaryUrl": "https://doi.org/10.1016/j.icarus.2013.04.027",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1016/j.icarus.2013.04.027",
+      "searchQuery": "Crossref bibliographic query: Kreslavsky 2013 Lunar topographic roughness maps from Lunar Orbiter Laser Altimeter LOLA data",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref record (authors, Icarus 226(1), 52-66, Sept 2013, DOI) compared with the Tel Aviv/IUCC research portal record for the same paper, which carries the abstract and the full subtitle. Elsevier/ScienceDirect pages were not accessible (403), so the abstract is from the portal copy, not the publisher; the portal text showed spacing artifacts around units (for example '115. m'), which were normalised. Body not read.",
+      "abstract": "We present maps of the topographic roughness of the Moon at hectometer and kilometer scales. The maps are derived from range profiles obtained by the Lunar Orbiter Laser Altimeter (LOLA) instrument onboard the Lunar Reconnaissance Orbiter (LRO) spacecraft. As roughness measures, we used the interquartile range of profile curvature at several baselines, from 115 m to 1.8 km, and plotted these in a global map format. The maps provide a synoptic overview of variations of typical topographic textures and utilize the exceptional ranging precision of the LOLA instrument. We found that hectometer-scale roughness poorly correlates with kilometer-scale roughness, because they reflect different sets of processes and time scales. Hectometer-scale roughness is controlled by regolith accumulation and modification processes and affected by the most recent events, primarily, geologically recent (1-2 Ga) meteoritic impacts. Kilometer-scale roughness reflects major geological (impact, volcanic and tectonic) events in earlier geological history. Young large impact craters are rough, and their roughness decreases with age. The global roughness maps revealed a few unusually dense clusters of hectometer- and decameter-size impact craters that differ in their morphology and settings from typical secondary crater clusters and chains; the origin of these features is enigmatic. The maps can assist in the geological mapping of the lunar maria by revealing contacts between volcanic plain units. The global roughness maps also clearly reveal cryptomaria, old volcanic plains superposed by younger materials, primarily crater and basin ejecta.",
+      "abstractSource": "https://cris.iucc.ac.il/en/publications/lunar-topographic-roughness-maps-from-lunar-orbiter-laser-altimet/",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Lunar roughness maps at hectometer and kilometer scales are derived from LOLA range profiles, using the interquartile range of profile curvature at several baselines from 115 m to 1.8 km.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Hectometer-scale and kilometer-scale roughness correlate poorly, because they reflect different processes and time scales; roughness is therefore scale dependent.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Hectometer-scale roughness is attributed to regolith accumulation and modification and recent impacts, whereas kilometer-scale roughness reflects older impact, volcanic and tectonic events.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Young large impact craters are rough and their roughness decreases with age.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "kunsch1989": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Kunsch, Hans R.",
+        "title": "{The Jackknife and the Bootstrap for General Stationary Observations}",
+        "year": "1989",
+        "journal": "The Annals of Statistics",
+        "volume": "17",
+        "number": "3",
+        "pages": "1217--1241",
+        "doi": "10.1214/aos/1176347265"
+      },
+      "primaryUrl": "https://doi.org/10.1214/aos/1176347265",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1214/aos/1176347265",
+      "searchQuery": "Kunsch jackknife bootstrap general stationary observations 1989",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.1214/aos/1176347265 and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.1214/aos/1176347265.",
+      "abstract": "We extend the jackknife and the bootstrap method of estimating standard errors to the case where the observations form a general stationary sequence. We do not attempt a reduction to i.i.d. values. The jackknife calculates the sample variance of replicates of the statistic obtained by omitting each block of $l$ consecutive data once. In the case of the arithmetic mean this is shown to be equivalent to a weighted covariance estimate of the spectral density of the observations at zero. Under appropriate conditions consistency is obtained if $l = l(n) \\rightarrow \\infty$ and $l(n)/n \\rightarrow 0$. General statistics are approximated by an arithmetic mean. In regular cases this approximation determines the asymptotic behavior. Bootstrap replicates are constructed by selecting blocks of length $l$ randomly with replacement among the blocks of observations. The procedures are illustrated by using the sunspot numbers and some simulated data.",
+      "abstractSource": "https://api.crossref.org/works/10.1214/aos/1176347265",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "The jackknife and the bootstrap are extended to stationary dependent observations by working with blocks of consecutive observations rather than single values.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "laura2021": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Laura, Jason R and Adoram-Kershner, Lauren A and Mayer, David P and Wheeler, Benjamin H and Bauck, Kirsten H and Fergason, Robin L and United States Geological Survey Astrogeology Science Center",
+        "title": "{Mars Reconnaissance Orbiter (MRO) Context Camera (CTX) orthoimage generated using Ames stereo pipeline derived digital terrain models}",
+        "year": "2021",
+        "publisher": "U.S. Geological Survey",
+        "doi": "10.5066/P9JKVWR3",
+        "note": "Cited by the USGS STAC collection mro\\_ctx\\_controlled\\_usgs\\_dtms as its data citation"
+      },
+      "primaryUrl": "https://doi.org/10.5066/P9JKVWR3",
+      "sourceKind": "provider",
+      "metadataUrl": "https://api.datacite.org/dois/10.5066/P9JKVWR3",
+      "searchQuery": "10.5066/P9JKVWR3",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "publisher",
+        "doi",
+        "note"
+      ],
+      "evidence": "Read the DataCite record https://api.datacite.org/dois/10.5066/P9JKVWR3 (creators, title, year, publisher) and the STAC collection's sci:citation and sci:doi fields recorded in the download PROVENANCE.json.",
+      "abstract": null,
+      "abstractSource": null,
+      "abstractUnavailableReason": "The DataCite record carries no description, and the release page gives no abstract.",
+      "supports": [
+        {
+          "claim": "The USGS STAC collection of controlled CTX elevation models names this data release (DOI 10.5066/P9JKVWR3) as its citation; the DOI registry lists the release as CTX orthoimages generated with Ames Stereo Pipeline derived terrain models, published by the U.S. Geological Survey.",
+          "location": "abstract (DataCite record and STAC sci:citation)"
+        }
+      ]
+    },
+    "liu2026": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Liu, Zelin and Li, Bocheng and Zhou, Yuling and Li, Xuanting and Yang, Yixuan and Wang, Jing and Zhao, Weishu and Gao, Xiaofeng",
+        "title": "{GEAR: Geography-knowledge Enhanced Analog Recognition Framework in Extreme Environments}",
+        "year": "2026",
+        "eprint": "2603.18626",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2603.18626",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2603.18626",
+      "searchQuery": "arXiv 2603.18626",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2603.18626 and compared authors, title, first submission date and identifier.",
+      "abstract": "The Mariana Trench and the Qinghai-Tibet Plateau exhibit significant similarities in geological origins and microbial metabolic functions. Given that deep-sea biological sampling faces prohibitive costs, recognizing structurally homologous terrestrial analogs of the Mariana Trench on the Qinghai-Tibet Plateau is of great significance. Yet, no existing model adequately addresses cross-domain topographic similarity retrieval, either neglecting geographical knowledge or sacrificing computational efficiency. To address these challenges, we present \\underline{\\textbf{G}}eography-knowledge \\underline{\\textbf{E}}nhanced \\underline{\\textbf{A}}nalog \\underline{\\textbf{R}}ecognition (\\textbf{GEAR}) Framework, a three-stage pipeline designed to efficiently retrieve analogs from 2.5 million square kilometers of the Qinghai-Tibet Plateau: (1) Skeleton guided Screening and Clipping: Recognition of candidate valleys and initial screening based on size and linear morphological criteria. (2) Physics aware Filtering: The Topographic Waveform Comparator (TWC) and Morphological Texture Module (MTM) evaluate the waveform and texture and filter out inconsistent candidate valleys. (3) Graph based Fine Recognition: We design a \\underline{\\textbf{M}}orphology-integrated \\underline{\\textbf{S}}iamese \\underline{\\textbf{G}}raph \\underline{\\textbf{N}}etwork (\\textbf{MSG-Net}) based on geomorphological metrics. Correspondingly, we release an expert-annotated topographic similarity dataset targeting tectonic collision zones. Experiments demonstrate the effectiveness of every stage. Besides, MSG-Net achieved an F1-Score 1.38 percentage points higher than the SOTA baseline. Using features extracted by MSG-Net, we discovered a significant correlation with biological data, providing evidence for future biological analysis.",
+      "abstractSource": "https://arxiv.org/abs/2603.18626",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "GEAR is a three-stage pipeline that retrieves terrestrial topographic analogs of the Mariana Trench on the Qinghai-Tibet Plateau, ending with a morphology-integrated Siamese graph network.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The authors release an expert-annotated topographic similarity dataset for tectonic collision zones.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "loshchilov2016": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Loshchilov, Ilya and Hutter, Frank",
+        "title": "{SGDR: Stochastic Gradient Descent with Warm Restarts}",
+        "year": "2016",
+        "eprint": "1608.03983",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/1608.03983",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/1608.03983",
+      "searchQuery": "arXiv 1608.03983",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/1608.03983 and compared authors, title, first submission date and identifier.",
+      "abstract": "Restart techniques are common in gradient-free optimization to deal with multimodal functions. Partial warm restarts are also gaining popularity in gradient-based optimization to improve the rate of convergence in accelerated gradient schemes to deal with ill-conditioned functions. In this paper, we propose a simple warm restart technique for stochastic gradient descent to improve its anytime performance when training deep neural networks. We empirically study its performance on the CIFAR-10 and CIFAR-100 datasets, where we demonstrate new state-of-the-art results at 3.14% and 16.21%, respectively. We also demonstrate its advantages on a dataset of EEG recordings and on a downsampled version of the ImageNet dataset. Our source code is available at https://github.com/loshchil/SGDR",
+      "abstractSource": "https://arxiv.org/abs/1608.03983",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "SGDR is a warm restart technique for stochastic gradient descent that improves anytime performance when training deep networks.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "loshchilov2017": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Loshchilov, Ilya and Hutter, Frank",
+        "title": "{Decoupled Weight Decay Regularization}",
+        "year": "2017",
+        "eprint": "1711.05101",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/1711.05101",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/1711.05101",
+      "searchQuery": "arXiv 1711.05101",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/1711.05101 and compared authors, title, first submission date and identifier.",
+      "abstract": "L$_2$ regularization and weight decay regularization are equivalent for standard stochastic gradient descent (when rescaled by the learning rate), but as we demonstrate this is \\emph{not} the case for adaptive gradient algorithms, such as Adam. While common implementations of these algorithms employ L$_2$ regularization (often calling it \"weight decay\" in what may be misleading due to the inequivalence we expose), we propose a simple modification to recover the original formulation of weight decay regularization by \\emph{decoupling} the weight decay from the optimization steps taken w.r.t. the loss function. We provide empirical evidence that our proposed modification (i) decouples the optimal choice of weight decay factor from the setting of the learning rate for both standard SGD and Adam and (ii) substantially improves Adam's generalization performance, allowing it to compete with SGD with momentum on image classification datasets (on which it was previously typically outperformed by the latter). Our proposed decoupled weight decay has already been adopted by many researchers, and the community has implemented it in TensorFlow and PyTorch; the complete source code for our experiments is available at https://github.com/loshchil/AdamW-and-SGDW",
+      "abstractSource": "https://arxiv.org/abs/1711.05101",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "For adaptive gradient methods such as Adam, L2 regularisation and weight decay are not equivalent, and decoupling weight decay from the gradient update improves generalisation.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "malin2007": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Malin, Michael C. and Bell, James F. and Cantor, Bruce A. and Caplinger, Michael A. and Calvin, Wendy M. and Clancy, R. Todd and Edgett, Kenneth S. and Edwards, Lawrence and Haberle, Robert M. and James, Philip B. and Lee, Steven W. and Ravine, Michael A. and Thomas, Peter C. and Wolff, Michael J.",
+        "title": "{Context Camera Investigation on board the Mars Reconnaissance Orbiter}",
+        "year": "2007",
+        "journal": "Journal of Geophysical Research: Planets",
+        "volume": "112",
+        "number": "E5",
+        "pages": "2006JE002808",
+        "doi": "10.1029/2006je002808"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2006je002808",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2006je002808",
+      "searchQuery": "Malin Context Camera Investigation on board the Mars Reconnaissance Orbiter 2007",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.1029/2006je002808 and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.1029/2006je002808.",
+      "abstract": "The Context Camera (CTX) on the Mars Reconnaissance Orbiter (MRO) is a Facility Instrument (i.e., government‐furnished equipment operated by a science team not responsible for design and fabrication) designed, built, and operated by Malin Space Science Systems and the MRO Mars Color Imager team (MARCI). CTX will (1) provide context images for data acquired by other MRO instruments, (2) observe features of interest to NASA's Mars Exploration Program (e.g., candidate landing sites), and (3) conduct a scientific investigation, led by the MARCI team, of geologic, geomorphic, and meteorological processes on Mars. CTX consists of a digital electronics assembly; a 350 mm f/3.25 Schmidt‐type telescope of catadioptric optical design with a 5.7° field of view, providing a ∼30‐km‐wide swath from ∼290 km altitude; and a 5000‐element CCD with a band pass of 500–700 nm and 7 μ m pixels, giving ∼6 m/pixel spatial resolution from MRO's nearly circular, nearly polar mapping orbit. Raw data are transferred to the MRO spacecraft flight computer for processing (e.g., data compression) before transmission to Earth. The ground data system and operations are based on 9 years of Mars Global Surveyor Mars Orbiter Camera on‐orbit experience. CTX has been allocated 12% of the total MRO data return, or about ≥3 terabits for the nominal mission. This data volume would cover ∼9% of Mars at 6 m/pixel, but overlapping images (for stereo, mosaics, and observation of changes and meteorological events) will reduce this area. CTX acquired its first (instrument checkout) images of Mars on 24 March 2006.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2006je002808",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "The Context Camera on Mars Reconnaissance Orbiter is a camera that acquires context images of the Martian surface.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "mcinnes2018": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "McInnes, Leland and Healy, John and Melville, James",
+        "title": "{UMAP: Uniform Manifold Approximation and Projection for Dimension Reduction}",
+        "year": "2018",
+        "eprint": "1802.03426",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/1802.03426",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/1802.03426",
+      "searchQuery": "arXiv 1802.03426",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/1802.03426 and compared authors, title, first submission date and identifier.",
+      "abstract": "UMAP (Uniform Manifold Approximation and Projection) is a novel manifold learning technique for dimension reduction. UMAP is constructed from a theoretical framework based in Riemannian geometry and algebraic topology. The result is a practical scalable algorithm that applies to real world data. The UMAP algorithm is competitive with t-SNE for visualization quality, and arguably preserves more of the global structure with superior run time performance. Furthermore, UMAP has no computational restrictions on embedding dimension, making it viable as a general purpose dimension reduction technique for machine learning.",
+      "abstractSource": "https://arxiv.org/abs/1802.03426",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "UMAP is a manifold learning technique for dimension reduction that is competitive with t-SNE for visualisation and scales well.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "meng2024": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Meng, Fanwei and Wang, Xiaopeng and Antunes, Andr{\\'e} and Zhao, Jie and Zhou, Guoliang and Wu, Biqiong and Hao, Tianqi",
+        "title": "{Deep learning selection of analogues for Mars landing sites in the Qaidam Basin, Qinghai-Tibet Plateau}",
+        "year": "2024",
+        "eprint": "2501.08584",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2501.08584",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2501.08584",
+      "searchQuery": "arXiv 2501.08584",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2501.08584 and compared authors, title, first submission date and identifier.",
+      "abstract": "Remote sensing observations and Mars rover missions have recorded the presence of beaches, salt lakes, and wind erosion landforms in Martian sediments. All these observations indicate that Mars was hydrated in its early history. There used to be oceans on Mars, but they have now dried up. Therefore, signs of previous life on Mars could be preserved in the evaporites formed during this process. The study of evaporite regions has thus become a priority area for Mars' life exploration. This study proposes a method for training similarity metrics from surface land image data of Earth and Mars, which can be used for recognition or validation applications. The method will be applied in simulating tasks to select Mars landing sites using a selecting small-scale area of the Mars analaogue the evaporite region of Qaidam Basin, Qinghai-Tibet Plateau. This learning process minimizes discriminative loss function, which makes the similarity measure smaller for images from the same location and larger for images from different locations. This study selected a Convolutional Neural Networks (CNN) based model, which has been trained to explain various changes in image appearance and identify different landforms in Mars. By identifying different landforms, priority landing sites on Mars can be selected.",
+      "abstractSource": "https://arxiv.org/abs/2501.08584",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "A convolutional network is trained with a discriminative loss to learn a similarity metric between Earth and Mars surface images, so that images from the same location are close.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The learned similarity is applied to selecting Mars landing site analogues in the evaporite region of the Qaidam Basin.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "mitchell2019": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "inproceedings",
+      "fields": {
+        "author": "Mitchell, Margaret and Wu, Simone and Zaldivar, Andrew and Barnes, Parker and Vasserman, Lucy and Hutchinson, Ben and Spitzer, Elena and Raji, Inioluwa Deborah and Gebru, Timnit",
+        "title": "{Model Cards for Model Reporting}",
+        "year": "2019",
+        "booktitle": "Proceedings of the Conference on Fairness, Accountability, and Transparency",
+        "doi": "10.1145/3287560.3287596"
+      },
+      "primaryUrl": "https://doi.org/10.1145/3287560.3287596",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1145/3287560.3287596",
+      "searchQuery": "arXiv 1810.03993; DOI 10.1145/3287560.3287596",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "booktitle",
+        "doi"
+      ],
+      "evidence": "arXiv abstract page 1810.03993 states the DOI 10.1145/3287560.3287596 of the FAT* 2019 version, which resolves at doi.org; authors and title compared with the arXiv page.",
+      "abstract": "Trained machine learning models are increasingly used to perform high-impact tasks in areas such as law enforcement, medicine, education, and employment. In order to clarify the intended use cases of machine learning models and minimize their usage in contexts for which they are not well suited, we recommend that released models be accompanied by documentation detailing their performance characteristics. In this paper, we propose a framework that we call model cards, to encourage such transparent model reporting. Model cards are short documents accompanying trained machine learning models that provide benchmarked evaluation in a variety of conditions, such as across different cultural, demographic, or phenotypic groups (e.g., race, geographic location, sex, Fitzpatrick skin type) and intersectional groups (e.g., age and race, or sex and Fitzpatrick skin type) that are relevant to the intended application domains. Model cards also disclose the context in which models are intended to be used, details of the performance evaluation procedures, and other relevant information. While we focus primarily on human-centered machine learning models in the application fields of computer vision and natural language processing, this framework can be used to document any trained machine learning model. To solidify the concept, we provide cards for two supervised models: One trained to detect smiling faces in images, and one trained to detect toxic comments in text. We propose model cards as a step towards the responsible democratization of machine learning and related AI technology, increasing transparency into how well AI technology works. We hope this work encourages those releasing trained machine learning models to accompany model releases with similar detailed evaluation numbers and other relevant documentation.",
+      "abstractSource": "https://arxiv.org/abs/1810.03993",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Model cards are short documents released with trained models that report their evaluation across conditions, intended use and limitations.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "nasa2022artemis": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "{NASA}",
+        "title": "{NASA} Identifies Candidate Regions for Landing Next Americans on Moon",
+        "year": "2022",
+        "url": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+        "howpublished": "NASA news release RELEASE22-089",
+        "note": "Released 19 August 2022; page last updated 8 January 2024"
+      },
+      "primaryUrl": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+      "sourceKind": "provider",
+      "metadataUrl": null,
+      "searchQuery": "NASA names 13 candidate landing regions for Artemis III Connecting Ridge Haworth Malapert Mountain",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "url",
+        "howpublished",
+        "note"
+      ],
+      "evidence": "Read the NASA release page (via a summarising fetch tool): title, date 19 August 2022, release number RELEASE22-089, last updated 8 January 2024, the bulleted list of 13 regions including Connecting Ridge and Connecting Ridge Extension, region size, selection criteria. The page describes the August 2022 Artemis III candidate regions; whether the current Artemis mission plans still use them was not checked, so it supports only the 2022 candidate list.",
+      "abstract": null,
+      "abstractSource": null,
+      "abstractUnavailableReason": "Official press release; it has no abstract.",
+      "supports": [
+        {
+          "claim": "NASA's August 2022 announcement lists 13 candidate Artemis III landing regions near the lunar south pole, including Connecting Ridge and Connecting Ridge Extension.",
+          "location": "page text (list of candidate regions)"
+        },
+        {
+          "claim": "Each candidate region is about 15 by 15 kilometers, all lie within six degrees of latitude of the lunar south pole, and a landing site within a region has a radius of roughly 100 meters.",
+          "location": "page text"
+        }
+      ]
+    },
+    "neish2017": {
+      "status": "unresolved",
+      "unresolvedReason": "metadata confirmed in the publisher-deposited Crossref record, but no allowed source returned the abstract: Crossref has none, and the publisher page and NASA ADS refuse automated reads.",
+      "entryType": "article",
+      "fields": {
+        "author": "Neish, C.D. and Hamilton, C.W. and Hughes, S.S. and Nawotniak, S. Kobs and Garry, W.B. and Skok, J.R. and Elphic, R.C. and Schaefer, E. and Carter, L.M. and Bandfield, J.L. and Osinski, G.R. and Lim, D. and Heldmann, J.L.",
+        "title": "{Terrestrial analogues for lunar impact melt flows}",
+        "year": "2017",
+        "journal": "Icarus",
+        "volume": "281",
+        "pages": "73--89",
+        "doi": "10.1016/j.icarus.2016.08.008"
+      },
+      "primaryUrl": "https://doi.org/10.1016/j.icarus.2016.08.008",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1016/j.icarus.2016.08.008",
+      "searchQuery": "10.1016/j.icarus.2016.08.008",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref record for DOI 10.1016/j.icarus.2016.08.008; fields compared: author, title, venue, year, volume, issue, pages, DOI.",
+      "abstract": null,
+      "abstractSource": null,
+      "abstractUnavailableReason": null,
+      "supports": []
+    },
+    "nozette2010": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Nozette, Stewart and Spudis, Paul and Bussey, Ben and Jensen, Robert and Raney, Keith and Winters, Helene and Lichtenberg, Christopher L. and Marinelli, William and Crusan, Jason and Gates, Michele and Robinson, Mark",
+        "title": "The {Lunar Reconnaissance Orbiter} Miniature Radio Frequency ({Mini-RF}) Technology Demonstration",
+        "journal": "Space Science Reviews",
+        "year": "2010",
+        "volume": "150",
+        "number": "1--4",
+        "pages": "285--302",
+        "doi": "10.1007/s11214-009-9607-5"
+      },
+      "primaryUrl": "https://doi.org/10.1007/s11214-009-9607-5",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1007/s11214-009-9607-5",
+      "searchQuery": "Nozette Lunar Reconnaissance Orbiter Miniature Radio Frequency (Mini-RF) Technology Demonstration abstract Space Science Reviews",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Journal DOI from web search, confirmed at Crossref (SSR 150(1-4), 285-302, published online Jan 2010; authors list matches). The abstract was read on the Springer article page. A reprint chapter with a different DOI (10.1007/978-1-4419-6391-8_12, in the book 'Lunar Reconnaissance Orbiter Mission') also exists; the journal version is the one cited here. Body not read.",
+      "abstract": "The Miniature Radio Frequency (Mini-RF) system is manifested on the Lunar Reconnaissance Orbiter (LRO) as a technology demonstration and an extended mission science instrument. It combines synthetic aperture radar (SAR) at two wavelengths (S-band and X-band) and two resolutions (150 m and 30 m) with interferometric and communications functionality in one lightweight (16 kg) package. Mini-RF represents a significant step forward in spaceborne RF technology and architecture. Previous radar observations (Earth-based, and one bistatic data set from Clementine) of the permanently shadowed regions of the lunar poles seem to indicate areas of high circular polarization ratio (CPR) consistent with volume scattering from volatile deposits (e.g. water ice) buried at shallow (0.1-1 m) depth, but only at unfavorable viewing geometries, and with inconclusive results. The LRO Mini-RF utilizes new wideband hybrid polarization architecture to measure the Stokes parameters of the reflected signal. These data will help to differentiate “true” volumetric ice reflections from “false” returns due to angular surface regolith. Additional lunar science investigations (e.g. pyroclastic deposit characterization) will also be attempted during the LRO extended mission. LRO’s lunar operations will be contemporaneous with India’s Chandrayaan-1, which carries the Forerunner Mini-SAR (S-band wavelength and 150-m resolution), and bistatic radar (S-Band) measurements may be possible. On orbit calibration, procedures for LRO Mini-RF have been validated using Chandrayaan 1 and ground-based facilities (Arecibo and Greenbank Radio Observatories).",
+      "abstractSource": "https://link.springer.com/article/10.1007/s11214-009-9607-5",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "LRO Mini-RF is a synthetic aperture radar at two wavelengths (S-band and X-band) and two resolutions (150 m and 30 m), in a 16 kg package.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Mini-RF uses a wideband hybrid polarization architecture to measure the Stokes parameters of the reflected signal.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Earlier radar observations of permanently shadowed polar regions suggested high CPR consistent with buried volatile volume scattering at 0.1-1 m depth, but only at unfavorable viewing geometries and with inconclusive results.",
+          "location": "abstract"
+        },
+        {
+          "claim": "On-orbit calibration procedures for LRO Mini-RF were validated using Chandrayaan-1 and ground-based facilities (Arecibo and Green Bank).",
+          "location": "abstract"
+        }
+      ]
+    },
+    "patil2026": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Patil, Himanshu and Nyirjesy, Gabby and Slank, Rachel A. and Gaur, Vishal and Szwarcman, Daniela and Fraccaro, Paolo and Dionelis, Nikolaos and Barker, Michael K. and Annex, Andrew and Viswanathan, Vishnu and Morse, Zachary and Schaefer, Ethan I. and Debary, Hiyam and Kumar, Ankur and Lal, Rohit and Dawson, Geoffrey and Watson, Campbell and Dawson-Rigas, Rebekah I. and Maskey, Manil and Bernab{\\'e}-Moreno, Juan and Ramachandran, Rahul and Roy, Sujit",
+        "title": "{SomBench: Benchmark Dataset for Advancing Machine Learning in Lunar Science}",
+        "year": "2026",
+        "eprint": "2609.13277",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2609.13277",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2609.13277",
+      "searchQuery": "arXiv 2609.13277",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2609.13277 and compared authors, title, first submission date and identifier.",
+      "abstract": "Lunar orbital missions, such as Lunar Reconnaissance Orbiter, Kaguya/SELENE, Gravity Recovery and Interior Laboratory, and Lunar Prospector, among others, provide rich multi-instrument observations, but their heterogeneity in sampling, projection, and conventions limits reproducible machine learning (ML). We introduce SomBench, a unified, spatially-aligned, ML-ready lunar dataset aggregating 30+ co-registered layers from ten instruments across four missions, spanning 1 meter to 20 kilometer/pixel and covering 82 degree latitude in 90 Lunar Transverse Mercator zones with two polar stereographic caps. An image-anchored tiling pipeline yields pretraining-ready multimodal tile views with leakage-safe splits, distributed as netCDF with Parquet catalogs. An application benchmark suite spans impact processes, volcanic history, and polar volatiles. Baseline experiments with ResNet-50 and SwinV2-B models confirm that each benchmark task is learnable from the released inputs, establishing reference points for future model development.",
+      "abstractSource": "https://arxiv.org/abs/2609.13277",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "SomBench aggregates more than 30 co-registered lunar layers from ten instruments on four missions into machine learning ready tiles with leakage-safe splits.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "raney2011": {
+      "status": "unresolved",
+      "unresolvedReason": "metadata confirmed in the publisher-deposited Crossref record, but no allowed source returned the abstract: Crossref has none, and the publisher page and NASA ADS refuse automated reads.",
+      "entryType": "article",
+      "fields": {
+        "author": "Raney, R K and Spudis, P D and Bussey, B and Crusan, J and Jensen, J R and Marinelli, W and McKerracher, P and Neish, C and Palsetia, M and Schulze, R and Sequeira, H B and Winters, H",
+        "title": "{The Lunar Mini-RF Radars: Hybrid Polarimetric Architecture and Initial Results}",
+        "year": "2011",
+        "journal": "Proceedings of the IEEE",
+        "volume": "99",
+        "number": "5",
+        "pages": "808--823",
+        "doi": "10.1109/jproc.2010.2084970"
+      },
+      "primaryUrl": "https://doi.org/10.1109/jproc.2010.2084970",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1109/jproc.2010.2084970",
+      "searchQuery": "Raney The Lunar Mini-RF Radars: Hybrid Polarimetric Architecture and Initial Results 2011",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref record for DOI 10.1109/jproc.2010.2084970; fields compared: author, title, venue, year, volume, issue, pages, DOI.",
+      "abstract": null,
+      "abstractSource": null,
+      "abstractUnavailableReason": null,
+      "supports": []
+    },
+    "raney2012": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Raney, R. Keith and Cahill, Joshua T. S. and Patterson, G. Wesley and Bussey, D. Benjamin J.",
+        "title": "The m-chi decomposition of hybrid dual-polarimetric radar data with application to lunar craters",
+        "journal": "Journal of Geophysical Research: Planets",
+        "year": "2012",
+        "volume": "117",
+        "number": "E12",
+        "doi": "10.1029/2011JE003986"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2011JE003986",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2011je003986",
+      "searchQuery": "Crossref bibliographic query: Raney Cahill Patterson Bussey The m-chi decomposition of hybrid dual-polarimetric radar data with application to lunar craters",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "doi"
+      ],
+      "evidence": "Crossref record (four authors, JGR Planets 117 E12, 2012, article number 2011JE003986) and its abstract field. This JGR paper is chosen as the m-chi definition source; the companion IGARSS 2012 paper (10.1109/igarss.2012.6352465, pp 5093-5096) exists but its record has no abstract. Abstract text is from Crossref; the body (where the equations are defined) was not read.",
+      "abstract": "We introduce a new technique derived from the classical Stokes parameters for analysis of polarimetric radar astronomical data. This decomposition is based on m (the degree of polarization) and chi (the Poincaré ellipticity parameter). Analysis of the crater Byrgius A demonstrates how m‐chi can more easily differentiate materials within ejecta deposits and their relative thicknesses. We use Goldschmidt crater to demonstrate how m‐chi can differentiate coherent deposits of water ice. Goldschmidt crater floor is found to be consistent with single bounce Bragg scattering suggesting the absence of water ice and further corroborating adsorbed H to mineral grains or an H 2 O frost as plausible explanations for a H 2 O/OH detection by near‐infrared instruments.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2011je003986",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "The m-chi decomposition is a technique derived from the classical Stokes parameters for polarimetric radar data, built on m (the degree of polarization) and chi (the Poincare ellipticity parameter).",
+          "location": "abstract"
+        },
+        {
+          "claim": "Applied to the crater Byrgius A, m-chi more readily differentiates materials within ejecta deposits and their relative thicknesses.",
+          "location": "abstract"
+        },
+        {
+          "claim": "At Goldschmidt crater, m-chi is used to show how coherent water-ice deposits can be distinguished; the crater floor is found consistent with single-bounce Bragg scattering, suggesting no water ice.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "riveravalentin2026": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Rivera-Valent{\\'\\i}n, Edgard G. and Fassett, Caleb I. and Virkki, Anne K. and P{\\'e}rez-Cort{\\'e}s, Santa L. and Powell, Tyler and Hickson, Dylan C. and Nolan, Michael C. and Patterson, G. Wesley",
+        "title": "Empirical Evaluation of {S}-band Radar Polarimetric Response to Surface Rock Abundance across the Lunar Highlands and Maria",
+        "journal": "The Planetary Science Journal",
+        "year": "2026",
+        "volume": "7",
+        "number": "6",
+        "pages": "144",
+        "doi": "10.3847/PSJ/ae6fa4"
+      },
+      "primaryUrl": "https://doi.org/10.3847/PSJ/ae6fa4",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.3847/psj/ae6fa4",
+      "searchQuery": "Rivera-Valentin 2026 S-band polarimetry surface rocks lunar highlands circular polarization ratio",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref search record (eight authors, PSJ 7(6), article 144, 2026) and Crossref abstract field. Full text read at https://iopscience.iop.org/article/10.3847/PSJ/ae6fa4 for the Conclusions (Section 5) CPR 0.8 / 0.7% / 10% statement and Section 3.1 (partial: the page was read in two parts; Section 5 was located in the second part). The abstract is not self-contained for the 0.8 claim, which is recorded with its section.",
+      "abstract": "Polarimetric radar measurements are sensitive to viewing geometry, wavelength-scale roughness, and composition. As a result, radar imaging enables characterization of planetary surfaces, but the multiple contributors to backscatter complicate the interpretation of metrics commonly treated as proxies for roughness, such as the circular polarization ratio (CPR). Motivated by renewed interest in lunar surface exploration, here we evaluate how meter-scale rock-related surface roughness influences polarimetric radar backscatter by comparing global monostatic S -band observations from LRO’s Mini-RF with Diviner-derived rock abundance (RA). We identified three scattering regimes across the lunar highlands and maria. Over rock-poor terrains, backscatter is insensitive to increasing RA and is controlled by incidence angle and, in the maria, TiO 2 content. For 0.35 ≲ RA ≲ 1.5%, CPR increases rapidly with RA, loses sensitivity to incidence angle, and is driven by enhanced depolarized backscatter, consistent with an increasing population of wavelength-scale scatterers. Over rock-rich terrains, though, CPR plateaus and weakly decreases. Indeed, in some block-rich, fresh crater ejecta, CPR is negatively correlated with RA. In these terrains, the polarimetric response exhibits suppression of double-bounce and depolarized scattering, resulting in decreasing CPR. In contrast, some rock-rich regions sustain sufficient depolarized scattering to offset double-bounce suppression, resulting in a CPR plateau. In the maria, enhanced attenuation further modulates the balance between scattering mechanisms, leading to lower CPR. As such, we find that CPR is not a monotonic indicator of rock-related surface roughness, but an emergent property of competing scattering mechanisms reflective of target properties. Nevertheless, multiple polarimetric properties alongside CPR can resolve interpretive degeneracies.",
+      "abstractSource": "https://api.crossref.org/works/10.3847/psj/ae6fa4",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "CPR is not a monotonic indicator of rock-related surface roughness: it rises rapidly with rock abundance for 0.35 ≲ RA ≲ 1.5%, then plateaus and weakly decreases over rock-rich terrain, and is even negatively correlated with RA in some block-rich fresh crater ejecta.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Over rock-poor terrain, S-band backscatter does not respond to rock abundance and is controlled by incidence angle (and TiO2 content in the maria).",
+          "location": "abstract"
+        },
+        {
+          "claim": "Using several polarimetric properties together with CPR can resolve the interpretive degeneracies.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Over the lunar highlands, a CPR of 0.8 may correspond to a rock abundance of about 0.7% or about 10%; the authors state S-band CPR alone is not a robust diagnostic of meter-scale rock-related roughness. (Maria example in the same passage: CPR 0.6 with RA about 0.6% or 13%.)",
+          "location": "section 5 (Conclusions)"
+        }
+      ]
+    },
+    "robbins2012": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Robbins, Stuart J. and Hynek, Brian M.",
+        "title": "{A new global database of Mars impact craters $\\geq$1 km: 1. Database creation, properties, and parameters}",
+        "year": "2012",
+        "journal": "Journal of Geophysical Research: Planets",
+        "volume": "117",
+        "number": "E5",
+        "pages": "2011JE003966",
+        "doi": "10.1029/2011je003966"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2011je003966",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2011je003966",
+      "searchQuery": "Robbins Hynek global database of Mars impact craters 1 km",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.1029/2011je003966 and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.1029/2011je003966.",
+      "abstract": "Impact craters have been used as a standard metric for a plethora of planetary applications for many decades, including age‐dating, geologic mapping and stratigraphic relationships, as tracers for surface processes, and as locations for sampling lower crust and upper mantle material. Utilizing craters for these and other investigations is significantly aided by a uniform catalog of craters across the surface of interest. Consequently, catalogs of craters have been developed for decades for the Moon and other planets. We present a new global catalog of Martian craters statistically complete to diameters D ≥ 1 km. It contains 384,343 craters, and for each crater it lists detailed positional, interior morphologic, ejecta morphologic and morphometric data, and modification state information if it could be determined. In this paper, we detail how the database was created, the different fields assigned, and statistical uncertainties and checks. In our companion paper (Robbins and Hynek, 2012), we discuss the first broad science applications and results of this work.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2011je003966",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "A global catalogue of Martian craters statistically complete to diameters of 1 km and larger lists 384,343 craters with positional and morphologic data.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "robbins2019": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Robbins, Stuart J.",
+        "title": "{A New Global Database of Lunar Impact Craters >1--2 km: 1. Crater Locations and Sizes, Comparisons With Published Databases, and Global Analysis}",
+        "year": "2019",
+        "journal": "Journal of Geophysical Research: Planets",
+        "volume": "124",
+        "number": "4",
+        "pages": "871--892",
+        "doi": "10.1029/2018je005592"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2018je005592",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2018je005592",
+      "searchQuery": "Robbins new global database of lunar impact craters 1-2 km",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.1029/2018je005592 and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.1029/2018je005592.",
+      "abstract": "This paper presents a new, global database of lunar impact craters, estimated to be a complete census of all craters with diameters larger than 1–2 km. The database contains over 2 million craters, making it larger in number than any previously published lunar effort by more than a factor of 10. Of those craters, 1.3 million have diameters ≥1 km, approximately 83,000 are ≥5 km, and 6,972 craters are ≥20 km. How the database was constructed along with the reliability of features is described in detail. Comparisons are made with past published databases, demonstrating good agreement for crater size and location. An ellipticity analysis is conducted, illustrating there is no dominant direction for elliptical crater orientation based on location, diameter range, or ellipticity amount, consistent with randomness for craters ≥10 km. A spatial density analysis is described, comparing the spatial density of small versus large craters, and numerous observations about the nonuniformity of the size distributions of craters across the Moon are made. The spatial density is also used in a discussion about kilometer‐scale secondary impact craters and clearly shows that they dominate the crater population in some areas of the lunar surface. This paper presents just a tiny sample of the scientific investigations that could be done with this new crater database.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2018je005592",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "A global lunar crater database, estimated complete for diameters above 1 to 2 km, holds over 2 million craters, 1.3 million of them at least 1 km across.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "rodriguezsanchezvahamonde2021": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Rodriguez Sanchez-Vahamonde, C. and Neish, C.",
+        "title": "{The Surface Texture of Martian Lava Flows as Inferred from Their Decimeter- and Meter-scale Roughness}",
+        "year": "2021",
+        "journal": "The Planetary Science Journal",
+        "volume": "2",
+        "number": "1",
+        "pages": "15",
+        "doi": "10.3847/psj/abbfac"
+      },
+      "primaryUrl": "https://doi.org/10.3847/psj/abbfac",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.3847/psj/abbfac",
+      "searchQuery": "Martian lava flows surface texture roughness Planetary Science Journal 2020",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.3847/psj/abbfac and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.3847/psj/abbfac.",
+      "abstract": "Extensive lava flows are found in the equatorial region of Mars, shaping the surface in a very distinct way. In radar images (at the decimeter scale), these flows are bright, with circular polarization ratios greater than one. This is a typical characteristic of extremely rough, blocky lava flows on Earth. Although the source of the extreme dm-scale roughness of Martian lava flows is unknown, their surface roughness can be constrained at the meter scale in an effort to infer their emplacement style. Here, we utilized high-resolution HiRISE images of Mars to construct digital terrain models of 35 lava flows, and measure their surface roughness parameters at a scale never before examined. Our results show that at the meter scale, Martian lava flows are smoother than blocky flows seen on Earth, and similar in roughness to terrestrial pāhoehoe and rubbly flows, as well as young lunar lava flows. However, these latter flows are much smoother at the decimeter scale than Martian lava flows. The differences observed in the surface roughness of Martian lava flows compared to analog lava flows on Earth and the Moon might be the result of: (1) the differences in the emplacement style of the lava flows, and/or (2) the differences in post-emplacement modification processes on the surface of the lava flows.",
+      "abstractSource": "https://api.crossref.org/works/10.3847/psj/abbfac",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Equatorial Martian lava flows are radar bright at decimetre scale with circular polarization ratios above one, like very rough blocky flows on Earth.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Digital terrain models of 35 Martian lava flows from HiRISE show that at metre scale they are smoother than terrestrial blocky flows and comparable to terrestrial pahoehoe and rubbly flows.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "rosen2006": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "inproceedings",
+      "fields": {
+        "author": "Rosen, Paul A. and Hensley, Scott and Wheeler, Kevin and Sadowy, Greg and Miller, Tim and Shaffer, Scott and Muellerschoen, Ron and Jones, Cathleen and Zebker, Howard and Madsen, S{\\o}ren",
+        "title": "{UAVSAR}: A new {NASA} airborne {SAR} system for science and technology research",
+        "booktitle": "2006 IEEE Conference on Radar",
+        "year": "2006",
+        "pages": "22--29",
+        "publisher": "IEEE",
+        "doi": "10.1109/RADAR.2006.1631770"
+      },
+      "primaryUrl": "https://doi.org/10.1109/RADAR.2006.1631770",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1109/RADAR.2006.1631770",
+      "searchQuery": "Rosen 2006 UAVSAR: a new NASA airborne SAR system for science and technology research IEEE Radar Conference doi",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "booktitle",
+        "year",
+        "pages",
+        "publisher",
+        "doi"
+      ],
+      "evidence": "DOI read on the CaltechAUTHORS record (22386), then confirmed at the Crossref record (ten authors, 2006 IEEE Conference on Radar, pp 22-29, IEEE; issued date null in Crossref, year taken from the conference and the Caltech record). Abstract read at the Caltech record (author-deposited copy; original contains the typo 'on a on a'). Body not read. This is the 2006 conference paper, distinct from the 2007 IEEE AES Magazine article.",
+      "abstract": "NASA's Jet Propulsion Laboratory is currently building a reconfigurable, polarimetric L-band synthetic aperture radar (SAR), specifically designed to acquire airborne repeat track SAR data for differential interferometric measurements. The expected performance of the flight control system will constrain the flight path to be within a 10 m diameter tube about the desired flight track. Differential interferometry can provide key deformation measurements, important for studies of earthquakes, volcanoes and other dynamically changing phenomena. Using precision real-time GPS and a sensor controlled flight management system, the system will be able to fly predefined paths with great precision. The radar will be designed to be operable on a UAV (Unpiloted Arial Vehicle) but will initially be demonstrated on a on a NASA Gulfstream III. The radar will be fully polarimetric, with a range bandwidth of 80 MHz (2 m range resolution), and will support a 16 km range swath. The antenna will be electronically steered along track to assure that the antenna beam can be directed independently, regardless of the wind direction and speed. Other features supported by the antenna include elevation monopulse and pulse-to-pulse re-steering capabilities that will enable some novel modes of operation. The system will nominally operate at 45,000 ft (13800 m). The program began as an Instrument Incubator Project (IIP) funded by NASA Earth Science and Technology Office (ESTO).",
+      "abstractSource": "https://authors.library.caltech.edu/22386",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "UAVSAR is a reconfigurable, fully polarimetric L-band synthetic aperture radar designed for airborne repeat-track data for differential interferometry.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The planned radar has an 80 MHz range bandwidth (2 m range resolution) and a 16 km range swath, and nominally operates at 45,000 ft (13800 m) on a NASA Gulfstream III.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The flight control system is expected to keep the flight path within a 10 m diameter tube about the desired track.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "rosenburg2011": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Rosenburg, M. A. and Aharonson, O. and Head, J. W. and Kreslavsky, M. A. and Mazarico, E. and Neumann, G. A. and Smith, D. E. and Torrence, M. H. and Zuber, M. T.",
+        "title": "Global surface slopes and roughness of the {Moon} from the {Lunar Orbiter Laser Altimeter}",
+        "journal": "Journal of Geophysical Research: Planets",
+        "year": "2011",
+        "volume": "116",
+        "number": "E2",
+        "pages": "E02001",
+        "doi": "10.1029/2010JE003716"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2010JE003716",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2010je003716",
+      "searchQuery": "Crossref bibliographic query: Rosenburg 2011 Global surface slopes and roughness of the Moon from the Lunar Orbiter Laser Altimeter",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref record (DOI 10.1029/2010je003716, authors, vol 116, issue E2, 3 Feb 2011) compared with the CaltechAUTHORS record, which gives article number E02001 and the abstract. The Wiley page returned 403 so the abstract was read at the Caltech repository record (author-deposited copy of the published abstract), not at the publisher. Only the abstract was read, not the body.",
+      "abstract": "The acquisition of new global elevation data from the Lunar Orbiter Laser Altimeter, carried on the Lunar Reconnaissance Orbiter, permits quantification of the surface roughness properties of the Moon at unprecedented scales and resolution. We map lunar surface roughness using a range of parameters: median absolute slope, both directional (along-track) and bidirectional (in two dimensions); median differential slope; and Hurst exponent, over baselines ranging from ~17 m to ~2.7 km. Most of the surface exhibits fractal-like behavior, with a single or two different Hurst exponents over the given baseline range; when a transition exists, it typically occurs near the 1 km baseline, indicating a significant characteristic spatial scale for competing surface processes. The Hurst exponent is high within the lunar highlands, with a median value of 0.95, and lower in the maria (with a median value of 0.76). The median differential slope is a powerful tool for discriminating between roughness units and is useful in characterizing, among other things, the ejecta surrounding large basins, particularly Orientale, as well as the ray systems surrounding young, Copernican-age craters. In addition, it allows a quantitative exploration on mare surfaces of the evolution of surface roughness with age.",
+      "abstractSource": "https://authors.library.caltech.edu/22811",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Lunar roughness is mapped from LOLA elevations with median absolute slope (directional and bidirectional), median differential slope and Hurst exponent, over baselines from about 17 m to about 2.7 km.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Most of the surface is fractal-like with one or two Hurst exponents over that baseline range; where the exponent changes (a breakover), it typically occurs near the 1 km baseline.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The Hurst exponent has a median of 0.95 in the lunar highlands and a lower median of 0.76 in the maria.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Median differential slope discriminates roughness units and allows quantitative study of how mare roughness evolves with age.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "shepard2001": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Shepard, Michael K. and Campbell, Bruce A. and Bulmer, Mark H. and Farr, Tom G. and Gaddis, Lisa R. and Plaut, Jeffrey J.",
+        "title": "The roughness of natural terrain: A planetary and remote sensing perspective",
+        "journal": "Journal of Geophysical Research: Planets",
+        "year": "2001",
+        "volume": "106",
+        "number": "E12",
+        "pages": "32777--32795",
+        "doi": "10.1029/2000JE001429"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2000JE001429",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2000je001429",
+      "searchQuery": "Crossref bibliographic query: Shepard 2001 The roughness of natural terrain planetary and remote sensing perspective",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the publisher-deposited Crossref record for 10.1029/2000je001429 (title, six authors, JGR Planets, vol 106, pp 32777-32795, Dec 2001; issue E12 per the AGU issue numbering and the Dec 2001 date, issue number not itself re-read in the Crossref text returned) and the Crossref abstract field. The Wiley full text was not accessible, so only abstract-level claims are recorded; the specific definitions of RMS deviation, deviogram and Hurst exponent in the article body were NOT read and are not recorded as supported.",
+      "abstract": "We examine the various methods and parameters in common use for quantifying and reporting surface topographic “roughness.” It is shown that scale‐dependent roughness parameters are almost always required, though not widely used. We suggest a method of standardizing the parameters that are computed and reported so that topographic data gathered by different workers using different field techniques can be directly and easily intercompared. We illustrate the proposed method by analyzing topographic data from 60 different surfaces gathered by five different groups and examine the information for common features. We briefly discuss the implications of our analysis for studies of planetary surface roughness, lander safety, and radar remote sensing modeling and analysis.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2000je001429",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Roughness measures used for topography need to depend on the scale of measurement; scale-independent single numbers are almost always inadequate, although they are rarely used in practice.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The authors propose a standardized set of computed and reported roughness parameters so that topographic data from different workers and field techniques can be compared directly.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The proposal is demonstrated on topographic data from 60 surfaces collected by five groups, and its implications are discussed for planetary roughness, lander safety and radar remote sensing modeling.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "shukla2024": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Shukla, Shashwat and Patterson, Gerald Wesley and Maiti, Abhisek and Kumar, Shashi and Dutton, Nicholas",
+        "title": "{Inferring the Variability of Dielectric Constant on the Moon from Mini-RF S-Band Observations}",
+        "year": "2024",
+        "journal": "Remote Sensing",
+        "volume": "16",
+        "number": "17",
+        "pages": "3208",
+        "doi": "10.3390/rs16173208"
+      },
+      "primaryUrl": "https://doi.org/10.3390/rs16173208",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.3390/rs16173208",
+      "searchQuery": "Shukla dielectric constant Mini-RF deep learning Moon",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.3390/rs16173208 and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.3390/rs16173208.",
+      "abstract": "The physical properties of lunar regolith are crucial for exploration planning, hazard assessment, and characterizing scientific targets at global and polar scales. The dielectric constant, a key property, offers insights into lunar material distribution within the regolith and serves as a proxy for identifying volatile-rich regoliths. Miniature radio frequency (Mini-RF) on the Lunar Reconnaissance Orbiter (LRO) provides a potential tool for mapping the lunar regolith’s physical nature and assessing the lunar volatile repository. This study presents global and polar S-band Mini-RF dielectric signatures of the Moon, obtained through a novel deep learning inversion model applied to Mini-RF mosaics. We achieved good agreement between training and testing of the model, yielding a coefficient of determination (R2 value) of 0.97 and a mean squared error of 0.27 for the dielectric constant. Significant variability in the dielectric constant is observed globally, with high-Ti mare basalts exhibiting lower values than low-Ti highland materials. However, discernibility between the South Pole–Aitken (SPA) basin and highlands is not evident. Despite similar dielectric constants on average, notable spatial variations exist within the south and north polar regions, influenced by crater ejecta, permanently shadowed regions, and crater floors. These dielectric differences are attributed to extensive mantling of lunar materials, impact cratering processes, and ilmenite content. Using the east- and west-looking polar mosaics, we estimated an uncertainty (standard deviation) of 1.01 in the real part and 0.03 in the imaginary part of the dielectric constant due to look direction. Additionally, modeling highlights radar backscatter sensitivity to incidence angle and dielectric constant at the Mini-RF wavelength. The dielectric constant maps provide a new and unique perspective of lunar terrains that could play an important role in characterizing lunar resources in future targeted human and robotic exploration of the Moon.",
+      "abstractSource": "https://api.crossref.org/works/10.3390/rs16173208",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "A deep learning inversion of Mini-RF S-band mosaics gives global and polar maps of the lunar dielectric constant.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Comparing east- and west-looking polar mosaics gives a look-direction uncertainty of 1.01 in the real part and 0.03 in the imaginary part of the dielectric constant.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "smith2001": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Smith, David E. and Zuber, Maria T. and Frey, Herbert V. and Garvin, James B. and Head, James W. and Muhleman, Duane O. and Pettengill, Gordon H. and Phillips, Roger J. and Solomon, Sean C. and Zwally, H. Jay and Banerdt, W. Bruce and Duxbury, Thomas C. and Golombek, Matthew P. and Lemoine, Frank G. and Neumann, Gregory A. and Rowlands, David D. and Aharonson, Oded and Ford, Peter G. and Ivanov, Anton B. and Johnson, Catherine L. and McGovern, Patrick J. and Abshire, James B. and Afzal, Robert S. and Sun, Xiaoli",
+        "title": "{Mars Orbiter Laser Altimeter: Experiment summary after the first year of global mapping of Mars}",
+        "year": "2001",
+        "journal": "Journal of Geophysical Research: Planets",
+        "volume": "106",
+        "number": "E10",
+        "pages": "23689--23722",
+        "doi": "10.1029/2000je001364"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2000je001364",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2000je001364",
+      "searchQuery": "Smith Zuber MOLA experiment summary 2001",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.1029/2000je001364 and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.1029/2000je001364.",
+      "abstract": "The Mars Orbiter Laser Altimeter (MOLA), an instrument on the Mars Global Surveyor spacecraft, has measured the topography, surface roughness, and 1.064‐μm reflectivity of Mars and the heights of volatile and dust clouds. This paper discusses the function of the MOLA instrument and the acquisition, processing, and correction of observations to produce global data sets. The altimeter measurements have been converted to both gridded and spherical harmonic models for the topography and shape of Mars that have vertical and radial accuracies of ∼1 m with respect to the planet's center of mass. The current global topographic grid has a resolution of 1/64° in latitude × 1/32° in longitude (1×2 km 2 at the equator). Reconstruction of the locations of incident laser pulses on the Martian surface appears to be at the 100‐m spatial accuracy level and results in 2 orders of magnitude improvement in the global geodetic grid of Mars. Global maps of optical pulse width indicative of 100‐m‐scale surface roughness and 1.064‐μm reflectivity with an accuracy of 5% have also been obtained.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2000je001364",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "MOLA on Mars Global Surveyor measured the topography, surface roughness and reflectivity of Mars, and the paper describes how its observations were processed into global data sets.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "smith2010": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Smith, David E. and Zuber, Maria T. and Jackson, Glenn B. and Cavanaugh, John F. and Neumann, Gregory A. and Riris, Haris and Sun, Xiaoli and others",
+        "title": "The Lunar Orbiter Laser Altimeter Investigation on the Lunar Reconnaissance Orbiter Mission",
+        "journal": "Space Science Reviews",
+        "year": "2010",
+        "volume": "150",
+        "number": "1--4",
+        "pages": "209--241",
+        "doi": "10.1007/s11214-009-9512-y"
+      },
+      "primaryUrl": "https://doi.org/10.1007/s11214-009-9512-y",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1007/s11214-009-9512-y",
+      "searchQuery": "Smith 2010 The Lunar Orbiter Laser Altimeter Investigation on the Lunar Reconnaissance Orbiter Mission Space Science Reviews 150 doi",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "journal",
+        "year",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref record for the DOI compared for title, authors (31; first 7 listed here, remainder as 'others'), journal, volume 150, issue 1-4, pages 209-241. Crossref issued date is 2009 (online first); the print issue is January 2010 (also stated on the Penn State repository record), so year 2010 is used. Springer and ADS pages were not readable (redirect / 405), so the abstract comes from the Penn State Pure repository record of the article, which reproduces the publisher abstract; compare against the Springer abstract at final check.",
+      "abstract": "The Lunar Orbiter Laser Altimeter (LOLA) is an instrument on the payload of NASA's Lunar Reconnaissance Orbiter spacecraft (LRO) (Chin et al., in Space Sci. Rev. 129:391-419, 2007). The instrument is designed to measure the shape of the Moon by measuring precisely the range from the spacecraft to the lunar surface, and incorporating precision orbit determination of LRO, referencing surface ranges to the Moon's center of mass. LOLA has 5 beams and operates at 28 Hz, with a nominal accuracy of 10 cm. Its primary objective is to produce a global geodetic grid for the Moon to which all other observations can be precisely referenced.",
+      "abstractSource": "https://pure.psu.edu/en/publications/the-lunar-orbiter-laser-altimeter-investigation-on-the-lunar-reco/",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "LOLA is a laser altimeter on the Lunar Reconnaissance Orbiter that measures the Moon's shape from spacecraft-to-surface ranges referenced to the Moon's centre of mass.",
+          "location": "abstract"
+        },
+        {
+          "claim": "LOLA has 5 beams, operates at 28 Hz, and has a nominal accuracy of 10 cm.",
+          "location": "abstract"
+        },
+        {
+          "claim": "Its primary objective is a global geodetic grid for the Moon to which other observations can be referenced.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "snyder1987": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "techreport",
+      "fields": {
+        "author": "Snyder, John P.",
+        "title": "Map projections: A working manual",
+        "year": "1987",
+        "institution": "U.S. Geological Survey",
+        "number": "Professional Paper 1395",
+        "doi": "10.3133/pp1395"
+      },
+      "primaryUrl": "https://doi.org/10.3133/pp1395",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.3133/pp1395",
+      "searchQuery": "Snyder 1987 Map projections: A working manual USGS Professional Paper 1395 doi 10.3133/pp1395",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "institution",
+        "number",
+        "doi"
+      ],
+      "evidence": "Crossref record (title, author John P. Snyder, publisher US Geological Survey, year 1987, container 'Professional Paper', no abstract, no pages) and the USGS publications page (series Professional Paper 1395, DOI 10.3133/pp1395, abstract text); doi.org redirects to https://pubs.usgs.gov/publication/pp1395 (that page returned 403 to the fetch tool, so the abstract comes from the www.usgs.gov publications page). The manual's chapter on the azimuthal equidistant projection was not read, so only the abstract-level claims are recorded; the orchestrator should have the specific projection formulas checked against the PDF if the paper relies on them.",
+      "abstract": "After decades of using only one map projection, the Polyconic, for its mapping program, the U.S. Geological Survey (USGS) now uses several of the more common projections for its published maps. For larger scale maps, including topographic quadrangles and the State Base Map Series, conformal projections such as the Transverse Mercator and the Lambert Conformal Conic are used. Equal-area and equidistant projections appear in the National Atlas. Other projections, such as the Miller Cylindrical and the Van der Grinten, are chosen occasionally for convenience, sometimes making use of existing base maps prepared by others. Some projections treat the Earth only as a sphere, others as either ellipsoid or sphere. The USGS has also conceived and designed several new projections, including the Space Oblique Mercator, the first map projection designed to permit mapping of the Earth continuously from a satellite with low distortion. The mapping of extraterrestrial bodies has resulted in the use of standard projections in completely new settings. Several other projections which have not been used by the USGS are frequently of interest to the cartographic public. With increased computerization, it is important to realize that rectangular coordinates for all these projections may be mathematically calculated with formulas which would have seemed too complicated in the past, but which now may be programmed routinely, especially if aided by numerical examples. A discussion of appearance, usage, and history is given together with both forward and inverse equations for each projection involved.",
+      "abstractSource": "https://www.usgs.gov/publications/map-projections-working-manual",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "The manual gives, for each projection it covers, a discussion of appearance, usage and history together with forward and inverse equations.",
+          "location": "abstract"
+        },
+        {
+          "claim": "It notes that equidistant projections are among those appearing in the USGS National Atlas and that standard projections have been applied to extraterrestrial bodies.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "tolometti2020": {
+      "status": "unresolved",
+      "unresolvedReason": "metadata confirmed in the publisher-deposited Crossref record, but no allowed source returned the abstract: Crossref has none, and the publisher page and NASA ADS refuse automated reads.",
+      "entryType": "article",
+      "fields": {
+        "author": "Tolometti, G.D. and Neish, C.D. and Osinski, G.R. and Hughes, S.S. and Nawotniak, S.E. Kobs",
+        "title": "{Interpretations of lava flow properties from radar remote sensing data}",
+        "year": "2020",
+        "journal": "Planetary and Space Science",
+        "volume": "190",
+        "pages": "104991",
+        "doi": "10.1016/j.pss.2020.104991"
+      },
+      "primaryUrl": "https://doi.org/10.1016/j.pss.2020.104991",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1016/j.pss.2020.104991",
+      "searchQuery": "Tolometti Neish Osinski Interpretations of lava flow properties from radar remote sensing data 2020",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Crossref record for DOI 10.1016/j.pss.2020.104991; fields compared: author, title, venue, year, volume, issue, pages, DOI.",
+      "abstract": null,
+      "abstractSource": null,
+      "abstractUnavailableReason": null,
+      "supports": []
+    },
+    "tolometti2022holuhraun": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "article",
+      "fields": {
+        "author": "Tolometti, G. D. and Neish, C. D. and Hamilton, C. W. and Osinski, G. R. and Kukko, A. and Voigt, J. R. C.",
+        "title": "{Differentiating Fissure-Fed Lava Flow Types and Facies Using RADAR and LiDAR: An Example From the 2014--2015 Holuhraun Lava Flow-Field}",
+        "year": "2022",
+        "journal": "Journal of Geophysical Research: Solid Earth",
+        "volume": "127",
+        "number": "7",
+        "pages": "e2021JB023419",
+        "doi": "10.1029/2021jb023419"
+      },
+      "primaryUrl": "https://doi.org/10.1029/2021jb023419",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.crossref.org/works/10.1029/2021jb023419",
+      "searchQuery": "Tolometti Neish Holuhraun lava flow radar lidar surface roughness 2022",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "journal",
+        "volume",
+        "number",
+        "pages",
+        "doi"
+      ],
+      "evidence": "Read the Crossref record deposited by the publisher for DOI 10.1029/2021jb023419 and compared author, title, venue, year, volume, issue, pages and DOI with it; the DOI resolves at doi.org. Abstract from https://api.crossref.org/works/10.1029/2021jb023419.",
+      "abstract": "Distinguishing between lava types and facies using remote sensing data is important for interpreting the emplacement history of lava flow‐fields on Earth and other planetary bodies. Lava facies typically include a mixture of lava types and record the collective emplacement history of material preserved at a particular location. We seek to determine if lava facies in the 2014–2015 Holuhraun lava flow‐field are discernible using radar roughness analysis. Furthermore, we also seek to distinguish between lava types using high resolution Light Detection and Ranging (LiDAR) data. We extracted circular polarization ratios (CPR) from the Uninhabited Aerial Vehicle Synthetic Aperture Radar and cross‐polarization (VH/VV) data from the Sentinel‐1 satellite to analyze the surface roughness of three previously mapped lava facies: rubbly, spiny, and undifferentiated rubbly–spiny. Using the Kruskal‐Wallis test, we reveal that all but one pair of the facies are statistically separable. However, the populations overlap by 88%–89% for CPR and 64%–67% for VH/VV. Therefore, owing to large sample populations ( n > 2 × 10 5 ), slight differences in radar data may be used to probabilistically infer the presence of a particular facies, but not directly map them. We also calculated the root‐mean‐square slope and Hurst exponents of five different lava types using LiDAR topography (5 cm/pixel). Our results show minute differences between most of the lava types, with the exception of the rubbly pāhoehoe, which is discernible at 1σ. In brief, the presence of “transitional” lava types (e.g., rubbly pāhoehoe) within fissure‐fed lava flow‐fields complicates remote sensing‐based mapping.",
+      "abstractSource": "https://api.crossref.org/works/10.1029/2021jb023419",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "UAVSAR circular polarization ratios and Sentinel-1 VH/VV ratios are used to test whether three mapped lava facies of the 2014 to 2015 Holuhraun flow field (rubbly, spiny and undifferentiated rubbly-spiny) differ in radar roughness.",
+          "location": "abstract"
+        },
+        {
+          "claim": "The facies are statistically distinguishable, but their populations overlap by 88%–89% for CPR and 64%–67% for VH/VV, so radar can only probabilistically infer a facies, not map it directly.",
+          "location": "abstract"
+        },
+        {
+          "claim": "RMS slope and Hurst exponents of five lava types from 5 cm/pixel lidar topography differ only slightly, except rubbly pahoehoe.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "vaswani2017": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia",
+        "title": "{Attention Is All You Need}",
+        "year": "2017",
+        "eprint": "1706.03762",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/1706.03762",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/1706.03762",
+      "searchQuery": "arXiv 1706.03762",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/1706.03762 and compared authors, title, first submission date and identifier.",
+      "abstract": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks in an encoder-decoder configuration. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task, improving over the existing best results, including ensembles by over 2 BLEU. On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction of the training costs of the best models from the literature. We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing both with large and limited training data.",
+      "abstractSource": "https://arxiv.org/abs/1706.03762",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "The Transformer is a sequence transduction architecture based solely on attention, without recurrence or convolutions.",
+          "location": "abstract"
+        }
+      ]
+    },
+    "zanaga2022": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Zanaga, Daniele and Van De Kerchove, Ruben and Daems, Dirk and De Keersmaecker, Wanda and Brockmann, Carsten and Kirches, Grit and Wevers, Jan and Cartus, Oliver and Santoro, Maurizio and Fritz, Steffen and Lesiv, Myroslava and Herold, Martin and Tsendbazar, Nandin-Erdene and Xu, Panpan and Ramoino, Fabrizio and Arino, Olivier",
+        "title": "{ESA WorldCover} 10 m 2021 v200",
+        "year": "2022",
+        "publisher": "Zenodo",
+        "doi": "10.5281/zenodo.7254221",
+        "note": "Dataset, version v200, published 28 October 2022, licence CC BY 4.0"
+      },
+      "primaryUrl": "https://doi.org/10.5281/zenodo.7254221",
+      "sourceKind": "publisher",
+      "metadataUrl": "https://api.datacite.org/dois/10.5281/zenodo.7254221",
+      "searchQuery": "ESA WorldCover 10 m 2021 v200 Zanaga Zenodo doi",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "publisher",
+        "doi",
+        "note"
+      ],
+      "evidence": "DataCite record for the DOI (title, 16 creators, publisher Zenodo, publicationYear 2022, version v200, rights CC BY 4.0, resource type Dataset, url zenodo.org/record/7254221) and the Zenodo record page (publication date 28 October 2022, description, licence) compared. The 'Citation' section of the Zenodo page was not captured by the fetch tool, so the provider's preferred citation text was not seen; orchestrator should check it for attribution wording.",
+      "abstract": "The European Space Agency (ESA) WorldCover 10 m 2021 product provides a global land cover map for 2021 at 10 m resolution based on Sentinel-1 and Sentinel-2 data. The WorldCover product comes with 11 land cover classes, aligned with UN-FAO's Land Cover Classification System, and has been generated in the framework of the ESA WorldCover project. The ESA WorldCover 10m 2021 v200 product updates the existing ESA WorldCover 10m 2020 v100 product to 2021 but is produced using an improved algorithm version (v200) compared to the 2020 map. Consequently, since the WorldCover maps for 2020 and 2021 were generated with different algorithm versions (v100 and v200, respectively), changes between the maps should be treated with caution, as they include both real changes in land cover and changes due to the algorithms used.",
+      "abstractSource": "https://zenodo.org/records/7254221",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "ESA WorldCover 2021 v200 is a global 10 m land cover map for 2021 based on Sentinel-1 and Sentinel-2 data, with 11 land cover classes aligned with the UN-FAO Land Cover Classification System.",
+          "location": "abstract (Zenodo description)"
+        },
+        {
+          "claim": "Because 2020 (v100) and 2021 (v200) were produced with different algorithm versions, differences between the two maps mix real change and algorithm change and should be treated with caution.",
+          "location": "abstract (Zenodo description)"
+        },
+        {
+          "claim": "The dataset is released under CC BY 4.0.",
+          "location": "page: Zenodo record, licence field"
+        }
+      ]
+    },
+    "zbontar2021": {
+      "status": "verified",
+      "unresolvedReason": null,
+      "entryType": "misc",
+      "fields": {
+        "author": "Zbontar, Jure and Jing, Li and Misra, Ishan and LeCun, Yann and Deny, St{\\'e}phane",
+        "title": "{Barlow Twins: Self-Supervised Learning via Redundancy Reduction}",
+        "year": "2021",
+        "eprint": "2103.03230",
+        "archiveprefix": "arXiv"
+      },
+      "primaryUrl": "https://arxiv.org/abs/2103.03230",
+      "sourceKind": "arxiv",
+      "metadataUrl": "https://arxiv.org/abs/2103.03230",
+      "searchQuery": "arXiv 2103.03230",
+      "checked": "2026-11-15",
+      "verifiedFields": [
+        "author",
+        "title",
+        "year",
+        "eprint",
+        "archiveprefix"
+      ],
+      "evidence": "Read the arXiv abstract page https://arxiv.org/abs/2103.03230 and compared authors, title, first submission date and identifier.",
+      "abstract": "Self-supervised learning (SSL) is rapidly closing the gap with supervised methods on large computer vision benchmarks. A successful approach to SSL is to learn embeddings which are invariant to distortions of the input sample. However, a recurring issue with this approach is the existence of trivial constant solutions. Most current methods avoid such solutions by careful implementation details. We propose an objective function that naturally avoids collapse by measuring the cross-correlation matrix between the outputs of two identical networks fed with distorted versions of a sample, and making it as close to the identity matrix as possible. This causes the embedding vectors of distorted versions of a sample to be similar, while minimizing the redundancy between the components of these vectors. The method is called Barlow Twins, owing to neuroscientist H. Barlow's redundancy-reduction principle applied to a pair of identical networks. Barlow Twins does not require large batches nor asymmetry between the network twins such as a predictor network, gradient stopping, or a moving average on the weight updates. Intriguingly it benefits from very high-dimensional output vectors. Barlow Twins outperforms previous methods on ImageNet for semi-supervised classification in the low-data regime, and is on par with current state of the art for ImageNet classification with a linear classifier head, and for transfer tasks of classification and object detection.",
+      "abstractSource": "https://arxiv.org/abs/2103.03230",
+      "abstractUnavailableReason": null,
+      "supports": [
+        {
+          "claim": "Barlow Twins avoids trivial constant solutions by driving the cross-correlation matrix of two distorted views' embeddings towards the identity.",
+          "location": "abstract"
+        }
+      ]
+    }
+  }
 }

@@ -524,3 +524,17 @@ def test_artifact_macro_names_are_checked(tmp_path: Path) -> None:
 def test_artifact_macro_spec_names_are_unique() -> None:
     names = [m.name for m in ARTIFACT_MACROS]
     assert len(names) == len(set(names))
+
+
+def test_yaml_lists_and_percent(tmp_path: Path) -> None:
+    (tmp_path / "run.yaml").write_text("a:\n  lags: [270, 360, 540]\n  frac: 0.8\n  one: [5]\n")
+    spec = (
+        artifact("Lags", "run.yaml", "/a/lags", "list:d"),
+        artifact("Pct", "run.yaml", "/a/frac", "%.0f"),
+        artifact("One", "run.yaml", "/a/one", "list:d"),
+    )
+    status, text = run_artifacts(tmp_path, spec)
+    assert status == 0
+    assert "\\newcommand{\\Lags}{270, 360 and 540}\n" in text
+    assert "\\newcommand{\\Pct}{80}\n" in text
+    assert "\\newcommand{\\One}{5}\n" in text

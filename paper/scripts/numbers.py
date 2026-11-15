@@ -260,6 +260,29 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
         "/cpr_statistics/invalid_by_reason/nodata",
         ",d",
     ),
+    ArtifactMacro("ConfigWindowM", "config/run.yaml", "/targets/window_m", "d"),
+    ArtifactMacro("ConfigStrideM", "config/run.yaml", "/targets/stride_m", "d"),
+    ArtifactMacro("ConfigGridM", "config/run.yaml", "/terrain/analysis_grid_m", "d"),
+    ArtifactMacro("ConfigLags", "config/run.yaml", "/terrain/lags_m", "list:d"),
+    ArtifactMacro("ConfigMinLagsH", "config/run.yaml", "/terrain/min_lags_for_H", "d"),
+    ArtifactMacro("ConfigLagSpan", "config/run.yaml", "/terrain/min_lag_span_factor", "d"),
+    ArtifactMacro("ConfigMinValidPct", "config/run.yaml", "/terrain/min_valid_fraction", "%.0f"),
+    ArtifactMacro("ConfigMinAllowedPct", "config/run.yaml", "/earth_search/masks/min_allowed_fraction", "%.0f"),
+    ArtifactMacro("ConfigClones", "config/run.yaml", "/uncertainty/clones_used", "d"),
+    ArtifactMacro("ConfigBackgroundSample", "config/run.yaml", "/uncertainty/background_sample_size", ",d"),
+    ArtifactMacro("ConfigInputPx", "config/run.yaml", "/ml/input_px", "d"),
+    ArtifactMacro("ConfigInputSpacing", "config/run.yaml", "/ml/input_m_per_px", ".3f"),
+    ArtifactMacro("ConfigEmbeddingDim", "config/run.yaml", "/ml/embedding_dim", "d"),
+    ArtifactMacro("ConfigLambdas", "config/run.yaml", "/ml/lambda_adv", "list:.1f"),
+    ArtifactMacro("ConfigAlphaPhys", "config/run.yaml", "/ml/alpha_phys", ".0f"),
+    ArtifactMacro("ConfigSeeds", "config/run.yaml", "/ml/seeds", "list:d"),
+    ArtifactMacro("ConfigSeedCount", "config/run.yaml", "/ml/seeds", "count"),
+    ArtifactMacro("GFivePhysRMin", "config/run.yaml", "/ml/g5/phys_r2_min", ".1f"),
+    ArtifactMacro("GFiveMorphGainMin", "config/run.yaml", "/ml/g5/morph_gain_min", ".2f"),
+    ArtifactMacro("GFiveBodyAccMax", "config/run.yaml", "/ml/g5/body_acc_max", ".2f"),
+    ArtifactMacro("GFiveRhoMin", "config/run.yaml", "/ml/g5/agreement_rho_min", ".1f"),
+    ArtifactMacro("GFiveJaccardMin", "config/run.yaml", "/ml/g5/seed_jaccard20_min", ".1f"),
+    ArtifactMacro("ConfigShippingMode", "config/run.yaml", "/run/shipping_mode", "text"),
     ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
     ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
     ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),
@@ -390,12 +413,33 @@ def render_artifact(value: object, format_spec: str) -> str:
         if not isinstance(value, list | dict):
             raise MacroError(f"the value {value!r} is not an array or object")
         return str(len(value))
+    if format_spec.startswith("list:"):
+        # An array of numbers written as "a, b and c".
+        if not isinstance(value, list) or not value:
+            raise MacroError(f"the value {value!r} is not a non-empty array")
+        items = [render(item, format_spec[5:]) for item in value]
+        return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
     if format_spec.startswith("%"):
         # A fraction shown in percent: the value times 100, under the rest of the spec.
         if isinstance(value, bool) or not isinstance(value, int | float):
             raise MacroError(f"the value {value!r} is not a number")
         return render(value * 100, format_spec[1:])
     return render(value, format_spec)
+
+
+def parse_artifact(path: str, data: bytes) -> object:
+    """A JSON artifact, or a YAML file such as config/run.yaml (safe loader only)."""
+    if path.endswith((".yaml", ".yml")):
+        import yaml
+
+        try:
+            return yaml.safe_load(data.decode("utf-8"))
+        except (UnicodeDecodeError, yaml.YAMLError) as error:
+            raise MacroError(f"{path} is not YAML: {error}") from None
+    try:
+        return json.loads(data, object_pairs_hook=unique_keys)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise MacroError(f"{path} is not JSON: {error}") from None
 
 
 def artifact_lines(
@@ -415,10 +459,7 @@ def artifact_lines(
                 else:
                     data = path.read_bytes()
                     sources[macro.path] = f"% Artifact {macro.path} sha256 {sha256(data)}."
-                    try:
-                        documents[macro.path] = json.loads(data, object_pairs_hook=unique_keys)
-                    except (UnicodeDecodeError, json.JSONDecodeError) as error:
-                        raise MacroError(f"{macro.path} is not JSON: {error}") from None
+                    documents[macro.path] = parse_artifact(macro.path, data)
             if macro.path in documents:
                 value = render_artifact(
                     resolve(documents[macro.path], macro.pointer), macro.format_spec
