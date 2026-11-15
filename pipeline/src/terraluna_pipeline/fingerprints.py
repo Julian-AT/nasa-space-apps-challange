@@ -24,8 +24,38 @@ Public API
         ``ProductRecord``\\ s or ``(product_id, sha256 | None)`` pairs; ``product_ids`` lists
         them in the given order and ``run_id`` is ``provenance.run_id(config_path, products)``
         (CONTRACTS c.4).
+    ``radar_fingerprint(circular, *, window_id, body, product_id, band, frequency_or_wavelength,
+    convention, common_support_m, pixel_size_m, incidence_deg, products, config_path,
+    input_hash) -> FingerprintRecord``
+        The kind ``radar`` record of one product over a window; see its docstring.
     ``build_window_record(*, window_id, body, polygon, ..., status, reasons, ...) -> WindowEntry``
         One row of ``windows/{body}.json``; see its docstring.
+    ``FingerprintReason``
+        The reason codes of this module (CONTRACTS a.5): ``convention_unknown``,
+        ``missing_channel`` and ``no_valid_blocks``. Other modules import them.
+
+Radar mapping (CONTRACTS a.4; PRD 6.2, 7)
+    ``circular`` is the T2 ``derive_circular`` record (linear SC, OC, CPR and their per-pixel
+    states). The block size is ``common_support_m`` (config ``radar.common_support_m``)
+    converted to pixels with the product's stated pixel size: ``round(support / pixel)`` per
+    axis, at least 1. ``support_m`` records the block side that results, ``block_px * pixel``;
+    it is the configured value when that is equal to PRD 7's arithmetic tolerance (rtol 1e-10,
+    atol 1e-12). Rectangular blocks are refused. A missing pixel size raises; none is assumed.
+    The per-block statistics come from T2 ``aggregate_blocks``, called unchanged; this module
+    only collects each statistic's ``VALID`` block values into a Distribution: sorted values,
+    ``n``, min, max, median and the 5th and 95th percentiles (numpy's default linear
+    interpolation). ``cpr_ratio_of_mean_powers`` (primary) and ``cpr_mean_of_pixelwise_ratios``
+    stay two named distributions; ``sc`` and ``oc`` are the block mean powers kept as context.
+    T2 aggregates no block total power and no block handedness ratio, so ``total_power`` and
+    ``handedness_ratio`` are null rather than computed here. ``n_blocks`` counts every block,
+    ``n_valid`` the blocks with a ``VALID`` ratio of mean powers and ``valid_fraction`` their
+    quotient. A block with no CPR (OC zero or negative, masked as noise, missing) contributes
+    nothing: no zero, epsilon or large value is entered. With no valid block the record is
+    ``Unavailable`` with ``no_valid_blocks`` and every distribution null. Without a channel
+    (``circular`` None) it is ``Unavailable`` with ``missing_channel``, and with an undeclared
+    convention with ``convention_unknown``; then no block is measured, so ``n_blocks`` and
+    ``n_valid`` are 0 and ``valid_fraction`` is 0.0 beside the reason. Block statistics of an
+    Observed product are ``Derived``. Mars has no radar (PRD 10) and is refused.
 
 Terrain mapping (CONTRACTS a.4)
     ``relief`` is the T3 variant of detrend ``none`` and ``texture`` that of detrend
@@ -56,6 +86,7 @@ from __future__ import annotations
 import hashlib
 import math
 from collections.abc import Mapping, Sequence
+from enum import StrEnum
 from pathlib import PurePath
 from typing import Final
 
@@ -63,13 +94,23 @@ import numpy as np
 import numpy.typing as npt
 
 from terraluna_pipeline import provenance
+from terraluna_pipeline.polarimetry import (
+    CircularPowers,
+    CovarianceCircularPowers,
+    ObsState,
+    StatedArray,
+    aggregate_blocks,
+)
 from terraluna_pipeline.schema import (
     Body,
+    Distribution,
     EnvironmentFlags,
     EvidenceLabel,
     FingerprintRecord,
+    IncidenceRange,
     ObservedInterpolatedQuality,
     ProductRecord,
+    RadarFingerprint,
     TerrainFingerprint,
     TerrainVariant,
     UnsupportedLag,
@@ -85,12 +126,28 @@ from terraluna_pipeline.terrain import TerrainVariant as T3Variant
 __all__ = [
     "COPERNICUS_SURFACE_MODEL_NOTE",
     "RESAMPLER",
+    "FingerprintReason",
     "Product",
     "build_window_record",
     "input_hash",
     "lag_key",
+    "radar_fingerprint",
     "terrain_record",
 ]
+
+
+class FingerprintReason(StrEnum):
+    """Why a radar fingerprint is Unavailable (CONTRACTS a.5). Consumers import these."""
+
+    CONVENTION_UNKNOWN = "convention_unknown"
+    """The product's polarimetric convention is not declared, so SC and OC are not defined."""
+
+    MISSING_CHANNEL = "missing_channel"
+    """A source channel the circular powers need is missing from the product."""
+
+    NO_VALID_BLOCKS = "no_valid_blocks"
+    """No block of the window has a valid ratio of mean powers."""
+
 
 RESAMPLER: Final = "aeqd_sphere"
 """The declared D29 analysis-window resampler (PRD 7)."""
@@ -243,6 +300,145 @@ def terrain_record(
 
 def _product_id(product: Product) -> str:
     return product.product_id if isinstance(product, ProductRecord) else product[0]
+
+
+# --- radar --------------------------------------------------------------------------------------
+
+_SUPPORT_RTOL: Final = 1e-10
+_SUPPORT_ATOL: Final = 1e-12
+
+
+def _block_pixels(
+    support_m: float, pixel_size_m: float | tuple[float, float] | None
+) -> tuple[tuple[int, int], float]:
+    if pixel_size_m is None:
+        raise ValueError("the product states no pixel size; none is assumed")
+    support = float(support_m)
+    if not (math.isfinite(support) and support > 0.0):
+        raise ValueError(f"common_support_m must be finite and positive, got {support_m!r}")
+    sizes = (
+        (float(pixel_size_m), float(pixel_size_m))
+        if isinstance(pixel_size_m, int | float)
+        else (float(pixel_size_m[0]), float(pixel_size_m[1]))
+    )
+    for size in sizes:
+        if not (math.isfinite(size) and size > 0.0):
+            raise ValueError(f"pixel size must be finite and positive, got {pixel_size_m!r}")
+    block = (max(1, round(support / sizes[0])), max(1, round(support / sizes[1])))
+    sides = (block[0] * sizes[0], block[1] * sizes[1])
+    if not math.isclose(sides[0], sides[1], rel_tol=_SUPPORT_RTOL, abs_tol=_SUPPORT_ATOL):
+        raise ValueError(
+            f"blocks of {block} pixels of {sizes} m are {sides} m, not square; "
+            "a rectangular support is not a common support"
+        )
+    if math.isclose(sides[0], support, rel_tol=_SUPPORT_RTOL, abs_tol=_SUPPORT_ATOL):
+        return block, support
+    return block, sides[0]
+
+
+def _distribution(statistic: StatedArray) -> Distribution | None:
+    """The VALID block values of one T2 statistic, or None when there is none."""
+    used = np.equal(statistic.state, ObsState.VALID)
+    values = np.sort(statistic.value[used])
+    if values.size == 0:
+        return None
+    return Distribution(
+        n=int(values.size),
+        values=[float(v) for v in values.tolist()],
+        min=float(values[0]),
+        median=float(np.median(values)),
+        p05=float(np.percentile(values, 5.0)),
+        p95=float(np.percentile(values, 95.0)),
+        max=float(values[-1]),
+    )
+
+
+def radar_fingerprint(
+    circular: CircularPowers | CovarianceCircularPowers | None,
+    *,
+    window_id: str,
+    body: Body,
+    product_id: str,
+    band: str,
+    frequency_or_wavelength: str,
+    convention: str | None,
+    common_support_m: float,
+    pixel_size_m: float | tuple[float, float] | None,
+    incidence_deg: IncidenceRange | None,
+    products: Sequence[Product],
+    config_path: str | PurePath,
+    input_hash: str,
+) -> FingerprintRecord:
+    """The kind ``radar`` FingerprintRecord of one product over a window (module docstring).
+
+    ``circular`` is the T2 ``derive_circular`` output on the window's pixel grid, or None when
+    the product lacks a channel it needs. ``convention`` is the product's declared convention,
+    None when undeclared; when both are given they must agree. The pixel grid must divide into
+    whole blocks (T2 ``aggregate_blocks`` raises otherwise). ``products`` must include
+    ``product_id``. Raises ValueError for a Mars window or a missing pixel size.
+    """
+    if body == "mars":
+        raise ValueError("Mars windows have no radar fingerprint (PRD 10)")
+    block, support = _block_pixels(common_support_m, pixel_size_m)
+    product_ids = [_product_id(product) for product in products]
+    if product_id not in product_ids:
+        raise ValueError(f"radar product {product_id} is not among the listed products")
+    if circular is not None and convention is not None and circular.convention != convention:
+        raise ValueError(
+            f"declared convention {convention!r} differs from the record's {circular.convention!r}"
+        )
+
+    reason: FingerprintReason | None = None
+    n_blocks = n_valid = 0
+    cpr = pixelwise = sc = oc = None
+    if circular is None:
+        reason = FingerprintReason.MISSING_CHANNEL
+    elif convention is None:
+        reason = FingerprintReason.CONVENTION_UNKNOWN
+    else:
+        blocks = aggregate_blocks(circular, block_size=block)
+        ratio = blocks.ratio_of_mean_powers
+        n_blocks = int(ratio.state.size)
+        n_valid = int(np.count_nonzero(np.equal(ratio.state, ObsState.VALID)))
+        if n_valid == 0:
+            reason = FingerprintReason.NO_VALID_BLOCKS
+        else:
+            cpr = _distribution(ratio)
+            pixelwise = _distribution(blocks.mean_of_pixelwise_ratios)
+            sc = _distribution(blocks.mean_sc)
+            oc = _distribution(blocks.mean_oc)
+
+    radar = RadarFingerprint(
+        product_id=product_id,
+        band=band,
+        frequency_or_wavelength=frequency_or_wavelength,
+        convention=convention,
+        support_m=support,
+        aggregation="ratio_of_mean_powers",
+        blocks_independent=False,
+        n_blocks=n_blocks,
+        n_valid=n_valid,
+        valid_fraction=n_valid / n_blocks if n_blocks else 0.0,
+        cpr_ratio_of_mean_powers=cpr,
+        cpr_mean_of_pixelwise_ratios=pixelwise,
+        sc=sc,
+        oc=oc,
+        total_power=None,
+        incidence_deg=incidence_deg,
+        handedness_ratio=None,
+        reason=None if reason is None else reason.value,
+    )
+    return FingerprintRecord(
+        window_id=window_id,
+        body=body,
+        kind="radar",
+        product_ids=product_ids,
+        evidence_label="Unavailable" if reason is not None else "Derived",
+        input_hash=input_hash,
+        run_id=provenance.run_id(config_path, products),
+        terrain=None,
+        radar=radar,
+    )
 
 
 # --- window assembly --------------------------------------------------------------------------
