@@ -21,28 +21,18 @@ function Stat({ name, d }: { readonly name: string; readonly d: CardRecord['dist
       {has ? (
         <>
           <p className="mt-1 font-mono text-2xl leading-none font-semibold tabular-nums">
-            {show(d.value ?? 0)} <span className="text-xs text-muted-foreground">{d.unit}</span>
+            {show(d.value ?? 0)}
           </p>
+          <p className="mt-1 text-xs whitespace-nowrap text-muted-foreground">{d.unit}</p>
           <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
             {isEvidenceLabel(d.evidence_label) ? <EvidenceLabel label={d.evidence_label} /> : null}
             {d.background_percentile === null ? null : <span>percentile {show(d.background_percentile)}</span>}
           </p>
         </>
       ) : (
-        <p className="mt-1 text-sm text-muted-foreground">Unavailable{d.reason === null ? '' : ` — ${d.reason}`}</p>
+        <p className="mt-1 text-sm text-muted-foreground">Not measured</p>
       )}
     </div>
-  );
-}
-
-function Chip({ name, d }: { readonly name: string; readonly d: CardRecord['distances_by_family']['radar_cpr'] }) {
-  const has = d.status === 'available' && d.value !== null;
-  return (
-    <li className="max-w-full">
-      <Badge variant={has ? 'outline' : 'unavailable'} className="h-auto max-w-full py-1 text-left font-mono text-[11px] font-normal whitespace-normal wrap-anywhere">
-        {name}: {has ? `${show(d.value ?? 0)} ${d.unit}` : `Unavailable — ${d.reason ?? d.status}`}
-      </Badge>
-    </li>
   );
 }
 
@@ -57,7 +47,6 @@ export function CardTile({ card, visual, index }: { readonly card: CardRecord; r
         <CardHeader className="gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary" className="font-mono">Card {String(index + 1).padStart(2, '0')}</Badge>
-            <Badge variant="outline" className="font-mono">Mode {card.shipping_mode}</Badge>
             {card.mock ? <Badge variant="destructive">MOCK</Badge> : null}
           </div>
           <CardTitle className="text-xl leading-tight font-semibold text-balance">{visual.headline}</CardTitle>
@@ -67,12 +56,6 @@ export function CardTile({ card, visual, index }: { readonly card: CardRecord; r
           <Stat name="Terrain relief" d={d.terrain_relief} />
           <Stat name="Terrain texture" d={d.terrain_texture} />
         </CardContent>
-        <CardFooter className="mt-auto">
-          <ul className="flex flex-wrap gap-2">
-            <Chip name="Radar CPR" d={d.radar_cpr} />
-            <Chip name="Model embedding (experimental)" d={d.model_embedding} />
-          </ul>
-        </CardFooter>
       </Card>
     </Link>
   );

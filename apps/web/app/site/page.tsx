@@ -35,7 +35,7 @@ export default function SiteIndex() {
       <PageHeader
         eyebrow={`Bundle ${manifest.bundle_version}`}
         title="Evidence cards"
-        lead="Each card pairs one lunar or Mars window with an Earth window, with evidence labels and its limits. The outline marks the 5 km window on the bundle hillshade."
+        lead="Each card pairs a lunar or Martian window with its nearest Earth terrain."
       />
       {cards.length === 0 ? (
         <Card className="mt-8 border-dashed">

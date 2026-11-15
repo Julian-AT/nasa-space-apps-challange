@@ -16,7 +16,6 @@ import { ringCentroid, type GlobePin } from '../components/globe/index.ts';
 import { Badge } from '../components/ui/badge.tsx';
 import { Card, CardContent, CardHeader } from '../components/ui/card.tsx';
 import { loadBundle } from '../lib/bundle.ts';
-import HomeSections from '../components/shadowastra/home/HomeSections.tsx';
 
 // Fail the build if anything here would make the route dynamic.
 export const dynamic = 'error';
@@ -83,8 +82,6 @@ export default function Home() {
   const bundle = loadBundle();
   const cards = [...bundle.records.cards.keys()];
   const targets = bundle.records.targets;
-  const statuses = new Map<string, number>();
-  for (const record of bundle.validation) statuses.set(record.status, (statuses.get(record.status) ?? 0) + 1);
   const firstCard = cards[0];
   // Declared Earth search regions, read from the Earth window records (search_region_id).
   const regions = [
@@ -95,7 +92,6 @@ export default function Home() {
       }),
     ),
   ];
-  const g5 = bundle.validation.find((g) => g.gate_id === 'G5') ?? null;
   const modelFacts = readModelFacts(bundle);
 
   // Pins: the centroid of each Earth window's polygon ring (one pin per window), read from the cards.
@@ -127,6 +123,9 @@ export default function Home() {
           ? { label: relief.evidence_label, value: relief.value.toFixed(3), unit: relief.unit }
           : { label: 'Unavailable', reason: relief.reason ?? 'not in this bundle' },
       wording: card.wording,
+      reliefValue: relief.status === 'available' ? relief.value : null,
+      targetPin: ringCentroid(card.target.polygon.ring_lonlat),
+      earthPin: c,
     });
   }
 
@@ -139,99 +138,24 @@ export default function Home() {
         bundleVersion={bundle.manifest.bundle_version}
       />
       <ModelSection facts={modelFacts} />
-      <p className="mt-8 max-w-2xl text-sm text-muted-foreground">{HOME_LINE}</p>
-      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        Earth candidates come only from the declared regions{regions.length === 0 ? '' : `: ${regions.join(' and ')}`}. The Moon target is
-        Connecting Ridge (an Artemis candidate region) and the Mars targets are Jezero and Arcadia, compared by terrain roughness
-        fingerprints ν(L) from public elevation data.
-      </p>
 
-      <Numbered n="01" title="In this bundle" description="Counts are read from the bundle records, not typed into the page.">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Stat label="Evidence cards">
-            <LabelledValue label="Derived" value={cards.length} unit="cards" source="cards/ files of the bundle" />
-          </Stat>
-          <Stat label="Targets">
-            {targets === null ? (
-              <LabelledValue label="Unavailable" reason="the bundle lists no targets.json" />
-            ) : (
-              <LabelledValue label="Derived" value={targets.length} unit="targets" source="targets.json" />
-            )}
-          </Stat>
-          <Stat label="Release gates by status">
-            <ul className="mb-3 flex flex-wrap gap-2">
-              {[...statuses].map(([status, count]) => (
-                <li key={status}>
-                  <Badge variant="outline">{`${status}: ${String(count)}`}</Badge>
-                </li>
-              ))}
-            </ul>
-            <LabelledValue label="Derived" value={bundle.validation.length} unit="gate records" source="validation.json" />
-          </Stat>
-        </div>
-      </Numbered>
-
-      <Numbered n="02" title="What this does and does not claim">
-        <Card>
-          <CardContent>
-          <p className="max-w-3xl text-base leading-relaxed sm:text-lg">
-            The shipping mode in the pill above limits every claim. In Mode C this is a terrain analog pilot:
-            radar comparison was not completed, so nothing here is a radar claim and no page ranks a site as
-            the analog. The nearest Earth window to a target is the nearest in the metric, not a close match or a
-            morphological analog. The learned encoder is experimental
-            {g5 === null
-              ? ' and outside every ranking; G5 is not recorded in this bundle.'
-              : g5.status === 'PASS'
-                ? ' and stays a Predicted second opinion; G5 passed.'
-                : ` and outside every ranking: its promotion gate G5 is ${g5.status}${g5.status === 'FAIL' && g5.result !== null ? ` (${g5.result})` : ''}.`}
-          </p>
-          </CardContent>
-        </Card>
-      </Numbered>
-
-      <Numbered n="03" title="Where to go">
+      <section aria-labelledby="home-entry" className="mt-16 flex flex-col gap-6">
+        <h2 id="home-entry" className="text-2xl font-semibold tracking-tight text-balance">Start exploring</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <EntryCard href="/explore/moon" kicker="Explore" title="Moon">
-            Projected polar map of the Connecting Ridge region.
+          <EntryCard href="/site" kicker="Evidence" title="Cards">
+            Each lunar and Martian target beside its nearest Earth terrain.
           </EntryCard>
-          <EntryCard href="/explore/mars" kicker="Explore" title="Mars">
-            Projected map, terrain only.
+          <EntryCard href="/find" kicker="Live" title="Find">
+            Measure any Earth point in your browser.
           </EntryCard>
-          <EntryCard href="/explore/earth" kicker="Explore" title="Earth">
-            Candidate Earth windows from the declared regions.
+          <EntryCard href="/compare" kicker="Side by side" title="Compare">
+            Swipe between a target and its Earth window.
           </EntryCard>
-          {firstCard === undefined ? (
-            <Card>
-              <CardContent className="flex flex-col gap-2">
-              <p className="text-xs font-medium text-muted-foreground">Evidence</p>
-              <p className="text-lg font-semibold tracking-tight">Evidence cards</p>
-              <LabelledValue label="Unavailable" reason="the bundle holds no evidence cards" />
-              </CardContent>
-            </Card>
-          ) : (
-            <EntryCard href={`/site/${encodeURIComponent(firstCard)}`} kicker="Evidence" title="Evidence cards">
-              One card per target, with evidence labels and claim limits.
-            </EntryCard>
-          )}
           <EntryCard href="/model" kicker="Model" title="Model">
-            Our encoder: architecture, training curves and the G5 verdict.
-          </EntryCard>
-          <EntryCard href="/methods" kicker="Validation" title="Methods">
-            The validation board: every release gate with its status.
-          </EntryCard>
-          <EntryCard href="/data" kicker="Provenance" title="Data">
-            Source products, licences and bundle checksums.
-          </EntryCard>
-          <EntryCard href="/paper" kicker="Write-up" title="Paper">
-            The write-up generated from the same bundle.
+            Architecture, training curves and metrics.
           </EntryCard>
         </div>
-      </Numbered>
-
-      {/* ShadowAstra Atlas's home sections (MIT, Team ShadowAstra), each labelled as theirs. */}
-      <div data-full-bleed>
-        <HomeSections />
-      </div>
+      </section>
     </>
   );
 }

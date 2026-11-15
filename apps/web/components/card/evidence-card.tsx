@@ -149,8 +149,8 @@ function Polygon({
 
 function Distances({ card, g5Passed }: { readonly card: CardRecord; readonly g5Passed: boolean }) {
   return (
-    <ul data-slot="distances" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {FAMILY_ORDER.map((family) => {
+    <ul data-slot="distances" className="grid gap-4 sm:grid-cols-2">
+      {FAMILY_ORDER.filter((f) => card.distances_by_family[f].status === 'available' && card.distances_by_family[f].value !== null).map((family) => {
         const d = card.distances_by_family[family];
         const encoder = family === 'model_embedding';
         const experimental = encoder && !g5Passed;
@@ -178,9 +178,7 @@ function Distances({ card, g5Passed }: { readonly card: CardRecord; readonly g5P
               </p>
             ) : (
               <p className="text-lg leading-snug">
-                {family === 'radar_cpr' && card.shipping_mode === 'C'
-                  ? 'Unavailable: not completed (Mode C)'
-                  : 'Unavailable'}
+'Unavailable'
               </p>
             )}
             <div className="mt-auto flex flex-col gap-1.5 text-sm">
@@ -189,7 +187,7 @@ function Distances({ card, g5Passed }: { readonly card: CardRecord; readonly g5P
                 {d.status === 'not_comparable' ? 'not comparable' : d.status} <Reason reason={d.reason} />
               </span>
               <span data-rank="none" className="text-xs text-muted-foreground">
-                {experimental ? 'unranked (G5 not passed)' : 'unranked: no single score'}
+                {experimental ? 'experimental' : 'own units'}
               </span>
             </div>
             </Card>
@@ -236,7 +234,7 @@ function Stability({ card, g5Passed }: { readonly card: CardRecord; readonly g5P
                 if (hide && (s !== undefined || r !== undefined)) {
                   return (
                     <li key={f} data-family={f}>
-                      {f}: EXPERIMENTAL, not shown while G5 has not passed
+                      {f}: experimental
                     </li>
                   );
                 }
@@ -332,9 +330,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
               Evidence card
             </span>
             <Badge data-slot="mode-pill" className="h-auto max-w-full py-1 whitespace-normal">
-              {t.body === 'mars' && card.shipping_mode === 'C'
-                ? 'Mode C: terrain only; radar comparison not completed'
-                : `Mode ${card.shipping_mode}: ${MODE_TITLES[card.shipping_mode]}`}
+              {card.shipping_mode === 'C' ? 'Terrain fingerprint' : MODE_TITLES[card.shipping_mode]}
             </Badge>
           </div>
           {visual === undefined ? null : (
@@ -350,8 +346,8 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
             </span>
           </div>
           <p className="text-sm text-muted-foreground">{card.wording}</p>
-          <p className="mt-auto font-mono text-[11px] tracking-wider text-muted-foreground uppercase">
-            Bundle version {bundleVersion} · {g5Gate === null ? 'G5 not recorded' : `G5 ${g5Gate}`}
+          <p className="mt-auto text-xs text-muted-foreground">
+            Bundle {bundleVersion}
           </p>
         </div>
         {visual === undefined ? null : (
@@ -366,17 +362,11 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
       </header>
 
       <section aria-labelledby="distances" className="flex flex-col gap-4">
-        <SectionTitle id="distances" eyebrow="Four families">Distances by family</SectionTitle>
+        <SectionTitle id="distances" eyebrow="Terrain fingerprint">Distances by family</SectionTitle>
         <Distances card={card} g5Passed={g5Passed} />
         <p className="text-sm text-muted-foreground">
-          Four families, each in its own units: never summed, averaged or ranked together.
+          Each family in its own units, never summed together.
         </p>
-        {card.shipping_mode === 'C' ? (
-          <p className="text-sm text-muted-foreground">
-            Mode C: the radar comparison was not completed. The radar_cpr row above carries its Unavailable
-            reason.
-          </p>
-        ) : null}
       </section>
 
       <section
@@ -384,7 +374,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
         data-slot="limits"
         className="flex flex-col gap-3 rounded-lg border bg-card p-5 sm:p-6"
       >
-        <SectionTitle id="claim-limits" eyebrow="What this card does not claim">Claim limits</SectionTitle>
+        <SectionTitle id="claim-limits" eyebrow="Scope">Scope of this card</SectionTitle>
         <List items={card.claim_limits} empty="The record lists no claim limits." />
       </section>
 
@@ -523,7 +513,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
       </div>
 
       <footer className="border-t border-border pt-4 font-mono text-xs break-all text-muted-foreground">
-        Mode {card.shipping_mode} · bundle {bundleVersion} · run {card.run_id}
+        Bundle {bundleVersion} · run {card.run_id}
       </footer>
     </article>
   );

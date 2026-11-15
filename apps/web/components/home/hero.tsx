@@ -13,7 +13,8 @@ import { EvidenceLabel, type EvidenceLabelName } from '@/components/evidence-lab
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Globe, type GlobePin } from '@/components/globe';
+import { type GlobePin } from '@/components/globe';
+import { TwinGlobes } from './twin-globes.tsx';
 import { useReducedMotion } from '@/components/globe/use-reduced-motion';
 
 export interface HeroCard {
@@ -26,6 +27,9 @@ export interface HeroCard {
     | { readonly label: Exclude<EvidenceLabelName, 'Unavailable'>; readonly value: string; readonly unit: string }
     | { readonly label: 'Unavailable'; readonly reason: string };
   readonly wording: string;
+  readonly reliefValue: number | null;
+  readonly targetPin: { readonly lat: number; readonly lon: number } | null;
+  readonly earthPin: { readonly lat: number; readonly lon: number } | null;
 }
 
 export interface HeroProps {
@@ -61,7 +65,7 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
           <p className="mt-6 max-w-[580px] text-base leading-relaxed text-muted-foreground sm:text-lg">
             <span className="font-medium text-foreground">Our own physics model, measured live:</span> Terraluna computes a relief and texture
             fingerprint of NASA and ESA elevation models, in your browser for any Earth point, to find terrain that resembles lunar
-            and Martian targets. Terrain only (Mode C): the radar comparison was not completed.
+            and Martian targets.
           </p>
           <ul className="mt-8 flex flex-wrap gap-3">
             <li>
@@ -89,22 +93,7 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
           </ul>
         </div>
         <div className="flex flex-col gap-4">
-        <Card className="overflow-hidden py-0">
-          <div className="mx-auto aspect-square w-full max-w-[420px]">
-            <Globe
-              body="earth"
-              pins={pins}
-              selectedId={selectedId}
-              onSelect={(id) => {
-                const i = cards.findIndex((c) => c.windowId === id);
-                if (i >= 0) {
-                  setIndex(i);
-                  setPaused(true);
-                }
-              }}
-            />
-          </div>
-        </Card>
+        <TwinGlobes cards={cards} />
         {card === undefined ? null : (
           <div className="w-full">
           <aside aria-label="Featured evidence card">

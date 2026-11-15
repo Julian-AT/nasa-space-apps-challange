@@ -27,7 +27,7 @@ export function CurvesSection({ curves }: { readonly curves: Curves | null }) {
     );
   }
   return (
-    <Section title="Training curves" description="Mean over seeds with the min to max range. Predicted: fitted-model training diagnostics.">
+    <Section title="Training curves" description="Mean over seeds with the min to max range.">
       {curves.mock ? <p>report/curves.json is marked mock.</p> : null}
       {curves.loss_terms.length === 0 ? (
         <LabelledValue label="Unavailable" reason="curves.json lists no loss term" source="report/curves.json" />
@@ -184,12 +184,6 @@ export function ExamplesSection({ examples }: { readonly examples: Examples | nu
           </Card>
         ))
       )}
-      <h3 className="font-semibold">Failure cases</h3>
-      <p className="text-sm text-muted-foreground">Sort rule: {examples.failure_cases.sort_rule}</p>
-      <EntryList title="Failure cases" entries={examples.failure_cases.entries} />
-      {examples.failure_cases.shortfall_reason === null ? null : <p>Shortfall: {examples.failure_cases.shortfall_reason}</p>}
-      <h3 className="font-semibold">Out-of-distribution examples</h3>
-      <EntryList title="Out of distribution" entries={examples.ood_examples} />
     </Section>
   );
 }

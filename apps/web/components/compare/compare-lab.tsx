@@ -177,7 +177,7 @@ export function CompareLab({ card, pair, index, total, options, current, records
             <StatTile name="Terrain relief" entry={d.terrain_relief} />
             <StatTile name="Terrain texture" entry={d.terrain_texture} />
             <StatTile name="Radar CPR" entry={d.radar_cpr} />
-            <StatTile name="Model embedding" entry={d.model_embedding} note={`Experimental, outside every ranking (G5 ${card.g5_status}).`} />
+            <StatTile name="Model embedding" entry={d.model_embedding} note="Experimental" />
           </div>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link href={`/site/${card.card_id}`} className={cn(buttonVariants({ size: 'lg' }), 'no-underline')}>

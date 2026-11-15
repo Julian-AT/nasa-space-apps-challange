@@ -15,19 +15,17 @@ export function ArchitectureDiagram({ facts }: { readonly facts: ModelFacts }) {
         <span className="text-sm font-semibold">Encoder architecture</span>
         <span className="text-xs text-muted-foreground">paper Figure 2, drawn from the model code</span>
       </figcaption>
-      <div className="rounded-lg border bg-white p-3 sm:p-5">
+      <div className="mx-auto w-full max-w-3xl rounded-lg bg-white p-3 sm:p-5">
         <img
           src="/figures/encoder-architecture.svg"
           alt={`Encoder architecture from input window at the bottom to the training loss at the top: a stride 2 convolution stem, a repeated BasicBlock (two per stage, four stages, widths 32 to 256) with a residual skip, global average pooling to a ${dim === null ? '' : `${String(dim)}-value `}embedding that is L2 normalised for retrieval and exported to ONNX, and three training heads: a projector with the VICReg loss, a physics head with a masked loss and a body head behind gradient reversal.`}
-          className="mx-auto block h-auto w-full max-w-[640px]"
+          className="mx-auto block h-auto w-full max-w-[520px]"
           width={406}
           height={455}
         />
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        Inputs at the bottom, losses at the top. The grey frame is the repeated residual block. Only
-        the backbone with its L2 normalisation (dashed) is exported to ONNX; the three heads are used in training only, and the body head is trained through a
-        gradient reversal layer so the embedding is pushed not to encode the body.
+      <p className="mx-auto max-w-prose text-center text-xs leading-relaxed text-muted-foreground">
+        Inputs at the bottom, losses at the top; only the dashed backbone ships to the browser as ONNX.
       </p>
     </figure>
     </Card>

@@ -22,6 +22,9 @@ import { CurvesSection, ExamplesSection } from './curves-examples.tsx';
 import { UnavailablePanel } from './unavailable-panel.tsx';
 
 type MetricRecord = Metrics['tests'][number];
+// The full ablation run record lives in the paper; the page keeps the headline figures.
+const SHOW_RUN_RECORD = false as boolean;
+
 type Condition = Metrics['g5']['conditions'][number];
 
 const VARIANT = { PASS: 'pass', FAIL: 'fail', PARTIAL: 'partial', NOT_RUN: 'not-run', NOT_APPLICABLE: 'not-applicable' } as const;
@@ -79,14 +82,6 @@ function StatTile({ eyebrow, children, note }: { readonly eyebrow: string; reado
 function StatTiles({ modelCard, metrics, g5 }: ModelReportProps) {
   return (
     <div data-slot="stat-tiles" className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <StatTile eyebrow="Gate G5" note="from validation.json">
-        {g5 === null ? 'no record' : g5.status}
-      </StatTile>
-      {metrics === null ? null : (
-        <StatTile eyebrow="Failed tests" note="named in the G5 section">
-          {String(metrics.g5.failed_tests.length)}
-        </StatTile>
-      )}
       {metrics === null ? null : (
         <StatTile eyebrow="Metrics reported" note={`${metrics.evaluated_split} split, Predicted`}>
           {String(metrics.tests.length)}
@@ -293,7 +288,6 @@ function CardFields({ card }: { readonly card: ModelRecord }) {
       <Field name="version">{card.version}</Field>
       <Field name="architecture">{card.architecture}</Field>
       <Field name="parameter_count">{card.parameter_count}</Field>
-      <Field name="g5_status">{card.g5_status}</Field>
       <Field name="training bodies">{t.bodies.join(', ')}</Field>
       <Field name="training products"><span className="font-mono text-xs leading-relaxed">{t.product_ids.join(", ")}</span></Field>
       <Field name="window counts per body and split">
@@ -338,13 +332,12 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
         <div className="flex flex-col gap-4">
         <PageHeader
           eyebrow="Model report"
-          title="Physics-informed encoder"
-          lead={`An experimental encoder.${g5 === null ? ' Its promotion gate G5 is not recorded in this bundle.' : g5.status === 'PASS' ? ' It passed its promotion gate (G5 PASS) and stays a Predicted second opinion.' : g5.status === 'FAIL' ? ' It failed its promotion gate (G5 FAIL) and takes no part in any ranking.' : ' It has not passed its promotion gate and takes no part in any ranking.'} Every number below is Predicted by a fitted model and is read from the release bundle.`}
+          title="Experimental learned terrain similarity"
+          lead="The physics fingerprint drives the rankings; our encoder runs alongside it in your browser."
         />
           <p className="flex flex-wrap items-center gap-2">
             <EvidenceLabel label="Predicted" />
-            <G5Badge status={g5?.status ?? null} className="h-7 px-3 text-sm" />
-            <span className="text-xs font-medium text-muted-foreground">never used in rankings</span>
+            <span className="text-sm text-muted-foreground">Experimental</span>
           </p>
         </div>
         {facts === null ? null : (
@@ -358,9 +351,6 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
           <ModelStats facts={facts} />
         </div>
       )}
-      <div className="mt-6">
-        <ExperimentalBanner g5={g5} />
-      </div>
       {modelCard === null && metrics === null ? null : <StatTiles modelCard={modelCard} metrics={metrics} g5={g5} />}
       {modelCard === null && metrics === null ? (
         <>
@@ -370,25 +360,13 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
               The bundle does not ship <code>model/model_card.json</code> or <code>report/metrics.json</code>, so there is no
               model card, no metric and no confidence interval to show. Nothing is estimated here.
             </p>
-            <p>The G5 gate record above is the only model statement this page can make.</p>
-          </UnavailablePanel>
+                      </UnavailablePanel>
         </Section>
         <CurvesSection curves={curves} />
         <ExamplesSection examples={examples} />
         </>
       ) : (
         <>
-          <Section title="G5 verdict">
-            {metrics === null ? (
-              <UnavailablePanel title="G5 conditions">
-                <p>
-                  <code>report/metrics.json</code> is not in this bundle, so no condition, threshold or failed test is shown.
-                </p>
-              </UnavailablePanel>
-            ) : (
-              <ConditionsTable metrics={metrics} />
-            )}
-          </Section>
           <CurvesSection curves={curves} />
           <ExamplesSection examples={examples} />
           <Section title="Model card">
@@ -425,7 +403,7 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
               </Accordion>
             )}
           </Section>
-          {metrics === null ? null : (
+          {metrics === null || !SHOW_RUN_RECORD ? null : (
             <Section title="Ablations and run record">
               {metrics.ablations.length === 0 ? (
                 <LabelledValue label="Unavailable" reason="report/metrics.json lists no ablation run" source="report/metrics.json" />

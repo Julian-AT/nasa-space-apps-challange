@@ -25,13 +25,13 @@ export default function ProbePage() {
       <PageHeader
         eyebrow="Live probe · browser worker"
         title="Live Earth probe"
-        lead={`${LIVE_PROBE_SENTENCE} Enter a point on Earth. Your browser reads the 5 km window from Copernicus GLO-30 and measures it with the same resampler and terrain fingerprint as the pipeline. Nothing is stored or ranked.`}
+        lead="Enter any point on Earth; your browser measures its terrain fingerprint from Copernicus GLO-30."
       />
       <div>
       <p className="mt-3 max-w-3xl rounded-lg bg-card px-4 py-3 ring-1 ring-foreground/10 text-sm text-muted-foreground">
         {encoder.encoder === null
-          ? `Encoder (experimental): Unavailable: ${encoder.reason}.`
-          : `Encoder: EXPERIMENTAL, ${encoder.encoder.spec.model_id}${encoder.encoder.spec.snapshot_note ? ` (${encoder.encoder.spec.snapshot_note}, not the final model)` : ''}, G5 ${encoder.encoder.spec.g5_status}. Its distances are Predicted and never rank anything.`}
+          ? 'Encoder (experimental): not loaded.'
+          : `Experimental encoder ${encoder.encoder.spec.model_id} runs alongside the fingerprint (Predicted).`}
         </p>
       </div>
       <Suspense fallback={<p className="mt-4">Loading the probe…</p>}>
