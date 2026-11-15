@@ -1,0 +1,1090 @@
+{
+  "caveat": "The 5 m surface fills pixels without LOLA returns by interpolation (README); only about 10% of 5 m pixels hold returns, so short lags of 'all_cells' are shaped by the interpolation. 'observed_cells_only' uses pairs of cells that both hold returns (ldec > 0).",
+  "command": "python -m terraluna_pipeline.checks analysis scale-behaviour --pgda-dir /data/terraluna/raw/pgda78",
+  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "evidence_label": "Derived",
+  "input_hashes": [
+    {
+      "path": "config/run.yaml",
+      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y0.json",
+      "sha256": "076a1471da905a8e2c0d90bcb247fb644ca7de0480167397ecfbbdb6e0e70ae6"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y1.json",
+      "sha256": "d04d44ddcea81a7c24cece4862ccf59c35d8b2bbb38bb189636c5d1ca037094e"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y2.json",
+      "sha256": "9f9f1622eefbe18bb2a425fd83d8813cfb0897b882fe83d1288b93cb4a63ede0"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y3.json",
+      "sha256": "cb496170edb7162477d1b03c12ef90d5a09fd29b36b80a2422f53a01b4c58c93"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y4.json",
+      "sha256": "890b87c6d6c8d4e2ed2606f6b32e12b6d10d27c2eb439de2b49af3fc2996ffbd"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y0.json",
+      "sha256": "7721b475843e34e165e3fe632f524026683a19d479a13e8d0285e8a9c4427843"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y1.json",
+      "sha256": "6db080aa35b1909ce013a57cbca533f243e5bf559d55acee24f5cf96ed0f3039"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y2.json",
+      "sha256": "12c3db9c7923dee6939f130f9f22283147eb29d0a972ac5c9a0ac98fdd9514c3"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y3.json",
+      "sha256": "139e604d2f15cadd01ca471c3e63fb4067e627165c5ac723ca3a6082d0be73b5"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y4.json",
+      "sha256": "7d2c60c93acfd25d4ac39d269f37190f5d8520609023e13f1bbd8a9ecd837847"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y0.json",
+      "sha256": "c034febc2062032a996ce6800050c3aa7c6ba0aebc668d0ec69e6c37695d903e"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y1.json",
+      "sha256": "64fbbfbe095ba79acda5eb05911bc0b50d3eb3c5d2b6fb6a832f9cf6e7a7cbb3"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
+      "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y3.json",
+      "sha256": "371a5c0fc99918b3d2eb515bf26a07d3e378cda49c03c3fbca835b1b4b111377"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y4.json",
+      "sha256": "cf00ceed0eb6f2b63be28aa9aa2fde4d069aaa9fe944082e10afdf5b7cb92b75"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y0.json",
+      "sha256": "31db09e3e5fd40fe5d2bb8c7255a9c3aa36abdd34082f5b7cc7df49121ee43be"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y1.json",
+      "sha256": "aa4f2040e8c150b9b7de1ef8b8287e80de6cfaf34e53b4faf1bf0531321a4578"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y2.json",
+      "sha256": "8dae4664f873fe4c3592c685bd579758b37a63f549e40cc672385d71bbf41f28"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y3.json",
+      "sha256": "eaafb2add92cd0df91ba30e69dd67c48da988fab53753776c009e42cd3ccd2e2"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y4.json",
+      "sha256": "65d49c12914752236e28373f2dc65d3f509b29a395644cd09d86757d1cfdcc13"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y0.json",
+      "sha256": "538972d9b7e0b892af7dcff072b49b8638df2e13461ffc31b2f2384030a7c5ef"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y1.json",
+      "sha256": "d5202d078a708255310397460bbcdbc34cced8bd520156f130c525dec8ce064a"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y2.json",
+      "sha256": "84350e1d1004b3e532bfc7680211e2dd42e304fb8cb5ac99f1ae513b8bf7580e"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y3.json",
+      "sha256": "2bead5b320b8e4ccfa3f727ee87e987acb551495f06d94ed32a683b854f351f5"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y4.json",
+      "sha256": "4ea8c3a8499b6df687e9e81a4b1e9c41679d2cc9e8f96fcd20279fc995f2b1a5"
+    }
+  ],
+  "isotropic_rule": "direction_mean",
+  "raw_inputs_sha256": {
+    "Site01_final_adj_5mpp_ldec.tif": "16d6ed21020ad48fa71d94e7437492acf5bf04118f52bcd292f57f22ead4cd23",
+    "Site01_final_adj_5mpp_surf.tif": "3ba7b97cb00a2bcf21189c3aeb535f65afc21207154ab9f0d43c5bdc1f7e747e"
+  },
+  "record_type": "terraluna appendix A scale behaviour",
+  "site": "PGDA78 Site01 (Connecting Ridge), whole 16 x 16 km product at native 5 m",
+  "site_deviograms": {
+    "all_cells": {
+      "breakover_test_all_lags": {
+        "H_above_break": 0.7969618222831211,
+        "H_below_break": 0.9743911974251995,
+        "break_m": 1080.0,
+        "breakover_detected": true,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "delta_bic": 40.38729685788536,
+        "lags_m": [
+          10.0,
+          20.0,
+          45.0,
+          90.0,
+          135.0,
+          180.0,
+          270.0,
+          360.0,
+          540.0,
+          720.0,
+          1080.0,
+          1440.0,
+          2160.0,
+          2880.0,
+          4320.0
+        ],
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 15,
+        "n_lags_beyond_1km": 5,
+        "reason": null,
+        "single_slope_H": 0.9453416041685201,
+        "status": "available"
+      },
+      "breakover_test_lags_ge_90m": {
+        "H_above_break": 0.7698287261589216,
+        "H_below_break": 0.9560165725661933,
+        "break_m": 1440.0,
+        "breakover_detected": true,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "delta_bic": 29.395608674912623,
+        "lags_m": [
+          90.0,
+          135.0,
+          180.0,
+          270.0,
+          360.0,
+          540.0,
+          720.0,
+          1080.0,
+          1440.0,
+          2160.0,
+          2880.0,
+          4320.0
+        ],
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 12,
+        "n_lags_beyond_1km": 5,
+        "reason": null,
+        "single_slope_H": 0.9163152663099305,
+        "status": "available"
+      },
+      "cells": 10240000,
+      "deviogram": [
+        {
+          "lag_m": 10.0,
+          "nu_m": 1.7788941524893949,
+          "pair_count": 20467200
+        },
+        {
+          "lag_m": 20.0,
+          "nu_m": 3.5224280957558087,
+          "pair_count": 20454400
+        },
+        {
+          "lag_m": 45.0,
+          "nu_m": 7.832654164886216,
+          "pair_count": 20422400
+        },
+        {
+          "lag_m": 90.0,
+          "nu_m": 15.472888148003795,
+          "pair_count": 20364800
+        },
+        {
+          "lag_m": 135.0,
+          "nu_m": 22.999786969690902,
+          "pair_count": 20307200
+        },
+        {
+          "lag_m": 180.0,
+          "nu_m": 30.44428068824109,
+          "pair_count": 20249600
+        },
+        {
+          "lag_m": 270.0,
+          "nu_m": 45.14167031091066,
+          "pair_count": 20134400
+        },
+        {
+          "lag_m": 360.0,
+          "nu_m": 59.615217500635225,
+          "pair_count": 20019200
+        },
+        {
+          "lag_m": 540.0,
+          "nu_m": 87.92118938182577,
+          "pair_count": 19788800
+        },
+        {
+          "lag_m": 720.0,
+          "nu_m": 115.38142882681252,
+          "pair_count": 19558400
+        },
+        {
+          "lag_m": 1080.0,
+          "nu_m": 167.74204790012698,
+          "pair_count": 19097600
+        },
+        {
+          "lag_m": 1440.0,
+          "nu_m": 216.64922446881633,
+          "pair_count": 18636800
+        },
+        {
+          "lag_m": 2160.0,
+          "nu_m": 304.9589993027122,
+          "pair_count": 17715200
+        },
+        {
+          "lag_m": 2880.0,
+          "nu_m": 382.5117852124857,
+          "pair_count": 16793600
+        },
+        {
+          "lag_m": 4320.0,
+          "nu_m": 512.7117486113772,
+          "pair_count": 14950400
+        }
+      ]
+    },
+    "observed_cells_only": {
+      "breakover_test_all_lags": {
+        "H_above_break": 0.7644546128459044,
+        "H_below_break": 0.9564669764376341,
+        "break_m": 1440.0,
+        "breakover_detected": true,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "delta_bic": 38.469046791257696,
+        "lags_m": [
+          10.0,
+          20.0,
+          45.0,
+          90.0,
+          135.0,
+          180.0,
+          270.0,
+          360.0,
+          540.0,
+          720.0,
+          1080.0,
+          1440.0,
+          2160.0,
+          2880.0,
+          4320.0
+        ],
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 15,
+        "n_lags_beyond_1km": 5,
+        "reason": null,
+        "single_slope_H": 0.9349137849174789,
+        "status": "available"
+      },
+      "breakover_test_lags_ge_90m": {
+        "H_above_break": 0.7689792005744169,
+        "H_below_break": 0.95207166778964,
+        "break_m": 1440.0,
+        "breakover_detected": true,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "delta_bic": 29.218334571562934,
+        "lags_m": [
+          90.0,
+          135.0,
+          180.0,
+          270.0,
+          360.0,
+          540.0,
+          720.0,
+          1080.0,
+          1440.0,
+          2160.0,
+          2880.0,
+          4320.0
+        ],
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 12,
+        "n_lags_beyond_1km": 5,
+        "reason": null,
+        "single_slope_H": 0.9130303970816372,
+        "status": "available"
+      },
+      "cells": 972204,
+      "deviogram": [
+        {
+          "lag_m": 10.0,
+          "nu_m": 1.803581829313546,
+          "pair_count": 193626
+        },
+        {
+          "lag_m": 20.0,
+          "nu_m": 3.4361761132250606,
+          "pair_count": 233903
+        },
+        {
+          "lag_m": 45.0,
+          "nu_m": 7.419499968457145,
+          "pair_count": 199821
+        },
+        {
+          "lag_m": 90.0,
+          "nu_m": 14.55988627730602,
+          "pair_count": 198942
+        },
+        {
+          "lag_m": 135.0,
+          "nu_m": 21.658272946441592,
+          "pair_count": 196000
+        },
+        {
+          "lag_m": 180.0,
+          "nu_m": 28.599614667850123,
+          "pair_count": 192208
+        },
+        {
+          "lag_m": 270.0,
+          "nu_m": 42.231223547890195,
+          "pair_count": 190326
+        },
+        {
+          "lag_m": 360.0,
+          "nu_m": 55.763561167049204,
+          "pair_count": 189501
+        },
+        {
+          "lag_m": 540.0,
+          "nu_m": 82.22220921964697,
+          "pair_count": 187890
+        },
+        {
+          "lag_m": 720.0,
+          "nu_m": 107.53934971394166,
+          "pair_count": 185502
+        },
+        {
+          "lag_m": 1080.0,
+          "nu_m": 156.18028899621717,
+          "pair_count": 181731
+        },
+        {
+          "lag_m": 1440.0,
+          "nu_m": 202.01005520058146,
+          "pair_count": 177561
+        },
+        {
+          "lag_m": 2160.0,
+          "nu_m": 284.0147175485909,
+          "pair_count": 169392
+        },
+        {
+          "lag_m": 2880.0,
+          "nu_m": 356.70143790100343,
+          "pair_count": 158748
+        },
+        {
+          "lag_m": 4320.0,
+          "nu_m": 476.1747979605159,
+          "pair_count": 140504
+        }
+      ]
+    }
+  },
+  "site_rosenburg_side_by_side": {
+    "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+    "ours": 0.9163152663099305,
+    "ours_label": "Derived (single-slope H over 90 m to 4.32 km lags, all cells)",
+    "rosenburg_2011_median_H": {
+      "highlands": 0.95,
+      "maria": 0.76
+    },
+    "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+  },
+  "windows_90m": {
+    "moon-sps-x0-y0": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9841521803877957,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9842034764275698,
+        0.9842956113745635
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9841521803877957,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x0-y1": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 1.0019283931367966,
+      "relief_H_clone_p2_5_p97_5": [
+        1.0020482151325139,
+        1.0021244022918117
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 1.0019283931367966,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x0-y2": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9337578138354511,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9339922771608883,
+        0.9341540240549092
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9337578138354511,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x0-y3": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.8928148095435747,
+      "relief_H_clone_p2_5_p97_5": [
+        0.8929972946153772,
+        0.8931423549168542
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.8928148095435747,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x0-y4": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.911450597373733,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9115575645972162,
+        0.9116713433978506
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.911450597373733,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x1-y0": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 1.0097373644089394,
+      "relief_H_clone_p2_5_p97_5": [
+        1.009846504503194,
+        1.0099140245815095
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 1.0097373644089394,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x1-y1": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9354179153122227,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9356365408180337,
+        0.9357516848814625
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9354179153122227,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x1-y2": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9335997367787648,
+      "relief_H_clone_p2_5_p97_5": [
+        0.933954890140317,
+        0.9341195263755129
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9335997367787648,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x1-y3": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9240476430407105,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9241688476824873,
+        0.9243358354931885
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9240476430407105,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x1-y4": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.8766301037102148,
+      "relief_H_clone_p2_5_p97_5": [
+        0.8766791711626504,
+        0.8768149163788459
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.8766301037102148,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x2-y0": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.92828281321735,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9287089898588482,
+        0.9289055115662217
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.92828281321735,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x2-y1": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.8628978543045396,
+      "relief_H_clone_p2_5_p97_5": [
+        0.8636425842081039,
+        0.8638838483589636
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.8628978543045396,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x2-y2": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.8899796282772006,
+      "relief_H_clone_p2_5_p97_5": [
+        0.8902678191783924,
+        0.890433869204449
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.8899796282772006,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x2-y3": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 1.006288090879582,
+      "relief_H_clone_p2_5_p97_5": [
+        1.0063197069757055,
+        1.0064091173704974
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 1.006288090879582,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x2-y4": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9253384708603977,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9253805898805039,
+        0.9255529378844232
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9253384708603977,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x3-y0": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.8363717643382912,
+      "relief_H_clone_p2_5_p97_5": [
+        0.8371730802296125,
+        0.8375272993391262
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.8363717643382912,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x3-y1": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.8504930667369348,
+      "relief_H_clone_p2_5_p97_5": [
+        0.8511253513736372,
+        0.85146861832446
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.8504930667369348,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x3-y2": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.8834510391313483,
+      "relief_H_clone_p2_5_p97_5": [
+        0.8837499492332489,
+        0.8839429764877055
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.8834510391313483,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x3-y3": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9922611897378519,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9923574886031474,
+        0.9924514592050944
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9922611897378519,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x3-y4": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9566653860506643,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9566650934628168,
+        0.9567687830736514
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9566653860506643,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x4-y0": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9638604788403788,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9640658556121185,
+        0.9642084203833498
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9638604788403788,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x4-y1": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9257405803360572,
+      "relief_H_clone_p2_5_p97_5": [
+        0.926193889654768,
+        0.9264135240271341
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9257405803360572,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x4-y2": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.8903066378860907,
+      "relief_H_clone_p2_5_p97_5": [
+        0.8906645099233352,
+        0.8908503796970343
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.8903066378860907,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x4-y3": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9458762613373456,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9461311683723677,
+        0.9462882578607216
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9458762613373456,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    },
+    "moon-sps-x4-y4": {
+      "breakover_test": {
+        "breakover_detected": null,
+        "criterion": "BIC(line) - BIC(hinge) > 10",
+        "log_base": "natural",
+        "min_lags_per_segment": 3,
+        "n_lags": 5,
+        "n_lags_beyond_1km": 1,
+        "reason": "insufficient_lags_beyond_break",
+        "status": "unavailable"
+      },
+      "relief_H": 0.9576953149676138,
+      "relief_H_clone_p2_5_p97_5": [
+        0.9577810237660415,
+        0.9579129652868855
+      ],
+      "rosenburg_side_by_side": {
+        "note": "Side by side only. Different baselines and surface types: Rosenburg et al. fit LOLA profile deviograms over their own baseline range per terrain type (global highlands and maria), we fit a 90 m grid deviogram over 270-1080 m lags in 5 km south-polar windows. No wavelength correction from H is applied (D11) and this comparison is no gate result.",
+        "ours": 0.9576953149676138,
+        "ours_label": "Derived",
+        "rosenburg_2011_median_H": {
+          "highlands": 0.95,
+          "maria": 0.76
+        },
+        "source": "Rosenburg et al. 2011, JGR Planets 116, E02001, doi:10.1029/2010JE003716"
+      }
+    }
+  }
+}

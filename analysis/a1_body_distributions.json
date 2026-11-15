@@ -1,0 +1,388 @@
+{
+  "bodies": {
+    "earth": {
+      "reason": "t5_search_outputs_not_available",
+      "status": "not_run"
+    },
+    "mars": {
+      "reason": "t5_search_outputs_not_available",
+      "status": "not_run"
+    },
+    "moon": {
+      "descriptors": {
+        "log_relief.nu_m@1080": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 5.2497970370352,
+            "level": 0.95,
+            "lo": 4.753756834733358,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 5.524067616691982,
+          "median": 5.028773197931822,
+          "min": 4.532523979376342,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 4.801308166607304,
+          "q75": 5.17751750485092
+        },
+        "log_relief.nu_m@270": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 3.8545467387592973,
+            "level": 0.95,
+            "lo": 3.5328797891809063,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 4.124341013311004,
+          "median": 3.7564524723501136,
+          "min": 3.3534345056655237,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 3.5328797891809063,
+          "q75": 3.8545467387592973
+        },
+        "log_relief.nu_m@360": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 4.141199920134339,
+            "level": 0.95,
+            "lo": 3.7990853782042446,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 4.412123875379629,
+          "median": 4.0305818966636995,
+          "min": 3.6178199714058374,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 3.7990853782042446,
+          "q75": 4.141199920134339
+        },
+        "log_relief.nu_m@540": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 4.547669943286944,
+            "level": 0.95,
+            "lo": 4.168682043295956,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 4.820314734064825,
+          "median": 4.410065932252256,
+          "min": 3.976703879414927,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 4.177238706766097,
+          "q75": 4.547669943286944
+        },
+        "log_relief.nu_m@720": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 4.837843130854053,
+            "level": 0.95,
+            "lo": 4.421266189155762,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 5.111857611501494,
+          "median": 4.666957658947433,
+          "min": 4.218164783389487,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 4.441491383401539,
+          "q75": 4.83752193476786
+        },
+        "log_texture.nu_m@1080": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 4.8259874956151245,
+            "level": 0.95,
+            "lo": 4.465761932038794,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 4.999596865701676,
+          "median": 4.602473518580613,
+          "min": 3.8938975364274078,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 4.465761932038794,
+          "q75": 4.8259874956151245
+        },
+        "log_texture.nu_m@270": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 3.5825601639687354,
+            "level": 0.95,
+            "lo": 3.281194299878723,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 3.775088470333973,
+          "median": 3.446568031343259,
+          "min": 2.717311588367876,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 3.273856035437742,
+          "q75": 3.5825601639687354
+        },
+        "log_texture.nu_m@360": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 3.85186486205559,
+            "level": 0.95,
+            "lo": 3.5447309148774044,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 4.047038073545428,
+          "median": 3.7055960916764334,
+          "min": 2.9610474772690627,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 3.5276236416855618,
+          "q75": 3.85186486205559
+        },
+        "log_texture.nu_m@540": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 4.223507324626392,
+            "level": 0.95,
+            "lo": 3.9156469785784718,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 4.420716038771461,
+          "median": 4.061695452418397,
+          "min": 3.310862603536195,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 3.9037192946050254,
+          "q75": 4.223507324626392
+        },
+        "log_texture.nu_m@720": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 4.4841871984468895,
+            "level": 0.95,
+            "lo": 4.164263504970538,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 4.674392139124408,
+          "median": 4.300100028096455,
+          "min": 3.559986236282324,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 4.1594148294901325,
+          "q75": 4.4841871984468895
+        },
+        "relief.H": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 0.9458762613373456,
+            "level": 0.95,
+            "lo": 0.8899796282772006,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 1.0097373644089394,
+          "median": 0.92828281321735,
+          "min": 0.8363717643382912,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 0.8903066378860907,
+          "q75": 0.9576953149676138
+        },
+        "texture.H": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 0.8868014585474115,
+            "level": 0.95,
+            "lo": 0.8057198973810656,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 0.9208265907563643,
+          "median": 0.855768232316219,
+          "min": 0.6896538076010417,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 0.8057198973810656,
+          "q75": 0.8878564768719243
+        },
+        "valid_fraction": {
+          "bootstrap_median": {
+            "block": 2,
+            "hi": 1.0,
+            "level": 0.95,
+            "lo": 1.0,
+            "method": "2-D moving-block bootstrap of the median, percentile interval",
+            "replicates": 2000,
+            "replicates_with_data": 2000,
+            "seed": 20261115
+          },
+          "max": 1.0,
+          "median": 1.0,
+          "min": 0.9153719008264463,
+          "n": 25,
+          "n_unavailable": 0,
+          "q25": 0.9623140495867769,
+          "q75": 1.0
+        }
+      },
+      "scope": "PGDA78 Site01 (Connecting Ridge) 5 km windows only, n = 25, 2.5 km stride, so neighbouring windows overlap by half; not a body-wide lunar distribution",
+      "status": "available"
+    }
+  },
+  "bootstrap": {
+    "block_windows": 2,
+    "note": "block = 2 windows at the 2.5 km stride, one window width (choice)",
+    "replicates": 2000,
+    "seed": 20261115
+  },
+  "clone_limits": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6).",
+  "command": "python -m terraluna_pipeline.checks analysis moon-distributions",
+  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "evidence_label": "Derived",
+  "input_hashes": [
+    {
+      "path": "config/run.yaml",
+      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+    },
+    {
+      "path": "outputs/g0/windows-evidence.json",
+      "sha256": "670a8083ffae28dafd7f709a2c58e0c9bb98c0ae9e6b7c64ae0ff8f5c5f2ecff"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y0.json",
+      "sha256": "076a1471da905a8e2c0d90bcb247fb644ca7de0480167397ecfbbdb6e0e70ae6"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y1.json",
+      "sha256": "d04d44ddcea81a7c24cece4862ccf59c35d8b2bbb38bb189636c5d1ca037094e"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y2.json",
+      "sha256": "9f9f1622eefbe18bb2a425fd83d8813cfb0897b882fe83d1288b93cb4a63ede0"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y3.json",
+      "sha256": "cb496170edb7162477d1b03c12ef90d5a09fd29b36b80a2422f53a01b4c58c93"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x0-y4.json",
+      "sha256": "890b87c6d6c8d4e2ed2606f6b32e12b6d10d27c2eb439de2b49af3fc2996ffbd"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y0.json",
+      "sha256": "7721b475843e34e165e3fe632f524026683a19d479a13e8d0285e8a9c4427843"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y1.json",
+      "sha256": "6db080aa35b1909ce013a57cbca533f243e5bf559d55acee24f5cf96ed0f3039"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y2.json",
+      "sha256": "12c3db9c7923dee6939f130f9f22283147eb29d0a972ac5c9a0ac98fdd9514c3"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y3.json",
+      "sha256": "139e604d2f15cadd01ca471c3e63fb4067e627165c5ac723ca3a6082d0be73b5"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x1-y4.json",
+      "sha256": "7d2c60c93acfd25d4ac39d269f37190f5d8520609023e13f1bbd8a9ecd837847"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y0.json",
+      "sha256": "c034febc2062032a996ce6800050c3aa7c6ba0aebc668d0ec69e6c37695d903e"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y1.json",
+      "sha256": "64fbbfbe095ba79acda5eb05911bc0b50d3eb3c5d2b6fb6a832f9cf6e7a7cbb3"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
+      "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y3.json",
+      "sha256": "371a5c0fc99918b3d2eb515bf26a07d3e378cda49c03c3fbca835b1b4b111377"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y4.json",
+      "sha256": "cf00ceed0eb6f2b63be28aa9aa2fde4d069aaa9fe944082e10afdf5b7cb92b75"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y0.json",
+      "sha256": "31db09e3e5fd40fe5d2bb8c7255a9c3aa36abdd34082f5b7cc7df49121ee43be"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y1.json",
+      "sha256": "aa4f2040e8c150b9b7de1ef8b8287e80de6cfaf34e53b4faf1bf0531321a4578"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y2.json",
+      "sha256": "8dae4664f873fe4c3592c685bd579758b37a63f549e40cc672385d71bbf41f28"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y3.json",
+      "sha256": "eaafb2add92cd0df91ba30e69dd67c48da988fab53753776c009e42cd3ccd2e2"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x3-y4.json",
+      "sha256": "65d49c12914752236e28373f2dc65d3f509b29a395644cd09d86757d1cfdcc13"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y0.json",
+      "sha256": "538972d9b7e0b892af7dcff072b49b8638df2e13461ffc31b2f2384030a7c5ef"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y1.json",
+      "sha256": "d5202d078a708255310397460bbcdbc34cced8bd520156f130c525dec8ce064a"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y2.json",
+      "sha256": "84350e1d1004b3e532bfc7680211e2dd42e304fb8cb5ac99f1ae513b8bf7580e"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y3.json",
+      "sha256": "2bead5b320b8e4ccfa3f727ee87e987acb551495f06d94ed32a683b854f351f5"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x4-y4.json",
+      "sha256": "4ea8c3a8499b6df687e9e81a4b1e9c41679d2cc9e8f96fcd20279fc995f2b1a5"
+    }
+  ],
+  "isotropic_rule": "direction_mean",
+  "log_base": "natural",
+  "record_type": "terraluna appendix A per-body fingerprint distributions"
+}

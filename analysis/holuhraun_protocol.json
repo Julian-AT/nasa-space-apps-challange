@@ -1,0 +1,163 @@
+{
+  "aggregation": {
+    "both_reported": "Both are always reported; neither is substituted for the other (PRD 7).",
+    "mean_pixelwise_cpr": "mean(SC / OC) over the same pixels",
+    "ratio_of_mean_powers": "mean(SC) / mean(OC) over the valid pixels of a facies and over the union of the three facies"
+  },
+  "facies_source": {
+    "citation": "Voigt, J. R. C. and Hamilton, C. W. (2021). Geomorphological Facies Map for the 2014-2015 Holuhraun Lava Flow-Field in Iceland. University of Arizona Research Data Repository (figshare), doi 10.25422/azu.data.12971129.v3, license CC BY-NC 4.0, file Facies_Holuhraun.zip (Esri file geodatabase Facies_contact_1_800_map.gdb, digitized at 1:800). Companion paper: Voigt et al. (2021), Geomorphological characterization of the 2014-2015 Holuhraun lava flow-field in Iceland, J. Volcanol. Geotherm. Res.",
+    "conversion": "ogr2ogr -f GeoJSON <layer>.geojson Facies_contact_1_800_map.gdb <layer> -t_srs EPSG:4326 -lco COORDINATE_PRECISION=7 (source CRS ISN2004 / Lambert 2004, GDAL OpenFileGDB driver); no simplification, no editing",
+    "kind": "real published polygons (not an approximation)",
+    "labels": {
+      "pixel_membership": "Derived: a pixel belongs to a facies when its centre lies inside a polygon of that layer",
+      "polygons": "Observed (published mapping)",
+      "registration_of_polygons_to_scene": "Assumed: no shift applied and none checked; polygons were drawn on Loftmyndir/UltraCam orthomosaics, the UAVSAR GRD is ground projected on the scene DEM"
+    },
+    "layers": [
+      "Rubbly_facies (27 features)",
+      "Spiny_facies (92 features)",
+      "Undifferentiated_facies (9 features)"
+    ],
+    "no_exact_replication_claim": "Tolometti et al. used a 5 m/pixel CPR mosaic of DT 4 and DT 5 and a possibly different pixel set (n = 1,048,575 / 551,598 / 225,676); the pixel sets here come from the GRD of DT 4 at its native spacing. No exact replication is claimed.",
+    "scene_coverage_note": "Polygons extend slightly west of the scene (scene west edge -16.8448 deg; layer extents reach -16.862 deg); only pixels inside the scene are used. No vent-proximal or other overlay layer is used.",
+    "used_by_tolometti": "Tolometti et al. (2022, JGR Planets, doi 10.1029/2021JB023419) section 2.3: facies polygons delimited by Voigt et al. (2021a), freely accessible as an ArcGIS geodatabase at the University of Arizona repository."
+  },
+  "g3_status_logic": {
+    "FAIL": "suspected_processing_error",
+    "NOT_RUN": "the reproduction has not run",
+    "PARTIAL": "consistent without the other parts, or discrepant (with the discrepancy explained and the claim narrowed)",
+    "PASS": "consistent and the other G3 parts (lunar shadow behaviour, impact-melt context; story T6-06) are recorded",
+    "this_record": "The other G3 parts are not recorded by this record, so G3 can be at best PARTIAL."
+  },
+  "incidence_band_rule": {
+    "incidence_product": "The scene's .inc raster, local incidence angle on the GRD grid, float32, radians per the JPL format page (the .ann does not state the unit: Assumed unit), nodata -10000, converted to degrees.",
+    "reported": "The incidence range over the polygon pixels and over the valid pixels is read from the scene and reported in degrees.",
+    "rule": "Keep pixels whose local incidence angle is at most 65 deg; no lower bound. Pixels with no incidence value are excluded as INCIDENCE_NODATA.",
+    "source": "Tolometti et al. 2022 section 2.2.1: data with incidence > 65 deg excluded (DT 5 swath)."
+  },
+  "input_hashes": [],
+  "neish_2017_target": {
+    "aggregation": [
+      "ratio_of_mean_powers",
+      "mean_pixelwise_cpr"
+    ],
+    "convention": "unverified: Neish's handedness and basis not verified against ours (PRD 6.2)",
+    "incidence_band_deg": [
+      50.0,
+      53.0
+    ],
+    "region": "Neish et al. 2017 Holuhraun region polygon (not reconstructable from the publication)",
+    "rule": "The target applies only when region, convention, aggregation and incidence band all match. Region and convention are known not to match, so the comparison is expected to be Unavailable with the mismatching items named; our values are reported without a pass or fail against 0.47 and 0.51.",
+    "source": "Neish et al. (2017), Icarus, Terrestrial analogues for lunar impact melt flows (PRD R06, PRD section 7)",
+    "values": {
+      "incidence_deg": [
+        50,
+        53
+      ],
+      "mean_pixelwise_cpr": 0.51,
+      "ratio_of_mean_powers": 0.47
+    }
+  },
+  "oc_validity_rule": {
+    "conversion_tolerance": "Hermitian and PSD tolerance rtol 2**-22, atol 0, derived from float32 storage precision exactly as in fixtures/polarimetry/oracle_tolerance.json (decided there before its comparison).",
+    "exclusion_order": [
+      "FACIES_OVERLAP",
+      "PRODUCT_NODATA",
+      "FILTER_WINDOW_INCOMPLETE",
+      "INCIDENCE_NODATA",
+      "INCIDENCE_ABOVE_MAX",
+      "(reasons of derive_circular)"
+    ],
+    "handedness": "Handedness and basis are not verified against Neish et al.; no result is called Mini-RF-equivalent (PRD 6.2).",
+    "product_nodata": "All three real powers (HHHH, HVHV, VVVV) exactly 0, or any product value non-finite: PRODUCT_NODATA (the GRD files carry no validity flag; zero fill outside the swath).",
+    "rule": "CPR = SC/OC comes from terraluna_pipeline.polarimetry.derive_circular (covariance input, ordering HH_HV_VV, convention NEISH_SC_LL_TX_1_MINUS_I). A pixel with OC <= 0 is excluded as OC_NONPOSITIVE; non-Hermitian, non-PSD, nonfinite or out-of-range covariances are excluded with the reasons of that function. No epsilon, no clipping, CPR > 1 stays valid."
+  },
+  "overlap_definition": {
+    "bin_rule": "100 equal-width bins of 0.02 on CPR in [0, 2], plus one underflow bin (CPR < 0) and one overflow bin (CPR > 2). Values are counted in the overflow bin, never clipped; CPR > 1 stays valid.",
+    "definition": "Overlap coefficient of two normalized histograms on common bins: OVL = sum_i min(p_i, q_i).",
+    "definition_check_on_published_values": "After this protocol is committed, the same function is applied to the published per-pixel CPR values (Mendeley Data) as a check that the definition is comparable to Tolometti's. It changes nothing in the bin rule or the rule below; if it does not give a value in the consistent range, the report says the definition is not shown to be comparable.",
+    "pairs": [
+      "rubbly|spiny",
+      "rubbly|undifferentiated",
+      "spiny|undifferentiated"
+    ],
+    "range_basis": "Fixed in advance from the CPR physics (0 to 2 covers the bulk; CPR above 1 is valid) before any result.",
+    "tolometti_definition": "Tolometti et al. (2022) Results text and Figure 8e: 'fraction of population overlap (in %)' between the normalized frequency distributions of the facies CPR populations. The accepted-manuscript text states no bin width, range or estimator; the bin rule below is an engineering choice, not Tolometti's."
+  },
+  "parameters": {
+    "boxcar": 3,
+    "convention": "NEISH_SC_LL_TX_1_MINUS_I",
+    "conversion_atol": 0.0,
+    "conversion_rtol": 2.384185791015625e-07,
+    "incidence_max_deg": 65.0,
+    "ordering": "HH_HV_VV",
+    "overlap_bins": [
+      0.0,
+      2.0,
+      100
+    ],
+    "primary_variant": "boxcar3x3"
+  },
+  "plausibility_rule": {
+    "classification": {
+      "consistent": "every pairwise overlap >= 0.78 and every facies mean pixelwise CPR within 0.10 of the published mean",
+      "discrepant": "anything else",
+      "suspected_processing_error": "any pairwise overlap < 0.60: far better separated than published; flagged as a suspected processing error"
+    },
+    "level_tolerance_basis": "about one published polygon-level sigma; our statistic is a pixel mean, theirs a mean of polygon means",
+    "level_tolerance_cpr": 0.1,
+    "overlap_consistent_min": 0.78,
+    "overlap_suspect_below": 0.6,
+    "overlap_tolerance_basis": "10 percentage points below the published 88%: the published figure is rounded to 1 pp, and bin rule, filter, pixel spacing and mosaic differ from ours; an engineering choice, not derived from data.",
+    "published_mean_cpr": {
+      "rubbly": 0.47,
+      "spiny": 0.45,
+      "undifferentiated": 0.47
+    },
+    "published_mean_cpr_source": "Tolometti et al. 2022 Results text, Figure 7a (mean of per-polygon mean CPR; sigma 0.10, 0.08, 0.09)",
+    "published_overlap_range": [
+      0.88,
+      0.89
+    ],
+    "published_overlap_source": "Tolometti et al. 2022 abstract and Results text ('overlap by 88-89% for CPR', 'all CPR populations overlap by >88%')"
+  },
+  "possible_reasons_for_difference": [
+    "Tolometti et al. used a 5 m/pixel CPR mosaic (DT 4 and DT 5); this run uses the native GRD spacing of DT 4 only.",
+    "The bin rule of the published overlap is not stated; ours is an engineering choice.",
+    "Where Tolometti's 3x3 low-pass filter acts (CPR or covariance) is not stated.",
+    "Their CPR values come from the JPL UAVSAR products processed by their own scripts (not available as code); handedness and basis conventions are not verified against ours.",
+    "Polygon registration to the scene is assumed; polygons are drawn on orthophotos.",
+    "The pixel sets differ: Mendeley rubbly CSV has 648,509 rows while the paper states n = 1,048,575 (the Excel row limit), so published n is not a reliable reference."
+  ],
+  "protocol_id": "holuhraun-g3-2026-11-15",
+  "protocol_status": "Archived before any CPR result on the real scene was computed or looked at. A later change goes into a new dated protocol file; this file is kept.",
+  "published_comparison_data_sha256": {
+    "files": {
+      "LavaFacieRubbly_RadarValues.csv": "7df61dc7ad9b4df6e9fff64888900a1c0b61a5a07dc7b944103544b3d99c38b4",
+      "LavaFacieSpiny_RadarValues.csv": "a1db517a5feb4e44282a4b9836e854b14b8a94ecb8f2be2423910a193ea37e30",
+      "LavaFacieUndiff_RadarValues.csv": "57fc4bcebd28b5477c18204e08dc62e9540901dffdb786c44bdc0fe8cf6e1e83"
+    },
+    "note": "Tolometti et al. per-pixel CPR values, Mendeley Data doi 10.17632/tjjmf382nz (v1), used only for the overlap-definition check"
+  },
+  "raw_inputs_sha256": {
+    "Facies_Holuhraun.zip": "2052eb4c5d4c4784fcdb083de826da4f94292aab06765dd8f51a3ddd2460fa83",
+    "Icelnd_00208_15083_004_150530_L090HHHH_CX_01.grd": "5b725712885641dac3b97f545c2de0986a4cbbaa489d2bb509ba0ab3123e1eeb",
+    "Icelnd_00208_15083_004_150530_L090HHHV_CX_01.grd": "4ad7c0b62953dce51035ae9b3872de221e070d81e2e218aee1ccd0fbca46a396",
+    "Icelnd_00208_15083_004_150530_L090HHVV_CX_01.grd": "3a6626fc4c4c6c9545813fb98ba66f8f6c5194542b5179600be16896cdd7c723",
+    "Icelnd_00208_15083_004_150530_L090HVHV_CX_01.grd": "c27950c5f1d07899ca5f8f39c30b0261a97f4b513de391edbfdfdfb0e84e3020",
+    "Icelnd_00208_15083_004_150530_L090HVVV_CX_01.grd": "969d962605e49af621efe445e2da7b98fff2afe414b5322aea9fe2d1824266c2",
+    "Icelnd_00208_15083_004_150530_L090VVVV_CX_01.grd": "975c7814964d99b2aaa458df303f82edc2c5a5a714b9a11e2fee16964d2e8b6a",
+    "Icelnd_00208_15083_004_150530_L090_CX_01.ann": "054ccd747e3576886f1e00066fff031fc33b6e0285086a315cc0b4717f2783ed",
+    "Icelnd_00208_15083_004_150530_L090_CX_01.inc": "f110064acbc04f41aaa5e109a5a1baa4ce2056f261f5b5ab7ee53428a3759281",
+    "Rubbly_facies.geojson": "cf68c2615f980f93f49236197064050e5b5949d722bb40e09dfe750a63dfc0b7",
+    "Spiny_facies.geojson": "394a37d492e94b48e971434539bc4c31ee75f2bcc20551246634784343560c36",
+    "Undifferentiated_facies.geojson": "a99b3d4b6051ec73c67c0787c28bc6047a77b08a6f78bee06057b3f5f9d77697"
+  },
+  "scene_id": "Icelnd_00208_15083_004_150530_L090_CX_01",
+  "scene_note": "UAVSAR PolSAR, flight 15083, data take 004 (DT 4), 2015-05-30, L-band, left-looking, ground-projected (GRD) covariance products. This is the DT 4 swath that Tolometti et al. 2022 used for the main lava body; their DT 5 (vent area, incidence > 65 deg) is not in this scene.",
+  "variants": {
+    "as_delivered": "SECONDARY (sensitivity): the product's covariance as delivered, per pixel.",
+    "boxcar3x3": "PRIMARY. The 3x3 mean of the covariance elements is formed first (looks 9 -> 81 as in Tolometti et al. 2022 section 2.3; where the filter acts, CPR image or covariance, is not stated, so covariance is an Assumed choice), then CPR. A pixel needs all 9 window pixels valid.",
+    "primary_rule": "The plausibility rule and the G3 status use the primary variant only."
+  }
+}

@@ -1,0 +1,5997 @@
+{
+  "candidates": [
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 40,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 4.141925894958538,
+        "max": 4.141665848636359,
+        "median": 4.14152694692797,
+        "min": 4.141417676935984,
+        "n": 100,
+        "p2_5": 4.1414404190439935,
+        "p97_5": 4.14161872429731,
+        "spread_half_width_95": 8.91526266584286e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 4.756741105325033,
+        "max": 4.756472342170776,
+        "median": 4.7563188388850275,
+        "min": 4.756205665946516,
+        "n": 100,
+        "p2_5": 4.756230545987173,
+        "p97_5": 4.756411270464743,
+        "spread_half_width_95": 9.036223878489125e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9355371900826446,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.012892561983471074
+      },
+      "window_id": "earth-utm11n-e157-n1541"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 16,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.6265569038985488,
+        "max": 1.6263057257466094,
+        "median": 1.6261675984221764,
+        "min": 1.6260598032410223,
+        "n": 100,
+        "p2_5": 1.6260825530598468,
+        "p97_5": 1.6262591455108717,
+        "spread_half_width_95": 8.829622551242977e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.631102015359249,
+        "max": 1.6308341690207433,
+        "median": 1.630680868468406,
+        "min": 1.630567775272196,
+        "n": 100,
+        "p2_5": 1.6305926231135393,
+        "p97_5": 1.6307731522714,
+        "spread_half_width_95": 9.026457893035467e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9758677685950413,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e157-n1544"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 22,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 2.21992051434915,
+        "max": 2.219659985849979,
+        "median": 2.2195210551080478,
+        "min": 2.2194117151502146,
+        "n": 100,
+        "p2_5": 2.219434500090764,
+        "p97_5": 2.219612779538149,
+        "spread_half_width_95": 8.913972369239964e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.1933078811322493,
+        "max": 2.193029230546956,
+        "median": 2.1928738458398414,
+        "min": 2.192759763476669,
+        "n": 100,
+        "p2_5": 2.1927849449599006,
+        "p97_5": 2.192967707560105,
+        "spread_half_width_95": 9.138130010222234e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9732231404958678,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e157-n1545"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 26,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 2.60562258619239,
+        "max": 2.605369394151756,
+        "median": 2.6052312723999838,
+        "min": 2.6051228967401405,
+        "n": 100,
+        "p2_5": 2.6051456467126766,
+        "p97_5": 2.6053227248613706,
+        "spread_half_width_95": 8.853907434702712e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.6747421945470307,
+        "max": 2.6744736096000112,
+        "median": 2.6743201602526434,
+        "min": 2.6742069543936617,
+        "n": 100,
+        "p2_5": 2.6742318210373415,
+        "p97_5": 2.674412571792947,
+        "spread_half_width_95": 9.037537780276494e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9692561983471074,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.00033057851239669424
+      },
+      "window_id": "earth-utm11n-e157-n1546"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 8,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.2372102025910052,
+        "max": 1.236965300426907,
+        "median": 1.2368281337264049,
+        "min": 1.2367212373543115,
+        "n": 100,
+        "p2_5": 1.2367439558764648,
+        "p97_5": 1.236919159560299,
+        "spread_half_width_95": 8.760184191713982e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.2624332797715572,
+        "max": 1.2621729130547619,
+        "median": 1.2620213414349681,
+        "min": 1.261909032715492,
+        "n": 100,
+        "p2_5": 1.261933630173189,
+        "p97_5": 1.2621123207853708,
+        "spread_half_width_95": 8.934530609094882e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9742148760330579,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.00033057851239669424
+      },
+      "window_id": "earth-utm11n-e157-n1547"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 40,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 4.1904499612819075,
+        "max": 4.190192193455445,
+        "median": 4.190053772924774,
+        "min": 4.189944544571573,
+        "n": 100,
+        "p2_5": 4.189967277387494,
+        "p97_5": 4.190145233552539,
+        "spread_half_width_95": 8.897808252283923e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 4.41738817396976,
+        "max": 4.4171168418322955,
+        "median": 4.416962856092351,
+        "min": 4.416849356515154,
+        "n": 100,
+        "p2_5": 4.41687429404703,
+        "p97_5": 4.417055669310118,
+        "spread_half_width_95": 9.068763154385096e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9877685950413223,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.008925619834710744
+      },
+      "window_id": "earth-utm11n-e158-n1541"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 20,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.9720795491861844,
+        "max": 1.9718367953337887,
+        "median": 1.971700073280854,
+        "min": 1.9715934682027132,
+        "n": 100,
+        "p2_5": 1.9716162674745796,
+        "p97_5": 1.9717907741818421,
+        "spread_half_width_95": 8.725335363124476e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.9817988181017616,
+        "max": 1.981540264860182,
+        "median": 1.9813891812292606,
+        "min": 1.9812771290322715,
+        "n": 100,
+        "p2_5": 1.9813017680095184,
+        "p97_5": 1.981479744235505,
+        "spread_half_width_95": 8.898811299329346e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9781818181818182,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.011239669421487603
+      },
+      "window_id": "earth-utm11n-e158-n1542"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 17,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.6233614497601059,
+        "max": 1.6231149690110045,
+        "median": 1.6229775050612503,
+        "min": 1.6228703925882948,
+        "n": 100,
+        "p2_5": 1.62289317270152,
+        "p97_5": 1.6230687511476107,
+        "spread_half_width_95": 8.778922304542025e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.7604807641717797,
+        "max": 1.7602248346654952,
+        "median": 1.7600745080141054,
+        "min": 1.7599626827573083,
+        "n": 100,
+        "p2_5": 1.7599871887022074,
+        "p97_5": 1.7601644827476592,
+        "spread_half_width_95": 8.86470227259295e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9927272727272727,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e158-n1543"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 17,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.6602862986576485,
+        "max": 1.6600328493078091,
+        "median": 1.6598947012049914,
+        "min": 1.6597863038987244,
+        "n": 100,
+        "p2_5": 1.6598090286377065,
+        "p97_5": 1.6599861286616486,
+        "spread_half_width_95": 8.855001197105583e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.7524101873669384,
+        "max": 1.75214262601457,
+        "median": 1.7519893782456788,
+        "min": 1.7518763264422321,
+        "n": 100,
+        "p2_5": 1.7519011359593926,
+        "p97_5": 1.752081623814606,
+        "spread_half_width_95": 9.024392760670352e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e158-n1544"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 17,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.676460276425624,
+        "max": 1.6762027247590274,
+        "median": 1.6760643931996677,
+        "min": 1.6759551566825004,
+        "n": 100,
+        "p2_5": 1.6759779394532406,
+        "p97_5": 1.6761556875256673,
+        "spread_half_width_95": 8.887403621338219e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.6605560142687954,
+        "max": 1.660281095294087,
+        "median": 1.6601263653915947,
+        "min": 1.6600126372716633,
+        "n": 100,
+        "p2_5": 1.6600377126513222,
+        "p97_5": 1.6602197082212444,
+        "spread_half_width_95": 9.09977849611332e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9976859504132232,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e158-n1545"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 24,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 2.5195542821485137,
+        "max": 2.5192937486839626,
+        "median": 2.519154813492409,
+        "min": 2.519045479319396,
+        "n": 100,
+        "p2_5": 2.5190682543572485,
+        "p97_5": 2.5192465388193908,
+        "spread_half_width_95": 8.914223107114871e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.576613234208864,
+        "max": 2.5763347748440313,
+        "median": 2.5761794240777034,
+        "min": 2.576065357732931,
+        "n": 100,
+        "p2_5": 2.57609052285139,
+        "p97_5": 2.57627325912502,
+        "spread_half_width_95": 9.136813681509537e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9923966942148761,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e158-n1546"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 41,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 4.7008939315049165,
+        "max": 4.700644646744087,
+        "median": 4.700506659255446,
+        "min": 4.700399275963955,
+        "n": 100,
+        "p2_5": 4.7004220235483825,
+        "p97_5": 4.700598177410149,
+        "spread_half_width_95": 8.807693088330737e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 4.672684297832328,
+        "max": 4.672417379880689,
+        "median": 4.672264243291037,
+        "min": 4.672151294495625,
+        "n": 100,
+        "p2_5": 4.672176116526389,
+        "p97_5": 4.672356399429418,
+        "spread_half_width_95": 9.014145151464703e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9993388429752066,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e159-n1541"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 21,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 2.0628558750603743,
+        "max": 2.0626132066280563,
+        "median": 2.062476501178806,
+        "min": 2.0623699111797062,
+        "n": 100,
+        "p2_5": 2.0623926808084145,
+        "p97_5": 2.0625671854841974,
+        "spread_half_width_95": 8.725233789141917e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.063715467674519,
+        "max": 2.0634564220067686,
+        "median": 2.0633052016057984,
+        "min": 2.063193093777843,
+        "n": 100,
+        "p2_5": 2.063217719063823,
+        "p97_5": 2.063395874698387,
+        "spread_half_width_95": 8.90778172819573e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.996694214876033,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e159-n1542"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 18,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.713573174457185,
+        "max": 1.71332137095509,
+        "median": 1.7131833012523208,
+        "min": 1.7130752381844052,
+        "n": 100,
+        "p2_5": 1.7130980128697222,
+        "p97_5": 1.7132748191278557,
+        "spread_half_width_95": 8.840312906677195e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.9050551780537717,
+        "max": 1.9047934856644304,
+        "median": 1.9046415113495854,
+        "min": 1.9045291494918242,
+        "n": 100,
+        "p2_5": 1.9045538378539348,
+        "p97_5": 1.9047328017001854,
+        "spread_half_width_95": 8.948192312530079e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9993388429752066,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e159-n1543"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 14,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.4403047473476274,
+        "max": 1.440050178102141,
+        "median": 1.4399119591377043,
+        "min": 1.4398033585002141,
+        "n": 100,
+        "p2_5": 1.439826119283898,
+        "p97_5": 1.4400033423766412,
+        "spread_half_width_95": 8.861154637163082e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.5553864407853624,
+        "max": 1.5551208569891626,
+        "median": 1.5549679597429857,
+        "min": 1.5548553526130304,
+        "n": 100,
+        "p2_5": 1.5548801221620814,
+        "p97_5": 1.5550598975420198,
+        "spread_half_width_95": 8.98876899692036e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e159-n1544"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 11,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.3956680180700334,
+        "max": 1.3954116395875429,
+        "median": 1.3952734030426344,
+        "min": 1.3951643537789808,
+        "n": 100,
+        "p2_5": 1.3951871454913713,
+        "p97_5": 1.395364689504904,
+        "spread_half_width_95": 8.877200676637997e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.3823518822867558,
+        "max": 1.3820790273959267,
+        "median": 1.3819246844391904,
+        "min": 1.3818111590866358,
+        "n": 100,
+        "p2_5": 1.381836185243777,
+        "p97_5": 1.382017729886745,
+        "spread_half_width_95": 9.077232148402281e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": "terrain_relief:earth-utm11n-e159-n1545",
+          "tie_reason": null,
+          "tied": true
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e159-n1545"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 25,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 2.4898139785919047,
+        "max": 2.489552483873676,
+        "median": 2.489413302298706,
+        "min": 2.489304006011919,
+        "n": 100,
+        "p2_5": 2.4893267849260194,
+        "p97_5": 2.4895052068350743,
+        "spread_half_width_95": 8.921095452740779e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.672791657084514,
+        "max": 2.672513136769493,
+        "median": 2.672357753450747,
+        "min": 2.6722437191212425,
+        "n": 100,
+        "p2_5": 2.6722688943222783,
+        "p97_5": 2.6724516009563737,
+        "spread_half_width_95": 9.135331704768213e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e159-n1546"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 42,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 4.949509597480752,
+        "max": 4.949258026958298,
+        "median": 4.9491198466440185,
+        "min": 4.949012015757864,
+        "n": 100,
+        "p2_5": 4.949034784274109,
+        "p97_5": 4.949211386358871,
+        "spread_half_width_95": 8.830104238111147e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 4.920485806513405,
+        "max": 4.920216477350028,
+        "median": 4.920062846355071,
+        "min": 4.919949643986031,
+        "n": 100,
+        "p2_5": 4.919974550496376,
+        "p97_5": 4.920155364432286,
+        "spread_half_width_95": 9.040696795503678e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9993388429752066,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e160-n1541"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 25,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 2.592623139753714,
+        "max": 2.5923660773607518,
+        "median": 2.59222779532415,
+        "min": 2.592118615874115,
+        "n": 100,
+        "p2_5": 2.5921414092853547,
+        "p97_5": 2.592319091606547,
+        "spread_half_width_95": 8.884116059615366e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.671916313431391,
+        "max": 2.6716419503308058,
+        "median": 2.6714873442141682,
+        "min": 2.6713736240952946,
+        "n": 100,
+        "p2_5": 2.6713986919190686,
+        "p97_5": 2.6715806045005293,
+        "spread_half_width_95": 9.095629073030409e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9973553719008265,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e160-n1542"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 20,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.8258419162557877,
+        "max": 1.8255766451493805,
+        "median": 1.825436649204864,
+        "min": 1.825327397229375,
+        "n": 100,
+        "p2_5": 1.825350136604216,
+        "p97_5": 1.8255292298222046,
+        "spread_half_width_95": 8.954660899429534e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.399327843994352,
+        "max": 2.3990514259630036,
+        "median": 2.3988964297522295,
+        "min": 2.3987825498499014,
+        "n": 100,
+        "p2_5": 2.3988076599125607,
+        "p97_5": 2.3989899831535326,
+        "spread_half_width_95": 9.116162048594667e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9960330578512396,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e160-n1543"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 9,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.3154452444925577,
+        "max": 1.3151878937425119,
+        "median": 1.3150495896300431,
+        "min": 1.3149403756644167,
+        "n": 100,
+        "p2_5": 1.3149631542818898,
+        "p97_5": 1.3151408696961442,
+        "spread_half_width_95": 8.885770712718788e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.335656824735685,
+        "max": 1.33538423826639,
+        "median": 1.3352299200886615,
+        "min": 1.3351164900195112,
+        "n": 100,
+        "p2_5": 1.3351414925084977,
+        "p97_5": 1.3353229314334545,
+        "spread_half_width_95": 9.071946247840579e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e160-n1544"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 13,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.4252133553883553,
+        "max": 1.4249580607863803,
+        "median": 1.4248198035342905,
+        "min": 1.4247110647474062,
+        "n": 100,
+        "p2_5": 1.4247338490366386,
+        "p97_5": 1.4249111585522574,
+        "spread_half_width_95": 8.865475780939214e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.435213123346556,
+        "max": 1.4349432857352973,
+        "median": 1.4347895018004229,
+        "min": 1.4346763862385397,
+        "n": 100,
+        "p2_5": 1.4347013147094714,
+        "p97_5": 1.434882103847086,
+        "spread_half_width_95": 9.039456880732821e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e160-n1545"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 23,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 2.3252914327286907,
+        "max": 2.325029604014281,
+        "median": 2.3248903279644013,
+        "min": 2.3247810457067772,
+        "n": 100,
+        "p2_5": 2.3248038209801956,
+        "p97_5": 2.324982333598435,
+        "spread_half_width_95": 8.925630911971183e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.48397691570096,
+        "max": 2.4836990704089934,
+        "median": 2.483543812559518,
+        "min": 2.4834298192569166,
+        "n": 100,
+        "p2_5": 2.4834549787182296,
+        "p97_5": 2.4836375669888295,
+        "spread_half_width_95": 9.129413529995745e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e160-n1546"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 39,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 3.898275980540987,
+        "max": 3.898021097342725,
+        "median": 3.897882911515261,
+        "min": 3.8977741713625282,
+        "n": 100,
+        "p2_5": 3.8977969434826605,
+        "p97_5": 3.8979742794905072,
+        "spread_half_width_95": 8.86680039233756e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.9413285138100784,
+        "max": 3.9410574883146756,
+        "median": 3.9409035235297987,
+        "min": 3.940790122789205,
+        "n": 100,
+        "p2_5": 3.940815083626167,
+        "p97_5": 3.940996300673883,
+        "spread_half_width_95": 9.060852385789353e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e161-n1541"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 24,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 2.391536739772285,
+        "max": 2.3912730351702542,
+        "median": 2.3911334249159086,
+        "min": 2.3910240878719833,
+        "n": 100,
+        "p2_5": 2.391046847691604,
+        "p97_5": 2.391225668491853,
+        "spread_half_width_95": 8.941040012455659e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.628934534895612,
+        "max": 2.6286539343285993,
+        "median": 2.6284982307758966,
+        "min": 2.628383981167362,
+        "n": 100,
+        "p2_5": 2.6284092011056392,
+        "p97_5": 2.6285923523033135,
+        "spread_half_width_95": 9.157559883710142e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9947107438016529,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e161-n1542"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 19,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.7329663226545058,
+        "max": 1.7327027571428806,
+        "median": 1.7325631759774431,
+        "min": 1.732453835834476,
+        "n": 100,
+        "p2_5": 1.7324765997572567,
+        "p97_5": 1.7326554191317975,
+        "spread_half_width_95": 8.940968727044751e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.4005601355999175,
+        "max": 2.400288937900158,
+        "median": 2.4001349005275,
+        "min": 2.4000216022074388,
+        "n": 100,
+        "p2_5": 2.4000465922813383,
+        "p97_5": 2.4002276955068957,
+        "spread_half_width_95": 9.055161277871093e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.996694214876033,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e161-n1543"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 10,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.3955982635184292,
+        "max": 1.3953405462824713,
+        "median": 1.3952021631132512,
+        "min": 1.3950929167514232,
+        "n": 100,
+        "p2_5": 1.3951157022510061,
+        "p97_5": 1.3952935461252602,
+        "spread_half_width_95": 8.89219371270622e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.3762199990422395,
+        "max": 1.3759444470882969,
+        "median": 1.3757896457289913,
+        "min": 1.3756757800191608,
+        "n": 100,
+        "p2_5": 1.375700872561103,
+        "p97_5": 1.375883068285645,
+        "spread_half_width_95": 9.10978622710168e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": "terrain_relief:earth-utm11n-e159-n1545",
+          "tie_reason": null,
+          "tied": true
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e161-n1544"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 16,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 1.6215966159866946,
+        "max": 1.62134321284565,
+        "median": 1.621204981504211,
+        "min": 1.6210967116638784,
+        "n": 100,
+        "p2_5": 1.62111950619598,
+        "p97_5": 1.6212964369641085,
+        "spread_half_width_95": 8.846538406426241e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.6324471787018533,
+        "max": 1.6321775614077894,
+        "median": 1.6320238522314519,
+        "min": 1.6319106770545109,
+        "n": 100,
+        "p2_5": 1.631935609707066,
+        "p97_5": 1.6321164135807096,
+        "spread_half_width_95": 9.040193682174902e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e161-n1545"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 21,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": {
+        "base": 2.0452859356854844,
+        "max": 2.0450248872747108,
+        "median": 2.044885798500216,
+        "min": 2.0447764980597998,
+        "n": 100,
+        "p2_5": 2.0447992809454476,
+        "p97_5": 2.0449776604340477,
+        "spread_half_width_95": 8.918974430005555e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.111640918605919,
+        "max": 2.1113633655471626,
+        "median": 2.111208162151231,
+        "min": 2.1110941881613687,
+        "n": 100,
+        "p2_5": 2.111119345701792,
+        "p97_5": 2.111301875383805,
+        "spread_half_width_95": 9.126484100652199e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm11n-e161-n1546"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 18,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.7102816178245404,
+        "max": 1.7100196570397137,
+        "median": 1.7098803854920264,
+        "min": 1.709771066362657,
+        "n": 100,
+        "p2_5": 1.7097938162053328,
+        "p97_5": 1.7099724663100861,
+        "spread_half_width_95": 8.932505237668753e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.1146148635103357,
+        "max": 2.114343310088641,
+        "median": 2.1141892741117942,
+        "min": 2.1140757688917104,
+        "n": 100,
+        "p2_5": 2.114100746812895,
+        "p97_5": 2.114282116784616,
+        "spread_half_width_95": 9.068498586040086e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9947107438016529,
+        "worldcover_snow_ice": 0.3831404958677686,
+        "worldcover_water": 0.0049586776859504135
+      },
+      "window_id": "earth-utm27n-e280-n2877"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 27,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 2.6794794768783867,
+        "max": 2.679232416413663,
+        "median": 2.6790948425400964,
+        "min": 2.6789876483418342,
+        "n": 100,
+        "p2_5": 2.6790104820142555,
+        "p97_5": 2.6791861828175825,
+        "spread_half_width_95": 8.785040166348068e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.8724443759934255,
+        "max": 2.8721864244390427,
+        "median": 2.872035497036969,
+        "min": 2.871923442923609,
+        "n": 100,
+        "p2_5": 2.8719480973406304,
+        "p97_5": 2.8721259635239598,
+        "spread_half_width_95": 8.89330916646891e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9963636363636363,
+        "worldcover_snow_ice": 0.003305785123966942,
+        "worldcover_water": 0.0036363636363636364
+      },
+      "window_id": "earth-utm27n-e280-n2878"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 36,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.3005901651063314,
+        "max": 3.300330221081017,
+        "median": 3.3001913886120393,
+        "min": 3.3000820721683635,
+        "n": 100,
+        "p2_5": 3.300104841348197,
+        "p97_5": 3.3002830849076754,
+        "spread_half_width_95": 8.912177973918745e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.788050271030787,
+        "max": 3.787780545879572,
+        "median": 3.7876268089844656,
+        "min": 3.7875136426389324,
+        "n": 100,
+        "p2_5": 3.7875385700713866,
+        "p97_5": 3.7877193855519704,
+        "spread_half_width_95": 9.040774029189791e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e280-n2879"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 38,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.3722848971248363,
+        "max": 3.372024998708099,
+        "median": 3.3718861713272705,
+        "min": 3.371776857334297,
+        "n": 100,
+        "p2_5": 3.3717996310219025,
+        "p97_5": 3.371977873116267,
+        "spread_half_width_95": 8.912104718228342e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.8107800656789257,
+        "max": 3.8105094923555,
+        "median": 3.810355600423584,
+        "min": 3.810242298244613,
+        "n": 100,
+        "p2_5": 3.8102672599637457,
+        "p97_5": 3.8104483043794275,
+        "spread_half_width_95": 9.052220784089293e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e280-n2880"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 36,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.3122360674032434,
+        "max": 3.3119790545421632,
+        "median": 3.3118407577006908,
+        "min": 3.311731594351878,
+        "n": 100,
+        "p2_5": 3.3117543747298597,
+        "p97_5": 3.311932098366163,
+        "spread_half_width_95": 8.886181815159766e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.573873359497605,
+        "max": 3.5736038182823116,
+        "median": 3.5734501358048556,
+        "min": 3.573336937329246,
+        "n": 100,
+        "p2_5": 3.573361866133993,
+        "p97_5": 3.5735426837735047,
+        "spread_half_width_95": 9.040881975574955e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e280-n2881"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 26,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 2.529014627406676,
+        "max": 2.5287577009779367,
+        "median": 2.528619414301277,
+        "min": 2.528510264715828,
+        "n": 100,
+        "p2_5": 2.5285330380003392,
+        "p97_5": 2.528710747030034,
+        "spread_half_width_95": 8.885451484741402e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.7505023879364425,
+        "max": 2.7502323034633536,
+        "median": 2.750078527999314,
+        "min": 2.749965236924497,
+        "n": 100,
+        "p2_5": 2.7499901761211776,
+        "p97_5": 2.7501711543288216,
+        "spread_half_width_95": 9.048910382203346e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e280-n2882"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 10,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.3750744696544446,
+        "max": 1.3748196192713185,
+        "median": 1.3746813510586269,
+        "min": 1.374572750261438,
+        "n": 100,
+        "p2_5": 1.374595533390919,
+        "p97_5": 1.3747727301064456,
+        "spread_half_width_95": 8.859835776331426e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.5010256324001674,
+        "max": 1.5007557924345005,
+        "median": 1.500602021466862,
+        "min": 1.5004888676417556,
+        "n": 100,
+        "p2_5": 1.5005137960200248,
+        "p97_5": 1.5006946208828906,
+        "spread_half_width_95": 9.04124314329291e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9702479338842975,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e280-n2883"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 20,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.9632627720166442,
+        "max": 1.9630045047381446,
+        "median": 1.9628660222135226,
+        "min": 1.962756733535878,
+        "n": 100,
+        "p2_5": 1.962779491971002,
+        "p97_5": 1.9629575245954505,
+        "spread_half_width_95": 8.901631222424378e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.2062900278112725,
+        "max": 2.206019814539946,
+        "median": 2.205866052948102,
+        "min": 2.2057526627352027,
+        "n": 100,
+        "p2_5": 2.2057775931269417,
+        "p97_5": 2.205958696171941,
+        "spread_half_width_95": 9.055152249959342e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9884297520661157,
+        "worldcover_snow_ice": 0.16462809917355373,
+        "worldcover_water": 0.011570247933884297
+      },
+      "window_id": "earth-utm27n-e281-n2877"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 30,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.0404425754857494,
+        "max": 3.0401900296343456,
+        "median": 3.040051901263779,
+        "min": 3.0399437081016023,
+        "n": 100,
+        "p2_5": 3.039966485371397,
+        "p97_5": 3.040143392611721,
+        "spread_half_width_95": 8.845362016196567e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.2224278567349396,
+        "max": 3.2221622434140733,
+        "median": 3.222009393056217,
+        "min": 3.2218965692151365,
+        "n": 100,
+        "p2_5": 3.2219213869384173,
+        "p97_5": 3.2221013394348557,
+        "spread_half_width_95": 8.997624821915906e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9851239669421488,
+        "worldcover_snow_ice": 0.006611570247933884,
+        "worldcover_water": 0.01487603305785124
+      },
+      "window_id": "earth-utm27n-e281-n2878"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 35,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.227103112826113,
+        "max": 3.2268504496069665,
+        "median": 3.2267123652956147,
+        "min": 3.226604087843337,
+        "n": 100,
+        "p2_5": 3.2266268316013518,
+        "p97_5": 3.226803832208583,
+        "spread_half_width_95": 8.850030361551298e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.490398871086186,
+        "max": 3.4901362056083665,
+        "median": 3.489983986693957,
+        "min": 3.489871530422836,
+        "n": 100,
+        "p2_5": 3.489896225145317,
+        "p97_5": 3.4900754657255213,
+        "spread_half_width_95": 8.962029010217698e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9900826446280991,
+        "worldcover_snow_ice": 0.010578512396694216,
+        "worldcover_water": 0.009917355371900827
+      },
+      "window_id": "earth-utm27n-e281-n2879"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 32,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.153432113046412,
+        "max": 3.153180967468564,
+        "median": 3.1530428802617934,
+        "min": 3.1529350322685836,
+        "n": 100,
+        "p2_5": 3.1529577739858223,
+        "p97_5": 3.153134424444532,
+        "spread_half_width_95": 8.832522935486864e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.374360144747495,
+        "max": 3.3740982822579695,
+        "median": 3.373946280178618,
+        "min": 3.3738339239522204,
+        "n": 100,
+        "p2_5": 3.373858575949404,
+        "p97_5": 3.3740375756926024,
+        "spread_half_width_95": 8.949987159923012e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9943801652892562,
+        "worldcover_snow_ice": 0.003966942148760331,
+        "worldcover_water": 0.0049586776859504135
+      },
+      "window_id": "earth-utm27n-e281-n2880"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 33,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.203251894643705,
+        "max": 3.2029961893186565,
+        "median": 3.2028580005617,
+        "min": 3.2027490562809176,
+        "n": 100,
+        "p2_5": 3.2027718261101494,
+        "p97_5": 3.2029493142435004,
+        "spread_half_width_95": 8.874406667547241e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.3959794449750755,
+        "max": 3.39571046418361,
+        "median": 3.395556899095259,
+        "min": 3.395443747567166,
+        "n": 100,
+        "p2_5": 3.395468646821302,
+        "p97_5": 3.395649364236277,
+        "spread_half_width_95": 9.035870748741459e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9996694214876033,
+        "worldcover_snow_ice": 0.00033057851239669424,
+        "worldcover_water": 0.00033057851239669424
+      },
+      "window_id": "earth-utm27n-e281-n2881"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 28,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 2.933926187480091,
+        "max": 2.933666578730425,
+        "median": 2.9335278340572657,
+        "min": 2.933418503589911,
+        "n": 100,
+        "p2_5": 2.9334412731114083,
+        "p97_5": 2.9336194697620197,
+        "spread_half_width_95": 8.909832530568096e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.1194632886030718,
+        "max": 3.119189167674515,
+        "median": 3.119034605166454,
+        "min": 3.1189209112222147,
+        "n": 100,
+        "p2_5": 3.1189459623919813,
+        "p97_5": 3.119127831644992,
+        "spread_half_width_95": 9.093462650544559e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e281-n2882"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 26,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 2.4921994200134074,
+        "max": 2.491939246758297,
+        "median": 2.49180035496727,
+        "min": 2.4916910488374384,
+        "n": 100,
+        "p2_5": 2.4917138108948826,
+        "p97_5": 2.49189209222995,
+        "spread_half_width_95": 8.914066753362704e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.770553907401214,
+        "max": 2.770280159758607,
+        "median": 2.7701256690710867,
+        "min": 2.7700120112123523,
+        "n": 100,
+        "p2_5": 2.7700370425838985,
+        "p97_5": 2.7702188402091728,
+        "spread_half_width_95": 9.089881263713018e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.988099173553719,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e281-n2883"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 24,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 2.4427061613312615,
+        "max": 2.4424522628239744,
+        "median": 2.4423141337694996,
+        "min": 2.4422055778324285,
+        "n": 100,
+        "p2_5": 2.442228342847043,
+        "p97_5": 2.4424055475088187,
+        "spread_half_width_95": 8.860233088792135e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.6004241938575112,
+        "max": 2.6001574870505513,
+        "median": 2.6000044118915175,
+        "min": 2.5998914487584157,
+        "n": 100,
+        "p2_5": 2.5999162842421195,
+        "p97_5": 2.600096530120993,
+        "spread_half_width_95": 9.01229394367764e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9943801652892562,
+        "worldcover_snow_ice": 0.001652892561983471,
+        "worldcover_water": 0.005619834710743801
+      },
+      "window_id": "earth-utm27n-e282-n2877"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 29,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.0315013664274097,
+        "max": 3.0312496017110533,
+        "median": 3.031111533028213,
+        "min": 3.0310034822476,
+        "n": 100,
+        "p2_5": 3.031026220413275,
+        "p97_5": 3.0312030473977822,
+        "spread_half_width_95": 8.841349225363615e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.218568054774306,
+        "max": 3.218303725107249,
+        "median": 3.2181511662686555,
+        "min": 3.2180384384639877,
+        "n": 100,
+        "p2_5": 3.2180631707383798,
+        "p97_5": 3.2182429161957047,
+        "spread_half_width_95": 8.987272866245455e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9897520661157024,
+        "worldcover_snow_ice": 0.007603305785123967,
+        "worldcover_water": 0.010247933884297521
+      },
+      "window_id": "earth-utm27n-e282-n2878"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 34,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.218412480100319,
+        "max": 3.218161015913523,
+        "median": 3.2180229376929335,
+        "min": 3.2179149856729325,
+        "n": 100,
+        "p2_5": 3.2179377285449537,
+        "p97_5": 3.2181144654169866,
+        "spread_half_width_95": 8.83684360164505e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.4022196927451236,
+        "max": 3.4019561188226417,
+        "median": 3.401803711832833,
+        "min": 3.4016911217719397,
+        "n": 100,
+        "p2_5": 3.4017158397314917,
+        "p97_5": 3.4018953333840236,
+        "spread_half_width_95": 8.974682626594621e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9904132231404958,
+        "worldcover_snow_ice": 0.013884297520661157,
+        "worldcover_water": 0.009586776859504133
+      },
+      "window_id": "earth-utm27n-e282-n2879"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 31,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.1280396987422647,
+        "max": 3.127789143714719,
+        "median": 3.1276510764905114,
+        "min": 3.1275433682175544,
+        "n": 100,
+        "p2_5": 3.127566128445336,
+        "p97_5": 3.1277426491455427,
+        "spread_half_width_95": 8.826035010334188e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.288064006191623,
+        "max": 3.287801028657901,
+        "median": 3.2876487532509566,
+        "min": 3.2875362420611265,
+        "n": 100,
+        "p2_5": 3.2875609624856086,
+        "p97_5": 3.2877402733471626,
+        "spread_half_width_95": 8.965543077699145e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9937190082644628,
+        "worldcover_snow_ice": 0.003966942148760331,
+        "worldcover_water": 0.00628099173553719
+      },
+      "window_id": "earth-utm27n-e282-n2880"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 32,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.1985041158891026,
+        "max": 3.1982468397471755,
+        "median": 3.1981085066024524,
+        "min": 3.197999315833973,
+        "n": 100,
+        "p2_5": 3.1980220831095116,
+        "p97_5": 3.1981998695979237,
+        "spread_half_width_95": 8.889324420602307e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.35250102887373,
+        "max": 3.3522288841825154,
+        "median": 3.3520747049815696,
+        "min": 3.351961192233418,
+        "n": 100,
+        "p2_5": 3.3519861762852003,
+        "p97_5": 3.3521676422821516,
+        "spread_half_width_95": 9.073299847561778e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9957024793388429,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.003966942148760331
+      },
+      "window_id": "earth-utm27n-e282-n2881"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 29,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.064544677364567,
+        "max": 3.0642861451855588,
+        "median": 3.06414767172296,
+        "min": 3.064038328298097,
+        "n": 100,
+        "p2_5": 3.064061100762043,
+        "p97_5": 3.0642390750675146,
+        "spread_half_width_95": 8.898715273586433e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.099257804259756,
+        "max": 3.0989821305016765,
+        "median": 3.0988272850638325,
+        "min": 3.098713439934844,
+        "n": 100,
+        "p2_5": 3.098738526373576,
+        "p97_5": 3.098920732813538,
+        "spread_half_width_95": 9.110321998107018e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9933884297520661,
+        "worldcover_snow_ice": 0.00033057851239669424,
+        "worldcover_water": 0.006611570247933884
+      },
+      "window_id": "earth-utm27n-e282-n2882"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 27,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 2.7730814099531087,
+        "max": 2.772825126721629,
+        "median": 2.7726868848086146,
+        "min": 2.7725778686001163,
+        "n": 100,
+        "p2_5": 2.7726006456569117,
+        "p97_5": 2.7727781746192974,
+        "spread_half_width_95": 8.876448119288227e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.813267976809312,
+        "max": 2.8129948319235396,
+        "median": 2.8128404399327476,
+        "min": 2.8127268669553436,
+        "n": 100,
+        "p2_5": 2.812751886721953,
+        "p97_5": 2.8129335292611994,
+        "spread_half_width_95": 9.082126962312032e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.979504132231405,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.020165289256198347
+      },
+      "window_id": "earth-utm27n-e282-n2883"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 14,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.4842121327864355,
+        "max": 1.4839784344351876,
+        "median": 1.483843999010577,
+        "min": 1.483738136735743,
+        "n": 100,
+        "p2_5": 1.4837607431319,
+        "p97_5": 1.483933170298241,
+        "spread_half_width_95": 8.621358317051353e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.5138530687595133,
+        "max": 1.51360528471666,
+        "median": 1.5134571953873368,
+        "min": 1.513346173560368,
+        "n": 100,
+        "p2_5": 1.5133703274676555,
+        "p97_5": 1.5135455400388642,
+        "spread_half_width_95": 8.760628560433581e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9993388429752066,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0006611570247933885
+      },
+      "window_id": "earth-utm27n-e283-n2877"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 18,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.792722565892121,
+        "max": 1.7924878654124599,
+        "median": 1.792353188668339,
+        "min": 1.7922472561150917,
+        "n": 100,
+        "p2_5": 1.7922698889457134,
+        "p97_5": 1.7924424871225317,
+        "spread_half_width_95": 8.629908840918077e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.7914483907576606,
+        "max": 1.791198292173877,
+        "median": 1.7910495488868525,
+        "min": 1.7909383138705328,
+        "n": 100,
+        "p2_5": 1.7909625657639066,
+        "p97_5": 1.79113836404862,
+        "spread_half_width_95": 8.78991423567399e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9993388429752066,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0006611570247933885
+      },
+      "window_id": "earth-utm27n-e283-n2878"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 28,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 2.9413357963981563,
+        "max": 2.9410842763212743,
+        "median": 2.940946213084989,
+        "min": 2.94083821820027,
+        "n": 100,
+        "p2_5": 2.940860964951136,
+        "p97_5": 2.9410377494137014,
+        "spread_half_width_95": 8.839223128265239e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.0978365202207945,
+        "max": 3.09757214425281,
+        "median": 3.0974195671542963,
+        "min": 3.097306835303262,
+        "n": 100,
+        "p2_5": 3.0973315891561684,
+        "p97_5": 3.097511333997722,
+        "spread_half_width_95": 8.987242077673763e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9993388429752066,
+        "worldcover_snow_ice": 0.0019834710743801653,
+        "worldcover_water": 0.0006611570247933885
+      },
+      "window_id": "earth-utm27n-e283-n2879"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 37,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.3523667229933123,
+        "max": 3.3521066930788024,
+        "median": 3.3519677755165973,
+        "min": 3.351858521536187,
+        "n": 100,
+        "p2_5": 3.351881260488781,
+        "p97_5": 3.3520595890797065,
+        "spread_half_width_95": 8.91642954627958e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.7170222872189194,
+        "max": 3.71675043379901,
+        "median": 3.7165963243727305,
+        "min": 3.7164828066754034,
+        "n": 100,
+        "p2_5": 3.716507764395044,
+        "p97_5": 3.7166892231717403,
+        "spread_half_width_95": 9.072938834808753e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9986776859504132,
+        "worldcover_snow_ice": 0.001652892561983471,
+        "worldcover_water": 0.001322314049586777
+      },
+      "window_id": "earth-utm27n-e283-n2880"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 32,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 3.1603418485795016,
+        "max": 3.1600839614738954,
+        "median": 3.1599455678142663,
+        "min": 3.15983629790779,
+        "n": 100,
+        "p2_5": 3.159859076198526,
+        "p97_5": 3.1600369302731734,
+        "spread_half_width_95": 8.892703732366058e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 3.368408661236116,
+        "max": 3.368136484007318,
+        "median": 3.3679822772184567,
+        "min": 3.36786880767983,
+        "n": 100,
+        "p2_5": 3.3678938059589028,
+        "p97_5": 3.3680752214211718,
+        "spread_half_width_95": 9.070773113450947e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.996694214876033,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.003305785123966942
+      },
+      "window_id": "earth-utm27n-e283-n2881"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 23,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 2.498309033466224,
+        "max": 2.498058320650298,
+        "median": 2.497920140608903,
+        "min": 2.497812551949513,
+        "n": 100,
+        "p2_5": 2.4978353744304043,
+        "p97_5": 2.4980117423045622,
+        "spread_half_width_95": 8.818393707898942e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 2.466348730871957,
+        "max": 2.466080463150022,
+        "median": 2.465927023113578,
+        "min": 2.4658139786875886,
+        "n": 100,
+        "p2_5": 2.465838908922268,
+        "p97_5": 2.4660193898784644,
+        "spread_half_width_95": 9.024047809824687e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9738842975206612,
+        "worldcover_snow_ice": 0.0006611570247933885,
+        "worldcover_water": 0.025454545454545455
+      },
+      "window_id": "earth-utm27n-e283-n2882"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 7,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.2075956132022163,
+        "max": 1.2073363304413243,
+        "median": 1.2071976494103471,
+        "min": 1.2070883251120943,
+        "n": 100,
+        "p2_5": 1.2071111121575129,
+        "p97_5": 1.207289266426626,
+        "spread_half_width_95": 8.907713455652555e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.2505885700570933,
+        "max": 1.2503128695028911,
+        "median": 1.2501580632624558,
+        "min": 1.2500441524501786,
+        "n": 100,
+        "p2_5": 1.2500692546528953,
+        "p97_5": 1.250251499725653,
+        "spread_half_width_95": 9.112253637888479e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9388429752066115,
+        "worldcover_snow_ice": 0.0006611570247933885,
+        "worldcover_water": 0.05553719008264463
+      },
+      "window_id": "earth-utm27n-e283-n2883"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 4,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 0.8810676870385872,
+        "max": 0.880857107449614,
+        "median": 0.8807279112399868,
+        "min": 0.8806257812714349,
+        "n": 100,
+        "p2_5": 0.8806480611235873,
+        "p97_5": 0.8808140623343949,
+        "spread_half_width_95": 8.30006054037824e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 0.9161744667758429,
+        "max": 0.9159545002545223,
+        "median": 0.9158129861482762,
+        "min": 0.9157075498052348,
+        "n": 100,
+        "p2_5": 0.915730624310028,
+        "p97_5": 0.9158971588552397,
+        "spread_half_width_95": 8.326727260582478e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9996694214876033,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e284-n2877"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 5,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.0913891118091341,
+        "max": 1.0911651709248096,
+        "median": 1.0910327441634213,
+        "min": 1.0909285415854377,
+        "n": 100,
+        "p2_5": 1.090950997282489,
+        "p97_5": 1.0911207394651303,
+        "spread_half_width_95": 8.487109132071513e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.0901294750400676,
+        "max": 1.0898919273627092,
+        "median": 1.08974628578583,
+        "min": 1.089637102537361,
+        "n": 100,
+        "p2_5": 1.0896608434093134,
+        "p97_5": 1.0898329916889344,
+        "spread_half_width_95": 8.607413981054357e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9996694214876033,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e284-n2878"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 12,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.4235923881845225,
+        "max": 1.4233682933547447,
+        "median": 1.4232357642901419,
+        "min": 1.4231316999975374,
+        "n": 100,
+        "p2_5": 1.4231542120755531,
+        "p97_5": 1.4233237967997887,
+        "spread_half_width_95": 8.47923621177804e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.41778972748267,
+        "max": 1.4175517381330887,
+        "median": 1.4174059636248721,
+        "min": 1.4172968664190466,
+        "n": 100,
+        "p2_5": 1.4173206728040735,
+        "p97_5": 1.4174927425616617,
+        "spread_half_width_95": 8.603487879410565e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 1.0,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e284-n2879"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 13,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.4520641308248217,
+        "max": 1.451839043403335,
+        "median": 1.4517062663170777,
+        "min": 1.4516021206879632,
+        "n": 100,
+        "p2_5": 1.4516246521505798,
+        "p97_5": 1.4517944328557577,
+        "spread_half_width_95": 8.489035258896216e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.4345472577612426,
+        "max": 1.4343071663279054,
+        "median": 1.4341609387293168,
+        "min": 1.4340514209595712,
+        "n": 100,
+        "p2_5": 1.4340753157131967,
+        "p97_5": 1.434247992107751,
+        "spread_half_width_95": 8.633819727710268e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9993388429752066,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0006611570247933885
+      },
+      "window_id": "earth-utm27n-e284-n2880"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 19,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.7980177300076503,
+        "max": 1.7977865756026166,
+        "median": 1.7976526324181301,
+        "min": 1.7975472177583076,
+        "n": 100,
+        "p2_5": 1.7975698628469041,
+        "p97_5": 1.7977415180965344,
+        "spread_half_width_95": 8.582762481512685e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.7927456567208317,
+        "max": 1.7924993504600881,
+        "median": 1.792351678245769,
+        "min": 1.7922408595732013,
+        "n": 100,
+        "p2_5": 1.7922650226075243,
+        "p97_5": 1.7924397103727283,
+        "spread_half_width_95": 8.734388260200898e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9980165289256199,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0019834710743801653
+      },
+      "window_id": "earth-utm27n-e284-n2881"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 15,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.587747521349063,
+        "max": 1.5874967950251913,
+        "median": 1.587358570922246,
+        "min": 1.5872511580517648,
+        "n": 100,
+        "p2_5": 1.5872739390647919,
+        "p97_5": 1.587450091844098,
+        "spread_half_width_95": 8.807638965302456e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.5599370317442642,
+        "max": 1.5596686751142257,
+        "median": 1.5595151827921625,
+        "min": 1.5594023107238766,
+        "n": 100,
+        "p2_5": 1.5594272055187997,
+        "p97_5": 1.5596075474441786,
+        "spread_half_width_95": 9.017096268948421e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.955702479338843,
+        "worldcover_snow_ice": 0.00033057851239669424,
+        "worldcover_water": 0.03305785123966942
+      },
+      "window_id": "earth-utm27n-e284-n2882"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 5,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 0.9692777314286047,
+        "max": 0.9690191504810587,
+        "median": 0.9688806466681343,
+        "min": 0.9687713092307279,
+        "n": 100,
+        "p2_5": 0.9687940930994713,
+        "p97_5": 0.968972126349907,
+        "spread_half_width_95": 8.901662521787479e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.0995259034694211,
+        "max": 1.099256444869815,
+        "median": 1.0991027802974025,
+        "min": 1.0989895947028647,
+        "n": 100,
+        "p2_5": 1.0990145302012655,
+        "p97_5": 1.0991953139510016,
+        "spread_half_width_95": 9.039187486803435e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9322314049586777,
+        "worldcover_snow_ice": 0.00033057851239669424,
+        "worldcover_water": 0.05223140495867769
+      },
+      "window_id": "earth-utm27n-e284-n2883"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 2,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 0.695768970037015,
+        "max": 0.6955894840581542,
+        "median": 0.6954680921586737,
+        "min": 0.6953730124621715,
+        "n": 100,
+        "p2_5": 0.6953941136875383,
+        "p97_5": 0.695549448470935,
+        "spread_half_width_95": 7.766739169834391e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 0.7007430718199338,
+        "max": 0.700555192754779,
+        "median": 0.7004218752348518,
+        "min": 0.7003249978247188,
+        "n": 100,
+        "p2_5": 0.7003463941933595,
+        "p97_5": 0.700501525467748,
+        "spread_half_width_95": 7.756563719424348e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9996694214876033,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e285-n2877"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 3,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 0.755214169719386,
+        "max": 0.7550251771666554,
+        "median": 0.7549011928397441,
+        "min": 0.7548042608492153,
+        "n": 100,
+        "p2_5": 0.7548260497918167,
+        "p97_5": 0.7549840555179783,
+        "spread_half_width_95": 7.900286308082372e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 0.7352036253083369,
+        "max": 0.7350038812723576,
+        "median": 0.734867446295751,
+        "min": 0.7347675698681703,
+        "n": 100,
+        "p2_5": 0.7347897229103385,
+        "p97_5": 0.73494860330178,
+        "spread_half_width_95": 7.944019572075911e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9871074380165289,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e285-n2878"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 1,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 100,
+          "frequency": 1.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 100,
+          "frequency": 1.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 100,
+          "frequency": 1.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 0.6785492291449117,
+        "max": 0.6783643661419403,
+        "median": 0.6782415106880959,
+        "min": 0.6781454182649851,
+        "n": 100,
+        "p2_5": 0.6781669758203216,
+        "p97_5": 0.6783236906737982,
+        "spread_half_width_95": 7.835742673828472e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 0.6584769659701529,
+        "max": 0.6582819479124309,
+        "median": 0.6581463947346531,
+        "min": 0.658048058605133,
+        "n": 100,
+        "p2_5": 0.6580699151365077,
+        "p97_5": 0.6582272988870773,
+        "spread_half_width_95": 7.86918752848087e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9682644628099174,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e285-n2879"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 3,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 0.7400721916935837,
+        "max": 0.7398780216154588,
+        "median": 0.7397526646891317,
+        "min": 0.7396545450976745,
+        "n": 100,
+        "p2_5": 0.7396763625118185,
+        "p97_5": 0.7398363712603513,
+        "spread_half_width_95": 8.000437426641804e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 0.765958714265169,
+        "max": 0.7657550087629398,
+        "median": 0.7656174540410423,
+        "min": 0.7655166229268777,
+        "n": 100,
+        "p2_5": 0.7655388688117523,
+        "p97_5": 0.7656992571921107,
+        "spread_half_width_95": 8.019419017923912e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9785123966942149,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.0
+      },
+      "window_id": "earth-utm27n-e285-n2880"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 6,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.129073417661801,
+        "max": 1.1288553346327443,
+        "median": 1.1287240111375336,
+        "min": 1.1286214482518402,
+        "n": 100,
+        "p2_5": 1.1286438557423013,
+        "p97_5": 1.128811265474617,
+        "spread_half_width_95": 8.37048661578299e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.135216719855006,
+        "max": 1.1349850840068598,
+        "median": 1.1348406302495295,
+        "min": 1.1347333329300906,
+        "n": 100,
+        "p2_5": 1.1347568822852736,
+        "p97_5": 1.1349266092153822,
+        "spread_half_width_95": 8.486346505431897e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9943801652892562,
+        "worldcover_snow_ice": 0.0,
+        "worldcover_water": 0.005619834710743801
+      },
+      "window_id": "earth-utm27n-e285-n2881"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 14,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.5155884497750698,
+        "max": 1.5153466118619037,
+        "median": 1.515210127988142,
+        "min": 1.5151037831049303,
+        "n": 100,
+        "p2_5": 1.5151265209693643,
+        "p97_5": 1.5153005335509588,
+        "spread_half_width_95": 8.700629079727573e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.4823077551671873,
+        "max": 1.482048997748781,
+        "median": 1.4818978906844937,
+        "min": 1.481785998167069,
+        "n": 100,
+        "p2_5": 1.48181059421232,
+        "p97_5": 1.4819884225042885,
+        "spread_half_width_95": 8.89141459842202e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9295867768595041,
+        "worldcover_snow_ice": 0.001322314049586777,
+        "worldcover_water": 0.0571900826446281
+      },
+      "window_id": "earth-utm27n-e285-n2882"
+    },
+    {
+      "area_m2": 25000000.0,
+      "base_pareto_layer": 6,
+      "body": "earth",
+      "eligibility": "eligible",
+      "exclusion_reasons": [],
+      "radar_cpr": {
+        "reason": "shipping_mode_c_radar_not_completed",
+        "status": "unavailable",
+        "value": null
+      },
+      "rank_frequency": {
+        "first_pareto_layer": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_relief": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        },
+        "rank_1_terrain_texture": {
+          "count": 0,
+          "frequency": 0.0,
+          "n": 100
+        }
+      },
+      "search_region_id": "holuhraun",
+      "terrain_relief": {
+        "base": 1.1069546294306916,
+        "max": 1.1066950386304921,
+        "median": 1.1065562930624446,
+        "min": 1.1064469620977695,
+        "n": 100,
+        "p2_5": 1.1064697616125498,
+        "p97_5": 1.1066479497067212,
+        "spread_half_width_95": 8.909404708568047e-05,
+        "unit": "RMS of log nu"
+      },
+      "terrain_texture": {
+        "base": 1.2541165004473402,
+        "max": 1.2538454559040078,
+        "median": 1.2536914684663838,
+        "min": 1.2535781208596377,
+        "n": 100,
+        "p2_5": 1.253603117357413,
+        "p97_5": 1.2537842441506855,
+        "spread_half_width_95": 9.056339663626733e-05,
+        "unit": "RMS of log nu"
+      },
+      "ties": {
+        "terrain_relief": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "terrain_texture": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "valid_fraction_by_observable": {
+        "radar_cpr": null,
+        "terrain": 1.0,
+        "worldcover_allowed": 0.9272727272727272,
+        "worldcover_snow_ice": 0.00033057851239669424,
+        "worldcover_water": 0.05884297520661157
+      },
+      "window_id": "earth-utm27n-e285-n2883"
+    }
+  ],
+  "clone_limits": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6).",
+  "command": "python -m terraluna_pipeline.checks g4",
+  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "counterexample": {
+    "present": true,
+    "reason": null
+  },
+  "evidence_label": "Derived",
+  "excluded_windows_never_ranked": [
+    {
+      "reasons": [
+        "land_cover_below_min_fraction"
+      ],
+      "status": "rejected",
+      "window_id": "earth-utm11n-e157-n1542"
+    },
+    {
+      "reasons": [
+        "land_cover_below_min_fraction"
+      ],
+      "status": "rejected",
+      "window_id": "earth-utm11n-e157-n1543"
+    }
+  ],
+  "g4_parts": {
+    "counterexample": true,
+    "distances_and_rank_sensitivity": true,
+    "masks": true,
+    "table": true
+  },
+  "input_hashes": [
+    {
+      "path": "analysis/g4_counterexample.json",
+      "sha256": "81a9189a384d989df4e812510f20fd0a5cb476ec4a022cd1ebeba280b8d4635f"
+    },
+    {
+      "path": "config/run.yaml",
+      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+    },
+    {
+      "path": "outputs/comparisons/moon-cr-site01-w000.json",
+      "sha256": "8a5c12462d0d5564584ce3fdaea9a3c00ca6c6f001e8ddde4c715bb793871e07"
+    },
+    {
+      "path": "outputs/search/targets.json",
+      "sha256": "6ab65f388126b3b1f4bbfe5cb59bc3b158ef623199b5222663500e1c9c0ec9d9"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
+      "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+    }
+  ],
+  "masks": {
+    "counts_by_region": {
+      "holuhraun": {
+        "eligible": 42,
+        "generated": 42,
+        "rejected_by_reason": {}
+      },
+      "rosamond-dry-lake": {
+        "eligible": 29,
+        "generated": 31,
+        "rejected_by_reason": {
+          "land_cover_below_min_fraction": 2
+        }
+      }
+    },
+    "permanent_shadow": {
+      "reason": "G0-10 permanent-shadow product undecided",
+      "status": "unavailable"
+    },
+    "terrain_valid_fraction_min": 0.8,
+    "worldcover": {
+      "allowed_classes": [
+        "bare_sparse",
+        "snow_ice",
+        "grassland",
+        "shrubland"
+      ],
+      "min_allowed_fraction": 0.9,
+      "product": "ESA WorldCover v200, 2021 (WorldCover/esa-worldcover/v200/2021/map)",
+      "sampling": "nearest class at each 90 m cell centre",
+      "water_rule": "worldcover_class_80"
+    }
+  },
+  "missing_parts": [],
+  "rank_sensitivity": {
+    "n_requested": 100,
+    "n_runs": 100,
+    "runs": "PGDA78 Site01 clones of the target window, each re-measured through D29 and T3; Earth windows held fixed (no Earth error model)",
+    "wording": "rank stability is a frequency over clone runs, never a probability"
+  },
+  "record_type": "terraluna G4 candidate table and rank sensitivity",
+  "scenario_sensitivity": [
+    {
+      "change": "WorldCover allowed fraction >= 0.9 (config), both regions",
+      "first_pareto_layer": [
+        "earth-utm27n-e285-n2879"
+      ],
+      "n_eligible": 71,
+      "name": "pipeline"
+    },
+    {
+      "change": "WorldCover allowed fraction >= 0.95 instead of 0.9",
+      "first_pareto_layer": [
+        "earth-utm27n-e285-n2879"
+      ],
+      "n_eligible": 66,
+      "name": "worldcover_allowed_ge_0.95"
+    },
+    {
+      "change": "WorldCover allowed fraction >= 1 instead of 0.9",
+      "first_pareto_layer": [
+        "earth-utm11n-e160-n1544"
+      ],
+      "n_eligible": 17,
+      "name": "worldcover_allowed_ge_1"
+    },
+    {
+      "change": "search only the holuhraun region",
+      "first_pareto_layer": [
+        "earth-utm27n-e285-n2879"
+      ],
+      "n_eligible": 42,
+      "name": "region_holuhraun_only"
+    },
+    {
+      "change": "search only the rosamond-dry-lake region",
+      "first_pareto_layer": [
+        "earth-utm11n-e157-n1547"
+      ],
+      "n_eligible": 29,
+      "name": "region_rosamond-dry-lake_only"
+    }
+  ],
+  "scope": "Slice search over the configured Earth regions (outputs/search/targets.json n_compared = 71), terrain families only (Mode C). Not the full T5 search universe.",
+  "shipping_mode": "C",
+  "shortlist_earth_window_ids": [
+    "earth-utm27n-e285-n2879"
+  ],
+  "sort_note": "No single order: Pareto layers over terrain_relief and terrain_texture, then window_id; no family sorts first (ANA-03 undecided). No composite exists.",
+  "sort_rule": "first Pareto layer over terrain_relief, terrain_texture (smaller is closer; encoder excluded while G5 is not PASS); then window_id",
+  "status": "PASS",
+  "target_id": "moon-cr-site01-w000",
+  "target_window_id": "moon-sps-x2-y2",
+  "tie_rule": "matching.tie_groups: |d_a - d_b| < s_a + s_b, s = half width of the candidate's PGDA78 clone 2.5-97.5 percentile distance range (measurement error only)",
+  "ties": {
+    "terrain_relief": {
+      "by_window": {
+        "earth-utm11n-e157-n1541": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e157-n1544": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e157-n1545": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e157-n1546": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e157-n1547": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1541": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1542": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1543": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1544": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1545": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1546": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1541": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1542": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1543": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1544": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1545": {
+          "tie_group": "terrain_relief:earth-utm11n-e159-n1545",
+          "tie_reason": null,
+          "tied": true
+        },
+        "earth-utm11n-e159-n1546": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1541": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1542": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1543": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1544": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1545": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1546": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1541": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1542": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1543": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1544": {
+          "tie_group": "terrain_relief:earth-utm11n-e159-n1545",
+          "tie_reason": null,
+          "tied": true
+        },
+        "earth-utm11n-e161-n1545": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1546": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "groups": [
+        {
+          "group_id": "terrain_relief:earth-utm11n-e159-n1545",
+          "members": [
+            "earth-utm11n-e159-n1545",
+            "earth-utm11n-e161-n1544"
+          ],
+          "not_pairwise_tied": []
+        }
+      ]
+    },
+    "terrain_texture": {
+      "by_window": {
+        "earth-utm11n-e157-n1541": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e157-n1544": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e157-n1545": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e157-n1546": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e157-n1547": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1541": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1542": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1543": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1544": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1545": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e158-n1546": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1541": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1542": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1543": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1544": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1545": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e159-n1546": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1541": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1542": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1543": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1544": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1545": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e160-n1546": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1541": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1542": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1543": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1544": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1545": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm11n-e161-n1546": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e280-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e281-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e282-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e283-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e284-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2877": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2878": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2879": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2880": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2881": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2882": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        },
+        "earth-utm27n-e285-n2883": {
+          "tie_group": null,
+          "tie_reason": null,
+          "tied": false
+        }
+      },
+      "groups": []
+    }
+  },
+  "uncommitted_inputs_sha256": {
+    "data/processed/windows/earth.json": "dee5072d9896d5ae458eaaa0280914f5affa01873625ac413ce09b158ccde8f4",
+    "data/processed/windows/moon.json": "b9c6f0ba05a65b5a572c5a49ae999a78e8c8c9fc7ef23e506dbfc635f41e8747"
+  }
+}
