@@ -1,0 +1,127 @@
+{
+  "task_id": "T1-06",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "2f821413ccedd5a8085836739a897cae006093fe",
+    "head": "115fa5fd16eb2eaf4624486383c55874162fd33e",
+    "files": [
+      {
+        "path": "outputs/pilot/cop30_range_read.json",
+        "sha256": "97f7b74cd848ab490485c9521842b5a190a2eff88934746847cc88ff75aa6a4e"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "d83a293198ef51688866ede13e34e72a622bda0a1f013ae08e0c9a922ff10e84"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "0db516090be8ddda90ae8214cb8167e60d19d639b0dfc44a24e21da08ebd7b5b"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "9f8e8f44fb9751412492db6faa3d7586810b5f05b798b641d5ad1c775c951c08"
+      },
+      {
+        "path": "pipeline/tests/test_io_cog_layout.py",
+        "sha256": "721937bad87161db090614685dfa47ac92f682b13da36b204243a50f42559e5e"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_cop30.py",
+        "sha256": "2794132f33d8487cb07e05f04309ebb83f5eaacdc128c9eeccff69b72995ba64"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:17:30Z",
+  "finished_utc": "2026-11-15T00:21:54Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Both prior Codex fixes and both Claude rebuttals are supported by the inspected files. Execution-dependent criteria and required checks remain unverified because this read-only review explicitly prohibits running checks.",
+  "checks": [
+    {
+      "criterion": "AC1: Deterministic tile selection, anonymous regional HTTPS URL, and header/window range readers in io.py.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pilot.py:4971-5075 defines the regional endpoint, ordered candidates and range fetch; io.py:1508-1639 implements the header-aware reader. Saved tileList.txt:11553 lists the Holuhraun tile. Fetch execution was prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "AC2: cop30_range_read.json contains all required HTTP, COG, spatial, elevation and surface-model fields.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "outputs/pilot/cop30_range_read.json:18-273 contains the layout, overviews, EPSG:4326, pixel sizes, status 206, Content-Range, object size, requested/received bytes, units, nodata, datum and elevation statistics. The vegetation/buildings caveat is at :423-436. Values were inspected, not independently recomputed."
+    },
+    {
+      "criterion": "AC3: A stated 5 km square, complete byte accounting, touched-tile count, observational budget reporting, and no whole-tile download.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pilot.py:4915-4943 constructs the UTM square; :5598-5619 reports the budget without failing it. The artifact records 2,883,584 bytes, one touched tile and a 4,000,000-byte limit at outputs/pilot/cop30_range_read.json:144-153. Tests cover over-budget success at test_pilot_cop30.py:828-836. Behavioral execution was prohibited."
+    },
+    {
+      "criterion": "AC4: Sorted ProductRecord upsert with provider attribution, checksum and a local file holding exactly the fetched ranges.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "outputs/sources.json:2-22 contains the COP30 record. pilot.py:341-365 sorts and replaces source records; :5061-5075 saves fetched bytes. io.py:660-682 computes and validates the local checksum. Exact-byte and checksum verification was not executed under the review instructions."
+    },
+    {
+      "criterion": "AC5: An unreachable bucket causes non-zero exit naming the URL and error.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "io.py:802-807 and :949-954 attach URLs to HTTP/connection errors; pilot.py:576-578 returns 1. test_pilot_cop30.py:588-626 exercises HTTP failures, an inaccessible tile and refused connections. These tests require execution and temporary files, which this review prohibits."
+    },
+    {
+      "criterion": "AC6: Fetch persists raw files and HTTP metadata; record/check operate offline and check compares committed bytes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "data/raw/cop30/fetch.json:71-135 contains saved ranges and per-request metadata. pilot.py:5034-5095 persists them; :5099-5261 builds from local files; :508-522 compares output bytes. Offline and changed-output tests are at test_pilot_cop30.py:1004-1019. Offline reproduction was not executed as instructed."
+    },
+    {
+      "criterion": "Required pipeline test suite.",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user: the sandbox is read-only, and dependency/test-cache writes are unavailable."
+    },
+    {
+      "criterion": "Required offline COP30 reproduction check.",
+      "command": "uv run python -m terraluna_pipeline.pilot check cop30",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user's read-only review instructions."
+    },
+    {
+      "criterion": "Required repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user's read-only review instructions; Makefile:26-29 invokes uv, ruff and mypy."
+    },
+    {
+      "criterion": "Prior finding codex-r1-1: Preserve unknown touched-block byte sizes.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "io.py:417-428 returns None if any touched block size is unstated. pilot.py:5472-5476 preserves unknown held_in_ranges, and :5609/:5642 publishes the nullable total. Regression coverage includes sparse local/remote COGs and partially/all-unknown sizes in test_io_cog_layout.py:216-263/:366-375 and test_pilot_cop30.py:751-769. Verified by reading; tests were not run."
+    },
+    {
+      "criterion": "Prior finding codex-r1-2: Extract provider quotes from visible text.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pilot.py:3591/:3626 removes scripts, styles and comments before quote matching. Tests at test_pilot_cop30.py:772-808 include JSON-LD and hidden decoys. outputs/pilot/cop30_range_read.json:406 now contains the complete visible sentence from data/raw/cop30/aws_registry_copernicus_dem.html:83."
+    },
+    {
+      "criterion": "Prior rebuttal claude-r1-1: Ralph bookkeeping is permitted outside product-file patterns.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "scripts/ralph/prompt.md:21 explicitly permits the story list and progress log; :35-36 permits resolution records. scripts/ralph/ralph.sh:48 excludes reviews and agent logs from story work. The inspected diff adds no other product paths."
+    },
+    {
+      "criterion": "Prior rebuttal claude-r1-2: The probe centre is a disclosed pilot choice.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "AC3 requires a stated centre. outputs/pilot/cop30_range_read.json:275-300 discloses its coordinates and basis and identifies its pilot role. config/run.yaml retains null shipping mode and primary target-window choices; the scoped commit range does not change that configuration."
+    }
+  ],
+  "findings": []
+}

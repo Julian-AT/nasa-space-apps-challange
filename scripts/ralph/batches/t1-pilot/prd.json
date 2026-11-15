@@ -285,17 +285,17 @@
       "priority": 6,
       "passes": false,
       "review": {
-        "state": "requested",
-        "round": 1,
+        "state": "reviewed",
+        "round": 2,
         "base": "2f821413ccedd5a8085836739a897cae006093fe",
-        "head": "541c5e781099e41fdb4ce98477a5ceb76374a353",
+        "head": "115fa5fd16eb2eaf4624486383c55874162fd33e",
         "files": [
-          "reviews/T1-06-claude.json",
-          "reviews/T1-06-codex.json"
+          "reviews/T1-06-claude-r2.json",
+          "reviews/T1-06-codex-r2.json"
         ],
         "digests": {
-          "reviews/T1-06-claude.json": "b8cfc06cd912a40877061efc83abe865bc15981429c483f1f19a1e4e76d9f290",
-          "reviews/T1-06-codex.json": "e86ab42d34f1c7bd2640ffe7e3f1f57dee48cdbc8864acdb172106f6a6dbfbfd"
+          "reviews/T1-06-claude-r2.json": "6c72602556afbf35b1d515b9d43aba5f0cac32bfe9609d33114f30c474a2a39b",
+          "reviews/T1-06-codex-r2.json": "88af422f59d023a882b825045b729b54d878c3ebc30826e6fd40f4e108fc5ad1"
         }
       },
       "notes": "Reviewer findings applied: window is the 5 km live-probe footprint and the 4 MB budget is measured and reported, not forced; upsert; offline gate."

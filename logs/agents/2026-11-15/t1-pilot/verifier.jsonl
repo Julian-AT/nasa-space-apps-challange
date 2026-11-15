@@ -8,3 +8,17 @@
 {"ts":"2026-11-15T00:04:53Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"git diff 2f821413ccedd5a8085836739a897cae006093fe 541c5e781099e41fdb4ce98477a5ceb76374a353 -- scripts/ralph/batches/t1-pilot/prd.json"}
 {"ts":"2026-11-15T00:04:53Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"StructuredOutput","input":""}
 {"ts":"2026-11-15T00:04:53Z","agent":"verifier","story":"T1-06","event":"review","round":1,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":2}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"uv run pytest pipeline/tests"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"uv run python -m terraluna_pipeline.pilot check cop30"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"make check"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"git diff --stat 2f821413ccedd5a8085836739a897cae006093fe 115fa5fd16eb2eaf4624486383c55874162fd33e"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"git diff 2f821413ccedd5a8085836739a897cae006093fe 115fa5fd16eb2eaf4624486383c55874162fd33e -- outputs/sources.json"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"jq -c '{url:.url? , keys:keys}' outputs/pilot/cop30_range_read.json"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"ls -la data/raw/cop30"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"jq -c '.dem | del(.window.role) | {window, read: (.read? // null)} | keys' outputs/pilot/cop30_range_read.json"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"jq '.retrieval, .acquisition, (.dem | with_entries(select(.value|type!=\"object\" or true)) | keys)' outputs/pilot/cop30_range_read.json"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"jq '.dem | {range_read, live_probe_budget, nodata, vertical_datum, crs, pixel_size, units, values, window: (.window|del(.role))}' outputs/pilot/cop30_range_read.json"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Grep","input":"def test_.*(unreachable|exits_non_zero|fails_naming|tilelist|tile_list|withheld|fallback)"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"Bash","input":"git diff 2f821413ccedd5a8085836739a897cae006093fe 115fa5fd16eb2eaf4624486383c55874162fd33e --stat -- config PRD.md"}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"tool_use","tool":"StructuredOutput","input":""}
+{"ts":"2026-11-15T00:18:29Z","agent":"verifier","story":"T1-06","event":"review","round":2,"model":"claude-sonnet-5-5","status":"COMPLETED","verdict":"PASS","findings":2}
