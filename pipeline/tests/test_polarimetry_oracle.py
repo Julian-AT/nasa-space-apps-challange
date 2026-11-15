@@ -268,6 +268,32 @@ def test_annotation_unit_mismatch_is_refused() -> None:
         annotation.integer("set_hddr", unit="bytes")
 
 
+# --- The extent polsartools processes ---------------------------------------------------------
+
+
+def test_polsartools_extent_surrounds_the_window_with_a_margin() -> None:
+    window = oracle.Window(row0=10, col0=20, rows=4, cols=5)
+    extent, rows, cols = oracle.polsartools_extent(window, margin=1, grid_rows=100, grid_cols=100)
+    assert extent == oracle.Window(row0=9, col0=19, rows=6, cols=7)
+    grid = np.arange(100 * 100).reshape(100, 100)
+    clipped = grid[9:15, 19:26]
+    assert np.array_equal(clipped[rows, cols], grid[10:14, 20:25])
+
+
+def test_polsartools_extent_stops_at_the_grid_edge() -> None:
+    window = oracle.Window(row0=0, col0=96, rows=4, cols=4)
+    extent, rows, cols = oracle.polsartools_extent(window, margin=2, grid_rows=50, grid_cols=100)
+    assert extent == oracle.Window(row0=0, col0=94, rows=6, cols=6)
+    assert (rows, cols) == (slice(0, 4), slice(2, 6))
+
+
+def test_polsartools_extent_without_margin_is_the_window() -> None:
+    window = oracle.Window(row0=3, col0=4, rows=2, cols=2)
+    extent, rows, cols = oracle.polsartools_extent(window, margin=0, grid_rows=10, grid_cols=10)
+    assert extent == window
+    assert (rows, cols) == (slice(0, 2), slice(0, 2))
+
+
 # --- The comparison report -------------------------------------------------------------------
 
 
