@@ -27,9 +27,9 @@ the frozen checkpoints and, for each of ``python`` and ``wasm``: ``model_sha256`
 from __future__ import annotations
 
 import json
+import numbers
 import os
 import shlex
-import numbers
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
