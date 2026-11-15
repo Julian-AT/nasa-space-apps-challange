@@ -13,6 +13,7 @@ import { ACCENT, EASE, FAINT, INK, LINE, MUTED, PAPER } from './bits';
 import { C, FigureCard, LineFigure, type LineSeries } from './figure';
 import { FigBenchmarks, type BenchData } from './fig-benchmarks';
 import { FigResults, type ResultsData } from './fig-results';
+import { FigSearch, type SearchData } from './fig-search';
 import { FigTraining, type CurvesJson } from './fig-training';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
@@ -74,7 +75,7 @@ interface Slide {
 
 export interface QrLink { readonly label: string; readonly url: string; readonly svg: string }
 
-function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: CurvesJson | null, results: ResultsData): Slide[] {
+function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: CurvesJson | null, results: ResultsData, search: SearchData): Slide[] {
   const m = d.model;
   // the Jezero and Rosamond Dry Lake card: the finder and fingerprint story
   const jr = d.results.find((r) => r.targetName.includes('Jezero')) ?? null;
@@ -148,41 +149,9 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
       id: 'physics',
       steps: 1,
       body: () => (
-        <Frame title="Physics fingerprint" sub="How much the height changes over each distance, the same code in Python and in your browser.">
-          <div className="grid h-full grid-cols-[1fr_17rem] gap-10">
-            <In d={0.12} className="h-full">
-              <FigureCard
-                title="Structure function"
-                sub="Relief nu(L) per lag, closer curves mean more alike terrain"
-                caption={`Figure 1. Relief structure function nu(L) at ${d.lags.length ? `${d.lags[0]} to ${d.lags[d.lags.length - 1]} m` : 'the stored'} lags.${jr ? ` Relief distance ${jr.relief.toFixed(3)}.` : ''}`}
-              >
-                {nuSeries.length ? (
-                  <LineFigure
-                    series={nuSeries}
-                    xTicks={d.lags}
-                    yTicks={nuTicks}
-                    xLog
-                    yLog
-                    dots
-                    xLabel="Lag L (m)"
-                    yLabel="nu(L) (m)"
-                    fmtX={(x) => String(x)}
-                    fmtY={(y) => (y >= 10 ? y.toFixed(1) : y.toFixed(2))}
-                    ariaLabel="Relief structure function nu(L), log-log, for the Jezero and Rosamond windows"
-                    height={340}
-                  />
-                ) : <Unavailable reason="no fingerprint curve in bundle" />}
-              </FigureCard>
-            </In>
-            <div className="flex flex-col justify-end gap-8 pb-2">
-              {jr ? (
-                <In d={0.3} className="flex flex-col gap-6">
-                  <Key value={<span style={{ color: ACCENT }}>{jr.relief.toFixed(3)}</span>} label="relief distance, lower is closer" />
-                  {jr.closerThan !== null ? <Key value={`${jr.closerThan}%`} label="of candidate windows are farther" /> : null}
-                  <Key value="5 km" label="square window on both worlds" />
-                </In>
-              ) : <Unavailable reason="no Jezero and Rosamond card" />}
-            </div>
+        <Frame title="We searched every Earth window" sub={<>A physics fingerprint of relief and texture, computed for every 5 km window, <A>the same code in Python and in your browser</A>.</>}>
+          <div className="pt-[2vh]">
+            <FigSearch data={search} />
           </div>
         </Frame>
       ),
@@ -296,8 +265,8 @@ function Script({ text }: { text: string }) {
   );
 }
 
-export function Deck({ data, bench, results, curves, qr, fonts = '' }: { data: PitchData; bench: BenchData; results: ResultsData; curves: CurvesJson | null; qr: readonly QrLink[]; fonts?: string }) {
-  const list = slides(data, qr, bench, curves, results);
+export function Deck({ data, bench, results, search, curves, qr, fonts = '' }: { data: PitchData; bench: BenchData; results: ResultsData; search: SearchData; curves: CurvesJson | null; qr: readonly QrLink[]; fonts?: string }) {
+  const list = slides(data, qr, bench, curves, results, search);
   const n = list.length;
   const [pos, setPos] = useState({ i: 0, step: 0, dir: 1 });
   const [notes, setNotes] = useState(false);
