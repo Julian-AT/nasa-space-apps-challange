@@ -94,7 +94,9 @@ def test_measurement_error_is_terrain_only() -> None:
 
 
 def test_rank_frequency_is_a_count_over_runs_and_absent_is_not_last() -> None:
-    runs: list[dict[str, int | None]] = [{"a": 1, "b": 2}] * 83 + [{"b": 1}] * 17
+    first: dict[str, int | None] = {"a": 1, "b": 2}
+    second: dict[str, int | None] = {"b": 1}
+    runs = [first] * 83 + [second] * 17
     result = uncertainty.rank_frequency(runs, candidate="a")
     assert result == {"frequency": 0.83, "count": 83, "n": 100}
     assert uncertainty.rank_frequency(runs, candidate="b", rank=1)["count"] == 17
