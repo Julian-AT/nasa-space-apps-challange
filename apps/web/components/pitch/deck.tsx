@@ -53,8 +53,8 @@ function Brand({ size = 'lg' }: { size?: 'lg' | 'xl' }) {
   const big = size === 'xl';
   return (
     <div className={`flex items-center ${big ? 'gap-7' : 'gap-5'}`}>
-      <span className={`grid shrink-0 place-items-center bg-zinc-950 ${big ? 'size-24 rounded-[1.6rem]' : 'size-20 rounded-2xl'}`}>
-        <HugeiconsIcon icon={EarthIcon} strokeWidth={1.8} className={big ? 'size-14' : 'size-11'} style={{ color: '#ffffff' }} aria-hidden />
+      <span className={`grid shrink-0 place-items-center ${big ? 'size-24 rounded-[1.6rem]' : 'size-20 rounded-2xl'}`} style={{ background: INK }}>
+        <HugeiconsIcon icon={EarthIcon} strokeWidth={1.8} className={big ? 'size-14' : 'size-11'} style={{ color: PAPER }} aria-hidden />
       </span>
       <span className={`${big ? 'text-[7.25rem]' : 'text-[6.5rem]'} font-bold leading-none tracking-[-0.05em]`} style={{ color: INK }}>
         Terraluna
@@ -115,53 +115,30 @@ function slides(d: PitchData, qr: string | null): Slide[] {
   const m = d.model;
   // the Jezero and Rosamond Dry Lake card: the finder and fingerprint story
   const jr = d.results.find((r) => r.targetName.includes('Jezero')) ?? null;
-  const moonT = d.targets.find((t) => t.body === 'moon');
-  const opening = [
-    { key: 'moon', body: 'Moon target', name: moonT?.name ?? 'Moon', tile: moonT?.tile ?? null },
-    { key: 'mars', body: 'Mars target', name: jr?.targetName ?? 'Jezero crater', tile: jr?.targetTile ?? null },
-    { key: 'earth', body: 'Earth match', name: jr?.earthName.split(',')[0] ?? 'Earth', tile: jr?.earthTile ?? null },
-  ];
   return [
     {
       id: 'title',
       steps: 1,
       bare: true,
       body: () => (
-        <div className="relative grid h-full grid-cols-[1fr_1fr] items-center gap-14">
-          <div className="flex flex-col gap-10">
+        <div className="relative flex h-full flex-col justify-center">
+          <div className="flex max-w-[68rem] flex-col gap-10">
             <In>
               <Brand size="xl" />
             </In>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               <In d={0.15}>
-                <p className="text-[2.6rem] font-bold leading-tight tracking-tight">Find the Moon and Mars on Earth.</p>
+                <p className="text-[2.4rem] font-bold leading-tight tracking-tight">Find the Moon and Mars on Earth.</p>
               </In>
               <In d={0.25}>
-                <p className="max-w-xl text-2xl leading-snug" style={{ color: MUTED }}>
-                  A physics model and a learned encoder that measure terrain, live in the browser.
+                <p className="max-w-[60rem] text-[1.6rem] leading-snug" style={{ color: MUTED }}>
+                  A physics fingerprint and a learned terrain model that compare any place on Earth with Moon and Mars landing sites, live in the browser.
                 </p>
               </In>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4 pt-10">
-            {opening.map((o, k) => (
-              <motion.figure
-                key={o.key}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: k === 1 ? -40 : 0 }}
-                transition={{ duration: 0.9, delay: 0.3 + k * 0.12, ease: EASE }}
-                className="flex flex-col gap-3"
-              >
-                <HillTile tile={o.tile} className="w-full shadow-[0_24px_48px_-28px_rgba(9,9,11,0.5)]" />
-                <figcaption className="flex flex-col">
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: MUTED }}>{o.body}</span>
-                  <span className="whitespace-nowrap text-base font-semibold tracking-tight">{o.name}</span>
-                </figcaption>
-              </motion.figure>
-            ))}
-          </div>
-          <p className="absolute bottom-0 left-0 text-sm" style={{ color: MUTED }}>
-            <span className="font-semibold text-zinc-950">NASA Space Apps 2026</span>, Team Terraluna, November 2026
+          <p className="absolute bottom-0 left-0 text-base" style={{ color: MUTED }}>
+            NASA Space Apps 2026, Team Terraluna
           </p>
         </div>
       ),
@@ -170,43 +147,30 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       id: 'problem',
       steps: 1,
       body: () => (
-        <div className="flex h-full flex-col gap-10">
-          <In className="flex flex-col gap-4">
-            <h2 className="text-[3.25rem] font-bold leading-tight tracking-tight">Which place on Earth matches the Moon or Mars?</h2>
-            <p className="flex flex-wrap items-center gap-2 text-base" style={{ color: MUTED }}>
-              NASA candidate sites:
-              {d.targets.map((t) => (
-                <span key={t.targetId} className="rounded-full border border-zinc-200 bg-white px-3 py-0.5 text-sm font-medium text-zinc-950">
-                  {t.name}, {BODY[t.body]}
-                </span>
-              ))}
-            </p>
+        <div className="flex h-full flex-col">
+          <In>
+            <h2 className="text-[2.75rem] font-bold leading-tight tracking-tight">Problem</h2>
           </In>
-          <div className="grid min-h-0 flex-1 grid-cols-2 gap-6">
-            {[
-              { head: 'Today', items: ['Analog sites are chosen by experience', 'Few known sites, no common measure', 'Hard to compare Moon, Mars and Earth terrain'], dark: false },
-              { head: 'Terraluna', items: ['One terrain fingerprint for every body', 'Any point on Earth, measured live', 'An evidence card for every match'], dark: true },
-            ].map((col, c) => (
-              <In key={col.head} d={0.2 + c * 0.15} className="h-full">
-                <div className="flex h-full flex-col gap-10 rounded-3xl border border-zinc-200 bg-zinc-50 p-10">
-                  <span className={`w-fit rounded-full px-4 py-1 text-base font-semibold ${col.dark ? 'bg-zinc-950 text-white' : 'border border-zinc-300 bg-white text-zinc-950'}`}>{col.head}</span>
-                  <ol className="relative flex flex-1 flex-col justify-around">
-                    <span aria-hidden className="absolute bottom-4 left-[11px] top-4 w-px bg-zinc-300" />
-                    {col.items.map((it, k) => (
-                      <li key={it} className="relative flex items-center gap-6">
-                        <span className={`relative z-10 grid size-6 shrink-0 place-items-center rounded-full border-2 ${col.dark ? 'border-zinc-950 bg-zinc-950' : 'border-zinc-400 bg-white'}`}>
-                          <span className={`size-2 rounded-full ${col.dark ? 'bg-white' : 'bg-zinc-400'}`} />
-                        </span>
-                        <span className={`text-[1.6rem] leading-snug tracking-tight ${col.dark ? 'font-semibold text-zinc-950' : 'font-medium text-zinc-600'}`}>
-                          <span className="mr-3 font-mono text-base text-zinc-400">{String(k + 1).padStart(2, '0')}</span>
-                          {it}
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              </In>
-            ))}
+          <div className="flex flex-1 flex-col justify-center gap-24 pb-[4vh]">
+            <In d={0.1}>
+              <p className="mx-auto max-w-[62rem] text-center text-[2rem] font-medium leading-snug tracking-tight">
+                Astronauts and rovers train on Earth first. But <span style={{ color: ACCENT }}>which place on Earth really matches the target?</span>
+              </p>
+            </In>
+            <div className="grid grid-cols-3 gap-12">
+              {[
+                { label: 'Few targets', big: String(d.targets.length), unit: 'target sites', caption: d.targets.map((t) => `${t.name} (${BODY[t.body]})`).join(', ') },
+                { label: 'No yardstick', big: 'By eye', unit: 'how analogs are picked', caption: 'Analog sites are chosen by experience, not by one shared terrain measure.' },
+                { label: 'Everywhere', big: 'Any', unit: 'point on Earth', caption: 'Terraluna measures it live in the browser, in seconds.' },
+              ].map((c, k) => (
+                <In key={c.label} d={0.25 + k * 0.1} className="flex flex-col items-center gap-1 text-center">
+                  <span className="text-2xl font-semibold tracking-tight">{c.label}</span>
+                  <span className="mt-1 text-[4.5rem] font-bold leading-none tracking-tight" style={{ color: ACCENT }}>{c.big}</span>
+                  <span className="mt-2 text-xl">{c.unit}</span>
+                  <span className="mt-1 max-w-[22rem] text-base leading-snug" style={{ color: MUTED }}>{c.caption}</span>
+                </In>
+              ))}
+            </div>
           </div>
         </div>
       ),
