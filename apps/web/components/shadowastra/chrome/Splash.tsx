@@ -137,7 +137,7 @@ export function Splash() {
               Terrain analogs on Earth for the Moon and Mars.
             </motion.p>
           </motion.div>
-          <div className="absolute bottom-8 font-mono text-[10px] tracking-[0.3em] text-dim uppercase">NASA Space Apps 2026 · Gradient Descent</div>
+          <div className="absolute bottom-8 font-mono text-[10px] tracking-[0.3em] text-dim uppercase">NASA Space Apps 2026 · Terraluna</div>
         </motion.div>
       )}
     </AnimatePresence>

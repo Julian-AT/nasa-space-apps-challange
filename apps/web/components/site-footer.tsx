@@ -13,7 +13,7 @@ export function SiteFooter({ bundle }: Readonly<{ bundle: Bundle }>) {
       <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-3 px-4 py-8 text-sm text-muted-foreground sm:px-6 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-1">
           <p className="font-mono text-[11px] tracking-wide">{`${shellText(bundle).footer} · Schema ${bundle.manifest.schema_version}`}</p>
-          <p className="font-wide text-[11px] tracking-[0.18em] uppercase">Gradient Descent</p>
+          <p className="font-wide text-[11px] tracking-[0.18em] uppercase">Terraluna</p>
         </div>
         <ul className="flex flex-wrap gap-x-5 gap-y-2 font-mono text-[11px] tracking-[0.18em] uppercase">
           <li>

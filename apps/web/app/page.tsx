@@ -128,7 +128,7 @@ export default function Home() {
   return (
     <>
       <Hero
-        eyebrow="NASA Space Apps 2026 · Team Gradient Descent"
+        eyebrow="NASA Space Apps 2026 · Team Terraluna"
         pins={[...pinById.values()]}
         cards={heroCards}
         bundleVersion={bundle.manifest.bundle_version}
