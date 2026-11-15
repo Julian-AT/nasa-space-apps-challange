@@ -26,7 +26,7 @@ export const ARCH_STEPS = [
 /** Fades a part in or out of focus. */
 function Part({ on, children }: { readonly on: boolean; readonly children: ReactNode }) {
   return (
-    <motion.g initial={false} animate={{ opacity: on ? 1 : 0.28 }} transition={{ duration: 0.45, ease: EASE }}>
+    <motion.g initial={false} animate={{ opacity: on ? 1 : 0.4 }} transition={{ duration: 0.45, ease: EASE }}>
       {children}
     </motion.g>
   );
@@ -91,7 +91,7 @@ export function ArchDiagram({ step }: { readonly step: number }) {
         <rect x={430} y={CY - 110} width={300} height={220} rx={18} fill={s === 1 ? '#ffffff' : '#fafafa'} stroke={s === 1 ? INK : '#d4d4d8'} strokeWidth={s === 1 ? 2.5 : 1.5} />
         {[0, 1, 2, 3].map((k) => {
           const h = 50 + k * 26;
-          return <rect key={k} x={462 + k * 62} y={CY + 20 - h / 2 - 20} width={42} height={h} rx={8} fill="#e4e4e7" />;
+          return <rect key={k} x={462 + k * 62} y={CY + 28 - h} width={42} height={h} rx={8} fill="#e4e4e7" />;
         })}
         <text x={580} y={CY + 62} textAnchor="middle" fontSize={20} fontWeight={700} fill={INK}>ResNet stages 1 to 4</text>
         <text x={580} y={CY + 88} textAnchor="middle" fontSize={16} fill={SUB}>4 stages, 32 to 256 channels</text>
