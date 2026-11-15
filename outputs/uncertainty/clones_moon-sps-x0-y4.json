@@ -3356,7 +3356,7 @@
     }
   },
   "command": "python -m terraluna_pipeline.uncertainty run-clones --pgda-dir /data/terraluna/raw/pgda78",
-  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "config_version": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
   "product_id": "PGDA78/Site01",
   "record_type": "terraluna pgda78 clone ensemble",
   "resampler": "D29: geometry.resample_window (spherical AEQD about the window centre, bilinear, PGDA78 sphere 1737400 m)",
@@ -3464,6 +3464,6 @@
     "Site01_final_adj_5mpp_surf.tif": "3ba7b97cb00a2bcf21189c3aeb535f65afc21207154ab9f0d43c5bdc1f7e747e"
   },
   "window_id": "moon-sps-x0-y4",
-  "windows_evidence": "outputs/g0/windows-evidence.json",
-  "windows_evidence_sha256": "670a8083ffae28dafd7f709a2c58e0c9bb98c0ae9e6b7c64ae0ff8f5c5f2ecff"
+  "window_source": "search.projected_grid over the Site01 surface extent (as search.evaluate_moon)",
+  "windows_evidence_sha256": null
 }

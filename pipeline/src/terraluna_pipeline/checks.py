@@ -750,9 +750,16 @@ def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
         / "analysis"
         / ("g4_candidates.json" if is_gate_target else f"g4_candidates_{target_id}.json")
     )
-    _write(evidence_path, evidence)
     if not is_gate_target:
+        evidence["status"] = None
+        evidence["missing_parts"] = None
+        evidence["g4_gate"] = (
+            f"G4 is recorded for {G4_GATE_TARGET} only; this target's table is supporting "
+            "evidence for its cards and the paper"
+        )
+        _write(evidence_path, evidence)
         return EXIT_OK
+    _write(evidence_path, evidence)
     n_first = sum(1 for r in table if r["base_pareto_layer"] == 1)
     stable = [
         r["window_id"]

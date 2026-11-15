@@ -12,7 +12,7 @@
   "input_hashes": [
     {
       "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
-      "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+      "sha256": "c1ded889eba244aa074d042c9ad415a78ea2bec250301a5824d259a1e44ac2d2"
     }
   ],
   "inspected": "Viewed both 5 km windows on the 90 m analysis grid as elevation maps with contours (rendered from the D29-resampled DEM caches listed under uncommitted_artifacts_opened), and compared their T3 nu(L) curves and Hurst exponents from data/processed/windows/{moon,earth}.json and the committed candidate table.",
@@ -25,12 +25,13 @@
   },
   "observed_discrepancy": "The target is one broad massif: about 780 m of relief in a single dome-shaped ridge whose nu grows steadily from 43.4 m at 270 m to 148.2 m at 1080 m (relief H 0.89). The candidate is a mostly flat plain at about 750 to 800 m crossed by a few narrow ridges (up to about 960 m) and a trough (down to about 660 m), about 300 m of relief. Its nu is close to the target at short lags (32.2 m at 270 m) but flattens with lag (54.6 m at 1080 m, relief H 0.38). The RMS log nu distance does not read H, so a window whose roughness saturates beyond a few hundred metres ranks first against a target whose roughness keeps growing with scale. The rank is stable under the clones because the clones move the target's nu by about 0.07%, far less than the factor of 2.7 difference at 1080 m; the stability says nothing about morphological similarity.",
   "record_type": "terraluna G4 inspected counterexample (analyst inspection, not generated)",
+  "reinspection": "Re-viewed after the T5 search rerun (fast/refresh): the same candidate is the only first-layer window in 100 of 100 clone runs; both DEM windows from the search caches were re-rendered and look the same, and the nu and H values quoted above are unchanged to the stated precision.",
   "target_window_id": "moon-sps-x2-y2",
   "uncommitted_artifacts_opened": {
-    "data/processed/dem_windows/earth-utm27n-e285-n2879.npz": "d8ee9ea759f82679b57fd2477f778913de294ba506beba6e150d698d629f8e8b",
-    "data/processed/dem_windows/moon-sps-x2-y2.npz": "cd52caf70b2bb86fa5922a4d281e42c74734ef38bcfe35ceead6b49b37ee7ca2",
-    "data/processed/windows/earth.json": "dee5072d9896d5ae458eaaa0280914f5affa01873625ac413ce09b158ccde8f4",
-    "data/processed/windows/moon.json": "b9c6f0ba05a65b5a572c5a49ae999a78e8c8c9fc7ef23e506dbfc635f41e8747"
+    "data/processed/dem_windows/earth-utm27n-e285-n2879.npz": "9f8812d80f22f7a2cde6ce756a1bcd28a6fa7c6d3946793ab19bfc6670b5abe1",
+    "data/processed/dem_windows/moon-sps-x2-y2.npz": "c5bdb982feb5abbf688d5a1edaffc912e2f387c2aefaf51503e88da5f913a041",
+    "data/processed/windows/earth.json": "fb7f8911aff25ce3aa75621e20188f04350eb1b87ef131d6ce7fbdcf1e39a101",
+    "data/processed/windows/moon.json": "9882b84b2c204eefd8aee80f1441fd9ca54227fe4e43acac5d1a9479cb80e132"
   },
   "why_this_candidate": "It is the only window in the first Pareto layer over terrain_relief and terrain_texture (analysis/g4_candidates.json), and it stays there in 100 of 100 PGDA78 clone runs, so it is the candidate most likely to be read as 'the match'."
 }

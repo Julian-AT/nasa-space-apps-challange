@@ -1,112 +1,112 @@
 {
   "caveat": "The 5 m surface fills pixels without LOLA returns by interpolation (README); only about 10% of 5 m pixels hold returns, so short lags of 'all_cells' are shaped by the interpolation. 'observed_cells_only' uses pairs of cells that both hold returns (ldec > 0).",
   "command": "python -m terraluna_pipeline.checks analysis scale-behaviour --pgda-dir /data/terraluna/raw/pgda78",
-  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "config_version": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
   "evidence_label": "Derived",
   "input_hashes": [
     {
       "path": "config/run.yaml",
-      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+      "sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x0-y0.json",
-      "sha256": "076a1471da905a8e2c0d90bcb247fb644ca7de0480167397ecfbbdb6e0e70ae6"
+      "sha256": "9f4f3ff9cd965ce6fe28f92f93b67eabf3452d8c3fb5ceaf7b9fe7de7c10fc51"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x0-y1.json",
-      "sha256": "d04d44ddcea81a7c24cece4862ccf59c35d8b2bbb38bb189636c5d1ca037094e"
+      "sha256": "a41055d62701a432723b26d856179b9a13c21d70ec0d9126da1bd69fa09bf69f"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x0-y2.json",
-      "sha256": "9f9f1622eefbe18bb2a425fd83d8813cfb0897b882fe83d1288b93cb4a63ede0"
+      "sha256": "72f5e32faa694c166e5973cab445f844070d7dead8e0063ee10b6c29d7ebf462"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x0-y3.json",
-      "sha256": "cb496170edb7162477d1b03c12ef90d5a09fd29b36b80a2422f53a01b4c58c93"
+      "sha256": "28e4b0e7584be94be218a18e72e8bf2e90e580f6f168d33827dbcb4614993dab"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x0-y4.json",
-      "sha256": "890b87c6d6c8d4e2ed2606f6b32e12b6d10d27c2eb439de2b49af3fc2996ffbd"
+      "sha256": "a5f973ad27a37b8346b4c0cd34f2f6b5bfb04cb7a0a272e7b02c01bf2d2b9984"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x1-y0.json",
-      "sha256": "7721b475843e34e165e3fe632f524026683a19d479a13e8d0285e8a9c4427843"
+      "sha256": "b30d6200c611484144191db9f074a04a4584265ccf34e8450da090e198aa3a9e"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x1-y1.json",
-      "sha256": "6db080aa35b1909ce013a57cbca533f243e5bf559d55acee24f5cf96ed0f3039"
+      "sha256": "120606380dffeafa2900c5aed2fb2145c4b1cbc4802f06e7adeccc7e1f223de0"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x1-y2.json",
-      "sha256": "12c3db9c7923dee6939f130f9f22283147eb29d0a972ac5c9a0ac98fdd9514c3"
+      "sha256": "f7d69d8d325051c16fba58386570dc9ec084814a92fdfe13a5c0c1145991aa67"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x1-y3.json",
-      "sha256": "139e604d2f15cadd01ca471c3e63fb4067e627165c5ac723ca3a6082d0be73b5"
+      "sha256": "67472bea1c5120ffb33fe0da66a908737807c9a8305c9263abbaf4bb9e64f94a"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x1-y4.json",
-      "sha256": "7d2c60c93acfd25d4ac39d269f37190f5d8520609023e13f1bbd8a9ecd837847"
+      "sha256": "3ac29f70f65ba00f19cec11f59c8d0c52405583b7037ef10fe26d5e49ddce965"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x2-y0.json",
-      "sha256": "c034febc2062032a996ce6800050c3aa7c6ba0aebc668d0ec69e6c37695d903e"
+      "sha256": "6c45c7b162adde471ba8816758dfce3f8cb9c6938cabcaecbfe61ba62840e8b4"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x2-y1.json",
-      "sha256": "64fbbfbe095ba79acda5eb05911bc0b50d3eb3c5d2b6fb6a832f9cf6e7a7cbb3"
+      "sha256": "c2cc54abfb6dce58334109d92e9382dfcbc5e4bbd7bcbf8e68911156e7e9158b"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
-      "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+      "sha256": "c1ded889eba244aa074d042c9ad415a78ea2bec250301a5824d259a1e44ac2d2"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x2-y3.json",
-      "sha256": "371a5c0fc99918b3d2eb515bf26a07d3e378cda49c03c3fbca835b1b4b111377"
+      "sha256": "473512979884a70825f0c39ef77a0f935fd0a2b57555c61e3a2996c63ab30dc9"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x2-y4.json",
-      "sha256": "cf00ceed0eb6f2b63be28aa9aa2fde4d069aaa9fe944082e10afdf5b7cb92b75"
+      "sha256": "a728174126ceb0ff1aaf155a718226bcaf74d2470841ef13a04a567e6f64d6e6"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x3-y0.json",
-      "sha256": "31db09e3e5fd40fe5d2bb8c7255a9c3aa36abdd34082f5b7cc7df49121ee43be"
+      "sha256": "22168ac100f1269d65d9cbae911e6d682adc9e9d81f15f100cc4710d134ced94"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x3-y1.json",
-      "sha256": "aa4f2040e8c150b9b7de1ef8b8287e80de6cfaf34e53b4faf1bf0531321a4578"
+      "sha256": "17d2ef9314f8458e84b1f8a817d17a23325f0c028ced17bf6d44c9dfc678df2f"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x3-y2.json",
-      "sha256": "8dae4664f873fe4c3592c685bd579758b37a63f549e40cc672385d71bbf41f28"
+      "sha256": "e1e5c4a76bfe258a2bb91a60a5e2a1faab95d595b2be53c026a5608875a7fc83"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x3-y3.json",
-      "sha256": "eaafb2add92cd0df91ba30e69dd67c48da988fab53753776c009e42cd3ccd2e2"
+      "sha256": "0172e3c11fc467631471c07157a61f50747880fa3d06203d453478e17cf9ba82"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x3-y4.json",
-      "sha256": "65d49c12914752236e28373f2dc65d3f509b29a395644cd09d86757d1cfdcc13"
+      "sha256": "42b811cfcecf7007828168f98c654a18cdd938e5bd734d08e6eaf7b55ee70465"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x4-y0.json",
-      "sha256": "538972d9b7e0b892af7dcff072b49b8638df2e13461ffc31b2f2384030a7c5ef"
+      "sha256": "253f970e954fd43f0798b8377c5bfcd7613a27d650468f20370b8827427f6510"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x4-y1.json",
-      "sha256": "d5202d078a708255310397460bbcdbc34cced8bd520156f130c525dec8ce064a"
+      "sha256": "ea2a7150d75a1144cd104b904b2c49ba2edde5c69874d993418e1791f23e76e1"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x4-y2.json",
-      "sha256": "84350e1d1004b3e532bfc7680211e2dd42e304fb8cb5ac99f1ae513b8bf7580e"
+      "sha256": "a28ed036b70c7263b1b81367c29c8542573e1d038b1d38792c7f31cf8022a709"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x4-y3.json",
-      "sha256": "2bead5b320b8e4ccfa3f727ee87e987acb551495f06d94ed32a683b854f351f5"
+      "sha256": "c10da7243f256902df96e2c7b60d7313b4daa182957967b3b108403a67f18602"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x4-y4.json",
-      "sha256": "4ea8c3a8499b6df687e9e81a4b1e9c41679d2cc9e8f96fcd20279fc995f2b1a5"
+      "sha256": "77c7935936b40648233cc7a68ff9dbec1ed2e8170975e6d3952b8e394bf6693e"
     }
   ],
   "isotropic_rule": "direction_mean",

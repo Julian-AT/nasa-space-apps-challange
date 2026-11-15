@@ -6,7 +6,7 @@
     "terrain distances only; radar comparison not completed (shipping mode C)",
     "the encoder is EXPERIMENTAL and not used in any ranking",
     "WorldCover v200 2021 land-cover mask, nearest class at 90 m centres (ANA-05 default)",
-    "PGDA78 clone measurement error is propagated for the lunar target window only (clone counts in uncertainty_components); no Earth DEM error model is applied, and ties are not set in distances_by_family because the target has no reference set (schema: tied needs a reference spread); clone-based ties are listed in analysis/g4_candidates.json.",
+    "PGDA78 clone measurement error is propagated for the lunar target window only (clone counts in uncertainty_components); no Earth DEM error model is applied. Terrain ties use matching.tie_groups with each candidate's clone spread (half the 2.5-97.5 percentile range of its distance), measurement error only.",
     "Mode C: radar comparison not completed. The radar inputs were not qualified within the pilot, so no radar distance or radar signature is part of this card.",
     "The encoder is EXPERIMENTAL (G5 NOT_RUN); its distance, if shown, is Predicted and takes no part in any ranking.",
     "Field confirmation is future work; similarity here does not establish block sizes, soil strength, buried structure or low-gravity mobility (PRD 3)."
@@ -59,8 +59,8 @@
       "reference_spread_reason": null,
       "status": "available",
       "tie_group": null,
-      "tie_reason": "spread_unavailable",
-      "tied": null,
+      "tie_reason": null,
+      "tied": false,
       "unit": "RMS of log nu",
       "value": 3.3722848971248722
     },
@@ -78,8 +78,8 @@
       "reference_spread_reason": null,
       "status": "available",
       "tie_group": null,
-      "tie_reason": "spread_unavailable",
-      "tied": null,
+      "tie_reason": null,
+      "tied": false,
       "unit": "RMS of log nu",
       "value": 3.810780065678957
     }
@@ -244,8 +244,8 @@
     "tied_by_family": {
       "model_embedding": null,
       "radar_cpr": null,
-      "terrain_relief": null,
-      "terrain_texture": null
+      "terrain_relief": false,
+      "terrain_texture": false
     },
     "uncertainty_components": {
       "heterogeneity": {
@@ -288,7 +288,7 @@
         "evidence_label": "Derived",
         "n_requested": null,
         "n_used": null,
-        "note": "Named mask and region scenarios with the rank by family in each; rank_frequency is how often this candidate ranked first by that family over the PGDA78 clone runs, a frequency and never a probability (PRD 6.6). Mode C: no radar scenario.",
+        "note": "Named mask and region scenarios with the rank by family in each; rank_frequency is how often this candidate ranked first by that family over the PGDA78 clone runs (none without a clone set), a frequency and never a probability (PRD 6.6). Mode C: no radar scenario.",
         "rank_frequency": {
           "terrain_relief": {
             "count": 0,
@@ -311,8 +311,8 @@
               "terrain_texture": 66
             },
             "values_by_family": {
-              "terrain_relief": 3.3722848971248363,
-              "terrain_texture": 3.8107800656789257
+              "terrain_relief": 3.372284897124872,
+              "terrain_texture": 3.8107800656789568
             }
           },
           {
@@ -323,8 +323,8 @@
               "terrain_texture": 62
             },
             "values_by_family": {
-              "terrain_relief": 3.3722848971248363,
-              "terrain_texture": 3.8107800656789257
+              "terrain_relief": 3.372284897124872,
+              "terrain_texture": 3.8107800656789568
             }
           },
           {
@@ -335,8 +335,8 @@
               "terrain_texture": 16
             },
             "values_by_family": {
-              "terrain_relief": 3.3722848971248363,
-              "terrain_texture": 3.8107800656789257
+              "terrain_relief": 3.372284897124872,
+              "terrain_texture": 3.8107800656789568
             }
           },
           {
@@ -347,8 +347,8 @@
               "terrain_texture": 42
             },
             "values_by_family": {
-              "terrain_relief": 3.3722848971248363,
-              "terrain_texture": 3.8107800656789257
+              "terrain_relief": 3.372284897124872,
+              "terrain_texture": 3.8107800656789568
             }
           },
           {
