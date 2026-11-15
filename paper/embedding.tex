@@ -13,35 +13,30 @@ right questions of it.
 Table~\ref{tab:representations} compares four representations. The fingerprint encodes exactly
 the relief and texture structure function and the Hurst exponent at stated lags, and it is
 invariant to rotation by construction of the isotropic summary. Two frozen image models serve as
-baselines: a ResNet-18 trained on ImageNet photographs \citep{he2015} and a DINO Vision Transformer
-trained by self distillation on natural images \citep{caron2021,dosovitskiy2020}. Neither has seen
+baselines: a ResNet-18 trained on ImageNet photographs \citep{he2015} and a Vision Transformer \citep{dosovitskiy2020} trained by DINO self distillation without labels \citep{caron2021}. Neither has seen
 elevation data, so they test whether generic visual features already carry the fingerprint. The
-encoder of Section~\ref{sec:architecture} is trained on elevation from the three bodies with an
-explicit physics target and an explicit penalty on body information.
+encoder of Section~\ref{sec:architecture} learns from elevation of the three bodies with an explicit physics target and an explicit penalty on body information.
 
 \begin{table}[tbp]
 \centering
 \caption{Representations compared in this study. The training signal and invariances are
-properties of the method. Measured parameter counts and cost per window are reported in
-Section~\ref{sec:results} from the model report.}
+properties of the method. Measured parameter counts and cost per window are reported only where the model report holds them.}
 \label{tab:representations}
 \footnotesize
 \begin{tabular}{@{}p{0.17\linewidth}p{0.24\linewidth}p{0.25\linewidth}p{0.24\linewidth}@{}}
 \toprule
 Representation & Encodes & Invariances & Use in the browser \\
 \midrule
-Fingerprint & $\ln \nu(L)$ of relief and texture at five lags; Hurst exponent & rotation by isotropic summary; height units by the log & exact, in the probe worker \\
+Fingerprint & $\ln \nu(L)$ of relief and texture at five lags; Hurst exponent & the two grid axes and their reflections; distances unchanged by a change of height units & exact, in the probe worker \\
 ImageNet ResNet-18 & features of natural photographs & those of photographic augmentation & baseline only, not shipped \\
 DINO ViT & self distilled features of natural images & those of its augmentations & baseline only, not shipped \\
-Terraluna encoder & elevation features trained on Moon, Mars and Earth & rotations and reflections by training; body information penalised & ONNX in the probe worker, labelled Predicted \\
+Terraluna encoder & elevation features trained on Moon, Mars and Earth & rotations and reflections by training; body information penalised & ONNX in the probe worker once exported, labelled Predicted \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Related learned models make different choices. LunarFM learns a joint embedding of many lunar
-instruments within a latitude band that excludes the poles \citep{gironamata2026}; topo2vec learns
-Earth elevation embeddings with a scale based self supervision \citep{kavitzky2021}; GEAR retrieves
-analogs between two terrestrial regions with expert labels \citep{liu2026}; and the Qaidam study
+instruments within a latitude band that excludes the poles \citep{gironamata2026}; topo2vec learns elevation embeddings with a scale based self supervision \citep{kavitzky2021}; GEAR retrieves analogs between two terrestrial regions and releases an expert annotated similarity dataset \citep{liu2026}; and the Qaidam study
 learns a similarity between Earth and Mars images \citep{meng2024}. The encoder studied here uses
 elevation only, three bodies, a south polar lunar target and the fingerprint as supervision, and it
 is evaluated by probes on held out spatial blocks. Whether it adds anything over the fingerprint is

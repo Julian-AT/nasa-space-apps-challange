@@ -1,8 +1,7 @@
 \section{Data}
 \label{sec:data}
 
-Every product enters the study as elevation, except two radar products that are decoded for the
-radar availability audit of Section~\ref{sec:results-radar}. Table~\ref{tab:data} lists them. Each
+The study uses elevation products, one land cover product, and two radar products that are decoded for the radar availability audit of Section~\ref{sec:results-radar}. Table~\ref{tab:data} lists them. Each
 download is recorded with its provider URL, HTTP metadata and SHA-256 digest, and every derived
 number in this paper names the artifact it was read from.
 
@@ -17,6 +16,7 @@ each product is used; no product is used outside its stated role.}
 Body & Product & Posting & Frame & Role \\
 \midrule
 Moon & PGDA product 78, Site01 \citep{barker2021} & 5 m & south polar stereographic & target windows, error clones \\
+Moon & PGDA product 90, LOLA south polar model, 80 to 90 degrees south & 20 m & south polar stereographic & encoder training \\
 Mars & USGS CTX DTMs \citep{laura2021} & 20 m & equirectangular & encoder training \\
 Earth & Copernicus GLO-30 \citep{airbus2022copernicus} & 1 arcsec & geographic & search windows, probe \\
 Earth & ESA WorldCover v200 \citep{zanaga2022} & 10 m & geographic & land cover mask \\
@@ -26,8 +26,7 @@ Moon & Mini-RF south polar CPR mosaic \citep{nozette2010} & mosaic & south polar
 \end{tabular}
 \end{table}
 
-\paragraph{Moon.} The lunar target is Site01 of the high resolution LOLA site products of
-\citet{barker2021}, the site that the provider names Connecting ridge. The product gives surface
+\paragraph{Moon.} The lunar target is Site01 of the high resolution site products that \citet{barker2021} built from Lunar Orbiter Laser Altimeter ranges \citep{smith2010}, the site that the provider names Connecting ridge. The product gives surface
 height at 5 m per pixel in south polar stereographic metres, the number of LOLA returns per pixel,
 the total height uncertainty, and 100 error clones of the elevation model. Pixels without a
 LOLA return are filled by interpolation in the provider's surface height, so we carry the observed
@@ -35,16 +34,12 @@ fraction of each window beside its statistics. The Site01 extent is tiled with \
 windows at a \ConfigStrideM\,m stride, giving \MoonWindowsGenerated{} windows, of which
 \MoonWindowsEligible{} pass the coverage rule. The primary target window is the eligible window
 that contains the centroid of the union of the provider's region of interest polygons. Its height
-grid is \MoonTargetValidPct\% valid, but only \MoonTargetObservedPct\% of its 5 m pixels hold a LOLA
-return; the rest is the provider's interpolation. A permanent shadow fraction is not reported,
+grid is \MoonTargetValidPct\% valid, but for only \MoonTargetObservedPct\% of its valid analysis cells does the nearest 5 m pixel hold a LOLA return; elsewhere the 5 m heights are the provider's interpolation. A permanent shadow fraction is not reported,
 because no permanent shadow product was qualified for this window.
 
 \paragraph{Mars.} Martian terrain comes from the USGS Ames Stereo Pipeline CTX elevation models
 \citep{laura2021,beyer2018}, built from Context Camera stereo pairs \citep{malin2007}. Each model
-ships a quality file with the statistics of its CTX minus MOLA height differences after ground
-control \citep{smith2001}. Models whose standard deviation of that difference exceeds a threshold
-are dropped. The threshold starts at 10 m; Appendix~\ref{sec:appendix-data-analysis} reports how the
-distributions depend on it.
+ships a quality file with the statistics of its height differences from MOLA altimetry \citep{smith2001} after ground control. Models whose standard deviation of that difference exceeds 10 m are dropped; for the encoder dataset this left \MarsDtmsUsed{} models and dropped \MarsDtmsDropped.
 
 \paragraph{Earth.} Earth elevation is the Copernicus GLO-30 digital surface model, read as cloud
 optimised GeoTIFFs from its public bucket. It is a surface model, so canopy and buildings are part
@@ -70,8 +65,4 @@ parity test holds the two implementations to floating point error. The fingerpri
 \ConfigGridM\,m grid; the encoder uses \ConfigInputPx{} by \ConfigInputPx{} pixels at
 \ConfigInputSpacing\,m.
 
-\paragraph{Splits.} Encoder data are split by space, never at random. The Moon is divided into
-longitude sectors, Martian models are grouped by 10 degree tiles, and Earth by 2 degree
-blocks. Training blocks that touch a test block are dropped, and every window that overlaps a
-target footprint or its 10 km buffer is excluded from training and from every probe. The split
-counts are reported with the dataset manifest in Section~\ref{sec:training}.
+\paragraph{Encoder dataset and splits.} Encoder windows are sampled uniformly in projected area from the lunar model within the cap south of 80 degrees, from the Martian models that pass the quality threshold, and from Earth tiles at a fixed number of windows per tile, with the Earth land cover rule applied. They are split by space, never at random: lunar longitude sectors, groups of Martian models, and 2 degree Earth blocks. Windows that straddle a block boundary are dropped, and so is every window within 10 km of a target footprint, in every split. The dataset holds \DatasetWindows{} windows. The training split has \DatasetMoonWindows{} lunar, \DatasetMarsWindows{} Martian and \DatasetEarthWindows{} terrestrial windows; validation has \DatasetMoonVal, \DatasetMarsVal{} and \DatasetEarthVal; and test has \DatasetMoonTest, \DatasetMarsTest{} and \DatasetEarthTest. These counts are far below the planned two hundred thousand windows per body, because the dataset was built on a CPU server within the time available.

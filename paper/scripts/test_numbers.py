@@ -54,6 +54,9 @@ def gates() -> list[dict[str, Any]]:
             "scope": None,
             "result": None,
             "consequence": None,
+            "command": None,
+            "config_version": None,
+            "input_hashes": [],
         }
         for n in range(7)
     ]

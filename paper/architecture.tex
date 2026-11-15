@@ -11,13 +11,11 @@ appears, and it enters no ranking unless the promotion gate of Section~\ref{sec:
 
 \paragraph{Input.} A window is resampled to \ConfigInputPx{} by \ConfigInputPx{} pixels at
 \ConfigInputSpacing\,m (Section~\ref{sec:data}) and a best fit plane is removed. The three channels
-are $\operatorname{asinh}(z / s)$ with $s = 50$\,m, which compresses large relief while staying
-linear near zero; the slope magnitude divided by 45 degrees; and the validity mask. The same code,
+are $\operatorname{asinh}(z / s)$ of the plane removed heights with $s = 50$\,m, which compresses large relief while staying linear near zero; the slope magnitude of the heights before plane removal, divided by 45 degrees; and the validity mask. The same code,
 in Python and in the browser, feeds training and the live probe.
 
 \paragraph{Backbone and heads.} The backbone is a ResNet-18 \citep{he2015} at half width, with
-stages of 32, 64, 128 and 256 channels, batch normalisation \citep{ioffe2015} and a stride one stem
-for the small input. Global average pooling gives the embedding $h \in \mathbb{R}^{256}$, which is
+stages of 32, 64, 128 and 256 channels, batch normalisation \citep{ioffe2015} and a three by three stem without max pooling for the small input. The specified stem stride is one; a stride of two, which quarters the compute and leaves the parameter count unchanged, is allowed as a recorded deviation for training on CPUs. Global average pooling gives the embedding $h \in \mathbb{R}^{256}$, which is
 L2 normalised for retrieval. A three layer projector of width 2048 maps $h$ to $z$ for the VICReg
 loss. A two layer physics head predicts the eleven standardised physics targets: $\ln \nu$ of
 relief and texture at the five lags and the relief Hurst exponent. A two layer body head predicts
@@ -34,7 +32,7 @@ batch of $n$ windows and dimension $d$, the VICReg loss \citep{bardes2021} is
   c(z) = \frac{1}{d} \sum_{j \neq k} \operatorname{Cov}(z)_{jk}^2,
   \nonumber
 \end{align}
-with the published coefficients $\lambda_{\mathrm{inv}} = \lambda_{\mathrm{var}} = 25$ and
+with coefficients $\lambda_{\mathrm{inv}} = \lambda_{\mathrm{var}} = 25$ and
 $\lambda_{\mathrm{cov}} = 1$. The physics loss is a masked mean squared error over the targets $y$
 that exist for a window, for both views,
 \begin{equation}

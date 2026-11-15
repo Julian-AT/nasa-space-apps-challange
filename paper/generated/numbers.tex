@@ -4,16 +4,22 @@
 % Artifact outputs/g0/earth-radar-roi.json sha256 b6b4d32cf3aabf475de896f6608a3194f5bd4ba41611c5e014c654f662194d69.
 % Artifact outputs/pilot/minirf_mosaic.json sha256 7ca9debe596749ff41004f89d5e0023a5ca51d0f28d25d029cefcf3ebd2833f7.
 % Artifact config/run.yaml sha256 e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e.
-% Artifact outputs/ml/dataset/manifest.json: not present.
+% Artifact outputs/ml/dataset/manifest.json sha256 53f0c2614945436ba7e89460ed365d1aefa7e86b55ed34c9a58f0a65d5227b3e.
 % Artifact outputs/ml/train/summary.json: not present.
 % Artifact outputs/ml/evaluation/test/evaluation_metrics.json: not present.
 % Artifact outputs/ml/evaluation/test/g5_conditions.json: not present.
 % Artifact outputs/search/targets.json sha256 6ab65f388126b3b1f4bbfe5cb59bc3b158ef623199b5222663500e1c9c0ec9d9.
-% Artifact outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json sha256 db275be2226cdf7e3ed066dbe9b88ba2dee2487602c81a0c9b58e1995531ad5d.
-% Artifact outputs/cards/moon-sps-x2-y2__earth-utm27n-e280-n2880.json sha256 29dee30ce24c1ad65a628535f3af6227418a46745f2a579159e44d9c2ff7da36.
-% Artifact outputs/comparisons/moon-cr-site01-w000.json sha256 56d8951018afc3a1b0b073ac0d258d6ea1c06517b998686d164b7304a65420f3.
+% Artifact outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json sha256 a6277dce20e6661fee19c52d9508a10743d166e9fd49369f5c9f734119f11712.
+% Artifact outputs/cards/moon-sps-x2-y2__earth-utm27n-e280-n2880.json sha256 4e561811d40ad359986d17e752fbaacd2f5d4c936cf52ecf80ec6dea11c27845.
+% Artifact outputs/comparisons/moon-cr-site01-w000.json sha256 8a5c12462d0d5564584ce3fdaea9a3c00ca6c6f001e8ddde4c715bb793871e07.
 % Artifact paper/figures/generated/hillshades.json sha256 1d983c3b510bce3b4fca921a73284bfc8be2d9856329df9aaf1915102d70fc13.
-% Artifact outputs/validation.json sha256 39606c0e918be92842b1329b4951da0303f4bf92c49ab9c352b3617c501868cc.
+% Artifact analysis/g4_candidates.json sha256 dfcfbe3409dc8176a248e77e71f8639158f51f1bac59c189de8c87a006ef1045.
+% Artifact analysis/a1_body_distributions.json sha256 bb2968acbbf2f76a1e9cc429cbaddeaaf416bfa9e5ce82f92bb554f1bbaba07a.
+% Artifact analysis/a1_scale_behaviour.json sha256 72807760ec4ae7365944f2aaa06875f72b48d48664b2f47dd27b9e52f3a3824a.
+% Artifact analysis/a1_target_percentiles.json sha256 c771de00dc64dee389500b1e4b8624a02b68df135534dd8a866786a4be8bca6e.
+% Artifact analysis/holuhraun_reproduction.json sha256 018b9b27b622606931380535403c77de7db38171751f4229b3525c516a3f294c.
+% Artifact analysis/a2_cross_body_overlap.json sha256 be8a158abc661ff9bedce8e234755c8697fde03a25f2c7c8de1f7e70466c7f19.
+% Artifact outputs/validation.json sha256 fb81558cb83bb5f0cab12a83317b9edfea0c9efa9a17a4c325627680f0b66394.
 \newcommand{\MoonWindowsGenerated}{25}
 \newcommand{\MoonWindowsEligible}{25}
 \newcommand{\MoonTargetValidPct}{100}
@@ -92,10 +98,9 @@
 \newcommand{\GFiveRhoMin}{0.5}
 \newcommand{\GFiveJaccardMin}{0.5}
 \newcommand{\ConfigShippingMode}{C}
-\newcommand{\DatasetMoonWindows}{\NotAvailable}
-\newcommand{\DatasetMarsWindows}{\NotAvailable}
-\newcommand{\DatasetEarthWindows}{\NotAvailable}
-\newcommand{\DatasetTestWindows}{\NotAvailable}
+\newcommand{\DatasetMoonWindows}{6,848}
+\newcommand{\DatasetMarsWindows}{1,398}
+\newcommand{\DatasetEarthWindows}{11,147}
 \newcommand{\TrainEpochs}{\NotAvailable}
 \newcommand{\TrainBatch}{\NotAvailable}
 \newcommand{\TrainHours}{\NotAvailable}
@@ -180,10 +185,82 @@
 \newcommand{\HillMoonLon}{-137.39}
 \newcommand{\HillEarthLat}{64.85}
 \newcommand{\HillEarthLon}{-16.46}
+\newcommand{\BestCloneN}{100}
+\newcommand{\BestCloneReliefMin}{0.6781}
+\newcommand{\BestCloneReliefMax}{0.6784}
+\newcommand{\BestRankFirstCount}{100}
+\newcommand{\BestRankFirstN}{100}
+\newcommand{\GFourCandidates}{71}
+\newcommand{\HillMoonRelief}{813}
+\newcommand{\HillEarthRelief}{307}
+\newcommand{\SiteHMedian}{0.93}
+\newcommand{\SiteHLow}{0.89}
+\newcommand{\SiteHHigh}{0.95}
+\newcommand{\SiteHQLow}{0.89}
+\newcommand{\SiteHQHigh}{0.96}
+\newcommand{\SiteTextureHMedian}{0.86}
+\newcommand{\SiteTextureHLow}{0.81}
+\newcommand{\SiteTextureHHigh}{0.89}
+\newcommand{\SiteBootReplicates}{2,000}
+\newcommand{\BreakM}{1440}
+\newcommand{\BreakHBelow}{0.96}
+\newcommand{\BreakHAbove}{0.77}
+\newcommand{\BreakDeltaBIC}{29.4}
+\newcommand{\BreakSingleH}{0.92}
+\newcommand{\BreakMinLag}{90}
+\newcommand{\BreakMaxLag}{4320}
+\newcommand{\SideBySideH}{0.92}
+\newcommand{\TargetHPercentile}{24}
+\newcommand{\TargetNuLongPercentile}{44}
+\newcommand{\TargetNuShortPercentile}{60}
+\newcommand{\TargetHCloneMin}{24}
+\newcommand{\TargetHCloneMax}{24}
+\newcommand{\HoluhraunStatus}{PARTIAL}
+\newcommand{\HoluhraunOverlapRS}{96}
+\newcommand{\HoluhraunOverlapRU}{93}
+\newcommand{\HoluhraunOverlapSU}{92}
+\newcommand{\PublishedOverlapRS}{83}
+\newcommand{\PublishedOverlapRU}{89}
+\newcommand{\PublishedOverlapSU}{94}
+\newcommand{\HoluhraunValidPixels}{2,168,388}
+\newcommand{\HoluhraunRubblyMedian}{0.40}
+\newcommand{\HoluhraunSpinyMedian}{0.40}
+\newcommand{\HoluhraunUndiffMedian}{0.42}
+\newcommand{\DatasetWindows}{28,843}
+\newcommand{\DatasetCpuHours}{1.1}
+\newcommand{\DatasetMoonVal}{2,418}
+\newcommand{\DatasetMoonTest}{2,937}
+\newcommand{\DatasetMarsVal}{364}
+\newcommand{\DatasetMarsTest}{726}
+\newcommand{\DatasetEarthVal}{2,760}
+\newcommand{\DatasetEarthTest}{244}
+\newcommand{\BodyMoonWindows}{25}
+\newcommand{\BodyMoonGroups}{1}
+\newcommand{\BodyMarsWindows}{359}
+\newcommand{\BodyMarsGroups}{2}
+\newcommand{\BodyEarthWindows}{71}
+\newcommand{\BodyEarthGroups}{2}
+\newcommand{\OverlapEarthMoonReliefH}{0.13}
+\newcommand{\OverlapEarthMoonTextureH}{0.17}
+\newcommand{\OverlapEarthMoonNuShort}{0.07}
+\newcommand{\OverlapEarthMoonNuLong}{0.00}
+\newcommand{\OverlapMarsMoonReliefH}{0.10}
+\newcommand{\OverlapMarsMoonTextureH}{0.13}
+\newcommand{\OverlapMarsMoonNuShort}{0.03}
+\newcommand{\OverlapMarsMoonNuLong}{0.02}
+\newcommand{\OverlapEarthMarsReliefH}{0.64}
+\newcommand{\OverlapEarthMarsTextureH}{0.63}
+\newcommand{\OverlapEarthMarsNuShort}{0.51}
+\newcommand{\OverlapEarthMarsNuLong}{0.67}
+\newcommand{\BodyEarthHMedian}{0.65}
+\newcommand{\BodyMoonHMedian}{0.93}
+\newcommand{\BodyMarsHMedian}{0.54}
+\newcommand{\MarsDtmsUsed}{12}
+\newcommand{\MarsDtmsDropped}{196}
 \newcommand{\GateZeroStatus}{PASS}
-\newcommand{\GateOneStatus}{PARTIAL}
+\newcommand{\GateOneStatus}{PASS}
 \newcommand{\GateTwoStatus}{NOT\_RUN}
-\newcommand{\GateThreeStatus}{NOT\_RUN}
-\newcommand{\GateFourStatus}{NOT\_RUN}
+\newcommand{\GateThreeStatus}{PARTIAL}
+\newcommand{\GateFourStatus}{PASS}
 \newcommand{\GateFiveStatus}{NOT\_RUN}
 \newcommand{\GateSixStatus}{NOT\_RUN}

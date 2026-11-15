@@ -7,21 +7,16 @@ is a generated macro; a value that the training record does not contain yet is p
 
 \paragraph{Data and batching.} Training windows are drawn from the training blocks of the spatial
 split of Section~\ref{sec:data}, with each batch balanced so that each body contributes a third of
-its windows. The dataset manifest lists \DatasetMoonWindows{} lunar, \DatasetMarsWindows{}
-Martian and \DatasetEarthWindows{} terrestrial windows, and \DatasetTestWindows{} windows in the
-test blocks. Physics targets are computed for every window by the same fingerprint code that ranks
+its windows. The training split holds \DatasetMoonWindows{} lunar, \DatasetMarsWindows{} Martian and \DatasetEarthWindows{} terrestrial windows (Section~\ref{sec:data}); building the dataset took at most \DatasetCpuHours{} CPU hours by its manifest. Physics targets are computed for every window by the same fingerprint code that ranks
 candidates (Section~\ref{sec:fingerprint}) and standardised with statistics of the training blocks
-only. Morphology labels, the crater densities of the lunar and Martian crater catalogues
-\citep{robbins2019,robbins2012}, are used by the probes only and never in training.
+only. Morphology labels, the crater densities of the lunar and Martian crater catalogues \citep{robbins2019,robbins2012}, are reserved for the probes and never used in training; the evaluation code records the morphology probe as unavailable until these labels are built.
 
-\paragraph{Hardware and schedule.} No GPU cluster was available. Training ran on one
-\TrainDevice{} at a reduced scope, for \TrainEpochs{} epochs with batches of \TrainBatch{}
-windows, and took \TrainHours{} hours of wall clock time as logged by the training run. The
+\paragraph{Hardware and schedule.} No GPU cluster was available. Training therefore runs on CPUs at a reduced scope. The training record gives the device as \TrainDevice, \TrainEpochs{} epochs with batches of \TrainBatch{} windows, and \TrainHours{} hours of wall clock time. The
 planned grid covers seeds \ConfigSeeds{} of the main configuration and the adversarial weights
 \ConfigLambdas; Section~\ref{sec:results-variations} lists which runs exist.
 
 \paragraph{Optimiser.} We use AdamW \citep{loshchilov2017} with a learning rate scaled linearly
-with the batch size after a warm up \citep{goyal2017}, cosine decay \citep{loshchilov2016} and
+with the batch size after a warm up \citep{goyal2017}, cosine decay of the learning rate in the manner of \citet{loshchilov2016} without restarts, and
 decoupled weight decay. The adversarial weight follows the schedule of Equation~\eqref{eq:total}.
 Model selection uses validation blocks only; the test blocks are read once, after the
 configuration is frozen, by a logged command.

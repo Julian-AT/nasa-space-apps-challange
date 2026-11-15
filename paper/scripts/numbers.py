@@ -62,10 +62,10 @@ class ArtifactMacro:
     path: repository-relative JSON file, for example outputs/g0/earth-radar-roi.json. pointer: a
     JSON pointer. format_spec: a Python format specification for a number, the same prefixed
     with % for a fraction shown in percent, "count" for the length of an array or object, or
-    "text" for a string, which is escaped for LaTeX, or min:, max: or median: followed by a number
-    format for an aggregate over a pointer with one "/*" segment, such as /*/distance (n: counts
-    the non-null values). A leading "?" makes an absent pointer render \\NotAvailable instead of
-    failing; it is only for artifacts whose schema is not fixed yet.
+    "text" for a string, which is escaped for LaTeX, or min:, max:, median: or span: (max minus
+    min) followed by a number format for an aggregate over a pointer with one "/*" segment, such
+    as /*/distance (n: counts the non-null values). A leading "?" makes an absent pointer
+    render \\NotAvailable instead of failing; it is only for artifacts whose schema is not fixed.
 
     An artifact that does not exist yet, or a null value (missing evidence), renders as
     \NotAvailable, never as 0. A pointer that is absent from an existing file, a non-finite
@@ -411,15 +411,23 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro("GFiveJaccardMin", "config/run.yaml", "/ml/g5/seed_jaccard20_min", ".1f"),
     ArtifactMacro("ConfigShippingMode", "config/run.yaml", "/run/shipping_mode", "text"),
     ArtifactMacro(
-        "DatasetMoonWindows", "outputs/ml/dataset/manifest.json", "/counts/moon/total", "?,d"
+        "DatasetMoonWindows",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/moon/train",
+        ",d",
     ),
     ArtifactMacro(
-        "DatasetMarsWindows", "outputs/ml/dataset/manifest.json", "/counts/mars/total", "?,d"
+        "DatasetMarsWindows",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/mars/train",
+        ",d",
     ),
     ArtifactMacro(
-        "DatasetEarthWindows", "outputs/ml/dataset/manifest.json", "/counts/earth/total", "?,d"
+        "DatasetEarthWindows",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/earth/train",
+        ",d",
     ),
-    ArtifactMacro("DatasetTestWindows", "outputs/ml/dataset/manifest.json", "/counts/test", "?,d"),
     ArtifactMacro("TrainEpochs", "outputs/ml/train/summary.json", "/epochs", "?d"),
     ArtifactMacro("TrainBatch", "outputs/ml/train/summary.json", "/batch_size", "?d"),
     ArtifactMacro("TrainHours", "outputs/ml/train/summary.json", "/wall_hours", "?.1f"),
@@ -879,6 +887,390 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
         "/panels/hillshade-earth/centre_lonlat_deg/0",
         ".2f",
     ),
+    ArtifactMacro(
+        "BestCloneN",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+        "/q5_stability/uncertainty_components/measurement_error/n_used",
+        "d",
+    ),
+    ArtifactMacro(
+        "BestCloneReliefMin",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+        "/q5_stability/uncertainty_components/measurement_error/by_family/terrain_relief/spread_min",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "BestCloneReliefMax",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+        "/q5_stability/uncertainty_components/measurement_error/by_family/terrain_relief/spread_max",
+        ".4f",
+    ),
+    ArtifactMacro(
+        "BestRankFirstCount",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+        "/q5_stability/uncertainty_components/scenario_sensitivity/rank_frequency/terrain_relief/count",
+        "d",
+    ),
+    ArtifactMacro(
+        "BestRankFirstN",
+        "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+        "/q5_stability/uncertainty_components/scenario_sensitivity/rank_frequency/terrain_relief/n",
+        "d",
+    ),
+    ArtifactMacro("GFourCandidates", "analysis/g4_candidates.json", "/candidates", "count"),
+    ArtifactMacro(
+        "HillMoonRelief",
+        "paper/figures/generated/hillshades.json",
+        "/panels/hillshade-moon/relief_range_m",
+        "span:.0f",
+    ),
+    ArtifactMacro(
+        "HillEarthRelief",
+        "paper/figures/generated/hillshades.json",
+        "/panels/hillshade-earth/relief_range_m",
+        "span:.0f",
+    ),
+    ArtifactMacro(
+        "SiteHMedian",
+        "analysis/a1_body_distributions.json",
+        "/bodies/moon/descriptors/relief.H/median",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "SiteHLow",
+        "analysis/a1_body_distributions.json",
+        "/bodies/moon/descriptors/relief.H/bootstrap_median/lo",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "SiteHHigh",
+        "analysis/a1_body_distributions.json",
+        "/bodies/moon/descriptors/relief.H/bootstrap_median/hi",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "SiteHQLow",
+        "analysis/a1_body_distributions.json",
+        "/bodies/moon/descriptors/relief.H/q25",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "SiteHQHigh",
+        "analysis/a1_body_distributions.json",
+        "/bodies/moon/descriptors/relief.H/q75",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "SiteTextureHMedian",
+        "analysis/a1_body_distributions.json",
+        "/bodies/moon/descriptors/texture.H/median",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "SiteTextureHLow",
+        "analysis/a1_body_distributions.json",
+        "/bodies/moon/descriptors/texture.H/bootstrap_median/lo",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "SiteTextureHHigh",
+        "analysis/a1_body_distributions.json",
+        "/bodies/moon/descriptors/texture.H/bootstrap_median/hi",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "SiteBootReplicates", "analysis/a1_body_distributions.json", "/bootstrap/replicates", ",d"
+    ),
+    ArtifactMacro(
+        "BreakM",
+        "analysis/a1_scale_behaviour.json",
+        "/site_deviograms/all_cells/breakover_test_lags_ge_90m/break_m",
+        ".0f",
+    ),
+    ArtifactMacro(
+        "BreakHBelow",
+        "analysis/a1_scale_behaviour.json",
+        "/site_deviograms/all_cells/breakover_test_lags_ge_90m/H_below_break",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "BreakHAbove",
+        "analysis/a1_scale_behaviour.json",
+        "/site_deviograms/all_cells/breakover_test_lags_ge_90m/H_above_break",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "BreakDeltaBIC",
+        "analysis/a1_scale_behaviour.json",
+        "/site_deviograms/all_cells/breakover_test_lags_ge_90m/delta_bic",
+        ".1f",
+    ),
+    ArtifactMacro(
+        "BreakSingleH",
+        "analysis/a1_scale_behaviour.json",
+        "/site_deviograms/all_cells/breakover_test_lags_ge_90m/single_slope_H",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "BreakMinLag",
+        "analysis/a1_scale_behaviour.json",
+        "/site_deviograms/all_cells/breakover_test_lags_ge_90m/lags_m/0",
+        ".0f",
+    ),
+    ArtifactMacro(
+        "BreakMaxLag",
+        "analysis/a1_scale_behaviour.json",
+        "/site_deviograms/all_cells/breakover_test_lags_ge_90m/lags_m/11",
+        ".0f",
+    ),
+    ArtifactMacro(
+        "SideBySideH",
+        "analysis/a1_scale_behaviour.json",
+        "/site_rosenburg_side_by_side/ours",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "TargetHPercentile",
+        "analysis/a1_target_percentiles.json",
+        "/targets/moon-sps-x2-y2/percentiles/relief.H/percentile",
+        ".0f",
+    ),
+    ArtifactMacro(
+        "TargetNuLongPercentile",
+        "analysis/a1_target_percentiles.json",
+        "/targets/moon-sps-x2-y2/percentiles/relief.nu_m@1080/percentile",
+        ".0f",
+    ),
+    ArtifactMacro(
+        "TargetNuShortPercentile",
+        "analysis/a1_target_percentiles.json",
+        "/targets/moon-sps-x2-y2/percentiles/relief.nu_m@270/percentile",
+        ".0f",
+    ),
+    ArtifactMacro(
+        "TargetHCloneMin",
+        "analysis/a1_target_percentiles.json",
+        "/targets/moon-sps-x2-y2/percentiles/relief.H/clone_spread/min",
+        ".0f",
+    ),
+    ArtifactMacro(
+        "TargetHCloneMax",
+        "analysis/a1_target_percentiles.json",
+        "/targets/moon-sps-x2-y2/percentiles/relief.H/clone_spread/max",
+        ".0f",
+    ),
+    ArtifactMacro("HoluhraunStatus", "analysis/holuhraun_reproduction.json", "/g3_status", "text"),
+    ArtifactMacro(
+        "HoluhraunOverlapRS",
+        "analysis/holuhraun_reproduction.json",
+        "/variants/boxcar3x3/comparison/overlaps/rubbly|spiny",
+        "%.0f",
+    ),
+    ArtifactMacro(
+        "HoluhraunOverlapRU",
+        "analysis/holuhraun_reproduction.json",
+        "/variants/boxcar3x3/comparison/overlaps/rubbly|undifferentiated",
+        "%.0f",
+    ),
+    ArtifactMacro(
+        "HoluhraunOverlapSU",
+        "analysis/holuhraun_reproduction.json",
+        "/variants/boxcar3x3/comparison/overlaps/spiny|undifferentiated",
+        "%.0f",
+    ),
+    ArtifactMacro(
+        "PublishedOverlapRS",
+        "analysis/holuhraun_reproduction.json",
+        "/published_values_definition_check/overlaps/rubbly|spiny",
+        "%.0f",
+    ),
+    ArtifactMacro(
+        "PublishedOverlapRU",
+        "analysis/holuhraun_reproduction.json",
+        "/published_values_definition_check/overlaps/rubbly|undifferentiated",
+        "%.0f",
+    ),
+    ArtifactMacro(
+        "PublishedOverlapSU",
+        "analysis/holuhraun_reproduction.json",
+        "/published_values_definition_check/overlaps/spiny|undifferentiated",
+        "%.0f",
+    ),
+    ArtifactMacro(
+        "HoluhraunValidPixels",
+        "analysis/holuhraun_reproduction.json",
+        "/valid_pixels_primary_variant",
+        ",d",
+    ),
+    ArtifactMacro(
+        "HoluhraunRubblyMedian",
+        "analysis/holuhraun_reproduction.json",
+        "/variants/boxcar3x3/per_facies/rubbly/cpr/median",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "HoluhraunSpinyMedian",
+        "analysis/holuhraun_reproduction.json",
+        "/variants/boxcar3x3/per_facies/spiny/cpr/median",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "HoluhraunUndiffMedian",
+        "analysis/holuhraun_reproduction.json",
+        "/variants/boxcar3x3/per_facies/undifferentiated/cpr/median",
+        ".2f",
+    ),
+    ArtifactMacro("DatasetWindows", "outputs/ml/dataset/manifest.json", "/n_windows", ",d"),
+    ArtifactMacro(
+        "DatasetCpuHours", "outputs/ml/dataset/manifest.json", "/cpu_hours_upper_bound", ".1f"
+    ),
+    ArtifactMacro(
+        "DatasetMoonVal", "outputs/ml/dataset/manifest.json", "/counts_by_body_split/moon/val", ",d"
+    ),
+    ArtifactMacro(
+        "DatasetMoonTest",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/moon/test",
+        ",d",
+    ),
+    ArtifactMacro(
+        "DatasetMarsVal", "outputs/ml/dataset/manifest.json", "/counts_by_body_split/mars/val", ",d"
+    ),
+    ArtifactMacro(
+        "DatasetMarsTest",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/mars/test",
+        ",d",
+    ),
+    ArtifactMacro(
+        "DatasetEarthVal",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/earth/val",
+        ",d",
+    ),
+    ArtifactMacro(
+        "DatasetEarthTest",
+        "outputs/ml/dataset/manifest.json",
+        "/counts_by_body_split/earth/test",
+        ",d",
+    ),
+    ArtifactMacro(
+        "BodyMoonWindows", "analysis/a2_cross_body_overlap.json", "/bodies/moon/n_windows", "d"
+    ),
+    ArtifactMacro(
+        "BodyMoonGroups", "analysis/a2_cross_body_overlap.json", "/bodies/moon/groups", "count"
+    ),
+    ArtifactMacro(
+        "BodyMarsWindows", "analysis/a2_cross_body_overlap.json", "/bodies/mars/n_windows", "d"
+    ),
+    ArtifactMacro(
+        "BodyMarsGroups", "analysis/a2_cross_body_overlap.json", "/bodies/mars/groups", "count"
+    ),
+    ArtifactMacro(
+        "BodyEarthWindows", "analysis/a2_cross_body_overlap.json", "/bodies/earth/n_windows", "d"
+    ),
+    ArtifactMacro(
+        "BodyEarthGroups", "analysis/a2_cross_body_overlap.json", "/bodies/earth/groups", "count"
+    ),
+    ArtifactMacro(
+        "OverlapEarthMoonReliefH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/relief.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMoonTextureH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/texture.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMoonNuShort",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/log_relief.nu_m@270/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMoonNuLong",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/log_relief.nu_m@1080/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapMarsMoonReliefH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/mars|moon/relief.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapMarsMoonTextureH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/mars|moon/texture.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapMarsMoonNuShort",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/mars|moon/log_relief.nu_m@270/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapMarsMoonNuLong",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/mars|moon/log_relief.nu_m@1080/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMarsReliefH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|mars/relief.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMarsTextureH",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|mars/texture.H/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMarsNuShort",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|mars/log_relief.nu_m@270/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "OverlapEarthMarsNuLong",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|mars/log_relief.nu_m@1080/overlap_coefficient",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "BodyEarthHMedian",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/relief.H/median/0",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "BodyMoonHMedian",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/earth|moon/relief.H/median/1",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "BodyMarsHMedian",
+        "analysis/a2_cross_body_overlap.json",
+        "/terrain/mars|moon/relief.H/median/0",
+        ".2f",
+    ),
+    ArtifactMacro(
+        "MarsDtmsUsed", "outputs/ml/dataset/manifest.json", "/sampling/mars/dtms_used", "d"
+    ),
+    ArtifactMacro(
+        "MarsDtmsDropped",
+        "outputs/ml/dataset/manifest.json",
+        "/sampling/mars/dtms_dropped",
+        "count",
+    ),
     ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
     ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
     ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),
@@ -998,7 +1390,7 @@ def escape_text(value: str) -> str:
     return "".join(LATEX_SPECIAL.get(char, char) for char in value)
 
 
-AGGREGATES = ("min:", "max:", "median:", "n:")
+AGGREGATES = ("min:", "max:", "median:", "n:", "span:")
 
 
 def resolve_artifact(document: object, pointer: str) -> object:
@@ -1037,6 +1429,7 @@ def aggregate(values: object, format_spec: str) -> str:
         "min": numbers[0],
         "max": numbers[-1],
         "n": float(len(numbers)),
+        "span": numbers[-1] - numbers[0],
         "median": numbers[middle]
         if len(numbers) % 2
         else (numbers[middle - 1] + numbers[middle]) / 2,
