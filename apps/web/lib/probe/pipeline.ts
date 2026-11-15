@@ -6,6 +6,9 @@
 import {
   ANALYSIS_GRID,
   EARTH_RADIUS_M,
+  ENCODER_GRID,
+  encoderChannels,
+  toOnnxInput,
   PRD_TERRAIN_CONFIG,
   geographicLookup,
   probeQuality,
@@ -42,6 +45,7 @@ import {
   type TargetDistances,
 } from './result.ts';
 import { tilesForBounds, windowBounds } from './tiles.ts';
+import { type EmbeddingSession, type EncoderSpec, type ModelBackground, EmbeddingError, cosineDistance, embeddingLabel, modelPercentile } from './embedding.ts';
 
 /** The isotropic rule the pipeline's real cards use (realcard.ISOTROPIC_RULE, t4-real). */
 export const PROBE_ISOTROPIC_RULE = 'direction_mean' as const;
@@ -58,6 +62,16 @@ export interface ProbeDeps {
   /** Target terrain fingerprints from the release bundle, or the reason there are none. */
   readonly targets: { fingerprints: ProbeTargetFingerprint[]; reason: null } | { fingerprints: []; reason: string };
   readonly bundleVersion: string | null;
+  /**
+   * The exported encoder, when the bundle ships one: its spec, a session factory (created once
+   * and reused by the worker) and each target's ModelBackground. Null: the encoder distance is
+   * Unavailable (encoder_not_evaluated).
+   */
+  readonly encoder?: {
+    readonly spec: EncoderSpec;
+    readonly session: () => Promise<EmbeddingSession>;
+    readonly backgrounds: Readonly<Record<string, ModelBackground | null>>;
+  } | null;
 }
 
 function demRead(mode: Cop30Mode, meter: ByteMeter, read: string[], missing: string[]): DemRead {
@@ -96,7 +110,18 @@ function distance(a: Pick<ProbeVariant, 'supported_lags_m' | 'nu_m'> | null, b: 
     : { status: 'unavailable', value: null, unit, label: 'Unavailable', shared_lags_m: out.lags_m, reason: out.reason };
 }
 
-function targetDistances(relief: ProbeVariant, texture: ProbeVariant | null, target: ProbeTargetFingerprint): TargetDistances {
+const ENCODER_UNAVAILABLE = (reason: string): DistanceValue => ({
+  status: 'unavailable',
+  value: null,
+  unit: 'cosine distance',
+  label: 'Unavailable',
+  shared_lags_m: [],
+  reason,
+  background_percentile: null,
+  background_percentile_reason: reason,
+});
+
+function targetDistances(relief: ProbeVariant, texture: ProbeVariant | null, target: ProbeTargetFingerprint, encoder: DistanceValue): TargetDistances {
   const ruleMismatch = target.isotropic_rule !== PROBE_ISOTROPIC_RULE;
   const mismatch = (unit: string): DistanceValue => ({
     status: 'unavailable',
@@ -112,7 +137,7 @@ function targetDistances(relief: ProbeVariant, texture: ProbeVariant | null, tar
     terrain_relief: ruleMismatch ? mismatch('RMS of log nu') : distance(relief, target.relief, 'nu_missing'),
     terrain_texture: ruleMismatch ? mismatch('RMS of log nu') : distance(texture, target.texture, 'texture_unavailable'),
     radar: { status: 'unavailable', value: null, unit: 'CPR Wasserstein-1', label: 'Unavailable', shared_lags_m: [], reason: RADAR_UNAVAILABLE_REASON },
-    encoder: { status: 'unavailable', value: null, unit: 'cosine distance', label: 'Unavailable', shared_lags_m: [], reason: ENCODER_NOT_EVALUATED },
+    encoder,
   };
 }
 
@@ -128,7 +153,7 @@ export async function runProbe(request: ProbeRequest, deps: ProbeDeps, signal?: 
     return { kind: 'failure', request_id: request.id, reason: 'invalid_request', detail: 'lat must lie in [-90, 90] and lon in [-180, 180]' };
   }
   const lon0 = lonDeg >= 180 ? lonDeg - 360 : lonDeg;
-  const bounds = windowBounds(latDeg, lon0, EARTH_RADIUS_M, [ANALYSIS_GRID]);
+  const bounds = windowBounds(latDeg, lon0, EARTH_RADIUS_M, deps.encoder ? [ANALYSIS_GRID, ENCODER_GRID] : [ANALYSIS_GRID]);
   const selection = tilesForBounds(bounds, 0.01);
   if (selection.status === 'unavailable') {
     return { kind: 'failure', request_id: request.id, reason: 'reader_failed', detail: selection.reason };
@@ -203,15 +228,74 @@ export async function runProbe(request: ProbeRequest, deps: ProbeDeps, signal?: 
   if (reliefVariant === undefined) throw new Error('the PRD config always measures relief');
   const relief = contractVariant(fp, reliefVariant, 'none');
   const texture = textureVariant && textureVariant.reason === null ? contractVariant(fp, textureVariant, 'plane') : null;
-  const targets = deps.targets.fingerprints.map((t) => targetDistances(relief, texture, t));
   const tFp = now();
+
+  // Encoder (experimental): the 64 x 64 window at 78.125 m from the same D29 resampler.
+  let modelLoadMs: number | null = null;
+  let inferenceMs: number | null = null;
+  const encoderFor = new Map<string, DistanceValue>();
+  let encoderReason: string = ENCODER_NOT_EVALUATED;
+  if (deps.encoder) {
+    const enc = deps.encoder;
+    const window64 = resampleWindow(
+      { values: joined.values, rows: joined.rows, columns: joined.columns, nodata: null },
+      lookup,
+      { grid: ENCODER_GRID, body: 'earth', lat0Rad: latDeg / DEG, lon0Rad: lon0 / DEG },
+    );
+    const channels = encoderChannels(window64.values, window64.valid);
+    if (channels.empty) {
+      encoderReason = 'encoder_window_empty';
+    } else {
+      try {
+        const tLoad = now();
+        const session = await enc.session();
+        const tInfer = now();
+        modelLoadMs = tInfer - tLoad;
+        const embedding = await session.embed(toOnnxInput(channels), 1);
+        inferenceMs = now() - tInfer;
+        if (signal?.aborted) return aborted(request);
+        for (const t of deps.targets.fingerprints) {
+          const background = enc.backgrounds[t.target_id] ?? null;
+          if (background === null || background.target_embedding.length === 0) {
+            encoderFor.set(t.target_id, ENCODER_UNAVAILABLE(ENCODER_NOT_EVALUATED));
+            continue;
+          }
+          const d = cosineDistance(embedding, background.target_embedding);
+          if (d.status === 'unavailable') {
+            encoderFor.set(t.target_id, ENCODER_UNAVAILABLE(d.reason));
+            continue;
+          }
+          const p = modelPercentile(d.value, t.target_id, background, enc.spec);
+          encoderFor.set(t.target_id, {
+            status: 'available',
+            value: d.value,
+            unit: 'cosine distance',
+            label: embeddingLabel(enc.spec),
+            shared_lags_m: [],
+            reason: null,
+            background_percentile: p.value,
+            background_percentile_reason: p.reason,
+          });
+        }
+      } catch (error) {
+        if (error instanceof EmbeddingError) {
+          return { kind: 'failure', request_id: request.id, reason: 'model_load_failed', detail: `${error.reason}: ${error.message}` };
+        }
+        return { kind: 'failure', request_id: request.id, reason: 'model_load_failed', detail: (error as Error).message };
+      }
+    }
+  }
+  const targets = deps.targets.fingerprints.map((t) =>
+    targetDistances(relief, texture, t, encoderFor.get(t.target_id) ?? ENCODER_UNAVAILABLE(encoderReason)),
+  );
+  const tEnd = now();
   const timings: StageTimings = {
     dem_read_ms: tDem - t0,
     resample_ms: tResample - tDem,
     fingerprint_ms: tFp - tResample,
-    model_load_ms: null,
-    inference_ms: null,
-    total_ms: tFp - t0,
+    model_load_ms: modelLoadMs,
+    inference_ms: inferenceMs,
+    total_ms: tEnd - t0,
   };
   return {
     kind: 'result',
@@ -235,6 +319,8 @@ export async function runProbe(request: ProbeRequest, deps: ProbeDeps, signal?: 
     dem,
     timings,
     bundle_version: deps.bundleVersion,
-    model_id: null,
+    model_id: deps.encoder?.spec.model_id ?? null,
+    model_status: deps.encoder?.spec.status ?? null,
+    g5_status: deps.encoder?.spec.g5_status ?? null,
   };
 }

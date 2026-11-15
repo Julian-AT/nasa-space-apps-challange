@@ -18,7 +18,14 @@ function Distance({ d }: Readonly<{ d: DistanceValue }>) {
   return (
     <span>
       {fmt(d.value)} <span className="text-sm">{d.unit}</span> · <span className="text-sm">{d.label}</span> ·{' '}
-      <span className="text-sm">lags {d.shared_lags_m.join(', ')} m</span>
+      {d.shared_lags_m.length > 0 ? <span className="text-sm">lags {d.shared_lags_m.join(', ')} m</span> : null}
+      {d.background_percentile === undefined ? null : (
+        <span className="text-sm">
+          {' '}
+          · background percentile{' '}
+          {d.background_percentile === null ? `Unavailable: ${d.background_percentile_reason ?? ''}` : fmt(d.background_percentile, 1)}
+        </span>
+      )}
     </span>
   );
 }

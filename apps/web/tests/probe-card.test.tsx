@@ -46,6 +46,8 @@ const success: ProbeResult = {
   timings: { dem_read_ms: 400, resample_ms: 3, fingerprint_ms: 10, model_load_ms: null, inference_ms: null, total_ms: 413 },
   bundle_version: 'b',
   model_id: null,
+  model_status: null,
+  g5_status: null,
 };
 
 describe('ProbeCard', () => {
