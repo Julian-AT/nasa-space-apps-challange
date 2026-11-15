@@ -277,8 +277,7 @@ describe('SourcesTable', () => {
   it.each(['license_or_attribution', 'checksum', 'source_url', 'provider'] as const)(
     'labels an omitted or null %s Unavailable with a reason',
     (field) => {
-      const omitted = product('test-product');
-      delete omitted[field];
+      const omitted = Object.fromEntries(Object.entries(product('test-product')).filter(([key]) => key !== field));
       const nulled = product('test-product-2', { [field]: null });
       const [table] = readTables(render([omitted, nulled]));
       for (const row of table?.rows ?? []) {
