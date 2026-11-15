@@ -1,0 +1,557 @@
+{
+  "bundle_version": "2026-11-15T0206Z-a4d9f0c",
+  "created_utc": "2026-11-15T02:06:00Z",
+  "files": [
+    {
+      "bytes": 12453,
+      "path": "cards/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878.json",
+      "sha256": "cd5aaef103690a139c18a3e23c9f24b46865d1c92ef477e2bfcfe085315f0a25"
+    },
+    {
+      "bytes": 12451,
+      "path": "cards/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879.json",
+      "sha256": "b12f51c8f63e149ba350f5fc4df775f058eb2743163be8614659481f1382f8f2"
+    },
+    {
+      "bytes": 12449,
+      "path": "cards/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546.json",
+      "sha256": "6c0275a3fb042b11fdc95bb9fa67689770c2d6f5422def5ef6c380bd6a50599e"
+    },
+    {
+      "bytes": 12430,
+      "path": "cards/mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882.json",
+      "sha256": "7fe78092bced8f880ed446e39657b7c763a13e2d2dbba6fb792ae949031622fa"
+    },
+    {
+      "bytes": 12435,
+      "path": "cards/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877.json",
+      "sha256": "f89ee6cd1afd9decf83d46558bb299d06c9fe5332f3211fc96ce14d91e6190da"
+    },
+    {
+      "bytes": 16013,
+      "path": "cards/moon-sps-x2-y2__earth-utm27n-e280-n2880.json",
+      "sha256": "e5dd8702229d71b4e6fc9b5c56921139947bbde8c5f9f419418c668c4dd5171a"
+    },
+    {
+      "bytes": 15997,
+      "path": "cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+      "sha256": "98cbfce9b88c94e269231c3ced6ed510af78eb0cfe2fe1a91d25f9cd762d713d"
+    },
+    {
+      "bytes": 391702,
+      "path": "comparisons/mars-arcadia-w000.json",
+      "sha256": "401c9ef6a6d9af693da026a3ae21dfba1bd916cfaf84621ed4733959b2159ebe"
+    },
+    {
+      "bytes": 391426,
+      "path": "comparisons/mars-jezero-w000.json",
+      "sha256": "a750d3900da10395a54b15364094bb534b3ca54c626313855455b85bf434ea52"
+    },
+    {
+      "bytes": 610385,
+      "path": "comparisons/moon-cr-site01-w000.json",
+      "sha256": "1ba3d0bb527229d8d8f459165cf792e98bde8c624b9a4c918b5462d45adf7b9d"
+    },
+    {
+      "bytes": 8799,
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_A.svg",
+      "sha256": "cd40fd79956a9f3d555502de8b143c2d32d424909f099aa2de373427ce2aebfc"
+    },
+    {
+      "bytes": 9006,
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_B.svg",
+      "sha256": "cae85609e61459db6208b5766f44b108cbffcc1e531daeb93c21cd66cecc2a67"
+    },
+    {
+      "bytes": 1295,
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_C.svg",
+      "sha256": "3242ec8533aebfd1ff82933b1035b1f6b05d1428f6bb3bf2b05bb99c2a41d8b9"
+    },
+    {
+      "bytes": 9043,
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879_A.svg",
+      "sha256": "fd036240f07f01110f9e93ff867a8486b1ac41eb7a239617cef62778ab2aff78"
+    },
+    {
+      "bytes": 9299,
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879_B.svg",
+      "sha256": "9f8c8ae839a7659414760ba8166d9d9a9921af2a6fe0c5798392609af3bde899"
+    },
+    {
+      "bytes": 1295,
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879_C.svg",
+      "sha256": "1b0e3eb1b8933fde0a65271cd61182be1721a5c4282dadefca8ca0fd5730e188"
+    },
+    {
+      "bytes": 8296,
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_A.svg",
+      "sha256": "9eace154dbab17646548845680d13d5c5d27f978db0210f224176722a58023df"
+    },
+    {
+      "bytes": 9283,
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_B.svg",
+      "sha256": "0dda5a06007ebfbad57a6fdab1f5e99c69e7be2d00d597b0032410f10b87d896"
+    },
+    {
+      "bytes": 1290,
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_C.svg",
+      "sha256": "ea47f8ff2482748fc1f2e00488a095317355e70d8eed7941f22819d7ce9892d6"
+    },
+    {
+      "bytes": 8940,
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882_A.svg",
+      "sha256": "5a6f6a7ada441d5d767b248629dcfddb7d22d9d7a3a7c379a310af9b7c27afb0"
+    },
+    {
+      "bytes": 9431,
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882_B.svg",
+      "sha256": "9d667997d94f39faac97012fa694919c2e8f9a3a076223e390ac4ab7b117f0eb"
+    },
+    {
+      "bytes": 1290,
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882_C.svg",
+      "sha256": "a3e539ff82f86acf94eb92691b9d6b6c93b060177cfb4232aaad6ce96b50df84"
+    },
+    {
+      "bytes": 8600,
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_A.svg",
+      "sha256": "aa4b425f8baca38b330e8bb03511e78125535fda1ce5e619e28c0c3642f1eac0"
+    },
+    {
+      "bytes": 9433,
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_B.svg",
+      "sha256": "e1f66c351fcc26c3a5d42bb1540a005f05fc313970f3396f788d45e25b4bd2fc"
+    },
+    {
+      "bytes": 1290,
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_C.svg",
+      "sha256": "00b83cc2e0c3f63d0e7bf4a5f89d4ce73004c0caeb8670cd5257f305c0729633"
+    },
+    {
+      "bytes": 8636,
+      "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_A.svg",
+      "sha256": "a82852c3cb3ccf6d49783d5660d1ef58f173e704c3800a705add461b08fccb73"
+    },
+    {
+      "bytes": 11221,
+      "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_B.svg",
+      "sha256": "1b4c62c7da212b0d2e75a91c19689b953dd5c24ce579e4dc03c5cd78a6b48641"
+    },
+    {
+      "bytes": 1234,
+      "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_C.svg",
+      "sha256": "ba0cbb8bece61b0a951e2c21f9d735029b967bb36ec4102d5a0aaad10a6c0f29"
+    },
+    {
+      "bytes": 10680,
+      "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_A.svg",
+      "sha256": "b568ddc5adb14670f86d41034f0e22852440426758e7b51f669b398e95c42d84"
+    },
+    {
+      "bytes": 10211,
+      "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_B.svg",
+      "sha256": "67b165c3897e509d283e868e40bfaaf8e7d3013233d4b738261c8a47f65f3837"
+    },
+    {
+      "bytes": 1234,
+      "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_C.svg",
+      "sha256": "0079b661a012457f6e4ef71206e7787a10dca93696dda22ba593765375f7b8a0"
+    },
+    {
+      "bytes": 5571,
+      "path": "reference/background_mars-arcadia-w000.json",
+      "sha256": "63f9d1e76452080c7585332ed9eba1c36c037b4ea9bdcb1018dbd14a1109998a"
+    },
+    {
+      "bytes": 5568,
+      "path": "reference/background_mars-jezero-w000.json",
+      "sha256": "9ca1c3675b38b4e53524b71731d8c6118f04dc5bc2fda5500f037c4d20670940"
+    },
+    {
+      "bytes": 5404,
+      "path": "reference/background_moon-cr-site01-w000.json",
+      "sha256": "232cf65afda077d7043427da21c69601dec38307895100c3170f9f2f4496c2e4"
+    },
+    {
+      "bytes": 111323,
+      "path": "sources.json",
+      "sha256": "30fb9064c9ff34c596138550100179ac275e497a2a146ae6a6f35600a1affa1f"
+    },
+    {
+      "bytes": 37025,
+      "path": "targets.json",
+      "sha256": "140aa37f13d5c5ea22b69017ef0a22d7c3c135ae4f2f34ae01c8d847f670aa3c"
+    },
+    {
+      "bytes": 9312,
+      "path": "tiles/earth-holuhraun-hillshade/10/464/266.webp",
+      "sha256": "e937599e5e2330c4590a7bcd338facdbc9eaf463f5b1ff67dd447a65278ced80"
+    },
+    {
+      "bytes": 10520,
+      "path": "tiles/earth-holuhraun-hillshade/10/464/267.webp",
+      "sha256": "5518b0399008b4196d9d6d79d351d0bceef13e7b1df4ccf46a63d613b6f7ca52"
+    },
+    {
+      "bytes": 2016,
+      "path": "tiles/earth-holuhraun-hillshade/10/464/268.webp",
+      "sha256": "ce64e409acd4f0be482db8074ae74d5a72fcb62e6854f58793137b74d3615f2f"
+    },
+    {
+      "bytes": 5522,
+      "path": "tiles/earth-holuhraun-hillshade/10/465/266.webp",
+      "sha256": "40b45cc2245ffd8a6012a2bdeff052a881cba9cd6b996535e5df712dd1a2ddca"
+    },
+    {
+      "bytes": 16388,
+      "path": "tiles/earth-holuhraun-hillshade/10/465/267.webp",
+      "sha256": "38ad20769da1a5d76d0fa00bc464911a815f48cb2154474359a10c351e7df51e"
+    },
+    {
+      "bytes": 2124,
+      "path": "tiles/earth-holuhraun-hillshade/10/465/268.webp",
+      "sha256": "163c20aecfdaa8879abed74e60e55dbefd1eeec8521786287712985f57fd9f6c"
+    },
+    {
+      "bytes": 1436,
+      "path": "tiles/earth-holuhraun-hillshade/7/58/33.webp",
+      "sha256": "f01d9fb9338ba55754c112ad97ec805ef29eb1ef5aec8b7a1173d56bd1782f96"
+    },
+    {
+      "bytes": 3904,
+      "path": "tiles/earth-holuhraun-hillshade/8/116/66.webp",
+      "sha256": "b3915bc4a478b0678570de716a875e59dc17060532872a9690b8ae337148192c"
+    },
+    {
+      "bytes": 890,
+      "path": "tiles/earth-holuhraun-hillshade/8/116/67.webp",
+      "sha256": "78edb756e87679672079d345b121098f7fda6224fb00be35ffed610d8ecbbcae"
+    },
+    {
+      "bytes": 12886,
+      "path": "tiles/earth-holuhraun-hillshade/9/232/133.webp",
+      "sha256": "597245f6360c9175998619e169db12efccc35973d863997d0b70345a47133795"
+    },
+    {
+      "bytes": 1644,
+      "path": "tiles/earth-holuhraun-hillshade/9/232/134.webp",
+      "sha256": "4fe7f9059faf3db4137c4057d1fd28397e631eacf1220ee708b00c7436a7f5c7"
+    },
+    {
+      "bytes": 2404,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/10/175/405.webp",
+      "sha256": "08fb28f77ff298048a52e5bd187ac803896f848aeb3433a4f664f0135f7a648a"
+    },
+    {
+      "bytes": 1102,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/10/175/406.webp",
+      "sha256": "7a4b9f0ffdf45cc737c64d6baafe2835ea3814ef104faaf34a135e16fa466b5e"
+    },
+    {
+      "bytes": 2086,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/10/176/405.webp",
+      "sha256": "43ab636ae58ddab3a655e9fbf6a8178d9962ee465c312bd8c4cf3cf04732a47c"
+    },
+    {
+      "bytes": 1316,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/10/176/406.webp",
+      "sha256": "d200d0a951d164df2aa58db2a6c6782b0c2c160bdb660b3be3c56112f0256593"
+    },
+    {
+      "bytes": 5816,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/11/351/811.webp",
+      "sha256": "6b33aee31cf93b4ae6dd5a084bc834794827b8d6a4aedb857b2aecd1f7ccfaaa"
+    },
+    {
+      "bytes": 2676,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/11/351/812.webp",
+      "sha256": "12079a3cff36069ec13b6c55743b18b8345cc35a3870c8eaaf8a086ba15f248d"
+    },
+    {
+      "bytes": 6100,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/11/352/811.webp",
+      "sha256": "8ab7d5e714b716600e2ea83f2e6a6801efb3839a05b2de094d77bf0ea7da54b7"
+    },
+    {
+      "bytes": 4020,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/11/352/812.webp",
+      "sha256": "ee5fb47cdf0747039fc2f9b8068a13f485bb26d460ab493b7c8f6d6c3ac71485"
+    },
+    {
+      "bytes": 804,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/8/43/101.webp",
+      "sha256": "51c1b1053a2671e18ea467d619e43ab82aa23829cdc22377a73861b3ece799bd"
+    },
+    {
+      "bytes": 798,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/8/44/101.webp",
+      "sha256": "a2e33a7f8c7162478e329c2ebd22e94034710887565e091e1b8fd35f0bd55128"
+    },
+    {
+      "bytes": 1148,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/9/87/202.webp",
+      "sha256": "52cfb6ef5d657d2d2fe0c9259ee383b704f5eff81f0b74e394975adad11282f5"
+    },
+    {
+      "bytes": 762,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/9/87/203.webp",
+      "sha256": "5e3878fd22faaa66dd4795779ada43da0fcb91802fe2426fc377f0338b4c12ff"
+    },
+    {
+      "bytes": 1052,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/9/88/202.webp",
+      "sha256": "f0708c2fc6c58524be3464d848df69d2a462470ea7328964dd5b9fc2a752cf7f"
+    },
+    {
+      "bytes": 760,
+      "path": "tiles/earth-rosamond-dry-lake-hillshade/9/88/203.webp",
+      "sha256": "05d308423fbc0dc05b07e53861cabd6c7ead6cad4c5b1467a5d3b88c8ae6196d"
+    },
+    {
+      "bytes": 16672,
+      "path": "tiles/mars-arcadia-hillshade/0/0/0.webp",
+      "sha256": "0ca455844c1aa1e240d01a540adc403e435b2344cc8cee6c6f5dbd3242e227e8"
+    },
+    {
+      "bytes": 25852,
+      "path": "tiles/mars-arcadia-hillshade/1/0/0.webp",
+      "sha256": "df1ade85a0c01ace3b408a9dc49b6279f9e8fe6e013076c49403da734d566146"
+    },
+    {
+      "bytes": 24274,
+      "path": "tiles/mars-arcadia-hillshade/1/0/1.webp",
+      "sha256": "283a36835fddaa205fffc4c6295a8b0b3a77e7c865a60becda4ec3e0f6c1a90f"
+    },
+    {
+      "bytes": 10356,
+      "path": "tiles/mars-arcadia-hillshade/1/1/0.webp",
+      "sha256": "f0648f61f821dd0e5d01c3b3e751d231ce463197b3c71c5c7b51ce1f9afef3c8"
+    },
+    {
+      "bytes": 10530,
+      "path": "tiles/mars-arcadia-hillshade/1/1/1.webp",
+      "sha256": "4232eeca0ee9f43f0dcdaedbd3b397b3a6d4e9b0289a2ef3a6498d953802ab1f"
+    },
+    {
+      "bytes": 12690,
+      "path": "tiles/mars-jezero-hillshade/0/0/0.webp",
+      "sha256": "314d5b109259a5c96556b8290d078fde3f3fef4fda9a8fa3b452464ab5380390"
+    },
+    {
+      "bytes": 25402,
+      "path": "tiles/mars-jezero-hillshade/1/0/0.webp",
+      "sha256": "e05eaf31fc066927fdf8a103de00f73077d48f657b4b2f153926207cde8e9f22"
+    },
+    {
+      "bytes": 19488,
+      "path": "tiles/mars-jezero-hillshade/1/0/1.webp",
+      "sha256": "4ae3130b798f02cf4277c98da051e7a489c54e84cba04f78391c44d03a7c0e2c"
+    },
+    {
+      "bytes": 1968,
+      "path": "tiles/mars-jezero-hillshade/1/1/0.webp",
+      "sha256": "0e03e4c23a2c7081a37ec8a9aba8e76449d48e0ed3a072af75ab0adfac134900"
+    },
+    {
+      "bytes": 7666,
+      "path": "tiles/mars-jezero-hillshade/1/1/1.webp",
+      "sha256": "6454ae93ca2d637cdad042ae8634a46ca9c9929f129746a56b66aea17fdf5b7d"
+    },
+    {
+      "bytes": 14296,
+      "path": "tiles/mars-jezero-hillshade/2/0/0.webp",
+      "sha256": "5779ecd523578bc14eb65dcf280da65c0a3b3d248c85b70890ae884987a63808"
+    },
+    {
+      "bytes": 15870,
+      "path": "tiles/mars-jezero-hillshade/2/0/1.webp",
+      "sha256": "4df9c856123c3b27901d023c1301aa63bd698729c5aee7a4986a4daa8f2c514a"
+    },
+    {
+      "bytes": 10536,
+      "path": "tiles/mars-jezero-hillshade/2/0/2.webp",
+      "sha256": "a4dadd96f1188ffd522298ad337d3e591067d05a09586753189873f9e51382df"
+    },
+    {
+      "bytes": 10172,
+      "path": "tiles/mars-jezero-hillshade/2/0/3.webp",
+      "sha256": "28477638245cc6a9c947b82ea9f62d46e71af88a9daea18df477f2703c6cdd75"
+    },
+    {
+      "bytes": 18954,
+      "path": "tiles/mars-jezero-hillshade/2/1/0.webp",
+      "sha256": "84aa161eb0cf70fcc156db5fe0c2deea782e7fc35097feb227939d04bb659c33"
+    },
+    {
+      "bytes": 16672,
+      "path": "tiles/mars-jezero-hillshade/2/1/1.webp",
+      "sha256": "78a8965cec9fb57cb6281d07aa08da6e6d6b5e1ca146dd8beba502de9613d07b"
+    },
+    {
+      "bytes": 15532,
+      "path": "tiles/mars-jezero-hillshade/2/1/2.webp",
+      "sha256": "92e17dfbd62b57f0e5e8b81b304d0c56444c49a355a17175560e0929381dd322"
+    },
+    {
+      "bytes": 19286,
+      "path": "tiles/mars-jezero-hillshade/2/1/3.webp",
+      "sha256": "dc627b1f0b05e7508b8192aac830d21a74d3b7ea160efb6bf26e0c8934289d33"
+    },
+    {
+      "bytes": 1344,
+      "path": "tiles/mars-jezero-hillshade/2/2/0.webp",
+      "sha256": "8c337d2b42f2777c62320fcedcb34cff3b0dfd83f13885f9bb2cf123e828779f"
+    },
+    {
+      "bytes": 3298,
+      "path": "tiles/mars-jezero-hillshade/2/2/1.webp",
+      "sha256": "6273c118c85d97e4693098e5a695d7f397a7e379685d55d99ec3f35054e39751"
+    },
+    {
+      "bytes": 8782,
+      "path": "tiles/mars-jezero-hillshade/2/2/2.webp",
+      "sha256": "21fdcb33bc8536a9ba29deffbea522ef6298c7469abef865f30f5d696b9f96a8"
+    },
+    {
+      "bytes": 11424,
+      "path": "tiles/mars-jezero-hillshade/2/2/3.webp",
+      "sha256": "b5ae0603f3dbe4e228bfcef3faa80aebeacc7c84105173b0c1a6291c5ee12765"
+    },
+    {
+      "bytes": 25434,
+      "path": "tiles/moon-site01-hillshade/0/0/0.webp",
+      "sha256": "9920856af9d90822c156ae6f7d8305cb11ea7b017058cd61fe02ae6dadaa6e0b"
+    },
+    {
+      "bytes": 21342,
+      "path": "tiles/moon-site01-hillshade/1/0/0.webp",
+      "sha256": "9f478d3c7d2644fb6846e769780100d2905e2fadd4c6631e4be8d7fe974101ec"
+    },
+    {
+      "bytes": 26898,
+      "path": "tiles/moon-site01-hillshade/1/0/1.webp",
+      "sha256": "608e468cef75ea1558e62708116885ffd288c72123556680202d5320a1ad322a"
+    },
+    {
+      "bytes": 21376,
+      "path": "tiles/moon-site01-hillshade/1/1/0.webp",
+      "sha256": "5444cf7ece6851f07b6f376d626369f848f2c3037ae62099528edc1851d7d73c"
+    },
+    {
+      "bytes": 27086,
+      "path": "tiles/moon-site01-hillshade/1/1/1.webp",
+      "sha256": "6882e4ae836ac99be60e17447dfbb0957c966ef1e1393c4a935f0c20dc933b03"
+    },
+    {
+      "bytes": 29226,
+      "path": "tiles/moon-site01-hillshade/2/0/0.webp",
+      "sha256": "e9ef17682b10667297cff81427e646ca7e5d5ab3b5027178bcd4a5609f894538"
+    },
+    {
+      "bytes": 25262,
+      "path": "tiles/moon-site01-hillshade/2/0/1.webp",
+      "sha256": "935b45b07f35163a126d5a92def3ca62712f89de3d21280e7ed2e8644f5594cf"
+    },
+    {
+      "bytes": 24320,
+      "path": "tiles/moon-site01-hillshade/2/0/2.webp",
+      "sha256": "7a20f2f045f106977c8016378ac2c0f41a2b0ed34de5f9bc2273cb1473308266"
+    },
+    {
+      "bytes": 23864,
+      "path": "tiles/moon-site01-hillshade/2/0/3.webp",
+      "sha256": "a993b77363d84ed3b59ce3d714f19682924b0d718e99c8e489587fb930c1d957"
+    },
+    {
+      "bytes": 22012,
+      "path": "tiles/moon-site01-hillshade/2/1/0.webp",
+      "sha256": "2c8b80e4a661c861616f2c23061f52567d84f2f78f9f882018ec85a943952b4f"
+    },
+    {
+      "bytes": 17524,
+      "path": "tiles/moon-site01-hillshade/2/1/1.webp",
+      "sha256": "0ca9479a1478a3512be4e006cad13ceeb3fe4b98663c47f124b64734c3423cfd"
+    },
+    {
+      "bytes": 27324,
+      "path": "tiles/moon-site01-hillshade/2/1/2.webp",
+      "sha256": "9efe3baebb9c08f31397861d519ba61bb741b468ad80b9b83922aedb4e27e905"
+    },
+    {
+      "bytes": 30286,
+      "path": "tiles/moon-site01-hillshade/2/1/3.webp",
+      "sha256": "38ce16775bfd076b9bea2dd26a787b05eb8e342179c526cea0d431ae48b1a0e6"
+    },
+    {
+      "bytes": 18428,
+      "path": "tiles/moon-site01-hillshade/2/2/0.webp",
+      "sha256": "624ea39e47f85bd0e456649ec953a7b84199a77c5d85946e6065e7dc3116d7a4"
+    },
+    {
+      "bytes": 22614,
+      "path": "tiles/moon-site01-hillshade/2/2/1.webp",
+      "sha256": "5de89bd9af73606d6a77d8269bb71783a4ea9fc697c3d44b705fa7d4ab7dcd80"
+    },
+    {
+      "bytes": 26864,
+      "path": "tiles/moon-site01-hillshade/2/2/2.webp",
+      "sha256": "a2bf51841b003ff9a6de9b58c89d8d8f9e3c9ec4b3157a5053850657aded5a90"
+    },
+    {
+      "bytes": 26556,
+      "path": "tiles/moon-site01-hillshade/2/2/3.webp",
+      "sha256": "b5cf2794bc6b85833f2b303d75d6ee5d32e8da1a9dde999bafe551df06cc1481"
+    },
+    {
+      "bytes": 18166,
+      "path": "tiles/moon-site01-hillshade/2/3/0.webp",
+      "sha256": "4b5ec34da77b05f718c2d37513933134fa21d0a78312e629785e5a82e49947bb"
+    },
+    {
+      "bytes": 26130,
+      "path": "tiles/moon-site01-hillshade/2/3/1.webp",
+      "sha256": "43bf17cfefc244b7974f12d7d49a6f55e4470f10827732bbc682f9680160da46"
+    },
+    {
+      "bytes": 24916,
+      "path": "tiles/moon-site01-hillshade/2/3/2.webp",
+      "sha256": "cff496f9880601d4fb33c5f5cb49218be5705148fbf1bc406a5ae6b9b76ba2f0"
+    },
+    {
+      "bytes": 29844,
+      "path": "tiles/moon-site01-hillshade/2/3/3.webp",
+      "sha256": "ab1eba630609c216ec337dd4e2c491560cbbb319fcc492163f957e8999f39e61"
+    },
+    {
+      "bytes": 10876,
+      "path": "validation.json",
+      "sha256": "560d64c9d7f5bb5d51e250519a2a4666a0e3af50bdb02f94c7a783ed6e0782ac"
+    },
+    {
+      "bytes": 464119,
+      "path": "windows/earth.json",
+      "sha256": "fb7f8911aff25ce3aa75621e20188f04350eb1b87ef131d6ce7fbdcf1e39a101"
+    },
+    {
+      "bytes": 2753008,
+      "path": "windows/mars.json",
+      "sha256": "5693c0b80100ad29f93f94409921d4a267c749a32ebaca747f63df788eed2308"
+    },
+    {
+      "bytes": 160116,
+      "path": "windows/moon.json",
+      "sha256": "9882b84b2c204eefd8aee80f1441fd9ca54227fe4e43acac5d1a9479cb80e132"
+    }
+  ],
+  "git_sha": "a4d9f0c424907b8cc17a880ff556ff532db30891",
+  "mock": false,
+  "model": null,
+  "run_id": "sha256:1f5351609269b3b381f003d82c08187889a05b0d055da89abad88303fd50d470",
+  "schema_version": "1.0.0",
+  "shipping_mode": "C",
+  "targets": [
+    "moon-cr-site01-w000",
+    "mars-jezero-w000",
+    "mars-arcadia-w000"
+  ]
+}

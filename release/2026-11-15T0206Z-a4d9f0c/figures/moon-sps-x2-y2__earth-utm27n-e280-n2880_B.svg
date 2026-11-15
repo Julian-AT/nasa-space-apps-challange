@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="660" viewBox="0 0 960 660" role="img" aria-labelledby="fig-moon-sps-x2-y2--earth-utm27n-e280-n2880-B-title fig-moon-sps-x2-y2--earth-utm27n-e280-n2880-B-desc">
+<title id="fig-moon-sps-x2-y2--earth-utm27n-e280-n2880-B-title">Figure B: nu(L) for the target and the Earth candidate, relief and texture</title>
+<desc id="fig-moon-sps-x2-y2--earth-utm27n-e280-n2880-B-desc">Log-log structure-function curves nu(L) in metres against lag L in metres for the target and Earth windows, relief (no detrend) and texture (plane removed), with each terrain distance, its reference spread and the clone envelope when they are available.</desc>
+<style>text{font-family:sans-serif;font-size:12px;fill:#1a1a1a}.muted{fill:#5a5a5a}.head{font-size:15px;font-weight:bold}.sub{font-size:13px;font-weight:bold}</style>
+<rect x="0" y="0" width="960" height="660" fill="#ffffff"/>
+<text x="20.00" y="28.00" class="head">Figure B: nu(L), relief and texture</text>
+<text x="20.00" y="46.00" class="muted">Card moon-sps-x2-y2__earth-utm27n-e280-n2880; Mode C</text>
+<text x="90.00" y="88.00" class="sub">Relief (no detrend)</text>
+<line x1="149.97" y1="110.00" x2="149.97" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="149.97" y="416.00" text-anchor="middle">300</text>
+<line x1="241.25" y1="110.00" x2="241.25" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="241.25" y="416.00" text-anchor="middle">500</text>
+<line x1="301.37" y1="110.00" x2="301.37" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="301.37" y="416.00" text-anchor="middle">700</text>
+<line x1="365.10" y1="110.00" x2="365.10" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="365.10" y="416.00" text-anchor="middle">1000</text>
+<line x1="90.00" y1="369.61" x2="420.00" y2="369.61" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="84.00" y="373.61" text-anchor="end">2</text>
+<line x1="90.00" y1="318.61" x2="420.00" y2="318.61" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="84.00" y="322.61" text-anchor="end">5</text>
+<line x1="90.00" y1="280.04" x2="420.00" y2="280.04" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="84.00" y="284.04" text-anchor="end">10</text>
+<line x1="90.00" y1="241.46" x2="420.00" y2="241.46" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="84.00" y="245.46" text-anchor="end">20</text>
+<line x1="90.00" y1="190.47" x2="420.00" y2="190.47" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="84.00" y="194.47" text-anchor="end">50</text>
+<line x1="90.00" y1="151.90" x2="420.00" y2="151.90" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="84.00" y="155.90" text-anchor="end">100</text>
+<line x1="90.00" y1="113.32" x2="420.00" y2="113.32" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="84.00" y="117.32" text-anchor="end">200</text>
+<rect x="90.00" y="110.00" width="330.00" height="290.00" fill="none" stroke="#1a1a1a"/>
+<text x="255.00" y="434.00" text-anchor="middle">Lag L (m)</text>
+<text x="46.00" y="255.00" text-anchor="middle" transform="rotate(-90 46.00 255.00)">nu(L) (m)</text>
+<path d="M131.14 198.41L182.55 183.44L255.00 162.75L306.40 148.46L378.86 130.00" fill="none" stroke="#440154" stroke-width="2" stroke-dasharray="none"/>
+<circle cx="131.14" cy="198.41" r="3.5" fill="#440154"/>
+<circle cx="182.55" cy="183.44" r="3.5" fill="#440154"/>
+<circle cx="255.00" cy="162.75" r="3.5" fill="#440154"/>
+<circle cx="306.40" cy="148.46" r="3.5" fill="#440154"/>
+<circle cx="378.86" cy="130.00" r="3.5" fill="#440154"/>
+<path d="M131.14 380.00L182.55 368.45L255.00 351.69L306.40 339.72L378.86 321.37" fill="none" stroke="#21918c" stroke-width="2" stroke-dasharray="6 3"/>
+<rect x="127.64" y="376.50" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="179.05" y="364.95" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="251.50" y="348.19" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="302.90" y="336.22" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="375.36" y="317.87" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<path d="M90.00 450.00L118.00 450.00" stroke="#440154" stroke-width="2" stroke-dasharray="none"/>
+<text x="124.00" y="454.00">Target moon-sps-x2-y2</text>
+<path d="M90.00 468.00L118.00 468.00" stroke="#21918c" stroke-width="2" stroke-dasharray="6 3"/>
+<text x="124.00" y="472.00">Earth earth-utm27n-e280-n2880</text>
+<text x="30.00" y="510.00" class="sub">Distance (RMS of log nu): 3.37228</text>
+<text x="30.00" y="538.00">Reference spread</text>
+<text x="30.00" y="572.00">Clone envelope</text>
+<rect x="181.37" y="530.00" width="26.87" height="8.00" fill="#3b528b" stroke="none"/>
+<line x1="190.97" y1="527.00" x2="190.97" y2="541.00" stroke="#1a1a1a" stroke-width="1.50"/>
+<text x="180.00" y="554.00" class="muted">0.0212107 to 0.436557, median 0.169579, n 24</text>
+<rect x="398.15" y="564.00" width="1.00" height="8.00" fill="#5ec962" stroke="none"/>
+<line x1="398.16" y1="561.00" x2="398.16" y2="575.00" stroke="#1a1a1a" stroke-width="1.50"/>
+<text x="180.00" y="588.00" class="muted">3.37178 to 3.37202, median 3.37189, n 100</text>
+<path d="M398.18 520.00L393.18 512.00L403.18 512.00Z" fill="#440154"/>
+<line x1="398.18" y1="520.00" x2="398.18" y2="574.00" stroke="#440154" stroke-width="1.00"/>
+<line x1="180.00" y1="602.00" x2="420.00" y2="602.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<line x1="180.00" y1="602.00" x2="180.00" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="180.00" y="618.00" text-anchor="middle" class="muted">0</text>
+<line x1="244.70" y1="602.00" x2="244.70" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="244.70" y="618.00" text-anchor="middle" class="muted">1</text>
+<line x1="309.40" y1="602.00" x2="309.40" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="309.40" y="618.00" text-anchor="middle" class="muted">2</text>
+<line x1="374.10" y1="602.00" x2="374.10" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="374.10" y="618.00" text-anchor="middle" class="muted">3</text>
+<text x="570.00" y="88.00" class="sub">Texture (plane removed)</text>
+<line x1="629.97" y1="110.00" x2="629.97" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="629.97" y="416.00" text-anchor="middle">300</text>
+<line x1="721.25" y1="110.00" x2="721.25" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="721.25" y="416.00" text-anchor="middle">500</text>
+<line x1="781.37" y1="110.00" x2="781.37" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="781.37" y="416.00" text-anchor="middle">700</text>
+<line x1="845.10" y1="110.00" x2="845.10" y2="400.00" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="845.10" y="416.00" text-anchor="middle">1000</text>
+<line x1="570.00" y1="393.43" x2="900.00" y2="393.43" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="564.00" y="397.43" text-anchor="end">1</text>
+<line x1="570.00" y1="356.63" x2="900.00" y2="356.63" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="564.00" y="360.63" text-anchor="end">2</text>
+<line x1="570.00" y1="307.99" x2="900.00" y2="307.99" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="564.00" y="311.99" text-anchor="end">5</text>
+<line x1="570.00" y1="271.19" x2="900.00" y2="271.19" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="564.00" y="275.19" text-anchor="end">10</text>
+<line x1="570.00" y1="234.39" x2="900.00" y2="234.39" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="564.00" y="238.39" text-anchor="end">20</text>
+<line x1="570.00" y1="185.74" x2="900.00" y2="185.74" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="564.00" y="189.74" text-anchor="end">50</text>
+<line x1="570.00" y1="148.94" x2="900.00" y2="148.94" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="564.00" y="152.94" text-anchor="end">100</text>
+<line x1="570.00" y1="112.14" x2="900.00" y2="112.14" stroke="#d0d0d0" stroke-width="0.60"/>
+<text x="564.00" y="116.14" text-anchor="end">200</text>
+<rect x="570.00" y="110.00" width="330.00" height="290.00" fill="none" stroke="#1a1a1a"/>
+<text x="735.00" y="434.00" text-anchor="middle">Lag L (m)</text>
+<text x="526.00" y="255.00" text-anchor="middle" transform="rotate(-90 526.00 255.00)">nu(L) (m)</text>
+<path d="M611.14 194.94L662.55 180.69L735.00 161.02L786.40 147.44L858.86 130.00" fill="none" stroke="#440154" stroke-width="2" stroke-dasharray="none"/>
+<circle cx="611.14" cy="194.94" r="3.5" fill="#440154"/>
+<circle cx="662.55" cy="180.69" r="3.5" fill="#440154"/>
+<circle cx="735.00" cy="161.02" r="3.5" fill="#440154"/>
+<circle cx="786.40" cy="147.44" r="3.5" fill="#440154"/>
+<circle cx="858.86" cy="130.00" r="3.5" fill="#440154"/>
+<path d="M611.14 380.00L662.55 372.33L735.00 362.52L786.40 357.35L858.86 351.39" fill="none" stroke="#21918c" stroke-width="2" stroke-dasharray="6 3"/>
+<rect x="607.64" y="376.50" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="659.05" y="368.83" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="731.50" y="359.02" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="782.90" y="353.85" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<rect x="855.36" y="347.89" width="7.00" height="7.00" fill="#21918c" stroke="none"/>
+<path d="M570.00 450.00L598.00 450.00" stroke="#440154" stroke-width="2" stroke-dasharray="none"/>
+<text x="604.00" y="454.00">Target moon-sps-x2-y2</text>
+<path d="M570.00 468.00L598.00 468.00" stroke="#21918c" stroke-width="2" stroke-dasharray="6 3"/>
+<text x="604.00" y="472.00">Earth earth-utm27n-e280-n2880</text>
+<text x="510.00" y="510.00" class="sub">Distance (RMS of log nu): 3.81078</text>
+<text x="510.00" y="538.00">Reference spread</text>
+<text x="510.00" y="572.00">Clone envelope</text>
+<rect x="661.12" y="530.00" width="59.31" height="8.00" fill="#3b528b" stroke="none"/>
+<line x1="680.96" y1="527.00" x2="680.96" y2="541.00" stroke="#1a1a1a" stroke-width="1.50"/>
+<text x="660.00" y="554.00" class="muted">0.0195241 to 1.05542, median 0.366114, n 24</text>
+<rect x="878.15" y="564.00" width="1.00" height="8.00" fill="#5ec962" stroke="none"/>
+<line x1="878.16" y1="561.00" x2="878.16" y2="575.00" stroke="#1a1a1a" stroke-width="1.50"/>
+<text x="660.00" y="588.00" class="muted">3.81024 to 3.81051, median 3.81036, n 100</text>
+<path d="M878.18 520.00L873.18 512.00L883.18 512.00Z" fill="#440154"/>
+<line x1="878.18" y1="520.00" x2="878.18" y2="574.00" stroke="#440154" stroke-width="1.00"/>
+<line x1="660.00" y1="602.00" x2="900.00" y2="602.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<line x1="660.00" y1="602.00" x2="660.00" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="660.00" y="618.00" text-anchor="middle" class="muted">0</text>
+<line x1="774.51" y1="602.00" x2="774.51" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="774.51" y="618.00" text-anchor="middle" class="muted">2</text>
+<line x1="889.02" y1="602.00" x2="889.02" y2="606.00" stroke="#1a1a1a" stroke-width="1.00"/>
+<text x="889.02" y="618.00" text-anchor="middle" class="muted">4</text>
+<text x="20.00" y="645.00" class="muted">Missing nu values are left out, never drawn as zero. Values from the windows file and the comparison record (run sha256:2ee2f3d8a0bb).</text>
+</svg>

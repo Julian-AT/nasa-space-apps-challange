@@ -1,0 +1,5502 @@
+[
+  {
+    "card_id": null,
+    "grid_index": [
+      0,
+      0
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "4ac554b2c666444be611263d5e24218369af88f29f6d3029c3d9fb5ed7a8cb8f",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9841521803877957,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 83.84623687874887,
+              "270.0": 25.755899674046205,
+              "360.0": 33.59603254941636,
+              "540.0": 48.33772412923417,
+              "720.0": 61.68078109620027
+            },
+            "y": {
+              "1080.0": 329.110028971212,
+              "270.0": 82.93060526182381,
+              "360.0": 110.48018751147781,
+              "540.0": 165.47657299583562,
+              "720.0": 220.2724209289723
+            }
+          },
+          "nu_m": {
+            "1080.0": 240.14953946255994,
+            "270.0": 61.40379327497599,
+            "360.0": 81.65342992071044,
+            "540.0": 121.8996139953693,
+            "720.0": 161.74742374849086
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8930959641134165,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 82.22234303138201,
+              "270.0": 25.60517330930323,
+              "360.0": 33.36602200615417,
+              "540.0": 47.90024643612205,
+              "720.0": 60.95446381081824
+            },
+            "y": {
+              "1080.0": 95.30122963419345,
+              "270.0": 26.259394512819117,
+              "360.0": 34.70672287120978,
+              "540.0": 51.21733103187606,
+              "720.0": 66.97215917394692
+            }
+          },
+          "nu_m": {
+            "1080.0": 89.00235407942738,
+            "270.0": 25.934346920438628,
+            "360.0": 34.04297311468345,
+            "540.0": 49.58653348778274,
+            "720.0": 64.03404080207977
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            373.40230235434024,
+            0.012837621946441702,
+            -0.2944269585477463
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 0.9153719008264463
+      },
+      "window_id": "moon-sps-x0-y0"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.9328277356446371,
+        "observed_fraction": 0.06717226435536294,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -136.46880071438582,
+            -89.090283608922
+          ],
+          [
+            -145.00797980144134,
+            -89.1949204420286
+          ],
+          [
+            -136.97493401088198,
+            -89.32335821167513
+          ],
+          [
+            -128.29016319224309,
+            -89.20170281561856
+          ],
+          [
+            -136.46880071438582,
+            -89.090283608922
+          ]
+        ],
+        "ring_m": [
+          [
+            -19000.0,
+            -20000.0
+          ],
+          [
+            -14000.0,
+            -20000.0
+          ],
+          [
+            -14000.0,
+            -15000.0
+          ],
+          [
+            -19000.0,
+            -15000.0
+          ],
+          [
+            -19000.0,
+            -20000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 0.9153719008264463
+      },
+      "window_id": "moon-sps-x0-y0"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      0,
+      1
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "b76e63fb0ad99c79a7b4c78d54de8ad7f1e7d41d4ae8cbc887220d285875bcf2",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 1.0019283931367966,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 96.63045459207662,
+              "270.0": 26.854119745655773,
+              "360.0": 35.28677216160069,
+              "540.0": 51.70804930728837,
+              "720.0": 67.4825123785742
+            },
+            "y": {
+              "1080.0": 307.737795622089,
+              "270.0": 75.84249575977495,
+              "360.0": 101.3023499949191,
+              "540.0": 152.5362762593209,
+              "720.0": 204.15203522130327
+            }
+          },
+          "nu_m": {
+            "1080.0": 228.0789288919671,
+            "270.0": 56.89124673614343,
+            "360.0": 75.85289185020504,
+            "540.0": 113.88818625789251,
+            "720.0": 152.03937477167662
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.9113439832440259,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 94.08417664175582,
+              "270.0": 26.1198348891999,
+              "360.0": 34.28861808893081,
+              "540.0": 50.19516920351115,
+              "720.0": 65.51599879640955
+            },
+            "y": {
+              "1080.0": 96.80171442265731,
+              "270.0": 27.864535385389512,
+              "360.0": 36.28441694876857,
+              "540.0": 52.315900647273935,
+              "720.0": 67.58611961231988
+            }
+          },
+          "nu_m": {
+            "1080.0": 95.45261706606796,
+            "270.0": 27.00627803754794,
+            "360.0": 35.300624950279825,
+            "540.0": 51.26650208422919,
+            "720.0": 66.55910780104384
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            898.8386831833011,
+            0.01492062912107547,
+            -0.27798885898627046
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 0.9586776859504132
+      },
+      "window_id": "moon-sps-x0-y1"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.9282758620689655,
+        "observed_fraction": 0.07172413793103448,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -132.6467031338917,
+            -89.14815788722363
+          ],
+          [
+            -141.34019174590992,
+            -89.26094498846737
+          ],
+          [
+            -131.76029970389789,
+            -89.38106635295793
+          ],
+          [
+            -123.34070734647699,
+            -89.24999032904235
+          ],
+          [
+            -132.6467031338917,
+            -89.14815788722363
+          ]
+        ],
+        "ring_m": [
+          [
+            -19000.0,
+            -17500.0
+          ],
+          [
+            -14000.0,
+            -17500.0
+          ],
+          [
+            -14000.0,
+            -12500.0
+          ],
+          [
+            -19000.0,
+            -12500.0
+          ],
+          [
+            -19000.0,
+            -17500.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 0.9586776859504132
+      },
+      "window_id": "moon-sps-x0-y1"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      0,
+      2
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "027c97d75ad24beaafefe82cbe150592009073583b1383c221975fbce4427123",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9337578138354511,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 130.47583043258982,
+              "270.0": 37.18049907334103,
+              "360.0": 48.814756964380535,
+              "540.0": 71.15475356451545,
+              "720.0": 92.38619121954648
+            },
+            "y": {
+              "1080.0": 190.73136704242725,
+              "270.0": 51.355964753496615,
+              "360.0": 67.83246466784361,
+              "540.0": 99.84320766256349,
+              "720.0": 130.86912506334278
+            }
+          },
+          "nu_m": {
+            "1080.0": 163.40501323543754,
+            "270.0": 44.832045609725974,
+            "360.0": 59.09367039034633,
+            "540.0": 86.69390137482769,
+            "720.0": 113.2738633200516
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8794391565931853,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 125.86014794942778,
+              "270.0": 36.45601213738153,
+              "360.0": 47.740067560577955,
+              "540.0": 69.24216000998733,
+              "720.0": 89.54208349058189
+            },
+            "y": {
+              "1080.0": 140.6413371038543,
+              "270.0": 42.49116620277194,
+              "360.0": 55.68731738392763,
+              "540.0": 80.39146199434586,
+              "720.0": 102.88292927774926
+            }
+          },
+          "nu_m": {
+            "1080.0": 133.45554043240736,
+            "270.0": 39.58876119703986,
+            "360.0": 51.86613234137878,
+            "540.0": 75.02420904093906,
+            "720.0": 96.44345973834797
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1192.1736275567916,
+            -0.031715512072510624,
+            -0.12981903874629272
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 0.96
+      },
+      "window_id": "moon-sps-x0-y2"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.90599173553719,
+        "observed_fraction": 0.09400826446280992,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -128.29016319224309,
+            -89.20170281561856
+          ],
+          [
+            -136.97493401088198,
+            -89.32335821167513
+          ],
+          [
+            -125.53767779197437,
+            -89.43263162860389
+          ],
+          [
+            -117.75854060106003,
+            -89.29194376600812
+          ],
+          [
+            -128.29016319224309,
+            -89.20170281561856
+          ]
+        ],
+        "ring_m": [
+          [
+            -19000.0,
+            -15000.0
+          ],
+          [
+            -14000.0,
+            -15000.0
+          ],
+          [
+            -14000.0,
+            -10000.0
+          ],
+          [
+            -19000.0,
+            -10000.0
+          ],
+          [
+            -19000.0,
+            -15000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 0.96
+      },
+      "window_id": "moon-sps-x0-y2"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      0,
+      3
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "43c9080ffb6ad9be5b244702792f9f72ed3119ab05076a01968fc44415387d9e",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.8928148095435747,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 120.69961009543015,
+              "270.0": 35.82762931501321,
+              "360.0": 46.95293947728868,
+              "540.0": 67.98862207909113,
+              "720.0": 87.25576777006994
+            },
+            "y": {
+              "1080.0": 138.68160855962088,
+              "270.0": 39.91008366091012,
+              "360.0": 52.72159214899925,
+              "540.0": 77.44340773269752,
+              "720.0": 100.41431595130265
+            }
+          },
+          "nu_m": {
+            "1080.0": 130.00189312058646,
+            "270.0": 37.923830240066984,
+            "360.0": 49.920661074766194,
+            "540.0": 72.86952083507312,
+            "720.0": 94.06541303027487
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8878564768719243,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 111.52121541359759,
+              "270.0": 33.77432674375138,
+              "360.0": 44.13721686798626,
+              "540.0": 63.62556462862567,
+              "720.0": 81.37994355286277
+            },
+            "y": {
+              "1080.0": 138.70814533748532,
+              "270.0": 39.932479963355945,
+              "360.0": 52.75207002121525,
+              "540.0": 77.48672612447406,
+              "720.0": 100.46448298673315
+            }
+          },
+          "nu_m": {
+            "1080.0": 125.85096557097006,
+            "270.0": 36.98180703411816,
+            "360.0": 48.63576258461899,
+            "540.0": 70.89571637200893,
+            "720.0": 91.42157172806296
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1289.1398284099055,
+            0.05657093719476484,
+            0.0018661591674734022
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 0.9619834710743802
+      },
+      "window_id": "moon-sps-x0-y3"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8948453608247423,
+        "observed_fraction": 0.10515463917525773,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -123.34070734647699,
+            -89.24999032904235
+          ],
+          [
+            -131.76029970389789,
+            -89.38106635295793
+          ],
+          [
+            -118.17859010995917,
+            -89.47623632115972
+          ],
+          [
+            -111.54097591853844,
+            -89.3263784298414
+          ],
+          [
+            -123.34070734647699,
+            -89.24999032904235
+          ]
+        ],
+        "ring_m": [
+          [
+            -19000.0,
+            -12500.0
+          ],
+          [
+            -14000.0,
+            -12500.0
+          ],
+          [
+            -14000.0,
+            -7500.0
+          ],
+          [
+            -19000.0,
+            -7500.0
+          ],
+          [
+            -19000.0,
+            -12500.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 0.9619834710743802
+      },
+      "window_id": "moon-sps-x0-y3"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      0,
+      4
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "905e511463bcc494077b4416e78ac642453cba4fbb74d27b099e09338d6fadbb",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.911450597373733,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 192.16714255878816,
+              "270.0": 55.6837841917229,
+              "360.0": 73.30116485283833,
+              "540.0": 107.04324390418724,
+              "720.0": 138.4390353098236
+            },
+            "y": {
+              "1080.0": 160.93920506416634,
+              "270.0": 44.298773490641466,
+              "360.0": 58.52838902341875,
+              "540.0": 86.12058057211472,
+              "720.0": 112.54100567278826
+            }
+          },
+          "nu_m": {
+            "1080.0": 177.242261334445,
+            "270.0": 50.314337691584136,
+            "360.0": 66.327343872869,
+            "540.0": 97.14682306593824,
+            "720.0": 126.15634041806449
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8868014585474115,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 185.18733354104313,
+              "270.0": 53.43938826273594,
+              "360.0": 70.3554271625701,
+              "540.0": 102.80897376306325,
+              "720.0": 133.06724373130407
+            },
+            "y": {
+              "1080.0": 98.60567379779461,
+              "270.0": 30.76345139402655,
+              "360.0": 40.001668870093354,
+              "540.0": 57.09720949507462,
+              "720.0": 72.54525335707156
+            }
+          },
+          "nu_m": {
+            "1080.0": 148.35334072604945,
+            "270.0": 43.601365572468445,
+            "360.0": 57.22770152478737,
+            "540.0": 83.1558068277215,
+            "720.0": 107.1674044168468
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1253.0479544821837,
+            -0.0426108232549292,
+            0.11422128997135504
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 0.9659504132231405
+      },
+      "window_id": "moon-sps-x0-y4"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.877138945927447,
+        "observed_fraction": 0.12286105407255304,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -117.75854060106003,
+            -89.29194376600812
+          ],
+          [
+            -125.53767779197437,
+            -89.43263162860389
+          ],
+          [
+            -109.6538240580533,
+            -89.50975146742279
+          ],
+          [
+            -104.74356283647074,
+            -89.35209424187876
+          ],
+          [
+            -117.75854060106003,
+            -89.29194376600812
+          ]
+        ],
+        "ring_m": [
+          [
+            -19000.0,
+            -10000.0
+          ],
+          [
+            -14000.0,
+            -10000.0
+          ],
+          [
+            -14000.0,
+            -5000.0
+          ],
+          [
+            -19000.0,
+            -5000.0
+          ],
+          [
+            -19000.0,
+            -10000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 0.9659504132231405
+      },
+      "window_id": "moon-sps-x0-y4"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      1,
+      0
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "a016477230d34c2fc984b51a99b6196f5682ef3731e087300aeae6fdd0232d79",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 1.0097373644089394,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 111.15403103127642,
+              "270.0": 30.262152391577757,
+              "360.0": 39.65537286039719,
+              "540.0": 58.03079885986352,
+              "720.0": 76.09665533203629
+            },
+            "y": {
+              "1080.0": 336.597917059085,
+              "270.0": 82.03274348401159,
+              "360.0": 109.64306978444436,
+              "540.0": 165.48856892336036,
+              "720.0": 222.05168835499015
+            }
+          },
+          "nu_m": {
+            "1080.0": 250.65252480577232,
+            "270.0": 61.82705261810853,
+            "360.0": 82.44437927613278,
+            "540.0": 124.00411295722358,
+            "720.0": 165.97839204851996
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8574417453469129,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 85.64058912287464,
+              "270.0": 26.228736820204638,
+              "360.0": 33.92726120417204,
+              "540.0": 48.30012238130226,
+              "720.0": 61.719946886389906
+            },
+            "y": {
+              "1080.0": 93.11781244543391,
+              "270.0": 28.371673533913967,
+              "360.0": 36.831555639599976,
+              "540.0": 52.790868125093894,
+              "720.0": 67.38423566651127
+            }
+          },
+          "nu_m": {
+            "1080.0": 89.45735715953172,
+            "270.0": 27.32122338310048,
+            "360.0": 35.40919755973768,
+            "540.0": 50.59534355773182,
+            "720.0": 64.61418985029032
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            948.0663897234591,
+            -0.06722218606321342,
+            -0.3093577058031792
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 0.9573553719008264
+      },
+      "window_id": "moon-sps-x1-y0"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.913328729281768,
+        "observed_fraction": 0.08667127071823204,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -140.47736872882888,
+            -89.14497234673162
+          ],
+          [
+            -150.10109816138544,
+            -89.23919340435968
+          ],
+          [
+            -142.5238204386386,
+            -89.37668920166082
+          ],
+          [
+            -132.27368900609375,
+            -89.26463280923893
+          ],
+          [
+            -140.47736872882888,
+            -89.14497234673162
+          ]
+        ],
+        "ring_m": [
+          [
+            -16500.0,
+            -20000.0
+          ],
+          [
+            -11500.0,
+            -20000.0
+          ],
+          [
+            -11500.0,
+            -15000.0
+          ],
+          [
+            -16500.0,
+            -15000.0
+          ],
+          [
+            -16500.0,
+            -20000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 0.9573553719008264
+      },
+      "window_id": "moon-sps-x1-y0"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      1,
+      1
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "0222978db9909685266269a5b9b322d794d3325ba0aba29a41c1dafb0f4788ab",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9354179153122227,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 95.48637149510593,
+              "270.0": 32.52049189919848,
+              "360.0": 41.72851511555272,
+              "540.0": 58.249397426469734,
+              "720.0": 72.7560624087357
+            },
+            "y": {
+              "1080.0": 266.14703691642296,
+              "270.0": 70.22999694977085,
+              "360.0": 92.94646264968306,
+              "540.0": 137.65210077507828,
+              "720.0": 181.4008174966734
+            }
+          },
+          "nu_m": {
+            "1080.0": 199.9398564577523,
+            "270.0": 54.72583880092957,
+            "360.0": 72.04274388457813,
+            "540.0": 105.69080647894387,
+            "720.0": 138.20220910984972
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8382972169374083,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 84.91509899636384,
+              "270.0": 30.337202738604468,
+              "360.0": 38.73030736342338,
+              "540.0": 53.58110685160529,
+              "720.0": 66.30803519611042
+            },
+            "y": {
+              "1080.0": 136.2275643257724,
+              "270.0": 40.23833117971927,
+              "360.0": 52.42904210260526,
+              "540.0": 75.59822190644849,
+              "720.0": 97.21635256467226
+            }
+          },
+          "nu_m": {
+            "1080.0": 113.5088615917161,
+            "270.0": 35.63333527844368,
+            "360.0": 46.09143718882066,
+            "540.0": 65.52108884496567,
+            "720.0": 83.2098994637876
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1366.502352338306,
+            -0.038139590608835275,
+            -0.21245298727057776
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x1-y1"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8938842975206611,
+        "observed_fraction": 0.10611570247933884,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -136.68468431789628,
+            -89.20682765954875
+          ],
+          [
+            -146.6893691754392,
+            -89.30943850839073
+          ],
+          [
+            -137.38594403038883,
+            -89.43986557440068
+          ],
+          [
+            -127.14668669802178,
+            -89.3173578649904
+          ],
+          [
+            -136.68468431789628,
+            -89.20682765954875
+          ]
+        ],
+        "ring_m": [
+          [
+            -16500.0,
+            -17500.0
+          ],
+          [
+            -11500.0,
+            -17500.0
+          ],
+          [
+            -11500.0,
+            -12500.0
+          ],
+          [
+            -16500.0,
+            -12500.0
+          ],
+          [
+            -16500.0,
+            -17500.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x1-y1"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      1,
+      2
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "f3caba0d4eb352c59d7ba05afca52d0fe53abb51880408424a89cb641b380417",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9335997367787648,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 183.70699266004726,
+              "270.0": 46.86307245880734,
+              "360.0": 61.8730978683375,
+              "540.0": 91.71668483885568,
+              "720.0": 121.92283977834975
+            },
+            "y": {
+              "1080.0": 128.4110234111556,
+              "270.0": 39.740197603304125,
+              "360.0": 51.69064700868512,
+              "540.0": 73.99589670880758,
+              "720.0": 94.23653923790259
+            }
+          },
+          "nu_m": {
+            "1080.0": 158.48919535050175,
+            "270.0": 43.44784727595307,
+            "360.0": 57.00966246173257,
+            "540.0": 83.32869556032453,
+            "720.0": 108.96261787226365
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8505688798492249,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 124.43044285625996,
+              "270.0": 37.68500664063809,
+              "360.0": 48.954306609318095,
+              "540.0": 70.28710053974719,
+              "720.0": 90.27689166282693
+            },
+            "y": {
+              "1080.0": 110.21268641745644,
+              "270.0": 34.897169564435494,
+              "360.0": 45.21034094517232,
+              "540.0": 64.31253205461552,
+              "720.0": 81.52586781383219
+            }
+          },
+          "nu_m": {
+            "1080.0": 117.536741823052,
+            "270.0": 36.31784801660129,
+            "360.0": 47.1195238939118,
+            "540.0": 67.36608301497304,
+            "720.0": 86.01274408801358
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1479.3008351146832,
+            -0.1372974962585304,
+            -0.05586532069731427
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x1-y2"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8958677685950414,
+        "observed_fraction": 0.10413223140495868,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -132.27368900609375,
+            -89.26463280923893
+          ],
+          [
+            -142.5238204386386,
+            -89.37668920166082
+          ],
+          [
+            -131.0090869015702,
+            -89.49742845928928
+          ],
+          [
+            -121.21840276434638,
+            -89.36373841152438
+          ],
+          [
+            -132.27368900609375,
+            -89.26463280923893
+          ]
+        ],
+        "ring_m": [
+          [
+            -16500.0,
+            -15000.0
+          ],
+          [
+            -11500.0,
+            -15000.0
+          ],
+          [
+            -11500.0,
+            -10000.0
+          ],
+          [
+            -16500.0,
+            -10000.0
+          ],
+          [
+            -16500.0,
+            -15000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x1-y2"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      1,
+      3
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "51cda83a019b292ea180ecd6e2a661ff37d5c50ed26e2f1e4db83f9d6c14bec9",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9240476430407105,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 195.27783781510436,
+              "270.0": 53.805513287260034,
+              "360.0": 70.94600049835273,
+              "540.0": 104.45998209283219,
+              "720.0": 136.66035678762
+            },
+            "y": {
+              "1080.0": 80.45056732707508,
+              "270.0": 23.778375406322564,
+              "360.0": 30.774509524557736,
+              "540.0": 43.8448737739958,
+              "720.0": 56.20146369960001
+            }
+          },
+          "nu_m": {
+            "1080.0": 149.34143384371004,
+            "270.0": 41.59593968808447,
+            "360.0": 54.68274601366212,
+            "540.0": 80.10699349960791,
+            "720.0": 104.48602212568208
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8994430004668208,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 162.65744989244806,
+              "270.0": 46.589655897841425,
+              "360.0": 61.19499075640508,
+              "540.0": 89.38303526282908,
+              "720.0": 115.99157205615039
+            },
+            "y": {
+              "1080.0": 68.17258670214555,
+              "270.0": 20.40682333725666,
+              "360.0": 26.236861584576246,
+              "540.0": 37.097226703147406,
+              "720.0": 47.40899705228026
+            }
+          },
+          "nu_m": {
+            "1080.0": 124.70955773952493,
+            "270.0": 35.96550065964099,
+            "360.0": 47.080780577029074,
+            "540.0": 68.4307358643061,
+            "720.0": 88.60490333373274
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1279.4788162898712,
+            -0.09979370816129382,
+            0.0378400699301913
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x1-y3"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8809917355371901,
+        "observed_fraction": 0.11900826446280992,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -127.14668669802178,
+            -89.3173578649904
+          ],
+          [
+            -137.38594403038883,
+            -89.43986557440068
+          ],
+          [
+            -123.11134196037203,
+            -89.5472314708296
+          ],
+          [
+            -114.44395478041653,
+            -89.4022954475775
+          ],
+          [
+            -127.14668669802178,
+            -89.3173578649904
+          ]
+        ],
+        "ring_m": [
+          [
+            -16500.0,
+            -12500.0
+          ],
+          [
+            -11500.0,
+            -12500.0
+          ],
+          [
+            -11500.0,
+            -7500.0
+          ],
+          [
+            -16500.0,
+            -7500.0
+          ],
+          [
+            -16500.0,
+            -12500.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x1-y3"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      1,
+      4
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "b6bd4cdec738af70366611fe8bf33a6a33c5cd944db4a96dcddd3531e98e96fd",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.8766301037102148,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 123.90639715398244,
+              "270.0": 42.21554097384111,
+              "360.0": 54.624684733399135,
+              "540.0": 76.92102087532534,
+              "720.0": 95.8603230256766
+            },
+            "y": {
+              "1080.0": 131.83163825507847,
+              "270.0": 33.34338204339204,
+              "360.0": 44.03697804481805,
+              "540.0": 65.47087007616564,
+              "720.0": 87.39166354290808
+            }
+          },
+          "nu_m": {
+            "1080.0": 127.93040315088962,
+            "270.0": 38.03901303796969,
+            "360.0": 49.61406865770552,
+            "540.0": 71.42575964255613,
+            "720.0": 91.72378205074165
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8057198973810656,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 123.16727797029047,
+              "270.0": 41.73537862461235,
+              "360.0": 54.01839222026292,
+              "540.0": 76.12253677931459,
+              "720.0": 94.96982969534778
+            },
+            "y": {
+              "1080.0": 70.71472608766399,
+              "270.0": 20.934932971455535,
+              "360.0": 26.94364623325144,
+              "540.0": 38.17575549740532,
+              "720.0": 49.05644625685473
+            }
+          },
+          "nu_m": {
+            "1080.0": 100.42596986901383,
+            "270.0": 33.01600556895917,
+            "360.0": 42.684580180697374,
+            "540.0": 60.21639690946219,
+            "720.0": 75.58373989065055
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1078.6398365901716,
+            -0.00600319126908978,
+            0.10410242876433097
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x1-y4"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8912396694214876,
+        "observed_fraction": 0.10876033057851239,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -121.21840276434638,
+            -89.36373841152438
+          ],
+          [
+            -131.0090869015702,
+            -89.49742845928928
+          ],
+          [
+            -113.49856567595211,
+            -89.58646120594726
+          ],
+          [
+            -106.8583987677383,
+            -89.43143491968189
+          ],
+          [
+            -121.21840276434638,
+            -89.36373841152438
+          ]
+        ],
+        "ring_m": [
+          [
+            -16500.0,
+            -10000.0
+          ],
+          [
+            -11500.0,
+            -10000.0
+          ],
+          [
+            -11500.0,
+            -5000.0
+          ],
+          [
+            -16500.0,
+            -5000.0
+          ],
+          [
+            -16500.0,
+            -10000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x1-y4"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      2,
+      0
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "14d3ebb04cbb7f586c9b2da751a424e29b3cb9588acb0645b73085771d005dfb",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.92828281321735,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 101.67986485539979,
+              "270.0": 30.55991318891943,
+              "360.0": 39.706188224973296,
+              "540.0": 56.87950438427635,
+              "720.0": 72.6579834503929
+            },
+            "y": {
+              "1080.0": 193.95133272229174,
+              "270.0": 52.241212811655956,
+              "360.0": 69.0026858985389,
+              "540.0": 101.77638679311792,
+              "720.0": 133.40960141207393
+            }
+          },
+          "nu_m": {
+            "1080.0": 154.84817464498167,
+            "270.0": 42.79633518274093,
+            "360.0": 56.29365881060418,
+            "540.0": 82.44304375647245,
+            "720.0": 107.41811836930957
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8525729519364657,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 100.61304459346442,
+              "270.0": 30.501057677383024,
+              "360.0": 39.604860879529596,
+              "540.0": 56.67617714077156,
+              "720.0": 72.30993044861175
+            },
+            "y": {
+              "1080.0": 105.57142050583907,
+              "270.0": 32.794602928552834,
+              "360.0": 42.583615768892415,
+              "540.0": 60.645746095427086,
+              "720.0": 76.82882470668066
+            }
+          },
+          "nu_m": {
+            "1080.0": 103.12203830895498,
+            "270.0": 31.66860038492775,
+            "360.0": 41.12121920152391,
+            "540.0": 58.69452945020995,
+            "720.0": 74.60360027268435
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1326.6086691017192,
+            0.021209204146790367,
+            -0.15280240433549563
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 0.9583471074380165
+      },
+      "window_id": "moon-sps-x2-y0"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.9106588478785789,
+        "observed_fraction": 0.08934115212142119,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -145.00797980144134,
+            -89.1949204420286
+          ],
+          [
+            -155.77225468204585,
+            -89.27674809448044
+          ],
+          [
+            -149.03624346792648,
+            -89.42312746886464
+          ],
+          [
+            -136.97493401088198,
+            -89.32335821167513
+          ],
+          [
+            -145.00797980144134,
+            -89.1949204420286
+          ]
+        ],
+        "ring_m": [
+          [
+            -14000.0,
+            -20000.0
+          ],
+          [
+            -9000.0,
+            -20000.0
+          ],
+          [
+            -9000.0,
+            -15000.0
+          ],
+          [
+            -14000.0,
+            -15000.0
+          ],
+          [
+            -14000.0,
+            -20000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 0.9583471074380165
+      },
+      "window_id": "moon-sps-x2-y0"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      2,
+      1
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "ad35f0ef8c902ca1743ca1a59643717c3d25047e2d261d2c83115de57477fcf2",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.8628978543045396,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 98.40265843203319,
+              "270.0": 29.286165485448887,
+              "360.0": 37.55032651476013,
+              "540.0": 53.310074708941315,
+              "720.0": 68.86164611201757
+            },
+            "y": {
+              "1080.0": 116.222741324329,
+              "270.0": 35.63049361494508,
+              "360.0": 46.04844528880575,
+              "540.0": 65.73191426461649,
+              "720.0": 83.91529502770977
+            }
+          },
+          "nu_m": {
+            "1080.0": 107.68195946265392,
+            "270.0": 32.61296953733085,
+            "360.0": 42.014797005824235,
+            "540.0": 59.84416687683019,
+            "720.0": 76.75839708085466
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.7698277382113419,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 81.46993379614655,
+              "270.0": 26.46411349116558,
+              "360.0": 33.53355700527384,
+              "540.0": 46.661744724657076,
+              "720.0": 59.11113333345192
+            },
+            "y": {
+              "1080.0": 72.22596155001482,
+              "270.0": 26.750179810484344,
+              "360.0": 33.90517538197243,
+              "540.0": 46.66197661686068,
+              "720.0": 57.29324133524341
+            }
+          },
+          "nu_m": {
+            "1080.0": 76.98681586665576,
+            "270.0": 26.607531102739845,
+            "360.0": 33.71987813670343,
+            "540.0": 46.66186067090293,
+            "720.0": 58.20928442552603
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1621.68189962297,
+            0.055297087007055185,
+            -0.08347346063444214
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x2-y1"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8932231404958677,
+        "observed_fraction": 0.10677685950413224,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -141.34019174590992,
+            -89.26094498846737
+          ],
+          [
+            -152.78388844269253,
+            -89.35104604200812
+          ],
+          [
+            -144.24611274556327,
+            -89.49204752439752
+          ],
+          [
+            -131.76029970389789,
+            -89.38106635295793
+          ],
+          [
+            -141.34019174590992,
+            -89.26094498846737
+          ]
+        ],
+        "ring_m": [
+          [
+            -14000.0,
+            -17500.0
+          ],
+          [
+            -9000.0,
+            -17500.0
+          ],
+          [
+            -9000.0,
+            -12500.0
+          ],
+          [
+            -14000.0,
+            -12500.0
+          ],
+          [
+            -14000.0,
+            -17500.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x2-y1"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      2,
+      2
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "53869cf52d5d6541978be5cc2cb47565a1f941edb54cf0d13eebf3f0d110a7b0",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.8899796282772006,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 193.61889461299384,
+              "270.0": 55.45980604870377,
+              "360.0": 72.90926032048034,
+              "540.0": 106.4952230444181,
+              "720.0": 138.3070015829915
+            },
+            "y": {
+              "1080.0": 80.27017418536828,
+              "270.0": 26.145624001947454,
+              "360.0": 33.49319422213873,
+              "540.0": 46.87303942218655,
+              "720.0": 59.17659519369574
+            }
+          },
+          "nu_m": {
+            "1080.0": 148.20859829123776,
+            "270.0": 43.35541339562483,
+            "360.0": 56.73426786203148,
+            "540.0": 82.27488789404156,
+            "720.0": 106.37362479862229
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8857605410691898,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 185.44985438249688,
+              "270.0": 53.40053332093628,
+              "360.0": 70.18300077208558,
+              "540.0": 102.43515521636806,
+              "720.0": 132.8895137583988
+            },
+            "y": {
+              "1080.0": 80.2321460346207,
+              "270.0": 26.167509123335783,
+              "360.0": 33.517090839503496,
+              "540.0": 46.893617793125564,
+              "720.0": 59.18375466717986
+            }
+          },
+          "nu_m": {
+            "1080.0": 142.87904980753828,
+            "270.0": 42.04970566294304,
+            "360.0": 54.99567699246048,
+            "540.0": 79.66169849409802,
+            "720.0": 102.86481342871477
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1705.7519948342754,
+            -0.048985818461224684,
+            -0.001986165083714522
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x2-y2"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8955371900826447,
+        "observed_fraction": 0.10446280991735538,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -136.97493401088198,
+            -89.32335821167513
+          ],
+          [
+            -149.03624346792648,
+            -89.42312746886464
+          ],
+          [
+            -138.01278750418336,
+            -89.55633013392185
+          ],
+          [
+            -125.53767779197437,
+            -89.43263162860389
+          ],
+          [
+            -136.97493401088198,
+            -89.32335821167513
+          ]
+        ],
+        "ring_m": [
+          [
+            -14000.0,
+            -15000.0
+          ],
+          [
+            -9000.0,
+            -15000.0
+          ],
+          [
+            -9000.0,
+            -10000.0
+          ],
+          [
+            -14000.0,
+            -10000.0
+          ],
+          [
+            -14000.0,
+            -15000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x2-y2"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      2,
+      3
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "ad0819848af59393f2834e316e4731a78ace59eb0d69545f3cf18dbfe78cfdcf",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 1.006288090879582,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 240.44439710152454,
+              "270.0": 58.01242231508395,
+              "360.0": 77.53872319093529,
+              "540.0": 117.1616364343142,
+              "720.0": 157.5258008832051
+            },
+            "y": {
+              "1080.0": 121.6060048917092,
+              "270.0": 33.039387593750845,
+              "360.0": 43.532617387525306,
+              "540.0": 64.03487466021036,
+              "720.0": 83.88635744844233
+            }
+          },
+          "nu_m": {
+            "1080.0": 190.52759448861735,
+            "270.0": 47.207214890489716,
+            "360.0": 62.878225049253565,
+            "540.0": 94.41216612469833,
+            "720.0": 126.19686784913289
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8047711430357208,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 94.57380481300501,
+              "270.0": 33.36427967620541,
+              "360.0": 42.73510137510965,
+              "540.0": 59.2455276047994,
+              "720.0": 73.13171448063888
+            },
+            "y": {
+              "1080.0": 83.29670696161489,
+              "270.0": 24.61090574915019,
+              "360.0": 32.091347933385116,
+              "540.0": 46.39422153665336,
+              "720.0": 59.69225323059453
+            }
+          },
+          "nu_m": {
+            "1080.0": 89.11382032955807,
+            "270.0": 29.31613753639459,
+            "360.0": 37.789836608025176,
+            "540.0": 53.209286469389525,
+            "720.0": 66.75107773895155
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1405.3520287464926,
+            -0.21229239245876583,
+            0.08212844321473294
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x2-y3"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.9084297520661158,
+        "observed_fraction": 0.0915702479338843,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -131.76029970389789,
+            -89.38106635295793
+          ],
+          [
+            -144.24611274556327,
+            -89.49204752439752
+          ],
+          [
+            -129.8055710922652,
+            -89.61365317618146
+          ],
+          [
+            -118.17859010995917,
+            -89.47623632115972
+          ],
+          [
+            -131.76029970389789,
+            -89.38106635295793
+          ]
+        ],
+        "ring_m": [
+          [
+            -14000.0,
+            -12500.0
+          ],
+          [
+            -9000.0,
+            -12500.0
+          ],
+          [
+            -9000.0,
+            -7500.0
+          ],
+          [
+            -14000.0,
+            -7500.0
+          ],
+          [
+            -14000.0,
+            -12500.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x2-y3"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      2,
+      4
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "880a0f1cc90afdd8bec70ce893b24a9fe9ba206b45b3884f65debeb499831906",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9253384708603977,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 140.64151259877548,
+              "270.0": 40.36758156984516,
+              "360.0": 53.02166305747054,
+              "540.0": 77.18273466235028,
+              "720.0": 99.78403726905702
+            },
+            "y": {
+              "1080.0": 99.13066325810212,
+              "270.0": 25.577737593857723,
+              "360.0": 33.882408424695186,
+              "540.0": 50.40984450909973,
+              "720.0": 66.7807189487139
+            }
+          },
+          "nu_m": {
+            "1080.0": 121.6694774051051,
+            "270.0": 33.79173199333193,
+            "360.0": 44.49333856903633,
+            "540.0": 65.18560789541807,
+            "720.0": 84.9014679408421
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8721003737076555,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 112.94327928048143,
+              "270.0": 33.33753208525938,
+              "360.0": 43.82958712490943,
+              "540.0": 63.779862080122584,
+              "720.0": 82.108688486927
+            },
+            "y": {
+              "1080.0": 52.184127298450655,
+              "270.0": 16.849371423369252,
+              "360.0": 21.851584194166595,
+              "540.0": 31.120741865013787,
+              "720.0": 39.227440751112816
+            }
+          },
+          "nu_m": {
+            "1080.0": 87.97547236738694,
+            "270.0": 26.41299266363385,
+            "360.0": 34.63036557224582,
+            "540.0": 50.18152738402988,
+            "720.0": 64.34527501272056
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            996.4134224855349,
+            -0.07988991460977733,
+            0.07925532693135495
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x2-y4"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8961983471074381,
+        "observed_fraction": 0.10380165289256198,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -125.53767779197437,
+            -89.43263162860389
+          ],
+          [
+            -138.01278750418336,
+            -89.55633013392185
+          ],
+          [
+            -119.05460409907714,
+            -89.66047287425013
+          ],
+          [
+            -109.6538240580533,
+            -89.50975146742279
+          ],
+          [
+            -125.53767779197437,
+            -89.43263162860389
+          ]
+        ],
+        "ring_m": [
+          [
+            -14000.0,
+            -10000.0
+          ],
+          [
+            -9000.0,
+            -10000.0
+          ],
+          [
+            -9000.0,
+            -5000.0
+          ],
+          [
+            -14000.0,
+            -5000.0
+          ],
+          [
+            -14000.0,
+            -10000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x2-y4"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      3,
+      0
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "f6661d1e11aa70510ce2abc6df397ee4ca1851e0b8d19c04d0367d2356274837",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.8363717643382912,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 104.57026900579648,
+              "270.0": 32.14589400758582,
+              "360.0": 41.87800447783314,
+              "540.0": 59.97944868788722,
+              "720.0": 76.26761377119647
+            },
+            "y": {
+              "1080.0": 84.41950815344812,
+              "270.0": 27.4254364600711,
+              "360.0": 35.338419345186885,
+              "540.0": 49.77363652427382,
+              "720.0": 62.45276833006637
+            }
+          },
+          "nu_m": {
+            "1080.0": 95.03050698805814,
+            "270.0": 29.87903166580486,
+            "360.0": 38.746426550468435,
+            "540.0": 55.113288587025096,
+            "720.0": 69.70328967287462
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.6896538076010417,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 64.495852399722,
+              "270.0": 23.167863918301144,
+              "360.0": 29.695298051860963,
+              "540.0": 41.22083492948698,
+              "720.0": 50.66468850004918
+            },
+            "y": {
+              "1080.0": 51.180001805342826,
+              "270.0": 21.950084591858808,
+              "360.0": 27.690916829110446,
+              "540.0": 37.180792296672735,
+              "720.0": 43.869820089796725
+            }
+          },
+          "nu_m": {
+            "1080.0": 58.2198744483429,
+            "270.0": 22.567190034723836,
+            "360.0": 28.7106043233643,
+            "540.0": 39.25282504541764,
+            "720.0": 47.38919589694548
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1342.4580481489809,
+            0.07444773168389633,
+            -0.06046799457965828
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 0.9623140495867769
+      },
+      "window_id": "moon-sps-x3-y0"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.9048436963242872,
+        "observed_fraction": 0.09515630367571282,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -150.10109816138544,
+            -89.23919340435968
+          ],
+          [
+            -161.99583839408663,
+            -89.30649206634034
+          ],
+          [
+            -156.5713071912546,
+            -89.46088865894521
+          ],
+          [
+            -142.5238204386386,
+            -89.37668920166082
+          ],
+          [
+            -150.10109816138544,
+            -89.23919340435968
+          ]
+        ],
+        "ring_m": [
+          [
+            -11500.0,
+            -20000.0
+          ],
+          [
+            -6500.0,
+            -20000.0
+          ],
+          [
+            -6500.0,
+            -15000.0
+          ],
+          [
+            -11500.0,
+            -15000.0
+          ],
+          [
+            -11500.0,
+            -20000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 0.9623140495867769
+      },
+      "window_id": "moon-sps-x3-y0"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      3,
+      1
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "0c4582ecc611efe3b6033c3c685599f4f2cf498337d10111672cc93dd48f0472",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.8504930667369348,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 119.61534808827794,
+              "270.0": 34.62765277750472,
+              "360.0": 45.350040863635336,
+              "540.0": 66.0167506094366,
+              "720.0": 85.33670278597057
+            },
+            "y": {
+              "1080.0": 54.658542098759675,
+              "270.0": 21.230526594619377,
+              "360.0": 26.82222101003431,
+              "540.0": 36.50064954942112,
+              "720.0": 44.054986128889546
+            }
+          },
+          "nu_m": {
+            "1080.0": 92.9929774838987,
+            "270.0": 28.721155933947635,
+            "360.0": 37.25625951598282,
+            "540.0": 53.34092602569908,
+            "720.0": 67.90874260799461
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.6932456812719756,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 54.895866404045236,
+              "270.0": 21.030484784026964,
+              "360.0": 26.700480978287125,
+              "540.0": 36.59375595158944,
+              "720.0": 44.509710151895085
+            },
+            "y": {
+              "1080.0": 52.34594745426445,
+              "270.0": 20.353573540123133,
+              "360.0": 25.665056745060102,
+              "540.0": 34.89192085400269,
+              "720.0": 42.1325382094781
+            }
+          },
+          "nu_m": {
+            "1080.0": 53.63606232347504,
+            "270.0": 20.694797004372745,
+            "360.0": 26.187886724581535,
+            "540.0": 35.75296571982859,
+            "720.0": 43.33742651438156
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1530.9384773823315,
+            0.0948162183531639,
+            -0.014670837316758311
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x3-y1"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8971900826446281,
+        "observed_fraction": 0.1028099173553719,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -146.6893691754392,
+            -89.30943850839073
+          ],
+          [
+            -159.62356478616363,
+            -89.38436964129717
+          ],
+          [
+            -152.52556837372288,
+            -89.53537701475177
+          ],
+          [
+            -137.38594403038883,
+            -89.43986557440068
+          ],
+          [
+            -146.6893691754392,
+            -89.30943850839073
+          ]
+        ],
+        "ring_m": [
+          [
+            -11500.0,
+            -17500.0
+          ],
+          [
+            -6500.0,
+            -17500.0
+          ],
+          [
+            -6500.0,
+            -12500.0
+          ],
+          [
+            -11500.0,
+            -12500.0
+          ],
+          [
+            -11500.0,
+            -17500.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x3-y1"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      3,
+      2
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "2944f7a3a653c4fd050c700fda4abaa509f22ba28ea157254c8a14ba7a83f2b1",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.8834510391313483,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 122.8760603564976,
+              "270.0": 34.742413637991675,
+              "360.0": 45.51357497169983,
+              "540.0": 66.4324619345985,
+              "720.0": 86.27351299237807
+            },
+            "y": {
+              "1080.0": 108.73106599638166,
+              "270.0": 33.69431932269811,
+              "360.0": 43.79043949978925,
+              "540.0": 62.77625087478492,
+              "720.0": 80.01176577589997
+            }
+          },
+          "nu_m": {
+            "1080.0": 116.01933227148643,
+            "270.0": 34.222379081627686,
+            "360.0": 44.660318506976886,
+            "540.0": 64.63021612444838,
+            "720.0": 83.20156761330735
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8376868916948029,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 96.86256015699632,
+              "270.0": 30.758418717521582,
+              "360.0": 39.80702332991921,
+              "540.0": 56.745873550735254,
+              "720.0": 71.82821794456612
+            },
+            "y": {
+              "1080.0": 102.51862319550978,
+              "270.0": 32.01396459682207,
+              "360.0": 41.523438287724126,
+              "540.0": 59.36985613636661,
+              "720.0": 75.53939224877924
+            }
+          },
+          "nu_m": {
+            "1080.0": 99.73069653339097,
+            "270.0": 31.392469249877102,
+            "360.0": 40.67428569516105,
+            "540.0": 58.07268713728039,
+            "720.0": 73.70716611838708
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1672.389971177566,
+            0.07373955654530154,
+            0.030787028458766425
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x3-y2"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8902479338842975,
+        "observed_fraction": 0.10975206611570248,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -142.5238204386386,
+            -89.37668920166082
+          ],
+          [
+            -156.5713071912546,
+            -89.46088865894521
+          ],
+          [
+            -146.97613244420336,
+            -89.60667889802849
+          ],
+          [
+            -131.0090869015702,
+            -89.49742845928928
+          ],
+          [
+            -142.5238204386386,
+            -89.37668920166082
+          ]
+        ],
+        "ring_m": [
+          [
+            -11500.0,
+            -15000.0
+          ],
+          [
+            -6500.0,
+            -15000.0
+          ],
+          [
+            -6500.0,
+            -10000.0
+          ],
+          [
+            -11500.0,
+            -10000.0
+          ],
+          [
+            -11500.0,
+            -15000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x3-y2"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      3,
+      3
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "0a48d9de0abc9f56b2299b39623b7c4506259d2bb5eedc5a39513fe59e8d5afa",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9922611897378519,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 191.4024137085834,
+              "270.0": 49.39448248169239,
+              "360.0": 65.526815945814,
+              "540.0": 97.62379551002925,
+              "720.0": 129.41181278614062
+            },
+            "y": {
+              "1080.0": 191.68991907108298,
+              "270.0": 47.407499529647275,
+              "360.0": 63.14116417339017,
+              "540.0": 94.72152905612387,
+              "720.0": 126.64592790085479
+            }
+          },
+          "nu_m": {
+            "1080.0": 191.54622033199982,
+            "270.0": 48.41118626561284,
+            "360.0": 64.34504728869035,
+            "540.0": 96.18360961336948,
+            "720.0": 128.03633926050765
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.9208265907563643,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 150.878246073745,
+              "270.0": 42.001286494186864,
+              "360.0": 55.40635820027097,
+              "540.0": 81.43327254682478,
+              "720.0": 106.14697523443549
+            },
+            "y": {
+              "1080.0": 97.37142617792394,
+              "270.0": 27.51451931940508,
+              "360.0": 35.86580844806723,
+              "540.0": 51.87384460282689,
+              "720.0": 67.30474948072431
+            }
+          },
+          "nu_m": {
+            "1080.0": 126.97527273885345,
+            "270.0": 35.50462533631836,
+            "360.0": 46.670230043627306,
+            "540.0": 68.27251874496677,
+            "720.0": 88.87381406827019
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1431.6478022695574,
+            -0.11439425336745632,
+            0.15495008740320607
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x3-y3"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8816528925619834,
+        "observed_fraction": 0.11834710743801653,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -137.38594403038883,
+            -89.43986557440068
+          ],
+          [
+            -152.52556837372288,
+            -89.53537701475177
+          ],
+          [
+            -139.08561677997488,
+            -89.67270471455899
+          ],
+          [
+            -123.11134196037203,
+            -89.5472314708296
+          ],
+          [
+            -137.38594403038883,
+            -89.43986557440068
+          ]
+        ],
+        "ring_m": [
+          [
+            -11500.0,
+            -12500.0
+          ],
+          [
+            -6500.0,
+            -12500.0
+          ],
+          [
+            -6500.0,
+            -7500.0
+          ],
+          [
+            -11500.0,
+            -7500.0
+          ],
+          [
+            -11500.0,
+            -12500.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x3-y3"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      3,
+      4
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "c7f0f48af929486e582e29946c3c4a0d6319e6b6a44a005f838789d8634fdf98",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9566653860506643,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 158.96333344054477,
+              "270.0": 42.5675465522692,
+              "360.0": 56.4022314069318,
+              "540.0": 83.50084000176771,
+              "720.0": 109.7949515595402
+            },
+            "y": {
+              "1080.0": 146.26359691188202,
+              "270.0": 38.61732787787152,
+              "360.0": 51.2540668924095,
+              "540.0": 76.1398437099745,
+              "720.0": 100.36736448200851
+            }
+          },
+          "nu_m": {
+            "1080.0": 152.74550919770329,
+            "270.0": 40.64046033146425,
+            "360.0": 53.88966079264496,
+            "540.0": 79.90515027574929,
+            "720.0": 105.18683197298539
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8943533417572765,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 96.98961138577612,
+              "270.0": 27.19216739893992,
+              "360.0": 35.71979757641156,
+              "540.0": 52.17973335015781,
+              "720.0": 67.95500190064028
+            },
+            "y": {
+              "1080.0": 75.67423593408449,
+              "270.0": 23.08929905596526,
+              "360.0": 30.04221065582863,
+              "540.0": 42.89999903322788,
+              "720.0": 54.70488280341792
+            }
+          },
+          "nu_m": {
+            "1080.0": 86.98728269399889,
+            "270.0": 25.224290859682945,
+            "360.0": 33.00332074192686,
+            "540.0": 47.76575389096525,
+            "720.0": 61.68673474034638
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            965.3730876551116,
+            -0.11153668377338073,
+            0.11176778163521946
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x3-y4"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8968595041322314,
+        "observed_fraction": 0.10314049586776859,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -131.0090869015702,
+            -89.49742845928928
+          ],
+          [
+            -146.97613244420336,
+            -89.60667889802849
+          ],
+          [
+            -127.56859202882751,
+            -89.72956172738948
+          ],
+          [
+            -113.49856567595211,
+            -89.58646120594726
+          ],
+          [
+            -131.0090869015702,
+            -89.49742845928928
+          ]
+        ],
+        "ring_m": [
+          [
+            -11500.0,
+            -10000.0
+          ],
+          [
+            -6500.0,
+            -10000.0
+          ],
+          [
+            -6500.0,
+            -5000.0
+          ],
+          [
+            -11500.0,
+            -5000.0
+          ],
+          [
+            -11500.0,
+            -10000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x3-y4"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      4,
+      0
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "720ad2e92d459f0c5622a8c0d4b27a1500430413742fcc38371bb3bd3c8662ad",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9638604788403788,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 176.62352117047288,
+              "270.0": 46.272066255345536,
+              "360.0": 61.33062209934519,
+              "540.0": 91.09312625977454,
+              "720.0": 120.24940428517263
+            },
+            "y": {
+              "1080.0": 73.40527336549819,
+              "270.0": 19.81351488058251,
+              "360.0": 25.899507085756312,
+              "540.0": 38.032635147116174,
+              "720.0": 50.019029016888176
+            }
+          },
+          "nu_m": {
+            "1080.0": 135.24829460758463,
+            "270.0": 35.59269227989189,
+            "360.0": 47.07562890911724,
+            "540.0": 69.80128576184282,
+            "720.0": 92.09186308988215
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.8516042227687188,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 54.784211242230356,
+              "270.0": 16.834352585526332,
+              "360.0": 21.57107987043097,
+              "540.0": 30.681835220748926,
+              "720.0": 39.3810102062545
+            },
+            "y": {
+              "1080.0": 42.66944449240993,
+              "270.0": 13.229417839538275,
+              "360.0": 16.765260146841598,
+              "540.0": 23.687655777995257,
+              "720.0": 30.363939638728088
+            }
+          },
+          "nu_m": {
+            "1080.0": 49.10189046627518,
+            "270.0": 15.139566099246549,
+            "360.0": 19.31819653290373,
+            "540.0": 27.408758169333222,
+            "720.0": 35.162713172119155
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1129.626417135599,
+            0.15289073085573032,
+            -0.052893348802274955
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 0.9679338842975207
+      },
+      "window_id": "moon-sps-x4-y0"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.905396174863388,
+        "observed_fraction": 0.09460382513661202,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -155.77225468204585,
+            -89.27674809448044
+          ],
+          [
+            -168.6900675259798,
+            -89.32738818319963
+          ],
+          [
+            -165.06858282186246,
+            -89.48804893939534
+          ],
+          [
+            -149.03624346792648,
+            -89.42312746886464
+          ],
+          [
+            -155.77225468204585,
+            -89.27674809448044
+          ]
+        ],
+        "ring_m": [
+          [
+            -9000.0,
+            -20000.0
+          ],
+          [
+            -4000.0,
+            -20000.0
+          ],
+          [
+            -4000.0,
+            -15000.0
+          ],
+          [
+            -9000.0,
+            -15000.0
+          ],
+          [
+            -9000.0,
+            -20000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 0.9679338842975207
+      },
+      "window_id": "moon-sps-x4-y0"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      4,
+      1
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "fccb4a6af2aef875096339f83d40fbd9817391d3eaa70fcf5634bdecb1f7f7ef",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9257405803360572,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 128.6735152941906,
+              "270.0": 34.06447651497497,
+              "360.0": 44.94948870395299,
+              "540.0": 66.4443544899033,
+              "720.0": 87.55121642207796
+            },
+            "y": {
+              "1080.0": 68.2023994288241,
+              "270.0": 21.808767953569994,
+              "360.0": 28.128946034630626,
+              "540.0": 40.09920050185297,
+              "720.0": 50.928113199389685
+            }
+          },
+          "nu_m": {
+            "1080.0": 102.97679550756366,
+            "270.0": 28.600794743257946,
+            "360.0": 37.494627213548604,
+            "540.0": 54.876215815541336,
+            "720.0": 71.62013756980429
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.7543163331862389,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 48.91688877572346,
+              "270.0": 18.672243198350824,
+              "360.0": 23.72116660727948,
+              "540.0": 32.68284564504427,
+              "720.0": 39.872124364818205
+            },
+            "y": {
+              "1080.0": 60.30316771746305,
+              "270.0": 20.259204048694663,
+              "360.0": 25.89812063527509,
+              "540.0": 36.39481351469981,
+              "720.0": 45.741351900944906
+            }
+          },
+          "nu_m": {
+            "1080.0": 54.90598348202579,
+            "270.0": 19.481889214665564,
+            "360.0": 24.833509595399246,
+            "540.0": 34.58866035442516,
+            "720.0": 42.9072113699411
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1338.229496846082,
+            0.11017418101299976,
+            -0.025417164530479985
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x4-y1"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.9014876033057851,
+        "observed_fraction": 0.09851239669421488,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -152.78388844269253,
+            -89.35104604200812
+          ],
+          [
+            -167.12499844038754,
+            -89.40800857685053
+          ],
+          [
+            -162.25532837494308,
+            -89.5671869316939
+          ],
+          [
+            -144.24611274556327,
+            -89.49204752439752
+          ],
+          [
+            -152.78388844269253,
+            -89.35104604200812
+          ]
+        ],
+        "ring_m": [
+          [
+            -9000.0,
+            -17500.0
+          ],
+          [
+            -4000.0,
+            -17500.0
+          ],
+          [
+            -4000.0,
+            -12500.0
+          ],
+          [
+            -9000.0,
+            -12500.0
+          ],
+          [
+            -9000.0,
+            -17500.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x4-y1"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      4,
+      2
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "00c9ac1afce94442419ffb5685bde1f112cf009fd44f382d7d8882ded56a6e10",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.8903066378860907,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 129.14728020899616,
+              "270.0": 36.257394661864424,
+              "360.0": 47.480915347862016,
+              "540.0": 69.05612397370567,
+              "720.0": 89.48777325513298
+            },
+            "y": {
+              "1080.0": 98.27777014396946,
+              "270.0": 30.42059963649987,
+              "360.0": 39.512677365834854,
+              "540.0": 56.674093160639046,
+              "720.0": 72.42906336542521
+            }
+          },
+          "nu_m": {
+            "1080.0": 114.75526151303885,
+            "270.0": 33.46648734114779,
+            "360.0": 43.67887930617839,
+            "540.0": 63.16922151591153,
+            "720.0": 81.40648248805151
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.7974582218223213,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 71.44625024956922,
+              "270.0": 26.69110172068161,
+              "360.0": 34.0848759061223,
+              "540.0": 46.98946293379301,
+              "720.0": 57.406157936585956
+            },
+            "y": {
+              "1080.0": 96.56752923698679,
+              "270.0": 29.853200581577674,
+              "360.0": 38.77156145232888,
+              "540.0": 55.61567370744372,
+              "720.0": 71.09589339768645
+            }
+          },
+          "nu_m": {
+            "1080.0": 84.94072750353733,
+            "270.0": 28.316324761766687,
+            "360.0": 36.503511769331666,
+            "540.0": 51.48355460114984,
+            "720.0": 64.61459984808172
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1439.7186302637306,
+            0.10449797607295801,
+            0.01713677658160908
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x4-y2"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8895867768595042,
+        "observed_fraction": 0.11041322314049587,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -149.03624346792648,
+            -89.42312746886464
+          ],
+          [
+            -165.06858282186246,
+            -89.48804893939534
+          ],
+          [
+            -158.19859051364818,
+            -89.64481843289767
+          ],
+          [
+            -138.01278750418336,
+            -89.55633013392185
+          ],
+          [
+            -149.03624346792648,
+            -89.42312746886464
+          ]
+        ],
+        "ring_m": [
+          [
+            -9000.0,
+            -15000.0
+          ],
+          [
+            -4000.0,
+            -15000.0
+          ],
+          [
+            -4000.0,
+            -10000.0
+          ],
+          [
+            -9000.0,
+            -10000.0
+          ],
+          [
+            -9000.0,
+            -15000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x4-y2"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      4,
+      3
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "77a3763e1be8273e43e8ed5bf7646fc2a3713fb4b0e69c12ce9538542f191658",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9458762613373456,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 157.45400774272616,
+              "270.0": 44.46245668466367,
+              "360.0": 58.30956694804628,
+              "540.0": 84.68677509181362,
+              "720.0": 109.6349818847501
+            },
+            "y": {
+              "1080.0": 186.6109248306033,
+              "270.0": 48.465644469516555,
+              "360.0": 64.21426114401045,
+              "540.0": 95.27657867215063,
+              "720.0": 126.01929144470107
+            }
+          },
+          "nu_m": {
+            "1080.0": 172.64906866296664,
+            "270.0": 46.507143259294985,
+            "360.0": 61.333012855801655,
+            "540.0": 90.13732944491403,
+            "720.0": 118.11158086549767
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.9079238761813739,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 151.02466403195328,
+              "270.0": 43.37995003779876,
+              "360.0": 56.781312237673475,
+              "540.0": 82.09823176681637,
+              "720.0": 105.7824850664619
+            },
+            "y": {
+              "1080.0": 138.4070987004386,
+              "270.0": 38.74448851907005,
+              "360.0": 50.70728780568506,
+              "540.0": 73.7052544157358,
+              "720.0": 96.00367813550332
+            }
+          },
+          "nu_m": {
+            "1080.0": 144.85332946922088,
+            "270.0": 41.12757867834105,
+            "360.0": 53.83004020080583,
+            "540.0": 78.01469152578326,
+            "720.0": 101.0114853924581
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1365.629834855496,
+            -0.041303920586302625,
+            0.11867901562397092
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x4-y3"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.8965289256198348,
+        "observed_fraction": 0.10347107438016528,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -144.24611274556327,
+            -89.49204752439752
+          ],
+          [
+            -162.25532837494308,
+            -89.5671869316939
+          ],
+          [
+            -151.92751306414706,
+            -89.71968852626699
+          ],
+          [
+            -129.8055710922652,
+            -89.61365317618146
+          ],
+          [
+            -144.24611274556327,
+            -89.49204752439752
+          ]
+        ],
+        "ring_m": [
+          [
+            -9000.0,
+            -12500.0
+          ],
+          [
+            -4000.0,
+            -12500.0
+          ],
+          [
+            -4000.0,
+            -7500.0
+          ],
+          [
+            -9000.0,
+            -7500.0
+          ],
+          [
+            -9000.0,
+            -12500.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x4-y3"
+    }
+  },
+  {
+    "card_id": null,
+    "grid_index": [
+      4,
+      4
+    ],
+    "radar": [],
+    "reasons": [],
+    "status": "eligible",
+    "terrain": {
+      "body": "moon",
+      "evidence_label": "Derived",
+      "input_hash": "3cba8a73e9eb2c24985426d9449708f2c1adbd6fbae637cf27a73e32872da659",
+      "kind": "terrain",
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "radar": null,
+      "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+      "terrain": {
+        "analysis_grid_m": 90.0,
+        "coarsening_factor": 1.0,
+        "relief": {
+          "detrend": "none",
+          "hurst": 0.9576953149676138,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 183.7250978960412,
+              "270.0": 45.82321399713656,
+              "360.0": 60.97180587383742,
+              "540.0": 91.42788289180557,
+              "720.0": 122.04277077042173
+            },
+            "y": {
+              "1080.0": 139.6085433320487,
+              "270.0": 40.623077636371164,
+              "360.0": 53.34403040393111,
+              "540.0": 77.53533004293942,
+              "720.0": 100.02199737648978
+            }
+          },
+          "nu_m": {
+            "1080.0": 163.1647280637063,
+            "270.0": 43.30127814324891,
+            "360.0": 57.28501850943422,
+            "540.0": 84.76669503686355,
+            "720.0": 111.57696414696052
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": null,
+          "unsupported_lags": []
+        },
+        "resampler": "aeqd_sphere",
+        "texture": {
+          "detrend": "plane",
+          "hurst": 0.855768232316219,
+          "hurst_reason": null,
+          "nu_by_direction_m": {
+            "diagonal_ne": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "diagonal_nw": {
+              "1080.0": null,
+              "270.0": null,
+              "360.0": null,
+              "540.0": null,
+              "720.0": null
+            },
+            "x": {
+              "1080.0": 80.98516005790235,
+              "270.0": 27.218403873937888,
+              "360.0": 35.13259963276272,
+              "540.0": 49.77926628868421,
+              "720.0": 62.444423447662196
+            },
+            "y": {
+              "1080.0": 136.32818715885347,
+              "270.0": 40.38711901959306,
+              "360.0": 52.979794063526704,
+              "540.0": 76.80949198956627,
+              "720.0": 98.72897911629708
+            }
+          },
+          "nu_m": {
+            "1080.0": 112.12486513620304,
+            "270.0": 34.43806681673328,
+            "360.0": 44.950851693653696,
+            "540.0": 64.72122299499206,
+            "720.0": 82.60362382201271
+          },
+          "supported_lags_m": [
+            270.0,
+            360.0,
+            540.0,
+            720.0,
+            1080.0
+          ],
+          "tilt": [
+            1046.4905372099827,
+            -0.15786847394445297,
+            0.03425098209922299
+          ],
+          "unsupported_lags": []
+        },
+        "valid_fraction": 1.0
+      },
+      "window_id": "moon-sps-x4-y4"
+    },
+    "window": {
+      "analysis_grid_m": 90.0,
+      "area_m2": 25000000.0,
+      "body": "moon",
+      "environment_flags": {
+        "acquisition_dates": [],
+        "moisture_state": null,
+        "permanent_shadow_fraction": null,
+        "scene_ids": [],
+        "search_region_id": null,
+        "snow_or_freeze": null,
+        "surface_change_since_acquisition": null,
+        "surface_model_note": null
+      },
+      "evidence_status_by_field": {
+        "dem": "Observed",
+        "permanent_shadow_fraction": "Unavailable",
+        "radar": "Unavailable",
+        "terrain_fingerprint": "Derived"
+      },
+      "observed_interpolated_quality": {
+        "interpolated_fraction": 0.9107438016528926,
+        "observed_fraction": 0.08925619834710743,
+        "reason": null,
+        "source": "PGDA78 Site01 ldec LOLA return count > 0, nearest 5 m pixel at 90 m centres"
+      },
+      "polygon": {
+        "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+        "epsg": null,
+        "frame": "polar_stereographic",
+        "ring_lonlat": [
+          [
+            -138.01278750418336,
+            -89.55633013392185
+          ],
+          [
+            -158.19859051364818,
+            -89.64481843289767
+          ],
+          [
+            -141.34019174590992,
+            -89.78883873647628
+          ],
+          [
+            -119.05460409907714,
+            -89.66047287425013
+          ],
+          [
+            -138.01278750418336,
+            -89.55633013392185
+          ]
+        ],
+        "ring_m": [
+          [
+            -9000.0,
+            -10000.0
+          ],
+          [
+            -4000.0,
+            -10000.0
+          ],
+          [
+            -4000.0,
+            -5000.0
+          ],
+          [
+            -9000.0,
+            -5000.0
+          ],
+          [
+            -9000.0,
+            -10000.0
+          ]
+        ],
+        "utm_zone": null
+      },
+      "product_ids": [
+        "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+        "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      ],
+      "valid_fraction_by_observable": {
+        "dem_90m": 1.0
+      },
+      "window_id": "moon-sps-x4-y4"
+    }
+  }
+]
