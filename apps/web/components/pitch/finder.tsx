@@ -64,7 +64,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
           {[0, 1, 2].map((k) => (
             <motion.span
               key={k}
-              className="absolute left-1/2 top-1/2 rounded-full border border-zinc-200"
+              className="absolute left-1/2 top-1/2 rounded-full border border-[rgba(26,22,19,0.1)]"
               style={{ width: `${100 + k * 11}%`, height: `${100 + k * 11}%`, x: '-50%', y: '-50%', opacity: 0.9 - k * 0.25 }}
               animate={{ scale: [1, 0.96, 1] }}
               transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut', delay: k * 0.12 }}
@@ -91,10 +91,10 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
       <div className="flex flex-col gap-6">
         <AnimatePresence mode="wait">
           {step === 0 ? (
-            <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-3xl leading-snug text-zinc-500">
+            <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-3xl leading-snug text-[#4D4843]">
               Click any spot on Earth.
               <br />
-              <span className="text-zinc-900">Real elevation to fingerprint, in seconds.</span>
+              <span className="text-[#1A1613]">Real elevation to fingerprint, in seconds.</span>
             </motion.p>
           ) : (
             <motion.div
@@ -102,42 +102,42 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
               initial={{ opacity: 0, x: 40, filter: 'blur(6px)' }}
               animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.7, delay: 0.6, ease: EASE }}
-              className="flex flex-col gap-6 rounded-2xl border border-zinc-200 bg-zinc-50 p-8"
+              className="flex flex-col gap-6 rounded-2xl border border-[rgba(26,22,19,0.1)] bg-white/60 p-8"
             >
               <div className="flex items-center justify-between gap-4">
                 <span
                   className="rounded-full px-3 py-1 text-sm font-medium"
-                  style={isLive ? { background: INK, color: '#ffffff' } : { background: '#e4e4e7', color: '#52525b' }}
+                  style={isLive ? { background: INK, color: '#ffffff' } : { background: '#ECE9E3', color: '#4D4843' }}
                 >
                   {isLive ? `Measured live in your browser${ms === null ? '' : `, ${(ms / 1000).toFixed(1)} s`}` : why === null ? 'Measuring live…' : 'From the evidence card'}
                 </span>
-                <span className="font-mono text-sm text-zinc-400">
+                <span className="font-mono text-sm text-[#A39E95]">
                   {finder.lat.toFixed(3)}°, {finder.lon.toFixed(3)}°
                 </span>
               </div>
               <div>
                 <p className="text-3xl font-semibold tracking-tight">{finder.earthName}</p>
-                <p className="mt-1 text-xl text-zinc-500">vs {finder.targetName}</p>
+                <p className="mt-1 text-xl text-[#4D4843]">vs {finder.targetName}</p>
               </div>
-              <div className="grid grid-cols-2 gap-6 border-t border-zinc-200 pt-6">
+              <div className="grid grid-cols-2 gap-6 border-t border-[rgba(26,22,19,0.1)] pt-6">
                 <div>
-                  <p className="text-5xl font-bold tabular-nums text-zinc-950">
+                  <p className="text-5xl font-bold tabular-nums text-[#1A1613]">
                     {f3(isLive ? relief : finder.relief)}
                   </p>
-                  <p className="mt-1 text-base text-zinc-500">relief distance, lower is closer</p>
+                  <p className="mt-1 text-base text-[#4D4843]">relief distance, lower is closer</p>
                 </div>
                 <div>
-                  <p className="text-5xl font-semibold tabular-nums text-zinc-950">{f3(isLive ? texture : finder.texture)}</p>
-                  <p className="mt-1 text-base text-zinc-500">texture distance</p>
+                  <p className="text-5xl font-semibold tabular-nums text-[#1A1613]">{f3(isLive ? texture : finder.texture)}</p>
+                  <p className="mt-1 text-base text-[#4D4843]">texture distance</p>
                 </div>
               </div>
               {closer !== null ? (
-                <p className="text-xl text-zinc-700">
+                <p className="text-xl text-[#4D4843]">
                   Closer than <span className="font-semibold">{closer}%</span> of candidate windows
-                  <span className="text-sm text-zinc-400">{closerFromCard ? ', from the evidence card' : ', live background'}</span>
+                  <span className="text-sm text-[#A39E95]">{closerFromCard ? ', from the evidence card' : ', live background'}</span>
                 </p>
               ) : null}
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-[#A39E95]">
                 Derived (live), Copernicus GLO-30, terrain only
                 {why !== null && !isLive ? `, live probe unavailable (${why})` : ''}
               </p>
@@ -147,7 +147,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
         <a
           href="/find"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex w-fit items-center gap-2 rounded-full bg-zinc-950 px-6 py-3 text-lg font-medium text-white transition-colors hover:bg-zinc-800"
+          className="inline-flex w-fit items-center gap-2 rounded-full bg-[#1A1613] px-6 py-3 text-lg font-medium text-white transition-colors hover:bg-[#120C08]"
         >
           Try it on /find
         </a>

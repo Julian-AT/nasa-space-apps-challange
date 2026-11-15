@@ -10,11 +10,14 @@ import type { TileView } from '@/components/cards/card-visual';
 import type { NuCurve } from './pitch-data';
 
 /** Neutral shadcn palette: ink, muted captions, hairlines. Emphasis is weight, not colour. */
-export const INK = '#09090b';
-export const MUTED = '#71717a';
-export const LINE = '#e4e4e7';
+export const INK = '#1A1613';
+export const MUTED = '#4D4843';
+export const FAINT = '#A39E95';
+export const ACCENT = '#CC5800';
+export const PAPER = '#F9F8F5';
+export const LINE = 'rgba(26,22,19,0.1)';
 /** The only data colours: world tints, used where two series must be told apart. */
-export const WORLD = { mars: '#D4876A', moon: '#71717a', earth: '#5B84C4' } as const;
+export const WORLD = { mars: '#CC5800', moon: '#A39E95', earth: '#1A1613' } as const;
 
 export const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -76,20 +79,20 @@ export function NuChart({ curves, lags, colors = [WORLD.mars, WORLD.earth] }: { 
       onPointerLeave={() => setHover(null)}
       onClick={(e) => e.stopPropagation()}
     >
-      <line x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b} stroke="#e4e4e7" />
-      <line x1={PAD.l} x2={PAD.l} y1={PAD.t} y2={H - PAD.b} stroke="#e4e4e7" />
+      <line x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b} stroke="rgba(26,22,19,0.12)" />
+      <line x1={PAD.l} x2={PAD.l} y1={PAD.t} y2={H - PAD.b} stroke="rgba(26,22,19,0.12)" />
       {lags.map((lag) => (
         <g key={lag}>
-          <line x1={sx(lag)} x2={sx(lag)} y1={PAD.t} y2={H - PAD.b} stroke="#f4f4f5" />
-          <text x={sx(lag)} y={H - PAD.b + 22} textAnchor="middle" className="fill-zinc-400 font-mono" fontSize={13}>
+          <line x1={sx(lag)} x2={sx(lag)} y1={PAD.t} y2={H - PAD.b} stroke="rgba(26,22,19,0.06)" />
+          <text x={sx(lag)} y={H - PAD.b + 22} textAnchor="middle" className="fill-[#A39E95] font-mono" fontSize={13}>
             {lag}
           </text>
         </g>
       ))}
-      <text x={(PAD.l + W - PAD.r) / 2} y={H - 6} textAnchor="middle" className="fill-zinc-400" fontSize={13}>
+      <text x={(PAD.l + W - PAD.r) / 2} y={H - 6} textAnchor="middle" className="fill-[#A39E95]" fontSize={13}>
         lag L (m)
       </text>
-      <text x={18} y={(PAD.t + H - PAD.b) / 2} textAnchor="middle" transform={`rotate(-90 18 ${(PAD.t + H - PAD.b) / 2})`} className="fill-zinc-400" fontSize={13}>
+      <text x={18} y={(PAD.t + H - PAD.b) / 2} textAnchor="middle" transform={`rotate(-90 18 ${(PAD.t + H - PAD.b) / 2})`} className="fill-[#A39E95]" fontSize={13}>
         ν(L) (m)
       </text>
       {curves.map((c, k) => {
@@ -114,7 +117,7 @@ export function NuChart({ curves, lags, colors = [WORLD.mars, WORLD.earth] }: { 
                 cx={sx(p.lag_m)}
                 cy={sy(p.nu)}
                 r={5}
-                fill="white"
+                fill="#F9F8F5"
                 stroke={color}
                 strokeWidth={2.5}
                 initial={{ opacity: 0, scale: 0 }}
@@ -129,7 +132,7 @@ export function NuChart({ curves, lags, colors = [WORLD.mars, WORLD.earth] }: { 
       })}
       {hl !== null && hl !== undefined ? (
         <g pointerEvents="none">
-          <line x1={sx(hl)} x2={sx(hl)} y1={PAD.t} y2={H - PAD.b} stroke="#d4d4d8" strokeDasharray="3 3" />
+          <line x1={sx(hl)} x2={sx(hl)} y1={PAD.t} y2={H - PAD.b} stroke="rgba(26,22,19,0.25)" strokeDasharray="3 3" />
           {curves.map((c, k) => {
             const p = c.points.find((q) => q.lag_m === hl);
             if (p === undefined) return null;
@@ -204,7 +207,7 @@ export function LagProfile({ lags }: { lags: readonly number[] }) {
   const d = xs.map((x, i) => `${i ? 'L' : 'M'}${sx(x).toFixed(1)},${sy(h(x)).toFixed(1)}`).join(' ');
   return (
     <svg viewBox={`0 0 ${PW} ${PH}`} className="h-auto w-full" role="img" aria-label={`Schematic terrain profile with brackets of ${shown.join(', ')} metres`}>
-      <path d={`${d} L${sx(span)},170 L${sx(0)},170 Z`} fill="#e4e4e7" />
+      <path d={`${d} L${sx(span)},170 L${sx(0)},170 Z`} fill="rgba(26,22,19,0.08)" />
       <motion.path d={d} fill="none" stroke={INK} strokeWidth={3.5} strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.4, delay: 0.3, ease: EASE }} />
       {shown.map((lag, k) => {
         const x0 = sx(0);
