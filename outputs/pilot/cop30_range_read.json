@@ -121,7 +121,7 @@
       },
       "tiles_touched": {
         "count": 1,
-        "definition": "the internal COG tiles of band 1 that the pixel window intersects, with the byte offset and size the TIFF tile index states (GDAL TIFF metadata BLOCK_OFFSET and BLOCK_SIZE); held_in_ranges says whether every byte of the tile is in the stored byte ranges",
+        "definition": "the internal COG tiles of band 1 that the pixel window intersects, with the byte offset and size the TIFF tile index states (GDAL TIFF metadata BLOCK_OFFSET and BLOCK_SIZE); held_in_ranges says whether every byte of the tile is in the stored byte ranges. GDAL states no offset or size for a tile the file does not store (a sparse file) or whose tile index entry it cannot read; such a tile has offset, size and held_in_ranges null, and stored_bytes is then null, not a sum over the other tiles",
         "stored_bytes": 2345737,
         "tiles": [
           {
@@ -146,7 +146,7 @@
       "limit_bytes": 4000000,
       "limit_definition": "'DEM reads ≤ 4 MB' read as 4,000,000 bytes",
       "note": "an observation of this server-side read, not a browser measurement; an over-budget read is recorded as over budget and does not fail the command",
-      "reader": "io.read_remote_cog_window with 262144-byte aligned blocks, so bytes_fetched also holds the header, the block alignment and any other bytes GDAL read; touched_tile_bytes are the touched tiles' sizes as the TIFF tile index states them",
+      "reader": "io.read_remote_cog_window with 262144-byte aligned blocks, so bytes_fetched also holds the header, the block alignment and any other bytes GDAL read; touched_tile_bytes are the touched tiles' sizes as the TIFF tile index states them, null when it states no size for some touched tile",
       "rule": "PRD 8.7: the first live probe reads at most 4 MB of DEM",
       "tiles_touched": 1,
       "touched_tile_bytes": 2345737,

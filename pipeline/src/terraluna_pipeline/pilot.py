@@ -5464,9 +5464,9 @@ class Cop30Source:
                 "offset": block.offset,
                 "size": block.size,
                 "held_in_ranges": (
-                    block.offset is not None
-                    and block.size is not None
-                    and block.size > 0
+                    None
+                    if block.offset is None or block.size is None
+                    else block.size > 0
                     and ranges.holds(block.offset, block.offset + block.size - 1)
                 ),
             }
@@ -5605,7 +5605,8 @@ class Cop30Source:
                     f"io.read_remote_cog_window with {entry['range_block_bytes']}-byte aligned "
                     "blocks, so bytes_fetched also holds the header, the block alignment and any "
                     "other bytes GDAL read; touched_tile_bytes are the touched tiles' sizes as "
-                    "the TIFF tile index states them"
+                    "the TIFF tile index states them, null when it states no size for some "
+                    "touched tile"
                 ),
                 "note": (
                     "an observation of this server-side read, not a browser measurement; an "
@@ -5637,7 +5638,11 @@ class Cop30Source:
                         "the internal COG tiles of band 1 that the pixel window intersects, with "
                         "the byte offset and size the TIFF tile index states (GDAL TIFF "
                         "metadata BLOCK_OFFSET and BLOCK_SIZE); held_in_ranges says whether "
-                        "every byte of the tile is in the stored byte ranges"
+                        "every byte of the tile is in the stored byte ranges. GDAL states no "
+                        "offset or size for a tile the file does not store (a sparse file) or "
+                        "whose tile index entry it cannot read; such a tile has offset, size "
+                        "and held_in_ranges null, and stored_bytes is then null, not a sum over "
+                        "the other tiles"
                     ),
                 },
                 "readme_tile_size": self._readme_tile_size(quotes, layout.block_shape),

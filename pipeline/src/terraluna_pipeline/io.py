@@ -372,7 +372,9 @@ class CogBlock:
     ``row`` and ``col`` index the block grid from the top left. ``offset`` and ``size`` are the
     byte offset and byte count the TIFF tile index states for the block, as GDAL reports them
     (``BLOCK_OFFSET_<col>_<row>`` and ``BLOCK_SIZE_<col>_<row>`` in the TIFF metadata domain);
-    None when GDAL reports none.
+    None when GDAL reports none. GDAL's GTiff driver reports none for a block the file does not
+    store (a sparse file) and for a block whose tile index entry it cannot read, and the two are
+    not told apart here, so None means not stated, not zero.
     """
 
     row: int
@@ -412,9 +414,16 @@ class CogLayout:
     blocks: tuple[CogBlock, ...]
 
     @property
-    def stored_bytes(self) -> int:
-        """The bytes the touched blocks occupy in the file, as the tile index states them."""
-        return sum(block.size for block in self.blocks if block.size is not None)
+    def stored_bytes(self) -> int | None:
+        """The bytes the touched blocks occupy in the file, as the tile index states them.
+
+        None when the tile index states no size for some touched block: the total is then not
+        known, and a sum over the other blocks would understate it.
+        """
+        sizes = [block.size for block in self.blocks]
+        if any(size is None for size in sizes):
+            return None
+        return sum(size for size in sizes if size is not None)
 
 
 def _tag_int(src: Any, key: str, band: int) -> int | None:
@@ -1514,7 +1523,10 @@ def read_remote_cog_window(
     block grid, the overviews and the touched blocks with their byte offsets and sizes) is read
     through the same cache before the pixels. Every logged exchange is tagged ``header`` or
     ``window`` (``ExchangePhase``). The layout is read again from the stored byte ranges and must
-    be equal, and every touched block's bytes must be held in them, or RangeReadError is raised.
+    be equal, and the bytes of every touched block whose offset and size the tile index states
+    must be held in them, or RangeReadError is raised. A block without a stated offset or size
+    (``CogBlock``) has no bytes to check; it stays None in the layout, and so does
+    ``CogLayout.stored_bytes``.
     """
 
     def choose(header: GeoTiffHeader | None, width: int, height: int) -> Window:
