@@ -1,0 +1,160 @@
+{
+  "task_id": "T16-02",
+  "round": 11,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "c1bd1775486efcbb899f5c291fcf2d19a420d318",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "bcd14b36861854f50304b62e2191281fcd7a52aab9972676bb1a8599701d82a5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "e38fd48c8ee57a805e5c2984e124b977b24530b276f01a2af351d8cb883b7267"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "1d935f02cb41a78b31e19079e659813776f13c9e09c014f85efcc1ba82a85264"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "77fdec9fa6223938b8353c70b188ed1198af42732e9a8cae1f6b50ced0cbd045"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "34da7ddbd40af3109d4a035757901f756d150838f5e807ad144f9df1323e6b40"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "e84b5dc45adc814db8e3a5f01e2075f2a7883a7e4da565106117f201ef109301"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:33:35Z",
+  "finished_utc": "2026-11-15T00:37:57Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found one blocker: spaces before a \\verb delimiter leak verbatim content into prose and can hide a required overlap finding. Prior fixes and rebuttals were checked. No checks were executed.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX-to-prose extraction with source locations and required exclusions.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Both consumers use extract(), but paper/scripts/tex_prose.py:726-735 misreads valid \\verb spellings with spaces before the delimiter, leaving verbatim content in prose."
+    },
+    {
+      "criterion": "AC2: Check every .tex file except figures/styles.tex, report findings, exit 1, and provide no rule-disable option.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static paths: paper/scripts/tex_prose.py:522-528 enumerates files and excludes only figures/styles.tex; paper/scripts/lint_prose.py:116-117 formats findings, :252-257 exposes only --root, and :260-276 returns 1 on findings."
+    },
+    {
+      "criterion": "AC3: Enforce the six prose rules with the specified exceptions and TikZ handling.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The six rule paths exist at paper/scripts/lint_prose.py:147-229, but the extraction defect makes valid text such as 'a \\verb |x seamless| b' produce a banned-word finding from excluded verbatim content."
+    },
+    {
+      "criterion": "AC4: Normalize prose and abstracts, reject maximal shared runs of at least 12 tokens, and validate the reference record.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "paper/scripts/overlap_check.py:144-150 consumes the defective extraction. Inserting '\\verb |x y|' between the sixth and seventh words of the test abstract leaves an extra y token and hides its 12-word run. Normalization, constant limit, record validation and null counting are otherwise present at :37, :73-83 and :163-194."
+    },
+    {
+      "criterion": "AC5: Initialize paper/reference-verification.json as an empty references object.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1-3 contains exactly {\"references\": {}}."
+    },
+    {
+      "criterion": "AC6: Required tests were written and run failing before implementation; inputs remain strings or temporary files.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The required assertions are present in test_lint_prose.py and test_overlap_check.py. The fbf3c38 tree contains those tests while the implementation modules are absent. Historical failing execution cannot be established from source alone, and execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC7: Wire ordered build targets, pass the current manuscript, and document the new commands.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5,25,42-51 statically wires numbers, lint, overlap, test and pdf in order; paper/README.md:22-26 documents both commands. Current manuscript passes and successful command execution were not verified because checks are prohibited in this read-only sandbox."
+    },
+    {
+      "criterion": "Prior Codex findings from rounds 1 through 4.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static fixes and regressions inspected: comment-aware argument scanning at tex_prose.py:847-863; raw TikZ handling at :705-708; contextual group boundaries at :865-895; skipped whitespace at :897-911; input filenames at :803-837; kept-text gaps at :785-801; source locations at :1029-1054 and lint_prose.py:134-136; control-sequence matching at tex_prose.py:506-516. Consumer regressions appear in test_lint_prose.py:123-139,229-259,418-508 and test_overlap_check.py:127-255."
+    },
+    {
+      "criterion": "Prior Codex findings from rounds 5 through 10.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static fixes inspected: shared accent folding at tex_prose.py:419-460; whitespace-aware citation stars at :758-783; command-specific star and option handling at :109-158,463-479; control-word argument gaps at :954-968; literal formatting stars at :1119-1123. Regressions inspected in test_tex_prose.py:243-419,749-818 and both consumer test files."
+    },
+    {
+      "criterion": "Prior Claude rebuttals and story scope.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Unknown-macro argument separation remains explicit at tex_prose.py:482-492,865-895 with tests at test_tex_prose.py:553-574; AC1 does not require expanding unknown macros. Bare bold declarations are appropriately caught by lint_prose.py:105,211-215. scripts/ralph/prompt.md:21,35 permits bookkeeping changes. First-parent history attributes scripts/ralph/ralph.sh solely to merge bb93a4a; the listed story implementation commits touch only the nine scoped files."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:732",
+      "claim": "Spaces before a \\verb delimiter leak verbatim content into prose and can bypass the mandatory overlap check.",
+      "evidence": "Static trace, not executed: verb_end() uses the character immediately after \\verb or its star as the delimiter. For valid '\\verb |x y|', that character is a space, so the scanner blanks only '\\verb |x ' and leaves 'y|' as prose. Consequently, 'We measure the roughness of lunar \\verb |x y| and martian terrain at baselines from' inserts y between the two six-word halves of the abstract at test_overlap_check.py:27-30, and shared_runs() finds no 12-word run. Similarly, '\\verb |x seamless|' leaks seamless and produces a false lint finding. The pinned v33 bundle's latex.ltx:11086 defines \\@sverb to skip spaces before its delimiter; :11106-11112 routes \\verb through that reader. Existing extraction tests at test_tex_prose.py:102-114 cover only adjacent delimiters. Skip permitted spaces before selecting the delimiter and add extraction and consumer regressions.",
+      "id": "codex-r11-1",
+      "resolution": null
+    }
+  ]
+}
