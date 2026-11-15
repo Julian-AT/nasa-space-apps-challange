@@ -305,6 +305,26 @@ def test_a_star_after_a_command_without_a_starred_form_is_its_argument(
     assert words(text) == expected
 
 
+# A formatting command, a declaration or an accent has no starred form, so a * after it is its
+# argument or text and prints: lunar\textit*and prints lunar*and, seam\emph *less prints
+# seam*less and {\bf* b} prints a bold * before b.
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("lunar\\textit*and", ["lunar*and"]),
+        ("seam\\textit*less", ["seam*less"]),
+        ("seam\\emph *less", ["seam*less"]),
+        ("seam\\emph\n*less", ["seam*less"]),
+        ("a\\textit*{b}{c}", ["a*bc"]),
+        ("a {\\bf* b}", ["a", "*", "b"]),
+        ("a\\itshape*b", ["a*b"]),
+        ("x \\mbox*{y}", ["x", "*y"]),
+    ],
+)
+def test_a_star_after_a_formatting_command_prints(text: str, expected: list[str]) -> None:
+    assert words(text) == expected
+
+
 # An unbraced argument may be a control word, and TeX skips the spaces, comment and one line
 # break after a control word wherever it stands: seam\label\empty less sets the label \empty and
 # prints seamless. A control symbol such as \% skips nothing, and a blank line is \par.

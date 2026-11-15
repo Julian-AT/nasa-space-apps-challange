@@ -167,6 +167,8 @@ def twelve_with(change: str) -> str:
         return " ".join(w[:5]) + " " + w[5][:2] + "\\label{x}" + w[5][2:] + " " + " ".join(w[6:])
     if change == "star after a label inside a word":
         return " ".join(w[:5]) + " " + w[5][:2] + "\\label *" + w[5][2:] + " " + " ".join(w[6:])
+    if change == "star after a formatting command":
+        return " ".join(w[:6]) + "\\textit*" + " ".join(w[6:])
     if change == "control word argument inside a word":
         return (
             " ".join(w[:5]) + " " + w[5][:2] + "\\label\\empty " + w[5][2:] + " " + " ".join(w[6:])
@@ -238,6 +240,7 @@ def twelve_with(change: str) -> str:
         "label inside a word",
         "star after a label inside a word",
         "control word argument inside a word",
+        "star after a formatting command",
         "bracket after a label",
         "bracket after a nocite inside a word",
         "colour inside a word",

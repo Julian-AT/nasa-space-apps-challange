@@ -131,6 +131,7 @@ def test_banned_words_are_the_list_of_prd_22_6() -> None:
         "sea%\nmless",
         "seam\\label{sec:a}less",
         "seam\\label *less",
+        "\\emph*{seamless}",
         "seam\\label\\empty less",
         "seam\\label\\empty\nless",
         "a \\label[seamless]{} fit",
@@ -174,6 +175,8 @@ def test_banned_word_rule_fails(text: str) -> None:
         "$robust$",
         "\\input figures/seamless-map.tex",
         "\\input figures/seamless-map\nText.",
+        "seam\\textit*less",
+        "seam\\emph *less",
     ],
 )
 def test_banned_word_rule_passes(text: str) -> None:
