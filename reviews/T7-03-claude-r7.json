@@ -1,0 +1,168 @@
+{
+  "task_id": "T7-03",
+  "round": 7,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "b0736297c93c47fd8aff5520656241105ad3d5f3",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "e59732f5b504bd1886defe75f945178f53e38eb63418a4ade3efba9bbfcf31c3"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/package.json",
+        "sha256": "e24729b42b65b4a4e66bd8179bd2432e086b1f1cc6a6d1433880993438d5475b"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "a0de0facae9854827dbc759084bad858b5e4adad3d0f0e1507964d9535a0f377"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "1f4ec5d2231129f91dbc6d2f4ac32ad7218082bdaab1bb07f0e9a7014652115b"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "d2b96f8ef179a404afd0e4b7ce17fef6cf8baa189303aa76d1b7cc2177144a0b"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "f4ce752d0340791629b76a8bea9bda6bc82fa64a3e6799dc88d67ea6ed896fc8"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "6055d6786fc392a00c0ee2b1dcb5ce8144cebec737729e765189baef25e4e6a5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:08:36Z",
+  "finished_utc": "2026-11-15T00:09:16Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T7-03 round 7 at b073629: all five story checks exit 0. The layout, banners, header, footer and page-check changes match the acceptance criteria as far as I could read them. The gzip -9 initial-JS figure was not reproduced because the shell rules forbid loops and pipes. The tests were read only partly.",
+  "checks": [
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, turbo lint and typecheck all passed; exit 0."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed; web 322 passed (page-check 102, site-layout 33, mode-banner 14); schema 157 passed. The web and schema results were turbo cache hits replaying logs."
+    },
+    {
+      "criterion": "mode-banner vitest",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "PASS",
+      "evidence": "1 file, 14 tests passed."
+    },
+    {
+      "criterion": "make web-build",
+      "command": "make web-build",
+      "outcome": "PASS",
+      "evidence": "Build succeeded; / and /_not-found are static (○)."
+    },
+    {
+      "criterion": "make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "PASS",
+      "evidence": "Output: 'web-smoke: GET / (prerendered) shows the mock banner, \"Shipping mode: not chosen (G0 NOT_RUN)\" and bundle version mock-0 in the footer'."
+    },
+    {
+      "criterion": "AC1, AC5: mode banner wording, mock banner, / keeps its three texts plus one factual line",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "mode-banner.tsx:10-21 has the PRD 4 titles and the ' — ' join. Tests compare the titles with PRD.md and pass. page.tsx:13-15 holds the h1 and one line, 'These pages show records from the bundle named in the footer.', with no numbers or claims. I did not read mock-banner.tsx or the mock banner test."
+    },
+    {
+      "criterion": "AC2: layout landmarks and footer",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "layout.tsx:28-39 renders SkipLink, header (mock banner, mode banner, nav), main and footer. The footer wording 'Bundle version: <v> · Schema <v>' follows the orchestrator decision; this is a literal difference only, and it was rebutted earlier as a low finding."
+    },
+    {
+      "criterion": "AC3, AC4: seven plain next/link nav items, aria-current, no excluded links",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "site-header.tsx:11-19 lists exactly Home, Moon, Mars, Earth, Model, Methods and Data. The links are next/link in DOM order, with aria-current='page' only on the exact pathname match (site-header.tsx:27-33). I read no focus-ring test; the focus-ring styling lives in globals.css, which this story did not change."
+    },
+    {
+      "criterion": "AC6, AC7: static rendering and page-check changes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Build shows / as static. page.tsx sets dynamic='error'. make web-smoke passes with its existing assertions. page-check.test.ts passes and the page-check.ts diff is in scope. I did not re-read page-check.ts line by line this round."
+    },
+    {
+      "criterion": "AC8: only client component is site-header.tsx, no bundle data, no provider; initial JS within 250 kB",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The client component part passes: site-header.tsx is 'use client' with no bundle data. layout.tsx and page.tsx are server components. The gzip -9 sum of the initial scripts needs a shell loop or pipe, which the review rules forbid. The author's figure is 177,190 B against the 250 kB budget, but I did not reproduce it."
+    },
+    {
+      "criterion": "Scope: only listed paths changed",
+      "command": "git diff --name-only ceeae12..b073629 (excluding orchestrator paths)",
+      "outcome": "PASS",
+      "evidence": "All 15 changed paths are in the story's files list or under apps/web/tests/*. Working tree is clean."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/components/site-footer.tsx:9",
+      "claim": "AC2 says 'Bundle <bundle_version>', but the footer reads 'Bundle version: <v> · Schema <v>'.",
+      "evidence": "This follows the recorded orchestrator decision and T0-05's smoke assertion, which make web-smoke passes. It is a literal-reading difference only and was rebutted in earlier rounds.",
+      "id": "claude-r7-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/.next/server/app/index.html",
+      "claim": "The gzip -9 measurement of the initial JavaScript (author's figure: 177,190 B, +3,216 B over the 173,974 B baseline) was not reproduced.",
+      "evidence": "The command needs a loop or pipe, which the review permissions forbid. The build shows / as static, and site-header.tsx is the only 'use client' file in layout.tsx or the components I read.",
+      "id": "claude-r7-2",
+      "resolution": null
+    }
+  ]
+}

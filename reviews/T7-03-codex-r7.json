@@ -1,0 +1,184 @@
+{
+  "task_id": "T7-03",
+  "round": 7,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "b0736297c93c47fd8aff5520656241105ad3d5f3",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "e59732f5b504bd1886defe75f945178f53e38eb63418a4ade3efba9bbfcf31c3"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/package.json",
+        "sha256": "e24729b42b65b4a4e66bd8179bd2432e086b1f1cc6a6d1433880993438d5475b"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "a0de0facae9854827dbc759084bad858b5e4adad3d0f0e1507964d9535a0f377"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "1f4ec5d2231129f91dbc6d2f4ac32ad7218082bdaab1bb07f0e9a7014652115b"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "d2b96f8ef179a404afd0e4b7ce17fef6cf8baa189303aa76d1b7cc2177144a0b"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "f4ce752d0340791629b76a8bea9bda6bc82fa64a3e6799dc88d67ea6ed896fc8"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "6055d6786fc392a00c0ee2b1dcb5ce8144cebec737729e765189baef25e4e6a5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:08:36Z",
+  "finished_utc": "2026-11-15T00:13:06Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "One blocker remains: the smoke checker accepts a missing visible banner when its exact text appears in the document title. Required checks and gzip measurement were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Test-first coverage and exact mode/mock banner wording",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Commit 642bedb contains banner tests importing components absent from that commit's tree. Current mode-banner.test.tsx:54-81 and :120-140 cover PRD titles, G0 statuses, absent G0 and conditional mock wording. mode-banner.tsx:10-20 and lib/shell.ts:15-27 implement those values without inventing missing status."
+    },
+    {
+      "criterion": "AC2: Shared layout contains skip link, banners, navigation, main and version footer",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "app/layout.tsx:23-38 renders the required shared structure. mock-banner.tsx:10-14 supplies conditional status text and the red token. site-footer.tsx:8-9 retains the authorized T0 wording and appends schema version."
+    },
+    {
+      "criterion": "AC3: Seven prescribed plain next/link destinations",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "components/site-header.tsx:8-18 defines exactly the seven required links; :29-36 renders each through next/link. No prohibited destination is present."
+    },
+    {
+      "criterion": "AC4: Keyboard order, visible focus and aria-current",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "site-header.tsx:25-36 preserves anchor DOM order and assigns aria-current only for the matching pathname. app/globals.css:67-69 provides the visible focus outline. tests/site-layout.test.tsx:121-154 exercises active-route selection and native anchor structure."
+    },
+    {
+      "criterion": "AC5: Permitted Mode B/C wording and factual home content",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "mode-banner.tsx:10-13 matches PRD section 4 verbatim. app/page.tsx:13-14 contains only the title and factual bundle-record line. The layout retains the T0 banner, shipping-mode and footer texts."
+    },
+    {
+      "criterion": "AC6: Build-time bundle loading, static / and passing web-smoke",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Source uses the existing apps/web/lib/bundle.ts loader through app/layout.tsx:18-24, and app/page.tsx:8 retains dynamic='error'. Static build output and successful smoke execution cannot be confirmed without running prohibited checks that write build artifacts."
+    },
+    {
+      "criterion": "AC7: Test-first main-only assertion with all protected-text checks preserved",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "page-check.ts:217 searches every block, including the document title, for required banners. A title containing the exact mock warning satisfies the check after the visible warning is removed. The original body equality at ceeae12:apps/web/scripts/page-check.ts:57-62 rejected that omission. The production guard remains unchanged."
+    },
+    {
+      "criterion": "AC8: Only site-header is client code; static rendering and independently verified gzip budget",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "site-header.tsx:1-9 is the sole client module among the reviewed app/components sources and imports no bundle or provider. The notes record 177,190 B against 173,974 B, but that is author-reported evidence. Build and independent gzip measurement were not run under the explicit read-only review restriction."
+    },
+    {
+      "criterion": "Earlier fixes and rebuttals",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "By inspection, page-check.ts:195-243 and :280-308 address nested banner text, enclosing live regions, stray claims and conflicting footers. Tests at page-check.test.ts:68-80 and :344-375 cover the reported split-marker and misplaced-head cases. Both title copies are independently compared with PRD.md at mode-banner.test.tsx:58 and page-check.test.ts:427. Footer wording and permitted 404 scope match the supplied decisions; prior size claims remain unverified."
+    },
+    {
+      "criterion": "Story scope and unchanged scientific/production safeguards",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "First-parent story commit paths match the supplied scope; other listed paths belong to bookkeeping commits. The inspected diff for lib/bundle.ts, lib/shell.ts, scripts/smoke.ts and config/run.yaml is empty. lib/bundle.ts:79-85 and :235-240 retain production mock rejection."
+    },
+    {
+      "criterion": "Required check: make check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited in this read-only review; check tooling can write generated files and caches."
+    },
+    {
+      "criterion": "Required check: make test",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited in this read-only review; test tooling can write caches and artifacts."
+    },
+    {
+      "criterion": "Required focused banner tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited in this read-only review; Vitest may write caches."
+    },
+    {
+      "criterion": "Required check: make web-build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited; bundle pulling and the build write data and .next artifacts."
+    },
+    {
+      "criterion": "Required check: make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "The user explicitly instructed this reviewer not to run checks."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "apps/web/scripts/page-check.ts:217",
+      "claim": "Exclude document metadata from required banner detection. A missing visible mock or mode banner can currently pass, weakening AC7's preserved T0 protection.",
+      "evidence": "By inspection, MOCK_PAGE.replace('<title>Terraluna</title>', '<title>Mock bundle — placeholder data, not results</title>').replace(MOCK_P, '') is accepted. The title becomes a banner holder at line 217; bannerParts promotes it to head, whose full text equals the expected warning. Main, footer and mode checks remain satisfied, so pageProblems returns no problems despite there being no visible mock warning. The same substitution works for the shipping-mode banner. Existing missing-banner tests cover script payloads, not document titles. Require banners within the rendered body, exclude metadata from page-text counting, and add both regressions.",
+      "id": "codex-r7-1",
+      "resolution": null
+    }
+  ]
+}
