@@ -20,8 +20,8 @@ CONFIG_C = "run:\n  shipping_mode: C\n"
 def _tree(tmp_path: Path, config: str = CONFIG_C) -> Path:
     (tmp_path / "config").mkdir()
     (tmp_path / "config" / "run.yaml").write_text(config, encoding="utf-8")
-    (tmp_path / "docs" / "ralph").mkdir(parents=True)
-    (tmp_path / "docs" / "ralph" / "DECISIONS.md").write_text("G0-01: C\n", encoding="utf-8")
+    (tmp_path / "outputs" / "g0").mkdir(parents=True)
+    (tmp_path / "outputs" / "g0" / "windows-evidence.json").write_text("{}\n", encoding="utf-8")
     return tmp_path
 
 
@@ -136,7 +136,7 @@ def test_attest_requires_the_confirm_string(tmp_path: Path) -> None:
     root = _tree(tmp_path)
     argv = ["--root", str(root), "attest-g0", "--mode", "C", "--operator", "x", "--confirm", "no"]
     assert gates.main(argv) == 2
-    assert not (root / "outputs").exists()
+    assert not (root / "outputs" / "gates").exists()
 
 
 def test_attested_g0_merges_and_verifies(tmp_path: Path) -> None:

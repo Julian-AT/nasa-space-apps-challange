@@ -64,15 +64,15 @@ MOCK_BUNDLE_DIR: Final = "fixtures/mock-bundle"
 CONFIRM_G0: Final = "I-RECORD-THE-G0-DECISION"
 
 G0_EVIDENCE_FILES: Final = (
-    "docs/ralph/DECISIONS.md",
     "outputs/g0/earth-radar-roi.json",
     "outputs/g0/web-evidence.json",
     "outputs/g0/windows-evidence.json",
     PILOT_G0_EVIDENCE,
 )
-"""The G0 evidence an attestation hashes, where present. outputs/pilot/g0_evidence.json is
-included once T1-09 writes it; the decisions record and the outputs/g0 evidence are what the
-G0-01 and G0-02/04/05 resolutions cite."""
+"""The G0 evidence an attestation hashes, where present: the outputs/g0 evidence the G0-01 and
+G0-02/04/05 resolutions cite, and outputs/pilot/g0_evidence.json once T1-09 writes it. The
+decisions record (docs/ralph/DECISIONS.md) is named in the attestation statement but not hashed,
+because it is appended to throughout the event."""
 
 G6_SNAPSHOT_SCOPE: Final = (
     "G6 for bundle {v} is evaluated after assembly by make validate and recorded in "
