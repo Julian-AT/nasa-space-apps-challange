@@ -728,11 +728,11 @@ function WorldTitle({ body, shown, layer, left }: { body: Body; shown: number; l
   return (
     <div className={clsx("pointer-events-none absolute top-24 z-[550] hidden transition-[left] duration-500 lg:block", left ? "left-[336px]" : "left-8")}>
       <AnimatePresence mode="wait">
-        <motion.div key={body} initial="hide" animate="show" exit="hide" variants={{ show: { transition: { staggerChildren: 0.05 } }, hide: {} }}>
-          <motion.div variants={{ hide: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }} className="font-mono text-[10.5px] tracking-[0.26em] text-chrome uppercase">
+        <motion.div key={body} initial="hide" animate="show" exit="hide" variants={{ show: { transition: { staggerChildren: 0.05 } }, hide: {} }} className="rounded-xl border bg-card p-4 text-card-foreground shadow-xs">
+          <motion.div variants={{ hide: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0 } }} className="text-xs text-muted-foreground">
             {WORLD_FACTS[body].kicker}
           </motion.div>
-          <div className="mt-1 flex overflow-hidden text-[clamp(56px,6.4vw,104px)] leading-[0.9] font-medium tracking-[-0.05em] text-platinum">
+          <div className="mt-1 flex overflow-hidden text-2xl font-semibold tracking-tight text-foreground">
             {name.split("").map((ch, i) => (
               <motion.span key={i} variants={{ hide: { y: "100%", opacity: 0 }, show: { y: "0%", opacity: 1 } }} transition={{ duration: 0.7, ease: EASE }}>
                 {ch}
