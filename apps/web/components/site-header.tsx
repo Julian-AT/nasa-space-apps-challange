@@ -39,7 +39,7 @@ export function SiteNav({ pathname, className }: Readonly<{ pathname: string | n
       <ul className="flex flex-col gap-0.5 lg:flex-row lg:items-center lg:gap-0.5 lg:rounded-full lg:border lg:border-line-2 lg:bg-panel lg:p-1">
         {NAV_ITEMS.map(({ label, href }, index) => {
           const section = href === '/' ? '/' : '/' + href.split('/')[1];
-          const isCurrent = href === '/' ? pathname === '/' : pathname === section || pathname.startsWith(`${section}/`);
+          const isCurrent = href === '/' ? pathname === '/' : pathname === section || (pathname ?? "").startsWith(`${section}/`);
           const className = cn(
             LINK,
             isCurrent
