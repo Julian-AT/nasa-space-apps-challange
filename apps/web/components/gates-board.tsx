@@ -8,6 +8,7 @@
 import { type GateRecord, GateRecordSchema, type Validation } from '@terraluna/schema';
 
 import { LabelledValue } from '@/components/labelled-value';
+import { cn } from '@/lib/utils';
 
 export type GateField = keyof GateRecord;
 export type GateId = GateRecord['gate_id'];
@@ -29,7 +30,7 @@ export const NULL_REASON = 'validation.json gives null for this field';
 const IDENTIFIER: ReadonlySet<GateField> = new Set(['gate_id', 'status', 'evidence_path', 'run_id']);
 
 function cellClass(field: GateField): string {
-  return `border border-border px-2 py-1 text-left align-top wrap-anywhere${IDENTIFIER.has(field) ? ' font-mono' : ''}`;
+  return cn('border border-border px-2 py-1 text-left align-top wrap-anywhere', IDENTIFIER.has(field) && 'font-mono');
 }
 
 /**
@@ -98,7 +99,7 @@ export function GatesBoard({ validation }: GatesBoardProps) {
       <thead>
         <tr>
           {GATE_FIELDS.map((field) => (
-            <th key={field} scope="col" className={`${cellClass(field)} bg-muted font-semibold`}>
+            <th key={field} scope="col" className={cn(cellClass(field), 'bg-muted font-semibold')}>
               {field}
             </th>
           ))}
