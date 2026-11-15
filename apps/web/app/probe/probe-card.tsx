@@ -1,6 +1,7 @@
 // The live-probe result card (PRD 8.7 step 7). Pure presentation of a ProbeResult: every number
 // carries its label, Unavailable values show their reason and never 0, and each distance family
 // has its own row. Nothing here combines families or ranks targets.
+import { ProbeCurves } from './probe-curves.tsx';
 import type { DistanceValue, ProbeResult, ProbeSuccess, ProbeVariant } from '../../lib/probe/result.ts';
 
 const ms = (v: number): string => `${String(Math.round(v))} ms`;
@@ -102,6 +103,22 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
             <h4 className="font-medium">
               {names[t.target_id] ?? t.target_id} <span className="text-sm">({t.target_window_id})</span>
             </h4>
+            <div className="flex flex-wrap gap-4">
+              <ProbeCurves
+                title={`Relief nu(L): this window over ${names[t.target_id] ?? t.target_id}`}
+                window={r.terrain.relief}
+                target={{ nu_m: t.target_relief_nu_m }}
+                targetName={names[t.target_id] ?? t.target_id}
+              />
+              {r.terrain.texture === null || t.target_texture_nu_m === null ? null : (
+                <ProbeCurves
+                  title={`Texture nu(L): this window over ${names[t.target_id] ?? t.target_id}`}
+                  window={r.terrain.texture}
+                  target={{ nu_m: t.target_texture_nu_m }}
+                  targetName={names[t.target_id] ?? t.target_id}
+                />
+              )}
+            </div>
             <dl className="grid grid-cols-[max-content_1fr] gap-x-4 text-sm">
               <dt>Terrain relief</dt>
               <dd>

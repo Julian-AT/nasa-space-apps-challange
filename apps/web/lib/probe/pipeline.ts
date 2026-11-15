@@ -134,6 +134,8 @@ function targetDistances(relief: ProbeVariant, texture: ProbeVariant | null, tar
   return {
     target_id: target.target_id,
     target_window_id: target.window_id,
+    target_relief_nu_m: target.relief.nu_m,
+    target_texture_nu_m: target.texture?.nu_m ?? null,
     terrain_relief: ruleMismatch ? mismatch('RMS of log nu') : distance(relief, target.relief, 'nu_missing'),
     terrain_texture: ruleMismatch ? mismatch('RMS of log nu') : distance(texture, target.texture, 'texture_unavailable'),
     radar: { status: 'unavailable', value: null, unit: 'CPR Wasserstein-1', label: 'Unavailable', shared_lags_m: [], reason: RADAR_UNAVAILABLE_REASON },

@@ -51,6 +51,9 @@ export type DistanceValue = (
 export interface TargetDistances {
   target_id: string;
   target_window_id: string;
+  /** The target's nu(L) as the bundle holds it, for the curves (pipeline evidence, not live). */
+  target_relief_nu_m: Record<string, number | null>;
+  target_texture_nu_m: Record<string, number | null> | null;
   terrain_relief: DistanceValue;
   terrain_texture: DistanceValue;
   radar: DistanceValue;

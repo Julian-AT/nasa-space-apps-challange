@@ -134,7 +134,7 @@ describe('runProbe', () => {
     expect(d?.terrain_texture).toMatchObject({ status: 'unavailable', value: null, reason: 'texture_unavailable' });
     expect(d?.radar).toMatchObject({ value: null, reason: RADAR_UNAVAILABLE_REASON });
     expect(d?.encoder).toMatchObject({ value: null, reason: 'encoder_not_evaluated' });
-    expect(Object.keys(d ?? {}).sort()).toEqual(['encoder', 'radar', 'target_id', 'target_window_id', 'terrain_relief', 'terrain_texture']);
+    expect(Object.keys(d ?? {}).sort()).toEqual(['encoder', 'radar', 'target_id', 'target_relief_nu_m', 'target_texture_nu_m', 'target_window_id', 'terrain_relief', 'terrain_texture']);
     expect(JSON.stringify(result)).not.toMatch(/Observed|rank|score|combined/);
     expect(log.requests.every((u) => u === `https://x.test/api/v1/dem/cop30/${N64W017}`)).toBe(true);
     expect(result.dem.bytes).toBe(log.bytes);

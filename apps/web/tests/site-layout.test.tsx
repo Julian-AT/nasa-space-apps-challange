@@ -57,6 +57,7 @@ const EXPECTED_NAV = [
   ['Moon', '/explore/moon'],
   ['Mars', '/explore/mars'],
   ['Earth', '/explore/earth'],
+  ['Probe', '/probe'],
   ['Model', '/model'],
   ['Methods', '/methods'],
   ['Data', '/data'],
