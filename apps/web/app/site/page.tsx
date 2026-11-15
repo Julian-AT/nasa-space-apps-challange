@@ -3,13 +3,11 @@
 import type { Metadata } from 'next';
 
 import { PageHeader } from '@/components/page-header';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 
 import { CardAtlas, type AtlasItem, type AtlasSegment } from '../../components/cards/card-atlas.tsx';
 import { CardTile } from '../../components/cards/card-tile.tsx';
 import { buildCardVisual } from '../../components/cards/card-visual.ts';
-import { MODE_TITLES } from '../../components/mode-banner.tsx';
 import { loadBundle } from '../../lib/bundle.ts';
 import { SITE_TITLE } from '../../lib/shell.ts';
 
