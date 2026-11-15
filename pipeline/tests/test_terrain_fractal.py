@@ -19,12 +19,12 @@ Fractal (fractional Brownian surface, fBm)
       ``|m_x|, |m_y| <= ALIAS_ORDER`` are summed; the rest enter as their integral over the outside
       of the square of half-width ``a = (2 ALIAS_ORDER + 1) pi``, divided by the cell area
       ``(2 pi)^2``: ``8 J(2H + 2) a^(-2H) / (2H)`` times ``c_H / (2 pi)^2``, with
-      ``J(p) = integral_0^1 (1 + t^2)^(-p/2) dt``. Without the fold, H = 0.3 would come out about
-      0.07 high (the missing power beyond the Nyquist frequency is about 27% of nu^2 at 3 cells).
+      ``J(p) = integral_0^1 (1 + t^2)^(-p/2) dt``. Without the fold, the ensemble slope at H = 0.3
+      is 0.364 (the power beyond the Nyquist frequency is 26% of nu^2 at 3 cells).
     - Frequencies below the lowest lattice frequency (the central cell ``|q_x|, |q_y| < pi /
       FBM_CELLS``) act on a 55-cell window as a plane. They enter as a random tilt of variance
       ``c_H 4 J(2H) (pi / FBM_CELLS)^(2 - 2H) / (2 - 2H)`` per axis (metres per cell squared).
-      Without it, nu at H = 0.8 would be about 9% low at 12 cells.
+      Without it, the ensemble nu at H = 0.8 is 9.6% low at 12 cells and its slope is 0.768.
 
     The generator's ensemble nu is computed exactly from its spectrum and checked against the
     power law to ``GENERATOR_RTOL``; that is what makes H "known". The same seed gives the same
@@ -161,19 +161,101 @@ is nearer its own generating value than any other.
 # --- Fractal: generator (spectral synthesis) --------------------------------------------------
 
 
+def octant_integral(exponent: float) -> float:
+    """``J(p) = integral_0^1 (1 + t^2)^(-p/2) dt``, by 40-point Gauss-Legendre quadrature.
+
+    Over the outside (or inside) of a square of half-width ``a``, ``|q|^-p`` integrates to
+    ``8 J(p) a^(2 - p) / (p - 2)`` (or ``8 J(p) a^(2 - p) / (2 - p)``): one octant is x from a
+    (or 0) on, y from 0 to x, and y = x t separates the variables. The integrand is analytic on
+    [0, 1] with its nearest poles at t = +-i, so 40 nodes are exact to float64.
+    """
+    nodes, weights = np.polynomial.legendre.leggauss(40)
+    t = (nodes + 1.0) / 2.0
+    return float(np.sum(weights * (1.0 + t * t) ** (-exponent / 2.0))) / 2.0
+
+
+def fbm_scale(hurst: float) -> float:
+    """``c_H`` in ``S(q) = c_H |q|^-(2H + 2)`` for nu = NU_REF_M at one cell (module docstring)."""
+    integral = (
+        math.pow(2.0, -2.0 * hurst - 1.0)
+        * math.gamma(1.0 - hurst)
+        / (hurst * math.gamma(1.0 + hurst))
+    )
+    return NU_REF_M**2 / (4.0 * math.pi * integral)
+
+
+@functools.cache
 def lattice_amplitude(hurst: float) -> FloatArray:
-    """Filter ``2 pi sqrt(S_lattice)`` on the rfft2 half-plane of the synthesis square."""
-    raise NotImplementedError("spectral synthesis is written after the failing run")
+    """Filter ``2 pi sqrt(S_lattice)`` on the rfft2 half-plane of the synthesis square.
+
+    ``S_lattice(k)`` is the fBm spectrum folded onto the lattice frequencies k (radians per cell,
+    axis 0 from ``fftfreq``, axis 1 from ``rfftfreq``): the aliases with ``|m| <= ALIAS_ORDER``
+    summed and the rest as their integral. White noise of unit variance has ``E |rfft2|^2 =
+    FBM_CELLS^2`` in every bin, so this filter gives each lattice mode the variance
+    ``S_lattice(k) (2 pi / FBM_CELLS)^2`` of its frequency cell. The k = 0 mode is the window
+    mean and is set to 0; the frequencies of its cell are drawn as a tilt (:func:`tilt_sd`).
+    """
+    beta = 2.0 * hurst + 2.0
+    two_pi = 2.0 * math.pi
+    kx = two_pi * np.fft.fftfreq(FBM_CELLS)
+    ky = two_pi * np.fft.rfftfreq(FBM_CELLS)
+    folded = np.zeros((kx.size, ky.size), dtype=np.float64)
+    for mx in range(-ALIAS_ORDER, ALIAS_ORDER + 1):
+        qx2 = ((kx + two_pi * mx) ** 2)[:, np.newaxis]
+        for my in range(-ALIAS_ORDER, ALIAS_ORDER + 1):
+            q2 = qx2 + ((ky + two_pi * my) ** 2)[np.newaxis, :]
+            if mx == 0 and my == 0:
+                q2[0, 0] = 1.0  # q = 0 has no power of its own; the k = 0 mode is zeroed below
+            folded += q2 ** (-beta / 2.0)
+    half_width = (2 * ALIAS_ORDER + 1) * math.pi
+    tail = 8.0 * octant_integral(beta) * math.pow(half_width, -2.0 * hurst) / (2.0 * hurst)
+    spectrum = fbm_scale(hurst) * (folded + tail / two_pi**2)
+    spectrum[0, 0] = 0.0
+    amplitude: FloatArray = two_pi * np.sqrt(spectrum)
+    amplitude.setflags(write=False)
+    return amplitude
 
 
 def tilt_sd(hurst: float) -> float:
-    """Standard deviation of each tilt component, metres per cell."""
-    raise NotImplementedError("spectral synthesis is written after the failing run")
+    """Standard deviation of each tilt component, metres per cell.
+
+    The central frequency cell ``|q_x|, |q_y| < eps = pi / FBM_CELLS`` adds ``integral S(q) (q .
+    r)^2 d^2q = r^2 integral S q_x^2 d^2q`` to the ensemble ``(z(p + r) - z(p))^2`` at small
+    ``q r``, which is the variance of ``g . r`` for a random gradient g with ``E g_x^2 = E g_y^2 =
+    c_H / 2 integral |q|^(-2H) d^2q = c_H 4 J(2H) eps^(2 - 2H) / (2 - 2H)``.
+    """
+    half_cell = math.pi / FBM_CELLS
+    variance = (
+        fbm_scale(hurst)
+        * 4.0
+        * octant_integral(2.0 * hurst)
+        * math.pow(half_cell, 2.0 - 2.0 * hurst)
+        / (2.0 - 2.0 * hurst)
+    )
+    return math.sqrt(variance)
 
 
 def draw_fbm_window(hurst: float, seed: int) -> FloatArray:
-    """A seeded fBm window, metres on the 55 x 55 analysis grid (read-only)."""
-    raise NotImplementedError("spectral synthesis is written after the failing run")
+    """A seeded fBm window, metres on the 55 x 55 analysis grid (read-only).
+
+    White noise from ``numpy.random.default_rng(seed)`` is filtered by
+    :func:`lattice_amplitude` on the periodic synthesis square, the centre window is cut out,
+    and a tilt drawn from the same generator is added. The draws do not depend on H.
+    """
+    rng = np.random.default_rng(seed)
+    noise = rng.standard_normal((FBM_CELLS, FBM_CELLS))
+    field = np.fft.irfft2(np.fft.rfft2(noise) * lattice_amplitude(hurst), s=(FBM_CELLS, FBM_CELLS))
+    size = GRID.size
+    start = (FBM_CELLS - size) // 2
+    gradient_east, gradient_north = rng.standard_normal(2) * tilt_sd(hurst)
+    offsets = np.arange(size, dtype=np.float64) - (size - 1) / 2.0
+    window: FloatArray = (
+        field[start : start + size, start : start + size]
+        + gradient_east * offsets[np.newaxis, :]
+        - gradient_north * offsets[:, np.newaxis]
+    )
+    window.setflags(write=False)
+    return window
 
 
 @functools.cache
@@ -300,8 +382,36 @@ def plane_and_wave_m(east: FloatArray, north: FloatArray) -> FloatArray:
 
 
 def equirectangular_source(block: Block | None) -> tuple[FloatArray, EquirectangularLookup]:
-    """The synthetic source raster and its lookup, with ``block`` set to NODATA."""
-    raise NotImplementedError("the synthetic source is written after the failing run")
+    """The synthetic source raster and its lookup, with ``block`` set to NODATA.
+
+    Pixel centres sit at E = (column - 260) * 10 m and N = (260 - row) * 10 m, so the north-up
+    geotransform's outer corner is at (-2605 m, 2605 m). The raster's sphere is the Moon's, its
+    centre longitude the window's, and the standard parallel and latitude of origin 0.
+    """
+    centres = (
+        np.arange(2 * SOURCE_HALF_PIXELS + 1, dtype=np.float64) - SOURCE_HALF_PIXELS
+    ) * SOURCE_SPACING_M
+    east = np.broadcast_to(centres[np.newaxis, :], (centres.size, centres.size))
+    north = np.broadcast_to(-centres[:, np.newaxis], (centres.size, centres.size))
+    raster = plane_and_wave_m(east, north)
+    if block is not None:
+        (east_min, east_max), (north_min, north_max) = block
+        hit = (east >= east_min) & (east <= east_max) & (north >= north_min) & (north <= north_max)
+        raster = np.where(hit, NODATA, raster)
+    corner = (SOURCE_HALF_PIXELS + 0.5) * SOURCE_SPACING_M
+    lookup = EquirectangularLookup(
+        center_longitude_deg=CENTRE_LON_DEG,
+        standard_parallel_deg=0.0,
+        latitude_of_origin_deg=0.0,
+        radius_m=MOON_RADIUS_M,
+        false_easting_m=0.0,
+        false_northing_m=0.0,
+        origin_x_m=-corner,
+        origin_y_m=corner,
+        pixel_width_m=SOURCE_SPACING_M,
+        pixel_height_m=-SOURCE_SPACING_M,
+    )
+    return raster, lookup
 
 
 def window_positions() -> tuple[FloatArray, FloatArray]:
