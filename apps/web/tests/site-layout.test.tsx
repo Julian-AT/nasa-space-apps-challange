@@ -51,7 +51,7 @@ function bundle(fields: Record<string, unknown>, records: unknown[] = ALL_GATES_
     manifest: BundleManifestSchema.parse(manifestFor(toBytes(records), fields)),
     validation: ValidationSchema.parse(records),
     // The landing page reads counts from the records; this bundle lists no optional files.
-    records: { cards: new Map(), targets: null },
+    records: { cards: new Map(), targets: null, windows: new Map() },
   } as unknown as Bundle;
 }
 

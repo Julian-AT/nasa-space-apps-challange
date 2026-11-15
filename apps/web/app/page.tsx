@@ -103,6 +103,12 @@ function EntryCard({ href, title, kicker, children }: { href: string; title: str
   );
 }
 
+// 'rosamond-dry-lake' -> 'Rosamond dry lake'.
+const regionName = (id: string): string => {
+  const text = id.replaceAll('-', ' ');
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
 export default function Home() {
   const bundle = loadBundle();
   const cards = [...bundle.records.cards.keys()];
@@ -110,20 +116,31 @@ export default function Home() {
   const statuses = new Map<string, number>();
   for (const record of bundle.validation) statuses.set(record.status, (statuses.get(record.status) ?? 0) + 1);
   const firstCard = cards[0];
+  // Declared Earth search regions, read from the Earth window records (search_region_id).
+  const regions = [
+    ...new Set(
+      (bundle.records.windows.get('earth') ?? []).flatMap((w) => {
+        const id = w.window.environment_flags.search_region_id;
+        return id === null ? [] : [regionName(id)];
+      }),
+    ),
+  ];
+  const g5 = bundle.validation.find((g) => g.gate_id === 'G5') ?? null;
 
   return (
     <>
       <div className="grid items-center gap-10 py-8 md:grid-cols-[1.35fr_1fr]">
         <div className="flex flex-col gap-7">
-          <Kicker>Earth analog search · terrain pilot</Kicker>
+          <Kicker>Terrain-only Earth candidate search · Mode C</Kicker>
           <h1 className="text-[clamp(44px,7vw,104px)] text-balance">
             <span className="block">{`${SITE_TITLE} `}</span>
-            <Em>an Earth analog search for other worlds.</Em>
+            <Em>a terrain-only Earth candidate search for Connecting Ridge, Jezero and Arcadia, over declared Earth regions only.</Em>
           </h1>
           <p className="max-w-2xl text-[17px] leading-relaxed text-muted-foreground">
-            An Earth analog search for the Moon (Connecting Ridge, an Artemis candidate region) and for Mars
-            (terrain only). It compares terrain roughness fingerprints ν(L) computed from public elevation
-            data.
+            Earth windows are compared with the Moon target (Connecting Ridge, an Artemis candidate region) and
+            the Mars targets (Jezero and Arcadia, terrain only) by terrain roughness fingerprints ν(L) computed
+            from public elevation data. Earth candidates come only from the declared regions
+            {regions.length === 0 ? '' : `: ${regions.join(' and ')}`}.
           </p>
           <p className="max-w-2xl text-sm text-muted-foreground">{HOME_LINE}</p>
           <ul className="flex flex-wrap gap-3">
@@ -180,8 +197,13 @@ export default function Home() {
           <p className="max-w-3xl text-lg leading-relaxed">
             The shipping mode in the pill above limits every claim. In Mode C this is a terrain analog pilot:
             radar comparison was not completed, so nothing here is a radar claim and no page ranks a site as
-            the analog. The learned encoder is experimental and outside every ranking until its release gate
-            passes.
+            the analog. The nearest Earth window to a target is the nearest in the metric, not a close match or a
+            morphological analog. The learned encoder is experimental
+            {g5 === null
+              ? ' and outside every ranking; G5 is not recorded in this bundle.'
+              : g5.status === 'PASS'
+                ? ' and stays a Predicted second opinion; G5 passed.'
+                : ` and outside every ranking: its promotion gate G5 is ${g5.status}${g5.status === 'FAIL' && g5.result !== null ? ` (${g5.result})` : ''}.`}
           </p>
         </div>
       </Section>
@@ -195,7 +217,7 @@ export default function Home() {
             Projected map, terrain only.
           </EntryCard>
           <EntryCard href="/explore/earth" kicker="Explore" title="Earth">
-            The Earth sites searched for analogs.
+            Candidate Earth windows from the declared regions.
           </EntryCard>
           {firstCard === undefined ? (
             <div className="surface flex flex-col gap-2 rounded-3xl p-6">
