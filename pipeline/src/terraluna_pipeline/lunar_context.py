@@ -453,9 +453,12 @@ def run() -> int:
         print(f"blocked: Mini-RF mosaic windows not readable ({error})")
         return 3
     windows = data["windows"]
-    evidence_path = REPO_ROOT / WINDOWS_EVIDENCE_REL
     common = {
-        "input_hashes": provenance.file_hashes([evidence_path]),
+        # Repo-relative paths, so the record verifies on any checkout.
+        "input_hashes": [
+            {"path": str(WINDOWS_EVIDENCE_REL), "sha256": item["sha256"]}
+            for item in provenance.file_hashes([REPO_ROOT / WINDOWS_EVIDENCE_REL])
+        ],
         "raw_inputs_sha256": _hashes_for_mosaic(data["layers"]),
         "mosaic_products": {
             "cpr": "LSZ_XXXXX_3CP_PIU_90S000_V1 (LRO-L-MRFLRO-5-CDR-MOSAIC-V1.0, LROMRF_0005)",

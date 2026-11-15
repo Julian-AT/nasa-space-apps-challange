@@ -145,7 +145,7 @@
     },
     "sc_ll": {
       "convention_note": null,
-      "max_abs_diff": 2.6077032082294505e-08,
+      "max_abs_diff": 2.60770320892334e-08,
       "max_diff_over_allowance": 0.12597718224206092,
       "n_compared": 262144,
       "n_mismatch": 0,
@@ -268,10 +268,10 @@
     "source": "the directory named by TERRALUNA_UAVSAR_SCENE; its absolute path is not recorded"
   },
   "software": {
-    "gdal_python": "3.13.3",
+    "gdal_python": "3.10.3",
     "numpy": "2.5.4",
     "polsartools": "0.13",
-    "python": "3.12.13",
+    "python": "3.12.16",
     "terraluna_pipeline": "0.1.0"
   },
   "window": {

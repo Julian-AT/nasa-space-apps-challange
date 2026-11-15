@@ -1,17 +1,17 @@
 {
   "command": "python -m terraluna_pipeline.holuhraun run; python -m terraluna_pipeline.lunar_context run",
-  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "config_version": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
   "consequence": "G3 is PARTIAL, not PASS: the shadow behaviour check is Unavailable (decision G0-10: no permanent-shadow product), so not every G3 part is recorded. The Neish et al. 2017 values are not compared (region and convention not matching). Claims narrowed to the Holuhraun facies-overlap plausibility check and a context-only melt range.",
   "evidence_path": "analysis/holuhraun_reproduction.json",
   "gate_id": "G3",
   "input_hashes": [
     {
       "path": "analysis/g3_impact_melt_context.json",
-      "sha256": "f1c38c294055aa44320f414f434a1b26b058457dbd5b0e8985d025bacfdb060b"
+      "sha256": "86f2ffa3ccd7e89c2a44c7afaa1a10736bba2360988b332d743a643daadd859c"
     },
     {
       "path": "analysis/g3_shadow.json",
-      "sha256": "d2c77d7f641bdc342b2d60a431713f310556d74d6a13d006008bddcf7ef94ba7"
+      "sha256": "f9967cd3ed2a0557464f49965c599b25e88a0f77ce2b6a4f30b44263864e913d"
     },
     {
       "path": "analysis/holuhraun_protocol.json",
@@ -19,11 +19,11 @@
     },
     {
       "path": "analysis/holuhraun_reproduction.json",
-      "sha256": "018b9b27b622606931380535403c77de7db38171751f4229b3525c516a3f294c"
+      "sha256": "308fe47579b1952b40a7f6dd5e55226bdcfb76bb73efc09bc5dd820809bcc84b"
     }
   ],
   "result": "Holuhraun: facies CPR overlap 91.8% to 95.6% against 88-89% (Tolometti et al. 2022), outcome consistent. Shadow: Unavailable (permanent-shadow fraction per window not available: no shadow product is named (decision G0-10); every window is in the unknown group). Impact-melt context: 2.6% of valid Site01 window CPR pixels in 0.7 to 1.0 (12 above 1, kept valid), context only.",
-  "run_id": "sha256:4ca7cfc05df22a780127b65dba9b30872b4de08462e57e1fa22578e55124fe77",
+  "run_id": "sha256:391a0a56ab5dbd16576103b5c4f536264ab2546cfe59b5c9988f07cf8a77c58a",
   "scope": "Holuhraun UAVSAR CPR facies reproduction; lunar shadow behaviour (analysis/g3_shadow.json); impact-melt context (analysis/g3_impact_melt_context.json)",
   "status": "PARTIAL"
 }

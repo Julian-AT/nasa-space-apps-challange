@@ -1,37 +1,37 @@
 {
-  "command": "python -m terraluna_pipeline.checks g4",
-  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "command": "python -m terraluna_pipeline.checks g4 --target-id moon-cr-site01-w000",
+  "config_version": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
   "consequence": null,
   "evidence_path": "analysis/g4_candidates.json",
   "gate_id": "G4",
   "input_hashes": [
     {
       "path": "analysis/g4_candidates.json",
-      "sha256": "dfcfbe3409dc8176a248e77e71f8639158f51f1bac59c189de8c87a006ef1045"
+      "sha256": "b6764ca237992f8561cf2660f28293a34d50c9c9512c128eaa496ef1d5f75c0c"
     },
     {
       "path": "analysis/g4_counterexample.json",
-      "sha256": "9e314f03ca97bcd3f48b08bddd34e29ffc9aaf00fe328f5aacec7f913da2a503"
+      "sha256": "d556865b9b054da77f4dd6f38731c7e36d82a7dde0770a0fe9f72c1ad9cc3fd7"
     },
     {
       "path": "config/run.yaml",
-      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+      "sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675"
     },
     {
       "path": "outputs/comparisons/moon-cr-site01-w000.json",
-      "sha256": "8a5c12462d0d5564584ce3fdaea9a3c00ca6c6f001e8ddde4c715bb793871e07"
+      "sha256": "e252bcdba17bb38f0ad739c36ba7088d0af48ab217f2ff6c6c28780a4c6daf90"
     },
     {
       "path": "outputs/search/targets.json",
-      "sha256": "6ab65f388126b3b1f4bbfe5cb59bc3b158ef623199b5222663500e1c9c0ec9d9"
+      "sha256": "140aa37f13d5c5ea22b69017ef0a22d7c3c135ae4f2f34ae01c8d847f670aa3c"
     },
     {
       "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
-      "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+      "sha256": "c1ded889eba244aa074d042c9ad415a78ea2bec250301a5824d259a1e44ac2d2"
     }
   ],
   "result": "71 candidates, 2 excluded windows listed; first Pareto layer 1 window(s); 1 window(s) in the first layer in all 100 clone runs",
-  "run_id": "sha256:be9100e66745748eb1e4ff1eb7466c4607f937cda0f2089d528867abd58e6b07",
+  "run_id": "sha256:eca8fd8e34804fe37e1d24bb5358a6f12497c91adb147a2b45e191ceb22747bb",
   "scope": "moon-cr-site01-w000 (moon-sps-x2-y2) against 71 eligible Earth windows of the slice search; terrain families only (Mode C)",
   "status": "PASS"
 }

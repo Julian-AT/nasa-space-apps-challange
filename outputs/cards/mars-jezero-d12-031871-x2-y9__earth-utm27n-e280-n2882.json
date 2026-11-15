@@ -6,6 +6,7 @@
     "Mars target: terrain only, radar unavailable for this body",
     "the encoder is EXPERIMENTAL and not used in any ranking",
     "WorldCover v200 2021 land-cover mask, nearest class at 90 m centres (ANA-05 default)",
+    "No published elevation-error clone set exists for this target's DTM, so measurement error is Unavailable and no tie is claimed; scenario ranks come from mask and region filters only.",
     "Mars targets are compared on terrain only; no radar product is used.",
     "Mode C: radar comparison not completed. The radar inputs were not qualified within the pilot, so no radar distance or radar signature is part of this card.",
     "The encoder is EXPERIMENTAL (G5 NOT_RUN); its distance, if shown, is Predicted and takes no part in any ranking.",
@@ -251,9 +252,9 @@
         "evidence_label": "Unavailable",
         "n_requested": null,
         "n_used": null,
-        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "note": "Within-window spread of the distance is not computed for this slice.",
         "rank_frequency": null,
-        "reason": "uncertainty_not_annotated",
+        "reason": "heterogeneity_not_computed",
         "scenarios": null,
         "status": "unavailable"
       },
@@ -262,31 +263,92 @@
         "evidence_label": "Unavailable",
         "n_requested": null,
         "n_used": null,
-        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "note": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6).",
         "rank_frequency": null,
-        "reason": "uncertainty_not_annotated",
+        "reason": "no_published_clone_set",
         "scenarios": null,
         "status": "unavailable"
       },
       "scenario_sensitivity": {
         "by_family": null,
-        "evidence_label": "Unavailable",
+        "evidence_label": "Derived",
         "n_requested": null,
         "n_used": null,
-        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "note": "Named mask and region scenarios with the rank by family in each; rank_frequency is how often this candidate ranked first by that family over the PGDA78 clone runs (none without a clone set), a frequency and never a probability (PRD 6.6). Mode C: no radar scenario.",
         "rank_frequency": null,
-        "reason": "uncertainty_not_annotated",
-        "scenarios": null,
-        "status": "unavailable"
+        "reason": null,
+        "scenarios": [
+          {
+            "change": "WorldCover allowed fraction >= 0.9 (config), both regions",
+            "name": "pipeline",
+            "rank_by_family": {
+              "terrain_relief": 1,
+              "terrain_texture": 3
+            },
+            "values_by_family": {
+              "terrain_relief": 0.05440175710202982,
+              "terrain_texture": 0.10813814931181176
+            }
+          },
+          {
+            "change": "WorldCover allowed fraction >= 0.95 instead of 0.9",
+            "name": "worldcover_allowed_ge_0.95",
+            "rank_by_family": {
+              "terrain_relief": 1,
+              "terrain_texture": 3
+            },
+            "values_by_family": {
+              "terrain_relief": 0.05440175710202982,
+              "terrain_texture": 0.10813814931181176
+            }
+          },
+          {
+            "change": "WorldCover allowed fraction >= 1 instead of 0.9",
+            "name": "worldcover_allowed_ge_1",
+            "rank_by_family": {
+              "terrain_relief": 1,
+              "terrain_texture": 1
+            },
+            "values_by_family": {
+              "terrain_relief": 0.05440175710202982,
+              "terrain_texture": 0.10813814931181176
+            }
+          },
+          {
+            "change": "search only the holuhraun region",
+            "name": "region_holuhraun_only",
+            "rank_by_family": {
+              "terrain_relief": 1,
+              "terrain_texture": 2
+            },
+            "values_by_family": {
+              "terrain_relief": 0.05440175710202982,
+              "terrain_texture": 0.10813814931181176
+            }
+          },
+          {
+            "change": "search only the rosamond-dry-lake region",
+            "name": "region_rosamond-dry-lake_only",
+            "rank_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            },
+            "values_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            }
+          }
+        ],
+        "status": "available"
       },
       "statistical_prediction_error": {
         "by_family": null,
         "evidence_label": "Unavailable",
         "n_requested": null,
         "n_used": null,
-        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "note": "no predictor evaluated",
         "rank_frequency": null,
-        "reason": "uncertainty_not_annotated",
+        "reason": "no_predictor_evaluated",
         "scenarios": null,
         "status": "unavailable"
       }
