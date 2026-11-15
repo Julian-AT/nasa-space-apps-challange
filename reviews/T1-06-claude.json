@@ -1,0 +1,120 @@
+{
+  "task_id": "T1-06",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "2f821413ccedd5a8085836739a897cae006093fe",
+    "head": "541c5e781099e41fdb4ce98477a5ceb76374a353",
+    "files": [
+      {
+        "path": "outputs/pilot/cop30_range_read.json",
+        "sha256": "b984ac12f5cf17316c8c925a9d1d734bf7fe97661cb35ccee015dee3e0a93d4e"
+      },
+      {
+        "path": "outputs/sources.json",
+        "sha256": "d83a293198ef51688866ede13e34e72a622bda0a1f013ae08e0c9a922ff10e84"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/io.py",
+        "sha256": "f0cf3f8e2025f6297688249a4fa0db2296d693b87d4f0d802f3cd3449d577c97"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/pilot.py",
+        "sha256": "babe9c2e949da6bbda673d3a2d61ecb5584adf70e2604dd191f57f80472c84f0"
+      },
+      {
+        "path": "pipeline/tests/test_io_cog_layout.py",
+        "sha256": "fbb73f4c3009ebde5239be2db94b4b5232a5d4c929336f5e3e3c6cd743b67be8"
+      },
+      {
+        "path": "pipeline/tests/test_pilot_cop30.py",
+        "sha256": "06cc3e3a8d64889a493839e147b6fa2f5cf1fce6462a05b08caf0a20280ede63"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:04:05Z",
+  "finished_utc": "2026-11-15T00:04:53Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T1-06 passes. All three story checks pass. The committed record cop30_range_read.json and the sources.json entry satisfy every acceptance criterion I could read from the files. I did not re-run the live fetch, so the real-bucket read rests on the committed record and offline check. The one scope deviation is the orchestrator's review-state edit to prd.json.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests",
+      "command": "uv run pytest pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "1401 passed, 2 xfailed. Both xfails are the ProductRecord and Sources schema-case tests, which are outside T1-06."
+    },
+    {
+      "criterion": "uv run python -m terraluna_pipeline.pilot check cop30",
+      "command": "uv run python -m terraluna_pipeline.pilot check cop30",
+      "outcome": "PASS",
+      "evidence": "Output: 'cop30: committed outputs match data/raw/cop30/'."
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, ruff format --check reported 24 files already formatted, and mypy reported no issues in 24 source files."
+    },
+    {
+      "criterion": "AC1: deterministic Holuhraun tile, confirmed in tileList.txt, with a documented fallback; credential-free HTTPS URL; header and window read by range request; readers live in io.py",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "tile_choice in cop30_range_read.json chooses N64_W017 with listed_in_tile_list true and names a fallback tile (N65_W017) with status not_needed. The URL is the virtual-hosted HTTPS form on eu-central-1 with credentials 'none'. io.py gained the COG layout reader and read_remote_cog_window (diff +268 lines). tests/test_io_cog_layout.py has 20 passing tests."
+    },
+    {
+      "criterion": "AC2: the JSON records URL, status 206, Content-Range, total size, bytes requested and received, tile size and overviews, CRS, pixel size, vertical datum, nodata, units, valid fraction, min and max, and the surface-model caveat",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Record fields: http_status 206, content_range 'bytes 0-262143/19059689', object_size_bytes 19059689, requested and received both 2883584, 1024x1024 internal tiles, overviews [2,4,8], EPSG 4326, pixel_size, vertical_datum.stated_by_file 'unknown' (collection docs EGM2008 quoted alongside), nodata null, units from the collection docs, valid_fraction 1.0, min 715.64, max 806.08, and a surface_model_caveat block."
+    },
+    {
+      "criterion": "AC3: 5 km window at a stated centre; total bytes, tiles touched and the 4 MB budget verdict recorded; no whole-tile download",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "window.side_m 5000 with centre (64.85, -16.83) and the centre basis stated. live_probe_budget has bytes_fetched 2883584, tiles_touched 1 and within_budget true against a 4,000,000-byte limit. whole_file_downloaded is false; the 19 MB object was read in ranges."
+    },
+    {
+      "criterion": "AC4: ProductRecord upserted into sources.json by product_id and sorted; licence string, sha256 and local_path set",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The sources.json diff adds one entry with checksum 2f8ad7cf…, local_path data/raw/cop30/…tif.ranges, and a licence string quoting the provider. The checksum matches local_sha256 in the record. I did not check the sort order directly; the passing offline check and tests cover the upsert."
+    },
+    {
+      "criterion": "AC5: an unreachable bucket makes fetch exit non-zero, naming the URL and error",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_an_unreachable_bucket_or_document_fails_naming_the_url and test_an_unreachable_tile_fails_naming_the_url exist at tests/test_pilot_cop30.py:560 and :573, and both pass. I did not run the failure path by hand."
+    },
+    {
+      "criterion": "AC6: fetch saves tileList.txt, the ranges and their HTTP metadata under data/raw/cop30/; record reads only those files; check verifies offline, byte for byte",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The record lists documents with local_path data/raw/cop30/*, retrieval.fetch_metadata data/raw/cop30/fetch.json, and per-exchange status, Content-Range, bytes and retrieved_at. The offline check passed. The save and keep-earlier-fetch behaviour is covered by tests at :514 and :600."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t1-pilot/prd.json",
+      "claim": "The commit range touches prd.json and progress.txt, which are outside the story's files list.",
+      "evidence": "git diff --stat shows both files changed. The prd.json change only sets review.state to 'requested' and review.base to the base commit, so it is orchestrator bookkeeping, not product change.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "outputs/pilot/cop30_range_read.json:275",
+      "claim": "The window centre is taken from Wikipedia coordinates rather than fetched, so it is a stated choice, not an observation.",
+      "evidence": "centre_basis says so openly, and the record states the centre is not a target window and sets nothing in config/run.yaml. It is disclosed, so the risk is low.",
+      "id": "claude-r1-2",
+      "resolution": null
+    }
+  ]
+}
