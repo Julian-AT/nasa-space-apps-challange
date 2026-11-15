@@ -150,7 +150,7 @@ export function Ring({ value, size = 112, stroke = 6, label, sub, color, classNa
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
-          {label && <div className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">{label}</div>}
+          {label && <div className="text-xs text-muted-foreground">{label}</div>}
           <div className="leading-none font-semibold tracking-tight text-foreground tabular" style={{ fontSize: size * 0.24 }}>
             {value === null ? "··" : <Counter value={v} decimals={2} duration={1.1} />}
           </div>
@@ -173,7 +173,7 @@ export function Meter({ value, label, right, hint, tone = "var(--primary)", kind
             {label}
             {kind && <KindBadge kind={kind} />}
           </span>
-          <span className="font-mono text-foreground tabular">{right ?? (value === null ? "n/a" : value.toFixed(2))}</span>
+          <span className="font-medium text-foreground tabular-nums">{right ?? (value === null ? "n/a" : value.toFixed(2))}</span>
         </div>
       )}
       <div data-slot="progress" className={clsx("relative overflow-hidden rounded-md bg-muted", thin ? "mt-1.5 h-1" : "mt-2 h-1.5")}>
@@ -203,7 +203,7 @@ const KIND: Record<Kind, { label: string; cls: string; tip: string }> = {
 
 export function KindBadge({ kind }: { kind: Kind }) {
   return (
-    <Badge variant="outline" title={KIND[kind].tip} className={clsx("h-5 shrink-0 px-1.5 text-[10px] font-medium tracking-wide uppercase", KIND[kind].cls)}>
+    <Badge variant="outline" title={KIND[kind].tip} className={clsx("h-5 shrink-0 px-1.5 text-[11px] font-medium capitalize", KIND[kind].cls)}>
       {KIND[kind].label}
     </Badge>
   );
@@ -345,7 +345,7 @@ export function Kicker({ n, children, className }: { n?: string; children: React
     <div className={clsx("flex items-center gap-4", className)}>
       {n && <Badge variant="outline" className="h-6 px-2 font-mono text-[11px] text-muted-foreground tabular">{n}</Badge>}
       <motion.span className="h-px w-10 origin-left bg-border" initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.1, ease: EASE }} />
-      <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">{children}</span>
+      <span className="text-xs font-medium text-muted-foreground">{children}</span>
     </div>
   );
 }

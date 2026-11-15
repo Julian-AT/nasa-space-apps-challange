@@ -10,6 +10,7 @@ import { ArrowRight, MapPin, X } from "lucide-react";
 import Link from "next/link";
 
 import { EvidenceLabel, isEvidenceLabel } from "@/components/evidence-label";
+import { buttonVariants } from "@/components/ui/button";
 import type { WindowRelief } from "@/components/map/explore-data";
 import type { Body } from "@/lib/shadowastra-atlas/data/sites";
 
@@ -29,13 +30,13 @@ export function TerralunaAttribution({ className }: { className?: string }) {
 function Relief({ r, what }: { r: WindowRelief | null; what: string }) {
   const ok = r !== null && r.evidenceLabel !== "Unavailable";
   return (
-    <div className="flex items-center justify-between gap-3 text-[12px] text-chrome">
+    <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
       <span className="truncate" title={ok ? `${what}, relief ν at ${r.lagM} m lag` : undefined}>
         {what.replace(" window", "")}
-        {ok ? <span className="text-dim"> ν {Math.round(Number(r.lagM))} m</span> : null}
+        {ok ? <span> · {Math.round(Number(r.lagM))} m</span> : null}
       </span>
       <span className="flex shrink-0 items-center gap-2 tabular-nums">
-        <span className="font-mono text-platinum">{ok ? `${r.valueM.toFixed(2)} m` : "—"}</span>
+        <span className="font-medium text-foreground">{ok ? `${r.valueM.toFixed(2)} m` : "—"}</span>
         {ok ? <EvidenceLabel label={isEvidenceLabel(r.evidenceLabel) ? r.evidenceLabel : "Unavailable"} /> : null}
       </span>
     </div>
@@ -44,22 +45,22 @@ function Relief({ r, what }: { r: WindowRelief | null; what: string }) {
 
 function CardRow({ c, onPin }: { c: TlCard; onPin: (id: string) => void }) {
   return (
-    <li className="border-b border-line py-4">
+    <li className="border-b py-4 last:border-b-0">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[13px] font-medium text-platinum">{c.targetName}</div>
-          <div className="truncate font-mono text-[11px] text-dim" title={c.earthWindowId}>↔ {c.earthWindowId}</div>
+          <div className="truncate text-sm font-medium text-foreground">{c.targetName}</div>
+          <div className="truncate text-[11px] text-muted-foreground" title={c.earthWindowId}>↔ {c.earthWindowId}</div>
           <div className="mt-2 space-y-1.5">
             <Relief r={c.targetRelief} what={`${BODY_NAME[c.targetBody]} window`} />
             <Relief r={c.earthRelief} what="Earth window" />
           </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <Link href={`/site/${c.cardId}`} className="inline-flex items-center gap-1 rounded-full border border-line-2 px-2.5 py-1 text-[11px] text-chrome hover:border-flare/60 hover:text-platinum">
+          <Link href={`/site/${c.cardId}`} className={clsx(buttonVariants({ variant: "outline", size: "sm" }), "no-underline")}>
             Card <ArrowRight size={11} />
           </Link>
           {(c.earthPinId ?? c.targetPinId) && (
-            <button onClick={() => onPin((c.earthPinId ?? c.targetPinId) as string)} className="inline-flex items-center gap-1 text-[11px] text-dim hover:text-platinum" aria-label={`Show ${c.cardId} on the map`}>
+            <button onClick={() => onPin((c.earthPinId ?? c.targetPinId) as string)} className={clsx(buttonVariants({ variant: "ghost", size: "sm" }), "text-muted-foreground")} aria-label={`Show ${c.cardId} on the map`}>
               <MapPin size={11} /> Show
             </button>
           )}
@@ -72,7 +73,7 @@ function CardRow({ c, onPin }: { c: TlCard; onPin: (id: string) => void }) {
 export function TerralunaEvidence({ data, onPin }: { data: TerralunaAtlas; onPin: (id: string) => void }) {
   return (
     <section aria-labelledby="tl-evidence" className="border-b border-line p-5">
-      <div className="flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-flare uppercase">
+      <div className="flex items-center gap-2 text-xs font-medium text-primary">
         <span className="size-2 rounded-full" style={{ background: TERRALUNA_COLOR }} aria-hidden />
         Terraluna
       </div>
@@ -80,7 +81,7 @@ export function TerralunaEvidence({ data, onPin }: { data: TerralunaAtlas; onPin
         Terraluna evidence
       </h2>
       <p className="mt-1 font-mono text-[10.5px] text-dim">Bundle {data.bundleVersion}{data.mock ? " · MOCK, not production" : ""}</p>
-      <div className="mt-4 font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Evidence cards · {data.cards.length}</div>
+      <div className="mt-4 text-xs font-medium text-muted-foreground">Evidence cards · {data.cards.length}</div>
       {data.cards.length === 0 ? (
         <p className="mt-2 text-[12.5px] text-chrome">No evidence cards yet.</p>
       ) : (
@@ -90,7 +91,7 @@ export function TerralunaEvidence({ data, onPin }: { data: TerralunaAtlas; onPin
           ))}
         </ul>
       )}
-      <p className="mt-3 text-[11px] leading-relaxed text-dim">ν: terrain relief from the windows file terrain fingerprint, at the shortest lag the bundle holds.</p>
+      <p className="mt-3 text-[11px] leading-relaxed text-dim">Rows show terrain relief (ν) from the windows file terrain fingerprint, at the shortest lag the bundle holds.</p>
     </section>
   );
 }
@@ -103,7 +104,7 @@ export function TerralunaDetail({ id, data, onClose, onPin }: { id: string; data
     <div className="space-y-4 p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="font-mono text-[10px] tracking-[0.2em] text-flare uppercase">Terraluna · {pin.kind === "target" ? `${BODY_NAME[pin.body]} target` : "Earth card window"}</div>
+          <div className="text-xs font-medium text-primary">Terraluna · {pin.kind === "target" ? `${BODY_NAME[pin.body]} target` : "Earth card window"}</div>
           <h2 className="mt-1.5 text-xl leading-tight font-medium tracking-tight">{pin.label}</h2>
           <p className="mt-1 font-mono text-[11px] text-dim">
             {pin.lat.toFixed(3)}°, {pin.lon.toFixed(3)}° · bundle {data.bundleVersion}

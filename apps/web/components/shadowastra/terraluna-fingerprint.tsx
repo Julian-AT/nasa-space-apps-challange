@@ -109,7 +109,7 @@ export function TerralunaFingerprint({
             .
           </p>
           {running && result === null ? (
-            <p role="status" className="font-mono text-[11px] tracking-widest text-dim uppercase">
+            <p role="status" className="text-xs font-medium text-muted-foreground">
               Measuring in your browser…
             </p>
           ) : null}

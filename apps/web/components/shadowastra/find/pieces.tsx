@@ -75,27 +75,26 @@ import type { StepId } from "@/lib/shadowastra/missionUrl";
 export function StepRail({ step, onStep, done }: { step: StepId; onStep: (s: StepId) => void; done: Record<string, boolean> }) {
   const idx = STEPS.findIndex((s) => s.id === step);
   return (
-    <ol className="flex items-center gap-1" aria-label="Mission steps">
+    <ol className="flex min-w-0 items-center gap-0.5" aria-label="Mission steps">
       {STEPS.map((s, i) => {
         const on = s.id === step;
         const ok = i < idx || done[s.id];
         const can = i <= idx || ok;
         return (
-          <li key={s.id} className="flex items-center gap-1">
+          <li key={s.id} className="flex items-center">
             <button
               disabled={!can}
               onClick={() => onStep(s.id)}
               aria-current={on ? "step" : undefined}
-              className={clsx("relative flex items-center gap-1.5 rounded-full px-2 py-1.5 text-[12px] whitespace-nowrap transition-colors", on ? "text-void" : can ? "text-chrome hover:text-platinum" : "text-dim")}
+              className={clsx("relative flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed", on ? "text-foreground" : can ? "text-muted-foreground hover:text-foreground" : "text-muted-foreground/50")}
             >
-              {on && <motion.span layoutId="step-pill" className="absolute inset-0 rounded-full bg-platinum" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
-              <span className={clsx("relative grid size-5 place-items-center rounded-full font-mono text-[10px]", on ? "bg-void text-platinum" : ok ? "bg-flare text-void" : "border border-line-2")}>
+              {on && <motion.span layoutId="step-pill" className="absolute inset-0 rounded-md bg-muted" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
+              <span className={clsx("relative grid size-5 place-items-center rounded-full text-[11px] tabular-nums", on ? "bg-primary text-primary-foreground" : ok ? "bg-primary/15 text-primary" : "border")}>
                 {ok && !on ? <Check size={11} /> : i + 1}
               </span>
-              <span className="sr-only sm:not-sr-only sm:relative">{s.label}</span>
+              <span className="sr-only sm:not-sr-only sm:relative sm:whitespace-nowrap">{s.label}</span>
             </button>
-            {i < STEPS.length - 1 && <span className="h-px w-2 bg-line-2 sm:w-3" />}
-          </li>
+                      </li>
         );
       })}
     </ol>
@@ -105,7 +104,7 @@ export function StepRail({ step, onStep, done }: { step: StepId; onStep: (s: Ste
 export function StepTitle({ kicker, title, text }: { kicker: string; title: string; text?: string }) {
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }}>
-      <div className="font-mono text-[10px] tracking-[0.24em] text-flare uppercase">{kicker}</div>
+      <div className="text-xs font-medium text-primary">{kicker}</div>
       <h2 className="mt-2 text-2xl leading-[1.08] font-medium tracking-[-0.03em]">{title}</h2>
       {text && <p className="mt-2 text-[13.5px] leading-relaxed text-chrome">{text}</p>}
     </motion.div>

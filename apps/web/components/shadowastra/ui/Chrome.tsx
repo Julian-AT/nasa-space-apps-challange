@@ -78,7 +78,7 @@ export function FitBadge({ fit }: { fit: Fit }) {
 
 export function Eyebrow({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={clsx("flex items-center gap-3 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase", className)}>
+    <div className={clsx("flex items-center gap-3 text-xs font-medium text-muted-foreground", className)}>
       <span className="h-px w-8 bg-border" />
       {children}
     </div>

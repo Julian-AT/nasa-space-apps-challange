@@ -288,9 +288,9 @@ export default function Find({ probe }: { probe: TerralunaProbeProps }) {
             sel !== null && step === "results" ? "xl:w-[600px]" : "xl:w-[460px]",
           )}
         >
-          <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
+          <div className="flex items-center justify-between gap-2 border-b px-3 py-3">
             <StepRail step={step} onStep={(s) => (s === "results" ? goResults() : setStep(s))} done={{ results: !!result }} />
-            <button onClick={() => setStep("start")} title="Start over" aria-label="Start over" className="grid size-8 shrink-0 place-items-center rounded-full border border-line-2 text-chrome hover:text-platinum">
+            <button onClick={() => setStep("start")} title="Start over" aria-label="Start over" className="grid size-8 shrink-0 place-items-center rounded-md border text-muted-foreground hover:bg-muted hover:text-foreground">
               <RotateCcw size={13} />
             </button>
           </div>
@@ -376,7 +376,7 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
           <motion.ol initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.9, delay: 0.35 }} className="mt-8 flex flex-wrap items-center justify-center gap-2 text-[12.5px] text-chrome">
             {["Pick a destination", "Pick the job", "Set your needs", "We search the Earth"].map((s, i) => (
               <li key={s} className="flex items-center gap-2">
-                <span className="grid size-6 place-items-center rounded-full border border-line-2 font-mono text-[10px] text-platinum">{i + 1}</span>
+                <span className="grid size-6 place-items-center rounded-full border border-line-2 text-[11px] tabular-nums text-foreground">{i + 1}</span>
                 {s}
                 {i < 3 && <ArrowRight size={13} className="text-dim" />}
               </li>
@@ -388,7 +388,7 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
         </div>
 
         <div className="mt-16 flex items-center gap-4">
-          <span className="font-mono text-[11px] tracking-[0.24em] text-chrome uppercase">Or start from a real mission</span>
+          <span className="text-xs font-medium text-muted-foreground">Or start from a real mission</span>
           <span className="h-px flex-1 bg-line" />
         </div>
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -402,18 +402,18 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease: EASE, delay: 0.5 + i * 0.06 }}
                 onClick={() => onPreset(p)}
-                className="surface lift group relative flex min-h-[148px] overflow-hidden rounded-xl text-left"
+                className="surface lift group relative flex overflow-hidden rounded-xl text-left"
               >
-                <div className="relative flex w-full flex-col justify-end p-5">
-                  <div className="flex items-center gap-2 text-[11px] text-chrome">
+                <div className="relative flex w-full flex-col p-5 pr-10">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <WorldDot world={t.body} /> {t.body === "moon" ? "Moon" : "Mars"} · {t.name}
                   </div>
-                  <div className="mt-1.5 flex items-center gap-2 text-[18px] font-medium tracking-tight text-platinum">
-                    <Icon size={17} className="text-flare" /> {p.title}
+                  <div className="mt-2 flex items-center gap-2 text-lg font-medium tracking-tight text-foreground">
+                    <Icon size={17} className="text-primary" /> {p.title}
                   </div>
-                  <div className="mt-1 text-[13px] text-chrome">{p.line}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{p.line}</div>
                 </div>
-                <ArrowRight size={16} className="absolute top-4 right-4 text-chrome transition-transform group-hover:translate-x-0.5 group-hover:text-flare" />
+                <ArrowRight size={16} className="absolute top-5 right-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
               </motion.button>
             );
           })}
@@ -447,7 +447,7 @@ function DestinationStep({ world, setWorld, value, onPick, grid, onNext }: { wor
       <div className="surface mt-5 overflow-hidden rounded-2xl">
         <TargetImage t={t} className="h-40 w-full" span={18} />
         <div className="p-4">
-          <div className="flex items-center gap-2 text-[11px] tracking-wide text-flare uppercase">
+          <div className="flex items-center gap-2 text-xs font-medium text-primary capitalize">
             <WorldDot world={t.body} /> {t.kind}
           </div>
           <div className="mt-1 text-[19px] font-medium tracking-tight">{t.name}</div>
@@ -460,7 +460,7 @@ function DestinationStep({ world, setWorld, value, onPick, grid, onNext }: { wor
             ].map(([a, b]) => (
               <div key={a} className="bg-panel px-2 py-2.5">
                 <dt className="text-[10px] text-dim">{a}</dt>
-                <dd className="font-mono text-[14px] text-platinum">{b}</dd>
+                <dd className="text-[15px] font-semibold tabular-nums text-foreground">{b}</dd>
               </div>
             ))}
           </dl>
@@ -548,7 +548,7 @@ function CityPicker({ grid, value, onChange }: { grid: Grid | null; value: strin
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="glass absolute top-full left-0 z-30 mt-2 w-[280px] rounded-2xl p-2">
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute top-full left-0 z-30 mt-2 w-[280px] rounded-xl border bg-popover p-2 text-popover-foreground shadow-md">
             <div className="flex items-center gap-2 rounded-xl border border-line-2 bg-ink px-3 py-1.5">
               <Search size={13} className="text-dim" />
               <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={grid ? "Type a city" : "Loading places…"} className="min-w-0 flex-1 bg-transparent py-1 text-[13px] text-platinum outline-none placeholder:text-dim" aria-label="Home city" />
@@ -605,7 +605,7 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
     : [];
   return (
     <div>
-      <StepTitle kicker="Step 3 of 3" title="What does your team need?" text="Change the orange words." />
+      <StepTitle kicker="Step 3 of 3" title="What does your team need?" text="Tap a highlighted word to change it." />
       <div className="surface mt-5 rounded-2xl p-6 text-[15.5px] leading-[2.1] text-platinum">
         My team is based in <CityPicker grid={grid} value={m.home.name} onChange={(home) => update({ home })} /> and can travel{" "}
         <Pick label="Maximum distance" value={m.maxKm} options={DISTANCES.map((d) => ({ v: d.km, label: d.km === null ? d.label : `up to ${d.label}` }))} onChange={(v) => update({ maxKm: v })} />. We plan to go in{" "}
@@ -662,7 +662,7 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
             <span className="flex items-center gap-1.5">
               Places experts already like <Tip text="Weight of the model trained on 38 known test sites." />
             </span>
-            <span className="font-mono text-[11px] text-dim">{Math.round(m.modelMix * 100)}%</span>
+            <span className="text-xs tabular-nums text-muted-foreground">{Math.round(m.modelMix * 100)}%</span>
           </div>
           <Seg
             size="sm"
@@ -674,8 +674,8 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
         </div>
       </div>
       <div className="mt-5 rounded-2xl border border-earth/30 bg-earth/[0.06] p-6">
-        <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Places still possible</div>
-        <div className="mt-1 font-mono text-[34px] leading-none font-light text-platinum">{screening ? <Counter value={screening.passCount} duration={0.6} /> : "…"}</div>
+        <div className="text-xs font-medium text-muted-foreground">Places still possible</div>
+        <div className="mt-1 text-[34px] leading-none font-semibold tracking-tight tabular-nums text-foreground">{screening ? <Counter value={screening.passCount} duration={0.6} /> : "…"}</div>
         <div className="mt-1 text-[12px] text-chrome">of {grid ? grid.n.toLocaleString() : "80,206"} land areas · shown in blue on the globe</div>
         {lines.length > 0 && (
           <ul className="mt-2 space-y-0.5 text-[11.5px] text-dim">
@@ -736,7 +736,7 @@ function StageLoading({ label, progress, onRetry }: { label: string; progress: n
   return (
     <div className="grid size-full place-items-center" role="status" aria-live="polite">
       <div className="flex max-w-sm flex-col items-center text-center">
-        <div className="mt-4 font-mono text-[11px] tracking-widest text-chrome uppercase">{label}</div>
+        <div className="mt-4 text-xs font-medium text-muted-foreground">{label}</div>
         {onRetry ? (
           <button onClick={onRetry} className="btn-primary mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-medium">
             <RotateCcw size={14} /> Try again
@@ -765,7 +765,7 @@ function PanelLoading({ progress }: { progress: number }) {
 function StageLegend({ step, range, m }: { step: StepId; range: { lo: number; hi: number } | null; m: Mission }) {
   return (
     <div className="pointer-events-none absolute top-4 right-4 z-10 hidden w-[250px] xl:block">
-      <div className="glass rounded-xl p-3 text-[11px] text-chrome">
+      <div className="rounded-xl border bg-card/95 p-4 text-xs text-card-foreground shadow-xs backdrop-blur-md">
         {step === "needs" ? (
           <>
             <div className="flex items-center gap-2">
@@ -773,17 +773,17 @@ function StageLegend({ step, range, m }: { step: StepId; range: { lo: number; hi
             </div>
             <div className="mt-1.5 flex items-center gap-2">
               <span className="size-2.5 rounded-full border-2 border-flare" /> {m.home.name}
-              {m.maxKm !== null && <span className="text-dim">· dashed ring = {m.maxKm.toLocaleString()} km</span>}
+              {m.maxKm !== null && <span className="text-muted-foreground">· dashed ring = {m.maxKm.toLocaleString()} km</span>}
             </div>
           </>
         ) : (
           <>
             <div className="flex justify-between">
               <span>Match score</span>
-              <span className="font-mono text-dim">grey = ruled out</span>
+              <span className="text-muted-foreground">grey = ruled out</span>
             </div>
             <div className="mt-2 h-2 rounded-full" style={{ background: RAMP_CSS }} />
-            <div className="mt-1 flex justify-between font-mono text-[10px] text-dim">
+            <div className="mt-1 flex justify-between text-[11px] text-muted-foreground tabular-nums">
               <span>{range ? range.lo.toFixed(2) : "…"}</span>
               <span>{range ? `${range.hi.toFixed(2)} and above` : "…"}</span>
             </div>
@@ -803,13 +803,13 @@ function ScanCounters({ total, pass, found }: { total: number; pass: number; fou
   ];
   return (
     <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.4, ease: EASE }} className="pointer-events-none absolute inset-x-0 top-6 z-20 flex justify-center xl:top-auto xl:bottom-10 xl:left-[480px]">
-      <div className="glass flex items-center gap-6 rounded-2xl px-6 py-4">
+      <div className="flex items-center gap-6 rounded-xl border bg-card/95 px-6 py-4 text-card-foreground shadow-md backdrop-blur-md">
         {items.map((it, i) => (
           <motion.div key={it.l} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.7, duration: 0.5, ease: EASE }} className="text-center">
-            <div className="font-mono text-[28px] leading-none font-light text-platinum">
+            <div className="text-[28px] leading-none font-semibold tracking-tight tabular-nums text-foreground">
               <Counter value={it.n} duration={0.9} />
             </div>
-            <div className="mt-1 text-[11px] text-chrome">{it.l}</div>
+            <div className="mt-1 text-xs text-muted-foreground">{it.l}</div>
           </motion.div>
         ))}
       </div>
@@ -848,22 +848,22 @@ function ResultCard({ grid, c, rank, m, onOpen, picked, onPick, full }: { grid: 
         disabled={full && !picked}
         aria-pressed={picked}
         title={picked ? "Remove from the comparison" : full ? "Up to 4 places" : "Add to the comparison"}
-        className={clsx("absolute right-2.5 bottom-2.5 z-10 min-h-6 rounded-full border px-2.5 py-1 text-[10.5px] transition-colors disabled:opacity-30", picked ? "border-flare bg-flare text-void" : "border-line-2 bg-void/60 text-chrome hover:border-flare/60 hover:text-platinum")}
+        className={clsx("absolute right-2.5 bottom-2.5 z-10 min-h-6 rounded-full border px-2.5 py-1 text-[10.5px] transition-colors disabled:opacity-30", picked ? "border-primary bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:border-primary/60 hover:text-foreground")}
       >
         {picked ? "Comparing" : "+ Compare"}
       </button>
       <button onClick={onOpen} className={clsx("surface lift group flex w-full gap-3 overflow-hidden rounded-2xl p-2.5 text-left", picked && "!border-flare/60")}>
-        <div className="relative size-[86px] shrink-0 overflow-hidden rounded-xl bg-ink">
+        <div className="relative size-[86px] shrink-0 overflow-hidden rounded-xl bg-muted">
           {thumb ? <motion.img src={thumb} alt="" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="size-full object-cover" /> : <div className="shimmer size-full" />}
-          <span className="absolute top-1 left-1 grid size-6 place-items-center rounded-full bg-void/80 font-mono text-[11px] text-platinum">{rank}</span>
+          <span className="absolute top-1 left-1 grid size-6 place-items-center rounded-full border bg-background/90 text-[11px] font-medium tabular-nums text-foreground">{rank}</span>
         </div>
         <div className="min-w-0 flex-1 py-0.5">
           <div className="flex items-start justify-between gap-2">
-            <span className="truncate text-[14.5px] font-medium text-platinum">{nm.title}</span>
-            <span className="shrink-0 font-mono text-[14px] text-flare">{c.score.toFixed(2)}</span>
+            <span className="truncate text-[15px] font-medium text-foreground">{nm.title}</span>
+            <span className="shrink-0 text-[15px] font-semibold tabular-nums text-primary">{c.score.toFixed(2)}</span>
           </div>
-          <div className="truncate text-[11.5px] text-dim">{nm.subtitle || formatCoord(c.lat, c.lon)}</div>
-          <div className="mt-2 flex flex-wrap gap-1">
+          <div className="truncate text-xs text-muted-foreground">{nm.subtitle || formatCoord(c.lat, c.lon)}</div>
+          <div className="mt-2 flex flex-wrap gap-1 pr-[5.5rem]">
             <Chip className="!px-2 !py-0.5 !text-[10.5px]">Best at: {best.f.label.toLowerCase()}</Chip>
             {needLines(grid, m, c.k)
               .slice(0, 1)
@@ -914,7 +914,7 @@ function ResultsPanel({
   const task = TASKS.find((x) => x.id === m.task)!;
   return (
     <div>
-      <div className="font-mono text-[10px] tracking-[0.24em] text-flare uppercase">Results</div>
+      <div className="text-xs font-medium text-primary">Results</div>
       <h2 className="mt-2 text-[24px] leading-tight font-medium tracking-[-0.025em]">
         {result.places.length ? `${result.places.length} best ${m.onlyNew ? "new " : ""}places` : "No place fits every need"}
       </h2>
@@ -1015,7 +1015,7 @@ function CompareSheet({ grid, m, ks, onClose, onOpen }: { grid: Grid; m: Mission
       <motion.div initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16 }} transition={{ duration: 0.45, ease: EASE }} onClick={(e) => e.stopPropagation()} className="scrollbar-thin max-h-full w-full max-w-[1100px] overflow-auto rounded-3xl border border-line bg-panel shadow-[0_40px_120px_-30px_rgba(0,0,0,0.9)]">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-panel/95 px-5 py-4 backdrop-blur">
           <div>
-            <div className="font-mono text-[10px] tracking-[0.22em] text-flare uppercase">Side by side</div>
+            <div className="text-xs font-medium text-primary">Side by side</div>
             <div className="mt-0.5 text-[17px] text-platinum">
               {TASKS.find((x) => x.id === m.task)!.label} · {T.name}
             </div>
@@ -1031,7 +1031,7 @@ function CompareSheet({ grid, m, ks, onClose, onOpen }: { grid: Grid; m: Mission
               <CompareHead key={c.k} grid={grid} k={c.k} score={c.cs.total} best={c.cs.total === top} delay={i * 0.06} onOpen={() => onOpen(c.k)} conf={c.conf} />
             ))}
           </div>
-          <div className="mt-5 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">The four factors</div>
+          <div className="mt-5 text-xs font-medium text-muted-foreground">The four factors</div>
           {FACTORS.map((f, fi) => {
             const vals = cols.map((c) => c.factors[fi]);
             const best = Math.max(...vals);
@@ -1049,7 +1049,7 @@ function CompareSheet({ grid, m, ks, onClose, onOpen }: { grid: Grid; m: Mission
               </div>
             );
           })}
-          <div className="mt-5 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">Measured, and the trip</div>
+          <div className="mt-5 text-xs font-medium text-muted-foreground">Measured, and the trip</div>
           {rows.map((r) => {
             const b = r.better ? bestOf(r.vals, r.better) : null;
             return (
@@ -1091,7 +1091,7 @@ function CompareHead({ grid, k, score, best, delay, onOpen, conf }: { grid: Grid
         <div className="truncate text-[14px] text-platinum">{nm.title}</div>
         <div className="truncate text-[11px] text-dim">{nm.subtitle}</div>
         <div className="mt-2 flex items-center justify-between gap-2">
-          <span className="font-mono text-[22px] text-platinum">{score.toFixed(2)}</span>
+          <span className="text-[22px] font-semibold tabular-nums text-foreground">{score.toFixed(2)}</span>
           <button onClick={onOpen} className="rounded-full border border-line-2 px-2.5 py-1 text-[11px] text-chrome hover:text-platinum">
             Report
           </button>
@@ -1224,14 +1224,14 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
   });
   return (
     <div>
-      <button onClick={onBack} className="flex items-center gap-1.5 text-[12px] text-chrome hover:text-platinum">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
         <ArrowLeft size={13} /> All results
       </button>
-      <div className="relative mt-3 overflow-hidden rounded-2xl border border-line bg-ink">
+      <div className="relative mt-3 overflow-hidden rounded-xl border bg-muted">
         {thumb ? <motion.img src={thumb} alt={`Satellite view of ${nm.title}, 50 km across`} initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: EASE }} className="h-56 w-full object-cover" /> : <div className="shimmer h-56" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-void/95 via-void/45 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-4">
-          <div className="flex flex-wrap gap-1.5 [&>span]:bg-void/80 [&>span]:backdrop-blur-sm">
+          <div className="flex flex-wrap gap-1.5 [&>span]:border-white/25 [&>span]:bg-black/55 [&>span]:text-white [&>span]:backdrop-blur-sm">
             {knownKm(grid)[k] >= 150 ? <Chip tone="flare">New candidate</Chip> : <Chip tone="moon">Known site nearby</Chip>}
             <ConfidenceChip {...conf} />
             {lat < -60 && <Chip>Antarctic Treaty area</Chip>}
@@ -1242,7 +1242,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
             <span className="font-mono">{formatCoord(lat, lon)}</span>
           </div>
         </div>
-        <span className="absolute top-3 right-3 rounded-full bg-void/70 px-2 py-0.5 font-mono text-[10px] text-white/80">50 km · Sentinel-2</span>
+        <span className="absolute top-3 right-3 rounded-md bg-black/60 px-2 py-0.5 text-[11px] text-white">50 km · Sentinel-2</span>
       </div>
 
       <div className="mt-4 flex items-center gap-4">
@@ -1256,7 +1256,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link href={`/probe?lat=${lat.toFixed(3)}&lon=${lon.toFixed(3)}`} className="btn-primary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[12.5px] font-medium">
+        <Link href={`/probe?lat=${lat.toFixed(3)}&lon=${lon.toFixed(3)}`} className="btn-primary inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-[13px] font-medium no-underline">
           Open in Terraluna probe <ArrowRight size={13} />
         </Link>
         <button
@@ -1279,7 +1279,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
 
       <PinpointCard lat={lat} lon={lon} targetHist={t.terrain.hist} targetId={m.target} targetName={T.name} task={m.task} />
 
-      <h3 className="mt-7 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">The four challenge factors, side by side</h3>
+      <h3 className="mt-7 text-xs font-medium text-muted-foreground">The four challenge factors, side by side</h3>
       <FactorProvenance className="mt-1.5" />
       <div className="mt-3 space-y-3">
         {rows.map((r) => (
@@ -1287,7 +1287,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
             <Meter value={factor(r.f.dims)} label={r.f.label} kind="computed" />
             <div className="mt-3 grid grid-cols-2 gap-3 text-[12px]">
               <div>
-                <div className="flex items-center gap-1.5 text-[10.5px] tracking-wide text-earth uppercase">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-earth">
                   <WorldDot world="earth" /> This place
                 </div>
                 <dl className="mt-1 space-y-0.5">
@@ -1300,7 +1300,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
                 </dl>
               </div>
               <div>
-                <div className="flex items-center gap-1.5 text-[10.5px] tracking-wide uppercase" style={{ color: `var(--color-${T.body})` }}>
+                <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: `var(--color-${T.body})` }}>
                   <WorldDot world={T.body} /> {T.name}
                 </div>
                 <dl className="mt-1 space-y-0.5">
@@ -1325,7 +1325,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
 
       <TerralunaFingerprint lat={lat} lon={lon} shadowAstraTarget={m.target} probe={probe} className="mt-5" />
 
-      <h3 className="mt-7 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">Planning the trip</h3>
+      <h3 className="mt-7 text-xs font-medium text-muted-foreground">Planning the trip</h3>
       <div className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line text-[12.5px]">
         {[
           [<Plane key="p" size={13} />, "From " + m.home.name, `${Math.round(km).toLocaleString()} km`],
@@ -1342,7 +1342,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
         ))}
       </div>
 
-      <h3 className="mt-7 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">Tests a team could run here</h3>
+      <h3 className="mt-7 text-xs font-medium text-muted-foreground">Tests a team could run here</h3>
       <ul className="mt-2 space-y-1.5">
         {fieldTestsFor(FIELD_TESTS[m.task], v("f_snowice")).map((x) => (
           <li key={x} className="flex gap-2 text-[13px] leading-snug text-chrome">
@@ -1367,7 +1367,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
         <p className="mt-2 text-[12.5px] leading-relaxed text-platinum">Use this place for {gaps.useFor.join(" and ")}.</p>
       </div>
 
-      <h3 className="mt-7 font-mono text-[10px] tracking-[0.22em] text-dim uppercase">Check it in NASA's own tools</h3>
+      <h3 className="mt-7 text-xs font-medium text-muted-foreground">Check it in NASA's own tools</h3>
       <div className="mt-2 flex flex-wrap gap-2">
         {[
           ["NASA Worldview", worldviewUrl(lat, lon)],
