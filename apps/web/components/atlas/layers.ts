@@ -254,7 +254,7 @@ export const LAYERS_BY_BODY: Record<Body, MapLayer[]> = {
 };
 
 export const DEFAULT_LAYER: Record<Body, string> = {
-  earth: "earth-bluemarble",
+  earth: "earth-s2",
   moon: "moon-wac",
   mars: "mars-viking",
 };
