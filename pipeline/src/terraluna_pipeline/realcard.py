@@ -469,3 +469,217 @@ def window_entry(
         grid_index=list(window.grid_index),
         card_id=card_id,
     )
+
+
+# --- The slice build: one target window, one Earth window -------------------------------------
+
+TARGET_ID: Final = "moon-cr-site01-w000"
+"""The Site01 (Connecting Ridge) target, named as in the PRD 8.4 manifest example."""
+
+TARGET_NAME: Final = "Connecting Ridge, PGDA78 Site01"
+
+SOURCES_FRAGMENT: Final = "outputs/realcard/sources.json"
+"""The whole-file ProductRecords this slice reads beyond outputs/sources.json (export stage
+merges every outputs/**/sources.json by product_id)."""
+
+DEM_CACHE_DIR: Final = "data/processed/dem_windows"
+WINDOWS_DIR: Final = "data/processed/windows"
+COMPARISONS_DIR: Final = "outputs/comparisons"
+TARGETS_PATH: Final = "outputs/search/targets.json"
+
+
+class BlockedError(RuntimeError):
+    """A missing human decision or input; the command exits 3 naming it (CONTRACTS f)."""
+
+
+def _sources(root: Path) -> dict[str, ProductRecord]:
+    import json
+
+    path = root / "outputs" / "sources.json"
+    if not path.is_file():
+        raise BlockedError("blocked: outputs/sources.json (t1-pilot) is missing")
+    return products_by_id(
+        [
+            ProductRecord.model_validate_json(json.dumps(item))
+            for item in json.loads(path.read_text())
+        ]
+    )
+
+
+def _claim_limits(moon: RealWindow, earth: RealWindow, mode: str) -> list[str]:
+    observed = moon.observed_fraction
+    limits = [
+        "A single candidate pair: one Earth window was compared with the target window, so "
+        "this is a pilot result, not a ranking and not independent evidence.",
+        f"Shipping mode {mode}: radar comparison not completed; only terrain distances are "
+        "reported (PRD 4).",
+        "The Earth window was fixed at G0 (G0-05) as the eligible window containing the decoded "
+        "UAVSAR ROI centre, without ranking by similarity.",
+        "Both windows are resampled on a sphere (D29 aeqd_sphere); on Earth this approximates "
+        "the WGS84 ellipsoid over a 5 km window.",
+        "The nu values use the direction_mean isotropic summary of T3.",
+        "Copernicus GLO-30 is a surface model (DSM) of one epoch; snow, moisture and surface "
+        "change since acquisition were not checked on the Earth window.",
+        "The WorldCover land-cover eligibility of the Earth window was checked at G0 "
+        "(outputs/g0/windows-evidence.json) and is not recomputed in this record.",
+        "PGDA78 error spatial correlation is not propagated: the uncertainty components "
+        "(clones, scenarios) have not been run.",
+    ]
+    if observed is not None:
+        limits.append(
+            f"PGDA78 Site01 interpolation: {observed:.4f} of the target window's valid 90 m "
+            "cells sit on a 5 m pixel with at least one LOLA return; the rest of the 5 m DEM "
+            "there is interpolated."
+        )
+    return limits
+
+
+def _target_record(
+    run_id_value: str, products: list[ProductRecord], mode: str, moon: RealWindow
+) -> Any:
+    from terraluna_pipeline.schema import TargetRecord
+
+    surf = products[-1]
+    return TargetRecord.model_validate(
+        {
+            "target_id": TARGET_ID,
+            "mock": False,
+            "run_id": run_id_value,
+            "body": "moon",
+            "name": TARGET_NAME,
+            "description": (
+                "PGDA78 LOLA 5 m/pixel DEM of Site01 near the lunar south pole (Connecting "
+                "Ridge); target window frozen at G0 (G0-02)."
+            ),
+            "product_ids": [p.product_id for p in products],
+            "crs": surf.crs_and_frame,
+            "projection": {
+                "kind": "polar_stereographic",
+                "params": {
+                    "latitude_of_origin_deg": -90.0,
+                    "central_meridian_deg": 0.0,
+                    "sphere_radius_m": body_radius_m("moon"),
+                },
+            },
+            "footprint": None,
+            "primary_window_id": moon.window_id,
+            "window_grid": {
+                "window_m": moon.grid.width_m,
+                "stride_m": 2500.0,
+                "n_generated": None,
+                "n_eligible": None,
+            },
+            "reference_window_ids": [],
+            "shortlist": None,
+            "shortlist_reason": "search_not_run",
+            "shipping_mode": mode,
+            "tile_layers": [],
+        }
+    )
+
+
+def build(root: Path, target_window_id: str, earth_window_id: str) -> list[Path]:
+    """Build the slice records for one pair and return the paths written.
+
+    Writes data/processed/windows/<body>.json, data/processed/dem_windows/<id>.npz,
+    outputs/comparisons/<target_id>.json, outputs/realcard/sources.json and, if absent,
+    outputs/search/targets.json. Then ``export cards`` builds the card.
+    """
+    from terraluna_pipeline import export, matching, provenance
+
+    config_path = root / "config" / "run.yaml"
+    run = load_run_config(config_path)
+    mode = run.value("run.shipping_mode")
+    primary = run.value("targets.moon.primary_window_id")
+    missing = [
+        name
+        for name, value in (("G0-01 run.shipping_mode", mode), ("G0-02 primary_window_id", primary))
+        if value is None
+    ]
+    if missing:
+        raise BlockedError("blocked: " + ", ".join(missing))
+    if target_window_id != primary:
+        raise RealCardError(
+            f"target {target_window_id} is not the frozen primary window {primary} (G0-02)"
+        )
+    raw = raw_dir()
+    sources = _sources(root)
+    moon = moon_window(target_window_id, run, sources, raw)
+    earth, cop30 = earth_window(earth_window_id, run, sources, raw)
+    card_id = f"{moon.window_id}__{earth.window_id}"
+    moon_products = [sources[PGDA78_LDEC], sources[PGDA78_SURF]]
+    moon_entry = window_entry(moon, moon_products, config_path, card_id)
+    earth_entry = window_entry(earth, [cop30], config_path, card_id)
+
+    settings = matching.QualifySettings.from_config(config_path)
+    target_summary = matching.WindowSummary.from_entry(moon_entry)
+    earth_summary = matching.WindowSummary.from_entry(earth_entry)
+    eligibility: dict[str, matching.QualifyResult] = {
+        observable: matching.qualify_pair(
+            None if observable == "radar_cpr" else sources[PGDA78_SURF],
+            None if observable == "radar_cpr" else cop30,
+            observable,
+            mode,  # type: ignore[arg-type]
+            target_summary,
+            earth_summary,
+            settings=settings,
+            config_path=config_path,
+        )
+        for observable in matching.OBSERVABLES
+    }
+    all_products = [*moon_products, cop30]
+    comparison = matching.compare_windows(
+        moon_entry,
+        earth_entry,
+        eligibility,
+        shipping_mode=mode,  # type: ignore[arg-type]
+        source_ids=all_products,
+        claim_limits=_claim_limits(moon, earth, str(mode)),
+        config_path=config_path,
+    )
+    written: list[Path] = []
+    for path, writer, value in (
+        (root / WINDOWS_DIR / "moon.json", export.write_windows, [moon_entry]),
+        (root / WINDOWS_DIR / "earth.json", export.write_windows, [earth_entry]),
+        (root / COMPARISONS_DIR / f"{TARGET_ID}.json", export.write_comparisons, [comparison]),
+        (root / SOURCES_FRAGMENT, export.write_sources, [cop30]),
+    ):
+        writer(path, value)
+        written.append(path)
+    targets = root / TARGETS_PATH
+    if not targets.is_file():
+        record = _target_record(
+            provenance.run_id(config_path, moon_products), moon_products, str(mode), moon
+        )
+        export.write_targets(targets, [record])
+        written.append(targets)
+    for window in (moon, earth):
+        written.append(save_dem_cache(window, root / DEM_CACHE_DIR))
+    return written
+
+
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(prog="python -m terraluna_pipeline.realcard")
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[3])
+    commands = parser.add_subparsers(dest="command", required=True)
+    build_cmd = commands.add_parser("build", help="build the slice records of one pair")
+    build_cmd.add_argument("--target", required=True)
+    build_cmd.add_argument("--earth", required=True)
+    args = parser.parse_args(argv)
+    try:
+        for path in build(args.root, args.target, args.earth):
+            print(f"wrote {path}")
+    except (BlockedError, CacheMissingError) as error:
+        print(str(error), file=sys.stderr)
+        return 3
+    except RealCardError as error:
+        print(f"build: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
