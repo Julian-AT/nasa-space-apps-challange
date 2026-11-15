@@ -1,10 +1,15 @@
+/*
+ * Adapted from ShadowAstra_Atlas (MIT, (c) 2026 Team ShadowAstra), https://github.com/ABRUBAB/ShadowAstra_Atlas
+ */
 @import "tailwindcss" source(none);
 
 /*
- * Terraluna design tokens (PRD 8.2, 8.10, D35). One high-contrast light theme: every text pair
+ * Terraluna design tokens (PRD 8.2, 8.10, D35). Dark "observatory" theme, adapted from the
+ * ShadowAstra palette: warm blacks, bone-white text, one sunlight accent. Standard shadcn token
+ * names, plus evidence-label tokens (PRD 3) and gate-status tokens (PRD 9, 10). Every text pair
  * meets WCAG 2.2 AA (4.5:1) and the focus ring and borders meet 3:1, checked by
  * tests/theme.test.ts. The system font stack is used, so no webfont is downloaded, and nothing
- * here loads an image.
+ * here loads an image: depth comes from CSS gradients only.
  *
  * Classes are read only from the app's own code; tests, scripts and bundle data are not scanned.
  */
@@ -12,32 +17,65 @@
 @source "../components";
 
 :root {
-  color-scheme: light;
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --primary: #171717;
-  --primary-foreground: #fafafa;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f4f4f5;
-  --muted-foreground: #3f3f46;
-  --accent: #e4e4e7;
-  --accent-foreground: #18181b;
-  --border: #71717a;
-  --input: #71717a;
-  --ring: #1d4ed8;
-  /* Reserved for the mock-bundle banner (PRD 8.4, 8.6). No other token or component is red. */
+  color-scheme: dark;
+  --background: #07080a;
+  --foreground: #edeae4;
+  --card: #101114;
+  --card-foreground: #edeae4;
+  --popover: #16171b;
+  --popover-foreground: #edeae4;
+  --primary: #f2c879;
+  --primary-foreground: #07080a;
+  --secondary: #1c1d22;
+  --secondary-foreground: #edeae4;
+  --muted: #16171b;
+  --muted-foreground: #a8a59e;
+  --accent: #23242a;
+  --accent-foreground: #edeae4;
+  /* Component borders and inputs: 3:1 against the page (WCAG 1.4.11). */
+  --border: #6b6962;
+  --input: #6b6962;
+  --ring: #8fb4ea;
+  /* Decorative hairlines only (card chrome, dividers); never the sole boundary of a control. */
+  --line: #2a2b31;
+  --destructive: #f08a74;
+  --destructive-foreground: #07080a;
+  /* Mock-bundle banner (PRD 8.4, 8.6): shown only when manifest.mock is true. */
   --mock: #b91c1c;
   --mock-foreground: #ffffff;
+
+  /* Evidence labels (PRD 3): text colour on a 15% tint of itself over the card. */
+  --evidence-observed: #8fb4ea;
+  --evidence-derived: #7cc8a0;
+  --evidence-predicted: #b7aee3;
+  --evidence-assumed: #e3b35e;
+  --evidence-unavailable: #a8a59e;
+
+  /* Gate statuses (PRD 9): always shown with their literal text. */
+  --status-pass: #7cc8a0;
+  --status-fail: #f08a74;
+  --status-partial: #e3b35e;
+  --status-not-run: #a8a59e;
+  --status-not-applicable: #8fb4ea;
+
+  /* Worlds, used for map and card accents only. */
+  --world-moon: #c9c5bc;
+  --world-mars: #e08a5f;
+  --world-earth: #8fb4ea;
+
+  --radius: 0.75rem;
 }
 
 @theme inline {
-  /* The default palette's reds would let other elements look like the mock banner. */
-  --color-red-*: initial;
-  --color-rose-*: initial;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -49,18 +87,47 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-line: var(--line);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-mock: var(--mock);
   --color-mock-foreground: var(--mock-foreground);
+
+  --color-evidence-observed: var(--evidence-observed);
+  --color-evidence-derived: var(--evidence-derived);
+  --color-evidence-predicted: var(--evidence-predicted);
+  --color-evidence-assumed: var(--evidence-assumed);
+  --color-evidence-unavailable: var(--evidence-unavailable);
+
+  --color-status-pass: var(--status-pass);
+  --color-status-fail: var(--status-fail);
+  --color-status-partial: var(--status-partial);
+  --color-status-not-run: var(--status-not-run);
+  --color-status-not-applicable: var(--status-not-applicable);
+
+  --color-world-moon: var(--world-moon);
+  --color-world-mars: var(--world-mars);
+  --color-world-earth: var(--world-earth);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
 @layer base {
   * {
-    border-color: var(--border);
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     background-color: var(--background);
     color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.6;
   }
 
   /* One visible focus indicator for every focusable element; components must not hide it. */
@@ -80,17 +147,29 @@
     font-size: var(--text-3xl);
     line-height: var(--text-3xl--line-height);
     font-weight: var(--font-weight-bold);
+    letter-spacing: -0.02em;
   }
 
   h2 {
     font-size: var(--text-2xl);
     line-height: var(--text-2xl--line-height);
     font-weight: var(--font-weight-semibold);
+    letter-spacing: -0.01em;
   }
 
   h3 {
     font-size: var(--text-xl);
     line-height: var(--text-xl--line-height);
     font-weight: var(--font-weight-semibold);
+  }
+}
+
+@layer utilities {
+  /* Subtle starfield and glow drawn with CSS gradients only (no raster image, D35). */
+  .bg-observatory {
+    background-image:
+      radial-gradient(60rem 30rem at 85% -10%, rgb(143 180 234 / 0.1), transparent 60%),
+      radial-gradient(40rem 24rem at 0% 0%, rgb(242 200 121 / 0.06), transparent 60%);
+    background-repeat: no-repeat;
   }
 }
