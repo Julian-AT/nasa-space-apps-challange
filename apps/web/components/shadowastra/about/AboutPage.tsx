@@ -6,7 +6,7 @@
 // No ShadowAstra team members, names or photos are shown.
 import { useRef } from "react";
 import Link from "next/link";
-import { motion, useTransform } from "motion/react";
+import { motion } from "motion/react";
 import { ArrowRight, ArrowUpRight, Bot, FileText, Fingerprint, Radar, Sparkles } from "lucide-react";
 import { Github } from "../atlas/ui/Chrome";
 import { Astronaut } from "../chrome/Astronaut";
@@ -102,19 +102,8 @@ export default function AboutPage() {
 
 function Hero() {
   const ref = useRef<HTMLElement>(null);
-  const scrollYProgress = useSectionProgress(ref, ["start start", "end start"]);
-  const y = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const fade = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   return (
     <section ref={ref} className="relative overflow-hidden border-b border-line">
-      {/* The real Moon (LROC mosaic), with a Sun sweeping around it, light and shadow. */}
-      <motion.div style={{ y, opacity: fade }} className="pointer-events-none absolute top-1/2 right-[-12%] hidden aspect-square w-[62vw] max-w-[860px] -translate-y-1/2 lg:block">
-        <div className="relative size-full overflow-hidden rounded-full">
-          <img src="/textures/moon_lroc_2k.webp" alt="" className="size-full scale-[1.35] object-cover opacity-60" />
-          <div className="absolute inset-0 animate-[sweep_22s_linear_infinite] rounded-full" style={{ background: "conic-gradient(from 0deg, rgba(242,200,121,0.28), rgba(7,8,10,0.0) 18%, rgba(7,8,10,0.85) 45%, rgba(7,8,10,0.9) 70%, rgba(242,200,121,0.0) 92%, rgba(242,200,121,0.28))", mixBlendMode: "multiply" }} />
-          <div className="absolute inset-0 rounded-full shadow-[inset_0_0_120px_60px_var(--color-void)]" />
-        </div>
-      </motion.div>
       <div className="relative mx-auto max-w-[1400px] px-4 pt-28 pb-24 sm:px-6 lg:pt-36 lg:pb-32">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} className="flex items-center gap-4 font-mono text-[11px] tracking-[0.24em] text-chrome uppercase">
           <span className="h-px w-8 bg-chrome/50" /> About Terraluna
@@ -122,7 +111,7 @@ function Hero() {
         <h1 className="mt-8 max-w-[900px] text-4xl sm:text-5xl leading-[0.98] font-medium tracking-[-0.045em]">
           <Words text="Team Terraluna." />
           <br />
-          <Words text="Earth terrain, measured against the Moon and Mars." className="font-serif font-normal tracking-[-0.02em] text-flare italic" delay={0.3} />
+          <Words text="Earth terrain, measured against the Moon and Mars." className="text-muted-foreground" delay={0.3} />
         </h1>
         <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: EASE, delay: 0.7 }} className="mt-8 max-w-[600px] text-[17px] leading-relaxed text-chrome">
           Terraluna is a NASA Space Apps 2026 project. It compares Earth terrain windows with Moon and Mars targets using roughness fingerprints from public elevation data, and labels every value with its evidence and claim limits.
