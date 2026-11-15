@@ -118,7 +118,11 @@
       "claim": "The first-parent diff shows scripts/ralph/ralph.sh changed (+13), which is outside the story's files list.",
       "evidence": "git diff --stat 8669311..e537028 lists scripts/ralph/ralph.sh with 13 insertions. The story commits listed touch only paper/. The change most likely comes from the tooling merge (bb93a4a), which is not part of this story. I did not trace it.",
       "id": "claude-r9-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The change is not story work. git log --first-parent 8669311..e537028 -- scripts/ralph/ralph.sh lists only bb93a4a, the orchestrator's merge of ralph/tooling into ralph/t16-paper; the 13 added lines come from 151ee09 'feat(ralph): gate stories on merged predecessor stories' on ralph/tooling. No T16-02 commit touches scripts/ralph/ralph.sh, and the loop's own scope check, which judges the author's commits against the story files, passed."
+      }
     }
   ]
 }

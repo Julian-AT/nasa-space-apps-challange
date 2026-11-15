@@ -136,7 +136,11 @@
       "claim": "Whitespace after an unbraced control-word key argument can split printed words and bypass both guards.",
       "evidence": "Static trace, not executed: mandatory_argument_end() returns word.end() for a control-word argument at :949-951. command() then blanks that control word at :672, so unprinted() at :895-899 cannot recognize and drop its trailing lexical whitespace. Thus valid source seam\\label\\empty less prints seamless because TeX ignores the space after \\empty, but extracts as seam less and escapes the banned-word rule. Likewise, 'We measure the roughness of lu\\label\\empty nar and martian terrain at baselines from' prints the existing test abstract's first 12 words but extracts lu and nar separately, hiding the overlap. Record the whitespace skipped after control-word argument tokens before masking them, and add extraction and consumer regressions.",
       "id": "codex-r9-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "6aa8fe7",
+        "reason": "Fixed in 6aa8fe7: mandatory_argument_end now records the gap after an unbraced control-word argument (space_end: spaces, a comment and one line break) as unprinted, so seam\\label\\empty less gives seamless and lu\\label\\empty nar gives lunar. A control symbol such as \\% skips nothing and a blank line stays \\par. Regressions in 09ccd2f: test_tex_prose.py (extraction, line count kept), test_lint_prose.py (banned word) and test_overlap_check.py (run not hidden)."
+      }
     }
   ]
 }
