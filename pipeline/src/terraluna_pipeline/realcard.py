@@ -548,6 +548,26 @@ def _claim_limits(moon: RealWindow, earth: RealWindow, mode: str) -> list[str]:
     return limits
 
 
+def write_targets_merged(path: Path, records: list[Any]) -> bytes:
+    """Write targets.json replacing only the entries whose target_id is in ``records``.
+
+    Other producers (``search compute``) own the other targets; their entries survive unchanged,
+    and the file keeps one entry per target_id, sorted by target_id.
+    """
+    import json
+
+    from terraluna_pipeline.schema import TargetRecord
+
+    mine = {r.target_id for r in records}
+    kept: list[Any] = []
+    if path.is_file():
+        for raw in json.loads(path.read_text()):
+            if raw.get("target_id") not in mine:
+                kept.append(TargetRecord.model_validate(raw))
+    merged = sorted([*kept, *records], key=lambda r: r.target_id)
+    return export.write_targets(path, merged)
+
+
 def _target_record(
     run_id_value: str, products: list[ProductRecord], mode: str, moon: RealWindow
 ) -> Any:
@@ -1009,7 +1029,7 @@ def search(root: Path, also_card: Sequence[str] = ()) -> list[Path]:
             export.write_sources,
             [extra_products[k] for k in sorted(extra_products)],
         ),
-        (root / TARGETS_PATH, export.write_targets, [target]),
+        (root / TARGETS_PATH, write_targets_merged, [target]),
     ):
         writer(path, value)
         written.append(path)
