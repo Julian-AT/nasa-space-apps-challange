@@ -28,3 +28,11 @@
 \RequirePackage{array}
 \newcommand{\Rsq}{\ensuremath{R^{2}}}
 \newcolumntype{W}{p{0.52\linewidth}}
+
+% Let tall figures and tables float near their first reference instead of collecting at the end.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.7}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{5}
