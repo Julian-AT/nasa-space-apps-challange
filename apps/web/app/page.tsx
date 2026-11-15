@@ -123,6 +123,9 @@ export default function Home() {
           ? { label: relief.evidence_label, value: relief.value.toFixed(3), unit: relief.unit }
           : { label: 'Unavailable', reason: relief.reason ?? 'not in this bundle' },
       wording: card.wording,
+      reliefValue: relief.status === 'available' ? relief.value : null,
+      targetPin: ringCentroid(card.target.polygon.ring_lonlat),
+      earthPin: c,
     });
   }
 
