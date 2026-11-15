@@ -6,10 +6,13 @@
 // screenshot carries them. The families are never summed or ranked together.
 import type { CardRecord } from '@terraluna/schema';
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 
 import { EvidenceLabel, isEvidenceLabel } from '@/components/evidence-label';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -19,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { Metric, closerThan } from '../cards/card-metric.tsx';
 import { CardPair } from '../cards/card-pair.tsx';
 import type { CardVisual } from '../cards/card-visual.ts';
 import { MODE_TITLES } from '../mode-banner.tsx';
@@ -70,33 +74,6 @@ const QUESTIONS = [
   'Field experiment',
 ] as const;
 
-function Q({ n, children }: { readonly n: number; readonly children: ReactNode }) {
-  return (
-    <Card
-      role="region"
-      data-question={`q${String(n)}`}
-      aria-labelledby={`q${String(n)}-title`}
-      className="gap-4 px-5 text-sm sm:px-6"
-    >
-      <div className="flex items-center gap-4">
-        <span
-          aria-hidden="true"
-          className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/15 font-mono text-sm font-semibold text-primary"
-        >
-          {String(n).padStart(2, '0')}
-        </span>
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">Question {n}</p>
-          <h2 id={`q${String(n)}-title`} className="text-lg leading-tight font-semibold">
-            {QUESTIONS[n - 1]}
-          </h2>
-        </div>
-      </div>
-      <div className="flex min-w-0 flex-col gap-3">{children}</div>
-    </Card>
-  );
-}
-
 function Label_({ label }: { readonly label: unknown }) {
   if (!isEvidenceLabel(label)) {
     throw new Error(`evidence card: a row has no evidence label (got ${JSON.stringify(label)})`);
@@ -144,57 +121,6 @@ function Polygon({
         <p className="mt-1 break-all">{polygon.crs}</p>
       </details>
     </div>
-  );
-}
-
-function Distances({ card, g5Passed }: { readonly card: CardRecord; readonly g5Passed: boolean }) {
-  return (
-    <ul data-slot="distances" className="grid gap-4 sm:grid-cols-2">
-      {FAMILY_ORDER.filter((f) => card.distances_by_family[f].status === 'available' && card.distances_by_family[f].value !== null).map((family) => {
-        const d = card.distances_by_family[family];
-        const encoder = family === 'model_embedding';
-        const experimental = encoder && !g5Passed;
-        const has = d.status === 'available' && d.value !== null;
-        return (
-          <li
-            key={family}
-            data-family={family}
-            data-status={d.status}
-            className="flex min-w-0"
-          >
-            <Card className="w-full gap-3 px-4 text-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                {FAMILY_NAMES[family]}
-              </span>
-              {experimental ? <Badge variant="outline">EXPERIMENTAL</Badge> : null}
-            </div>
-            {has ? (
-              <p className="font-mono text-3xl leading-none font-semibold tabular-nums">
-                <span data-slot="value">{show(d.value)}</span>{' '}
-                <span data-slot="unit" className="text-sm text-muted-foreground">
-                  {d.unit}
-                </span>
-              </p>
-            ) : (
-              <p className="text-lg leading-snug">
-'Unavailable'
-              </p>
-            )}
-            <div className="mt-auto flex flex-col gap-1.5 text-sm">
-              <Label_ label={d.evidence_label} />
-              <span className="text-muted-foreground">
-                {d.status === 'not_comparable' ? 'not comparable' : d.status} <Reason reason={d.reason} />
-              </span>
-              <span data-rank="none" className="text-xs text-muted-foreground">
-                {experimental ? 'experimental' : 'own units'}
-              </span>
-            </div>
-            </Card>
-          </li>
-        );
-      })}
-    </ul>
   );
 }
 
@@ -263,51 +189,69 @@ function dataUri(svg: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
+
 function Figures({ card, figures }: Pick<EvidenceCardViewProps, 'card' | 'figures'>) {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid gap-5 lg:grid-cols-2">
       {card.figures.map((f) => {
         const svg = f.path === null ? undefined : figures.get(f.path);
         return (
-          <figure key={f.figure} data-figure={f.figure} className="m-0 flex min-w-0 flex-col gap-3 rounded-lg bg-card p-4 ring-1 ring-foreground/10">
-            <figcaption className="text-sm font-medium">Figure {f.figure}</figcaption>
-            {svg !== undefined && f.path !== null ? (
-              <>
-                <img src={dataUri(svg)} alt={f.alt} className="w-full rounded-lg bg-white" />
-                <p className="text-xs text-muted-foreground">{f.alt}</p>
-              </>
-            ) : (
-              <div role="img" aria-label={f.alt} className="rounded-md border border-dashed p-4 text-sm">
-                <p>
+          <Card key={f.figure} data-figure={f.figure} className="gap-4 py-4">
+            <CardHeader className="px-4">
+              <CardTitle className="text-base">Figure {f.figure}</CardTitle>
+              <CardDescription className="text-sm">{f.alt}</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4">
+              {svg !== undefined && f.path !== null ? (
+                <img src={dataUri(svg)} alt={f.alt} className="w-full rounded-lg border bg-white" />
+              ) : (
+                <div role="img" aria-label={f.alt} className="flex flex-col gap-2 rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
                   <EvidenceLabel label="Unavailable" />
-                </p>
-                <p className="mt-2">
                   {f.path === null ? (
-                    <>
-                      Not rendered: <Reason reason={f.reason} />
-                    </>
+                    <p>Not rendered: <Reason reason={f.reason} /></p>
                   ) : (
-                    <>
-                      Missing from the bundle: <code>{f.path}</code>
-                    </>
+                    <p>Missing from the bundle: <code>{f.path}</code></p>
                   )}
-                </p>
-                <p className="mt-1 text-muted-foreground">{f.alt}</p>
-              </div>
-            )}
-          </figure>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         );
       })}
     </div>
   );
 }
 
-function SectionTitle({ id, eyebrow, children }: { readonly id: string; readonly eyebrow: string; readonly children: ReactNode }) {
+const human = (code: string | null): string => (code === null ? 'no reason recorded' : code.replaceAll('_', ' '));
+
+function Prose({ title, label, badge, children }: { readonly title: string; readonly label: unknown; readonly badge?: string; readonly children: ReactNode }) {
   return (
-    <div>
-      <p className="text-xs font-medium text-muted-foreground">{eyebrow}</p>
-      <h2 id={id} className="text-2xl font-semibold tracking-tight">{children}</h2>
-    </div>
+    <Card className="gap-3 py-5">
+      <CardHeader className="px-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <CardTitle className="text-base">{title}</CardTitle>
+          <div className="flex items-center gap-2">
+            {badge === undefined ? null : <Badge variant="outline">{badge}</Badge>}
+            <Label_ label={label} />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="px-5 text-sm leading-relaxed text-muted-foreground">{children}</CardContent>
+    </Card>
+  );
+}
+
+function Detail({ n, children }: { readonly n: number; readonly children: ReactNode }) {
+  return (
+    <AccordionItem value={`q${String(n)}`} data-question={`q${String(n)}`} className="px-2">
+      <AccordionTrigger className="py-3.5 text-sm hover:no-underline">
+        <span className="flex items-center gap-3">
+          <span className="text-xs text-muted-foreground tabular-nums">Q{n}</span>
+          <span>{QUESTIONS[n - 1]}</span>
+        </span>
+      </AccordionTrigger>
+      <AccordionContent className="flex flex-col gap-3 text-sm leading-relaxed">{children}</AccordionContent>
+    </AccordionItem>
   );
 }
 
@@ -316,204 +260,202 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
   const g5Passed = g5Gate === 'PASS' && card.g5_status === 'PASS';
   const marsLimits = card.target.body === 'mars';
   const t = card.target;
+  const d = card.distances_by_family;
+  const missing = FAMILY_ORDER.filter((f) => d[f].status !== 'available' || d[f].value === null);
+  const modeTitle = card.shipping_mode === 'C' ? 'Terrain fingerprint' : MODE_TITLES[card.shipping_mode];
   return (
-    <article data-slot="evidence-card" className="font-sans flex min-w-0 flex-col gap-8 wrap-anywhere">
+    <article data-slot="evidence-card" className="flex min-w-0 flex-col gap-8 pt-6 wrap-anywhere sm:pt-8">
       {card.mock ? (
         <p role="status" className="rounded-lg bg-mock px-4 py-3 font-bold text-mock-foreground">
           MOCK PREVIEW: synthetic data, not production evidence
         </p>
       ) : null}
-      <header className="grid gap-8 rounded-lg bg-card p-6 text-card-foreground ring-1 ring-foreground/10 sm:p-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <div className="flex min-w-0 flex-col gap-5">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-medium text-muted-foreground">
-              Evidence card
-            </span>
-            <Badge data-slot="mode-pill" className="h-auto max-w-full py-1 whitespace-normal">
-              {card.shipping_mode === 'C' ? 'Terrain fingerprint' : MODE_TITLES[card.shipping_mode]}
-            </Badge>
+      <header className="flex flex-col gap-6">
+        <Link href="/site" className="w-fit text-sm text-muted-foreground no-underline hover:text-foreground">
+          ← All evidence cards
+        </Link>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary" className="capitalize">{t.body}</Badge>
+            <Badge data-slot="mode-pill" variant="outline">Mode {card.shipping_mode} · {modeTitle}</Badge>
           </div>
-          {visual === undefined ? null : (
-            <p className="text-base font-medium text-muted-foreground">{visual.headline}</p>
-          )}
-          <h1 className="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">{card.title}</h1>
-          <div className="flex flex-wrap gap-2 text-sm">
-            <span className="rounded-md border bg-muted/40 px-2.5 py-1">
-              <span className="text-muted-foreground">Target</span> {t.target_id} ({t.body})
-            </span>
-            <span className="rounded-md border bg-muted/40 px-2.5 py-1">
-              <span className="text-muted-foreground">Earth window</span> {card.earth.earth_window_id}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground">{card.wording}</p>
-          <p className="mt-auto text-xs text-muted-foreground">
-            Bundle {bundleVersion}
+          <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{visual?.headline ?? card.title}</h1>
+          <p className="max-w-3xl text-base text-muted-foreground">
+            {card.title}. <span className="first-letter:uppercase">{card.wording}</span>.
           </p>
         </div>
         {visual === undefined ? null : (
-          <div className="min-w-0">
+          <div className="flex flex-col gap-2">
             <CardPair visual={visual} big />
-            <p className="mt-3 text-xs text-muted-foreground">
-              <EvidenceLabel label="Derived" /> Bundle hillshade tiles (45° altitude, 315° azimuth); the outline marks each
-              5 km analysis window.
+            <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <EvidenceLabel label="Derived" /> Bundle hillshade tiles (45° altitude, 315° azimuth); the outline marks each 5 km analysis window.
             </p>
           </div>
         )}
       </header>
 
-      <section aria-labelledby="distances" className="flex flex-col gap-4">
-        <SectionTitle id="distances" eyebrow="Terrain fingerprint">Distances by family</SectionTitle>
-        <Distances card={card} g5Passed={g5Passed} />
-        <p className="text-sm text-muted-foreground">
-          Each family in its own units, never summed together.
-        </p>
-      </section>
-
-      <section
-        aria-labelledby="claim-limits"
-        data-slot="limits"
-        className="flex flex-col gap-3 rounded-lg border bg-card p-5 sm:p-6"
-      >
-        <SectionTitle id="claim-limits" eyebrow="Scope">Scope of this card</SectionTitle>
-        <List items={card.claim_limits} empty="The record lists no claim limits." />
-      </section>
-
-      <section aria-labelledby="figures" className="flex flex-col gap-4">
-        <SectionTitle id="figures" eyebrow="Generated from the bundle">Figures A to C</SectionTitle>
-        <Figures card={card} figures={figures} />
-      </section>
-
-      <div className="flex flex-col gap-5">
-        <Q n={1}>
-          <p>{card.q1_compared}</p>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Polygon title={`Target ${t.target_window_id}`} polygon={t.polygon} />
-            <Polygon title={`Earth ${card.earth.earth_window_id}`} polygon={card.earth.polygon} />
-          </div>
-        </Q>
-        <Q n={2}>
-          <p>{card.q2_interpretation.text}</p>
-          <EvidenceLabel label={card.q2_interpretation.evidence_label} />
-        </Q>
-        <Q n={3}>
-          <div className="overflow-x-auto rounded-lg border">
-            <Table data-slot="table-d">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Observable</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Evidence</TableHead>
-                  <TableHead>Support</TableHead>
-                  <TableHead>Product, band, geometry</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {card.q3_measurements.map((m, i) => (
-                  <TableRow key={`${m.observable}-${String(i)}`}>
-                    <TableCell>{m.observable}</TableCell>
-                    <TableCell>
-                      {m.value === null ? (
-                        <span>
-                          Unavailable <Reason reason={m.reason} />
-                        </span>
-                      ) : (
-                        <>
-                          <span data-slot="value" className="font-mono">
-                            {show(m.value)}
-                          </span>
-                          {m.unit === null ? null : <> {m.unit}</>}
-                        </>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Label_ label={m.evidence_label} />
-                    </TableCell>
-                    <TableCell>{m.support}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {[m.product_id, m.band, m.geometry].filter((x) => x !== null).join(' · ') || 'not recorded'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          {card.radar_context.length === 0 ? null : (
-            <div data-slot="radar-context" className="flex flex-col gap-2">
-              <h3 className="text-sm font-semibold">Observed radar context</h3>
-              <ul className="space-y-1 text-sm">
-                {card.radar_context.map((r) => (
-                  <li key={`${r.product_id}-${r.band}-${r.observable}-${r.statistic}`}>
-                    {r.observable} ({r.statistic}, {r.band}):{' '}
-                    {r.value === null ? (
-                      <>
-                        Unavailable <Reason reason={r.reason} />
-                      </>
-                    ) : (
-                      <>
-                        {show(r.value)}
-                        {r.unit === null ? '' : ` ${r.unit}`}
-                      </>
-                    )}{' '}
-                    <Label_ label={r.evidence_label} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </Q>
-        <Q n={4}>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <h3 className="text-sm font-semibold">{marsLimits ? 'Mars limits' : "Earth's limits"}</h3>
-              <List items={card.q4_differences.limits} empty="No limits listed in the record." />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold">Differ</h3>
-              <List items={card.q4_differences.differing} empty="None listed." />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold">Ambiguous</h3>
-              <List items={card.q4_differences.ambiguous} empty="None listed." />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold">Not observed</h3>
-              <List items={dedupeByObservable(card.q4_differences.not_observed)} empty="None listed." />
-            </div>
-          </div>
-        </Q>
-        <Q n={5}>
-          <Stability card={card} g5Passed={g5Passed} />
-        </Q>
-        <Q n={6}>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-            {(['access', 'permits', 'season', 'land_status', 'logistics'] as const).map((k) => {
-              const a = card.q6_campaign[k];
-              return (
-                <div key={k} className="contents" data-campaign={k}>
-                  <dt className="font-semibold capitalize">{k.replace('_', ' ')}</dt>
-                  <dd>
-                    {a.value}
-                    {a.source === null ? null : <span className="text-muted-foreground"> (source: {a.source})</span>}
-                  </dd>
-                </div>
-              );
-            })}
-          </dl>
-        </Q>
-        <Q n={7}>
-          <div data-question-body="q7" className="flex flex-col gap-2">
-            <p className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline">Proposed</Badge>
-              <EvidenceLabel label={card.q7_field_experiment.evidence_label} />
-              <span className="text-sm text-muted-foreground">A proposal, not a completed measurement.</span>
+      <section aria-label="Terrain distances" data-slot="distances" className="grid gap-4 md:grid-cols-3">
+        <Card className="py-5" data-family="terrain_relief" data-status={d.terrain_relief.status}>
+          <CardContent className="px-5"><Metric name="Terrain relief" d={d.terrain_relief} size="lg" showLabel /></CardContent>
+        </Card>
+        <Card className="py-5" data-family="terrain_texture" data-status={d.terrain_texture.status}>
+          <CardContent className="px-5"><Metric name="Terrain texture" d={d.terrain_texture} size="lg" showLabel /></CardContent>
+        </Card>
+        <Card className="gap-3 py-5">
+          <CardContent className="flex flex-col gap-2 px-5">
+            <p className="text-sm font-medium text-muted-foreground">How to read this</p>
+            <p className="text-sm leading-relaxed">
+              Each distance compares the two windows in its own units; lower is more similar. Families are never summed or ranked together.
             </p>
-            <p>{card.q7_field_experiment.text}</p>
-          </div>
-        </Q>
-      </div>
+            {missing.length === 0 ? null : (
+              <p className="text-xs text-muted-foreground">
+                Not compared on this card: {missing.map((f) => `${FAMILY_NAMES[f]} (${human(d[f].reason)})`).join(', ')}.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
-      <footer className="border-t border-border pt-4 font-mono text-xs break-all text-muted-foreground">
-        Bundle {bundleVersion} · run {card.run_id}
+      <Tabs defaultValue="overview" className="gap-5">
+        <TabsList className="h-10 w-full sm:w-fit">
+          <TabsTrigger value="overview" className="px-4 text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="figures" className="px-4 text-sm">Figures</TabsTrigger>
+          <TabsTrigger value="details" className="px-4 text-sm">Details</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" forceMount className="flex flex-col gap-5 data-[state=inactive]:hidden">
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div data-question="q2"><Prose title="What it could help investigate" label={card.q2_interpretation.evidence_label}>
+              <p>{card.q2_interpretation.text}</p>
+            </Prose></div>
+            <div data-question="q7" data-question-body="q7"><Prose title="Proposed field test" label={card.q7_field_experiment.evidence_label} badge="Proposed">
+              <p>{card.q7_field_experiment.text}</p>
+            </Prose></div>
+          </div>
+          <Card data-slot="limits" className="gap-3 py-5">
+            <CardHeader className="px-5"><CardTitle className="text-base">Scope of this card</CardTitle></CardHeader>
+            <CardContent className="px-5 text-muted-foreground">
+              <List items={card.claim_limits} empty="The record lists no claim limits." />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="figures" forceMount className="data-[state=inactive]:hidden">
+          <Figures card={card} figures={figures} />
+        </TabsContent>
+
+        <TabsContent value="details" forceMount className="flex flex-col gap-5 data-[state=inactive]:hidden">
+          <Accordion type="multiple" defaultValue={['q1']} className="rounded-xl bg-card">
+            <Detail n={1}>
+              <p>{card.q1_compared}</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Polygon title={`Target ${t.target_window_id}`} polygon={t.polygon} />
+                <Polygon title={`Earth ${card.earth.earth_window_id}`} polygon={card.earth.polygon} />
+              </div>
+            </Detail>
+            <Detail n={3}>
+              <div className="overflow-x-auto rounded-lg border">
+                <Table data-slot="table-d">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Observable</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Evidence</TableHead>
+                      <TableHead>Support</TableHead>
+                      <TableHead>Product, band, geometry</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {card.q3_measurements.map((m, i) => (
+                      <TableRow key={`${m.observable}-${String(i)}`}>
+                        <TableCell>{m.observable}</TableCell>
+                        <TableCell>
+                          {m.value === null ? (
+                            <span className="text-muted-foreground">Not available <Reason reason={m.reason} /></span>
+                          ) : (
+                            <>
+                              <span data-slot="value" className="tabular-nums">{show(m.value)}</span>
+                              {m.unit === null ? null : <span className="text-muted-foreground"> {m.unit}</span>}
+                            </>
+                          )}
+                        </TableCell>
+                        <TableCell><Label_ label={m.evidence_label} /></TableCell>
+                        <TableCell>{m.support}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {[m.product_id, m.band, m.geometry].filter((x) => x !== null).join(' · ') || 'not recorded'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Background percentiles: relief {d.terrain_relief.background_percentile === null ? human(d.terrain_relief.background_percentile_reason) : show(d.terrain_relief.background_percentile)}
+                {closerThan(d.terrain_relief) === null ? '' : ` (closer than ${String(closerThan(d.terrain_relief))}%)`}, texture {d.terrain_texture.background_percentile === null ? human(d.terrain_texture.background_percentile_reason) : show(d.terrain_texture.background_percentile)}
+                {closerThan(d.terrain_texture) === null ? '' : ` (closer than ${String(closerThan(d.terrain_texture))}%)`}. Smaller distance is closer.
+              </p>
+              {card.radar_context.length === 0 ? null : (
+                <div data-slot="radar-context" className="flex flex-col gap-2">
+                  <h3 className="text-sm font-semibold">Observed radar context</h3>
+                  <ul className="space-y-1 text-sm">
+                    {card.radar_context.map((r) => (
+                      <li key={`${r.product_id}-${r.band}-${r.observable}-${r.statistic}`}>
+                        {r.observable} ({r.statistic}, {r.band}):{' '}
+                        {r.value === null ? <>Not available <Reason reason={r.reason} /></> : <>{show(r.value)}{r.unit === null ? '' : ` ${r.unit}`}</>}{' '}
+                        <Label_ label={r.evidence_label} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </Detail>
+            <Detail n={4}>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h3 className="mb-1 text-sm font-semibold">{marsLimits ? 'Mars limits' : "Earth's limits"}</h3>
+                  <List items={card.q4_differences.limits} empty="No limits listed in the record." />
+                </div>
+                <div>
+                  <h3 className="mb-1 text-sm font-semibold">Differ</h3>
+                  <List items={card.q4_differences.differing} empty="None listed." />
+                </div>
+                <div>
+                  <h3 className="mb-1 text-sm font-semibold">Ambiguous</h3>
+                  <List items={card.q4_differences.ambiguous} empty="None listed." />
+                </div>
+                <div>
+                  <h3 className="mb-1 text-sm font-semibold">Not observed</h3>
+                  <List items={dedupeByObservable(card.q4_differences.not_observed)} empty="None listed." />
+                </div>
+              </div>
+            </Detail>
+            <Detail n={5}>
+              <Stability card={card} g5Passed={g5Passed} />
+            </Detail>
+            <Detail n={6}>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+                {(['access', 'permits', 'season', 'land_status', 'logistics'] as const).map((k) => {
+                  const a = card.q6_campaign[k];
+                  return (
+                    <div key={k} className="contents" data-campaign={k}>
+                      <dt className="font-medium capitalize">{k.replace('_', ' ')}</dt>
+                      <dd className="text-muted-foreground">
+                        {a.value}
+                        {a.source === null ? null : <span> (source: {a.source})</span>}
+                      </dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            </Detail>
+          </Accordion>
+        </TabsContent>
+      </Tabs>
+
+      <footer className="flex flex-wrap gap-x-4 gap-y-1 border-t pt-4 text-xs text-muted-foreground">
+        <span>Bundle {bundleVersion}</span>
+        <span>Run {card.run_id}</span>
+        <span>Card {card.card_id}</span>
       </footer>
     </article>
   );
