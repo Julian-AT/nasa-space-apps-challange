@@ -1,19 +1,20 @@
 // Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // Primary navigation on every page (PRD 8.6, 8.10). The app's only shell client module: a root
 // layout cannot read the pathname, so this reads it with usePathname to mark the current route with
-// aria-current="page", and holds the open state of the compact menu. It holds the links only: no
-// bundle data and no provider. Links are plain anchors in DOM order and keep the global focus
-// indicator. The ten links are visually grouped in one hairline pill (home | worlds | tools |
-// reference); the current route is a filled pill with bold text, never colour alone. Below the lg
-// breakpoint the pill collapses behind a menu button (aria-expanded) and opens as a panel.
+// aria-current="page". Desktop uses a shadcn NavigationMenu; below the lg breakpoint the links open
+// in a Sheet. The current route is a filled item with bold text, never colour alone.
 'use client';
 
+import { GithubIcon, Menu01Icon, Moon02Icon, Search01Icon, Sun03Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { type ComponentProps, useEffect, useState } from 'react';
 
 import { openPalette } from '@/components/shadowastra/chrome/CommandPalette';
-import { Github, ThemeToggle } from '@/components/shadowastra/ui/Chrome';
+import { Button } from '@/components/ui/button';
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from '@/components/ui/navigation-menu';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
 export const REPO_URL = 'https://github.com/Julian-AT/nasa-space-apps-challange';
@@ -33,137 +34,190 @@ export const NAV_ITEMS = [
   { label: 'About', href: '/about' },
 ] as const;
 
-/** Index in NAV_ITEMS after which a group divider is drawn: Home | Cards Compare Lab Find Maps | Model Methods Paper | API docs. */
-const GROUP_ENDS: ReadonlySet<number> = new Set([0, 5, 9]);
+function isCurrentRoute(href: string, pathname: string | null): boolean {
+  if (href === '/') return pathname === '/';
+  const section = '/' + href.split('/')[1];
+  return pathname === section || (pathname ?? '').startsWith(`${section}/`);
+}
 
-const LINK =
-  'block rounded-full px-3.5 py-2 text-[13px] whitespace-nowrap no-underline transition-colors duration-200 lg:inline-block lg:py-1.5';
+/** A route link; /api/docs is a plain anchor (served by the API, not the app router). Forwards Slot props. */
+function NavAnchor({
+  href,
+  label,
+  current,
+  ...rest
+}: Readonly<{ href: string; label: string; current: boolean } & Omit<ComponentProps<'a'>, 'href'>>) {
+  return href === '/api/docs' ? (
+    <a href={href} aria-current={current ? 'page' : undefined} {...rest}>
+      {label}
+    </a>
+  ) : (
+    <Link href={href} aria-current={current ? 'page' : undefined} {...(rest as Record<string, unknown>)}>
+      {label}
+    </Link>
+  );
+}
 
 /** The navigation for a given pathname; a link is current only on its own route. */
 export function SiteNav({ pathname, className }: Readonly<{ pathname: string | null; className?: string }>) {
   return (
-    <nav aria-label="Primary" className={cn('min-w-0', className)}>
-      <ul className="flex flex-col gap-0.5 lg:flex-row lg:items-center lg:gap-0.5 lg:rounded-full lg:border lg:border-line-2 lg:bg-panel lg:p-1">
-        {NAV_ITEMS.map(({ label, href }, index) => {
-          const section = href === '/' ? '/' : '/' + href.split('/')[1];
-          const isCurrent = href === '/' ? pathname === '/' : pathname === section || (pathname ?? "").startsWith(`${section}/`);
-          const className = cn(
-            LINK,
-            isCurrent
-              ? 'bg-platinum/10 font-bold text-foreground lg:bg-platinum lg:text-void'
-              : 'text-muted-foreground hover:bg-platinum/5 hover:text-foreground',
-          );
+    <NavigationMenu aria-label="Primary" className={cn('min-w-0', className)}>
+      <NavigationMenuList className="gap-0.5">
+        {NAV_ITEMS.map(({ label, href }) => {
+          const current = isCurrentRoute(href, pathname);
           return (
-            <li key={href} className="contents">
-              {href === '/api/docs' ? (
-                <a href={href} aria-current={isCurrent ? 'page' : undefined} className={className}>
-                  {label}
-                </a>
-              ) : (
-                <Link href={href} aria-current={isCurrent ? 'page' : undefined} className={className}>
-                  {label}
-                </Link>
-              )}
-              {GROUP_ENDS.has(index) ? <span aria-hidden="true" className="mx-1 hidden h-4 w-px bg-line-2 lg:block" /> : null}
-            </li>
+            <NavigationMenuItem key={href}>
+              <NavigationMenuLink asChild active={current}>
+                <NavAnchor
+                  href={href}
+                  label={label}
+                  current={current}
+                  className={cn(
+                    'rounded-md px-2.5 py-1.5 text-[13px] whitespace-nowrap no-underline',
+                    current ? 'bg-muted font-semibold text-foreground' : 'text-muted-foreground hover:text-foreground',
+                  )}
+                />
+              </NavigationMenuLink>
+            </NavigationMenuItem>
           );
         })}
-      </ul>
-    </nav>
+      </NavigationMenuList>
+    </NavigationMenu>
+  );
+}
+
+function MobileNav({ pathname }: Readonly<{ pathname: string | null }>) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="icon" aria-label={open ? 'Close menu' : 'Open menu'} className="lg:hidden">
+          <HugeiconsIcon icon={Menu01Icon} strokeWidth={2} />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-72">
+        <SheetHeader>
+          <SheetTitle>Terraluna</SheetTitle>
+        </SheetHeader>
+        <nav aria-label="Primary" className="px-4 pb-4">
+          <ul className="flex flex-col gap-0.5">
+            {NAV_ITEMS.map(({ label, href }) => {
+              const current = isCurrentRoute(href, pathname);
+              return (
+                <li key={href}>
+                  <NavAnchor
+                    href={href}
+                    label={label}
+                    current={current}
+                    onClick={() => {
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      'block rounded-md px-3 py-2 text-sm no-underline',
+                      current ? 'bg-muted font-semibold text-foreground' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                    )}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </SheetContent>
+    </Sheet>
   );
 }
 
 function Wordmark() {
   return (
-    <Link
-      href="/"
-      className="flex shrink-0 items-center gap-2.5 font-wide text-[13px] tracking-[0.18em] text-platinum uppercase no-underline"
-    >
-      <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" className="text-flare">
+    <Link href="/" className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground no-underline">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" className="text-primary">
         <circle cx="12" cy="12" r="5.5" fill="currentColor" />
         <ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="currentColor" strokeWidth="1.2" transform="rotate(-25 12 12)" />
       </svg>
-      <span>
-        Terra<span className="text-earth">luna</span>
-      </span>
+      <span>Terraluna</span>
     </Link>
   );
 }
 
-/** ShadowAstra's search pill: opens the command palette (also Ctrl K or /). */
-function SearchPill() {
+type Theme = 'dark' | 'light';
+
+function readTheme(): Theme {
+  if (typeof document === 'undefined') return 'dark';
+  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+}
+
+/** Toggles both data-theme (site tokens) and the `dark` class (shadcn variables). */
+function ThemeButton() {
+  const [theme, setTheme] = useState<Theme>('dark');
+  useEffect(() => {
+    setTheme(readTheme());
+    const on = () => {
+      setTheme(readTheme());
+    };
+    window.addEventListener('sa-theme', on);
+    return () => {
+      window.removeEventListener('sa-theme', on);
+    };
+  }, []);
+  const toggle = () => {
+    const next: Theme = readTheme() === 'dark' ? 'light' : 'dark';
+    const root = document.documentElement;
+    root.dataset.theme = next;
+    root.classList.toggle('dark', next === 'dark');
+    try {
+      localStorage.setItem('sa-theme', next);
+    } catch {
+      /* private mode */
+    }
+    window.dispatchEvent(new Event('sa-theme'));
+  };
   return (
-    <button
-      type="button"
-      onClick={openPalette}
-      aria-label="Search (Ctrl K)"
-      aria-keyshortcuts="Control+K Meta+K /"
-      className="inline-flex h-9 items-center gap-2 rounded-full border border-line-2 bg-panel pr-1.5 pl-3 text-[12.5px] text-chrome transition-colors hover:border-chrome hover:text-platinum"
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggle}
+      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
     >
-      <svg aria-hidden="true" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-3.5-3.5" />
-      </svg>
-      <span className="hidden sm:inline">Search</span>
-      <kbd className="hidden rounded-full border border-line-2 px-2 py-0.5 font-mono text-[10px] text-dim sm:inline">Ctrl K</kbd>
-    </button>
+      <HugeiconsIcon icon={theme === 'dark' ? Sun03Icon : Moon02Icon} strokeWidth={2} />
+    </Button>
   );
 }
 
 function HeaderActions() {
   return (
-    <div className="flex shrink-0 items-center gap-2">
-      <SearchPill />
-      <a
-        href={REPO_URL}
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Terraluna on GitHub"
-        title="GitHub"
-        className="grid size-9 place-items-center rounded-full border border-line-2 text-chrome no-underline transition-colors hover:border-chrome hover:text-platinum"
+    <div className="flex shrink-0 items-center gap-1">
+      <Button
+        variant="outline"
+        onClick={openPalette}
+        aria-label="Search (Ctrl K)"
+        aria-keyshortcuts="Control+K Meta+K /"
+        className="text-muted-foreground"
       >
-        <Github size={15} />
-      </a>
-      <ThemeToggle />
+        <HugeiconsIcon icon={Search01Icon} strokeWidth={2} />
+        <span className="hidden sm:inline">Search</span>
+        <kbd className="hidden rounded border bg-muted px-1.5 font-mono text-[10px] sm:inline">Ctrl K</kbd>
+      </Button>
+      <Button variant="ghost" size="icon" asChild>
+        <a href={REPO_URL} target="_blank" rel="noreferrer" aria-label="Terraluna on GitHub" title="GitHub">
+          <HugeiconsIcon icon={GithubIcon} strokeWidth={2} />
+        </a>
+      </Button>
+      <ThemeButton />
     </div>
   );
 }
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
       <Wordmark />
-      <SiteNav pathname={pathname} className="hidden lg:block" />
-      <div className="flex items-center gap-2">
-      <HeaderActions />
-      <button
-        type="button"
-        aria-label={open ? 'Close menu' : 'Open menu'}
-        aria-expanded={open}
-        aria-controls="site-menu"
-        onClick={() => {
-          setOpen((value) => !value);
-        }}
-        className="inline-flex size-10 items-center justify-center rounded-full border border-line-2 text-chrome transition-colors hover:text-foreground lg:hidden"
-      >
-        <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-          {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 8h16M4 16h16" />}
-        </svg>
-      </button>
+      <SiteNav pathname={pathname} className="hidden lg:flex" />
+      <div className="flex items-center gap-1">
+        <HeaderActions />
+        <MobileNav pathname={pathname} />
       </div>
-      {open ? (
-        <div
-          id="site-menu"
-          onClick={() => {
-            setOpen(false);
-          }}
-          className="absolute inset-x-0 top-full border-b border-line bg-void px-4 pt-2 pb-4 sm:px-6 lg:hidden"
-        >
-          <SiteNav pathname={pathname} />
-        </div>
-      ) : null}
     </div>
   );
 }

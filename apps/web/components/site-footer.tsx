@@ -4,25 +4,30 @@
 // paragraph, then the team and links to the data sources and methods.
 import Link from 'next/link';
 
+import { Separator } from '@/components/ui/separator';
+
 import type { Bundle } from '../lib/bundle.ts';
 import { shellText } from '../lib/shell.ts';
 
 export function SiteFooter({ bundle }: Readonly<{ bundle: Bundle }>) {
   return (
-    <footer className="mt-24 border-t border-line bg-ink">
-      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-3 px-4 py-8 text-sm text-muted-foreground sm:px-6 md:flex-row md:items-center md:justify-between">
+    <footer className="mt-24 border-t bg-muted/30">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:px-6 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-1">
-          <p className="font-mono text-[11px] tracking-wide">{`${shellText(bundle).footer} · Schema ${bundle.manifest.schema_version}`}</p>
-          <p className="font-wide text-[11px] tracking-[0.18em] uppercase">Terraluna</p>
+          <p className="text-sm font-semibold text-foreground">Terraluna</p>
+          <p className="font-mono text-xs">{`${shellText(bundle).footer} · Schema ${bundle.manifest.schema_version}`}</p>
         </div>
-        <ul className="flex flex-wrap gap-x-5 gap-y-2 font-mono text-[11px] tracking-[0.18em] uppercase">
+        <ul className="flex items-center gap-4 text-sm">
           <li>
-            <Link href="/data" className="text-foreground">
+            <Link href="/data" className="text-foreground no-underline hover:text-primary">
               Data sources
             </Link>
           </li>
+          <li aria-hidden="true">
+            <Separator orientation="vertical" className="h-4" />
+          </li>
           <li>
-            <Link href="/methods" className="text-foreground">
+            <Link href="/methods" className="text-foreground no-underline hover:text-primary">
               Methods
             </Link>
           </li>

@@ -14,6 +14,7 @@ import { readModelFacts } from '../components/home/model-facts.ts';
 import { ModelSection } from '../components/home/model-section.tsx';
 import { ringCentroid, type GlobePin } from '../components/globe/index.ts';
 import { Badge } from '../components/ui/badge.tsx';
+import { Card, CardContent, CardHeader } from '../components/ui/card.tsx';
 import { loadBundle } from '../lib/bundle.ts';
 import HomeSections from '../components/shadowastra/home/HomeSections.tsx';
 
@@ -27,11 +28,11 @@ const HOME_LINE = 'These pages show records from the bundle named in the footer.
 function Numbered({ n, title, description, children }: { n: string; title: string; description?: string; children: ReactNode }) {
   const id = `home-${n}`;
   return (
-    <section aria-labelledby={id} className="mt-20 border-t border-line pt-8">
-      <div className="mb-8 grid gap-3 md:grid-cols-[8rem_1fr]">
-        <p className="font-mono text-[11px] tracking-[0.22em] text-chrome uppercase">{n} / {title}</p>
+    <section aria-labelledby={id} className="mt-20 border-t pt-10">
+      <div className="mb-8 flex flex-col gap-3">
+        <Badge variant="secondary" className="w-fit">{n} / {title}</Badge>
         <div className="flex flex-col gap-2">
-          <h2 id={id} className="text-[clamp(26px,3.4vw,44px)] leading-[1.05] font-medium tracking-[-0.03em]">
+          <h2 id={id} className="text-[clamp(24px,3vw,36px)] leading-tight font-semibold tracking-tight">
             {title}
           </h2>
           {description === undefined ? null : <p className="max-w-3xl text-muted-foreground">{description}</p>}
@@ -44,27 +45,31 @@ function Numbered({ n, title, description, children }: { n: string; title: strin
 
 function Stat({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="surface flex flex-col gap-3 rounded-3xl p-6">
-      <p className="font-mono text-[11px] tracking-[0.18em] text-chrome uppercase">{label}</p>
-      <div className="text-base">{children}</div>
-    </div>
+    <Card>
+      <CardHeader>
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      </CardHeader>
+      <CardContent className="text-base">{children}</CardContent>
+    </Card>
   );
 }
 
 function EntryCard({ href, title, kicker, children }: { href: string; title: string; kicker: string; children: ReactNode }) {
   return (
-    <div className="surface lift flex flex-col gap-2 rounded-3xl p-6">
-      <p className="font-mono text-[11px] tracking-[0.18em] text-chrome uppercase">{kicker}</p>
-      <p className="text-xl font-medium tracking-tight">
-        <Link href={href} className="no-underline after:absolute after:inset-0 after:rounded-3xl">
+    <Card className="relative gap-2 transition-colors hover:bg-muted/40">
+      <CardContent className="flex flex-col gap-2">
+      <p className="text-xs font-medium text-muted-foreground">{kicker}</p>
+      <p className="text-lg font-semibold tracking-tight">
+        <Link href={href} className="no-underline after:absolute after:inset-0 after:rounded-xl">
           {title}
-          <span aria-hidden="true" className="ml-1 text-flare">
+          <span aria-hidden="true" className="ml-1 text-primary">
             {'\u2192'}
           </span>
         </Link>
       </p>
       <p className="text-sm text-muted-foreground">{children}</p>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -167,8 +172,9 @@ export default function Home() {
       </Numbered>
 
       <Numbered n="02" title="What this does and does not claim">
-        <div className="surface rounded-3xl p-6 sm:p-8">
-          <p className="max-w-3xl text-lg leading-relaxed">
+        <Card>
+          <CardContent>
+          <p className="max-w-3xl text-base leading-relaxed sm:text-lg">
             The shipping mode in the pill above limits every claim. In Mode C this is a terrain analog pilot:
             radar comparison was not completed, so nothing here is a radar claim and no page ranks a site as
             the analog. The nearest Earth window to a target is the nearest in the metric, not a close match or a
@@ -179,7 +185,8 @@ export default function Home() {
                 ? ' and stays a Predicted second opinion; G5 passed.'
                 : ` and outside every ranking: its promotion gate G5 is ${g5.status}${g5.status === 'FAIL' && g5.result !== null ? ` (${g5.result})` : ''}.`}
           </p>
-        </div>
+          </CardContent>
+        </Card>
       </Numbered>
 
       <Numbered n="03" title="Where to go">
@@ -194,11 +201,13 @@ export default function Home() {
             Candidate Earth windows from the declared regions.
           </EntryCard>
           {firstCard === undefined ? (
-            <div className="surface flex flex-col gap-2 rounded-3xl p-6">
-              <p className="font-mono text-[11px] tracking-[0.18em] text-chrome uppercase">Evidence</p>
-              <p className="text-xl font-medium tracking-tight">Evidence cards</p>
+            <Card>
+              <CardContent className="flex flex-col gap-2">
+              <p className="text-xs font-medium text-muted-foreground">Evidence</p>
+              <p className="text-lg font-semibold tracking-tight">Evidence cards</p>
               <LabelledValue label="Unavailable" reason="the bundle holds no evidence cards" />
-            </div>
+              </CardContent>
+            </Card>
           ) : (
             <EntryCard href={`/site/${encodeURIComponent(firstCard)}`} kicker="Evidence" title="Evidence cards">
               One card per target, with evidence labels and claim limits.

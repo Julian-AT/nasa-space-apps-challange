@@ -34,6 +34,9 @@ const serif = Instrument_Serif({
 });
 const wide = Michroma({ subsets: ['latin'], weight: '400', variable: '--font-michroma', display: 'swap' });
 
+/** Keeps the shadcn `dark` class in step with the stored theme before first paint. */
+const DARK_CLASS_SCRIPT = `try{if(localStorage.getItem("sa-theme")==="light")document.documentElement.classList.remove("dark")}catch(e){}`;
+
 export const metadata: Metadata = { title: SITE_TITLE };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -48,13 +51,18 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     cardCount: cardRecords.length,
   };
   return (
-    <html lang="en" suppressHydrationWarning className={`dark ${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`dark ${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: DARK_CLASS_SCRIPT }} />
       </head>
-      <body className="bg-observatory min-h-dvh antialiased">
+      <body className="min-h-dvh bg-background text-foreground antialiased">
         <SkipLink />
-        <header className="sticky top-0 z-40 border-b border-line bg-void">
+        <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
           <MockBanner bundle={bundle} />
           {/* Slim hairline strip first in the DOM (read first), drawn above the navigation row. */}
           <ModeBanner bundle={bundle} />

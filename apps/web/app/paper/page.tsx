@@ -3,6 +3,7 @@
 import type { Metadata } from 'next';
 import { join } from 'node:path';
 
+import { Button } from '../../components/ui/button.tsx';
 import { PaperView } from '../../components/paper-view.tsx';
 import { readPaper } from '../../components/paper-data.ts';
 import { SITE_TITLE } from '../../lib/shell.ts';
@@ -18,13 +19,12 @@ export default function PaperPage() {
   return (
     <>
       <PaperView paper={readPaper(join(process.cwd(), 'public'))} />
-      <p className="mt-10 flex flex-wrap items-center gap-3 border-t border-line pt-6 text-sm text-muted-foreground">
-        <a
-          href={PAPER_PDF}
-          className="inline-flex h-10 items-center rounded-full border border-border px-5 font-medium text-foreground no-underline hover:bg-platinum/5"
-        >
-          Download the paper (PDF)
-        </a>
+      <p className="mt-10 flex flex-wrap items-center gap-3 border-t pt-6 text-sm text-muted-foreground">
+        <Button asChild variant="outline">
+          <a href={PAPER_PDF} className="no-underline">
+            Download the paper (PDF)
+          </a>
+        </Button>
         <span>The compiled paper, built from the same bundle artifacts as this site.</span>
       </p>
     </>

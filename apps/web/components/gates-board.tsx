@@ -11,6 +11,7 @@ import { type GateRecord, GateRecordSchema, type Validation } from '@terraluna/s
 
 import { LabelledValue } from '@/components/labelled-value';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 export type GateField = keyof GateRecord;
@@ -121,7 +122,9 @@ const IDENTIFIER: ReadonlySet<GateField> = new Set(['evidence_path', 'run_id', '
 
 function GatePanel({ gateId, record }: { readonly gateId: GateId; readonly record: GateRecord | undefined }) {
   return (
-    <li data-gate={gateId} className="surface rounded-3xl p-5 sm:p-6">
+    <li data-gate={gateId}>
+      <Card>
+      <CardContent>
       <div className="flex flex-wrap items-center gap-3">
         <h3 data-field="gate_id" className="font-mono text-lg">
           {gateId}
@@ -141,7 +144,7 @@ function GatePanel({ gateId, record }: { readonly gateId: GateId; readonly recor
               <Field key={field} record={record} field={field} />
             ))}
           </dl>
-          <details className="mt-4 rounded-2xl border border-line bg-ink/60 px-4 py-3">
+          <details className="mt-4 rounded-lg border bg-muted/40 px-4 py-3">
             <summary className="cursor-pointer text-sm font-medium">Provenance</summary>
             <dl className="mt-3 grid gap-4 md:grid-cols-2">
               {PROVENANCE_FIELDS.map((field) => (
@@ -151,6 +154,8 @@ function GatePanel({ gateId, record }: { readonly gateId: GateId; readonly recor
           </details>
         </>
       )}
+      </CardContent>
+      </Card>
     </li>
   );
 }

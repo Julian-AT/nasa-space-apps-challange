@@ -2,6 +2,7 @@
 // (PRD 11.9 items 3, 5, 7, 8). Every value is a record field; absent files give an Unavailable
 // line naming the file. Encoder output is Predicted and always sits beside, never inside, the
 // deterministic ranking.
+import { Card } from '@/components/ui/card';
 import type { Curves, Examples } from '@terraluna/schema';
 
 import { EvidenceLabel, isEvidenceLabel } from '@/components/evidence-label';
@@ -134,7 +135,7 @@ export function CurvesSection({ curves }: { readonly curves: Curves | null }) {
 function EntryList({ title, entries }: { readonly title: string; readonly entries: readonly Entry[] }) {
   return (
     <div className="flex flex-col gap-1">
-      <h4 className="font-mono text-xs tracking-[0.14em] text-muted-foreground uppercase">{title}</h4>
+      <h4 className="font-mono text-xs text-muted-foreground">{title}</h4>
       {entries.length === 0 ? (
         <p>none in the record</p>
       ) : (
@@ -173,12 +174,14 @@ export function ExamplesSection({ examples }: { readonly examples: Examples | nu
         <LabelledValue label="Unavailable" reason="examples.json lists no retrieval target" source="report/examples.json" />
       ) : (
         examples.retrieval_gallery.map((t) => (
-          <div key={t.target_id} data-retrieval-target={t.target_id} className="grid gap-4 rounded-xl border border-line bg-card p-4 md:grid-cols-2">
+          <Card key={t.target_id} size="sm">
+          <div data-retrieval-target={t.target_id} className="grid gap-4 px-4 md:grid-cols-2">
             <h3 className="font-semibold md:col-span-2 wrap-anywhere">{t.target_id}</h3>
             <EntryList title="Deterministic top 5" entries={t.deterministic_top5} />
             <EntryList title="Encoder top 5 (EXPERIMENTAL)" entries={t.encoder_top5} />
             {t.shortfall_reason === null ? null : <p className="md:col-span-2">Shortfall: {t.shortfall_reason}</p>}
           </div>
+          </Card>
         ))
       )}
       <h3 className="font-semibold">Failure cases</h3>

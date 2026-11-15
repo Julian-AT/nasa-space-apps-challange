@@ -4,6 +4,7 @@
 import { useId } from 'react';
 
 import { EVIDENCE_LABELS, EvidenceLabel } from '@/components/evidence-label';
+import { Card } from '@/components/ui/card';
 
 /** PRD 3, "Evidence labels", word for word. */
 export const EVIDENCE_LEGEND_SENTENCE = 'Every displayed or exported quantity carries one of these labels.';
@@ -17,8 +18,9 @@ export function EvidenceLegend({ headingLevel = 2 }: EvidenceLegendProps) {
   const headingId = useId();
   const Heading = `h${String(headingLevel)}` as 'h2' | 'h3' | 'h4';
   return (
-    <section data-slot="evidence-legend" aria-labelledby={headingId} className="flex flex-col gap-3 rounded-xl border border-line bg-card p-5">
-      <Heading id={headingId}>Evidence labels</Heading>
+    <Card>
+    <section data-slot="evidence-legend" aria-labelledby={headingId} className="flex flex-col gap-3 px-6">
+      <Heading id={headingId} className="text-base font-semibold">Evidence labels</Heading>
       <p className="text-sm text-muted-foreground">{EVIDENCE_LEGEND_SENTENCE}</p>
       <ul className="flex flex-col gap-3">
         {EVIDENCE_LABELS.map((label) => (
@@ -28,5 +30,6 @@ export function EvidenceLegend({ headingLevel = 2 }: EvidenceLegendProps) {
         ))}
       </ul>
     </section>
+    </Card>
   );
 }

@@ -24,13 +24,11 @@ export function modeBannerText(bundle: Bundle): string {
 
 export function ModeBanner({ bundle }: Readonly<{ bundle: Bundle }>) {
   return (
-    <div className="border-b border-line bg-ink">
-      <div className="mx-auto flex w-full max-w-[1400px] items-center gap-3 px-4 py-1.5 sm:px-6">
-        <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-flare" />
-        <p className="min-w-0 flex-1 font-mono text-[10.5px] leading-snug font-semibold tracking-[0.04em] text-chrome sm:text-[11px]">
-          {modeBannerText(bundle)}
-        </p>
-        <p className="hidden shrink-0 border-l border-line-2 pl-3 font-mono text-[10.5px] tracking-[0.04em] text-dim md:block">
+    <div role="note" className="border-b bg-muted/40">
+      <div className="mx-auto flex w-full max-w-[1400px] items-center gap-2.5 px-4 py-1.5 sm:px-6">
+        <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-primary" />
+        <p className="min-w-0 flex-1 text-xs leading-snug font-medium text-muted-foreground">{modeBannerText(bundle)}</p>
+        <p className="hidden shrink-0 rounded-md border bg-background px-2 py-0.5 font-mono text-[11px] text-muted-foreground md:block">
           {`Bundle ${bundle.manifest.bundle_version}`}
         </p>
       </div>
