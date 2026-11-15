@@ -14,19 +14,19 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Title',
     from: 0,
     to: 8,
-    text: 'Before anyone walks on the Moon or drives on Mars, they **practise on Earth**. Terraluna finds **the Moon and Mars on Earth**: a physics model and a learned encoder that **measure terrain**, live in the browser.',
+    text: 'Before anyone walks on the Moon or drives on Mars, they **practise on Earth**. Terraluna finds **the Moon and Mars on Earth**: a physics fingerprint and a learned terrain model that compare **any place on Earth** with Moon and Mars landing sites, live in the browser.',
   },
   {
     title: 'Problem',
     from: 8,
     to: 20,
-    text: "Which place on Earth matches the Moon or Mars? Today, analog sites are chosen **by experience**, with **no common measure**. Terraluna gives **one fingerprint** for every body, **any point on Earth**, and an **evidence card** for every match.",
+    text: "Astronauts and rovers train on Earth first. But which place on Earth **really matches the target**? We have **three target sites**: Connecting Ridge on the Moon, Jezero and Arcadia on Mars. Today, analog sites are chosen **by eye**, by experience, not by one shared terrain measure. Terraluna measures **any point on Earth**, live, in seconds.",
   },
   {
     title: 'Physics fingerprint',
     from: 20,
     to: 34,
-    text: 'Take a **five-kilometre window**, here Jezero and Rosamond. Measure how much the height changes over **270, 540 and 1080 metres**. **Compare the curves**: relief distance **0.094**, closer than **91%** of windows.',
+    text: 'Take the same **five-kilometre square** on both worlds, here Jezero and Rosamond. Measure how much the height changes over **270, 540 and 1080 metres**. **Compare the curves**: relief distance **0.094**, closer than **91%** of windows.',
   },
   {
     title: 'Live finder',
