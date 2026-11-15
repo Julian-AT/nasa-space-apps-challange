@@ -284,39 +284,33 @@ function slides(d: PitchData, qr: string | null): Slide[] {
     },
     {
       id: 'model',
-      steps: 5,
-      body: (step) => (
-        <Frame title="Our model" sub={<>A ResNet terrain encoder, trained <A>self-supervised</A>, that learns the physics.</>}>
-          <div className="relative flex h-full flex-col justify-between gap-6">
-            <ArchDiagram step={Math.min(step, 3)} />
-            <ol className="grid grid-cols-4 gap-6 border-t pt-5" style={{ borderColor: LINE }}>
-              {ARCH_STEPS.map((s, k) => (
-                <li key={s.key} className="flex items-start gap-3 transition-opacity duration-500" style={{ opacity: k <= step ? 1 : 0.35 }}>
-                  <span className="mt-1.5 size-3.5 shrink-0 rounded-full border-2" style={{ borderColor: k <= step ? INK : '#a1a1aa', background: k === Math.min(step, 3) ? INK : 'transparent' }} />
-                  <span className="flex flex-col">
-                    <span className="text-lg font-semibold">{s.label}</span>
-                    <span className="text-sm" style={{ color: MUTED }}>{s.hint}</span>
+      steps: ARCH_STEPS.length,
+      body: (step) => {
+        const cur = ARCH_STEPS[Math.min(step, ARCH_STEPS.length - 1)];
+        return (
+          <Frame title="Our model" sub={<>A ResNet terrain encoder, trained <A>self-supervised</A>, that learns the physics.</>}>
+            <div className="flex h-full flex-col justify-between gap-6">
+              <In d={0.15} className="flex min-h-0 flex-1 items-center">
+                <ArchDiagram step={step} />
+              </In>
+              {cur ? (
+                <div className="grid grid-cols-[auto_1fr_auto] items-center gap-10 rounded-3xl border border-zinc-200 bg-zinc-50 px-10 py-6">
+                  <span className="font-mono text-lg tabular-nums text-zinc-400">
+                    {String(step + 1).padStart(2, '0')} / {String(ARCH_STEPS.length).padStart(2, '0')}
                   </span>
-                </li>
-              ))}
-            </ol>
-            <AnimatePresence>
-              {step >= 4 ? (
-                <motion.figure
-                  initial={{ opacity: 0, scale: 0.97 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5, ease: EASE }}
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white"
-                >
-                  <img src="/figures/encoder-architecture.svg" alt="Paper figure: encoder architecture with ResNet backbone, VICReg projector, physics head and gradient-reversal body adversary" className="max-h-full w-full rounded-xl bg-white object-contain p-4" />
-                  <figcaption className="text-sm" style={{ color: MUTED }}>Full figure from the paper</figcaption>
-                </motion.figure>
+                  <AnimatePresence mode="wait">
+                    <motion.div key={cur.key} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3, ease: EASE }} className="flex flex-col gap-1">
+                      <span className="text-3xl font-bold tracking-tight">{cur.title}</span>
+                      <span className="text-xl" style={{ color: MUTED }}>{cur.line}</span>
+                    </motion.div>
+                  </AnimatePresence>
+                  <span className="text-4xl font-black tracking-tight tabular-nums">{cur.num}</span>
+                </div>
               ) : null}
-            </AnimatePresence>
-          </div>
-        </Frame>
-      ),
+            </div>
+          </Frame>
+        );
+      },
     },
     {
       id: 'metrics',
@@ -524,7 +518,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
       if (p.step > 0) return { ...p, step: p.step - 1, dir: -1 };
       if (p.i <= 0) return p;
       const steps = list[p.i - 1]?.steps ?? 1;
-      return { i: p.i - 1, step: Math.min(steps - 1, 3), dir: -1 };
+      return { i: p.i - 1, step: steps - 1, dir: -1 };
     });
   }, [list]);
 
