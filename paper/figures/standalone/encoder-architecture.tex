@@ -1,0 +1,17 @@
+% Standalone build of the encoder architecture figure for the web (apps/web/public/figures).
+% Same styles and number macros as the paper; the figure float and caption are dropped.
+%   cd paper/figures/standalone && tectonic -X compile encoder-architecture.tex
+%   pdftocairo -svg encoder-architecture.pdf ../../../apps/web/public/figures/encoder-architecture.svg
+\documentclass[border=6pt]{standalone}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\input{../styles}
+\input{../../generated/numbers.tex}
+\renewenvironment{figure}[1][]{}{}
+\renewcommand{\caption}[1]{}
+\renewcommand{\label}[1]{}
+\renewcommand{\centering}{}
+\begin{document}
+\input{../encoder-architecture}
+\end{document}

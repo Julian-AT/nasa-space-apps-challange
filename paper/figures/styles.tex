@@ -49,3 +49,44 @@
     axis lines=left, tick align=outside,
   },
 }
+
+% Layer diagram styles for the encoder figure: pastel fills after Figure 1 of Vaswani et al.
+% (2017), fixed 8 pt and 7 pt type so the paper and the web copy match, thin dark outlines, a grey frame around the repeated block and small arrow heads.
+\definecolor{tfOrange}{HTML}{FBDDB4}  % convolutions
+\definecolor{tfYellow}{HTML}{F4F1BC}  % normalisation, activation, add
+\definecolor{tfBlue}{HTML}{CBE5F3}    % pooling and MLP heads
+\definecolor{tfPink}{HTML}{F6D3D7}    % input, stem, gradient reversal
+\definecolor{tfGreen}{HTML}{D4EACB}   % losses
+\definecolor{tfLilac}{HTML}{DEDAF0}   % embedding and total loss
+\definecolor{tfFrame}{HTML}{EEEEEE}
+\tikzset{
+  layer/.style = {
+    draw=lineDark, line width=0.45pt, rounded corners=3pt, font=\fontsize{8}{9.6}\selectfont,
+    align=center, text=black, inner xsep=2pt, inner ysep=1.5pt,
+    minimum height=0.5cm, text width=#1
+  },
+  layer/.default = 2.6cm,
+  conv/.style = {layer=#1, fill=tfOrange}, conv/.default = 2.6cm,
+  norm/.style = {layer=#1, fill=tfYellow}, norm/.default = 2.6cm,
+  dense/.style = {layer=#1, fill=tfBlue},  dense/.default = 2.6cm,
+  inlayer/.style = {layer=#1, fill=tfPink}, inlayer/.default = 2.6cm,
+  lossbox/.style = {layer=#1, fill=tfGreen}, lossbox/.default = 2.6cm,
+  embbox/.style = {layer=#1, fill=tfLilac}, embbox/.default = 2.6cm,
+  addnode/.style = {
+    circle, draw=lineDark, line width=0.45pt, fill=white, inner sep=0pt,
+    minimum size=0.32cm, path picture={
+      \draw[line width=0.45pt] ([xshift=-0.09cm]path picture bounding box.center)
+        -- ([xshift=0.09cm]path picture bounding box.center);
+      \draw[line width=0.45pt] ([yshift=-0.09cm]path picture bounding box.center)
+        -- ([yshift=0.09cm]path picture bounding box.center);
+    }
+  },
+  repframe/.style = {draw=lineDark, line width=0.45pt, fill=tfFrame, rounded corners=8pt},
+  onnxframe/.style = {draw=lineDark, line width=0.4pt, rounded corners=6pt,
+    dash pattern=on 2.5pt off 1.5pt},
+  arr/.style = {-{Stealth[length=3.4pt,width=2.8pt]}, line width=0.5pt, draw=lineDark},
+  wire/.style = {line width=0.5pt, draw=lineDark},
+  junction/.style = {circle, fill=lineDark, inner sep=0pt, minimum size=2.4pt},
+  note/.style = {font=\fontsize{7}{8.4}\selectfont, align=left, text=black, inner sep=1pt},
+  wirelabel/.style = {font=\fontsize{7}{8.4}\selectfont, inner sep=1.5pt}
+}
