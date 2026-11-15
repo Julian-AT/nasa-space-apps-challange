@@ -224,7 +224,7 @@ describe('compiled Tailwind CSS', () => {
     expect(body.get('color')).toBe('var(--foreground)');
   });
 
-  it('downloads no webfont or image and has no dark theme', async () => {
+  it('declares no @font-face or image of its own (next/font self-hosts the fonts) and has no dark theme', async () => {
     const { css, root } = await compile(COLOUR_TOKENS.map((name) => `text-${name}`));
     let fontFaces = 0;
     root.walkAtRules('font-face', () => {

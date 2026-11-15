@@ -1,12 +1,13 @@
 'use client';
 
 // Adapted from ShadowAstra_Atlas (MIT, (c) 2026 Team ShadowAstra), https://github.com/ABRUBAB/ShadowAstra_Atlas
-// Primary navigation on every page (PRD 8.6, 8.10). The app's only client module: a root layout
-// cannot read the pathname, so this reads it with usePathname to mark the current route with
+// Primary navigation on every page (PRD 8.6, 8.10). The app's only shell client module: a root
+// layout cannot read the pathname, so this reads it with usePathname to mark the current route with
 // aria-current="page". It holds the links only: no bundle data and no provider. Links are plain
-// anchors in DOM order and keep the global focus indicator. The current route is shown by
-// aria-current, bold text and an underline bar, never colour alone. On narrow screens the row
-// scrolls sideways instead of hiding behind a toggle, so every link stays reachable by keyboard.
+// anchors in DOM order and keep the global focus indicator. The current route is a filled pill
+// with bold text, never colour alone. On narrow screens the row scrolls sideways instead of hiding
+// behind a toggle, so every link stays reachable by keyboard. The wordmark and nav are flex items
+// of the header row in app/layout.tsx; the mode pill (components/mode-banner.tsx) shares that row.
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -24,18 +25,20 @@ export const NAV_ITEMS = [
   { label: 'API docs', href: '/api/docs' },
 ] as const;
 
-const LINK = 'inline-block rounded-md px-3 py-1.5 text-sm whitespace-nowrap no-underline hover:bg-accent';
+const LINK = 'inline-block rounded-full px-3.5 py-1.5 text-[13px] whitespace-nowrap no-underline transition-colors';
 
 /** The navigation for a given pathname; a link is current only on its own route. */
 export function SiteNav({ pathname }: Readonly<{ pathname: string | null }>) {
   return (
-    <nav aria-label="Primary" className="-mx-1 min-w-0 overflow-x-auto">
-      <ul className="flex items-center gap-1 px-1 py-1">
+    <nav aria-label="Primary" className="order-3 -mx-1 w-full min-w-0 overflow-x-auto xl:order-2 xl:w-auto xl:flex-1">
+      <ul className="flex items-center gap-0.5 px-1 py-1 xl:justify-center">
         {NAV_ITEMS.map(({ label, href }) => {
           const isCurrent = pathname === href;
           const className = cn(
             LINK,
-            isCurrent ? 'bg-accent font-bold text-foreground underline decoration-primary decoration-2' : 'text-muted-foreground hover:text-foreground',
+            isCurrent
+              ? 'bg-platinum/10 font-bold text-foreground'
+              : 'text-muted-foreground hover:bg-platinum/5 hover:text-foreground',
           );
           return (
             <li key={href}>
@@ -56,17 +59,28 @@ export function SiteNav({ pathname }: Readonly<{ pathname: string | null }>) {
   );
 }
 
+function Wordmark() {
+  return (
+    <Link
+      href="/"
+      className="order-1 flex shrink-0 items-center gap-2.5 font-wide text-[13px] tracking-[0.18em] text-platinum uppercase no-underline"
+    >
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" className="text-flare">
+        <circle cx="12" cy="12" r="5.5" fill="currentColor" />
+        <ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="currentColor" strokeWidth="1.2" transform="rotate(-25 12 12)" />
+      </svg>
+      <span>
+        Terra<span className="text-earth">luna</span>
+      </span>
+    </Link>
+  );
+}
+
 export function SiteHeader() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-1 px-4 py-2 sm:px-6 md:flex-row md:items-center md:gap-6">
-      <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-semibold tracking-tight no-underline">
-        <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" className="text-primary">
-          <circle cx="12" cy="12" r="6" fill="currentColor" />
-          <ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="currentColor" strokeWidth="1.5" transform="rotate(-25 12 12)" />
-        </svg>
-        <span>Terraluna</span>
-      </Link>
+    <>
+      <Wordmark />
       <SiteNav pathname={usePathname()} />
-    </div>
+    </>
   );
 }

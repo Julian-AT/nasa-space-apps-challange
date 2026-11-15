@@ -9,8 +9,8 @@ export function MockBanner({ bundle }: Readonly<{ bundle: Bundle }>) {
   if (text === null) return null;
   return (
     <div className="bg-mock">
-      <div className="mx-auto w-full max-w-6xl px-4 py-2 sm:px-6">
-        <p role="status" className="text-sm font-bold text-mock-foreground">
+      <div className="mx-auto w-full max-w-[1400px] px-4 py-1.5 sm:px-6">
+        <p role="status" className="text-xs font-bold text-mock-foreground">
           {text}
         </p>
       </div>

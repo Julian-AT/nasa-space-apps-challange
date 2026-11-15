@@ -59,26 +59,40 @@ describe('the PRD 4 mode titles', () => {
   });
 });
 
+/** The banner sentence: the pill's first paragraph. The bundle version sits in a second one. */
+function pillLine(html: string): string {
+  const [first] = elements(html).filter((element) => element.tag === 'p');
+  if (first === undefined) throw new Error('the pill has no paragraph');
+  return first.text;
+}
+
 describe('ModeBanner', () => {
+  it('shows the bundle version beside the sentence, not inside it', () => {
+    const shown = bundle({ shipping_mode: 'C', bundle_version: 'v-test' }, [gate('G0', 'PASS')]);
+    const html = render(<ModeBanner bundle={shown} />);
+    expect(pillLine(html)).toBe(modeBannerText(shown));
+    expect(textOf(html)).toBe(`${modeBannerText(shown)} Bundle v-test`);
+  });
+
   it('reads "Shipping mode: not chosen (G0 <status>)" with the G0 status from validation.json', () => {
     for (const status of ['NOT_RUN', 'PARTIAL', 'FAIL', 'PASS']) {
       const records = [gate('G1', 'PASS'), gate('G0', status)];
       const shown = bundle({ shipping_mode: null }, records);
       expect(modeBannerText(shown)).toBe(`Shipping mode: not chosen (G0 ${status})`);
-      expect(textOf(render(<ModeBanner bundle={shown} />))).toBe(`Shipping mode: not chosen (G0 ${status})`);
+      expect(pillLine(render(<ModeBanner bundle={shown} />))).toBe(`Shipping mode: not chosen (G0 ${status})`);
     }
   });
 
   it('says that G0 has no record when validation.json has none, rather than inventing a status', () => {
     const shown = bundle({ shipping_mode: null }, [gate('G1'), gate('G2')]);
-    expect(textOf(render(<ModeBanner bundle={shown} />))).toBe('Shipping mode: not chosen (G0 not recorded)');
+    expect(pillLine(render(<ModeBanner bundle={shown} />))).toBe('Shipping mode: not chosen (G0 not recorded)');
   });
 
   it.each(MODES)('reads "Shipping mode: %s" and the PRD 4 title for that mode', (mode) => {
     const shown = bundle({ shipping_mode: mode }, [gate('G0', 'PASS')]);
     const expected = `Shipping mode: ${mode} — ${prd4Titles()[mode] ?? ''}`;
     expect(modeBannerText(shown)).toBe(expected);
-    expect(textOf(render(<ModeBanner bundle={shown} />))).toBe(expected);
+    expect(pillLine(render(<ModeBanner bundle={shown} />))).toBe(expected);
   });
 
   it('starts with the shipping-mode line that make web-smoke asserts', () => {
@@ -91,7 +105,7 @@ describe('ModeBanner', () => {
   it('implies no radar match or analog result outside Mode A (PRD 3, 4)', () => {
     for (const mode of [null, 'B', 'C'] as const) {
       for (const status of ['NOT_RUN', 'PASS', 'FAIL']) {
-        const text = textOf(render(<ModeBanner bundle={bundle({ shipping_mode: mode }, [gate('G0', status)])} />));
+        const text = pillLine(render(<ModeBanner bundle={bundle({ shipping_mode: mode }, [gate('G0', status)])} />));
         expect(text, text).not.toMatch(STRONGER_THAN_MODE);
         if (mode === null) expect(text).not.toMatch(/analog|candidate|radar/i);
       }
@@ -102,10 +116,8 @@ describe('ModeBanner', () => {
 
   it('is one prominent line in the page colours, never the red of the mock banner', () => {
     const html = render(<ModeBanner bundle={bundle({ shipping_mode: 'B' }, [gate('G0', 'PASS')])} />);
-    const banner = only(
-      elements(html).filter((element) => element.tag === 'p'),
-      'the banner pill',
-    );
+    const [banner] = elements(html).filter((element) => element.tag === 'p');
+    if (banner === undefined) throw new Error('the pill has no paragraph');
     const classes = classesOf(banner);
     expect(classes).toContain('font-semibold');
     expect(classes.join(' ')).not.toMatch(/(^|[\s:])(bg|text|border)-mock\b|-(red|rose)-\d/);

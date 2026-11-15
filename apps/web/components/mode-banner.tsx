@@ -1,6 +1,7 @@
 // The shipping-mode banner on every page (PRD 3, 4, 8.6, D08). While no mode is chosen it gives
 // the G0 status from validation.json; once G0 has chosen A, B or C it adds that mode's PRD 4 title
-// wording, so a screenshot states the claim the mode permits and no stronger one.
+// wording, so a screenshot states the claim the mode permits and no stronger one. It is a compact
+// status pill in the header; the bundle version sits beside the text, never inside it.
 import type { Bundle } from '../lib/bundle.ts';
 import { shellText } from '../lib/shell.ts';
 
@@ -22,12 +23,12 @@ export function modeBannerText(bundle: Bundle): string {
 
 export function ModeBanner({ bundle }: Readonly<{ bundle: Bundle }>) {
   return (
-    <div className="border-b border-line bg-card/60">
-      <div className="mx-auto w-full max-w-6xl px-4 py-2 sm:px-6">
-        <p className="inline-flex items-start gap-2 rounded-full border border-evidence-derived/50 bg-evidence-derived/10 px-3 py-1 text-sm font-semibold text-foreground">
-          {modeBannerText(bundle)}
-        </p>
-      </div>
+    <div className="order-2 ml-auto flex max-w-full items-center gap-2 rounded-3xl border border-line-2 bg-panel px-3 py-1.5 xl:order-3 xl:ml-0">
+      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-flare" />
+      <p className="text-xs leading-snug font-semibold text-foreground">{modeBannerText(bundle)}</p>
+      <p className="hidden shrink-0 border-l border-line-2 pl-2 font-mono text-[11px] text-chrome sm:block">
+        {`Bundle ${bundle.manifest.bundle_version}`}
+      </p>
     </div>
   );
 }

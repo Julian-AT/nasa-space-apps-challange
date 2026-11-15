@@ -31,7 +31,7 @@ export const NULL_REASON = 'validation.json gives null for this field';
 
 // Identifiers and statuses are set in a monospace face; free text is not. Each column has one
 // style whatever the value, so a status is told apart only by its text.
-const IDENTIFIER: ReadonlySet<GateField> = new Set(['gate_id', 'status', 'evidence_path', 'run_id']);
+const IDENTIFIER: ReadonlySet<GateField> = new Set(['gate_id', 'status', 'evidence_path', 'run_id', 'command', 'config_version', 'input_hashes']);
 
 function cellClass(field: GateField): string {
   return cn(IDENTIFIER.has(field) && 'font-mono text-xs');
@@ -66,9 +66,25 @@ export function recordsByGate(validation: Validation): ReadonlyMap<GateId, GateR
   return byGate;
 }
 
-function Value({ field, value }: { readonly field: GateField; readonly value: string | null }) {
-  let content: ReactNode = value;
-  if (value === null) content = <LabelledValue label="Unavailable" reason={NULL_REASON} />;
+/** The reason shown with Unavailable for an input_hashes list with no entries. */
+export const NO_INPUTS_REASON = 'validation.json lists no input files for this gate';
+
+function Value({ field, value }: { readonly field: GateField; readonly value: GateRecord[GateField] }) {
+  let content: ReactNode = typeof value === 'string' ? value : null;
+  if (Array.isArray(value)) {
+    content =
+      value.length === 0 ? (
+        <LabelledValue label="Unavailable" reason={NO_INPUTS_REASON} />
+      ) : (
+        <ul className="flex flex-col gap-1">
+          {value.map((input) => (
+            <li key={input.path} className="wrap-anywhere">
+              {input.path} {input.sha256}
+            </li>
+          ))}
+        </ul>
+      );
+  } else if (value === null) content = <LabelledValue label="Unavailable" reason={NULL_REASON} />;
   else if (field === 'status') {
     const variant = statusVariant(value);
     if (variant !== null) content = <Badge variant={variant}>{value}</Badge>;

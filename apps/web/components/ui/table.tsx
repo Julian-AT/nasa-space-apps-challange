@@ -12,7 +12,7 @@ function Table({ className, ...props }: ComponentProps<'table'>) {
       tabIndex={0}
       role="region"
       aria-label="Table, scrollable"
-      className="w-full overflow-x-auto rounded-lg border border-line bg-card"
+      className="w-full overflow-x-auto surface rounded-3xl"
     >
       <table data-slot="table" className={cn('w-full border-collapse text-sm', className)} {...props} />
     </div>

@@ -18,6 +18,20 @@
 
 :root {
   color-scheme: dark;
+  /* ShadowAstra "observatory" palette (void to platinum); the shadcn tokens below point at it. */
+  --void: #07080a;
+  --ink: #0b0c0f;
+  --panel: #101114;
+  --panel-2: #16171b;
+  --line-2: #2f3035;
+  --platinum: #edeae4;
+  --chrome: #a8a59e;
+  --dim: #8a8882;
+  --flare: #f2c879;
+  --moon: #c9c5bc;
+  --mars: #e08a5f;
+  --earth: #8fb4ea;
+
   --background: #07080a;
   --foreground: #edeae4;
   --card: #101114;
@@ -26,16 +40,16 @@
   --popover-foreground: #edeae4;
   --primary: #f2c879;
   --primary-foreground: #07080a;
-  --secondary: #1c1d22;
+  --secondary: #16171b;
   --secondary-foreground: #edeae4;
   --muted: #16171b;
   --muted-foreground: #a8a59e;
-  --accent: #23242a;
+  --accent: #1f2025;
   --accent-foreground: #edeae4;
   /* Component borders and inputs: 3:1 against the page (WCAG 1.4.11). */
   --border: #6b6962;
   --input: #6b6962;
-  --ring: #8fb4ea;
+  --ring: #f2c879;
   /* Decorative hairlines only (card chrome, dividers); never the sole boundary of a control. */
   --line: #2a2b31;
   --destructive: #f08a74;
@@ -63,7 +77,7 @@
   --world-mars: #e08a5f;
   --world-earth: #8fb4ea;
 
-  --radius: 0.75rem;
+  --radius: 1.25rem;
 }
 
 @theme inline {
@@ -71,8 +85,25 @@
   --color-red-*: initial;
   --color-rose-*: initial;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  /* next/font/google (app/layout.tsx) self-hosts these at build time and sets the variables. */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, "Times New Roman", serif;
+  --font-wide: var(--font-michroma), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+
+  --color-void: var(--void);
+  --color-ink: var(--ink);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line-2: var(--line-2);
+  --color-platinum: var(--platinum);
+  --color-chrome: var(--chrome);
+  --color-dim: var(--dim);
+  --color-flare: var(--flare);
+  --color-moon: var(--moon);
+  --color-mars: var(--mars);
+  --color-earth: var(--earth);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -125,6 +156,7 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 80px;
   }
 
   body {
@@ -132,6 +164,13 @@
     color: var(--foreground);
     font-family: var(--font-sans);
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--flare) 35%, transparent);
+    color: #fff;
   }
 
   /* One visible focus indicator for every focusable element; components must not hide it. */
@@ -150,15 +189,16 @@
   h1 {
     font-size: var(--text-3xl);
     line-height: var(--text-3xl--line-height);
-    font-weight: var(--font-weight-bold);
-    letter-spacing: -0.02em;
+    font-weight: var(--font-weight-medium);
+    letter-spacing: -0.04em;
+    line-height: 1.02;
   }
 
   h2 {
     font-size: var(--text-2xl);
     line-height: var(--text-2xl--line-height);
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: -0.01em;
+    font-weight: var(--font-weight-medium);
+    letter-spacing: -0.03em;
   }
 
   h3 {
@@ -169,11 +209,81 @@
 }
 
 @layer utilities {
-  /* Subtle starfield and glow drawn with CSS gradients only (no raster image, D35). */
+  /* Starfield and glow drawn with CSS gradients only (no raster image, D35). */
   .bg-observatory {
     background-image:
-      radial-gradient(60rem 30rem at 85% -10%, rgb(143 180 234 / 0.1), transparent 60%),
+      radial-gradient(60rem 30rem at 85% -10%, rgb(143 180 234 / 0.09), transparent 60%),
       radial-gradient(40rem 24rem at 0% 0%, rgb(242 200 121 / 0.06), transparent 60%);
     background-repeat: no-repeat;
+  }
+
+  /* Hairline grid used behind sections. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in oklab, var(--line) 60%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--line) 60%, transparent) 1px, transparent 1px);
+    background-size: 72px 72px;
+  }
+
+  /* The standard card surface: panel colour, a faint top light and an inner highlight. */
+  .surface {
+    position: relative;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--platinum) 3%, transparent), transparent 42%),
+      var(--panel);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--platinum) 5%, transparent),
+      0 26px 44px -34px rgb(0 0 0 / 0.75);
+    transition:
+      border-color 0.4s var(--ease-out-quint),
+      transform 0.5s var(--ease-out-quint);
+  }
+  @media (hover: hover) {
+    .surface:hover {
+      border-color: var(--line-2);
+    }
+    .surface.lift:hover {
+      transform: translateY(-3px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .surface,
+    .surface.lift:hover {
+      transition: none;
+      transform: none;
+    }
+  }
+
+  /* Floating glass for the header. */
+  .glass {
+    background: color-mix(in oklab, var(--panel) 78%, transparent);
+    border: 1px solid color-mix(in oklab, var(--platinum) 12%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+  }
+
+  /* Primary pill button: bone fill; a sunlight edge slides across on hover. */
+  .btn-primary {
+    position: relative;
+    overflow: hidden;
+    background: var(--platinum);
+    color: var(--void);
+  }
+  .btn-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, color-mix(in oklab, var(--flare) 55%, transparent) 50%, transparent 70%);
+    transform: translateX(-110%);
+    transition: transform 0.7s var(--ease-out-quint);
+  }
+  .btn-primary:hover::after {
+    transform: translateX(110%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-primary::after {
+      transition: none;
+    }
   }
 }

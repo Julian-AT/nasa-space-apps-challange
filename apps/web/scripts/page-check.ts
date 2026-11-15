@@ -246,7 +246,7 @@ function checkBanner(blocks: readonly Block[], marker: string, banner: string, n
  * unless the block is the document's title, in <main>, in a footer or in a banner part, or sits in
  * a live region that is a banner part. Each of these texts must be a layout label.
  */
-function strayTexts(blocks: readonly Block[], banners: readonly Extent[]): string[] {
+function strayTexts(blocks: readonly Block[], banners: readonly Extent[], extra: readonly string[]): string[] {
   const compared = new Set<Extent>(banners);
   for (const block of blocks) {
     if (COMPARED_ELEMENTS.has(block.name) || isDocumentTitle(block)) compared.add(block);
@@ -258,7 +258,7 @@ function strayTexts(blocks: readonly Block[], banners: readonly Extent[]): strin
     return block.regions.some((region) => compared.has(region));
   };
   return blocks
-    .filter((block) => block.own !== '' && !isCompared(block) && !LAYOUT_LABELS.includes(block.own))
+    .filter((block) => block.own !== '' && !isCompared(block) && !LAYOUT_LABELS.includes(block.own) && !extra.includes(block.own))
     .map((block) => block.own);
 }
 
@@ -337,7 +337,7 @@ export function pageProblems(html: string, bundle: Bundle): string[] {
   } else if (OVERSTATED.test(main.full)) {
     problems.push(`<main> makes a claim stronger than any shipping mode allows: "${OVERSTATED.exec(main.full)?.[0] ?? ''}"`);
   }
-  for (const stray of strayTexts(blocks, banners)) {
+  for (const stray of strayTexts(blocks, banners, [`Bundle ${bundle.manifest.bundle_version}`])) {
     problems.push(`text outside <main> must be a banner, the footer or a layout label, but "${stray}" is none of these`);
   }
   return problems;

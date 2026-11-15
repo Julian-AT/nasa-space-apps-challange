@@ -9,11 +9,11 @@ import { shellText } from '../lib/shell.ts';
 
 export function SiteFooter({ bundle }: Readonly<{ bundle: Bundle }>) {
   return (
-    <footer className="mt-20 border-t border-line bg-card/40">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-muted-foreground sm:px-6 md:flex-row md:items-center md:justify-between">
+    <footer className="mt-24 border-t border-line bg-ink">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-3 px-4 py-8 text-sm text-muted-foreground sm:px-6 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-1">
-          <p className="font-mono text-xs">{`${shellText(bundle).footer} · Schema ${bundle.manifest.schema_version}`}</p>
-          <p>Gradient Descent</p>
+          <p className="font-mono text-[11px] tracking-wide">{`${shellText(bundle).footer} · Schema ${bundle.manifest.schema_version}`}</p>
+          <p className="font-wide text-[11px] tracking-[0.18em] uppercase">Gradient Descent</p>
         </div>
         <ul className="flex gap-4">
           <li>
