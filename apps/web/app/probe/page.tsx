@@ -27,11 +27,13 @@ export default function ProbePage() {
         title="Live Earth probe"
         lead={`${LIVE_PROBE_SENTENCE} Enter a point on Earth. Your browser reads the 5 km window from Copernicus GLO-30 and measures it with the same resampler and terrain fingerprint as the pipeline. Nothing is stored or ranked.`}
       />
-      <p className="mt-3 mr-auto ml-0 max-w-3xl rounded-lg border bg-card p-3 font-sans text-sm text-muted-foreground">
+      <div>
+      <p className="mt-3 max-w-3xl rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">
         {encoder.encoder === null
           ? `Encoder (experimental): Unavailable: ${encoder.reason}.`
           : `Encoder: EXPERIMENTAL, ${encoder.encoder.spec.model_id}${encoder.encoder.spec.snapshot_note ? ` (${encoder.encoder.spec.snapshot_note}, not the final model)` : ''}, G5 ${encoder.encoder.spec.g5_status}. Its distances are Predicted and never rank anything.`}
-      </p>
+        </p>
+      </div>
       <Suspense fallback={<p className="mt-4">Loading the probe…</p>}>
         <ProbeClient
           targets={targets.fingerprints}
