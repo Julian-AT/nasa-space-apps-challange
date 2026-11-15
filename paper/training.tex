@@ -15,17 +15,21 @@ only. Morphology labels, the crater densities of the lunar and Martian crater ca
 
 \begin{table}[tbp]
 \centering
-\caption{Training schedule from the evaluation record of the frozen model.}
+\caption{Training schedule of the first main run, from its training record. The planned schedule was \PlannedEpochs{} epochs at a batch of \PlannedBatch{} in brain floating point with a stem stride of \PlannedStemStride; the run used a stem stride of \UsedStemStride{} in single precision, and its record lists each deviation.}
 \label{tab:training}
 \footnotesize
 \begin{tabular}{@{}ll@{}}
 \toprule
 Item & Value \\
 \midrule
-Device & \TrainDevice{} \\
+Accelerator & \TrainDevice{} \\
+CPU threads per run & \TrainThreads{} \\
 Epochs & \TrainEpochs{} \\
+Windows per epoch & \TrainWindowsPerEpoch{} \\
+Training rows & \TrainRows{} \\
 Batch size & \TrainBatch{} \\
-Wall clock hours & \TrainHours{} \\
+Wall clock hours, first main run & \TrainHours{} \\
+CPU core hours, first main run & \TrainCoreHours{} \\
 Backbone parameters & \EncoderParams{} \\
 \bottomrule
 \end{tabular}

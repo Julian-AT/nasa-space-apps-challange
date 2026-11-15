@@ -5,8 +5,9 @@
 % Artifact outputs/pilot/minirf_mosaic.json sha256 7ca9debe596749ff41004f89d5e0023a5ca51d0f28d25d029cefcf3ebd2833f7.
 % Artifact config/run.yaml sha256 9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675.
 % Artifact outputs/ml/dataset/manifest.json sha256 53f0c2614945436ba7e89460ed365d1aefa7e86b55ed34c9a58f0a65d5227b3e.
-% Artifact outputs/ml/evaluation/test/evaluation_metrics.json: not present.
-% Artifact outputs/ml/evaluation/test/g5_conditions.json: not present.
+% Artifact outputs/ml/runs/main_seed0/metrics.json sha256 25153cd234d5202c03ceaf3231b1e67bddfa8f246bac7a735b2cfd6b000fa10f.
+% Artifact outputs/ml/evaluation/test/g5_conditions.json sha256 266fb2039a6f24d9d849959c749c2639ec17deff448f976006d7462408276b0e.
+% Artifact outputs/ml/evaluation/test/evaluation_metrics.json sha256 c991fa8ef16b0d5d5b18c9e94e0e89ef6b082a0f2b497b260c3e5a420548a1dc.
 % Artifact outputs/search/targets.json sha256 140aa37f13d5c5ea22b69017ef0a22d7c3c135ae4f2f34ae01c8d847f670aa3c.
 % Artifact outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json sha256 51908a45880fba4378ca5047f9398ab52ba2eb314defcea204d7378b71c4e7c1.
 % Artifact outputs/cards/moon-sps-x2-y2__earth-utm27n-e280-n2880.json sha256 cb87fabf1018e742a8d91cb29964d047562d5e0fe2c0fc922643f4b41d6f02f0.
@@ -23,9 +24,22 @@
 % Artifact outputs/comparisons/mars-jezero-w000.json sha256 431c2b0dd842a8fc8aec48548e67c9e47cbf9b64aed5a96228ffff515a97beee.
 % Artifact outputs/search/summary_mars-arcadia-w000.json sha256 d9aefbd566da37997226bfec3d09712263d832abc2693d4e0818dc8038e791b2.
 % Artifact outputs/comparisons/mars-arcadia-w000.json sha256 4afc130415346154178b596aa77b337ac985ca9587d6e4569a2c12eaa7df905e.
-% Artifact outputs/ml/model/export_record.json sha256 f654324f51942e214e19f18e4e3a0d3ad294ea64055b34a35fa5d5a4f7072c86.
-% Artifact outputs/probe/wasm-parity.json sha256 c66210e2542b94258450dca81baeae8f25e8cbd73402a0d8a4244c7861dd8ad6.
+% Artifact outputs/ml/model/export_record.json sha256 4487c0b41ce3cd511832468cdd470f4d02b79eed734c7a21fc55758aa19d2f4a.
+% Artifact outputs/probe/wasm-parity.json sha256 e0b0386023476622440b85c538a5663aa7a9e5f99cd44116456d96887c21025b.
+% Artifact outputs/ml/report/report/examples.json sha256 4e7fe090583b0f042ede3db14360173f4a5c88843549e1f5ad0fcb6a560bf15b.
 % Artifact outputs/validation.json sha256 78334014251d99d9a478770fd43394cb49a9a537bed0f70705b001de336b46ab.
+% Artifact outputs/gates/G5.json sha256 170db46f02b1fa87faddaf1ef9b447729da512e7ce79056db29f0bc81cae3199.
+% Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/vicreg_only/runs/vicreg_only~1seed0/records/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low absent.
+% Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/vicreg_only/runs/vicreg_only~1seed0/records/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value absent.
+% Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/vicreg_only/runs/vicreg_only~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value absent.
+% Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/physics_only/runs/physics_only~1seed0/records/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low absent.
+% Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/physics_only/runs/physics_only~1seed0/records/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value absent.
+% Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/physics_only/runs/physics_only~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value absent.
+% Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/lambda_0.1/runs/lambda_0.1~1seed0/records/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/ci_low absent.
+% Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/lambda_0.1/runs/lambda_0.1~1seed0/records/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/value absent.
+% Artifact outputs/ml/evaluation/test/evaluation_metrics.json: pointer /arms/lambda_0.1/runs/lambda_0.1~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value absent.
+% Artifact outputs/ml/model/export_record.json: pointer /interim_snapshot/epoch absent.
+% Artifact outputs/ml/model/export_record.json: pointer /interim_snapshot/of_epochs absent.
 \newcommand{\MoonWindowsGenerated}{25}
 \newcommand{\MoonWindowsEligible}{25}
 \newcommand{\MoonTargetValidPct}{100}
@@ -107,23 +121,23 @@
 \newcommand{\DatasetMoonWindows}{6,848}
 \newcommand{\DatasetMarsWindows}{1,398}
 \newcommand{\DatasetEarthWindows}{11,147}
-\newcommand{\TrainEpochs}{\NotAvailable}
-\newcommand{\TrainBatch}{\NotAvailable}
-\newcommand{\TrainHours}{\NotAvailable}
-\newcommand{\TrainDevice}{\NotAvailable}
-\newcommand{\EncoderParams}{\NotAvailable}
-\newcommand{\EncoderPhysRReliefMin}{\NotAvailable}
+\newcommand{\TrainEpochs}{12}
+\newcommand{\TrainBatch}{128}
+\newcommand{\TrainHours}{1.6}
+\newcommand{\TrainDevice}{none (CPU only, team rule)}
+\newcommand{\EncoderParams}{2,795,040}
+\newcommand{\EncoderPhysRReliefMin}{0.87}
 \newcommand{\ResNetPhysRReliefMin}{\NotAvailable}
 \newcommand{\DinoPhysRReliefMin}{\NotAvailable}
-\newcommand{\RandomPhysRReliefMin}{\NotAvailable}
+\newcommand{\RandomPhysRReliefMin}{0.93}
 \newcommand{\EncoderMorphGain}{\NotAvailable}
-\newcommand{\EncoderBodyAcc}{\NotAvailable}
-\newcommand{\NoAdvBodyAcc}{\NotAvailable}
-\newcommand{\EncoderAgreementRho}{\NotAvailable}
-\newcommand{\EncoderSeedJaccard}{\NotAvailable}
+\newcommand{\EncoderBodyAcc}{0.71}
+\newcommand{\NoAdvBodyAcc}{0.72}
+\newcommand{\EncoderAgreementRho}{0.20}
+\newcommand{\EncoderSeedJaccard}{0.32}
 \newcommand{\EncoderTargetJaccard}{\NotAvailable}
 \newcommand{\HeldOutMarsR}{\NotAvailable}
-\newcommand{\GFiveVerdict}{\NotAvailable}
+\newcommand{\GFiveVerdict}{FAIL}
 \newcommand{\ShortlistCount}{1}
 \newcommand{\ComparedCount}{71}
 \newcommand{\ShortlistWindow}{earth-utm27n-e285-n2879}
@@ -140,24 +154,24 @@
 \newcommand{\CardShippingMode}{C}
 \newcommand{\BestBackgroundPercentile}{3.1}
 \newcommand{\BestReferenceSpread}{0.17}
-\newcommand{\VarMainPhysR}{\NotAvailable}
-\newcommand{\VarMainBodyAcc}{\NotAvailable}
-\newcommand{\VarMainRho}{\NotAvailable}
-\newcommand{\VarNoPhysPhysR}{\NotAvailable}
-\newcommand{\VarNoPhysBodyAcc}{\NotAvailable}
-\newcommand{\VarNoPhysRho}{\NotAvailable}
-\newcommand{\VarLambdaZeroPhysR}{\NotAvailable}
-\newcommand{\VarLambdaZeroBodyAcc}{\NotAvailable}
-\newcommand{\VarLambdaZeroRho}{\NotAvailable}
+\newcommand{\VarMainPhysR}{0.87}
+\newcommand{\VarMainBodyAcc}{0.71}
+\newcommand{\VarMainRho}{0.20}
+\newcommand{\VarNoPhysPhysR}{0.85}
+\newcommand{\VarNoPhysBodyAcc}{0.71}
+\newcommand{\VarNoPhysRho}{-0.04}
+\newcommand{\VarLambdaZeroPhysR}{0.87}
+\newcommand{\VarLambdaZeroBodyAcc}{0.72}
+\newcommand{\VarLambdaZeroRho}{0.21}
 \newcommand{\VarVicregOnlyPhysR}{\NotAvailable}
 \newcommand{\VarVicregOnlyBodyAcc}{\NotAvailable}
 \newcommand{\VarVicregOnlyRho}{\NotAvailable}
 \newcommand{\VarPhysOnlyPhysR}{\NotAvailable}
 \newcommand{\VarPhysOnlyBodyAcc}{\NotAvailable}
 \newcommand{\VarPhysOnlyRho}{\NotAvailable}
-\newcommand{\VarLambdaOnePhysR}{\NotAvailable}
-\newcommand{\VarLambdaOneBodyAcc}{\NotAvailable}
-\newcommand{\VarLambdaOneRho}{\NotAvailable}
+\newcommand{\VarLambdaOnePhysR}{0.89}
+\newcommand{\VarLambdaOneBodyAcc}{0.72}
+\newcommand{\VarLambdaOneRho}{-0.06}
 \newcommand{\VarLambdaTenthPhysR}{\NotAvailable}
 \newcommand{\VarLambdaTenthBodyAcc}{\NotAvailable}
 \newcommand{\VarLambdaTenthRho}{\NotAvailable}
@@ -363,27 +377,58 @@
 \newcommand{\ArcadiaReliefMax}{2.30}
 \newcommand{\ArcadiaTextureMedian}{0.94}
 \newcommand{\ArcadiaBgPctMin}{2.6}
-\newcommand{\OnnxSnapshotEpoch}{1}
-\newcommand{\OnnxSnapshotOf}{12}
-\newcommand{\OnnxSourceStatus}{interim snapshot}
+\newcommand{\OnnxSnapshotEpoch}{\NotAvailable}
+\newcommand{\OnnxSnapshotOf}{\NotAvailable}
+\newcommand{\OnnxSourceStatus}{completed}
 \newcommand{\OnnxParityN}{256}
-\newcommand{\OnnxFpDiff}{5.0e-07}
+\newcommand{\OnnxFpDiff}{3.7e-07}
 \newcommand{\OnnxFpThreshold}{1e-04}
-\newcommand{\OnnxHalfCosine}{0.999998}
+\newcommand{\OnnxHalfCosine}{0.999996}
 \newcommand{\OnnxHalfThreshold}{0.999}
 \newcommand{\OnnxHalfBytes}{5,601,753}
 \newcommand{\OnnxOpset}{17}
 \newcommand{\WasmWindows}{256}
-\newcommand{\WasmMinCosine}{0.999997}
+\newcommand{\WasmMinCosine}{0.999995}
 \newcommand{\WasmThreshold}{0.999}
-\newcommand{\WasmMs}{5.7}
+\newcommand{\WasmMs}{5.9}
 \newcommand{\WasmThreads}{1}
 \newcommand{\WasmRuntime}{Node v22.23.3 (WASM)}
 \newcommand{\WasmOrtVersion}{1.31.1}
+\newcommand{\TrainCoreHours}{3.2}
+\newcommand{\TrainThreads}{2}
+\newcommand{\TrainStepsPerEpoch}{78}
+\newcommand{\TrainRows}{19,393}
+\newcommand{\TrainWindowsPerEpoch}{10,000}
+\newcommand{\RandomPhysR}{0.96}
+\newcommand{\EncoderPhysRPointMin}{0.93}
+\newcommand{\EncoderHReliefR}{0.71}
+\newcommand{\RandomHReliefR}{0.81}
+\newcommand{\EncoderBodyAccLow}{0.58}
+\newcommand{\EncoderBodyAccHigh}{0.85}
+\newcommand{\RandomBodyAcc}{0.87}
+\newcommand{\EncoderAgreementLow}{0.08}
+\newcommand{\EncoderAgreementHigh}{0.36}
+\newcommand{\RandomAgreementRho}{0.85}
+\newcommand{\RandomSeedJaccard}{0.04}
+\newcommand{\OodFraction}{0.043}
+\newcommand{\MlTestWallSeconds}{0.34}
+\newcommand{\MlMainArm}{lambda\_0.3}
+\newcommand{\GalleryOneDist}{0.36}
+\newcommand{\GalleryFiveDist}{0.45}
+\newcommand{\GalleryOneLat}{34.55}
+\newcommand{\GalleryOneLon}{-118.24}
+\newcommand{\FailureCount}{20}
+\newcommand{\FailureMaxDisagreement}{204}
+\newcommand{\FailureMinDisagreement}{183}
+\newcommand{\OodExamples}{50}
+\newcommand{\PlannedEpochs}{40}
+\newcommand{\PlannedBatch}{1024}
+\newcommand{\PlannedStemStride}{1}
+\newcommand{\UsedStemStride}{2}
 \newcommand{\GateZeroStatus}{PASS}
 \newcommand{\GateOneStatus}{PASS}
 \newcommand{\GateTwoStatus}{NOT\_RUN}
 \newcommand{\GateThreeStatus}{PARTIAL}
 \newcommand{\GateFourStatus}{PASS}
-\newcommand{\GateFiveStatus}{NOT\_RUN}
+\newcommand{\GateFiveStatus}{FAIL}
 \newcommand{\GateSixStatus}{NOT\_RUN}

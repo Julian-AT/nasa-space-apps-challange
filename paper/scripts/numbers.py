@@ -428,34 +428,20 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
         "/counts_by_body_split/earth/train",
         ",d",
     ),
+    ArtifactMacro("TrainEpochs", "outputs/ml/runs/main_seed0/metrics.json", "/config/epochs", "?d"),
     ArtifactMacro(
-        "TrainEpochs",
-        "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/model/config/epochs",
-        "?d",
+        "TrainBatch", "outputs/ml/runs/main_seed0/metrics.json", "/config/batch_size", "?d"
     ),
     ArtifactMacro(
-        "TrainBatch",
-        "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/model/config/batch_size",
-        "?d",
+        "TrainHours", "outputs/ml/runs/main_seed0/metrics.json", "/wall_clock_s", "?h:.1f"
     ),
     ArtifactMacro(
-        "TrainHours",
-        "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/run_record/gpu_hours",
-        "?.1f",
-    ),
-    ArtifactMacro(
-        "TrainDevice",
-        "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/model/config/device",
-        "?text",
+        "TrainDevice", "outputs/ml/runs/main_seed0/metrics.json", "/hardware/accelerator", "?text"
     ),
     ArtifactMacro(
         "EncoderParams",
-        "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/model/parameter_count",
+        "outputs/ml/runs/main_seed0/metrics.json",
+        "/parameter_count_backbone",
         "?,d",
     ),
     ArtifactMacro(
@@ -503,7 +489,7 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro(
         "EncoderAgreementRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/tests/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
+        "/tests/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
@@ -638,7 +624,7 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro(
         "VarMainRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/tests/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
+        "/tests/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
@@ -656,7 +642,7 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro(
         "VarNoPhysRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/arms/no_phys_head/runs/no_phys_head~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
+        "/arms/no_phys_head/runs/no_phys_head~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
@@ -674,7 +660,7 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro(
         "VarLambdaZeroRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/arms/lambda_0/runs/lambda_0~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
+        "/arms/lambda_0/runs/lambda_0~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
@@ -692,7 +678,7 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro(
         "VarVicregOnlyRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/arms/vicreg_only/runs/vicreg_only~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
+        "/arms/vicreg_only/runs/vicreg_only~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
@@ -710,7 +696,7 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro(
         "VarPhysOnlyRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/arms/physics_only/runs/physics_only~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
+        "/arms/physics_only/runs/physics_only~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
@@ -728,7 +714,7 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro(
         "VarLambdaOneRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/arms/lambda_1/runs/lambda_1~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
+        "/arms/lambda_1/runs/lambda_1~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
@@ -746,7 +732,7 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro(
         "VarLambdaTenthRho",
         "outputs/ml/evaluation/test/evaluation_metrics.json",
-        "/arms/lambda_0.1/runs/lambda_0.1~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,body=pooled]/value",
+        "/arms/lambda_0.1/runs/lambda_0.1~1seed0/records/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/value",
         "?.2f",
     ),
     ArtifactMacro(
@@ -1950,12 +1936,175 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
     ArtifactMacro("WasmThreads", "outputs/probe/wasm-parity.json", "/threads", "?d"),
     ArtifactMacro("WasmRuntime", "outputs/probe/wasm-parity.json", "/runtime", "?text"),
     ArtifactMacro("WasmOrtVersion", "outputs/probe/wasm-parity.json", "/onnxruntime_web", "?text"),
+    ArtifactMacro(
+        "TrainCoreHours", "outputs/ml/runs/main_seed0/metrics.json", "/cpu_core_hours", "?.1f"
+    ),
+    ArtifactMacro(
+        "TrainThreads", "outputs/ml/runs/main_seed0/metrics.json", "/hardware/threads", "?d"
+    ),
+    ArtifactMacro(
+        "TrainStepsPerEpoch", "outputs/ml/runs/main_seed0/metrics.json", "/steps_per_epoch", "?d"
+    ),
+    ArtifactMacro("TrainRows", "outputs/ml/runs/main_seed0/metrics.json", "/n_train_rows", "?,d"),
+    ArtifactMacro(
+        "TrainWindowsPerEpoch",
+        "outputs/ml/runs/main_seed0/metrics.json",
+        "/config/windows_per_epoch",
+        "?,d",
+    ),
+    ArtifactMacro(
+        "RandomPhysR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/baselines/[name=random_init]/value",
+        "?min:.2f",
+    ),
+    ArtifactMacro(
+        "EncoderPhysRPointMin",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[*test_id=physics_probe,measure=r2,body=pooled,target^=log_nu_relief_]/value",
+        "?min:.2f",
+    ),
+    ArtifactMacro(
+        "EncoderHReliefR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[test_id=physics_probe,measure=r2,target=H_relief,body=pooled]/value",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "RandomHReliefR",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[test_id=physics_probe,measure=r2,target=H_relief,body=pooled]/baselines/[name=random_init]/value",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "EncoderBodyAccLow",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/ci_low",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "EncoderBodyAccHigh",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/ci_high",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "RandomBodyAcc",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[test_id=body_invariance,measure=balanced_accuracy,body=pooled]/baselines/[name=random_init]/value",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "EncoderAgreementLow",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/ci_low",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "EncoderAgreementHigh",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/ci_high",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "RandomAgreementRho",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[test_id=physics_agreement,measure=spearman_rho,target=rms_log_nu_10,body=pooled]/baselines/[name=random_init]/value",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "RandomSeedJaccard",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[test_id=seed_stability,measure=jaccard_at_20_mean]/baselines/[name=random_ranking]/value",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "OodFraction",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/tests/[test_id=out_of_distribution,body=pooled]/value",
+        "?.3f",
+    ),
+    ArtifactMacro(
+        "MlTestWallSeconds",
+        "outputs/ml/evaluation/test/evaluation_metrics.json",
+        "/wall_clock_s/total",
+        "?h:.2f",
+    ),
+    ArtifactMacro(
+        "MlMainArm", "outputs/ml/evaluation/test/evaluation_metrics.json", "/main_arm", "?text"
+    ),
+    ArtifactMacro(
+        "GalleryOneDist",
+        "outputs/ml/report/report/examples.json",
+        "/gallery/0/encoder_top5/windows/[rank=1]/cosine_distance",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "GalleryFiveDist",
+        "outputs/ml/report/report/examples.json",
+        "/gallery/0/encoder_top5/windows/[rank=5]/cosine_distance",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "GalleryOneLat",
+        "outputs/ml/report/report/examples.json",
+        "/gallery/0/encoder_top5/windows/[rank=1]/lat_deg",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "GalleryOneLon",
+        "outputs/ml/report/report/examples.json",
+        "/gallery/0/encoder_top5/windows/[rank=1]/lon_deg",
+        "?.2f",
+    ),
+    ArtifactMacro(
+        "FailureCount", "outputs/ml/report/report/examples.json", "/failure_cases/cases", "?count"
+    ),
+    ArtifactMacro(
+        "FailureMaxDisagreement",
+        "outputs/ml/report/report/examples.json",
+        "/failure_cases/cases/*/rank_disagreement",
+        "?max:.0f",
+    ),
+    ArtifactMacro(
+        "FailureMinDisagreement",
+        "outputs/ml/report/report/examples.json",
+        "/failure_cases/cases/*/rank_disagreement",
+        "?min:.0f",
+    ),
+    ArtifactMacro(
+        "OodExamples", "outputs/ml/report/report/examples.json", "/ood_examples", "?count"
+    ),
+    ArtifactMacro(
+        "PlannedEpochs",
+        "outputs/ml/runs/main_seed0/metrics.json",
+        "/deviations_from_prd/epochs/prd",
+        "?d",
+    ),
+    ArtifactMacro(
+        "PlannedBatch",
+        "outputs/ml/runs/main_seed0/metrics.json",
+        "/deviations_from_prd/batch_size/prd",
+        "?d",
+    ),
+    ArtifactMacro(
+        "PlannedStemStride",
+        "outputs/ml/runs/main_seed0/metrics.json",
+        "/deviations_from_prd/stem_stride/prd",
+        "?d",
+    ),
+    ArtifactMacro(
+        "UsedStemStride",
+        "outputs/ml/runs/main_seed0/metrics.json",
+        "/deviations_from_prd/stem_stride/used",
+        "?d",
+    ),
     ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
     ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
     ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),
     ArtifactMacro("GateThreeStatus", "outputs/validation.json", "/3/status", "text"),
     ArtifactMacro("GateFourStatus", "outputs/validation.json", "/4/status", "text"),
-    ArtifactMacro("GateFiveStatus", "outputs/validation.json", "/5/status", "text"),
+    ArtifactMacro("GateFiveStatus", "outputs/gates/G5.json", "/status", "text"),
     ArtifactMacro("GateSixStatus", "outputs/validation.json", "/6/status", "text"),
 )
 
@@ -2185,6 +2334,11 @@ def render_artifact(value: object, format_spec: str) -> str:
             raise MacroError(f"the value {value!r} is not a non-empty array")
         items = [render(item, format_spec[5:]) for item in value]
         return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+    if format_spec.startswith("h:"):
+        # Seconds shown in hours: the value divided by 3600, under the rest of the spec.
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            raise MacroError(f"the value {value!r} is not a number")
+        return render(value / 3600, format_spec[2:])
     if format_spec.startswith("%"):
         # A fraction shown in percent: the value times 100, under the rest of the spec.
         if isinstance(value, bool) or not isinstance(value, int | float):
