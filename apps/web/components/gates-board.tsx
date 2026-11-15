@@ -60,6 +60,14 @@ function Value({ field, value }: { readonly field: GateField; readonly value: st
   );
 }
 
+/** A field as text: input_hashes (PRD-01) lists each path with its sha256; others are strings. */
+export function fieldText(value: GateRecord[GateField]): string | null {
+  if (Array.isArray(value)) {
+    return value.length === 0 ? null : value.map((item) => `${item.path} (sha256 ${item.sha256})`).join('; ');
+  }
+  return value;
+}
+
 function RecordRow({ record }: { readonly record: GateRecord }) {
   return (
     <tr>
@@ -67,7 +75,7 @@ function RecordRow({ record }: { readonly record: GateRecord }) {
         {record.gate_id}
       </th>
       {GATE_FIELDS.filter((field) => field !== 'gate_id').map((field) => (
-        <Value key={field} field={field} value={record[field]} />
+        <Value key={field} field={field} value={fieldText(record[field])} />
       ))}
     </tr>
   );
