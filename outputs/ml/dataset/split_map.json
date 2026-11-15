@@ -1,0 +1,101 @@
+{
+  "assignment": {
+    "earth:+34:-116": "train",
+    "earth:+34:-118": "dropped",
+    "earth:+34:-120": "test",
+    "earth:+36:-118": "val",
+    "earth:+38:-112": "train",
+    "earth:+42:-114": "train",
+    "earth:+64:-16": "train",
+    "earth:+64:-18": "train",
+    "earth:+64:-20": "train",
+    "earth:+74:-90": "dropped",
+    "earth:+74:-92": "test",
+    "earth:-24:-70": "train",
+    "earth:-24:-72": "train",
+    "earth:-26:-70": "train",
+    "earth:-26:-72": "val",
+    "mars:tile+1:25": "train",
+    "mars:tile+3:0": "train",
+    "mars:tile+4:1": "val",
+    "mars:tile+4:2": "test",
+    "mars:tile+4:35": "train",
+    "mars:tile+5:2": "dropped",
+    "moon:lon[-180,-90)": "val",
+    "moon:lon[-90,0)": "train",
+    "moon:lon[0,90)": "dropped",
+    "moon:lon[90,180)": "test"
+  },
+  "blocks_by_body_role": {
+    "earth": {
+      "dropped": 2,
+      "test": 2,
+      "train": 9,
+      "val": 2
+    },
+    "mars": {
+      "dropped": 1,
+      "test": 1,
+      "train": 3,
+      "val": 1
+    },
+    "moon": {
+      "dropped": 1,
+      "test": 1,
+      "train": 1,
+      "val": 1
+    }
+  },
+  "body_of": {
+    "earth:+34:-116": "earth",
+    "earth:+34:-118": "earth",
+    "earth:+34:-120": "earth",
+    "earth:+36:-118": "earth",
+    "earth:+38:-112": "earth",
+    "earth:+42:-114": "earth",
+    "earth:+64:-16": "earth",
+    "earth:+64:-18": "earth",
+    "earth:+64:-20": "earth",
+    "earth:+74:-90": "earth",
+    "earth:+74:-92": "earth",
+    "earth:-24:-70": "earth",
+    "earth:-24:-72": "earth",
+    "earth:-26:-70": "earth",
+    "earth:-26:-72": "earth",
+    "mars:tile+1:25": "mars",
+    "mars:tile+3:0": "mars",
+    "mars:tile+4:1": "mars",
+    "mars:tile+4:2": "mars",
+    "mars:tile+4:35": "mars",
+    "mars:tile+5:2": "mars",
+    "moon:lon[-180,-90)": "moon",
+    "moon:lon[-90,0)": "moon",
+    "moon:lon[0,90)": "moon",
+    "moon:lon[90,180)": "moon"
+  },
+  "config": {
+    "earth_block_deg": 2.0,
+    "mars_tile_deg": 10.0,
+    "pole_point_counts": false,
+    "seed": 0,
+    "test_fraction": 0.15,
+    "touch": "edge_or_corner",
+    "val_fraction": 0.1
+  },
+  "content_sha256": "1e0f43b3c78f81829e7fa833335335cd1c026b026e7f8d9c003f1d5524a7a283",
+  "dropped": {
+    "earth:+34:-118": "training block touches a test block (edge or corner)",
+    "earth:+74:-90": "training block touches a test block (edge or corner)",
+    "mars:tile+5:2": "training block touches a test block (edge or corner)",
+    "moon:lon[0,90)": "training sector touches the test sector along an edge"
+  },
+  "dropped_training_fraction": {
+    "earth": 0.18181818181818182,
+    "mars": 0.25,
+    "moon": 0.5
+  },
+  "notes": {
+    "moon_role_choice": "seeded choice among the sector assignments that leave a training sector under the configured touch rule (8 candidates)"
+  },
+  "rule_version": "terraluna-splits/1"
+}
