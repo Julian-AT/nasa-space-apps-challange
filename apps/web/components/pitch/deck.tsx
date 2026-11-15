@@ -13,6 +13,8 @@ import { Globe } from '@/components/globe';
 
 import { ACCENT, EASE, FAINT, INK, LINE, MUTED, PAPER } from './bits';
 import { C, FigureCard, LineFigure, type LineSeries } from './figure';
+import { FigBenchmarks, type BenchData } from './fig-benchmarks';
+import { FigTraining, type CurvesJson } from './fig-training';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
 import { SslExplainer, SSL_STEPS } from './ssl-explainer';
@@ -71,7 +73,7 @@ interface Slide {
   readonly body: (step: number) => ReactNode;
 }
 
-function slides(d: PitchData, qr: string | null): Slide[] {
+function slides(d: PitchData, qr: string | null, bench: BenchData, curves: CurvesJson | null): Slide[] {
   const m = d.model;
   // the Jezero and Rosamond Dry Lake card: the finder and fingerprint story
   const jr = d.results.find((r) => r.targetName.includes('Jezero')) ?? null;
@@ -212,7 +214,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       body: () => (
         <Frame title="Training" sub="Self-supervised on Moon, Mars and Earth windows, losses read from the release bundle.">
           {/* figure area: components/pitch/fig-training.tsx is wired in here */}
-          <div className="h-full w-full" data-figure="training" />
+          <div className="h-full w-full" data-figure="training">{curves ? <FigTraining curves={curves} /> : null}</div>
         </Frame>
       ),
     },
@@ -222,7 +224,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       body: () => (
         <Frame title="Benchmarks" sub="Experimental learned similarity, evidence label Predicted, a second opinion beside the physics.">
           {/* figure area: components/pitch/fig-benchmarks.tsx is wired in here */}
-          <div className="h-full w-full" data-figure="benchmarks" />
+          <div className="h-full w-full" data-figure="benchmarks"><FigBenchmarks data={bench} /></div>
         </Frame>
       ),
     },
@@ -332,8 +334,8 @@ function Script({ text }: { text: string }) {
   );
 }
 
-export function Deck({ data, qr, fonts = '' }: { data: PitchData; qr: string | null; fonts?: string }) {
-  const list = slides(data, qr);
+export function Deck({ data, bench, curves, qr, fonts = '' }: { data: PitchData; bench: BenchData; curves: CurvesJson | null; qr: string | null; fonts?: string }) {
+  const list = slides(data, qr, bench, curves);
   const n = list.length;
   const [pos, setPos] = useState({ i: 0, step: 0, dir: 1 });
   const [notes, setNotes] = useState(false);
