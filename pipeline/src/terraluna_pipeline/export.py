@@ -487,6 +487,9 @@ def mock_gate_records() -> list[GateRecord]:
             scope=None,
             result=None,
             consequence=None,
+            command=None,
+            config_version=None,
+            input_hashes=[],
         )
         for gate_id in get_args(GateId)
     ]

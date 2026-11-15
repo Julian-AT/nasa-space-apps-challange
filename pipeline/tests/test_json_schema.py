@@ -262,7 +262,8 @@ def test_validation_schema_is_an_array_of_gate_records() -> None:
     assert validation["type"] == "array"
     assert validation["items"] == {"$ref": "#/$defs/GateRecord"}
     assert validation["$defs"] == {
-        "GateRecord": {k: v for k, v in gate_record.items() if k != "$schema"}
+        **gate_record["$defs"],
+        "GateRecord": {k: v for k, v in gate_record.items() if k not in {"$schema", "$defs"}},
     }
 
 

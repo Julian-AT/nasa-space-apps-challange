@@ -141,26 +141,6 @@ class BundleManifest(Record):
     files: list[BundleFile]
 
 
-class GateRecord(Record):
-    """One release gate's state in validation.json (PRD 8.12, section 9)."""
-
-    gate_id: GateId
-    status: GateStatus
-    evidence_path: NonEmptyStr | None
-    run_id: NonEmptyStr | None
-    scope: NonEmptyStr | None
-    result: NonEmptyStr | None
-    consequence: NonEmptyStr | None
-
-
-ValidationFile = Annotated[
-    list[GateRecord],
-    Strict(),
-    Field(title="Validation", description="validation.json: the GateRecords (PRD 8.4, 8.12)."),
-]
-"""validation.json: an array of GateRecords."""
-
-
 # --- ProductRecord (PRD 5, 8.11, 8.12) ----------------------------------------------------------
 
 UNKNOWN = "unknown"
@@ -455,6 +435,94 @@ def _when(
 
 def _exactly_one_null(value: object, reason: object) -> bool:
     return (value is None) != (reason is None)
+
+
+# --- GateRecord (PRD 8.12 as amended by PRD-01, PRD 9; CONTRACTS a.4) --------------------------
+
+
+class InputHash(Record):
+    """The SHA-256 of one file a gate's producer read, by its repository path."""
+
+    path: RepoPath
+    sha256: Sha256
+
+
+_EXECUTED_STATUSES: tuple[str, ...] = ("PASS", "FAIL", "PARTIAL", "NOT_APPLICABLE")
+"""Statuses of a gate that was run: each names its command, config version and inputs."""
+
+_GATE_PROVENANCE = ("command", "config_version", "evidence_path", "scope")
+
+# A conditional cannot hold a $ref, so the non-empty check names the InputHash shape; the
+# patterns stay on the property itself.
+_INPUT_HASH_SHAPE: dict[str, Any] = {
+    "type": "object",
+    "properties": {"path": _STRING, "sha256": _STRING},
+    "required": ["path", "sha256"],
+    "additionalProperties": False,
+}
+
+
+def _gate_rule(status: str) -> dict[str, Any]:
+    required = {
+        **dict.fromkeys(_GATE_PROVENANCE, _STRING),
+        "input_hashes": {"type": "array", "items": _INPUT_HASH_SHAPE, "minItems": 1},
+    }
+    if status == "PASS":
+        required["run_id"] = _STRING
+    return _when({"status": {"const": status}}, required)
+
+
+class GateRecord(Record):
+    """One release gate's state in validation.json (PRD 8.12, section 9).
+
+    A gate that was run (PASS, FAIL, PARTIAL or NOT_APPLICABLE) names its ``command``,
+    ``config_version``, ``evidence_path`` and ``scope`` and lists at least one input; PASS also
+    needs the PRD 8.13 ``run_id``. NOT_RUN may leave every nullable field null with no inputs.
+    ``input_hashes`` is sorted by path with no path twice, so `gates verify` can re-hash it.
+    There are no wall-clock fields, so re-recording a gate is byte-identical.
+    """
+
+    model_config = ConfigDict(
+        json_schema_extra={"allOf": [_gate_rule(status) for status in _EXECUTED_STATUSES]}
+    )
+
+    gate_id: GateId
+    status: GateStatus
+    evidence_path: RepoPath | None = Field(description="The committed evidence file.")
+    run_id: RunId | None = Field(description="PRD 8.13 run_id; required for PASS.")
+    scope: NonEmptyStr | None
+    result: NonEmptyStr | None
+    consequence: NonEmptyStr | None
+    command: NonEmptyStr | None = Field(
+        description="The shlex-joined argv of the command that produced the record."
+    )
+    config_version: Sha256 | None = Field(description="SHA-256 of config/run.yaml as read.")
+    input_hashes: list[InputHash] = Field(
+        description="Every file the producer read, sorted by path, each path once."
+    )
+
+    @model_validator(mode="after")
+    def _provenance_follows_the_status(self) -> Self:
+        paths = [entry.path for entry in self.input_hashes]
+        if any(a >= b for a, b in pairwise(paths)):
+            raise ValueError("input_hashes must be sorted by path with no path listed twice")
+        if self.status in _EXECUTED_STATUSES:
+            missing = [name for name in _GATE_PROVENANCE if getattr(self, name) is None]
+            if not self.input_hashes:
+                missing.append("input_hashes")
+            if self.status == "PASS" and self.run_id is None:
+                missing.append("run_id")
+            if missing:
+                raise ValueError(f"a {self.status} gate record needs {', '.join(missing)}")
+        return self
+
+
+ValidationFile = Annotated[
+    list[GateRecord],
+    Strict(),
+    Field(title="Validation", description="validation.json: the GateRecords (PRD 8.4, 8.12)."),
+]
+"""validation.json: an array of GateRecords."""
 
 
 _STATISTICS = ("min", "median", "p05", "p95", "max")
