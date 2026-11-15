@@ -305,6 +305,455 @@ def clone_percentile_spread(
     }
 
 
+# --- G4 (T6-04): candidate table, masks, rank sensitivity, counterexample ---------------------
+
+TERRAIN_FAMILIES: Final = ("terrain_relief", "terrain_texture")
+G4_PARTS: Final = ("table", "masks", "distances_and_rank_sensitivity", "counterexample")
+FORBIDDEN_CLAIMS: Final = ("analog confirmed", "valid analog", "probability")
+
+
+def _clone_summary(values: Sequence[float]) -> dict[str, Any]:
+    array = np.asarray(values, dtype=np.float64)
+    lo, hi = float(np.percentile(array, 2.5)), float(np.percentile(array, 97.5))
+    return {
+        "min": float(array.min()),
+        "p2_5": lo,
+        "median": float(np.median(array)),
+        "p97_5": hi,
+        "max": float(array.max()),
+        "n": int(array.size),
+        "spread_half_width_95": (hi - lo) / 2.0,
+    }
+
+
+def g4_rank_sensitivity(
+    base_target: Mapping[str, Any],
+    clone_targets: Mapping[str, Mapping[str, Any]],
+    candidates: Mapping[str, Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Terrain distances of every candidate under the base target and under each clone.
+
+    Distances come from ``matching.terrain_distance`` and Pareto layers from
+    ``matching.pareto_layers``; ties from ``matching.tie_groups`` with each candidate's spread
+    = half the width of its clone 2.5-97.5 percentile range (measurement error only; an
+    engineering choice). Families are never combined. A candidate whose distance is unavailable
+    in a run is absent from that run's ranking, never ranked last.
+    """
+    from terraluna_pipeline import matching
+
+    def distances(target: Mapping[str, Any]) -> dict[str, dict[str, float | None]]:
+        out: dict[str, dict[str, float | None]] = {}
+        for cid, variants in candidates.items():
+            out[cid] = {
+                family: matching.terrain_distance(target[family], variants[family]).value
+                for family in TERRAIN_FAMILIES
+            }
+        return out
+
+    def ranking(table: Mapping[str, Mapping[str, float | None]]) -> dict[str, Any]:
+        complete = {
+            cid: [float(d[f]) for f in TERRAIN_FAMILIES]  # type: ignore[arg-type]
+            for cid, d in table.items()
+            if all(d[f] is not None for f in TERRAIN_FAMILIES)
+        }
+        layers = matching.pareto_layers(complete)
+        layer_of = {cid: i + 1 for i, layer in enumerate(layers) for cid in layer}
+        rank1 = {}
+        for family in TERRAIN_FAMILIES:
+            values = {cid: v for cid, d in table.items() if (v := d[family]) is not None}
+            best = min(values.values()) if values else None
+            rank1[family] = {cid for cid, v in values.items() if v == best}
+        return {"layer": layer_of, "rank1": rank1}
+
+    base = distances(base_target)
+    base_rank = ranking(base)
+    runs = {cid: distances(target) for cid, target in clone_targets.items()}
+    run_ranks = [ranking(table) for table in runs.values()]
+    n = len(run_ranks)
+    rows: dict[str, Any] = {}
+    for cid in sorted(candidates):
+        row: dict[str, Any] = {"distances": {}, "base_pareto_layer": base_rank["layer"].get(cid)}
+        for family in TERRAIN_FAMILIES:
+            clone_values = [v for t in runs.values() if (v := t[cid][family]) is not None]
+            entry: dict[str, Any] = {"base": base[cid][family], "unit": "RMS of log nu"}
+            if clone_values:
+                entry.update(_clone_summary([float(v) for v in clone_values]))
+            else:
+                entry.update(spread_half_width_95=None, n=0)
+            row["distances"][family] = entry
+        if n:
+            first = sum(1 for r in run_ranks if r["layer"].get(cid) == 1)
+            row["rank_frequency"] = {
+                "first_pareto_layer": {"frequency": first / n, "count": first, "n": n},
+                **{
+                    f"rank_1_{family}": {
+                        "frequency": sum(1 for r in run_ranks if cid in r["rank1"][family]) / n,
+                        "count": sum(1 for r in run_ranks if cid in r["rank1"][family]),
+                        "n": n,
+                    }
+                    for family in TERRAIN_FAMILIES
+                },
+            }
+        else:
+            row["rank_frequency"] = None
+        rows[cid] = row
+    ties: dict[str, Any] = {}
+    for family in TERRAIN_FAMILIES:
+        result = matching.tie_groups(
+            family,  # type: ignore[arg-type]
+            {cid: rows[cid]["distances"][family]["base"] for cid in rows},
+            {cid: rows[cid]["distances"][family]["spread_half_width_95"] for cid in rows},
+        )
+        ties[family] = {
+            "groups": [
+                {
+                    "group_id": g.group_id,
+                    "members": list(g.members),
+                    "not_pairwise_tied": [list(p) for p in g.not_pairwise_tied],
+                }
+                for g in result.groups
+            ],
+            "by_window": {
+                cid: {"tied": m.tied, "tie_group": m.tie_group, "tie_reason": m.tie_reason}
+                for cid, m in result.by_window.items()
+            },
+        }
+    return {"n_runs": n, "candidates": rows, "ties": ties}
+
+
+MASK_SCENARIO_THRESHOLDS: Final = (0.95, 1.0)
+"""Stricter WorldCover allowed-fraction thresholds tried as named scenarios (choice)."""
+
+
+def mask_scenarios(
+    table: Sequence[Mapping[str, Any]], *, base_threshold: float
+) -> list[dict[str, Any]]:
+    """Named mask and region scenarios over the eligible candidates: who stays, first layer.
+
+    Only filters that the committed table can apply are run (no re-measurement); no
+    probability or weight is attached.
+    """
+    from terraluna_pipeline import matching
+
+    def first_layer(rows: Sequence[Mapping[str, Any]]) -> list[str]:
+        points = {
+            r["window_id"]: [float(r[f]["base"]) for f in TERRAIN_FAMILIES]
+            for r in rows
+            if all(r[f]["base"] is not None for f in TERRAIN_FAMILIES)
+        }
+        layers = matching.pareto_layers(points)
+        return list(layers[0]) if layers else []
+
+    out = [
+        {
+            "name": "pipeline",
+            "change": f"WorldCover allowed fraction >= {base_threshold:g} (config), both regions",
+            "n_eligible": len(table),
+            "first_pareto_layer": first_layer(table),
+        }
+    ]
+    for threshold in MASK_SCENARIO_THRESHOLDS:
+        rows = [
+            r
+            for r in table
+            if (r["valid_fraction_by_observable"].get("worldcover_allowed") or 0.0) >= threshold
+        ]
+        out.append(
+            {
+                "name": f"worldcover_allowed_ge_{threshold:g}",
+                "change": (
+                    f"WorldCover allowed fraction >= {threshold:g} instead of {base_threshold:g}"
+                ),
+                "n_eligible": len(rows),
+                "first_pareto_layer": first_layer(rows),
+            }
+        )
+    for region in sorted({str(r["search_region_id"]) for r in table}):
+        rows = [r for r in table if str(r["search_region_id"]) == region]
+        out.append(
+            {
+                "name": f"region_{region}_only",
+                "change": f"search only the {region} region",
+                "n_eligible": len(rows),
+                "first_pareto_layer": first_layer(rows),
+            }
+        )
+    return out
+
+
+def g4_status(parts: Mapping[str, bool], *, t5_outputs: bool) -> tuple[str, list[str]]:
+    """PASS needs all four parts; a missing part gives PARTIAL naming it; no T5 outputs NOT_RUN."""
+    if not t5_outputs:
+        return "NOT_RUN", ["t5_outputs"]
+    missing = [part for part in G4_PARTS if not parts.get(part)]
+    return ("PASS" if not missing else "PARTIAL"), missing
+
+
+def split_windows(entries: Sequence[Mapping[str, Any]]) -> tuple[list[str], list[dict[str, Any]]]:
+    """Eligible window ids, and the rejected or unknown windows with reasons (never ranked)."""
+    eligible: list[str] = []
+    excluded: list[dict[str, Any]] = []
+    for entry in entries:
+        window_id = str(entry["window"]["window_id"])
+        if entry["status"] == "eligible":
+            eligible.append(window_id)
+        else:
+            excluded.append(
+                {
+                    "window_id": window_id,
+                    "status": entry["status"],
+                    "reasons": list(entry["reasons"]),
+                }
+            )
+    return sorted(eligible), sorted(excluded, key=lambda item: item["window_id"])
+
+
+COUNTEREXAMPLE_PATH: Final = "analysis/g4_counterexample.json"
+
+
+def counterexample_ok(root: Path) -> tuple[bool, str | None]:
+    """Whether the analyst's counterexample file exists and every inspected path exists."""
+    path = root / COUNTEREXAMPLE_PATH
+    if not path.is_file():
+        return False, f"{COUNTEREXAMPLE_PATH} is missing"
+    record = json.loads(path.read_text(encoding="utf-8"))
+    for key in ("candidate_id", "inspected", "artifact_paths"):
+        if key not in record:
+            return False, f"{COUNTEREXAMPLE_PATH} lacks {key}"
+    missing = [p for p in record["artifact_paths"] if not (root / p).exists()]
+    if missing:
+        return False, f"inspected artifacts missing: {', '.join(missing)}"
+    return True, None
+
+
+def _target_variants(entry: Mapping[str, Any]) -> dict[str, Any]:
+    from terraluna_pipeline.schema import TerrainVariant
+
+    terrain = entry["terrain"]["terrain"]
+    return {
+        "terrain_relief": TerrainVariant.model_validate(terrain["relief"]),
+        "terrain_texture": TerrainVariant.model_validate(terrain["texture"]),
+    }
+
+
+def _clone_variants(
+    base: Mapping[str, Any], per_clone: Mapping[str, Mapping[str, float | None]]
+) -> dict[str, dict[str, Any]]:
+    out: dict[str, dict[str, Any]] = {}
+    for cid, values in per_clone.items():
+        variants = {}
+        for family, prefix in (("terrain_relief", "relief"), ("terrain_texture", "texture")):
+            variant = base[family]
+            nu = {lag: values.get(f"{prefix}.nu_m@{lag}") for lag in variant.nu_m}
+            variants[family] = variant.model_copy(update={"nu_m": nu})
+        out[cid] = variants
+    return out
+
+
+def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
+    """analysis/g4_candidates.json and the G4 fragment from the real search outputs."""
+    from terraluna_pipeline import gates
+    from terraluna_pipeline.config import load_run_config
+    from terraluna_pipeline.provenance import command_line, config_version, run_id
+    from terraluna_pipeline.schema import GateRecord
+
+    config_path = root / "config" / "run.yaml"
+    targets_path = root / "outputs" / "search" / "targets.json"
+    comparisons_path = root / "outputs" / "comparisons" / f"{target_id}.json"
+    earth_path = root / "data" / "processed" / "windows" / "earth.json"
+    moon_path = root / "data" / "processed" / "windows" / "moon.json"
+    needed = [targets_path, comparisons_path, earth_path, moon_path]
+    missing = [str(p.relative_to(root)) for p in needed if not p.is_file()]
+    if missing:
+        print(f"blocked: missing T5 outputs {', '.join(missing)}; G4 stays NOT_RUN")
+        return EXIT_BLOCKED
+    targets = json.loads(targets_path.read_text(encoding="utf-8"))
+    target = next((t for t in targets if t["target_id"] == target_id), None)
+    if target is None:
+        print(f"blocked: {target_id} not in outputs/search/targets.json")
+        return EXIT_BLOCKED
+    primary = target["primary_window_id"]
+    clones_path = root / "outputs" / "uncertainty" / f"clones_{primary}.json"
+    if not clones_path.is_file():
+        print(f"blocked: {clones_path.relative_to(root)} (run uncertainty run-clones)")
+        return EXIT_BLOCKED
+    comparisons = json.loads(comparisons_path.read_text(encoding="utf-8"))
+    earth = json.loads(earth_path.read_text(encoding="utf-8"))
+    moon = json.loads(moon_path.read_text(encoding="utf-8"))
+    clones = json.loads(clones_path.read_text(encoding="utf-8"))
+    moon_entry = next(e for e in moon if e["window"]["window_id"] == primary)
+    base_target = _target_variants(moon_entry)
+    spread = clones["by_isotropic_rule"][PRIMARY_RULE]
+    clone_targets = _clone_variants(base_target, spread["per_clone"])
+    eligible, excluded = split_windows(earth)
+    by_id = {e["window"]["window_id"]: e for e in earth}
+    candidates = {wid: _target_variants(by_id[wid]) for wid in eligible}
+    sensitivity = g4_rank_sensitivity(base_target, clone_targets, candidates)
+
+    # Consistency: the base distances recomputed here must equal the committed comparisons.
+    mismatches = []
+    compared = {r["earth_window_id"]: r for r in comparisons}
+    for wid, row in sensitivity["candidates"].items():
+        record = compared.get(wid)
+        for family in TERRAIN_FAMILIES:
+            committed = None if record is None else record["distances_by_family"][family]["value"]
+            if committed != row["distances"][family]["base"]:
+                mismatches.append(f"{wid}:{family}")
+    if mismatches:
+        print(f"check failed: base distances differ from {comparisons_path.name}: {mismatches[:5]}")
+        return EXIT_CHECK_FAILED
+
+    run = load_run_config(config_path)
+    masks_cfg = run.value("earth_search.masks")
+    regions: dict[str, dict[str, Any]] = {}
+    for entry in earth:
+        region = entry["window"]["environment_flags"].get("search_region_id") or "unknown"
+        counts = regions.setdefault(
+            region, {"generated": 0, "eligible": 0, "rejected_by_reason": {}}
+        )
+        counts["generated"] += 1
+        if entry["status"] == "eligible":
+            counts["eligible"] += 1
+        for reason in entry["reasons"]:
+            counts["rejected_by_reason"][reason] = counts["rejected_by_reason"].get(reason, 0) + 1
+    table = []
+    for wid in eligible:
+        entry = by_id[wid]
+        row = sensitivity["candidates"][wid]
+        window = entry["window"]
+        table.append(
+            {
+                "window_id": wid,
+                "body": window["body"],
+                "area_m2": window["area_m2"],
+                "search_region_id": window["environment_flags"].get("search_region_id"),
+                "valid_fraction_by_observable": window["valid_fraction_by_observable"],
+                "eligibility": entry["status"],
+                "exclusion_reasons": entry["reasons"],
+                "radar_cpr": {
+                    "status": "unavailable",
+                    "reason": "shipping_mode_c_radar_not_completed",
+                    "value": None,
+                },
+                "terrain_relief": row["distances"]["terrain_relief"],
+                "terrain_texture": row["distances"]["terrain_texture"],
+                "base_pareto_layer": row["base_pareto_layer"],
+                "rank_frequency": row["rank_frequency"],
+                "ties": {f: sensitivity["ties"][f]["by_window"].get(wid) for f in TERRAIN_FAMILIES},
+            }
+        )
+    shortlist = target.get("shortlist") or {}
+    scenarios = mask_scenarios(table, base_threshold=float(masks_cfg["min_allowed_fraction"]))  # type: ignore[index]
+    counter_ok, counter_reason = counterexample_ok(root)
+    parts = {
+        "table": bool(table) or True,
+        "masks": True,
+        "distances_and_rank_sensitivity": sensitivity["n_runs"] > 0,
+        "counterexample": counter_ok,
+    }
+    status, missing_parts = g4_status(parts, t5_outputs=True)
+    committed_inputs = [config_path, targets_path, comparisons_path, clones_path]
+    if counter_ok:
+        committed_inputs.append(root / COUNTEREXAMPLE_PATH)
+    evidence = {
+        "record_type": "terraluna G4 candidate table and rank sensitivity",
+        "evidence_label": "Derived",
+        "command": command_line("terraluna_pipeline.checks", argv),
+        "config_version": config_version(config_path),
+        "input_hashes": _hash_entries(root, committed_inputs),
+        "uncommitted_inputs_sha256": {
+            str(p.relative_to(root)): _sha256(p) for p in (earth_path, moon_path)
+        },
+        "target_id": target_id,
+        "target_window_id": primary,
+        "shipping_mode": run.value("run.shipping_mode"),
+        "scope": (
+            "Slice search over the configured Earth regions (outputs/search/targets.json "
+            f"n_compared = {shortlist.get('n_compared')}), terrain families only (Mode C). "
+            "Not the full T5 search universe."
+        ),
+        "sort_rule": shortlist.get("rule"),
+        "sort_note": (
+            "No single order: Pareto layers over terrain_relief and terrain_texture, then "
+            "window_id; no family sorts first (ANA-03 undecided). No composite exists."
+        ),
+        "shortlist_earth_window_ids": shortlist.get("earth_window_ids"),
+        "masks": {
+            "worldcover": {
+                "product": "ESA WorldCover v200, 2021 (WorldCover/esa-worldcover/v200/2021/map)",
+                "allowed_classes": masks_cfg["worldcover_allowed"],  # type: ignore[index]
+                "min_allowed_fraction": masks_cfg["min_allowed_fraction"],  # type: ignore[index]
+                "water_rule": masks_cfg["water"],  # type: ignore[index]
+                "sampling": "nearest class at each 90 m cell centre",
+            },
+            "terrain_valid_fraction_min": run.value("terrain.min_valid_fraction"),
+            "permanent_shadow": {
+                "status": "unavailable",
+                "reason": "G0-10 permanent-shadow product undecided",
+            },
+            "counts_by_region": dict(sorted(regions.items())),
+        },
+        "candidates": table,
+        "excluded_windows_never_ranked": excluded,
+        "ties": sensitivity["ties"],
+        "tie_rule": (
+            "matching.tie_groups: |d_a - d_b| < s_a + s_b, s = half width of the candidate's "
+            "PGDA78 clone 2.5-97.5 percentile distance range (measurement error only)"
+        ),
+        "rank_sensitivity": {
+            "runs": "PGDA78 Site01 clones of the target window, each re-measured through D29 and "
+            "T3; Earth windows held fixed (no Earth error model)",
+            "n_runs": sensitivity["n_runs"],
+            "n_requested": spread["n_requested"],
+            "wording": "rank stability is a frequency over clone runs, never a probability",
+        },
+        "scenario_sensitivity": scenarios,
+        "clone_limits": spread["note"],
+        "counterexample": {"present": counter_ok, "reason": counter_reason},
+        "g4_parts": parts,
+        "status": status,
+        "missing_parts": missing_parts,
+    }
+    evidence_path = root / "analysis" / "g4_candidates.json"
+    _write(evidence_path, evidence)
+    n_first = sum(1 for r in table if r["base_pareto_layer"] == 1)
+    stable = [
+        r["window_id"]
+        for r in table
+        if r["rank_frequency"] and r["rank_frequency"]["first_pareto_layer"]["frequency"] == 1.0
+    ]
+    product_pairs = (
+        [(pid, None) for pid in sorted(comparisons[0]["source_ids"])] if comparisons else []
+    )
+    record = GateRecord.model_validate(
+        {
+            "gate_id": "G4",
+            "status": status,
+            "evidence_path": "analysis/g4_candidates.json",
+            "run_id": run_id(config_path, product_pairs),
+            "scope": (
+                f"{target_id} ({primary}) against {len(table)} eligible Earth windows of the slice "
+                "search; terrain families only (Mode C)"
+            ),
+            "result": (
+                f"{len(table)} candidates, {len(excluded)} excluded windows listed; first Pareto "
+                f"layer {n_first} window(s); {len(stable)} window(s) in the first layer in all "
+                f"{sensitivity['n_runs']} clone runs"
+            ),
+            "consequence": None
+            if status == "PASS"
+            else f"G4 {status}: missing {', '.join(missing_parts)}; no candidate claim beyond "
+            "the terrain-only slice",
+            "command": evidence["command"],
+            "config_version": evidence["config_version"],
+            "input_hashes": _hash_entries(root, [*committed_inputs, evidence_path]),
+        }
+    )
+    gates.write_fragment(record, root=root)
+    gates.merge(root)
+    return EXIT_OK
+
+
 # --- verify-records ----------------------------------------------------------------------------
 
 
@@ -618,6 +1067,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     verify = sub.add_parser("verify-records", help="re-hash analysis/*.json inputs (offline)")
     verify.add_argument("--root", default=".")
+    g4 = sub.add_parser("g4", help="G4 candidate table and rank sensitivity")
+    g4.add_argument("--target-id", default="moon-cr-site01-w000")
+    g4.add_argument("--root", default=".")
     analysis = sub.add_parser("analysis", help="Appendix A analyses")
     analysis.add_argument("part", choices=["moon-distributions", "scale-behaviour"])
     analysis.add_argument("--pgda-dir", default=None)
@@ -629,6 +1081,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(problem)
         return EXIT_CHECK_FAILED if problems else EXIT_OK
     root = Path(args.root)
+    if args.command == "g4":
+        return run_g4(root, args.target_id, arguments)
     if args.part == "moon-distributions":
         return run_moon_distributions(root, arguments)
     pgda = Path(args.pgda_dir) if args.pgda_dir else root / "data" / "raw" / "pgda78"

@@ -1,0 +1,43 @@
+{
+  "artifact_paths": [
+    "analysis/g4_candidates.json",
+    "outputs/comparisons/moon-cr-site01-w000.json",
+    "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+    "outputs/uncertainty/clones_moon-sps-x2-y2.json"
+  ],
+  "candidate_id": "earth-utm27n-e285-n2879",
+  "consequence_for_claims": "The first-layer candidate is the window nearest in this terrain-only metric among the 71 eligible windows of the slice search, not a morphological analog of Connecting Ridge. Cards and the paper must not describe it as similar terrain beyond the stated distances; Mode C claim limits apply.",
+  "evidence_label": "Derived",
+  "input_hashes": [
+    {
+      "path": "outputs/cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
+      "sha256": "db275be2226cdf7e3ed066dbe9b88ba2dee2487602c81a0c9b58e1995531ad5d"
+    },
+    {
+      "path": "outputs/comparisons/moon-cr-site01-w000.json",
+      "sha256": "56d8951018afc3a1b0b073ac0d258d6ea1c06517b998686d164b7304a65420f3"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
+      "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+    }
+  ],
+  "inspected": "Viewed both 5 km windows on the 90 m analysis grid as elevation maps with contours (rendered from the D29-resampled DEM caches listed under uncommitted_artifacts_opened), and compared their T3 nu(L) curves and Hurst exponents from data/processed/windows/{moon,earth}.json and the committed candidate table.",
+  "mock": false,
+  "numbers_source": {
+    "candidate_relief_nu_m": "data/processed/windows/earth.json (earth-utm27n-e285-n2879, terrain.relief.nu_m)",
+    "distances_and_rank_frequency": "analysis/g4_candidates.json",
+    "relief_ranges": "min and max of elevation_m in the two dem_windows caches",
+    "target_relief_nu_m": "data/processed/windows/moon.json (moon-sps-x2-y2, terrain.relief.nu_m) = outputs/uncertainty/clones_moon-sps-x2-y2.json base values"
+  },
+  "observed_discrepancy": "The target is one broad massif: about 780 m of relief in a single dome-shaped ridge whose nu grows steadily from 43.4 m at 270 m to 148.2 m at 1080 m (relief H 0.89). The candidate is a mostly flat plain at about 750 to 800 m crossed by a few narrow ridges (up to about 960 m) and a trough (down to about 660 m), about 300 m of relief. Its nu is close to the target at short lags (32.2 m at 270 m) but flattens with lag (54.6 m at 1080 m, relief H 0.38). The RMS log nu distance does not read H, so a window whose roughness saturates beyond a few hundred metres ranks first against a target whose roughness keeps growing with scale. The rank is stable under the clones because the clones move the target's nu by about 0.07%, far less than the factor of 2.7 difference at 1080 m; the stability says nothing about morphological similarity.",
+  "record_type": "terraluna G4 inspected counterexample (analyst inspection, not generated)",
+  "target_window_id": "moon-sps-x2-y2",
+  "uncommitted_artifacts_opened": {
+    "data/processed/dem_windows/earth-utm27n-e285-n2879.npz": "d8ee9ea759f82679b57fd2477f778913de294ba506beba6e150d698d629f8e8b",
+    "data/processed/dem_windows/moon-sps-x2-y2.npz": "cd52caf70b2bb86fa5922a4d281e42c74734ef38bcfe35ceead6b49b37ee7ca2",
+    "data/processed/windows/earth.json": "dee5072d9896d5ae458eaaa0280914f5affa01873625ac413ce09b158ccde8f4",
+    "data/processed/windows/moon.json": "b9c6f0ba05a65b5a572c5a49ae999a78e8c8c9fc7ef23e506dbfc635f41e8747"
+  },
+  "why_this_candidate": "It is the only window in the first Pareto layer over terrain_relief and terrain_texture (analysis/g4_candidates.json), and it stays there in 100 of 100 PGDA78 clone runs, so it is the candidate most likely to be read as 'the match'."
+}

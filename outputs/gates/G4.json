@@ -1,0 +1,37 @@
+{
+  "command": "python -m terraluna_pipeline.checks g4",
+  "config_version": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "consequence": null,
+  "evidence_path": "analysis/g4_candidates.json",
+  "gate_id": "G4",
+  "input_hashes": [
+    {
+      "path": "analysis/g4_candidates.json",
+      "sha256": "44a61c2e4914628ebf70d6ec780f7b97a2e2bdad958525ace875c65548efa3fc"
+    },
+    {
+      "path": "analysis/g4_counterexample.json",
+      "sha256": "1de731e1299bbccee0969eb710153668af035b091f09be23a0c38d27acf1ad0a"
+    },
+    {
+      "path": "config/run.yaml",
+      "sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e"
+    },
+    {
+      "path": "outputs/comparisons/moon-cr-site01-w000.json",
+      "sha256": "56d8951018afc3a1b0b073ac0d258d6ea1c06517b998686d164b7304a65420f3"
+    },
+    {
+      "path": "outputs/search/targets.json",
+      "sha256": "6ab65f388126b3b1f4bbfe5cb59bc3b158ef623199b5222663500e1c9c0ec9d9"
+    },
+    {
+      "path": "outputs/uncertainty/clones_moon-sps-x2-y2.json",
+      "sha256": "c5f24d3b1308c135a90eeac12ce8933ca7097438b9bd11945179f0a6bd0aac40"
+    }
+  ],
+  "result": "71 candidates, 2 excluded windows listed; first Pareto layer 1 window(s); 1 window(s) in the first layer in all 100 clone runs",
+  "run_id": "sha256:be9100e66745748eb1e4ff1eb7466c4607f937cda0f2089d528867abd58e6b07",
+  "scope": "moon-cr-site01-w000 (moon-sps-x2-y2) against 71 eligible Earth windows of the slice search; terrain families only (Mode C)",
+  "status": "PASS"
+}
