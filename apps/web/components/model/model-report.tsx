@@ -11,6 +11,10 @@ import { Section } from '@/components/section';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
+import { G5Badge, ModelStats } from '@/components/home/model-section';
+import type { ModelFacts } from '@/components/home/model-facts';
+
+import { ArchitectureDiagram } from './architecture-diagram.tsx';
 import { CurvesSection, ExamplesSection } from './curves-examples.tsx';
 import { UnavailablePanel } from './unavailable-panel.tsx';
 
@@ -119,6 +123,28 @@ function ConditionsTable({ metrics }: { readonly metrics: Metrics }) {
         )}
         .
       </p>
+      <ol aria-label="G5 conditions at a glance" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {g5.conditions.map((c: Condition) => (
+          <li
+            key={`card-${String(c.condition)}-${c.test_id}`}
+            className={`surface flex flex-col gap-3 rounded-2xl border p-5 ${c.passed === true ? 'border-status-pass/50' : c.passed === false ? 'border-status-fail/50' : 'border-dashed border-status-not-run/50'}`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono text-[11px] tracking-[0.16em] text-chrome uppercase">Condition {c.condition}</span>
+              <Badge variant={c.passed === null ? 'not-run' : c.passed ? 'pass' : 'fail'}>
+                {c.passed === null ? 'not evaluated' : c.passed ? 'passed' : 'failed'}
+              </Badge>
+            </div>
+            <p className="text-lg leading-tight font-medium">{c.test_id.replaceAll('_', ' ')}</p>
+            <p className="font-mono text-sm text-chrome">
+              {c.statistic}: {c.observed === null ? 'not recorded' : <N v={c.observed} />}
+              {c.threshold === null ? '' : ' vs threshold '}
+              {c.threshold === null ? null : <N v={c.threshold} />}
+            </p>
+            {c.reason === null || c.reason === undefined ? null : <p className="text-xs text-chrome">{c.reason}</p>}
+          </li>
+        ))}
+      </ol>
       <Table>
         <TableCaption>G5 conditions as serialized in report/metrics.json</TableCaption>
         <TableHeader>
@@ -140,7 +166,11 @@ function ConditionsTable({ metrics }: { readonly metrics: Metrics }) {
               <TableCell>{c.statistic}</TableCell>
               <TableCell>{c.threshold === null ? <NotRecorded what="threshold" /> : <N v={c.threshold} />}</TableCell>
               <TableCell>{c.observed === null ? <NotRecorded what="observed value" /> : <N v={c.observed} />}</TableCell>
-              <TableCell>{c.passed === null ? 'not evaluated' : c.passed ? 'passed' : 'failed'}</TableCell>
+              <TableCell>
+                <Badge variant={c.passed === null ? 'not-run' : c.passed ? 'pass' : 'fail'}>
+                  {c.passed === null ? 'not evaluated' : c.passed ? 'passed' : 'failed'}
+                </Badge>
+              </TableCell>
               <TableCell>{c.reason ?? ''}</TableCell>
             </TableRow>
           ))}
@@ -272,21 +302,43 @@ export interface ModelReportProps {
   readonly g5: GateRecord | null;
   readonly curves?: Curves | null;
   readonly examples?: Examples | null;
+  /** Architecture, parity and stat facts read by readModelFacts; omitted in unit tests. */
+  readonly facts?: ModelFacts | null;
 }
 
-export function ModelReport({ modelCard, metrics, g5, curves = null, examples = null }: ModelReportProps) {
+export function ModelReport({ modelCard, metrics, g5, curves = null, examples = null, facts = null }: ModelReportProps) {
   return (
     <>
-      <PageHeader
-        eyebrow="Model report"
-        title="Physics-informed encoder"
-        lead={`An experimental encoder.${g5 === null ? ' Its promotion gate G5 is not recorded in this bundle.' : g5.status === 'PASS' ? ' It passed its promotion gate (G5 PASS) and stays a Predicted second opinion.' : g5.status === 'FAIL' ? ' It failed its promotion gate (G5 FAIL) and takes no part in any ranking.' : ' It has not passed its promotion gate and takes no part in any ranking.'} Every number below is Predicted by a fitted model and is read from the release bundle.`}
-      />
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
+        <PageHeader
+          eyebrow="Model report"
+          title="Physics-informed encoder"
+          lead={`An experimental encoder.${g5 === null ? ' Its promotion gate G5 is not recorded in this bundle.' : g5.status === 'PASS' ? ' It passed its promotion gate (G5 PASS) and stays a Predicted second opinion.' : g5.status === 'FAIL' ? ' It failed its promotion gate (G5 FAIL) and takes no part in any ranking.' : ' It has not passed its promotion gate and takes no part in any ranking.'} Every number below is Predicted by a fitted model and is read from the release bundle.`}
+        />
+          <p className="flex flex-wrap items-center gap-2">
+            <EvidenceLabel label="Predicted" />
+            <G5Badge status={g5?.status ?? null} className="h-7 px-3 text-sm" />
+            <span className="font-mono text-[11px] tracking-[0.14em] text-chrome uppercase">never used in rankings</span>
+          </p>
+        </div>
+        {facts === null ? null : (
+          <div>
+            <ArchitectureDiagram facts={facts} />
+          </div>
+        )}
+      </div>
+      {facts === null ? null : (
+        <div className="mt-8">
+          <ModelStats facts={facts} />
+        </div>
+      )}
       <div className="mt-6">
         <ExperimentalBanner g5={g5} />
       </div>
       {modelCard === null && metrics === null ? null : <StatTiles modelCard={modelCard} metrics={metrics} g5={g5} />}
       {modelCard === null && metrics === null ? (
+        <>
         <Section title="Model card and metrics">
           <UnavailablePanel title="No model report in this bundle">
             <p>
@@ -296,6 +348,9 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
             <p>The G5 gate record above is the only model statement this page can make.</p>
           </UnavailablePanel>
         </Section>
+        <CurvesSection curves={curves} />
+        <ExamplesSection examples={examples} />
+        </>
       ) : (
         <>
           <Section title="G5 verdict">
@@ -309,6 +364,19 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
               <ConditionsTable metrics={metrics} />
             )}
           </Section>
+          <CurvesSection curves={curves} />
+          <ExamplesSection examples={examples} />
+          <Section title="Model card">
+            {modelCard === null ? (
+              <UnavailablePanel title="Model card">
+                <p>
+                  <code>model/model_card.json</code> is not in this bundle.
+                </p>
+              </UnavailablePanel>
+            ) : (
+              <CardFields card={modelCard} />
+            )}
+          </Section>
           <Section title="Metrics with 95% intervals">
             {metrics === null ? (
               <UnavailablePanel title="Metrics">
@@ -317,10 +385,17 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
                 </p>
               </UnavailablePanel>
             ) : (
-              <MetricsTable
-                caption={`Test metrics on the ${metrics.evaluated_split} split, model ${metrics.model_id}, with 95% intervals`}
-                tests={metrics.tests}
-              />
+              <details className="surface rounded-2xl p-4">
+                <summary className="cursor-pointer text-sm font-medium">
+                  Show all {metrics.tests.length} test metrics (Predicted, 95% intervals)
+                </summary>
+                <div className="mt-4">
+                  <MetricsTable
+                    caption={`Test metrics on the ${metrics.evaluated_split} split, model ${metrics.model_id}, with 95% intervals`}
+                    tests={metrics.tests}
+                  />
+                </div>
+              </details>
             )}
           </Section>
           {metrics === null ? null : (
@@ -334,7 +409,12 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
                     {run.status === 'unavailable' ? (
                       <LabelledValue label="Unavailable" reason={run.reason ?? 'no reason in the record'} source="report/metrics.json" />
                     ) : (
-                      <MetricsTable caption={`Ablation ${run.run_name}`} tests={run.metrics} />
+                      <details className="surface rounded-2xl p-4">
+                        <summary className="cursor-pointer text-sm font-medium">Show {run.metrics.length} metrics of {run.run_name}</summary>
+                        <div className="mt-4">
+                          <MetricsTable caption={`Ablation ${run.run_name}`} tests={run.metrics} />
+                        </div>
+                      </details>
                     )}
                   </div>
                 ))
@@ -356,21 +436,8 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
               </dl>
             </Section>
           )}
-          <Section title="Model card">
-            {modelCard === null ? (
-              <UnavailablePanel title="Model card">
-                <p>
-                  <code>model/model_card.json</code> is not in this bundle.
-                </p>
-              </UnavailablePanel>
-            ) : (
-              <CardFields card={modelCard} />
-            )}
-          </Section>
         </>
       )}
-      <CurvesSection curves={curves} />
-      <ExamplesSection examples={examples} />
     </>
   );
 }
