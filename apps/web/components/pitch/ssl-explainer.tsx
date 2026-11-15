@@ -32,7 +32,10 @@ export const SSL_STEPS = [
   { title: 'VICReg', caption: "VICReg pulls z and z' together, while variance and covariance terms keep features spread out." },
   { title: 'Physics head', caption: 'A physics head predicts the 11-target roughness fingerprint from z, trained with a masked MSE.' },
   { title: 'Body adversary', caption: 'A body classifier behind gradient reversal removes planet identity, so z describes terrain.' },
+  { title: 'Full architecture', caption: 'Full encoder architecture.' },
 ] as const;
+
+const FULL = SSL_STEPS.length - 1;
 
 /** Deterministic pseudo-random numbers in [0, 1) for schematic textures (never data). */
 function rand(seed: number): () => number {
@@ -168,7 +171,13 @@ export function SslExplainer({ step }: { step: number }) {
           self-supervised terrain encoder
         </span>
 
-        <svg viewBox={`0 0 ${W} ${H}`} className="block h-auto w-full" role="img" aria-label={`Model figure, step ${s + 1} of ${SSL_STEPS.length}: ${cur.caption}`}>
+        <div className="relative w-full" style={{ aspectRatio: `${W} / ${H}` }}>
+        <motion.div className="absolute inset-0 flex items-center justify-center" initial={false} animate={{ opacity: s === FULL ? 1 : 0 }} transition={{ duration: 0.6, ease: EASE }} aria-hidden={s !== FULL}>
+          {/* The paper's architecture figure, rendered from paper/figures/standalone/encoder-architecture.tex. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/figures/encoder-architecture.svg" alt="Full encoder architecture: input, ResNet stages, embedding and the three heads" className="h-full w-auto max-w-full object-contain" />
+        </motion.div>
+        <motion.svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 block h-full w-full" initial={false} animate={{ opacity: s === FULL ? 0 : 1 }} transition={{ duration: 0.6, ease: EASE }} aria-hidden={s === FULL} role="img" aria-label={`Model figure, step ${s + 1} of ${SSL_STEPS.length}: ${cur.caption}`}>
           <defs>
             <marker id="ssl-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0 1 L9 5 L0 9" fill="none" stroke={STROKE} strokeWidth={1.2} />
@@ -337,10 +346,11 @@ export function SslExplainer({ step }: { step: number }) {
             ))}
             <Label x={box.x} y={sc.y + sc.h + 46} anchor="start" size={13.5} color={SUB}>the encoder learns terrain, not which planet</Label>
           </Layer>
-        </svg>
+        </motion.svg>
+        </div>
       </div>
       <figcaption className="text-base leading-snug" style={{ color: SUB }}>
-        <span style={{ color: INK }}>Figure 3.</span> {cur.caption}
+        <span style={{ color: INK }}>Figure {s === FULL ? 4 : 3}.</span> {cur.caption}
       </figcaption>
     </figure>
   );
