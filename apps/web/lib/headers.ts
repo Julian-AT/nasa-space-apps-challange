@@ -76,6 +76,15 @@ export function contentSecurityPolicy(env: HeaderEnv = {}): string {
   const dev = env.NODE_ENV === 'development';
   const asset = assetOrigin(env.NEXT_PUBLIC_ASSET_BASE);
   const hosts = [...(asset === null ? [] : [asset]), COPERNICUS_DEM_ORIGIN];
+  // Public NASA / ESA basemap tile servers used by the Leaflet maps (layers adapted from
+  // ShadowAstra_Atlas): GIBS, Moon/Mars Trek, EOX Sentinel-2 cloudless and Esri/astro mosaics.
+  const tiles = [
+    'https://gibs.earthdata.nasa.gov',
+    'https://trek.nasa.gov',
+    'https://tiles.maps.eox.at',
+    'https://astro.arcgis.com',
+    'https://server.arcgisonline.com',
+  ];
   const directives: [string, string[]][] = [
     ['default-src', ["'self'"]],
     // 'unsafe-inline': see the module comment. 'unsafe-eval' only for next dev.
@@ -83,9 +92,9 @@ export function contentSecurityPolicy(env: HeaderEnv = {}): string {
     // WebAssembly compilation only, not eval of JavaScript.
     ['script-src', ["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'", ...(dev ? ["'unsafe-eval'"] : [])]],
     ['style-src', ["'self'", "'unsafe-inline'"]],
-    ['img-src', ["'self'", 'blob:', 'data:', ...hosts]],
+    ['img-src', ["'self'", 'blob:', 'data:', ...hosts, ...tiles]],
     ['font-src', ["'self'"]],
-    ['connect-src', ["'self'", ...hosts, ...(dev ? ['ws:', 'wss:'] : [])]],
+    ['connect-src', ["'self'", ...hosts, ...tiles, ...(dev ? ['ws:', 'wss:'] : [])]],
     ['worker-src', ["'self'", 'blob:']],
     ['object-src', ["'none'"]],
     ['base-uri', ["'self'"]],
