@@ -1242,7 +1242,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
             <span className="font-mono">{formatCoord(lat, lon)}</span>
           </div>
         </div>
-        <span className="absolute top-3 right-3 rounded-full bg-void/70 px-2 py-0.5 font-mono text-[10px] text-white/80">50 km · Sentinel-2</span>
+        <span className="absolute top-3 right-3 rounded-md bg-black/60 px-2 py-0.5 text-[11px] text-white">50 km · Sentinel-2</span>
       </div>
 
       <div className="mt-4 flex items-center gap-4">
@@ -1256,7 +1256,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link href={`/probe?lat=${lat.toFixed(3)}&lon=${lon.toFixed(3)}`} className="btn-primary inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[12.5px] font-medium">
+        <Link href={`/probe?lat=${lat.toFixed(3)}&lon=${lon.toFixed(3)}`} className="btn-primary inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-[13px] font-medium no-underline">
           Open in Terraluna probe <ArrowRight size={13} />
         </Link>
         <button
