@@ -66,7 +66,7 @@ function Hud({ title, route, live }: { readonly title: string; readonly route: r
   if (live === null) return null;
   const stat = (v: string, unit: string, label: string) => (
     <div className="flex flex-col">
-      <span className="font-mono text-2xl font-semibold tabular-nums text-zinc-900">
+      <span className="text-2xl font-semibold tabular-nums text-[#0F172A]">
         {v}
         <span className="ml-1 text-sm font-normal text-zinc-400">{unit}</span>
       </span>
@@ -74,7 +74,7 @@ function Hud({ title, route, live }: { readonly title: string; readonly route: r
     </div>
   );
   return (
-    <div className="pointer-events-none flex w-[23rem] flex-col gap-3 rounded-2xl border border-zinc-200 bg-white/90 p-4 shadow-sm backdrop-blur">
+    <div className="pointer-events-none flex w-[23rem] flex-col gap-3 rounded-xl border border-[#E2E8F0] bg-white/85 p-4 backdrop-blur">
       <span className="text-sm font-semibold text-zinc-900">{title}</span>
       <div className="grid grid-cols-4 gap-3">
         {stat(live.km.toFixed(1), 'km', 'driven')}
@@ -226,7 +226,7 @@ export default function LabTwin({ earth, target, earthName, targetName }: { read
         field={field}
       />
       {field ? (
-        <div className="pointer-events-none absolute inset-x-6 bottom-6 flex justify-between gap-6">
+        <div className="pointer-events-none absolute inset-x-6 top-12 flex justify-between gap-6">
           <Hud title={`Earth, ${earthName}`} route={field.earth.route} live={liveE} />
           <Hud title={`Mars, ${targetName}`} route={field.target.route} live={liveT} />
         </div>
