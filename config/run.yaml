@@ -8,7 +8,7 @@ run:
 targets:
   moon:
     product: PGDA78/Site01
-    primary_window_id: null
+    primary_window_id: moon-sps-x2-y2  # G0-02; see outputs/g0/windows-evidence.json
   mars:
     - name: jezero
       collection: mro_ctx_controlled_usgs_dtms
@@ -34,7 +34,9 @@ radar:
   snr_rule: null
   convention: {moon: null, earth: null}
 earth_search:
-  regions: []
+  regions:  # G0-04; see outputs/g0/windows-evidence.json
+    - {id: holuhraun, radar: available, epsg: 32627, utm_zone: 27N, scene_ids: [Icelnd_00208_15083_004_150530_L090_CX_01], acquisition_dates: ["2015-05-30"], polygon_lonlat: [[-16.811126, 64.98], [-16.356771, 64.98], [-16.379933, 64.78], [-16.825285, 64.78], [-16.811126, 64.98]]}
+    - {id: rosamond-dry-lake, radar: unavailable, epsg: 32611, utm_zone: 11N, scene_ids: [], acquisition_dates: [], polygon_lonlat: [[-118.2, 34.99], [-118.0, 34.99], [-118.0, 34.8], [-118.2, 34.8], [-118.2, 34.99]]}
   window_m: 5000
   stride_m: 2500
   masks:
