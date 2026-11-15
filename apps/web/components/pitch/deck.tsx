@@ -9,8 +9,6 @@ import dynamic from 'next/dynamic';
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { Globe } from '@/components/globe';
-
 import { ACCENT, EASE, FAINT, INK, LINE, MUTED, PAPER } from './bits';
 import { C, FigureCard, LineFigure, type LineSeries } from './figure';
 import { FigBenchmarks, type BenchData } from './fig-benchmarks';
@@ -20,6 +18,7 @@ import type { PitchData } from './pitch-data';
 import { SslExplainer, SSL_STEPS } from './ssl-explainer';
 
 const FigLab = dynamic(() => import('./fig-lab'), { ssr: false, loading: () => <div className="size-full" /> });
+const EarthHero = dynamic(() => import('./earth-hero'), { ssr: false, loading: () => null });
 const FinderDemo = dynamic(() => import('./finder'), { ssr: false, loading: () => null });
 
 const SITE = 'nasa.julianschmidt.cv';
@@ -106,10 +105,8 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
               <p className="text-[1.75rem] leading-snug tracking-[-0.01em]" style={{ color: MUTED }}>Find the Moon and Mars on Earth.</p>
             </In>
           </div>
-          <In d={0.2} className="relative mx-auto aspect-square h-[72vh] max-w-full">
-            <div className="absolute inset-0" style={{ clipPath: 'circle(39% at 50% 50%)' }} onClick={(e) => e.stopPropagation()}>
-              <Globe body="earth" pins={[]} autoRotate />
-            </div>
+          <In d={0.2} className="relative mx-auto aspect-square h-[78vh] max-w-full">
+            <EarthHero className="absolute inset-0" />
           </In>
           <p className="absolute bottom-0 left-0 text-sm" style={{ color: FAINT }}>
             NASA Space Apps 2026, Team Terraluna
