@@ -27,7 +27,7 @@ export function CurvesSection({ curves }: { readonly curves: Curves | null }) {
     );
   }
   return (
-    <Section title="Training curves" description="Mean over seeds with the min to max range.">
+    <Section title="Training curves" description="Each loss term over training: mean over seeds with the min to max range shaded.">
       {curves.mock ? <p>report/curves.json is marked mock.</p> : null}
       {curves.loss_terms.length === 0 ? (
         <LabelledValue label="Unavailable" reason="curves.json lists no loss term" source="report/curves.json" />
@@ -38,7 +38,10 @@ export function CurvesSection({ curves }: { readonly curves: Curves | null }) {
           ))}
         </div>
       )}
-      <h3 className="font-semibold">GPU hours</h3>
+      <details className="rounded-xl bg-card px-4 ring-1 ring-foreground/10">
+      <summary className="cursor-pointer py-4 text-sm font-medium">Training run details: compute, invariance trade-off and probe metrics</summary>
+      <div className="flex flex-col gap-4 pb-4">
+      <h3 className="font-semibold">Compute hours</h3>
       <p>
         Total:{' '}
         {curves.gpu_hours.total_hours === null ? (
@@ -128,6 +131,8 @@ export function CurvesSection({ curves }: { readonly curves: Curves | null }) {
           ))}
         </ul>
       )}
+      </div>
+      </details>
     </Section>
   );
 }
@@ -146,7 +151,7 @@ function EntryList({ title, entries }: { readonly title: string; readonly entrie
               {isEvidenceLabel(e.evidence_label) ? <EvidenceLabel label={e.evidence_label} /> : null}
               <span className="text-sm text-muted-foreground">
                 {e.distance_family}:{' '}
-                {e.distance === null ? 'distance not recorded' : String(e.distance)}
+                {e.distance === null ? 'distance not recorded' : <span title={String(e.distance)} className="font-mono tabular-nums">{e.distance.toFixed(3)}</span>}
               </span>
             </li>
           ))}
@@ -167,7 +172,7 @@ export function ExamplesSection({ examples }: { readonly examples: Examples | nu
   return (
     <Section
       title="Retrieval examples"
-      description="Encoder neighbours (Predicted, EXPERIMENTAL, unranked) are shown beside the deterministic top 5 (Derived); they never replace it."
+      description="Nearest neighbours from the experimental learned encoder (Predicted), shown beside the physics-fingerprint top 5 (Derived) that drives the rankings."
     >
       {examples.mock ? <p>report/examples.json is marked mock.</p> : null}
       {examples.retrieval_gallery.length === 0 ? (
@@ -177,9 +182,11 @@ export function ExamplesSection({ examples }: { readonly examples: Examples | nu
           <Card key={t.target_id} size="sm">
           <div data-retrieval-target={t.target_id} className="grid gap-4 px-4 md:grid-cols-2">
             <h3 className="font-semibold md:col-span-2 wrap-anywhere">{t.target_id}</h3>
-            <EntryList title="Deterministic top 5" entries={t.deterministic_top5} />
-            <EntryList title="Encoder top 5 (EXPERIMENTAL)" entries={t.encoder_top5} />
-            {t.shortfall_reason === null ? null : <p className="md:col-span-2">Shortfall: {t.shortfall_reason}</p>}
+            {t.deterministic_top5.length === 0 ? null : <EntryList title="Physics fingerprint top 5" entries={t.deterministic_top5} />}
+            <EntryList title="Learned encoder neighbours (experimental)" entries={t.encoder_top5} />
+            {t.deterministic_top5.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Physics-fingerprint rankings are shown on the evidence cards.</p>
+            ) : null}
           </div>
           </Card>
         ))

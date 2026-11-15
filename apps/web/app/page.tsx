@@ -56,7 +56,7 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
 function EntryCard({ href, title, kicker, children }: { href: string; title: string; kicker: string; children: ReactNode }) {
   return (
     <Card className="relative gap-2 transition-colors hover:bg-muted/40">
-      <CardContent className="flex flex-col gap-2">
+      <CardContent className="flex h-full flex-col gap-2">
       <p className="text-xs font-medium text-muted-foreground">{kicker}</p>
       <p className="text-lg font-semibold tracking-tight">
         <Link href={href} className="no-underline after:absolute after:inset-0 after:rounded-xl">
@@ -139,8 +139,11 @@ export default function Home() {
       />
       <ModelSection facts={modelFacts} />
 
-      <section aria-labelledby="home-entry" className="mt-16 flex flex-col gap-6">
-        <h2 id="home-entry" className="text-2xl font-semibold tracking-tight text-balance">Start exploring</h2>
+      <section aria-labelledby="home-entry" className="mt-16 flex flex-col gap-6 border-t pt-12 sm:mt-20 sm:pt-16">
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-medium tracking-wide text-primary uppercase">Explore</p>
+          <h2 id="home-entry" className="text-3xl font-semibold tracking-tight text-balance">Start exploring</h2>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <EntryCard href="/site" kicker="Evidence" title="Cards">
             Each lunar and Martian target beside its nearest Earth terrain.

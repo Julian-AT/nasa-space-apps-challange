@@ -34,19 +34,22 @@ export function LossCurve({ term, epochs }: { readonly term: string; readonly ep
   return (
     <Card size="sm">
     <figure data-loss-term={term} className="flex flex-col gap-2 px-4">
-      <figcaption className="flex items-baseline justify-between gap-2 font-mono text-xs text-muted-foreground">
-        <span className="text-foreground">{term}</span>
-        <span className="text-[10px] tracking-normal normal-case">
+      <figcaption className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground">
+        <span className="font-mono font-medium text-foreground">{term}</span>
+        <span className="font-mono text-[11px]">
           epochs {epochs[0]?.epoch}–{epochs[epochs.length - 1]?.epoch} · {Number(Math.min(...epochs.map((e) => e.min)).toPrecision(3))} to{' '}
           {Number(Math.max(...epochs.map((e) => e.max)).toPrecision(3))}
         </span>
       </figcaption>
-      <svg role="img" aria-label={name} viewBox={`0 0 ${String(W)} ${String(H)}`} className="h-auto w-full">
-        <path d={band} fill="currentColor" className="text-evidence-predicted" opacity={0.2} />
-        <path data-series="mean" d={d(g.mean)} fill="none" stroke="currentColor" strokeWidth={2} className="text-evidence-predicted" />
+      <svg role="img" aria-label={name} viewBox={`0 0 ${String(W)} ${String(H)}`} className="h-auto w-full rounded-md bg-muted/40">
+        {[0.25, 0.5, 0.75].map((f) => (
+          <line key={f} x1={PAD} x2={W - PAD} y1={PAD + f * (H - 2 * PAD)} y2={PAD + f * (H - 2 * PAD)} stroke="currentColor" strokeWidth={1} className="text-border" />
+        ))}
+        <path d={band} fill="currentColor" className="text-primary" opacity={0.18} />
+        <path data-series="mean" d={d(g.mean)} fill="none" stroke="currentColor" strokeWidth={2.25} strokeLinejoin="round" className="text-primary" />
       </svg>
       <details>
-        <summary className="cursor-pointer text-sm">Values as a table</summary>
+        <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">Values as a table</summary>
         <Table>
           <TableCaption>{name}</TableCaption>
           <TableHeader>

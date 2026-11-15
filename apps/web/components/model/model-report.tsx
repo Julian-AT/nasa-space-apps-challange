@@ -337,21 +337,18 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
         />
           <p className="flex flex-wrap items-center gap-2">
             <EvidenceLabel label="Predicted" />
-            <span className="text-sm text-muted-foreground">Experimental</span>
+            <span className="text-sm text-muted-foreground">Experimental learned view; the Derived physics fingerprint ranks every candidate.</span>
           </p>
         </div>
-        {facts === null ? null : (
-          <div>
-            <ArchitectureDiagram facts={facts} />
-          </div>
-        )}
       </div>
       {facts === null ? null : (
-        <div className="mt-8">
-          <ModelStats facts={facts} />
+        <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+          <ArchitectureDiagram facts={facts} />
+          <div className="flex flex-col gap-4 lg:pt-8">
+            <ModelStats facts={facts} compact />
+          </div>
         </div>
       )}
-      {modelCard === null && metrics === null ? null : <StatTiles modelCard={modelCard} metrics={metrics} g5={g5} />}
       {modelCard === null && metrics === null ? (
         <>
         <Section title="Model card and metrics">
@@ -377,7 +374,12 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
                 </p>
               </UnavailablePanel>
             ) : (
-              <CardFields card={modelCard} />
+              <details className="rounded-xl bg-card px-4 ring-1 ring-foreground/10">
+                <summary className="cursor-pointer py-4 text-sm font-medium">Show the model card fields</summary>
+                <div className="pb-4">
+                  <CardFields card={modelCard} />
+                </div>
+              </details>
             )}
           </Section>
           <Section title="Metrics with 95% intervals">
@@ -388,19 +390,17 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
                 </p>
               </UnavailablePanel>
             ) : (
-              <Accordion type="single" collapsible className="rounded-xl bg-card px-4 ring-1 ring-foreground/10">
-                <AccordionItem value="metrics" className="border-b-0">
-                  <AccordionTrigger className="text-sm font-medium">
-                    Show all {metrics.tests.length} test metrics (Predicted, 95% intervals)
-                  </AccordionTrigger>
-                  <AccordionContent forceMount className="data-[state=closed]:hidden">
-                    <MetricsTable
-                      caption={`Test metrics on the ${metrics.evaluated_split} split, model ${metrics.model_id}, with 95% intervals`}
-                      tests={metrics.tests}
-                    />
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+              <details className="group rounded-xl bg-card px-4 ring-1 ring-foreground/10">
+                <summary className="cursor-pointer py-4 text-sm font-medium">
+                  Show all {metrics.tests.length} test metrics (Predicted, 95% intervals)
+                </summary>
+                <div className="pb-4">
+                  <MetricsTable
+                    caption={`Test metrics on the ${metrics.evaluated_split} split, model ${metrics.model_id}, with 95% intervals`}
+                    tests={metrics.tests}
+                  />
+                </div>
+              </details>
             )}
           </Section>
           {metrics === null || !SHOW_RUN_RECORD ? null : (

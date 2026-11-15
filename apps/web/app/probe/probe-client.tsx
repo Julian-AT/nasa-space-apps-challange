@@ -103,7 +103,7 @@ export function ProbeClient({
 
   return (
     <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
-      <aside aria-label="Probe input" className="flex flex-col gap-4 self-start rounded-lg bg-card p-5 ring-1 ring-foreground/10">
+      <aside aria-label="Probe input" className="flex flex-col gap-4 self-start rounded-xl bg-card p-5 ring-1 ring-foreground/10 lg:sticky lg:top-20">
         <h2 className="text-sm font-semibold">Point on Earth</h2>
         <form
           className="flex flex-col gap-3"
@@ -141,7 +141,7 @@ export function ProbeClient({
               }}
             />
           </div>
-          <Button type="submit">
+          <Button type="submit" className="mt-1">
             {running ? 'Measuring…' : 'Run probe'}
           </Button>
         </form>
@@ -166,16 +166,26 @@ export function ProbeClient({
           </div>
           <p className="text-xs text-muted-foreground">Coordinates only; results are computed live in your browser.</p>
         </div>
-        {invalid ? <p role="alert">Latitude must lie in [-90, 90] and longitude in [-180, 180].</p> : null}
-        {workerError === null ? null : <p role="alert">{workerError}</p>}
+        {invalid ? <p role="alert" className="text-sm text-destructive">Latitude must lie in [-90, 90] and longitude in [-180, 180].</p> : null}
+        {workerError === null ? null : <p role="alert" className="text-sm text-destructive">{workerError}</p>}
       </aside>
-      <div aria-live="polite" className="min-w-0 rounded-lg bg-card p-5 ring-1 ring-foreground/10">
-        {result === null && !running ? <p className="text-sm text-muted-foreground">Run a probe to see relief, texture distances and curves here.</p> : null}
-        {running ? <p>Reading the window and measuring it in your browser…</p> : null}
+      <div aria-live="polite" className="min-w-0 rounded-xl bg-card p-5 ring-1 ring-foreground/10 sm:p-6">
+        {result === null && !running ? (
+          <div className="flex min-h-48 flex-col items-center justify-center gap-2 text-center">
+            <p className="font-medium">No probe yet</p>
+            <p className="max-w-sm text-sm text-muted-foreground">Enter coordinates or pick an example point to see the relief and texture distances to each target.</p>
+          </div>
+        ) : null}
+        {running ? (
+          <div className="flex min-h-48 flex-col items-center justify-center gap-2 text-center" role="status">
+            <span aria-hidden="true" className="size-5 animate-spin rounded-full border-2 border-muted border-t-primary" />
+            <p className="text-sm text-muted-foreground">Reading the window and measuring it in your browser…</p>
+          </div>
+        ) : null}
         {result === null ? null : <ProbeCard result={result} names={names} />}
         {shown === null ? null : (
           <p
-            className="mt-2 text-sm tabular-nums"
+            className="mt-2 text-xs text-muted-foreground tabular-nums"
             data-probe-index={shown.probeIndex}
             data-request-to-result-ms={Math.round(shown.requestToResultMs)}
             data-page-to-result-ms={Math.round(shown.pageToResultMs)}
