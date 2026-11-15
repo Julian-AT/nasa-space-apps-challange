@@ -22,8 +22,12 @@ export function modeBannerText(bundle: Bundle): string {
 
 export function ModeBanner({ bundle }: Readonly<{ bundle: Bundle }>) {
   return (
-    <p className="border-b-2 border-foreground bg-muted px-4 py-2 font-semibold text-foreground">
-      {modeBannerText(bundle)}
-    </p>
+    <div className="border-b border-line bg-card/60">
+      <div className="mx-auto w-full max-w-6xl px-4 py-2 sm:px-6">
+        <p className="inline-flex items-start gap-2 rounded-full border border-evidence-derived/50 bg-evidence-derived/10 px-3 py-1 text-sm font-semibold text-foreground">
+          {modeBannerText(bundle)}
+        </p>
+      </div>
+    </div>
   );
 }

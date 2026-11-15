@@ -103,8 +103,8 @@ describe('ModeBanner', () => {
   it('is one prominent line in the page colours, never the red of the mock banner', () => {
     const html = render(<ModeBanner bundle={bundle({ shipping_mode: 'B' }, [gate('G0', 'PASS')])} />);
     const banner = only(
-      elements(html).filter((element) => element.start === 0),
-      'the banner root',
+      elements(html).filter((element) => element.tag === 'p'),
+      'the banner pill',
     );
     const classes = classesOf(banner);
     expect(classes).toContain('font-semibold');
@@ -127,16 +127,22 @@ describe('MockBanner', () => {
     expect(textOf(html)).toBe('Mock bundle — placeholder data, not results');
   });
 
-  it('is a red status line whose text, not its colour alone, says it is a mock', () => {
+  it('is a status line on the mock colour whose text, not its colour alone, says it is a mock', () => {
     const html = render(<MockBanner bundle={bundle({ mock: true })} />);
+    const all = elements(html);
     const banner = only(
-      elements(html).filter((element) => element.start === 0),
-      'the banner root',
+      all.filter((element) => element.attributes.get('role') === 'status'),
+      'the status paragraph',
     );
-    expect(banner.attributes.get('role')).toBe('status');
     expect(banner.text.startsWith('Mock bundle')).toBe(true);
-    const classes = classesOf(banner);
-    expect(classes).toEqual(expect.arrayContaining(['bg-mock', 'text-mock-foreground']));
+    // The strip holds the background; the status paragraph inside it holds the text colour.
+    const strip = only(
+      all.filter((element) => element.start === 0),
+      'the banner strip',
+    );
+    expect(classesOf(strip)).toContain('bg-mock');
+    const classes = [...classesOf(strip), ...classesOf(banner)];
+    expect(classes).toContain('text-mock-foreground');
     expectReadable(classes.join(' '), 'mock banner');
   });
 

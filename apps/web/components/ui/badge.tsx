@@ -26,7 +26,8 @@ const badgeVariants = cva(
         link: 'text-primary underline underline-offset-4',
         destructive: 'border-destructive bg-destructive/15 text-destructive',
         // Evidence labels (PRD 3): edge style differs per label.
-        observed: 'border-solid border-evidence-observed bg-evidence-observed/15 text-evidence-observed',
+        // Observed is the one solid fill, so it differs from Derived (same solid edge) in greyscale.
+        observed: 'border-solid border-evidence-observed bg-evidence-observed text-background',
         derived: 'border-solid border-evidence-derived bg-evidence-derived/15 text-evidence-derived',
         predicted: 'border-dashed border-evidence-predicted bg-evidence-predicted/15 text-evidence-predicted',
         assumed: 'border-dotted border-evidence-assumed bg-evidence-assumed/15 text-evidence-assumed',

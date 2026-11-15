@@ -1,6 +1,6 @@
 // The shadcn/ui primitives under components/ui (PRD 8.2, 8.10): server components that render
 // plain elements, keep the global focus outline, meet WCAG 2.2 AA text contrast in every state,
-// and never use the red reserved for the mock banner or a dark variant.
+// and never use the red reserved for the mock banner or a dark: variant.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -19,7 +19,24 @@ const UI_DIR = join(WEB_DIR, 'components', 'ui');
 
 const BUTTON_VARIANTS = ['default', 'outline', 'secondary', 'ghost', 'link'] as const;
 const BUTTON_SIZES = ['default', 'xs', 'sm', 'lg'] as const;
-const BADGE_VARIANTS = ['default', 'secondary', 'outline', 'ghost', 'link'] as const;
+const BADGE_VARIANTS = [
+  'default',
+  'secondary',
+  'outline',
+  'ghost',
+  'link',
+  'destructive',
+  'observed',
+  'derived',
+  'predicted',
+  'assumed',
+  'unavailable',
+  'pass',
+  'fail',
+  'partial',
+  'not-run',
+  'not-applicable',
+] as const;
 
 function everyClassList(): string[] {
   const lists: string[] = [];
@@ -73,10 +90,10 @@ describe('Badge', () => {
     expect(html).toContain('>test-badge</span>');
   });
 
-  it('has no destructive variant', () => {
-    // @ts-expect-error -- 'destructive' is not a Badge variant.
+  it('has a destructive variant on the destructive token, never the mock red', () => {
     const classes = badgeVariants({ variant: 'destructive' });
-    expect(classes).not.toMatch(/destructive|-(red|rose)-\d/);
+    expect(classes).toMatch(/text-destructive/);
+    expect(classes).not.toMatch(/mock|-(red|rose)-\d/);
   });
 });
 
@@ -87,9 +104,9 @@ describe('components/ui', () => {
     }
   });
 
-  it('uses no mock, destructive or dark-theme class', () => {
+  it('uses no mock or dark-variant class', () => {
     for (const classes of everyClassList()) {
-      expect(classes).not.toMatch(/mock|destructive|(^|\s)dark:/);
+      expect(classes).not.toMatch(/mock|(^|\s)dark:/);
     }
   });
 
@@ -105,7 +122,7 @@ describe('components/ui', () => {
 const AA_TEXT = 4.5;
 
 /** The page surfaces a button or badge may sit on: the ones the focus ring is checked against. */
-const SURFACES = ['background', 'secondary', 'muted', 'accent'] as const;
+const SURFACES = ['background', 'card', 'secondary', 'muted', 'accent'] as const;
 
 function variantClassLists(): (readonly [string, string])[] {
   return [

@@ -1,5 +1,5 @@
 // Root layout (PRD 3, 8.6, 8.10, D08). Every route shows, in this order: the skip link; in the
-// page header, the red mock banner for a mock bundle, the shipping-mode banner and the primary
+// page header, the mock banner for a mock bundle, the shipping-mode banner and the primary
 // navigation; the page inside the one main landmark; and the footer with the bundle and schema
 // versions. The bundle is read from apps/web/data/ at build time through loadBundle
 // (lib/bundle.ts), which throws, and so fails next build, on a mock bundle for production. All of
@@ -24,15 +24,15 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   const bundle = loadBundle();
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className="bg-observatory min-h-dvh antialiased">
         <SkipLink />
-        <header>
+        <header className="border-b border-line bg-background/90">
           <MockBanner bundle={bundle} />
           <ModeBanner bundle={bundle} />
           <SiteHeader />
         </header>
         {/* tabIndex -1 lets the skip link move focus here in every browser. */}
-        <main id={MAIN_ID} tabIndex={-1} className="px-4 py-6">
+        <main id={MAIN_ID} tabIndex={-1} className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
           {children}
         </main>
         <SiteFooter bundle={bundle} />

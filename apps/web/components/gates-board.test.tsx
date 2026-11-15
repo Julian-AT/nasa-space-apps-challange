@@ -266,6 +266,8 @@ describe('GatesBoard on small GateRecord arrays', () => {
 
 describe('gates-board.tsx source', () => {
   const source = readFileSync(join(WEB_DIR, 'components', 'gates-board.tsx'), 'utf8');
+  const tableSource = readFileSync(join(WEB_DIR, 'components', 'ui', 'table.tsx'), 'utf8');
+  const badgeSource = readFileSync(join(WEB_DIR, 'components', 'ui', 'badge.tsx'), 'utf8');
 
   it('types no status, result or threshold: every status literal comes from the records', () => {
     for (const status of STATUSES) expect(source).not.toContain(status);
@@ -283,7 +285,8 @@ describe('gates-board.tsx source', () => {
     expect(classes.size).toBeGreaterThan(0);
     for (const name of classes) {
       const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      expect(source, name).toMatch(new RegExp(`['"\\s]${escaped}['"\\s]`));
+      // The board's classes live in its own source and in the table and badge primitives it uses.
+      expect(`${source}${tableSource}${badgeSource}`, name).toMatch(new RegExp(`['"\\s]${escaped}['"\\s]`));
     }
   });
 

@@ -28,8 +28,42 @@ const COLOUR_TOKENS = [
   'border',
   'input',
   'ring',
+  'card',
+  'card-foreground',
+  'popover',
+  'popover-foreground',
+  'destructive',
+  'destructive-foreground',
+  'line',
   'mock',
   'mock-foreground',
+  'evidence-observed',
+  'evidence-derived',
+  'evidence-predicted',
+  'evidence-assumed',
+  'evidence-unavailable',
+  'status-pass',
+  'status-fail',
+  'status-partial',
+  'status-not-run',
+  'status-not-applicable',
+] as const;
+
+/** Tokens that may be warm red/coral: the mock banner, destructive actions and a FAIL status. */
+const REDDISH = new Set(['mock', 'destructive', 'status-fail']);
+
+const SURFACES = ['background', 'card', 'secondary', 'muted'] as const;
+const EVIDENCE_AND_STATUS = [
+  'evidence-observed',
+  'evidence-derived',
+  'evidence-predicted',
+  'evidence-assumed',
+  'evidence-unavailable',
+  'status-pass',
+  'status-fail',
+  'status-partial',
+  'status-not-run',
+  'status-not-applicable',
 ] as const;
 
 // Text on its background: each pair the components and the layout use.
@@ -44,6 +78,11 @@ const TEXT_PAIRS = [
   ['muted-foreground', 'muted'],
   ['muted-foreground', 'background'],
   ['accent-foreground', 'accent'],
+  ['card-foreground', 'card'],
+  ['popover-foreground', 'popover'],
+  ['muted-foreground', 'card'],
+  ['primary', 'card'],
+  ['destructive-foreground', 'destructive'],
   ['mock-foreground', 'mock'],
 ] as const;
 
@@ -53,7 +92,9 @@ const NON_TEXT_PAIRS = [
   ['ring', 'secondary'],
   ['ring', 'muted'],
   ['ring', 'accent'],
+  ['ring', 'card'],
   ['border', 'background'],
+  ['border', 'card'],
   ['input', 'background'],
 ] as const;
 
@@ -110,18 +151,28 @@ describe('design tokens in app/globals.css', () => {
     }
   });
 
-  it('reserves a red for the mock banner that no other token shares', () => {
+  it('reads evidence-label and gate-status text at 4.5:1 on its own 15% tint over every surface', () => {
+    for (const name of EVIDENCE_AND_STATUS) {
+      for (const surface of SURFACES) {
+        const fill = composite(token(name), 0.15, token(surface));
+        expect(contrastRatio(token(name), fill), `--${name} on its tint over --${surface}`).toBeGreaterThanOrEqual(AA_TEXT);
+      }
+    }
+  });
+
+  it('keeps the mock banner red and limits other reds to destructive and FAIL', () => {
     expect(isRed(token('mock'))).toBe(true);
     for (const name of COLOUR_TOKENS) {
-      if (name === 'mock') continue;
+      if (REDDISH.has(name)) continue;
       expect(isRed(token(name)), `--${name} must not be red`).toBe(false);
     }
   });
 
-  it('is a light theme only', () => {
+  it('is a dark theme only: no light scheme, a near-black page', () => {
     const root = postcss.parse(readFileSync(GLOBALS, 'utf8'));
-    expect(declarations(root, ':root').get('color-scheme')).toBe('light');
-    expect(contrastRatio(token('background'), '#ffffff')).toBeLessThan(1.1);
+    expect(declarations(root, ':root').get('color-scheme')).toBe('dark');
+    expect(contrastRatio(token('background'), '#000000')).toBeLessThan(1.3);
+    expect(contrastRatio(token('foreground'), token('background'))).toBeGreaterThanOrEqual(7);
   });
 });
 

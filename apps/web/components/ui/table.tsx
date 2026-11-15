@@ -9,7 +9,6 @@ function Table({ className, ...props }: ComponentProps<'table'>) {
   return (
     <div
       data-slot="table-container"
-      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex={0}
       role="region"
       aria-label="Table, scrollable"
@@ -25,7 +24,7 @@ function TableHeader({ className, ...props }: ComponentProps<'thead'>) {
 }
 
 function TableBody({ className, ...props }: ComponentProps<'tbody'>) {
-  return <tbody data-slot="table-body" className={cn('[&_tr:last-child]:border-0', className)} {...props} />;
+  return <tbody data-slot="table-body" className={cn(className)} {...props} />;
 }
 
 function TableRow({ className, ...props }: ComponentProps<'tr'>) {

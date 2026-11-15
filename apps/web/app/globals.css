@@ -67,6 +67,10 @@
 }
 
 @theme inline {
+  /* The default palette's reds would let other elements look like the mock banner. */
+  --color-red-*: initial;
+  --color-rose-*: initial;
+
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
