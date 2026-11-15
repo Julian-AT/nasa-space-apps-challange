@@ -173,7 +173,7 @@ function WindowCard({ role, id, entry }: { readonly role: string; readonly id: s
   );
 }
 
-function namedSeries(role: string, entry: WindowEntry | null, id: string, observable: Observable): NamedSeries | null {
+export function namedSeries(role: string, entry: WindowEntry | null, id: string, observable: Observable): NamedSeries | null {
   const variant = variantOf(entry?.terrain ?? null, observable);
   if (variant === null || entry?.terrain == null) return null;
   return { id, role, series: buildNuSeries(variant), evidence: entry.terrain.evidence_label };
@@ -195,7 +195,7 @@ export function NotFound({ a, b }: { readonly a: string; readonly b: string }) {
   );
 }
 
-export function CompareView({ records, a, b }: { readonly records: PairRecords; readonly a: string; readonly b: string }) {
+export function CompareView({ records, a, b, detailOnly = false }: { readonly records: PairRecords; readonly a: string; readonly b: string; readonly detailOnly?: boolean }) {
   const record = findComparison(records, a, b);
   if (record === null) return <NotFound a={a} b={b} />;
   const wa = findWindow(records, a);
@@ -205,6 +205,7 @@ export function CompareView({ records, a, b }: { readonly records: PairRecords; 
   const mode = record.shipping_mode;
   return (
     <>
+      {detailOnly ? null : (
       <div className="flex flex-col gap-3 pt-2">
         <p className="font-mono text-xs tracking-[0.18em] text-primary uppercase">Compare</p>
         <h1 className="font-serif text-4xl">Compare two windows</h1>
@@ -223,11 +224,13 @@ export function CompareView({ records, a, b }: { readonly records: PairRecords; 
           Shipping mode {mode ?? 'not set'}. Curves and distances are read from the release bundle; nothing is computed on request.
         </p>
       </div>
+      )}
       <div className="mt-6 grid gap-4 md:grid-cols-2 [&>*]:min-w-0">
         <WindowCard role="Target" id={a} entry={wa} />
         <WindowCard role="Earth candidate" id={b} entry={wb} />
       </div>
 
+      {detailOnly ? null : (
       <Section title="Structure function ν(L)" description="Log-log axes. Solid blue with circles is the target; dashed orange with squares is the Earth candidate. Dotted vertical lines mark lags without a value, and the reason is in the table.">
         <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
           {(['relief', 'texture'] as const).map((observable) => {
@@ -251,6 +254,7 @@ export function CompareView({ records, a, b }: { readonly records: PairRecords; 
           </p>
         </UnavailablePanel>
       </Section>
+      )}
 
       <Section title="Distances" description="One distance per family, each with its own unit and evidence label. They are never summed or averaged into one score.">
         <div className="flex flex-col gap-4">
