@@ -9,6 +9,8 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { buttonVariants } from '@/components/ui/button';
+
 import type { HillshadeMapHandle, LinkedView } from './hillshade-map.tsx';
 import { type PairOption, PairSelect, Seg, WorldDot, type World } from './kit.tsx';
 import type { LabPair, PaneLayer } from './lab-data.ts';
@@ -39,7 +41,7 @@ function Unavailable({ what }: { readonly what: string }) {
 
 function PaneFooter({ pane, mpp }: { readonly pane: PaneLayer; readonly mpp: number | null }) {
   return (
-    <div className="pointer-events-none absolute bottom-3 left-3 z-[600] max-w-[calc(100%-5rem)] rounded-md bg-void/75 px-2 py-1 font-mono text-[10px] leading-snug text-dim backdrop-blur">
+    <div className="pointer-events-none absolute bottom-3 left-3 z-[600] max-w-[calc(100%-5rem)] rounded-md bg-background/85 px-2 py-1 font-mono text-[10px] leading-snug text-muted-foreground backdrop-blur">
       <span className="text-chrome">{pane.evidenceLabel}</span> · {pane.hillshade}
       {mpp === null ? null : ` · ${fmtMpp(mpp)}`}
     </div>
@@ -65,7 +67,7 @@ function MapPane({
     <div className={clsx('relative h-[46vh] min-h-[320px] min-w-0 md:h-full', border === true && 'border-t border-line md:border-t-0 md:border-l')}>
       {children}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[600] flex items-start justify-between gap-2 p-3">
-        <div className="glass pointer-events-auto min-w-0 rounded-xl px-3 py-2">
+        <div className="pointer-events-auto min-w-0 rounded-lg border bg-popover/95 px-3 py-2 shadow-sm">
           <div className="flex items-center gap-2 text-[13px] font-medium">
             <WorldDot world={world} /> <span className="truncate">{title}</span>
           </div>
@@ -140,7 +142,7 @@ export function CompareStage({ pair, current, options }: CompareStageProps) {
 
   return (
     <section aria-label="Compare stage" className="border-y border-line">
-      <div className="border-b border-line bg-void/90 backdrop-blur-xl">
+      <div className="border-b bg-background">
         <div className="flex flex-wrap items-center gap-2.5 px-4 py-3 sm:px-6">
           <PairSelect value={current} options={options} />
           <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
@@ -161,17 +163,17 @@ export function CompareStage({ pair, current, options }: CompareStageProps) {
                 setLocked((l) => !l);
               }}
               aria-pressed={locked}
-              className={clsx('flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 py-2 text-[12px] transition-colors', locked ? 'border-flare/50 text-flare' : 'border-line-2 text-chrome')}
+              className={clsx(buttonVariants({ variant: locked ? 'secondary' : 'outline', size: 'sm' }), 'h-9 gap-1.5 text-xs', locked && 'text-primary')}
             >
               {locked ? <Link2 size={13} aria-hidden="true" /> : <Link2Off size={13} aria-hidden="true" />} Matched scale
             </button>
-            <button type="button" onClick={reset} className="flex min-h-9 items-center gap-1.5 rounded-full border border-line-2 px-3.5 py-2 text-[12px] text-chrome transition-colors hover:text-platinum">
+            <button type="button" onClick={reset} className={clsx(buttonVariants({ variant: 'outline', size: 'sm' }), 'h-9 gap-1.5 text-xs')}>
               <LocateFixed size={13} aria-hidden="true" /> Window
             </button>
           </div>
         </div>
         <nav aria-label="All card pairs" className="scrollbar-thin flex items-center gap-2 overflow-x-auto border-t border-line px-4 py-2 sm:px-6">
-          <span className="shrink-0 font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Cards</span>
+          <span className="shrink-0 text-xs font-medium text-muted-foreground">Cards</span>
           {options.map((o, i) => {
             const on = o.href === current;
             return (
@@ -180,7 +182,7 @@ export function CompareStage({ pair, current, options }: CompareStageProps) {
                 href={o.href}
                 scroll={false}
                 aria-current={on ? 'page' : undefined}
-                className={clsx('flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] no-underline transition-colors', on ? 'border-flare/60 bg-flare/10 text-flare' : 'border-line-2 text-chrome hover:border-chrome hover:text-platinum')}
+                className={clsx(buttonVariants({ variant: on ? 'secondary' : 'ghost', size: 'sm' }), 'h-7 shrink-0 gap-1.5 font-mono text-xs no-underline', on && 'text-primary')}
               >
                 <WorldDot world={o.body} />
                 {String(i + 1).padStart(2, '0')}

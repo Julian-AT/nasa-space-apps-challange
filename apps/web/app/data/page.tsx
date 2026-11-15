@@ -27,13 +27,17 @@ export default function DataPage() {
       <PageHeader title="Data sources" />
       <Section title="Sources" id="sources" className="mt-8 border-t-0 pt-0">
         {sources.kind === 'records' ? (
-          <SourcesTable records={sources.records} />
+          <div className="overflow-hidden rounded-lg bg-card ring-1 ring-foreground/10">
+            <SourcesTable records={sources.records} />
+          </div>
         ) : (
           <LabelledValue label="Unavailable" reason={sources.reason} source={sources.source} />
         )}
       </Section>
       <Section title="Bundle files" id="bundle-files">
-        <BundleFilesTable files={manifest.files} />
+        <div className="overflow-hidden rounded-lg bg-card ring-1 ring-foreground/10">
+          <BundleFilesTable files={manifest.files} />
+        </div>
       </Section>
     </>
   );

@@ -3,6 +3,7 @@
 import type { Metadata } from 'next';
 
 import { PageHeader } from '@/components/page-header';
+import { Card, CardContent } from '@/components/ui/card';
 
 import { BODY_COLOURS } from '../../components/cards/card-geo.ts';
 import { CardAtlas, type AtlasItem, type AtlasSegment } from '../../components/cards/card-atlas.tsx';
@@ -37,9 +38,9 @@ export default function SiteIndex() {
         lead="Each card pairs one lunar or Mars window with an Earth window, with evidence labels and its limits. The outline marks the 5 km window on the bundle hillshade."
       />
       {cards.length === 0 ? (
-        <p className="mt-8 rounded-xl border border-dashed border-border p-6 text-muted-foreground">
-          This bundle contains no evidence cards.
-        </p>
+        <Card className="mt-8 border-dashed">
+          <CardContent className="text-muted-foreground">This bundle contains no evidence cards.</CardContent>
+        </Card>
       ) : (
         <div className="mt-8">
           <CardAtlas segments={segments} items={items} />

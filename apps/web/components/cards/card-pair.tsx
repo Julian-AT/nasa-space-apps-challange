@@ -7,7 +7,7 @@ import type { CardVisual, TileView } from './card-visual.ts';
 function Frame({ tile, body, label, name, big }: { readonly tile: TileView | null; readonly body: keyof typeof BODY_COLOURS; readonly label: string; readonly name: string; readonly big: boolean }) {
   return (
     <figure className="m-0 min-w-0">
-      <div className="relative aspect-square overflow-hidden rounded-xl border border-line bg-background">
+      <div className="relative aspect-square overflow-hidden rounded-lg border bg-muted">
         {tile === null ? (
           <div className="flex size-full items-center justify-center p-3 text-center font-mono text-[10px] tracking-[0.18em] text-muted-foreground uppercase">
             Tile unavailable
@@ -38,7 +38,7 @@ function Frame({ tile, body, label, name, big }: { readonly tile: TileView | nul
                   <span
                     role="img"
                     aria-label="5 km analysis window outline"
-                    className="absolute rounded-[2px] border border-flare shadow-[0_0_0_1px_rgba(0,0,0,0.6)]"
+                    className="absolute rounded-[2px] border-2 border-primary"
                     style={{ left: pct(box.left), top: pct(box.top), width: pct(box.width), height: pct(box.height) }}
                   />
                 </>
@@ -49,7 +49,7 @@ function Frame({ tile, body, label, name, big }: { readonly tile: TileView | nul
       </div>
       <figcaption className={`mt-2 flex items-center gap-2 ${big ? 'text-sm' : 'text-xs'}`}>
         <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ background: BODY_COLOURS[body] }} />
-        <span className="min-w-0 truncate font-mono tracking-[0.12em] text-muted-foreground uppercase">{label}</span>
+        <span className="min-w-0 truncate text-muted-foreground capitalize">{label}</span>
         <span className="min-w-0 truncate">{name}</span>
       </figcaption>
     </figure>

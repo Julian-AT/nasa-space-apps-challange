@@ -7,6 +7,10 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
 import type { EncoderSpec, ModelBackground } from '../../lib/probe/embedding.ts';
 import { COP30_MODE } from '../../lib/probe/mode.ts';
 import { type ProbeResult, type ProbeTargetFingerprint, isProbeResult } from '../../lib/probe/result.ts';
@@ -99,8 +103,8 @@ export function ProbeClient({
 
   return (
     <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
-      <aside aria-label="Probe input" className="flex flex-col gap-4 self-start rounded-3xl border border-line-2 bg-panel/95 p-4">
-        <h2 className="font-mono text-[0.7rem] font-semibold tracking-[0.2em] text-dim uppercase">Point on Earth</h2>
+      <aside aria-label="Probe input" className="flex flex-col gap-4 self-start rounded-lg bg-card p-5 ring-1 ring-foreground/10">
+        <h2 className="text-sm font-semibold">Point on Earth</h2>
         <form
           className="flex flex-col gap-3"
           onSubmit={(event) => {
@@ -109,10 +113,11 @@ export function ProbeClient({
             router.replace(`${pathname}?${q.toString()}`);
           }}
         >
-          <label className="flex flex-col gap-1 text-sm text-muted-foreground">
-            Latitude (°N)
-            <input
-              className="rounded-xl border border-line-2 bg-ink px-3 py-2 font-mono text-foreground"
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="probe-lat">Latitude (°N)</Label>
+            <Input
+              id="probe-lat"
+              className="font-mono"
               inputMode="decimal"
               name="lat"
               required
@@ -121,11 +126,12 @@ export function ProbeClient({
                 setLatText(e.target.value);
               }}
             />
-          </label>
-          <label className="flex flex-col gap-1 text-sm text-muted-foreground">
-            Longitude (°E)
-            <input
-              className="rounded-xl border border-line-2 bg-ink px-3 py-2 font-mono text-foreground"
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="probe-lon">Longitude (°E)</Label>
+            <Input
+              id="probe-lon"
+              className="font-mono"
               inputMode="decimal"
               name="lon"
               required
@@ -134,19 +140,20 @@ export function ProbeClient({
                 setLonText(e.target.value);
               }}
             />
-          </label>
-          <button type="submit" className="rounded-full bg-flare px-5 py-2 text-sm font-semibold text-void hover:opacity-90 focus-visible:outline-2 focus-visible:outline-ring">
+          </div>
+          <Button type="submit">
             {running ? 'Measuring…' : 'Run probe'}
-          </button>
+          </Button>
         </form>
-        <div className="flex flex-col gap-2 border-t border-line pt-4">
-          <h3 className="font-mono text-[0.7rem] font-semibold tracking-[0.2em] text-dim uppercase">Example points</h3>
+        <div className="flex flex-col gap-2 border-t pt-4">
+          <h3 className="text-sm font-semibold">Example points</h3>
           <div className="flex flex-wrap gap-1.5">
             {EXAMPLES.map((e) => (
-              <button
+              <Button
                 key={e.name}
                 type="button"
-                className="rounded-full border border-line-2 px-3 py-1.5 text-[12px] text-chrome hover:border-chrome focus-visible:outline-2 focus-visible:outline-ring"
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   setLatText(e.lat);
                   setLonText(e.lon);
@@ -154,16 +161,16 @@ export function ProbeClient({
                 }}
               >
                 {e.name}
-              </button>
+              </Button>
             ))}
           </div>
-          <p className="text-[12px] text-dim">Coordinates only; results are computed live in your browser.</p>
+          <p className="text-xs text-muted-foreground">Coordinates only; results are computed live in your browser.</p>
         </div>
         {invalid ? <p role="alert">Latitude must lie in [-90, 90] and longitude in [-180, 180].</p> : null}
         {workerError === null ? null : <p role="alert">{workerError}</p>}
       </aside>
-      <div aria-live="polite" className="min-w-0 rounded-3xl border border-line-2 bg-panel/95 p-4">
-        {result === null && !running ? <p className="text-sm text-dim">Run a probe to see relief, texture distances and curves here.</p> : null}
+      <div aria-live="polite" className="min-w-0 rounded-lg bg-card p-5 ring-1 ring-foreground/10">
+        {result === null && !running ? <p className="text-sm text-muted-foreground">Run a probe to see relief, texture distances and curves here.</p> : null}
         {running ? <p>Reading the window and measuring it in your browser…</p> : null}
         {result === null ? null : <ProbeCard result={result} names={names} />}
         {shown === null ? null : (

@@ -53,7 +53,7 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
     <>
       <p className="font-medium">{r.sentence}</p>
       <p className="text-sm">{r.surface_notice}</p>
-      <h3 className="mt-8">
+      <h3 className="mt-8 text-base font-semibold">
         Terrain fingerprint · <span className="text-sm">{r.terrain.label}</span>
       </h3>
       <p className="text-sm">
@@ -94,12 +94,12 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
           </tbody>
         </table>
       </div>
-      <h3 className="mt-10">Distances to the targets</h3>
+      <h3 className="mt-10 text-base font-semibold">Distances to the targets</h3>
       {r.targets.length === 0 ? (
         <p>Unavailable: {r.targets_reason ?? 'no targets'}</p>
       ) : (
         r.targets.map((t) => (
-          <section key={t.target_id} aria-label={`Distances to ${names[t.target_id] ?? t.target_id}`} className="mt-4 rounded-2xl border border-border bg-card/60 p-4">
+          <section key={t.target_id} aria-label={`Distances to ${names[t.target_id] ?? t.target_id}`} className="mt-4 rounded-md bg-muted p-4">
             <h4 className="font-medium">
               {names[t.target_id] ?? t.target_id} <span className="text-sm">({t.target_window_id})</span>
             </h4>
@@ -142,7 +142,7 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
       )}
       <p className="mt-2 text-sm">Smaller is closer within one family. Families are never added together, and targets are listed, not ranked.</p>
       <p className="mt-2 text-sm">Land cover: Unavailable: {r.worldcover.reason}.</p>
-      <h3 className="mt-10">Measured in this browser</h3>
+      <h3 className="mt-10 text-base font-semibold">Measured in this browser</h3>
       <p className="text-sm tabular-nums">
         DEM read {ms(r.timings.dem_read_ms)} ({fmt(r.dem.bytes / 1e6, 2)} MB in {r.dem.requests} requests,{' '}
         {r.dem.within_prd_budget ? 'within' : 'over'} the 4 MB budget), resample {ms(r.timings.resample_ms)}, fingerprint{' '}
