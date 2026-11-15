@@ -38,55 +38,52 @@ function DistanceValue({ entry, source }: { readonly entry: Entry; readonly sour
 function DistanceRow({ name, entry, source }: { readonly name: string; readonly entry: Entry; readonly source: string }) {
   const spread = entry.reference_spread;
   return (
-    <TableRow data-family={name}>
-      <TableHead scope="row">{name}</TableHead>
-      <TableCell>
-        <DistanceValue entry={entry} source={source} />
-      </TableCell>
-      <TableCell>
-        {spread === null ? (
-          <LabelledValue label="Unavailable" reason={entry.reference_spread_reason ?? NO_REASON} />
-        ) : (
-          <span>
-            min {spread.min}, median {spread.median}, max {spread.max} (n = {spread.n}) {entry.unit}
-          </span>
-        )}
-      </TableCell>
-      <TableCell>
-        {entry.background_percentile === null ? (
-          <LabelledValue label="Unavailable" reason={entry.background_percentile_reason ?? NO_REASON} />
-        ) : (
-          <span>{entry.background_percentile}</span>
-        )}
-      </TableCell>
-      <TableCell>
-        {entry.tied === true ? `tied (${entry.tie_group ?? NO_REASON})` : entry.tied === false ? 'not tied' : 'not recorded'}
-      </TableCell>
-    </TableRow>
+    <div data-family={name} className="flex flex-col gap-2 border-b border-line py-4 last:border-0">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h4 className="font-semibold">{name}</h4>
+        <span className="font-mono text-lg">
+          <DistanceValue entry={entry} source={source} />
+        </span>
+      </div>
+      <dl className="grid gap-x-6 gap-y-1 text-sm text-muted-foreground sm:grid-cols-3">
+        <div>
+          <dt className="font-mono text-xs tracking-[0.14em] uppercase">Reference-set spread</dt>
+          <dd>
+            {spread === null ? (
+              <LabelledValue label="Unavailable" reason={entry.reference_spread_reason ?? NO_REASON} />
+            ) : (
+              `min ${String(spread.min)}, median ${String(spread.median)}, max ${String(spread.max)} (n = ${String(spread.n)}) ${entry.unit}`
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt className="font-mono text-xs tracking-[0.14em] uppercase">Background percentile</dt>
+          <dd>
+            {entry.background_percentile === null ? (
+              <LabelledValue label="Unavailable" reason={entry.background_percentile_reason ?? NO_REASON} />
+            ) : (
+              entry.background_percentile
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt className="font-mono text-xs tracking-[0.14em] uppercase">Ties</dt>
+          <dd>{entry.tied === true ? `tied (${entry.tie_group ?? NO_REASON})` : entry.tied === false ? 'not tied' : 'not recorded'}</dd>
+        </div>
+      </dl>
+    </div>
   );
 }
 
 function FamilyTable({ title, note, children }: { readonly title: string; readonly note?: string; readonly children: React.ReactNode }) {
   return (
-    <Card data-family-group={title}>
+    <Card data-family-group={title} className="rounded-2xl">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <p className="font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">Distance family</p>
+        <CardTitle className="font-serif text-2xl font-normal">{title}</CardTitle>
         {note === undefined ? null : <p className="text-sm text-muted-foreground">{note}</p>}
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col">Distance</TableHead>
-              <TableHead scope="col">Value, unit and evidence</TableHead>
-              <TableHead scope="col">Reference-set spread</TableHead>
-              <TableHead scope="col">Background percentile</TableHead>
-              <TableHead scope="col">Ties</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>{children}</TableBody>
-        </Table>
-      </CardContent>
+      <CardContent>{children}</CardContent>
     </Card>
   );
 }
@@ -127,10 +124,14 @@ function RadarContext({ window: entry }: { readonly window: WindowEntry | null }
 
 function WindowCard({ role, id, entry }: { readonly role: string; readonly id: string; readonly entry: WindowEntry | null }) {
   return (
-    <Card data-window={id}>
+    <Card data-window={id} className="rounded-2xl">
       <CardHeader>
-        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{role}</p>
-        <CardTitle className="wrap-anywhere">{id}</CardTitle>
+        <p className="flex items-center gap-2 font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">
+          <span aria-hidden="true" className={role === 'Target' ? 'size-2.5 rounded-full bg-[#56B4E9]' : 'size-2.5 rounded-full bg-[#E69F00]'} />
+          {role}
+          <span className="normal-case tracking-normal">{role === 'Target' ? '(solid line, circles)' : '(dashed line, squares)'}</span>
+        </p>
+        <CardTitle className="font-serif text-2xl font-normal wrap-anywhere">{id}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2 text-sm">
         {entry === null ? (

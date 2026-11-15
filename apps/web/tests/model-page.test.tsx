@@ -58,6 +58,12 @@ describe('/model', () => {
     expect(textOf(renderToStaticMarkup(<ModelReport modelCard={null} metrics={null} g5={null} />))).toContain('no G5 GateRecord');
   });
 
+  it('shows the G5 status once, as the badge text', () => {
+    const out = renderToStaticMarkup(<ModelReport modelCard={null} metrics={null} g5={g5('NOT_RUN')} />);
+    expect(elements(out).filter((e) => e.attributes.get('data-slot') === 'g5-status').map((e) => e.text)).toEqual(['NOT_RUN']);
+    expect(textOf(out).match(/NOT_RUN/g)).toHaveLength(1);
+  });
+
   it('has one h1', () => {
     const out = renderToStaticMarkup(<ModelReport modelCard={null} metrics={null} g5={null} />);
     expect(elements(out).filter((e) => e.tag === 'h1')).toHaveLength(1);

@@ -30,15 +30,16 @@ export function G5Status({ status }: { readonly status: string }) {
 function ExperimentalBanner({ g5 }: { readonly g5: GateRecord | null }) {
   const status = g5?.status ?? null;
   return (
-    <div data-slot="experimental" className="flex flex-col gap-3 rounded-xl border-2 border-evidence-predicted bg-card p-5">
-      <p className="text-4xl font-extrabold tracking-wide text-evidence-predicted">EXPERIMENTAL</p>
+    <div data-slot="experimental" className="flex flex-col gap-3 rounded-2xl border border-evidence-predicted/60 bg-card p-6">
+      <p className="font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">Encoder status</p>
+      <p className="font-serif text-6xl leading-none text-evidence-predicted">EXPERIMENTAL</p>
       <p className="flex flex-wrap items-center gap-3 text-lg">
         <span>Gate G5 status:</span>
         {status === null ? (
           <LabelledValue label="Unavailable" reason="validation.json has no G5 GateRecord" source="validation.json" />
         ) : (
           <>
-            <G5Status status={status} /> <span className="font-mono">{status}</span>
+            <G5Status status={status} />
           </>
         )}
       </p>
@@ -49,6 +50,41 @@ function ExperimentalBanner({ g5 }: { readonly g5: GateRecord | null }) {
       </p>
       {g5?.result == null ? null : <p className="text-muted-foreground">G5 result: {g5.result}</p>}
       {g5?.consequence == null ? null : <p className="text-muted-foreground">Consequence: {g5.consequence}</p>}
+    </div>
+  );
+}
+
+function StatTile({ eyebrow, children, note }: { readonly eyebrow: string; readonly children: React.ReactNode; readonly note?: string }) {
+  return (
+    <div data-slot="stat-tile" className="flex flex-col gap-2 rounded-xl border border-line bg-card p-4">
+      <p className="font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">{eyebrow}</p>
+      <p className="font-mono text-3xl">{children}</p>
+      {note === undefined ? null : <p className="text-sm text-muted-foreground">{note}</p>}
+    </div>
+  );
+}
+
+function StatTiles({ modelCard, metrics, g5 }: ModelReportProps) {
+  return (
+    <div data-slot="stat-tiles" className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <StatTile eyebrow="Gate G5" note="from validation.json">
+        {g5 === null ? 'no record' : g5.status}
+      </StatTile>
+      {metrics === null ? null : (
+        <StatTile eyebrow="Failed tests" note="named in the G5 section">
+          {String(metrics.g5.failed_tests.length)}
+        </StatTile>
+      )}
+      {metrics === null ? null : (
+        <StatTile eyebrow="Metrics reported" note={`${metrics.evaluated_split} split, Predicted`}>
+          {String(metrics.tests.length)}
+        </StatTile>
+      )}
+      {modelCard === null ? null : (
+        <StatTile eyebrow="Parameters" note={modelCard.architecture}>
+          {String(modelCard.parameter_count)}
+        </StatTile>
+      )}
     </div>
   );
 }
@@ -243,6 +279,7 @@ export function ModelReport({ modelCard, metrics, g5 }: ModelReportProps) {
       <div className="mt-6">
         <ExperimentalBanner g5={g5} />
       </div>
+      {modelCard === null && metrics === null ? null : <StatTiles modelCard={modelCard} metrics={metrics} g5={g5} />}
       {modelCard === null && metrics === null ? (
         <Section title="Model card and metrics">
           <UnavailablePanel title="No model report in this bundle">
