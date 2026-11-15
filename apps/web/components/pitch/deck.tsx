@@ -180,9 +180,9 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
       id: 'training',
       steps: 1,
       body: () => (
-        <Frame title="Training" sub="Self-supervised on Moon, Mars and Earth windows, losses read from the release bundle.">
+        <Frame title="Training" sub="Self-supervised on Moon, Mars and Earth windows.">
           {/* figure area: components/pitch/fig-training.tsx is wired in here */}
-          <div className="h-full w-full" data-figure="training">{curves ? <FigTraining curves={curves} /> : null}</div>
+          <div className="flex h-full w-full items-center" data-figure="training"><div className="w-full">{curves ? <FigTraining curves={curves} /> : null}</div></div>
         </Frame>
       ),
     },
