@@ -106,7 +106,11 @@
       "claim": "The commit range touches prd.json and progress.txt, which are outside the story's files list.",
       "evidence": "git diff --stat shows both files changed. The prd.json change only sets review.state to 'requested' and review.base to the base commit, so it is orchestrator bookkeeping, not product change.",
       "id": "claude-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "These are not product paths outside the story. scripts/ralph/batches/t1-pilot/prd.json and progress.txt are this batch's story list and progress log, which the author instructions allow to change beside the story's files. The step 'set review.state to requested and append your progress entry' is required before review. git diff 2f82141 541c5e7 -- prd.json changes only T1-06's review.state (pending to requested) and review.base, in 541c5e7 'chore(ralph): request review for t1-06'. The reviewer itself calls this bookkeeping, not a product change. No change made."
+      }
     },
     {
       "severity": "low",
@@ -114,7 +118,11 @@
       "claim": "The window centre is taken from Wikipedia coordinates rather than fetched, so it is a stated choice, not an observation.",
       "evidence": "centre_basis says so openly, and the record states the centre is not a target window and sets nothing in config/run.yaml. It is disclosed, so the risk is low.",
       "id": "claude-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The reviewer marks this as disclosed and low risk; it names no defect. AC3 asks for the window 'at a stated centre in the tile', so a stated centre is what the criterion requires, not an observation. The record says exactly that: dem.window.centre_basis and tile_choice.candidates[0].centre_basis name the source (the English Wikipedia 'Holuhraun' coordinates, 64.85 N, 16.83 W). They explain the page is not fetched because Wikipedia answers Python's default client with HTTP 403. They call the centre 'a stated choice of the pilot, not an observation'. window.role says it is 'a pilot probe of the read path, not a target or search window'. Holuhraun is the PRD's first Earth region (PRD 5, line 260). The target windows stay null in config/run.yaml (primary_window_id null) until the team freezes them at G0. No change made."
+      }
     }
   ]
 }

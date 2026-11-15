@@ -112,7 +112,11 @@
       "claim": "Preserve unknown block sizes instead of reporting zero or an incomplete total as the touched tiles' byte size.",
       "evidence": "_tag_int at io.py:420 returns None for missing TIFF metadata, but stored_bytes filters those values out before summing. All unknown sizes therefore produce 0. The remote reader skips missing metadata at :1602, and pilot.py:5603 and :5635 publish this total. Propagate null or reject incomplete size metadata, and cover that case with a test. This violates the binding missing-evidence rule.",
       "id": "codex-r1-1",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "3d253aff9428ddcaf86fe2494f0ea21c9595c57c",
+        "reason": "CogLayout.stored_bytes now returns None when the tile index states no size for any touched block, instead of summing the others (which gave 0 or an understated total). The cop30 record writes held_in_ranges null for such a tile, and stored_bytes and touched_tile_bytes null, and its definitions say why. The case is real: GDAL states no BLOCK_OFFSET/BLOCK_SIZE for a tile a sparse (SPARSE_OK) file does not store, or whose index entry it cannot read. The regression tests in 1f88300 use a sparse COG: test_io_cog_layout.py (local and remote read, plus a parametrised stored_bytes table) and test_pilot_cop30.py::test_a_touched_tile_the_file_does_not_store_has_unknown_bytes. Before the fix, 5 io tests and the pilot test failed: stored_bytes was 637932 for a window with an unstored block, and held_in_ranges was False. read_remote_cog_window's docstring now states that only blocks with a stated offset and size can be checked as held. The real Holuhraun read states every size (one tile, 2,345,737 bytes), so re-recording offline from data/raw/cop30/ changed only the two definition strings in cop30_range_read.json."
+      }
     },
     {
       "severity": "medium",
@@ -120,7 +124,11 @@
       "claim": "Extract the registry licence quote from visible HTML instead of matching its escaped JSON-LD representation.",
       "evidence": "The first match comes from data/raw/cop30/aws_registry_copernicus_dem.html:33. The committed quote at outputs/pilot/cop30_range_read.json:406 contains escaped markup and stops at 'https://dataspace.'. The complete visible licence paragraph exists at the raw document's :83. Exclude script content or parse the structured field correctly, add regression coverage and regenerate the output.",
       "id": "codex-r1-2",
-      "resolution": null
+      "resolution": {
+        "action": "fixed",
+        "commit": "238ef40879a665d989bad6aa522c7d139819ae6f",
+        "reason": "_page_text removed tags but kept script and style content and comments, so the registry licence pattern first matched the JSON-LD line 33 of aws_registry_copernicus_dem.html. It now drops script and style elements and comments first (_HTML_HIDDEN). Re-recorded offline: licence.registry_licence.quote is now the visible paragraph of line 83 ('... the Licence found on here .', the same tag-to-space convention as readme_licence). No other cop30 field changed, and sources.json is unchanged. Every other cop30 quote gives the same text on the saved pages. _page_text is shared with ctx; pilot check ctx, pgda78 and minirf still exit 0 against their committed outputs. In 1f88300 the synthetic registry page now carries the real page's JSON-LD head. test_the_registry_licence_quote_is_the_visible_sentence and test_provider_statements_are_read_from_visible_text_only (decoy version, datum and unit statements in script, style, an uppercase SCRIPT and a comment, placed before the visible text) failed before the fix: the quote ended in '\\u003ca href=\\\"http://127.' and the decoys gave 2019, EGM96 5773 and feet."
+      }
     }
   ]
 }
