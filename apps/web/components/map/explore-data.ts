@@ -153,9 +153,14 @@ function targetWindows(
   extents: readonly (readonly number[])[],
 ): MapWindow[] {
   const references = new Set(target.reference_window_ids);
+  // A bodywide windows file holds every target of the body. Window ids end in -x<col>-y<row>, and
+  // the part before that names the source product, so only the primary window's product is kept.
+  const grid = (id: string): string | null => /^(.*)-x\d+-y\d+$/u.exec(id)?.[1] ?? null;
+  const stem = target.primary_window_id === null ? null : grid(target.primary_window_id);
   const out: MapWindow[] = [];
   for (const entry of entries) {
     const id = entry.window.window_id;
+    if (stem !== null && grid(id) !== null && grid(id) !== stem) continue;
     const isPrimary = id === target.primary_window_id;
     const isReference = references.has(id);
     const ring = entry.window.polygon.ring_m;

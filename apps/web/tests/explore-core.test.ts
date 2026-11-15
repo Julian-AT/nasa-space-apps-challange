@@ -95,6 +95,17 @@ describe('body data from records', () => {
   it('reports a missing targets.json', () => {
     expect(buildBodyData(testBundle(), 'moon').targetsMissing).toBe(true);
   });
+  it('counts and numbers only the selected target\'s windows of a bodywide file', () => {
+    const windows = [
+      testWindow('moon-test-a-x0-y0', 'eligible', []),
+      testWindow('moon-test-a-x1-y0', 'eligible', [], 10),
+      testWindow('moon-test-b-x0-y0', 'eligible', []),
+    ];
+    const target = testTarget({ primary_window_id: 'moon-test-a-x0-y0' });
+    const data = buildBodyData(testBundle({ targets: target, windows: new Map([['moon', windows]]) }), 'moon');
+    expect(data.targets[0]?.windows.map((w) => w.id)).toEqual(['moon-test-a-x0-y0', 'moon-test-a-x1-y0']);
+  });
+
   it('keeps windows with their status and reasons, and counts the actual windows', () => {
     const windows = [
       testWindow('moon-test-window-a', 'eligible', []),
