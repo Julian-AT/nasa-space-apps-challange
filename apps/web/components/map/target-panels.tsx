@@ -109,7 +109,8 @@ export function NuPanel({ nu }: { readonly nu: NuSummary }) {
         Terrain variation of <code>{nu.windowId}</code> at each supported lag, on a {String(nu.analysisGridM)} m analysis
         grid with valid fraction {String(nu.validFraction)}. Relief and texture stay separate.
       </p>
-      <table className="w-full text-left text-sm">
+      <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm [&_[data-slot=source]]:hidden">
         <caption className="sr-only">nu by lag for the target window</caption>
         <thead>
           <tr>
@@ -128,6 +129,10 @@ export function NuPanel({ nu }: { readonly nu: NuSummary }) {
           ))}
         </tbody>
       </table>
+      </div>
+      <p className="text-xs break-words text-muted-foreground" title={source}>
+        Source: {source.split(/,\s+/u).map((p) => p.split('/').at(-1) ?? p).join(', ')}
+      </p>
       {nu.hurstRelief === null ? null : (
         <p className="text-sm">
           Relief Hurst exponent: <LabelledValue label={label === 'Unavailable' ? 'Derived' : label} value={nu.hurstRelief} unit={null} source={source} />
@@ -248,7 +253,11 @@ export function ProductsPanel({ target }: { readonly target: MapTarget }) {
       {target.products.length === 0 && target.productsMissing.length === 0 ? (
         <p className="text-sm text-muted-foreground">The target record lists no source products.</p>
       ) : null}
-      <ul className="flex flex-col gap-2 text-sm">
+      <details className="text-sm">
+      <summary className="cursor-pointer text-muted-foreground">
+        {String(target.products.length + target.productsMissing.length)} products (click to expand)
+      </summary>
+      <ul className="mt-2 flex flex-col gap-2 text-xs break-words">
         {target.products.map((p) => (
           <li key={p.id}>
             <code>{p.id}</code> ({p.provider}, {p.version}); frame {p.frame}
@@ -262,6 +271,7 @@ export function ProductsPanel({ target }: { readonly target: MapTarget }) {
           </li>
         ))}
       </ul>
+      </details>
     </PanelSection>
   );
 }

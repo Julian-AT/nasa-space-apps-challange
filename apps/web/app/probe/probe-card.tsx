@@ -53,7 +53,7 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
     <>
       <p className="font-medium">{r.sentence}</p>
       <p className="text-sm">{r.surface_notice}</p>
-      <h3 className="mt-4">
+      <h3 className="mt-8">
         Terrain fingerprint · <span className="text-sm">{r.terrain.label}</span>
       </h3>
       <p className="text-sm">
@@ -62,7 +62,7 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
         {r.dem.tiles_read.join(', ')}).
       </p>
       <div className="overflow-x-auto">
-        <table className="mt-2 text-sm">
+        <table className="mt-2 text-sm [&_td]:py-1 [&_th]:py-1">
           <caption className="text-left">nu(L) in metres by lag, and H</caption>
           <thead>
             <tr>
@@ -94,16 +94,16 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
           </tbody>
         </table>
       </div>
-      <h3 className="mt-4">Distances to the targets</h3>
+      <h3 className="mt-10">Distances to the targets</h3>
       {r.targets.length === 0 ? (
         <p>Unavailable: {r.targets_reason ?? 'no targets'}</p>
       ) : (
         r.targets.map((t) => (
-          <section key={t.target_id} aria-label={`Distances to ${names[t.target_id] ?? t.target_id}`} className="mt-2">
+          <section key={t.target_id} aria-label={`Distances to ${names[t.target_id] ?? t.target_id}`} className="mt-4 rounded-2xl border border-border bg-card/60 p-4">
             <h4 className="font-medium">
               {names[t.target_id] ?? t.target_id} <span className="text-sm">({t.target_window_id})</span>
             </h4>
-            <div className="flex flex-wrap gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
               <ProbeCurves
                 title={`Relief nu(L): this window over ${names[t.target_id] ?? t.target_id}`}
                 window={r.terrain.relief}
@@ -119,7 +119,7 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
                 />
               )}
             </div>
-            <dl className="grid grid-cols-[max-content_1fr] gap-x-4 text-sm">
+            <dl className="mt-3 grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-[max-content_1fr] [&_dd]:mb-2 sm:[&_dd]:mb-0 [&_dt]:text-muted-foreground">
               <dt>Terrain relief</dt>
               <dd>
                 <Distance d={t.terrain_relief} />
@@ -132,7 +132,7 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
               <dd>
                 <Distance d={t.radar} />
               </dd>
-              <dt>Encoder (experimental)</dt>
+              <dt>EXPERIMENTAL encoder (never ranked)</dt>
               <dd>
                 <Distance d={t.encoder} />
               </dd>
@@ -142,7 +142,7 @@ function Success({ r, names }: Readonly<{ r: ProbeSuccess; names: Readonly<Recor
       )}
       <p className="mt-2 text-sm">Smaller is closer within one family. Families are never added together, and targets are listed, not ranked.</p>
       <p className="mt-2 text-sm">Land cover: Unavailable: {r.worldcover.reason}.</p>
-      <h3 className="mt-4">Measured in this browser</h3>
+      <h3 className="mt-10">Measured in this browser</h3>
       <p className="text-sm tabular-nums">
         DEM read {ms(r.timings.dem_read_ms)} ({fmt(r.dem.bytes / 1e6, 2)} MB in {r.dem.requests} requests,{' '}
         {r.dem.within_prd_budget ? 'within' : 'over'} the 4 MB budget), resample {ms(r.timings.resample_ms)}, fingerprint{' '}

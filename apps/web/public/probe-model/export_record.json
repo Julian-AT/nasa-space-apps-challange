@@ -6,11 +6,11 @@
     "encoder.fp16.onnx": {
       "bytes": 5601753,
       "conversion": "onnxruntime.transformers.float16, keep_io_types=True",
-      "sha256": "d70a2860589b574f0c32dc8f395573abb5335e94f2ffff58357353cd2ebe4c2c"
+      "sha256": "931bfc36393a35ca76a61b84a2681057a055043845bb5d254200c45516e47f21"
     },
     "encoder.onnx": {
       "bytes": 11182695,
-      "sha256": "fe27ec4b55addb0d1790db88638bd3937d18ecb650ae557788207596a9594d92"
+      "sha256": "a840dd917c7a663a354a7711424994fc997a15f758d8a65be25954f3eb3d12c5"
     }
   },
   "input_dtype": "float32",
@@ -21,10 +21,7 @@
     64,
     64
   ],
-  "interim_snapshot": {
-    "epoch": 1,
-    "of_epochs": 12
-  },
+  "interim_snapshot": null,
   "l2_normalized": true,
   "mock": false,
   "model_id": "terraluna-encoder-experimental",
@@ -37,26 +34,26 @@
   ],
   "preprocessing": "outside the graph: dataset.CHANNELS (asinh(z/50 m), slope/45 deg, valid)",
   "python": {
-    "fp16_cosine_min": 0.9999978823103957,
-    "fp16_model_sha256": "d70a2860589b574f0c32dc8f395573abb5335e94f2ffff58357353cd2ebe4c2c",
-    "fp32_max_abs_diff": 4.991888999938965e-07,
-    "model_sha256": "fe27ec4b55addb0d1790db88638bd3937d18ecb650ae557788207596a9594d92",
+    "fp16_cosine_min": 0.9999959772641928,
+    "fp16_model_sha256": "931bfc36393a35ca76a61b84a2681057a055043845bb5d254200c45516e47f21",
+    "fp32_max_abs_diff": 3.650784492492676e-07,
+    "model_sha256": "a840dd917c7a663a354a7711424994fc997a15f758d8a65be25954f3eb3d12c5",
     "n_windows": 256
   },
   "python_parity": {
-    "fp16_min_cosine": 0.9999978823103957,
+    "fp16_min_cosine": 0.9999959772641928,
     "fp16_threshold": 0.999,
     "fp16_within": true,
-    "fp32_max_abs_diff": 4.991888999938965e-07,
+    "fp32_max_abs_diff": 3.650784492492676e-07,
     "fp32_threshold": 0.0001,
     "fp32_within": true,
     "n_windows": 256,
     "runtime": "onnxruntime 1.32.0 CPUExecutionProvider",
     "windows_from": "validation split of the shards (never test blocks)"
   },
-  "source_checkpoint_sha256": "15fe543a97ec46de2e52d7d3934f09a3e38e98e69e61f33db44e4658e186533d",
+  "source_checkpoint_sha256": "3b271713c195c8746b72fc41e4c21a1ef4f4685ce4792be206a6525a7a925c73",
   "source_run": "main_seed0",
-  "source_run_status": "interim snapshot",
+  "source_run_status": "completed",
   "status": "EXPERIMENTAL",
   "wasm_parity": {
     "reason": "run by the web probe (Vitest onnxruntime-web)",

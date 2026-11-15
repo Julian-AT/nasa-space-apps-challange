@@ -90,6 +90,15 @@ function FieldValue({ field, value }: { readonly field: GateField; readonly valu
     const variant = statusVariant(value);
     if (variant !== null) return <Badge variant={variant}>{value}</Badge>;
   }
+  if (value.trimStart().startsWith('{')) {
+    // A machine-readable record (e.g. G1's test summary): collapsed, the full text stays in the page.
+    return (
+      <details>
+        <summary className="cursor-pointer text-muted-foreground">Machine-readable record (JSON), expand</summary>
+        <pre className="mt-2 max-h-80 overflow-auto font-mono text-xs break-all whitespace-pre-wrap">{value}</pre>
+      </details>
+    );
+  }
   return <>{value}</>;
 }
 

@@ -15,7 +15,7 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 import pytest
-from hypothesis import given, settings
+from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from terraluna_pipeline import provenance
@@ -246,10 +246,10 @@ def summaries(record: FingerprintRecord) -> dict[str, list[float]]:
     return out
 
 
-def assert_close(a: list[float], b: list[float]) -> None:
+def assert_close(a: list[float], b: list[float], rtol: float = RTOL) -> None:
     assert len(a) == len(b)
     for x, y in zip(a, b, strict=True):
-        assert abs(x - y) <= ATOL + RTOL * abs(y), (x, y)
+        assert abs(x - y) <= ATOL + rtol * abs(y), (x, y)
 
 
 @settings(max_examples=40, deadline=None)
@@ -282,6 +282,11 @@ def test_synthetic_permuting_pixels_inside_a_block_keeps_the_statistics(
 
 
 @settings(max_examples=40, deadline=None)
+@example(
+    sc=[1000.0, 992.1157129657159] + [1000.0] * 14,
+    oc=[0.0013297317164990923] + [0.001] * 15,
+    factor=303.1955260968157,
+)
 @given(
     sc=st.lists(powers, min_size=16, max_size=16),
     oc=st.lists(powers, min_size=16, max_size=16),
@@ -294,8 +299,18 @@ def test_synthetic_scaling_sc_and_oc_together_keeps_the_cpr_summaries(
     oc_grid = np.array(oc, dtype=np.float64).reshape(4, 4)
     base = summaries(synthetic_radar(synthetic_circular(sc_grid, oc_grid)))
     scaled = summaries(synthetic_radar(synthetic_circular(sc_grid * factor, oc_grid * factor)))
+    # The T2 block statistics are exact; the loss is in this fixture. It feeds Stokes inputs
+    # S1 = SC + OC and S4 = OC - SC, each rounded to 2**-53 relative (u), and derive_circular
+    # recovers SC = (S1 - S4) / 2 and OC = (S1 + S4) / 2 by cancellation of the smaller power.
+    # Per build the absolute error of either power is at most u * (SC + OC), i.e. relative
+    # u * kappa with kappa = (max SC + max OC) / min(min SC, min OC). The base and scaled builds
+    # round differently, so the invariance bound is RTOL + 4 * u * kappa (factor 4: two builds,
+    # plus the rounding of the scaling product), not a bare RTOL, which only holds when SC and
+    # OC are within about 1e5 of each other.
+    u = 2.0**-53
+    kappa = (max(sc) + max(oc)) / min(min(sc), min(oc))
     for name in ("cpr_ratio_of_mean_powers", "cpr_mean_of_pixelwise_ratios"):
-        assert_close(scaled[name], base[name])
+        assert_close(scaled[name], base[name], rtol=RTOL + 4 * u * kappa)
 
 
 # --- canonical output ------------------------------------------------------------------------

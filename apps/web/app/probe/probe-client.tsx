@@ -100,10 +100,10 @@ export function ProbeClient({
           router.replace(`${pathname}?${q.toString()}`);
         }}
       >
-        <label className="flex flex-col text-sm">
+        <label className="flex flex-col gap-1 text-sm text-muted-foreground">
           Latitude (°N)
           <input
-            className="rounded border px-2 py-1"
+            className="rounded-lg border border-border bg-card px-3 py-2 text-foreground"
             inputMode="decimal"
             name="lat"
             required
@@ -113,10 +113,10 @@ export function ProbeClient({
             }}
           />
         </label>
-        <label className="flex flex-col text-sm">
+        <label className="flex flex-col gap-1 text-sm text-muted-foreground">
           Longitude (°E)
           <input
-            className="rounded border px-2 py-1"
+            className="rounded-lg border border-border bg-card px-3 py-2 text-foreground"
             inputMode="decimal"
             name="lon"
             required
@@ -126,7 +126,7 @@ export function ProbeClient({
             }}
           />
         </label>
-        <button type="submit" className="rounded border px-3 py-1">
+        <button type="submit" className="rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background hover:opacity-90">
           Probe
         </button>
       </form>

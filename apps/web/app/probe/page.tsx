@@ -4,6 +4,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
+import { PageHeader } from '../../components/page-header.tsx';
 import { loadBundle } from '../../lib/bundle.ts';
 import { probeEncoder } from '../../lib/probe/encoder-source.ts';
 import { probeTargets } from '../../lib/probe/targets.ts';
@@ -21,13 +22,12 @@ export default function ProbePage() {
   const encoder = probeEncoder(bundle);
   return (
     <>
-      <h1>Live Earth probe</h1>
-      <p className="mt-2 max-w-prose">{LIVE_PROBE_SENTENCE}</p>
-      <p className="mt-1 max-w-prose text-sm">
-        Enter a point on Earth. Your browser reads the 5 km window from Copernicus GLO-30 and measures it with the same
-        resampler and terrain fingerprint as the pipeline. Nothing is stored or ranked.
-      </p>
-      <p className="mt-1 max-w-prose text-sm">
+      <PageHeader
+        eyebrow="Live probe · browser worker"
+        title="Live Earth probe"
+        lead={`${LIVE_PROBE_SENTENCE} Enter a point on Earth. Your browser reads the 5 km window from Copernicus GLO-30 and measures it with the same resampler and terrain fingerprint as the pipeline. Nothing is stored or ranked.`}
+      />
+      <p className="mt-3 mr-auto ml-0 max-w-3xl rounded-xl border border-border bg-card/60 p-3 text-sm text-muted-foreground">
         {encoder.encoder === null
           ? `Encoder (experimental): Unavailable: ${encoder.reason}.`
           : `Encoder: EXPERIMENTAL, ${encoder.encoder.spec.model_id}${encoder.encoder.spec.snapshot_note ? ` (${encoder.encoder.spec.snapshot_note}, not the final model)` : ''}, G5 ${encoder.encoder.spec.g5_status}. Its distances are Predicted and never rank anything.`}
