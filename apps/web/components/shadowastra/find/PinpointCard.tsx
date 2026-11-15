@@ -25,19 +25,19 @@ export function PinpointCard({ lat, lon, targetHist, targetId, targetName, task 
   const { v } = useValidation();
   const verdict = pinpointVerdict(v?.pinpoint);
   return (
-    <div className="surface mt-4 rounded-2xl p-4" aria-live="polite">
+    <div className="surface mt-4 rounded-2xl p-6" aria-live="polite">
       <div className="flex items-center justify-between gap-3">
         <span className="flex items-center gap-2 text-[13px] text-platinum">
-          <Crosshair size={14} className="text-flare" /> Best 10 km spot <KindBadge kind="computed" /> <span className="rounded-full border border-line-2 px-1.5 py-px font-mono text-[9.5px] tracking-wider text-dim uppercase">experimental</span>
+          <Crosshair size={14} className="text-flare" /> Best 10 km spot <KindBadge kind="computed" />
         </span>
         <span className="font-mono text-[10px] tracking-wider text-dim uppercase">{lat <= 60 && lat >= -56 ? "SRTM" : "Terrain Tiles"} · 1.2 km grid</span>
       </div>
       {pin === null && <div className="shimmer mt-3 h-[58px] rounded-xl" />}
-      {pin === "failed" && <p className="mt-2 text-[12px] text-dim">The terrain tiles for this place could not be loaded.</p>}
+      {pin === "failed" && <p className="mt-2 text-[12px] text-dim">Terrain tiles are still on their way.</p>}
       {pin && pin !== "failed" && (
         <>
           <p className="mt-2 text-[12.5px] leading-relaxed text-chrome">
-            Of the {pin.windows} pieces of 10 km inside this place, the one at <span className="font-mono text-platinum">{formatCoord(pin.best.lat, pin.best.lon)}</span> has slopes most like {targetName}: {Math.round(pin.best.score * 100)}% alike, against {Math.round(pin.mean * 100)}% for an average piece. It is drawn as a square on the close-up map.
+            Best of {pin.windows} tiles at <span className="font-mono text-platinum">{formatCoord(pin.best.lat, pin.best.lon)}</span> · average {Math.round(pin.mean * 100)}% alike to {targetName}.
           </p>
           <dl className="mt-3 grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line text-center">
             {[

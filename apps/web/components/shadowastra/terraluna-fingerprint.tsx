@@ -66,7 +66,7 @@ export function TerralunaFingerprint({
       setRunning(false);
     };
     w.onerror = (event: ErrorEvent) => {
-      setWorkerError(`The probe worker failed: ${event.message || 'unknown error'}`);
+      setWorkerError('Measurement is taking a break. Move the point to retry.');
       setRunning(false);
     };
     w.postMessage({ type: 'init', mode: COP30_MODE, targets: fingerprints, targetsReason, bundleVersion, encoder });
@@ -92,12 +92,12 @@ export function TerralunaFingerprint({
   }, [lat, lon, ready]);
 
   return (
-    <section className={clsx('rounded-2xl border border-line-2 bg-ink p-4', className)} aria-label="Terraluna terrain fingerprint" data-terraluna-fingerprint>
-      <h3 className="font-mono text-[10px] tracking-[0.22em] text-dim uppercase">Terraluna terrain fingerprint (live, in browser)</h3>
-      <p className="mt-1.5 text-[11.5px] leading-snug text-dim">
-        Terraluna&apos;s own measurement, separate from the ShadowAstra factor scores above: the 5 km Copernicus GLO-30 window at {lat.toFixed(3)}°, {lon.toFixed(3)}°, computed in a Web Worker against the
-        bundle&apos;s target fingerprints (bundle {bundleVersion}).
+    <section className={clsx('rounded-2xl border border-line-2 bg-ink p-6', className)} aria-label="Terraluna terrain fingerprint" data-terraluna-fingerprint>
+      <h3 className="text-balance text-sm font-semibold text-platinum">Terraluna physics fingerprint</h3>
+      <p className="mt-1 truncate text-[12px] text-dim">
+        Live 5 km terrain match at {lat.toFixed(3)}°, {lon.toFixed(3)}° · bundle {bundleVersion}
       </p>
+      {encoder ? <p className="mt-1 text-[12px] text-dim">Includes an experimental learned similarity.</p> : null}
       {target === undefined ? (
         <p className="mt-3 rounded-xl border border-dashed border-line-2 p-3 text-[12.5px] text-chrome" data-terraluna-target="none">
           No Terraluna target for this site.
@@ -106,7 +106,7 @@ export function TerralunaFingerprint({
         <div className="mt-3" aria-live="polite" aria-busy={running} data-terraluna-target={target.target_id}>
           <p className="mb-2 text-[12px] text-chrome">
             Compared against Terraluna target <span className="text-platinum">{target.name}</span>
-            {shadowAstraTarget === 'shackleton' || shadowAstraTarget === 'de-gerlache' ? ' (Connecting Ridge lies between Shackleton and de Gerlache)' : ''}.
+            .
           </p>
           {running && result === null ? (
             <p role="status" className="font-mono text-[11px] tracking-widest text-dim uppercase">
@@ -115,7 +115,7 @@ export function TerralunaFingerprint({
           ) : null}
           {result === null ? null : <ResultCard result={result} target={target} targets={targets} cards={cards} />}
           {workerError === null ? null : (
-            <p role="alert" className="mt-3 text-[12px] text-status-fail">
+            <p role="alert" className="mt-3 text-[12px] text-dim">
               {workerError}
             </p>
           )}

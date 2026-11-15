@@ -5,7 +5,7 @@
 // src/pages/Home.tsx, everything below the hero. Terraluna changes: next/link, routes mapped to
 // Terraluna's (/discover -> /find, /atlas -> /explore/earth), the Astra mascot left out (ported
 // separately), Meet Astra and the team teaser dropped, and each section labelled as ShadowAstra's
-// content: the numbers, sites and scores here are ShadowAstra Atlas results, not Terraluna results.
+// content: the numbers, sites and scores here are ShadowAstra Atlas's own.
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
@@ -83,7 +83,6 @@ export default function HomeSections() {
       <HowItWorks />
       <TownSection />
       <PlaySection />
-      <MeetAstra />
       <Sustainability />
       <Library />
       <Progress />
@@ -97,7 +96,7 @@ export default function HomeSections() {
 
 /** Terraluna addition: marks content whose copy, sites and numbers are ShadowAstra Atlas's own. */
 function FromShadowAstra({ className }: { className?: string }) {
-  return <p className={clsx("mb-6 font-mono text-[10.5px] tracking-[0.18em] text-dim uppercase", className)}>From ShadowAstra Atlas (MIT, Team ShadowAstra)</p>;
+  return <p className={clsx("mb-6 font-mono text-[10.5px] tracking-[0.18em] text-dim uppercase", className)}>ShadowAstra Atlas (MIT)</p>;
 }
 
 function H2({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -421,83 +420,6 @@ const MOODS: { label: string; mood: Mood; action: Action; say: string }[] = [
   { label: "Plant a flag", mood: "wow", action: "flag", say: "New candidate site! Let's tell the field teams." },
 ];
 
-function MeetAstra() {
-  const [k, setK] = useState(0);
-  const m = MOODS[k];
-  const got = useFieldLog();
-  useEffect(() => {
-    const t = setInterval(() => setK((n) => (n + 1) % MOODS.length), 5200);
-    return () => clearInterval(t);
-  }, [k]);
-  return (
-    <Section id="meet-astra">
-      <div className="grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr]">
-        <div data-theme="dark" className="relative overflow-hidden rounded-3xl border border-line bg-void">
-          <div className="relative grid min-h-[460px] place-items-center p-8">
-            <div className="flex flex-col items-center">
-              <AnimatePresence mode="wait">
-                <motion.p key={k} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.35, ease: EASE }} aria-live="polite" className="glass mb-6 max-w-[320px] rounded-2xl px-4 py-3 text-center text-[14.5px] leading-snug text-platinum">
-                  {m.say}
-                </motion.p>
-              </AnimatePresence>
-              <Astronaut size={64} mood={m.mood} action={m.action} />
-            </div>
-          </div>
-        </div>
-        <div>
-          <Kicker n="08">Meet Astra</Kicker>
-          <H2 className="mt-8">
-            He goes where you point him. <Em>And he tells you the truth.</Em>
-          </H2>
-          <p data-reveal className="mt-6 max-w-[560px] text-[16px] leading-relaxed text-chrome">
-            Astra is ShadowAstra's field-test astronaut. He checks every place you open, shivers in the cold, sweats in the heat, and says plainly when a place is poor
-            practice. He also answers questions in the corner of every page. The numbers in his lines are illustrative, not Terraluna results.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-2">
-            {MOODS.map((x, i) => (
-              <button
-                key={x.label}
-                type="button"
-                onClick={() => setK(i)}
-                aria-pressed={i === k}
-                className={clsx("rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors", i === k ? "border-flare/60 bg-flare/10 text-flare" : "border-line-2 text-chrome hover:border-chrome hover:text-platinum")}
-              >
-                {x.label}
-              </button>
-            ))}
-          </div>
-          <div className="surface mt-10 rounded-2xl p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[14px] text-platinum">
-                <Award size={16} className="text-flare" /> Astra's field log
-              </div>
-              <span className="font-mono text-[12px] text-dim">
-                {got.length} of {BADGES.length} badges
-              </span>
-            </div>
-            <div className="mt-2 h-1 overflow-hidden rounded-full bg-line">
-              <motion.div className="h-full rounded-full bg-flare" initial={{ width: 0 }} whileInView={{ width: `${(got.length / BADGES.length) * 100}%` }} viewport={{ once: true }} transition={{ duration: 1.2, ease: EASE }} />
-            </div>
-            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-              {BADGES.map((b) => {
-                const on = got.includes(b.id);
-                return (
-                  <li key={b.id} className={clsx("flex items-start gap-2.5 rounded-xl border p-2.5", on ? "border-flare/40 bg-flare/[0.06]" : "border-line")}>
-                    <span className={clsx("mt-0.5 grid size-6 shrink-0 place-items-center rounded-full", on ? "bg-flare text-void" : "bg-ink text-dim")}>{on ? <Check size={12} /> : <Lock size={11} />}</span>
-                    <span>
-                      <span className={clsx("block text-[12.5px]", on ? "text-platinum" : "text-chrome")}>{b.title}</span>
-                      <span className="block text-[11px] leading-snug text-dim">{b.how}</span>
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </Section>
-  );
-}
 
 function FalseFriend() {
   const ref = useRef<HTMLDivElement>(null);

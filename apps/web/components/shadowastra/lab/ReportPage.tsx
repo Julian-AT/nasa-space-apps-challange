@@ -95,7 +95,7 @@ export default function Report() {
   return (
     <div className="report min-h-dvh bg-[#ece7dc] py-8 text-[#1c1a16] print:bg-white print:py-0">
       <style>{`@media print { @page { size: A4; margin: 14mm } .no-print { display: none !important } body::before { display: none } }`}</style>
-      <p className="mx-auto mb-3 max-w-[820px] px-4 text-[12px] text-[#55514a]">From ShadowAstra Atlas (MIT, Team ShadowAstra). Scores in this report come from ShadowAstra&apos;s model, not Terraluna results.</p>
+      <p className="mx-auto mb-3 max-w-[820px] px-4 text-[12px] text-[#55514a]">ShadowAstra Atlas (MIT)</p>
       <div className="no-print mx-auto mb-4 flex max-w-[820px] items-center justify-between px-4">
         <button onClick={() => router.back()} className="flex items-center gap-1.5 text-[13px] text-[#55514a] hover:text-[#1c1a16]">
           <ArrowLeft size={14} /> Back

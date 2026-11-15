@@ -434,7 +434,7 @@ function DestinationStep({ world, setWorld, value, onPick, grid, onNext }: { wor
   const sun = useMemo(() => sunRegime(t.body, t.lat), [t.body, t.lat]);
   return (
     <div>
-      <StepTitle kicker="Step 1 of 3" title="Where is the mission going?" text="Pick a place on the Moon or Mars. Click a pin on the globe or choose from the list." />
+      <StepTitle kicker="Step 1 of 3" title="Where is the mission going?" text="Pick a place on the Moon or Mars." />
       <Seg
         className="mt-5"
         value={world}
@@ -493,7 +493,7 @@ function JobStep({ m, onPick, onNext, onBack }: { m: Mission; onPick: (t: TaskId
   const w = TASK_WEIGHTS[m.task];
   return (
     <div>
-      <StepTitle kicker="Step 2 of 3" title="What do you want to practise?" text={`Each job needs different ground. Jobs marked ★ suit ${t.name}.`} />
+      <StepTitle kicker="Step 2 of 3" title="What do you want to practise?" text={`★ marks jobs that suit ${t.name}.`} />
       <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {TASKS.map((x) => {
           const Icon = TASK_ICON[x.id];
@@ -514,7 +514,7 @@ function JobStep({ m, onPick, onNext, onBack }: { m: Mission; onPick: (t: TaskId
           );
         })}
       </div>
-      <div className="surface mt-5 rounded-2xl p-4">
+      <div className="surface mt-5 rounded-2xl p-6">
         <div className="text-[13px] text-platinum">What matters most for “{TASKS.find((x) => x.id === m.task)!.label.toLowerCase()}”</div>
         <div className="mt-3 space-y-2.5">
           {FACTORS.map((f) => {
@@ -605,8 +605,8 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
     : [];
   return (
     <div>
-      <StepTitle kicker="Step 3 of 3" title="What does your team need?" text="Real field teams choose sites by distance, access, season and safety. Change the orange words." />
-      <div className="surface mt-5 rounded-2xl p-4 text-[15.5px] leading-[2.1] text-platinum">
+      <StepTitle kicker="Step 3 of 3" title="What does your team need?" text="Change the orange words." />
+      <div className="surface mt-5 rounded-2xl p-6 text-[15.5px] leading-[2.1] text-platinum">
         My team is based in <CityPicker grid={grid} value={m.home.name} onChange={(home) => update({ home })} /> and can travel{" "}
         <Pick label="Maximum distance" value={m.maxKm} options={DISTANCES.map((d) => ({ v: d.km, label: d.km === null ? d.label : `up to ${d.label}` }))} onChange={(v) => update({ maxKm: v })} />. We plan to go in{" "}
         <Pick label="Month" value={m.month} options={[{ v: null, label: "any month" }, ...MONTHS_LONG.map((x, i) => ({ v: i, label: x }))]} onChange={(v) => update({ month: v })} />. The site must be within{" "}
@@ -617,9 +617,9 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
         <Toggle on={m.onlyNew} set={(v) => update({ onlyNew: v })} label="Only new places" hint="Hide places within 150 km of a site teams already use" />
         <Toggle on={m.skipAntarctica} set={(v) => update({ skipAntarctica: v })} label="Skip Antarctica" hint="Treaty permits can take a year" />
       </div>
-      <div className="surface mt-4 rounded-2xl p-4">
+      <div className="surface mt-4 rounded-2xl p-6">
         <div className="flex items-center gap-1.5 text-[13px] text-platinum">
-          How much each thing matters <Tip text="Preset from the job you picked. Change it if your test cares about something else." />
+          How much each thing matters <Tip text="Preset from your job." />
         </div>
         <div className="mt-3 space-y-3">
           {FACTORS.map((f) => (
@@ -642,7 +642,7 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
         <div className="mt-4 border-t border-line pt-3">
           <div className="flex items-center justify-between text-[12.5px] text-chrome">
             <span className="flex items-center gap-1.5">
-              Who judges ground shape <Tip text="Our formula compares slopes and height range. The terrain AI, a vision transformer trained on Kaggle GPUs with heights from Earth, the Moon and Mars, compares how the ground looks. Both are tested on How it works." />
+              Who judges ground shape <Tip text="Formula compares slopes; the terrain AI compares how the ground looks." />
             </span>
           </div>
           <Seg
@@ -660,7 +660,7 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
         <div className="mt-4 border-t border-line pt-3">
           <div className="flex items-center justify-between text-[12.5px] text-chrome">
             <span className="flex items-center gap-1.5">
-              Places experts already like <Tip text="How much the learned model counts. It knows what the 38 known test sites have in common, so more of it finds places like them. Less of it lets your target and job decide. 60% is our default; the test is on How it works." />
+              Places experts already like <Tip text="Weight of the model trained on 38 known test sites." />
             </span>
             <span className="font-mono text-[11px] text-dim">{Math.round(m.modelMix * 100)}%</span>
           </div>
@@ -673,7 +673,7 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
           />
         </div>
       </div>
-      <div className="mt-5 rounded-2xl border border-earth/30 bg-earth/[0.06] p-4">
+      <div className="mt-5 rounded-2xl border border-earth/30 bg-earth/[0.06] p-6">
         <div className="font-mono text-[10px] tracking-[0.2em] text-dim uppercase">Places still possible</div>
         <div className="mt-1 font-mono text-[34px] leading-none font-light text-platinum">{screening ? <Counter value={screening.passCount} duration={0.6} /> : "…"}</div>
         <div className="mt-1 text-[12px] text-chrome">of {grid ? grid.n.toLocaleString() : "80,206"} land areas · shown in blue on the globe</div>
@@ -973,11 +973,6 @@ function ResultsPanel({
           </motion.div>
         )}
       </AnimatePresence>
-      {!scanning && result.places.length > 0 && (
-        <p className="mt-4 text-[11.5px] leading-relaxed text-dim">
-          Scores compare each place with {t.name} for this job: ground shape, rocks and craters, cold and light, bare dry ground, plus our learned model ({Math.round(m.modelMix * 100)}%). Click a place for the full report.
-        </p>
-      )}
     </div>
   );
 }
@@ -1076,7 +1071,7 @@ function CompareSheet({ grid, m, ks, onClose, onOpen }: { grid: Grid; m: Mission
               </span>
             ))}
           </div>
-          <p className="mt-4 text-[11.5px] text-dim">Gold marks the best value in each row. Earth can't copy gravity, air or space radiation at any of these places.</p>
+          <p className="mt-4 text-[11.5px] text-dim">Gold marks the best value in each row.</p>
         </div>
       </motion.div>
     </motion.div>
@@ -1252,10 +1247,10 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
 
       <div className="mt-4 flex items-center gap-4">
         <Ring value={cs.total} size={104} label="match" sub={`top ${topPct < 1 ? topPct.toFixed(1) : Math.round(topPct)}%`} />
-        <div className="flex-1">
-          <p className="text-[14px] leading-snug text-platinum">{grid.name(k).title}: match {cs.total.toFixed(2)}.</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-balance text-[15px] leading-snug font-medium text-platinum">{grid.name(k).title}</p>
           <p className="mt-1 text-[11.5px] text-dim">
-            For “{TASKS.find((x) => x.id === m.task)!.label.toLowerCase()}” at {T.name}.
+            {TASKS.find((x) => x.id === m.task)!.label} · {T.name}
           </p>
         </div>
       </div>
@@ -1288,7 +1283,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
       <FactorProvenance className="mt-1.5" />
       <div className="mt-3 space-y-3">
         {rows.map((r) => (
-          <div key={r.f.id} className="surface rounded-2xl p-4">
+          <div key={r.f.id} className="surface rounded-2xl p-6">
             <Meter value={factor(r.f.dims)} label={r.f.label} kind="computed" />
             <div className="mt-3 grid grid-cols-2 gap-3 text-[12px]">
               <div>
@@ -1321,7 +1316,7 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
           </div>
         ))}
         <MineralCard grid={grid} k={k} target={t} targetName={T.name} />
-        <div className="surface rounded-2xl p-4">
+        <div className="surface rounded-2xl p-6">
           <Meter value={cs.model} label="Learned model" kind="model" tone="var(--color-earth)" hint={`${modelLine(cs.model, T.body)}, judged by three models trained together on 38 known test sites.`} />
         </div>
       </div>
@@ -1357,11 +1352,8 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
         ))}
       </ul>
 
-      <div className="mt-6 rounded-2xl border border-weak/30 bg-weak/[0.06] p-4">
-        <KindBadge kind="gap" />
-        <p className="mt-2 text-[12.5px] leading-relaxed text-chrome">
-          {gaps.limits} {gaps.light}
-        </p>
+      <div className="mt-6 rounded-2xl border border-line bg-ink p-6">
+        <p className="text-[12.5px] leading-relaxed text-chrome">{gaps.light}</p>
         {gaps.place.length > 0 && (
           <ul className="mt-2 space-y-1 text-[12.5px] leading-relaxed text-chrome">
             {gaps.place.map((x) => (
