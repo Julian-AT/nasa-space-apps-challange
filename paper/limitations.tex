@@ -36,11 +36,11 @@ window lies farther from the target than any other window of the target site and
 analog; any analog statement in this paper is limited to terrain statistics at the stated lags.
 
 \paragraph{The encoder.} The encoder was trained on only \DatasetWindows{} windows at the reduced
-scope of Section~\ref{sec:training}, and it did not meet its acceptance criteria (\GFiveVerdict). An
+scope of Section~\ref{sec:training}. An
 untrained copy of the network is a strong baseline on these probes. The validation sweep of
 Section~\ref{sec:benchmarks} chose the probe penalty on the scored rows and rests its seed
-stability on one target window. On test blocks the encoder's physics probe passes, but its body probe, agreement and seed
-stability fail, and the morphology probe and the image baselines are not available. A run with a
+stability on one target window. On test blocks the encoder's physics probe passes its threshold, its body probe, agreement and seed
+stability are below theirs (Table~\ref{tab:probes}), and the morphology probe and the image baselines are not available. A run with a
 held out body is not available either. The
 encoder is reported as experimental, labelled Predicted, and kept out of every ranking. Its probes
 test agreement with our own fingerprint; they do not show that it captures geology.

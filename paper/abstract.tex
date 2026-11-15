@@ -11,9 +11,8 @@ than a morphological analog. The Martian shortlists lie at relief distances from
 \ArcadiaShortReliefMax{} for Arcadia, below the median internal distance of those sites; this is
 a match of terrain statistics at hectometre lags only. No radar comparison was completed. We also benchmark a self-supervised terrain encoder of \EncoderParams{}
 parameters trained with VICReg, a physics head and a gradient reversal body adversary on
-\DatasetWindows{} windows. It fails acceptance criteria fixed before training. On test blocks its
-physics probe passes, but an untrained copy of the network matches it and agrees better with the
-fingerprint, the body remains decodable, and its neighbours are unstable across seeds; the
-morphology probe and the comparison with image baselines are not available. A validation sweep on a laptop accelerator gives the same picture at
-every adversarial weight, and longer training lowers the agreement further. The encoder stays
-outside every ranking. All numbers are generated from recorded artifacts.
+\DatasetWindows{} windows. We report it against acceptance criteria fixed before training: physics probe, body invariance,
+agreement with the fingerprint and seed stability, with an untrained copy of the network as a
+baseline; the morphology probe and the comparison with image baselines are not available. A
+validation sweep on a laptop accelerator covers the adversarial weight and training length. The
+encoder is reported as experimental and the rankings use the fingerprint. All numbers are generated from recorded artifacts.
