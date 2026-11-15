@@ -146,7 +146,6 @@ function Wordmark() {
     <Link href="/" className="flex shrink-0 items-center gap-2 font-sans text-[15px] font-semibold tracking-tight text-foreground no-underline">
       <LogoMark />
       <span>Terraluna</span>
-      <span className="hidden font-mono text-[10px] font-normal tracking-[0.18em] text-muted-foreground uppercase xl:inline">Gradient Descent</span>
     </Link>
   );
 }
