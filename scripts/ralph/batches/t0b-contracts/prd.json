@@ -167,7 +167,7 @@
       "priority": 3,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
         "base": "dd1f7f7431c0889bf4e6d41af64c064dda5b66f5",
         "head": null,
