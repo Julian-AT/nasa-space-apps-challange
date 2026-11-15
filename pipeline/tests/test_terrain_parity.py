@@ -234,8 +234,12 @@ def test_header_carries_provenance(name: str) -> None:
 
 @pytest.mark.parametrize("name", FILE_NAMES)
 def test_tolerances_follow_prd_8_8_and_are_stored(name: str) -> None:
-    assert load(name)["tolerances"] == EXPECTED_TOLERANCES
+    document = load(name)
+    assert document["tolerances"] == EXPECTED_TOLERANCES
     assert terrain.PARITY_TOLERANCES == EXPECTED_TOLERANCES
+    fields = document["tolerance_fields"]
+    assert set(fields) == set(EXPECTED_TOLERANCES)
+    assert all(isinstance(paths, list) and paths for paths in fields.values())
 
 
 def test_producing_commit_refuses_modified_sources(tmp_path: Path) -> None:
@@ -464,7 +468,8 @@ def test_structure_function_equals_a_recomputation(name: str) -> None:
     item = case(name)
     document = load(TERRAIN_FILE)
     lags = document["structure_lags_m"]
-    assert lags[: len(document["config"]["lags_m"])] == document["config"]["lags_m"]
+    diagonal = math.hypot(90.0, 90.0)
+    assert lags == sorted({*document["config"]["lags_m"], *(k * diagonal for k in (3, 4, 6, 8))})
     values = grid_array(item["resampled"]["values_m"])
     valid = np.array(item["resampled"]["valid"], dtype=np.bool_)
     for rule in ("direction_mean", "pooled_pairs"):
@@ -482,10 +487,10 @@ def test_structure_function_equals_a_recomputation(name: str) -> None:
                 assert record["offset_cells"] == (
                     None if entry.offset_cells is None else list(entry.offset_cells)
                 )
-        for entry, record in zip(result.isotropic, stored["isotropic"], strict=True):
-            assert record["nu_m"] == entry.nu_m
-            assert record["directions"] == list(entry.directions)
-            assert record["reason"] == entry.reason
+        for summary, record in zip(result.isotropic, stored["isotropic"], strict=True):
+            assert record["nu_m"] == summary.nu_m
+            assert record["directions"] == list(summary.directions)
+            assert record["reason"] == summary.reason
 
 
 def test_structure_lags_exercise_the_diagonals() -> None:
@@ -633,7 +638,11 @@ def test_aeqd_outputs_equal_the_module_and_round_trip() -> None:
         x_back, y_back = aeqd_forward(lat, lon, radius_m=radius, **centre)
         assert same_bits(item["forward"]["x_m"], x_back), item["name"]
         assert same_bits(item["forward"]["y_m"], y_back), item["name"]
-        assert np.max(np.abs(x_back - x)) <= tolerance, item["name"]
-        assert np.max(np.abs(y_back - y)) <= tolerance, item["name"]
+        # The stored angles are float64: each is within half an ulp of the exact inverse, which
+        # moves a point by up to R ulp / 2 (1.4e-9 m for a longitude near pi on the Earth
+        # sphere). Beyond that, the round trip must close to the parity distance tolerance.
+        floor = radius * (np.spacing(np.abs(lat)) + np.spacing(np.abs(lon))) / 2.0
+        assert np.all(np.abs(x_back - x) <= tolerance + floor), item["name"]
+        assert np.all(np.abs(y_back - y) <= tolerance + floor), item["name"]
         assert same_bits(item["rho_m"], np.hypot(x, y))
         assert (0.0 in inputs["x_m"]) and (0.0 in inputs["y_m"])
