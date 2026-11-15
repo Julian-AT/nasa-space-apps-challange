@@ -1131,6 +1131,18 @@ def run_oracle_check(
         for field in COMPARED_FIELDS
     )
     outcome = "MATCH" if all(c.matches for c in comparisons) else "MISMATCH"
+    # Whether the check tells the conventions apart: the fields that would also agree under
+    # each alternative. Reported only; the declared conventions alone decide the outcome.
+    alternatives = {
+        name: sorted(
+            field
+            for field in COMPARED_FIELDS
+            if compare_field(
+                field, ours.fields[field], values[field], allowance_for(field, tolerance, ours)
+            ).matches
+        )
+        for name, values in alternative_sets.items()
+    }
     record: dict[str, Any] = {
         "record_type": "terraluna polsartools oracle run (T2-07)",
         "written_by": (
@@ -1187,6 +1199,7 @@ def run_oracle_check(
             "conventions_sha256": sha256_file(CONVENTIONS_PATH),
         },
         "fields": {c.field: c.as_record() for c in comparisons},
+        "fields_also_agreeing_under_alternative_conventions": alternatives,
         "failures": [text for c in comparisons if (text := c.failure()) is not None],
         "code_sha256": {name: sha256_file(REPO_ROOT / name) for name in CODE_FILES},
         "g1_note": (
