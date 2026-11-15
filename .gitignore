@@ -52,3 +52,4 @@ test-results/
 
 # Full agent transcripts; the compact run record in logs/agents/<date>/*.jsonl is committed.
 /logs/agents/**/raw/
+/apps/web/public/assets/

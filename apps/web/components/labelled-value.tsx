@@ -50,7 +50,8 @@ function valueText(label: string, value: unknown): string {
     if (!Number.isFinite(value)) {
       refuse(`${label} value ${String(value)} is not a number to show; use label Unavailable with a reason`);
     }
-    return String(value);
+    // Display rounding only (6 significant digits); the stored value is unchanged.
+    return Number.isInteger(value) ? String(value) : String(Number(value.toPrecision(6)));
   }
   if (typeof value !== 'string' || PLACEHOLDER.test(value)) {
     refuse(`${label} needs a value; missing evidence takes label Unavailable with a reason`);
@@ -59,7 +60,16 @@ function valueText(label: string, value: unknown): string {
 }
 
 function Source({ source }: { readonly source: string }) {
-  return <span data-slot="source">Source: {source}</span>;
+  // Long source lists (several full product paths) show file names only; the full text is the tooltip.
+  const parts = source.split(/,\s+/u);
+  const short = parts.map((p) => (p.length > 40 ? (p.split('/').at(-1) ?? p) : p));
+  const shown = short.slice(0, 2).join(', ') + (short.length > 2 ? ` and ${String(short.length - 2)} more` : '');
+  const text = source.length > 60 ? shown : source;
+  return (
+    <span data-slot="source" title={source} className="min-w-0 break-words">
+      Source: {text}
+    </span>
+  );
 }
 
 type UntypedProps = { readonly [K in 'label' | 'value' | 'unit' | 'source' | 'reason']?: unknown };

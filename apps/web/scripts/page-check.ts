@@ -43,6 +43,7 @@ export const LAYOUT_LABELS: readonly string[] = [
   'Moon',
   'Mars',
   'Earth',
+  'Probe',
   'Model',
   'Methods',
   'Data',

@@ -65,6 +65,7 @@ const EXPECTED_NAV = [
   ['Moon', '/explore/moon'],
   ['Mars', '/explore/mars'],
   ['Earth', '/explore/earth'],
+  ['Probe', '/probe'],
   ['Model', '/model'],
   ['Methods', '/methods'],
   ['Data', '/data'],
@@ -112,7 +113,7 @@ function appSources(): string[] {
 }
 
 describe('primary navigation', () => {
-  it('links Home, Moon, Mars, Earth, Model, Methods, Data, Paper and API docs, in that DOM order', () => {
+  it('links Home, Moon, Mars, Earth, Probe, Model, Methods, Data, Paper and API docs, in that DOM order', () => {
     expect(NAV_ITEMS.map(({ label, href }) => [label, href])).toEqual(EXPECTED_NAV);
     const html = renderToStaticMarkup(<SiteNav pathname="/" />);
     const nav = only(
@@ -123,9 +124,9 @@ describe('primary navigation', () => {
     expect(links(html).map((link) => [link.text, link.attributes.get('href')])).toEqual(EXPECTED_NAV);
   });
 
-  it('links to no route the app does not build', () => {
+  it('links to no route the app does not build (/probe is built; /compare needs two ids)', () => {
     const hrefs = links(renderToStaticMarkup(<SiteNav pathname="/" />)).map((link) => link.attributes.get('href'));
-    for (const href of hrefs) expect(href).not.toMatch(/^\/(probe|compare)(\/|$|\?)/);
+    for (const href of hrefs) expect(href).not.toMatch(/^\/compare(\/|$|\?)/);
   });
 
   it.each(EXPECTED_NAV)('marks only %s with aria-current="page" on its own route', (_, href) => {
@@ -287,7 +288,7 @@ describe('root layout', () => {
       all.filter((element) => element.tag === 'header'),
       '<header>',
     );
-    for (const text of [MOCK_BANNER, 'Shipping mode: not chosen (G0 NOT_RUN)', 'Home Moon Mars Earth Model Methods Data Paper API docs']) {
+    for (const text of [MOCK_BANNER, 'Shipping mode: not chosen (G0 NOT_RUN)', 'Home Moon Mars Earth Probe Model Methods Data Paper API docs']) {
       expect(header.text).toContain(text);
     }
     const main = only(
