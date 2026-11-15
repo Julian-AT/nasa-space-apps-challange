@@ -12,14 +12,14 @@ import { shellText } from '../lib/shell.ts';
 
 export function SiteFooter({ bundle }: Readonly<{ bundle: Bundle }>) {
   return (
-    <footer className="mt-24 border-t bg-muted/30">
+    <footer className="mt-24 border-t bg-background">
       <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:px-6 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-1">
           <p className="flex items-center gap-2 font-sans text-sm font-semibold text-foreground">
             <LogoMark size="xs" />
             Terraluna
           </p>
-          <p className="font-mono text-[11px]">{`${shellText(bundle).footer} · Schema ${bundle.manifest.schema_version}`}</p>
+          <p className="font-mono text-[11px] tracking-wide">{`${shellText(bundle).footer} · Schema ${bundle.manifest.schema_version}`}</p>
         </div>
         <ul className="flex items-center gap-4 text-sm">
           <li>

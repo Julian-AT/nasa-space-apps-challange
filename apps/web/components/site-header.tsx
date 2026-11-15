@@ -70,8 +70,10 @@ export function SiteNav({ pathname, className }: Readonly<{ pathname: string | n
                   label={label}
                   current={current}
                   className={cn(
-                    'rounded-md px-2.5 py-1.5 text-[13px] whitespace-nowrap no-underline',
-                    current ? 'bg-muted font-semibold text-foreground' : 'text-muted-foreground hover:text-foreground',
+                    'rounded-full px-3 py-1 text-[13px] whitespace-nowrap no-underline transition-colors',
+                    current
+                      ? 'bg-muted font-medium text-foreground ring-1 ring-border data-[active=true]:bg-muted'
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
                   )}
                 />
               </NavigationMenuLink>
@@ -111,7 +113,7 @@ function MobileNav({ pathname }: Readonly<{ pathname: string | null }>) {
                     }}
                     className={cn(
                       'block rounded-md px-3 py-2 text-sm no-underline',
-                      current ? 'bg-muted font-semibold text-foreground' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                      current ? 'bg-muted font-medium text-foreground ring-1 ring-border' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
                     )}
                   />
                 </li>
@@ -124,13 +126,13 @@ function MobileNav({ pathname }: Readonly<{ pathname: string | null }>) {
   );
 }
 
-/** The Terraluna mark: an Earth icon in a primary square, then the plain name. Shared with the footer. */
+/** The Terraluna mark: an Earth icon in a hairline square lit by the sunlight accent. Shared with the footer. */
 export function LogoMark({ size = 'sm' }: Readonly<{ size?: 'sm' | 'xs' }>) {
   return (
     <span
       aria-hidden="true"
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground',
+        'inline-flex shrink-0 items-center justify-center rounded-md border bg-card text-primary',
         size === 'sm' ? 'size-7' : 'size-6',
       )}
     >
@@ -144,6 +146,7 @@ function Wordmark() {
     <Link href="/" className="flex shrink-0 items-center gap-2 font-sans text-[15px] font-semibold tracking-tight text-foreground no-underline">
       <LogoMark />
       <span>Terraluna</span>
+      <span className="hidden font-mono text-[10px] font-normal tracking-[0.18em] text-muted-foreground uppercase xl:inline">Gradient Descent</span>
     </Link>
   );
 }
@@ -160,7 +163,7 @@ function HeaderActions() {
       >
         <HugeiconsIcon icon={Search01Icon} strokeWidth={2} />
         <span className="hidden sm:inline">Search</span>
-        <kbd className="hidden rounded border bg-muted px-1.5 font-mono text-[10px] sm:inline">Ctrl K</kbd>
+        <kbd className="hidden rounded-sm border bg-muted px-1.5 font-mono text-[10px] text-muted-foreground sm:inline">Ctrl K</kbd>
       </Button>
       <ThemeToggle />
       <Button variant="ghost" size="icon" asChild>
@@ -174,13 +177,17 @@ function HeaderActions() {
 
 export function SiteHeader() {
   const pathname = usePathname();
+  // A solid band (no blur or glass) so the page never shows through; the bottom hairline is the
+  // layout header's border.
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
-      <Wordmark />
-      <SiteNav pathname={pathname} className="hidden lg:flex" />
-      <div className="flex items-center gap-1">
-        <HeaderActions />
-        <MobileNav pathname={pathname} />
+    <div className="w-full bg-background">
+      <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6">
+        <Wordmark />
+        <SiteNav pathname={pathname} className="hidden lg:flex" />
+        <div className="flex items-center gap-1">
+          <HeaderActions />
+          <MobileNav pathname={pathname} />
+        </div>
       </div>
     </div>
   );

@@ -55,12 +55,12 @@ export function Hero({ eyebrow, cards }: HeroProps) {
     <section className="pt-10 pb-6 sm:pt-14">
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-12">
         <div className="max-w-[760px] lg:pt-6">
-          <Badge variant="outline" className="mb-6">
+          <Badge variant="outline" className="mb-6 font-mono text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
             {eyebrow}
           </Badge>
-          <h1 className="text-[clamp(38px,5vw,64px)] leading-[1.05] font-semibold tracking-tight text-balance text-foreground">
+          <h1 className="text-[clamp(40px,5.2vw,68px)] leading-[1.02] font-medium tracking-[-0.035em] text-balance text-foreground">
             <span className="block">Find the Moon and Mars</span>
-            <span className="block text-primary">on Earth.</span>
+            <span className="block font-serif text-[1.08em] font-normal tracking-[-0.01em] text-primary italic">on Earth.</span>
           </h1>
           <p className="mt-6 max-w-[580px] text-base leading-relaxed text-muted-foreground sm:text-lg">
             <span className="font-medium text-foreground">Our own physics model, measured live:</span> Terraluna computes a relief and texture
