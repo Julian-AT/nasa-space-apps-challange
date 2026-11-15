@@ -161,7 +161,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
             ))}
           </div>
           <p className="absolute bottom-0 left-0 text-sm" style={{ color: MUTED }}>
-            <span className="font-semibold text-zinc-950">NASA Space Apps 2026</span>, Gradient Descent, November 2026
+            <span className="font-semibold text-zinc-950">NASA Space Apps 2026</span>, Team Terraluna, November 2026
           </p>
         </div>
       ),
@@ -433,7 +433,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
             </In>
           ) : null}
           <p className="absolute bottom-0 left-0 text-sm">
-            NASA Space Apps 2026, Gradient Descent, bundle {d.bundleVersion}
+            NASA Space Apps 2026, Team Terraluna, bundle {d.bundleVersion}
             {d.shippingMode ? `, mode ${d.shippingMode}` : ''}
           </p>
         </div>
