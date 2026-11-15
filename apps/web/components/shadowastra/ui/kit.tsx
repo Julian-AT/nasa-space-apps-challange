@@ -7,6 +7,7 @@
  * view, numbers count, surfaces catch a soft light that follows the pointer.
  * Every effect respects prefers-reduced-motion.
  */
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, animate, motion, useInView, useMotionValue, useSpring } from "motion/react";
 import { useMotionReduced } from "@/lib/shadowastra/motionPref";
@@ -248,23 +249,14 @@ export function Tip({ text, children, className }: { text: string; children?: Re
 /* ------------------------------------------------------------- controls */
 
 export function Seg<T extends string>({ value, onChange, options, size = "md", className }: { value: T; onChange: (v: T) => void; options: { id: T; label: ReactNode; title?: string }[]; size?: "sm" | "md"; className?: string }) {
-  const group = useId();
   return (
-    <div data-slot="toggle-group" className={clsx("relative flex w-fit gap-0.5 rounded-lg border border-border bg-muted p-0.5", className)} role="group">
+    <ToggleGroup type="single" variant="outline" size="sm" spacing={0} value={value} onValueChange={(v) => v && onChange(v as T)} className={className}>
       {options.map((o) => (
-        <button
-          key={o.id}
-          type="button"
-          title={o.title}
-          onClick={() => onChange(o.id)}
-          aria-pressed={value === o.id}
-          className={clsx("relative flex items-center gap-1.5 rounded-md font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40", size === "sm" ? "h-6 px-2.5 text-[11.5px]" : "h-7 px-3 text-[12px]", value === o.id ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
-        >
-          {value === o.id && <motion.span layoutId={`seg-${group}`} className="absolute inset-0 rounded-md border border-border bg-background shadow-xs" transition={{ type: "spring", stiffness: 420, damping: 36 }} />}
-          <span className="relative flex items-center gap-1.5">{o.label}</span>
-        </button>
+        <ToggleGroupItem key={o.id} value={o.id} title={o.title} className={clsx("gap-1.5", size === "sm" ? "h-7 px-2.5 text-[11.5px]" : "text-[12px]")}>
+          {o.label}
+        </ToggleGroupItem>
       ))}
-    </div>
+    </ToggleGroup>
   );
 }
 
