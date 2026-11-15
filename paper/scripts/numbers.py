@@ -1941,6 +1941,15 @@ ARTIFACT_MACROS: tuple[ArtifactMacro, ...] = (
         "?,d",
     ),
     ArtifactMacro("OnnxOpset", "outputs/ml/model/export_record.json", "/opset", "?d"),
+    ArtifactMacro("WasmWindows", "outputs/probe/wasm-parity.json", "/windows", "?d"),
+    ArtifactMacro(
+        "WasmMinCosine", "outputs/probe/wasm-parity.json", "/min_cosine_vs_python_fp32", "?.6f"
+    ),
+    ArtifactMacro("WasmThreshold", "outputs/probe/wasm-parity.json", "/threshold", "?.3f"),
+    ArtifactMacro("WasmMs", "outputs/probe/wasm-parity.json", "/per_window_ms", "?.1f"),
+    ArtifactMacro("WasmThreads", "outputs/probe/wasm-parity.json", "/threads", "?d"),
+    ArtifactMacro("WasmRuntime", "outputs/probe/wasm-parity.json", "/runtime", "?text"),
+    ArtifactMacro("WasmOrtVersion", "outputs/probe/wasm-parity.json", "/onnxruntime_web", "?text"),
     ArtifactMacro("GateZeroStatus", "outputs/validation.json", "/0/status", "text"),
     ArtifactMacro("GateOneStatus", "outputs/validation.json", "/1/status", "text"),
     ArtifactMacro("GateTwoStatus", "outputs/validation.json", "/2/status", "text"),
