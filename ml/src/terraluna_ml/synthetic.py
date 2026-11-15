@@ -39,6 +39,7 @@ from typing import Final, Literal, Protocol
 
 import numpy as np
 import numpy.typing as npt
+
 from terraluna_pipeline.geometry import (
     Body,
     EquirectangularLookup,
