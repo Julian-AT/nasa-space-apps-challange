@@ -70,14 +70,13 @@ function Kicker({ n, children }: { n: string; children: React.ReactNode }) {
 
 export default function AboutPage() {
   return (
-    <div className="bg-void">
+    <div className="sa-ui bg-void">
       <Hero />
       <Crew />
       <Built />
       <Credits />
       <Disclosure />
       <section className="relative overflow-hidden border-t border-line px-4 py-32 sm:px-6">
-        <div className="absolute inset-0 bg-[radial-gradient(50%_70%_at_50%_120%,rgba(242,200,121,0.12),transparent_70%)]" />
         <div className="relative mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-8">
           <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }} className="text-[clamp(30px,4vw,60px)] leading-[1.02] font-medium tracking-[-0.04em]">
             Read the method <span className="font-serif font-normal text-flare italic">in full.</span>

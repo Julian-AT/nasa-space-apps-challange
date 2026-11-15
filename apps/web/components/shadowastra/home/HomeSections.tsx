@@ -74,7 +74,7 @@ export default function HomeSections() {
   }, []);
 
   return (
-    <div ref={root} className="sa-home bg-void">
+    <div ref={root} className="sa-ui sa-home bg-void">
       <SourceMarquee />
       <Numbers />
       <MoonBase />
@@ -433,7 +433,6 @@ function MeetAstra() {
     <Section id="meet-astra">
       <div className="grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr]">
         <div data-theme="dark" className="relative overflow-hidden rounded-3xl border border-line bg-void">
-          <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_100%,rgba(242,200,121,0.16),transparent_70%)]" />
           <div className="absolute inset-x-0 bottom-0 h-28 bg-[url(/textures/moon_lroc_1k.webp)] bg-[length:200%] bg-[position:30%_60%] opacity-30 [mask-image:linear-gradient(to_top,black,transparent)]" />
           <div className="relative grid min-h-[460px] place-items-center p-8">
             <div className="flex flex-col items-center">
@@ -921,7 +920,6 @@ function FinalCta() {
   const pick = useMemo(() => TARGETS.find((x) => x.id === "shackleton") ?? TARGETS[0], []);
   return (
     <section className="relative overflow-hidden border-t border-line px-4 py-32 sm:px-6 md:py-44">
-      <div className="absolute inset-0 bg-[radial-gradient(50%_70%_at_50%_120%,rgba(242,200,121,0.14),transparent_70%)]" />
       <div className="relative mx-auto max-w-[1000px] text-center">
         <FromShadowAstra className="text-center" />
         <div className="mb-8 flex justify-center">
