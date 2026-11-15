@@ -177,6 +177,17 @@ def test_stage_refuses_a_mock_record(tmp_path: Path, capsys: pytest.CaptureFixtu
     refused(root, capsys, "mock_record")
 
 
+def test_stage_reads_index_bundle_paths_from_data_processed_figures(tmp_path: Path) -> None:
+    root = real_tree(tmp_path)
+    add_figure(root)
+    index = root / "outputs" / "figures" / "index.json"
+    entries = read(index)
+    entries[0]["path"] = f"figures/{CARD_ID}_A.svg"
+    write(index, entries)
+    assert stage(root) == 0
+    assert (staging(root) / "figures" / f"{CARD_ID}_A.svg").read_bytes() == SVG
+
+
 def test_stage_refuses_a_file_under_fixtures(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
