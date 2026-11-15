@@ -127,18 +127,18 @@ def metric(**overrides: Any) -> dict[str, Any]:
 
 
 def unavailable_metric(**overrides: Any) -> dict[str, Any]:
-    return metric(
-        test_id="held_out_body",
-        body="mars",
-        value=None,
-        ci_low=None,
-        ci_high=None,
-        n_blocks=None,
-        n_bootstrap=None,
-        unavailable_reason="the Moon-and-Earth-only run was not trained",
-        baselines=[],
-        **overrides,
-    )
+    unavailable: dict[str, Any] = {
+        "test_id": "held_out_body",
+        "body": "mars",
+        "value": None,
+        "ci_low": None,
+        "ci_high": None,
+        "n_blocks": None,
+        "n_bootstrap": None,
+        "unavailable_reason": "the Moon-and-Earth-only run was not trained",
+        "baselines": [],
+    }
+    return metric(**{**unavailable, **overrides})
 
 
 def model_record(**overrides: Any) -> dict[str, Any]:
