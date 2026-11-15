@@ -65,6 +65,21 @@ describe('pageProblems', () => {
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/once/);
   });
 
+  // The check counts the lines in the text as a browser shows it, so inline markup inside the
+  // words, which a browser joins up, cannot hide a second, complete banner (codex-r6-2).
+  it.each([
+    { name: 'inline markup inside its first word', line: '<p>Ship<span>ping</span> mode: B — Terrain analog candidates for Connecting Ridge, with radar context</p>' },
+    { name: 'its words split across two blocks', line: '<p>Shipping</p><p>mode: C</p>' },
+  ])('reports a second shipping-mode line ($name)', ({ line }) => {
+    const html = REAL_PAGE.replace('</header>', `${line}</header>`);
+    expect(pageProblems(html, REAL).join('\n')).toMatch(/"Shipping mode:" appears 2 times; the page must state its mode once/);
+  });
+
+  it('reports a mock banner split by inline markup on a bundle that is not mock', () => {
+    const html = REAL_PAGE.replace('<header>', '<header><p>Mo<b>ck</b> bundle — placeholder data, not results</p>');
+    expect(pageProblems(html, REAL).join('\n')).toMatch(/a mock banner is shown, but the bundle is not mock/);
+  });
+
   it('reports a bundle version that is not in the footer', () => {
     const html = MOCK_PAGE.replace(FOOTER, '<p>Bundle version: mock-0</p>');
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/footer/);
@@ -138,7 +153,7 @@ describe('pageProblems', () => {
     },
     {
       name: 'a block nested inside it',
-      html: MOCK_PAGE.replace('not results</p>', 'not results<div>Radar match passed</div></p>'),
+      html: MOCK_PAGE.replace(MOCK_P, '<div role="status">Mock bundle — placeholder data, not results<div>Radar match passed</div></div>'),
     },
   ])('reports a mock banner with words added inside its element ($name)', ({ html }) => {
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/mock banner/);
@@ -157,7 +172,7 @@ describe('pageProblems', () => {
     },
     {
       name: 'a block nested inside it',
-      html: REAL_PAGE.replace('radar context</p>', 'radar context<div>Radar match passed</div></p>'),
+      html: REAL_PAGE.replace(`<p>${MODE_B}</p>`, `<div>${MODE_B}<div>Radar match passed</div></div>`),
       shown: REAL,
     },
     {
@@ -170,6 +185,17 @@ describe('pageProblems', () => {
     },
   ])('reports a shipping-mode banner with words added inside its element ($name)', ({ html, shown }) => {
     expect(pageProblems(html, shown).join('\n')).toMatch(/shipping-mode banner/);
+  });
+
+  // A div start tag closes an open p (HTML parsing, "in body" mode), so a browser shows the div's
+  // words beside the banner, not in it. The check reads the page the same way and reports them.
+  it.each([
+    { name: 'the mock banner', html: MOCK_PAGE.replace('not results</p>', 'not results<div>Radar match passed</div></p>'), shown: MOCK },
+    { name: 'the mode banner', html: REAL_PAGE.replace('radar context</p>', 'radar context<div>Radar match passed</div></p>'), shown: REAL },
+  ])('reports a block written inside the paragraph of $name, which a browser moves out', ({ html, shown }) => {
+    expect(pageProblems(html, shown)).toStrictEqual([
+      'text outside <main> must be a banner, the footer or a layout label, but "Radar match passed" is none of these',
+    ]);
   });
 
   // A banner may sit in a container of its own, such as a status region around its paragraph. The
@@ -315,6 +341,35 @@ describe('pageProblems', () => {
     // A browser ignores a head tag inside the body (HTML parsing, "in body" mode) and shows its text.
     { name: 'words in a head tag inside the body', html: MOCK_PAGE.replace('<header>', '<head>Radar match passed</head><header>'), shown: MOCK },
     { name: 'words in a second head after the body', html: REAL_PAGE.replace('</html>', '<head>Radar match passed</head></html>'), shown: REAL },
+    // It also ignores html and head start tags nested in the body (codex-r6-1). Only the
+    // document's own title is left out, and a title outside the document head is reported.
+    {
+      name: 'words in a head inside a nested html element',
+      html: MOCK_PAGE.replace('<header>', '<html><head>Radar match passed</head></html><header>'),
+      shown: MOCK,
+    },
+    {
+      name: 'words in a title inside a nested html element',
+      html: MOCK_PAGE.replace('<header>', '<html><head><title>Radar match passed</title></head></html><header>'),
+      shown: MOCK,
+    },
+    // Text after the title or after </html> ends up in the body.
+    {
+      name: 'words in the document head after its title',
+      html: MOCK_PAGE.replace('<title>Terraluna</title>', '<title>Terraluna</title>Radar match passed'),
+      shown: MOCK,
+    },
+    { name: 'words after the html end tag', html: REAL_PAGE.replace('</html>', '</html>Radar match passed'), shown: REAL },
+    // Comments end where the HTML tokenizer ends them, and a lone "<" is text.
+    { name: 'words after an empty comment', html: MOCK_PAGE.replace('</header>', '<!-->Radar match passed<!-- --></header>'), shown: MOCK },
+    { name: 'words after the empty comment <!--->', html: MOCK_PAGE.replace('</header>', '<!--->Radar match passed<!-- --></header>'), shown: MOCK },
+    { name: 'words after a comment closed by --!>', html: MOCK_PAGE.replace('</header>', '<!-- a --!>Radar match passed<!-- b --></header>'), shown: MOCK },
+    {
+      name: 'words between comments that hold script tags',
+      html: MOCK_PAGE.replace('</header>', '<!-- <script> -->Radar match passed<!-- </script> --></header>'),
+      shown: MOCK,
+    },
+    { name: 'words after a lone less-than sign', html: MOCK_PAGE.replace('</header>', '<p>< Radar match passed <b></b></p></header>'), shown: MOCK },
   ])('reports text outside <main> that is no banner, footer or layout label ($name)', ({ html, shown }) => {
     expect(pageProblems(html, shown).join('\n')).toMatch(/layout label/);
   });
@@ -355,6 +410,12 @@ describe('pageProblems', () => {
   it('reports the versions in another element beside the footer', () => {
     const html = REAL_PAGE.replace('<header>', '<header><p>Bundle version: v10 · Schema 1.0.0</p>');
     expect(pageProblems(html, REAL).join('\n')).toMatch(/Bundle version: v10 · Schema 1\.0\.0" is none of these/);
+  });
+
+  it('reads character references as a browser does', () => {
+    const html = MOCK_PAGE.replace('Mock bundle — placeholder', 'Mock bundle &mdash; placeholder');
+    expect(html).toContain('Mock bundle &mdash; placeholder');
+    expect(pageProblems(html, MOCK)).toStrictEqual([]);
   });
 
   it('accepts a banner split by inline markup when it reads exactly the same', () => {
