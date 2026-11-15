@@ -238,6 +238,35 @@ def load_windows(path: Path) -> list[MoonWindow]:
     return windows
 
 
+def search_windows(raster: io.RasterWindow, config: TerrainConfig) -> list[MoonWindow]:
+    """The Site01 window grid exactly as ``search.evaluate_moon`` builds it.
+
+    The grid and the window centres come from ``search.projected_grid`` over the raster extent
+    with the raster's own polar stereographic lookup, so a clone run on the surface product
+    reproduces the search fingerprints bit for bit (T5 is the producer of the windows).
+    """
+    from terraluna_pipeline.search import projected_grid
+
+    lookup = _lookup(raster)
+    transform = raster.transform
+    assert transform is not None
+    rows, cols = raster.array.shape
+    x0, y1 = float(transform.c), float(transform.f)
+    x1 = x0 + float(transform.a) * cols
+    y0 = y1 + float(transform.e) * rows
+    grid = projected_grid(
+        prefix="moon-sps",
+        body="moon",
+        frame="polar_stereographic",
+        crs=raster.crs or "",
+        extent_m=(x0, y0, x1, y1),
+        window_m=config.window_m,
+        stride_m=config.stride_m,
+        unproject=lambda x, y: lookup.unproject(x, y),
+    )
+    return [MoonWindow(g.window_id, g.centre_lon_deg, g.centre_lat_deg) for g in grid]
+
+
 def _lookup(raster: io.RasterWindow) -> geometry.PolarStereographicLookup:
     transform = raster.transform
     if transform is None:
@@ -549,12 +578,23 @@ STALE_CLAIM: Final = (
     "PGDA78 error spatial correlation is not propagated: the uncertainty components (clones, "
     "scenarios) have not been run."
 )
-CLONE_CLAIM: Final = (
+OLD_CLONE_CLAIM: Final = (
     "PGDA78 clone measurement error is propagated for the lunar target window only (clone "
     "counts in uncertainty_components); no Earth DEM error model is applied, and ties are not "
     "set in distances_by_family because the target has no reference set (schema: tied needs a "
     "reference spread); clone-based ties are listed in analysis/g4_candidates.json."
 )
+CLONE_CLAIM: Final = (
+    "PGDA78 clone measurement error is propagated for the lunar target window only (clone "
+    "counts in uncertainty_components); no Earth DEM error model is applied. Terrain ties use "
+    "matching.tie_groups with each candidate's clone spread (half the 2.5-97.5 percentile range "
+    "of its distance), measurement error only."
+)
+NO_CLONE_CLAIM: Final = (
+    "No published elevation-error clone set exists for this target's DTM, so measurement error "
+    "is Unavailable and no tie is claimed; scenario ranks come from mask and region filters only."
+)
+_REPLACED_CLAIMS: Final = (STALE_CLAIM, OLD_CLONE_CLAIM, CLONE_CLAIM, NO_CLONE_CLAIM)
 TERRAIN: Final = ("terrain_relief", "terrain_texture")
 
 
@@ -607,7 +647,12 @@ def annotated_components(g4: Mapping[str, Any], window_id: str) -> dict[str, Any
             "rank_frequency": None,
         }
         if by_family
-        else _unavailable("clone_results_missing")
+        else _unavailable(
+            "clone_results_missing"
+            if g4.get("body", "moon") == "moon"
+            else "no_published_clone_set",
+            note=None if g4.get("body", "moon") == "moon" else CLONE_LIMITS_NOTE,
+        )
     )
     table = g4["candidates"]
     scenarios = []
@@ -644,8 +689,9 @@ def annotated_components(g4: Mapping[str, Any], window_id: str) -> dict[str, Any
         "reason": None,
         "note": (
             "Named mask and region scenarios with the rank by family in each; rank_frequency is "
-            "how often this candidate ranked first by that family over the PGDA78 clone runs, a "
-            "frequency and never a probability (PRD 6.6). Mode C: no radar scenario."
+            "how often this candidate ranked first by that family over the PGDA78 clone runs (none "
+            "without a clone set), a frequency and never a probability (PRD 6.6). Mode C: no radar "
+            "scenario."
         ),
         "by_family": None,
         "n_requested": None,
@@ -667,15 +713,37 @@ def annotate_records(
     """Comparison records with uncertainty_components filled; order and other fields kept."""
     from terraluna_pipeline.schema import UncertaintyComponents
 
+    body = str(g4.get("body", "moon"))
+    claim = CLONE_CLAIM if body == "moon" else NO_CLONE_CLAIM
+    ties = g4.get("ties") or {}
     out = []
     for record in records:
         updated = dict(record)
-        components = annotated_components(g4, str(record["earth_window_id"]))
+        window = str(record["earth_window_id"])
+        components = annotated_components(g4, window)
         UncertaintyComponents.model_validate(components)
         updated["uncertainty_components"] = components
-        limits = [CLONE_CLAIM if line == STALE_CLAIM else line for line in record["claim_limits"]]
-        if CLONE_CLAIM not in limits:
-            limits.append(CLONE_CLAIM)
+        distances = {family: dict(entry) for family, entry in record["distances_by_family"].items()}
+        for family in TERRAIN:
+            membership = (ties.get(family) or {}).get("by_window", {}).get(window)
+            entry = distances[family]
+            if membership is None or entry.get("reference_spread") is None:
+                continue
+            entry.update(
+                tied=membership["tied"],
+                tie_group=membership["tie_group"],
+                tie_reason=membership["tie_reason"],
+            )
+        updated["distances_by_family"] = distances
+        limits: list[str] = []
+        for line in record["claim_limits"]:
+            if line in _REPLACED_CLAIMS:
+                if claim not in limits:
+                    limits.append(claim)
+            elif line not in limits:
+                limits.append(line)
+        if claim not in limits:
+            limits.append(claim)
         updated["claim_limits"] = limits
         out.append(updated)
     return out
@@ -688,7 +756,12 @@ def _annotate(args: argparse.Namespace, *, check: bool) -> int:
 
     root = Path(args.root)
     path = root / "outputs" / "comparisons" / f"{args.target_id}.json"
-    g4_path = root / "analysis" / "g4_candidates.json"
+    g4_name = (
+        "g4_candidates.json"
+        if args.target_id == "moon-cr-site01-w000"
+        else f"g4_candidates_{args.target_id}.json"
+    )
+    g4_path = root / "analysis" / g4_name
     missing = [str(p) for p in (path, g4_path) if not p.is_file()]
     if missing:
         print(f"blocked: missing {', '.join(missing)}")
@@ -730,7 +803,8 @@ def _run_clones(args: argparse.Namespace) -> int:
     surf = pgda / "Site01" / "Site01_final_adj_5mpp_surf.tif"
     clones_dir = pgda / "Site01" / "Clones"
     windows_path = Path(args.windows)
-    missing = [str(p) for p in (surf, clones_dir, windows_path) if not p.exists()]
+    needed = [surf, clones_dir] + ([windows_path] if args.window_source == "g0" else [])
+    missing = [str(p) for p in needed if not p.exists()]
     if missing:
         print(f"blocked: missing input {', '.join(missing)}")
         return EXIT_BLOCKED
@@ -741,7 +815,12 @@ def _run_clones(args: argparse.Namespace) -> int:
     n_requested = int(args.n_clones)
     files = files[:n_requested]
     config = load_terrain_config(Path(args.config))
-    windows = load_windows(windows_path)
+    surface = io.read_geotiff_window(surf)
+    windows = (
+        search_windows(surface, config)
+        if args.window_source == "search"
+        else load_windows(windows_path)
+    )
     if args.window_id:
         wanted = set(args.window_id)
         windows = [w for w in windows if w.window_id in wanted]
@@ -749,7 +828,6 @@ def _run_clones(args: argparse.Namespace) -> int:
             print(f"blocked: window ids {sorted(wanted)} not in {windows_path}")
             return EXIT_BLOCKED
     rules: tuple[IsotropicRule, ...] = ISOTROPIC_RULES
-    surface = io.read_geotiff_window(surf)
     base = {
         rule: window_fingerprints(surface, windows, config=config, isotropic_rule=rule)
         for rule in rules
@@ -775,8 +853,14 @@ def _run_clones(args: argparse.Namespace) -> int:
             "source_files_sha256": dict(sorted(hashes.items())),
             "command": command_line("terraluna_pipeline.uncertainty", args.argv),
             "config_version": config_version(Path(args.config)),
-            "windows_evidence": str(windows_path),
-            "windows_evidence_sha256": io.sha256_file(windows_path),
+            "window_source": (
+                "search.projected_grid over the Site01 surface extent (as search.evaluate_moon)"
+                if args.window_source == "search"
+                else f"G0 evidence {windows_path}"
+            ),
+            "windows_evidence_sha256": (
+                io.sha256_file(windows_path) if args.window_source == "g0" else None
+            ),
             "resampler": "D29: geometry.resample_window (spherical AEQD about the window centre, "
             "bilinear, PGDA78 sphere 1737400 m)",
             "by_isotropic_rule": {
@@ -822,6 +906,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     run.add_argument("--out-dir", default=str(DEFAULT_OUT))
     run.add_argument("--window-id", action="append", default=None)
     run.add_argument("--n-clones", type=int, default=100)
+    run.add_argument("--window-source", choices=["search", "g0"], default="search")
     for name, text in (
         ("annotate", "write uncertainty into the comparisons"),
         ("verify", "offline twin"),

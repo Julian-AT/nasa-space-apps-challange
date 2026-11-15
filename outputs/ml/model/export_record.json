@@ -1,0 +1,65 @@
+{
+  "config_hash": "811d41ab48920703c9e017f37981749c52d9cce19d4a00ff07cc6d730f5f4da9",
+  "data_manifest_sha256": "53f0c2614945436ba7e89460ed365d1aefa7e86b55ed34c9a58f0a65d5227b3e",
+  "evidence_label": "Predicted",
+  "files": {
+    "encoder.fp16.onnx": {
+      "bytes": 5601753,
+      "conversion": "onnxruntime.transformers.float16, keep_io_types=True",
+      "sha256": "d70a2860589b574f0c32dc8f395573abb5335e94f2ffff58357353cd2ebe4c2c"
+    },
+    "encoder.onnx": {
+      "bytes": 11182695,
+      "sha256": "fe27ec4b55addb0d1790db88638bd3937d18ecb650ae557788207596a9594d92"
+    }
+  },
+  "input_dtype": "float32",
+  "input_name": "windows",
+  "input_shape": [
+    "batch",
+    3,
+    64,
+    64
+  ],
+  "interim_snapshot": {
+    "epoch": 1,
+    "of_epochs": 12
+  },
+  "l2_normalized": true,
+  "mock": false,
+  "model_id": "terraluna-encoder-experimental",
+  "model_source": "trained",
+  "opset": 17,
+  "output_name": "embedding",
+  "output_shape": [
+    "batch",
+    256
+  ],
+  "preprocessing": "outside the graph: dataset.CHANNELS (asinh(z/50 m), slope/45 deg, valid)",
+  "python": {
+    "fp16_cosine_min": 0.9999978823103957,
+    "fp16_model_sha256": "d70a2860589b574f0c32dc8f395573abb5335e94f2ffff58357353cd2ebe4c2c",
+    "fp32_max_abs_diff": 4.991888999938965e-07,
+    "model_sha256": "fe27ec4b55addb0d1790db88638bd3937d18ecb650ae557788207596a9594d92",
+    "n_windows": 256
+  },
+  "python_parity": {
+    "fp16_min_cosine": 0.9999978823103957,
+    "fp16_threshold": 0.999,
+    "fp16_within": true,
+    "fp32_max_abs_diff": 4.991888999938965e-07,
+    "fp32_threshold": 0.0001,
+    "fp32_within": true,
+    "n_windows": 256,
+    "runtime": "onnxruntime 1.32.0 CPUExecutionProvider",
+    "windows_from": "validation split of the shards (never test blocks)"
+  },
+  "source_checkpoint_sha256": "15fe543a97ec46de2e52d7d3934f09a3e38e98e69e61f33db44e4658e186533d",
+  "source_run": "main_seed0",
+  "source_run_status": "interim snapshot",
+  "status": "EXPERIMENTAL",
+  "wasm_parity": {
+    "reason": "run by the web probe (Vitest onnxruntime-web)",
+    "status": "Unavailable"
+  }
+}

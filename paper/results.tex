@@ -65,6 +65,7 @@ Promotion threshold & \GFivePhysRMin{} & \GFiveMorphGainMin{} & \GFiveBodyAccMax
 \end{table}
 
 \subsection{Cross body retrieval for the lunar target}
+\label{sec:results-moon}
 \label{sec:results-retrieval}
 
 The lunar target window was compared with \ComparedCount{} eligible Earth windows from the two
@@ -82,7 +83,11 @@ cover rule is tightened moderately or only the Holuhraun region is searched; whe
 cell must be in an allowed class, or only Rosamond Dry Lake is searched, the window leaves the
 evaluated set. This stability is a frequency over the published height error model, not a
 probability that the window is an analog. It mostly shows that the clones move the target's
-statistics very little. Neither the background percentile nor the spread of the target reference set has been computed for this search, so the distance has not been set against the internal variation of the target.
+statistics very little. The relief distance lies at the \BestBackgroundPercentile{}th percentile of the Earth background, which holds only the \MoonBackgroundN{} windows of the search universe rather than the \MoonBackgroundRequested{} requested. The target reference set, the distances between the target and the other \BestReferenceSpreadN{} eligible windows of its site, has a median of \MoonRefReliefMedian{} and a maximum of \MoonRefReliefMax{} in relief, so the nearest Earth window is farther from the target than every other window of the target site.
+
+Figure~\ref{fig:candidate-distances} shows the two distances for every compared window.
+
+\input{figures/candidate-distances}
 
 The shortlist and uncertainty gate (status \GateFourStatus) inspected this window as a counterexample. The target is one broad massif whose relief keeps growing with
 lag, while the candidate is a mostly flat plain crossed by narrow ridges and a trough, whose
@@ -132,7 +137,14 @@ of difference that a second order fingerprint does not capture and that the enco
 
 \input{figures/hillshades}
 
-The same gap holds across bodies. Over the windows that the search read, the relief $\ln \nu$ distributions of the lunar site and of Earth overlap with a coefficient of \OverlapEarthMoonNuShort{} at the shortest lag and \OverlapEarthMoonNuLong{} at the longest, while the Martian and Earth samples overlap at \OverlapEarthMarsNuShort{} and \OverlapEarthMarsNuLong{} (Appendix~\ref{sec:appendix-data-analysis}). At the longest lag no evaluated Earth window falls in the range of the lunar site, so for this target the shortlist names the least different window rather than a similar one. The Martian targets, a window at Jezero crater and one in Arcadia Planitia, were not frozen before the analysis cutoff, so no Mars retrieval is reported.
+The same gap holds across bodies. Over the windows that the search read, the relief $\ln \nu$ distributions of the lunar site and of Earth overlap with a coefficient of \OverlapEarthMoonNuShort{} at the shortest lag and \OverlapEarthMoonNuLong{} at the longest, while the Martian and Earth samples overlap at \OverlapEarthMarsNuShort{} and \OverlapEarthMarsNuLong{} (Appendix~\ref{sec:appendix-data-analysis}). At the longest lag no evaluated Earth window falls in the range of the lunar site, so for this target the shortlist names the least different window rather than a similar one.
+
+\subsection{Cross body retrieval for the Martian targets}
+\label{sec:results-mars}
+
+Two Martian target windows were fixed by rules declared before ranking. At Jezero crater, the primary window is the eligible window nearest the landing site of the Perseverance rover on the CTX model in the declared box that passes the quality threshold; its site has \JezeroTargetEligible{} eligible of \JezeroTargetGenerated{} generated windows. In Arcadia Planitia, it is the eligible window nearest the centre of the CTX model that passes the threshold nearest the box centre, with \ArcadiaTargetEligible{} eligible of \ArcadiaTargetGenerated{} windows. Each was compared with the same \JezeroCompared{} Earth windows as the lunar target (Figure~\ref{fig:candidate-distances}).
+
+The Martian targets sit much closer to the Earth sample than the lunar target. For Jezero the first Pareto layer holds \JezeroShortlistSize{} windows, with relief distances from \JezeroShortReliefMin{} to \JezeroShortReliefMax{} and texture distances from \JezeroShortTextureMin{} to \JezeroShortTextureMax, against a median relief distance of \JezeroReliefMedian{} over all compared windows. For Arcadia it holds \ArcadiaShortlistSize{} windows, with relief distances from \ArcadiaShortReliefMin{} to \ArcadiaShortReliefMax{} and texture distances from \ArcadiaShortTextureMin{} to \ArcadiaShortTextureMax, against a median of \ArcadiaReliefMedian. These shortlisted distances lie below the median internal distance of each Martian site, whose target reference sets have median relief distances of \JezeroRefReliefMedian{} at Jezero and \ArcadiaRefReliefMedian{} at Arcadia, so under this fingerprint the shortlisted Earth windows lie within the spread of windows of the target sites themselves. The lowest background percentile of a compared window is \JezeroBgPctMin{} for Jezero and \ArcadiaBgPctMin{} for Arcadia, again over a background of only the \JezeroBackgroundN{} windows of the search universe. The Martian models have no published error clones, so these distances carry no measurement error spread, and no counterexample inspection was recorded for the Martian shortlists. The shortlisted windows are candidate windows identified by this search for the two Martian targets, with the same caveat as for the Moon: a small distance at hectometre lags says nothing about morphology, block sizes or the surface at the scale of a rover.
 
 \subsection{Model variations}
 \label{sec:results-variations}

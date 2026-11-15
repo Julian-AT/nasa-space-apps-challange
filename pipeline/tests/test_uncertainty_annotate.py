@@ -66,13 +66,61 @@ def test_ineligible_window_is_unavailable_not_zero() -> None:
     assert components["measurement_error"]["by_family"] is None
 
 
+def _record(wid: str, limits: list[str], *, ref: bool = True) -> dict[str, Any]:
+    entry = {
+        "value": 1.0,
+        "reference_spread": {"min": 0.1, "median": 0.2, "max": 0.3, "n": 3} if ref else None,
+        "tied": None,
+        "tie_group": None,
+        "tie_reason": "spread_unavailable",
+    }
+    return {
+        "earth_window_id": wid,
+        "claim_limits": limits,
+        "distances_by_family": {"terrain_relief": dict(entry), "terrain_texture": dict(entry)},
+    }
+
+
+TIES = {
+    family: {
+        "by_window": {
+            "a": {"tied": True, "tie_group": f"{family}:a", "tie_reason": None},
+            "b": {"tied": True, "tie_group": f"{family}:a", "tie_reason": None},
+        }
+    }
+    for family in ("terrain_relief", "terrain_texture")
+}
+
+
 def test_annotate_replaces_the_stale_claim_and_keeps_order() -> None:
-    records = [
-        {"earth_window_id": "b", "claim_limits": [uncertainty.STALE_CLAIM, "x"]},
-        {"earth_window_id": "a", "claim_limits": ["x"]},
-    ]
-    out = uncertainty.annotate_records(records, G4)
+    g4 = dict(G4, ties=TIES)
+    records = [_record("b", [uncertainty.STALE_CLAIM, "x"]), _record("a", ["x"])]
+    out = uncertainty.annotate_records(records, g4)
     assert [r["earth_window_id"] for r in out] == ["b", "a"]
     assert out[0]["claim_limits"] == [uncertainty.CLONE_CLAIM, "x"]
     assert out[1]["claim_limits"] == ["x", uncertainty.CLONE_CLAIM]
-    assert uncertainty.annotate_records(out, G4) == out
+    assert uncertainty.annotate_records(out, g4) == out
+
+
+def test_ties_copied_from_g4_only_where_a_reference_spread_exists() -> None:
+    g4 = dict(G4, ties=TIES)
+    out = uncertainty.annotate_records([_record("a", []), _record("b", [], ref=False)], g4)
+    relief = out[0]["distances_by_family"]["terrain_relief"]
+    assert (relief["tied"], relief["tie_group"], relief["tie_reason"]) == (
+        True,
+        "terrain_relief:a",
+        None,
+    )
+    assert out[1]["distances_by_family"]["terrain_relief"]["tied"] is None
+
+
+def test_mars_target_has_no_clone_set() -> None:
+    rows = [
+        dict(r, terrain_relief={"base": 1.0}, terrain_texture={"base": 1.0})
+        for r in G4["candidates"]
+    ]
+    g4 = dict(G4, body="mars", candidates=rows, rank_sensitivity={"n_runs": 0, "n_requested": None})
+    components = uncertainty.annotated_components(g4, "a")
+    assert components["measurement_error"]["reason"] == "no_published_clone_set"
+    out = uncertainty.annotate_records([_record("a", [uncertainty.OLD_CLONE_CLAIM])], g4)
+    assert out[0]["claim_limits"] == [uncertainty.NO_CLONE_CLAIM]

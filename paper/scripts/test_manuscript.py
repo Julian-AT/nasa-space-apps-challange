@@ -36,6 +36,7 @@ OPTIONAL_THIRD_APPENDIX = "Exploratory quantum experiment"
 # the preamble inputs (22.5), not a figure.
 PLANNED_FIGURES: tuple[str, ...] = (
     "body-curves",
+    "candidate-distances",
     "encoder-architecture",
     "hillshades",
     "structure-functions",
