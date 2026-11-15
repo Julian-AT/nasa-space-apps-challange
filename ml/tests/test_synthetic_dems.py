@@ -165,8 +165,14 @@ def test_a_polar_dem_is_centred_on_the_pole_with_the_pole_on_a_lattice_node() ->
     assert isinstance(dem.lookup, PolarStereographicLookup)
     assert dem.lookup.pole == "south"
     assert dem.raster.shape == (81, 81)
+    # The pole, projected (0, 0), is the centre of pixel (40, 40) exactly.
+    east, north = dem.lookup.projected_from_pixel(40.0, 40.0)
+    assert (float(east), float(north)) == (0.0, 0.0)
+    # The float64 -math.pi / 2 lies 6.1e-17 rad (1.1e-10 m on the Moon) short of the pole,
+    # which is 5.3e-12 pixels at 20 m.
     column, row = dem.lookup.to_pixel(-math.pi / 2, 0.0)
-    assert (float(column), float(row)) == (40.0, 40.0)
+    assert abs(float(column) - 40.0) <= 1e-11
+    assert abs(float(row) - 40.0) <= 1e-11
     lat, _ = dem.lookup.from_pixel(40.0, 40.0)
     assert float(lat) == -math.pi / 2
 
@@ -203,8 +209,8 @@ def test_the_raster_width_must_be_a_whole_number_of_pixels() -> None:
             body="moon",
             center_lat_deg=0.0,
             center_lon_deg=0.0,
-            half_width_m=105.0,
-            pixel_m=10.0,
+            half_width_m=105.0,  # 10.5 pixels of 20 m
+            pixel_m=20.0,
         )
 
 
