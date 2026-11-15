@@ -99,12 +99,12 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
               initial={{ opacity: 0, x: 40, filter: 'blur(6px)' }}
               animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.7, delay: 0.6, ease: EASE }}
-              className="flex flex-col gap-6 rounded-3xl border border-zinc-200 bg-white p-8 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.25)]"
+              className="flex flex-col gap-6 rounded-2xl bg-[#F1F5F9] p-8"
             >
               <div className="flex items-center justify-between gap-4">
                 <span
                   className="rounded-full px-3 py-1 text-sm font-medium"
-                  style={isLive ? { background: '#FBF3E2', color: '#8A6418' } : { background: '#f4f4f5', color: '#52525b' }}
+                  style={isLive ? { background: '#FBF3E2', color: '#8A6418' } : { background: '#E2E8F0', color: '#475569' }}
                 >
                   {isLive ? `Measured live in your browser${ms === null ? '' : `, ${(ms / 1000).toFixed(1)} s`}` : why === null ? 'Measuring live…' : 'From the evidence card'}
                 </span>
@@ -116,15 +116,15 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
                 <p className="text-3xl font-semibold tracking-tight">{finder.earthName}</p>
                 <p className="mt-1 text-xl text-zinc-500">vs {finder.targetName}</p>
               </div>
-              <div className="grid grid-cols-2 gap-6 border-t border-zinc-100 pt-6">
+              <div className="grid grid-cols-2 gap-6 border-t border-[#E2E8F0] pt-6">
                 <div>
-                  <p className="font-mono text-5xl font-semibold tabular-nums" style={{ color: GOLD }}>
+                  <p className="text-5xl font-semibold tabular-nums" style={{ color: GOLD }}>
                     {f3(isLive ? relief : finder.relief)}
                   </p>
                   <p className="mt-1 text-base text-zinc-500">relief distance, lower is closer</p>
                 </div>
                 <div>
-                  <p className="font-mono text-5xl font-semibold tabular-nums text-zinc-900">{f3(isLive ? texture : finder.texture)}</p>
+                  <p className="text-5xl font-semibold tabular-nums text-[#0F172A]">{f3(isLive ? texture : finder.texture)}</p>
                   <p className="mt-1 text-base text-zinc-500">texture distance</p>
                 </div>
               </div>
@@ -144,7 +144,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
         <a
           href="/find"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex w-fit items-center gap-2 rounded-full bg-zinc-900 px-6 py-3 text-lg font-medium text-white transition-colors hover:bg-zinc-700"
+          className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0F172A] px-6 py-3 text-lg font-medium text-white transition-colors hover:bg-slate-700"
         >
           Try it on /find
         </a>
