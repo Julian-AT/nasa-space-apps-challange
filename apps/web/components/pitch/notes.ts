@@ -38,7 +38,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Our model: architecture',
     from: 48,
     to: 66,
-    text: "On top we trained **our own model**. *(Right arrow per step.)* The **input** is a 64 by 64 window: height, slope and a valid mask. A **ResNet backbone** with four stages. A **256-number embedding** used for similarity. A **VICReg head**: two augmented views must agree. A **physics head** predicts the fingerprint. And a **body adversary** with gradient reversal makes it ignore the planet.",
+    text: "On top we trained **our own model**, self-supervised. *(Right arrow per step.)* The **input** is one 5 km window: height, slope and a mask. We make **two augmented views** of it. **One shared encoder** turns both into **256-number embeddings**. **VICReg** makes the views agree and keeps features spread out. A **physics head** predicts the fingerprint. A **body adversary** makes it learn terrain, **not which planet**. And here is the **full architecture**.",
   },
   {
     title: 'Model metrics',
