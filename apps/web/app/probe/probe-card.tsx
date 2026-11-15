@@ -145,5 +145,15 @@ export function ProbeCard({ result, names }: Readonly<{ result: ProbeResult; nam
       </p>
     );
   }
-  return <Success r={result} names={names} />;
+  return (
+    <>
+      <Success r={result} names={names} />
+      <details className="mt-4 text-sm">
+        <summary>Result record (JSON)</summary>
+        <pre id="probe-result-json" className="overflow-x-auto whitespace-pre-wrap">
+          {JSON.stringify(result, null, 2)}
+        </pre>
+      </details>
+    </>
+  );
 }
