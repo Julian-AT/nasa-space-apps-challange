@@ -34,11 +34,19 @@ Every page shows the same shell, from `app/layout.tsx` and `lib/shell.ts`:
 
 `/` adds only the title. It shows no numbers, targets or claims, and `dynamic = 'error'` fails the build if it would stop being static.
 
-## Vercel preview
+## Vercel deployments
 
-The Vercel project `terraluna` has Root Directory `apps/web`, framework Next.js, Node.js 22.x and files outside the root directory included in the build; it is not connected to Git. [`vercel.json`](vercel.json) runs `pnpm install --frozen-lockfile` (the workspace, with the pnpm version from `packageManager`) and then `bundle:pull` and `next build`. [`.vercelignore`](../../.vercelignore) keeps local caches, pulled data, release artifacts and `.env` files out of the upload.
+The Vercel project `terraluna` has Root Directory `apps/web`, framework Next.js, Node.js 22.x and files outside the root directory included in the build. It is connected to the GitHub repository and builds from Git: [`vercel.json`](vercel.json) runs `pnpm install --frozen-lockfile`, then `bundle:pull` and `next build`, and its `ignoreCommand` builds only commits whose message contains `[deploy]`. Pushes to `main` deploy to production, other branches to previews.
 
-Link once from the repository root with `vercel link --project terraluna`, then deploy a preview from the repository root with `vercel deploy`. Vercel sets `VERCEL_ENV=preview`, so the mock bundle builds; never pass `--prod` while `BUNDLE_VERSION` is unset, because `bundle:pull` refuses the mock for production. Previews use Vercel Authentication, so `curl` needs `vercel curl` or a protection bypass.
+`BUNDLE_VERSION` is a Vercel environment variable (production and preview). The API reads it at runtime, so it must name the bundle the build pulled. Release bundles are git-ignored, so the deploy commit force-adds the selected one:
+
+```
+git add -f release/<bundle_version>
+git commit -m "build(release): deploy bundle <bundle_version>" -m "[deploy]"
+git push origin HEAD:main
+```
+
+CLI uploads (`vercel deploy`) also work, but the free plan limits them per day; `vercel redeploy <url>` reuses an earlier build without uploading. Previews use Vercel Authentication, so `curl` needs `vercel curl` or a protection bypass.
 
 ## Live probe (`/probe?lat=&lon=`)
 
