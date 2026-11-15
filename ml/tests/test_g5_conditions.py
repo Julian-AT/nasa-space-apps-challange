@@ -211,3 +211,12 @@ def test_g5_imports_nothing_that_reads_blocks() -> None:
             names.extend(a.name for a in node.names)
     for forbidden in ("evaluate", "probes", "dataset", "shards", "torch"):
         assert not any(forbidden in n for n in names), names
+
+
+def test_unavailable_morphology_without_a_body_keeps_its_reason() -> None:
+    tests = [t for t in make_tests() if t.test_id != "morphology_probe"]
+    tests.append(rec("morphology_probe", None, body=None))
+    cond2 = next(c for c in g5.compute_g5(tests, TH) if c.condition == 2)
+    assert cond2.passed is None
+    assert cond2.reason == "not computed here"
+    assert all(c.reason for c in cond2.components)
