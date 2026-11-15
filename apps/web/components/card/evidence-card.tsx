@@ -27,6 +27,17 @@ type Family = (typeof FAMILY_ORDER)[number];
 // Display rounding to 6 significant digits; the bundle value is unchanged.
 const show = (v: number | string | boolean | null): string => (typeof v === 'number' && !Number.isInteger(v) ? String(Number(v.toPrecision(6))) : String(v));
 
+/** One entry per observable (the text before the first colon): "x: reason" and "x: unavailable (reason)" are one fact. */
+function dedupeByObservable(items: readonly string[]): string[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = item.split(':')[0]?.trim() ?? item;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export interface EvidenceCardViewProps {
   readonly card: CardRecord;
   /** manifest.bundle_version: the card record carries none. */
@@ -225,10 +236,10 @@ function Stability({ card, g5Passed }: { readonly card: CardRecord; readonly g5P
                     {f}
                     {s === undefined
                       ? ''
-                      : `: spread min ${String(s.spread_min)}, median ${String(s.spread_median)}, max ${String(s.spread_max)}, n ${String(s.n)}`}
+                      : `: spread min ${show(s.spread_min)}, median ${show(s.spread_median)}, max ${show(s.spread_max)}, n ${String(s.n)}`}
                     {r === undefined
                       ? ''
-                      : `; rank held ${String(r.count)} of ${String(r.n)} runs (frequency ${String(r.frequency)})`}
+                      : `; rank held ${String(r.count)} of ${String(r.n)} runs (frequency ${show(r.frequency)})`}
                   </li>
                 );
               })}
@@ -345,7 +356,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
           </div>
           <div>
             <h4 className="text-sm font-semibold">Not observed</h4>
-            <List items={card.q4_differences.not_observed} empty="None listed." />
+            <List items={dedupeByObservable(card.q4_differences.not_observed)} empty="None listed." />
           </div>
         </Q>
         <Q n={6}>

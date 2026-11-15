@@ -90,8 +90,13 @@ function StatTiles({ modelCard, metrics, g5 }: ModelReportProps) {
   );
 }
 
+// Display rounding to 6 significant digits; the full value stays in a title attribute.
+const r6 = (v: number): string => (Number.isInteger(v) ? String(v) : String(Number(v.toPrecision(6))));
+function N({ v }: { readonly v: number | string }) {
+  return typeof v === 'number' ? <span title={String(v)}>{r6(v)}</span> : <>{v}</>;
+}
 function fmt(v: number | null): string {
-  return v === null ? '' : String(v);
+  return v === null ? '' : r6(v);
 }
 
 function ConditionsTable({ metrics }: { readonly metrics: Metrics }) {
@@ -131,10 +136,10 @@ function ConditionsTable({ metrics }: { readonly metrics: Metrics }) {
           {g5.conditions.map((c: Condition) => (
             <TableRow key={`${String(c.condition)}-${c.test_id}`} data-passed={String(c.passed)}>
               <TableCell>{c.condition}</TableCell>
-              <TableCell className="font-mono text-xs">{c.test_id}</TableCell>
+              <TableCell className="font-mono text-xs whitespace-nowrap">{c.test_id}</TableCell>
               <TableCell>{c.statistic}</TableCell>
-              <TableCell>{c.threshold === null ? <NotRecorded what="threshold" /> : c.threshold}</TableCell>
-              <TableCell>{c.observed === null ? <NotRecorded what="observed value" /> : c.observed}</TableCell>
+              <TableCell>{c.threshold === null ? <NotRecorded what="threshold" /> : <N v={c.threshold} />}</TableCell>
+              <TableCell>{c.observed === null ? <NotRecorded what="observed value" /> : <N v={c.observed} />}</TableCell>
               <TableCell>{c.passed === null ? 'not evaluated' : c.passed ? 'passed' : 'failed'}</TableCell>
               <TableCell>{c.reason ?? ''}</TableCell>
             </TableRow>
@@ -165,7 +170,7 @@ function MetricsTable({ caption, tests }: { readonly caption: string; readonly t
       <TableBody>
         {tests.map((m: MetricRecord, i) => (
           <TableRow key={`${m.test_id}-${m.measure}-${m.target ?? ''}-${m.body ?? ''}-${String(i)}`}>
-            <TableCell className="font-mono text-xs">{m.test_id}</TableCell>
+            <TableCell className="font-mono text-xs whitespace-nowrap">{m.test_id}</TableCell>
             <TableCell>{m.measure}</TableCell>
             <TableCell>
               {m.target ?? 'no target'}; {m.body ?? 'no body'}
@@ -175,13 +180,11 @@ function MetricsTable({ caption, tests }: { readonly caption: string; readonly t
                 <LabelledValue label="Unavailable" reason={m.unavailable_reason ?? 'value is null in the record'} source="report/metrics.json" />
               ) : (
                 <span>
-                  <EvidenceLabel label="Predicted" /> <strong>{m.value}</strong>{' '}
+                  <EvidenceLabel label="Predicted" /> <strong><N v={m.value} /></strong>{' '}
                   {m.ci_low === null || m.ci_high === null ? (
                     <span>(interval not recorded)</span>
                   ) : (
-                    <span>
-                      [{m.ci_low}, {m.ci_high}]
-                    </span>
+                    <span title={`[${String(m.ci_low)}, ${String(m.ci_high)}]`}>{`[${r6(m.ci_low)}, ${r6(m.ci_high)}]`}</span>
                   )}
                   {m.n_blocks === null ? null : <span> n_blocks {m.n_blocks}</span>}
                   {m.n_bootstrap === null ? null : <span>, {m.n_bootstrap} bootstrap draws</span>}
@@ -200,7 +203,7 @@ function MetricsTable({ caption, tests }: { readonly caption: string; readonly t
                         <LabelledValue label="Unavailable" reason={b.unavailable_reason ?? 'value is null in the record'} />
                       ) : (
                         <>
-                          {b.value}
+                          <N v={b.value} />
                           {b.ci_low === null || b.ci_high === null ? '' : ` [${fmt(b.ci_low)}, ${fmt(b.ci_high)}]`}
                           {b.paired_diff_ci_low === null || b.paired_diff_ci_high === null
                             ? ''
@@ -277,7 +280,7 @@ export function ModelReport({ modelCard, metrics, g5, curves = null, examples = 
       <PageHeader
         eyebrow="Model report"
         title="Physics-informed encoder"
-        lead="An experimental second opinion. Every number below is Predicted by a fitted model and is read from the release bundle."
+        lead={`An experimental encoder.${g5 === null ? ' Its promotion gate G5 is not recorded in this bundle.' : g5.status === 'PASS' ? ' It passed its promotion gate (G5 PASS) and stays a Predicted second opinion.' : g5.status === 'FAIL' ? ' It failed its promotion gate (G5 FAIL) and takes no part in any ranking.' : ' It has not passed its promotion gate and takes no part in any ranking.'} Every number below is Predicted by a fitted model and is read from the release bundle.`}
       />
       <div className="mt-6">
         <ExperimentalBanner g5={g5} />
