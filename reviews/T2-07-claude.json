@@ -1,0 +1,138 @@
+{
+  "task_id": "T2-07",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "44752e38ef14ff2b222e6572b46466bac75ec1da",
+    "head": "6bac538702d586daaf93de3ea778cd0f177e583f",
+    "files": [
+      {
+        "path": "fixtures/polarimetry/g1-record.json",
+        "sha256": "4c9311d8f07d17c989ec7854ff37410d192346f14f3f48391661d4f11f1eb286"
+      },
+      {
+        "path": "fixtures/polarimetry/oracle_conventions.json",
+        "sha256": "b4e84402851132eee648920ec8114b794ad01e4b3e35f9789a370b7631119373"
+      },
+      {
+        "path": "fixtures/polarimetry/oracle_run.json",
+        "sha256": "b3dd0a07e236c31ddaf1d88215821cbcc4e277b3aa4322e467b8cc1bfc666698"
+      },
+      {
+        "path": "fixtures/polarimetry/oracle_tolerance.json",
+        "sha256": "ebab39570aea6be06e6433c5a4ebc06b13e415aa3966d9d621bc95f5c3a1aa9a"
+      },
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "cb820eb48188a4bb84a9e3ddc4d94f5b08c7beb3d3ad151acb7a399b1daea3e3"
+      },
+      {
+        "path": "pipeline/tests/polarimetry/oracle.py",
+        "sha256": "5041ae128f7bee272ec7e4e25f39ee547f8d423bbf9a806904346fb74fbf18d1"
+      },
+      {
+        "path": "pipeline/tests/test_polarimetry_oracle.py",
+        "sha256": "9f131d1f1d6ba283f88db1969e97a1c0f6b2f531cbf4cb0699c83ce609197a15"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "71d407a356f93edd049cb318af02c68e045e18a648b17f9896bc7d68b0c5ce58"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:42:36Z",
+  "finished_utc": "2026-11-15T00:43:53Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T2-07 round 1 passes. All three story checks pass: 42 oracle tests (31 s), mypy on pipeline/tests, and make check. The real scene was present in this environment, and the real-scene test ran and matched polsartools on all 15 fields. The 15 fields are sc_ll, oc_ll, sc_opp, oc_opp, base_sc, s1–s4 at both ellipticities, and m at both ellipticities. The worst mismatch is 0.188 of the allowance. The tree was clean afterwards, so oracle_run.json is reproducible byte for byte. There are no blockers or high findings. Two medium points need human acknowledgement: an AI author declared the tolerance under delegation, and the dependency group is named `oracle` instead of `dev`. Two further low points: G1 now records PASS, and the real-scene test only runs where the scene is installed.",
+  "checks": [
+    {
+      "criterion": "Check command: uv run pytest pipeline/tests/test_polarimetry_oracle.py",
+      "command": "uv run pytest pipeline/tests/test_polarimetry_oracle.py",
+      "outcome": "PASS",
+      "evidence": "42 passed in 30.99s. This includes test_real_scene_matches_polsartools, which needs polsartools and the scene to run."
+    },
+    {
+      "criterion": "Check command: uv run mypy pipeline/tests",
+      "command": "uv run mypy pipeline/tests",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 13 source files"
+    },
+    {
+      "criterion": "Check command: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check, ruff format --check and mypy all passed (17 files)."
+    },
+    {
+      "criterion": "AC1: polsartools in a dev-only dependency group, no import under pipeline/src (tested), uv.lock updated",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/pyproject.toml adds [dependency-groups] oracle = [\"polsartools==0.13\"] and leaves runtime dependencies untouched. uv.lock gains 749 lines. test_polsartools_is_only_a_development_dependency (test_polarimetry_oracle.py:85) and test_no_pipeline_src_module_imports_polsartools (:47) pass. The import scanner is itself tested against eight import forms (:60-82). The group is named 'oracle', not 'dev' (see medium finding)."
+    },
+    {
+      "criterion": "AC2: test written first, fails with 'data not present' plus path when the scene is absent, scene path from TERRALUNA_UAVSAR_SCENE, no fixture or synthetic substitute for the real scene",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_polarimetry_oracle.py:386-396 asserts pytest.fail with '^data not present' and the looked-at path, for both a bad path and an unset variable. locate_scene reads TERRALUNA_UAVSAR_SCENE. The synthetic files exist only in tmp_path and only to reach refusals (:169-207); they are never compared. The test commits precede the first run (b472780 at 01:33, run at 01:35)."
+    },
+    {
+      "criterion": "AC3: reads six .grd and .ann, units and layout from the annotation, radians converted via story 1, compares SC, OC, base_SC, hybrid Stokes at both ellipticities and m on a stated window; tolerance declared before results with justification; 'tolerance not declared' until then",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "oracle_tolerance.json was committed in 4de7f50 (01:31:40), before the first real run (4f92699, 01:35:54), and has no later commits. It carries a per-group derivation from float32 rounding and decided_by, decided_utc and declared_before_results fields. Tests at :133-164 cover a missing tolerance, an undecided one and an incomplete one, all raising ^tolerance not declared. Annotation layout and angle tests are at :244-268. The window is DECLARED_WINDOW 512x512 at row 14981, col 2469 (:35). oracle_run.json lists all 15 fields with n_compared 262144 each. The decider is an AI iteration under an orchestrator delegation, not a named human (see medium finding)."
+    },
+    {
+      "criterion": "AC4: actual outcome reported; mismatch fails with field, pixel count and max difference; no tuning; convention differences reported, not sign-flipped",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "compare_field and failure() report the field, pixel count and max |difference| (tests at :311-351). A convention difference is reported and still fails (:325). The first run failed (4f92699: 1023 edge pixels were zero in polsartools' tiled writer). The author fixed this by processing the window inside a margin (31a42b4), which changes only the extent, not our code, the tolerance or the conventions. The tolerance file has no later commits. Conventions are declared with derivations in oracle_conventions.json, committed before the first comparison."
+    },
+    {
+      "criterion": "AC5: oracle_run.json holds scene sha256, polsartools version and window, written by the test run; G1 note present",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "oracle_run.json lists six .grd files plus the .ann with sha256 and matches_scene_sha256sums true, polsartools 0.13, the window, the tolerance and conventions hashes, and a g1_note. It is written by write_run_record from test_real_scene_matches_polsartools (:382, written_by field). After my test run git status showed no change to tracked files, so the output is reproducible byte for byte."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "fixtures/polarimetry/oracle_tolerance.json:3",
+      "claim": "The AC says the human decides the tolerance. It is recorded as decided by the AI author iteration under a delegation, not by a named person.",
+      "evidence": "decided_by: 'T2-07 author iteration (Claude Opus 5.5), as the person this story waits for, under the delegation in the orchestrator note on T2-07 ... and docs/ralph/DECISIONS.md'. Commit a5483a7 contains the note, in prd.json only. docs/ralph/DECISIONS.md is not present in this worktree. The timing is sound (committed before any result, never changed afterwards), but human acknowledgement of the tolerance is still advisable before the paper or report cites it.",
+      "id": "claude-r1-1",
+      "resolution": null
+    },
+    {
+      "severity": "medium",
+      "location": "pipeline/pyproject.toml:17",
+      "claim": "The AC says 'dev dependency group'. Polsartools sits in a separate opt-in group named 'oracle'.",
+      "evidence": "[dependency-groups] oracle = [\"polsartools==0.13\"]. The comment gives the reason: it needs a system GDAL. This keeps polsartools off the runtime path, which is the intent of D19. The story's test asserts the group is exactly 'oracle'. The only deviation is the name, and a plain `uv sync` will not install it, so the real-scene test fails in a default environment with the explicit message from oracle.import_polsartools.",
+      "id": "claude-r1-2",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "fixtures/polarimetry/g1-record.json:3",
+      "claim": "The G1 record now says PASS. It was generated by the record-g1 tool from a junit report, but the evidence path is in /tmp and its scope states the real-scene check as passed.",
+      "evidence": "status changed PARTIAL → PASS, evidence_path /tmp/terraluna-g1-t207/junit.xml, real_scene_check passed 1/1, uncommitted_changes [] at commit c2c91c3. The junit file is not in the repository. A person should confirm that G1 PASS stands, because the story notes say G1 may not be PASS before this check has run on a real scene unless a human decides otherwise.",
+      "id": "claude-r1-3",
+      "resolution": null
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/tests/test_polarimetry_oracle.py:365",
+      "claim": "The real-scene test only runs in an environment that has the 1.4 GB-per-file scene, the oracle group and GDAL. In CI or default checkouts it fails by design.",
+      "evidence": "This matches the AC (fail, not skip). I ran it with the scene present. Without it, make check does not run pytest (ruff and mypy only), so the failure shows only when pytest is invoked.",
+      "id": "claude-r1-4",
+      "resolution": null
+    }
+  ]
+}
