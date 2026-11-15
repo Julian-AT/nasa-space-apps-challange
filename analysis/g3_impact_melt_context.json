@@ -225,7 +225,7 @@
   "fassett_layers": "not used: their delta definitions have not been read for this record (PRD: definitions are recorded before first use); never used in a distance (D13)",
   "input_hashes": [
     {
-      "path": "/Users/julianschmidt/Developer/nasa-space-apps-challange-worktrees/fast-uncert/outputs/g0/windows-evidence.json",
+      "path": "outputs/g0/windows-evidence.json",
       "sha256": "670a8083ffae28dafd7f709a2c58e0c9bb98c0ae9e6b7c64ae0ff8f5c5f2ecff"
     }
   ],
