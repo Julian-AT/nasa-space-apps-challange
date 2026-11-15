@@ -1,5 +1,5 @@
 # `vercel deploy` from the repository root uploads the working tree. Leave out what .gitignore
-# keeps local (caches, pulled bundle data, release artifacts, .env files), so a CLI deployment
+# keeps local (caches, pulled bundle data, .env files), so a CLI deployment
 # builds from the same files as a Git deployment. Vercel itself skips .git, node_modules, .next,
 # .vercel, .venv and __pycache__.
 .env
@@ -25,7 +25,6 @@ test-results/
 /.husky/_/
 
 /data/
-/release/
 /apps/web/data/
 /apps/web/next-env.d.ts
 /ml/checkpoints/
