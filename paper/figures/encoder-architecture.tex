@@ -2,7 +2,7 @@
 \centering
 \begin{tikzpicture}[x=1cm,y=1cm]
   \node[external=3.0cm] (in) at (0,0) {window, three channels\\$\operatorname{asinh}(z/s)$, slope, valid mask};
-  \node[python=3.0cm] (stem) at (0,-1.45) {stem convolution\\stride one};
+  \node[python=3.0cm] (stem) at (0,-1.45) {stem convolution\\no max pooling};
   \node[python=3.0cm] (stages) at (0,-2.9) {four residual stages\\widths 32, 64, 128, 256};
   \node[python=3.0cm] (pool) at (0,-4.35) {global average pooling};
   \node[bundle=3.0cm] (emb) at (0,-5.8) {embedding $h$\\L2 normalised for retrieval};
