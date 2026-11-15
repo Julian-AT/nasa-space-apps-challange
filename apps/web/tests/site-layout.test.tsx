@@ -168,9 +168,9 @@ describe('primary navigation', () => {
   it('is the only client module of the shell: next/link and usePathname, no bundle data and no provider', () => {
     const clients = appSources().filter((file) => isClientModule(readFileSync(join(WEB_DIR, file), 'utf8')));
     // The live probe (T13-07) hosts its Web Worker in its own client module under app/probe/.
-    // The map and chart components are client modules by design (loaded lazily, off the landing
+    // The map, chart and card-atlas filter components are client modules by design (loaded lazily, off the landing
     // bundle); the page shell itself has exactly one.
-    const shell = clients.filter((file) => !/^components\/(map|charts)\//.test(file) && !file.startsWith('app/probe/'));
+    const shell = clients.filter((file) => !/^components\/(map|charts|cards)\//.test(file) && !file.startsWith('app/probe/'));
     expect(shell).toEqual(['components/site-header.tsx']);
     const header = readFileSync(join(WEB_DIR, 'components', 'site-header.tsx'), 'utf8');
     const imports = [...header.matchAll(/^import\b[^'"]*['"]([^'"]+)['"]/gm)].map((match) => match[1]);
