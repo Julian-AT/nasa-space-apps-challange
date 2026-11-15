@@ -68,7 +68,6 @@ export default function Home() {
   const targets = bundle.records.targets;
   const statuses = new Map<string, number>();
   for (const record of bundle.validation) statuses.set(record.status, (statuses.get(record.status) ?? 0) + 1);
-  const firstCard = cards[0];
 
   return (
     <>
@@ -179,20 +178,10 @@ export default function Home() {
           <EntryCard href="/explore/earth" title="Earth">
             The Earth sites searched for analogs.
           </EntryCard>
-          {firstCard === undefined ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Evidence cards</CardTitle>
-                <CardDescription>
-                  <LabelledValue label="Unavailable" reason="the bundle holds no evidence cards" />
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          ) : (
-            <EntryCard href={`/site/${encodeURIComponent(firstCard)}`} title="Evidence cards">
-              One card per target, with evidence labels and claim limits.
-            </EntryCard>
-          )}
+          <EntryCard href="/site" title="Evidence cards">
+            Each card pairs a target window with one Earth candidate window, with evidence labels and
+            claim limits.
+          </EntryCard>
           <EntryCard href="/model" title="Model">
             The experimental encoder and its evaluation status.
           </EntryCard>
