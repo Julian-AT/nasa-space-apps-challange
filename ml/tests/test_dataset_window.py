@@ -594,6 +594,48 @@ def test_encode_channels_rejects_a_valid_pixel_that_is_not_finite() -> None:
         encode_channels(z, np.ones((64, 64), dtype=np.bool_))
 
 
+def checkerboard(high: float, low: float) -> Array:
+    rows, cols = np.indices((64, 64))
+    board: Array = np.where((rows + cols) % 2 == 0, high, low)
+    return board
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        np.full((64, 64), 1e308),  # the sum behind the mean overflows: NaN residuals
+        np.full((64, 64), -1e308),
+        checkerboard(1e308, -1e308),  # the mean is finite; sums and differences overflow
+        checkerboard(1.7e308, 0.0),
+    ],
+    ids=["all_high", "all_low", "alternating_sign", "high_and_zero"],
+)
+def test_finite_elevations_beyond_float64_arithmetic_are_rejected_not_stored(values: Array) -> None:
+    # Every valid pixel is finite, so the input check passes; plane removal or the slope then
+    # leaves float64. Such a window is refused, so no NaN (or infinite slope) can reach a shard.
+    assert np.all(np.isfinite(values))
+    with np.errstate(all="ignore"), pytest.raises(DatasetError, match="float64"):
+        encode_channels(values, np.ones((64, 64), dtype=np.bool_))
+
+
+def test_storage_refuses_a_window_whose_channels_are_not_finite() -> None:
+    window = sample_window(fbm_source(), -20.0, 135.0)
+    for bad in (np.nan, np.inf):
+        channels = np.array(window.channels, copy=True)
+        channels[0, 5, 5] = bad
+        broken = dataclasses.replace(window, channels=channels)
+        with pytest.raises(DatasetError, match="finite"):
+            broken.storage()
+
+
+def test_large_but_representable_elevations_still_encode() -> None:
+    # 1e300 m is absurd as terrain but leaves every sum, product and difference in range.
+    z = 1e300 + np.add.outer(np.arange(64.0), np.arange(64.0))
+    encoded = encode_channels(z, np.ones((64, 64), dtype=np.bool_))
+    assert np.all(np.isfinite(encoded.channels))
+    assert encoded.plane is not None
+
+
 @pytest.mark.parametrize(("lat", "lon"), [(91.0, 0.0), (math.nan, 0.0), (0.0, math.inf)])
 def test_a_window_centre_must_be_a_finite_latitude_and_longitude(lat: float, lon: float) -> None:
     with pytest.raises(DatasetError):
