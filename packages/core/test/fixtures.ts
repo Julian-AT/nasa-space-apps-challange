@@ -36,9 +36,10 @@ export function loadFixture(file: string): JsonObject {
   if (!existsSync(path)) throw new FixtureError(`missing parity fixture fixtures/parity/${file}; regenerate with ${GENERATOR}`);
   const data = JSON.parse(readFileSync(path, 'utf8')) as Json;
   if (data === null || typeof data !== 'object' || Array.isArray(data)) throw new FixtureError(`${file}: not a JSON object`);
-  for (const key of ['schema_version', 'data_kind', 'tolerances', 'generator']) {
+  for (const key of ['schema_version', 'data_kind', 'generator']) {
     if (!(key in data)) throw new FixtureError(`${file}: missing header field ${key}`);
   }
+  if (!('tolerances' in data) && !('tolerance' in data)) throw new FixtureError(`${file}: missing header field tolerances`);
   cache.set(file, data);
   return data;
 }

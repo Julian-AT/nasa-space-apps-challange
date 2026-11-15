@@ -5,7 +5,7 @@
 // and the window grid is drawn from the WindowEntry polygons, coloured by eligibility status.
 import { OrthographicView } from '@deck.gl/core';
 import { TileLayer } from '@deck.gl/geo-layers';
-import { BitmapLayer, PathLayer, PolygonLayer } from '@deck.gl/layers';
+import { BitmapLayer, PathLayer, PolygonLayer, TextLayer } from '@deck.gl/layers';
 import DeckGL from '@deck.gl/react';
 import { useMemo } from 'react';
 
@@ -29,6 +29,7 @@ export interface DeckCanvasProps {
   readonly showWindows: boolean;
   readonly assetBase: string;
   readonly bundleVersion: string;
+  readonly zoomRange: { readonly min: number; readonly max: number };
   /** Camera centre in pyramid units and zoom. */
   readonly target: Point;
   readonly zoom: number;
@@ -42,6 +43,8 @@ function ringWorld(frame: Frame, ring: MapWindow['ringM']): [number, number][] {
     return [u, v];
   });
 }
+
+const MAX_LABELLED = 150;
 
 const HIGHLIGHT: [number, number, number, number] = [255, 255, 255, 255];
 
@@ -103,13 +106,28 @@ export default function DeckCanvas(props: DeckCanvasProps) {
             getColor: HIGHLIGHT,
             widthMinPixels: 3,
           }),
+          new TextLayer<MapWindow & { n: number }>({
+            id: 'window-numbers',
+            data: windows.map((w, i) => ({ ...w, n: i + 1 })).slice(0, MAX_LABELLED),
+            getPosition: (w) => {
+              const pts = ringWorld(frame, w.ringM);
+              const sum = pts.reduce<[number, number]>((a, p) => [a[0] + p[0], a[1] + p[1]] as [number, number], [0, 0]);
+              return [sum[0] / pts.length, sum[1] / pts.length];
+            },
+            getText: (w) => String(w.n),
+            getSize: 12,
+            getColor: [255, 255, 255, 255],
+            outlineWidth: 3,
+            outlineColor: [0, 0, 0, 255],
+            fontWeight: 700,
+          }),
         ]
       : [];
     return [...tiles, ...windowLayers];
   }, [layers, windows, showWindows, frame, assetBase, bundleVersion, onTileError]);
 
-  const zoomMin = frame.zoomMin - 3;
-  const zoomMax = frame.zoomMax + 3;
+  const zoomMin = props.zoomRange.min;
+  const zoomMax = props.zoomRange.max;
   return (
     <DeckGL
       views={view}

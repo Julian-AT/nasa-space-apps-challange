@@ -16,6 +16,7 @@ import {
   fitZoom,
   fromWorld,
   type Point,
+  METRIC_FRAME,
   resolveLayers,
   type TileLayerRecord,
   toWorld,
@@ -123,26 +124,42 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
     );
   }
 
-  const { frame, drawable } = resolved;
+  const { drawable } = resolved;
+  const hasTiles = resolved.frame !== null && drawable.length > 0;
+  const frame = hasTiles ? resolved.frame : METRIC_FRAME;
   const active = (view.layers ?? drawable.slice(0, 1).map((l) => l.layer)).filter((name) =>
     drawable.some((l) => l.layer === name),
   );
   const activeLayers = drawable.filter((l) => active.includes(l.layer));
 
+  // The drawn extent: the tile layers' extents, else the window rings (and footprint) of the bundle.
+  let extent: [number, number, number, number] | null = null;
+  if (hasTiles) {
+    extent = unionExtent(drawable);
+  } else {
+    const points = [...target.windows.flatMap((w) => w.ringM), ...(target.footprintRingM ?? [])];
+    if (points.length > 0) {
+      const xs = points.map((p) => p[0]);
+      const ys = points.map((p) => p[1]);
+      extent = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+    }
+  }
+
   let camera: Camera | null = null;
-  if (frame !== null && drawable.length > 0) {
-    const extent = unionExtent(drawable);
+  let range = { min: 0, max: 0 };
+  if (extent !== null) {
     const fitted = fitZoom(extentToWorld(frame, extent), size.w, size.h);
     camera = {
       x: view.x ?? (extent[0] + extent[2]) / 2,
       y: view.y ?? (extent[1] + extent[3]) / 2,
       zoom: view.zoom ?? fitted,
     };
+    range = hasTiles ? { min: frame.zoomMin - 3, max: frame.zoomMax + 3 } : { min: fitted - 6, max: fitted + 8 };
   }
-  const range = frame === null ? { min: 0, max: 0 } : { min: frame.zoomMin - 3, max: frame.zoomMax + 3 };
+  const canDraw = camera !== null && (activeLayers.length > 0 ? assetBase !== null : target.windows.length > 0);
 
   const apply = (key: string): void => {
-    if (!isMapKey(key) || camera === null || frame === null) return;
+    if (!isMapKey(key) || camera === null) return;
     const next = applyKey(camera, key, frame.metresPerUnit, range);
     commit(
       next === null ? { ...view, x: null, y: null, zoom: null } : { ...view, x: next.x, y: next.y, zoom: next.zoom },
@@ -154,12 +171,11 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
   };
 
   const onViewChange = (centre: Point, zoom: number): void => {
-    if (frame === null) return;
     const [x, y] = fromWorld(frame, centre);
     commit({ ...view, x, y, zoom });
   };
 
-  const centreWorld: Point = camera === null || frame === null ? [0, 0] : toWorld(frame, [camera.x, camera.y]);
+  const centreWorld: Point = camera === null ? [0, 0] : toWorld(frame, [camera.x, camera.y]);
 
   let missingReason: string;
   let missingFile: string | undefined;
@@ -182,6 +198,7 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
         title={target.windowsFilePresent ? `${String(target.windows.length)} ${target.windows.length === 1 ? 'window' : 'windows'}` : target.name}
         chips={[
           <Chip key="t">{target.name}</Chip>,
+          <Chip key="v">Bundle {data.bundleVersion}</Chip>,
           <Chip key="p">{target.projectionKind.replaceAll('_', ' ')}</Chip>,
           ...(target.shippingMode === null ? [] : [<Chip key="m">Mode {target.shippingMode}</Chip>]),
         ]}
@@ -228,13 +245,14 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
           className="relative h-[34rem] min-h-80 lg:h-[calc(100dvh-8rem)] overflow-hidden rounded-2xl border border-border bg-black/70 shadow-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
           data-slot="map-stage"
         >
-          {assetBase !== null && frame !== null && camera !== null && activeLayers.length > 0 ? (
+          {canDraw && camera !== null ? (
             <DeckCanvas
               frame={frame}
               layers={activeLayers}
               windows={target.windows}
               showWindows
-              assetBase={assetBase}
+              assetBase={assetBase ?? ''}
+              zoomRange={range}
               bundleVersion={data.bundleVersion}
               target={centreWorld}
               zoom={camera.zoom}
@@ -251,6 +269,13 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
               />
             </div>
           )}
+          {canDraw && activeLayers.length === 0 ? (
+            <p role="status" className="pointer-events-none absolute top-3 left-3 rounded-md border border-border bg-card/90 px-2 py-1 text-xs text-card-foreground">
+              {target.layers.length === 0
+                ? 'No tile layers in this bundle (TargetRecord.tile_layers is empty); only the window grid is drawn.'
+                : 'No tile layer is switched on; only the window grid is drawn.'}
+            </p>
+          ) : null}
           <p className="pointer-events-none absolute bottom-2 left-2 rounded bg-background/80 px-2 py-1 text-xs text-foreground">
             Bundle {data.bundleVersion}
             {camera === null ? '' : `; centre ${camera.x.toFixed(0)}, ${camera.y.toFixed(0)} m; zoom ${camera.zoom.toFixed(2)}`}

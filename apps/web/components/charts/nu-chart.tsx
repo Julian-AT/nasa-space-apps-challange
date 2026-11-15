@@ -70,6 +70,10 @@ export function NuChart({ name, series }: NuChartProps) {
           y: { type: 'log', label: '↑ ν(L)', grid: true },
           marks,
         });
+        // The container is role="img" with the chart's name, and the table below carries the
+        // values; Plot's own aria-label attributes on <g> groups are prohibited without a role, so
+        // the drawn SVG is hidden from assistive technology.
+        plot.setAttribute('aria-hidden', 'true');
         node.replaceChildren(plot);
         node.setAttribute('data-plot', 'ready');
       })

@@ -21,7 +21,10 @@ curves.json layout (all arrays are parallel; missing is ``null``, never 0)::
          "terms": {"loss_total": {"epochs": [0, 1], "mean": [..], "min": [..], "max": [..],
                                   "n_seeds": [3, 3]}}}],
      "gpu_hours": {"total": float|null, "partial": bool,
-                   "per_run": [{"run": str, "gpu_hours": float|null, "reason": str|null}]},
+                   "cpu_core_hours_total": float|null,   # measured threads x wall-clock
+                   "per_run": [{"run": str, "gpu_hours": float|null, "reason": str|null,
+                                "gpu_hours_note", "cpu_core_hours", "wall_clock_s", "hardware",
+                                "deviations_from_prd": {field: {"prd", "used"}}}]},
      "tradeoff": {"chance_body_accuracy": 1/n_bodies, "n_bodies": 3,
                   "points": [{"lambda_max": float, "arm": str,
                               "status": "available"|"unavailable", "reason": str|null,
@@ -96,7 +99,10 @@ LIMITATIONS: Final = (
     "sampling from spatially held-out blocks; results do not transfer to other scales. The "
     "morphology probe is Unavailable because no crater labels exist in this dataset. Frozen "
     "ImageNet ResNet-18 and DINO ViT-S/8 baselines are Unavailable until their weights are "
-    "fetched. Windows overlapping a target footprint are excluded by the dataset build."
+    "fetched. Windows overlapping a target footprint are excluded by the dataset build. "
+    "Training ran at a reduced CPU scope (no GPU) that departs from the PRD training recipe in "
+    "data volume, epochs, batch size, precision and stem stride; each departure is listed per "
+    "run in report/curves.json."
 )
 ONNX_ABSENT_NOTE: Final = " No ONNX file was exported with this card, so onnx_sha256 is null."
 
@@ -286,6 +292,11 @@ def loss_curves(run_dirs: Sequence[Path]) -> tuple[list[dict[str, Any]], dict[st
                     "run": d.name,
                     "gpu_hours": float(gpu) if isinstance(gpu, int | float) else None,
                     "reason": None if isinstance(gpu, int | float) else "gpu_hours not logged",
+                    "gpu_hours_note": metrics.get("gpu_hours_note"),
+                    "cpu_core_hours": metrics.get("cpu_core_hours"),
+                    "wall_clock_s": metrics.get("wall_clock_s"),
+                    "hardware": metrics.get("hardware"),
+                    "deviations_from_prd": metrics.get("deviations_from_prd"),
                 }
             )
         out_terms: dict[str, Any] = {}
@@ -311,6 +322,11 @@ def loss_curves(run_dirs: Sequence[Path]) -> tuple[list[dict[str, Any]], dict[st
         "total": float(sum(logged)) if logged else None,
         "partial": len(logged) < len(per_run) or not per_run,
         "per_run": sorted(per_run, key=lambda r: str(r["run"])),
+        "cpu_core_hours_total": (
+            float(sum(r["cpu_core_hours"] for r in per_run))
+            if per_run and all(isinstance(r["cpu_core_hours"], int | float) for r in per_run)
+            else None
+        ),
     }
     return curves, gpu_hours
 
@@ -450,6 +466,21 @@ def build_examples(evaluation_dir: Path) -> dict[str, Any]:
 # --- model_card.json -----------------------------------------------------------------------------
 
 
+def _architecture(cfg: Mapping[str, Any], model: Mapping[str, Any]) -> str:
+    stem = cfg.get("stem_stride")
+    if stem is None:
+        return f"{model.get('architecture') or 'encoder'}; 256-d L2-normalised embedding"
+    note = (
+        "as PRD 11.3" if stem == 1 else "a CPU-scope deviation from the stride-1 stem of PRD 11.3"
+    )
+    pool = " plus a 2 x 2 max-pool" if stem == 4 else ""
+    return (
+        "ResNet-18 layout (BasicBlock, [2, 2, 2, 2]) at half width (32, 64, 128, 256); "
+        f"3 x 3 stem at stride {stem}{pool} ({note}); global average pool to a 256-d "
+        "embedding, L2-normalised for retrieval"
+    )
+
+
 def build_model_card(
     evaluation_dir: Path, out_dir: Path, metrics: MetricsFile, config_path: Path
 ) -> ModelRecord:
@@ -478,7 +509,7 @@ def build_model_card(
     card = ModelRecord(
         model_id=ev["model_id"],
         version="0.1.0-experimental",
-        architecture=f"{model.get('architecture') or 'encoder'}; 256-d L2-normalised embedding",
+        architecture=_architecture(cfg, model),
         parameter_count=int(model["parameter_count"]),
         training_data=TrainingData(
             bodies=list(BODIES),

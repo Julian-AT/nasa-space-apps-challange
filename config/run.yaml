@@ -13,11 +13,12 @@ targets:
     - name: jezero
       collection: mro_ctx_controlled_usgs_dtms
       bbox: [76.69, 17.41, 78.69, 19.41]
-      primary_window_id: null
+      primary_window_id: mars-jezero-d12-031871-x2-y9  # G0-02 addition by the PRD 5 rule; see DECISIONS
     - name: arcadia
       collection: mro_ctx_controlled_usgs_dtms
-      bbox: null
-      primary_window_id: null
+      bbox: [-177.0, 39.5, -173.0, 46.0]  # G0-02 addition: lon east -180..180, lat; chosen from CTX coverage, see DECISIONS
+      primary_window_id: mars-arcadia-d16-033291-x6-y9  # G0-02 addition by the stated rule; see DECISIONS
+  ctx_mola_sd_threshold_m: 10  # G0-06 accepted default (PRD 11.2, 15)
   window_m: 5000
   stride_m: 2500
 terrain:

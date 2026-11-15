@@ -1,0 +1,183 @@
+{
+  "background": {
+    "actual_n": 71,
+    "requested_n": 1000,
+    "seed": 0
+  },
+  "bytes_read": 401440464,
+  "claim_limits": [],
+  "comparisons_dropped": 0,
+  "comparisons_path": "outputs/search/comparisons/mars-jezero-w000.json",
+  "comparisons_raw_sha256": "a750d3900da10395a54b15364094bb534b3ca54c626313855455b85bf434ea52",
+  "comparisons_sha256": "a750d3900da10395a54b15364094bb534b3ca54c626313855455b85bf434ea52",
+  "config_sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
+  "earth_universe": {
+    "eligible": 71,
+    "generated": 73,
+    "rejected": 2,
+    "rejected_by_reason": {
+      "land_cover_below_min_fraction": 2
+    },
+    "unknown": 0,
+    "unknown_by_reason": {}
+  },
+  "elapsed_s_total_run": 42.3,
+  "isotropic_rule": "direction_mean",
+  "mock": false,
+  "n_compared": 71,
+  "not_ranked": [
+    {
+      "reasons": [
+        "land_cover_below_min_fraction"
+      ],
+      "status": "rejected",
+      "window_id": "earth-utm11n-e157-n1542"
+    },
+    {
+      "reasons": [
+        "land_cover_below_min_fraction"
+      ],
+      "status": "rejected",
+      "window_id": "earth-utm11n-e157-n1543"
+    }
+  ],
+  "notes": [
+    "CTX DTM D12_031871_1986_XN_18N282W__D12_031805_1986_XN_18N282W, CTX-MOLA SD 9.23312 m <= threshold 10 m (G0-06)",
+    "windows are 5 km squares in a local AEQD frame about the DTM centre; a window is generated only if its centre falls on a valid DTM pixel",
+    "Mars targets are terrain only, with no published error clones (PRD 5)"
+  ],
+  "primary_proposals": [
+    "mars-jezero-d12-031871-x2-y9",
+    "mars-jezero-d12-031871-x2-y10",
+    "mars-jezero-d12-031871-x2-y8",
+    "mars-jezero-d12-031871-x2-y11",
+    "mars-jezero-d12-031871-x2-y7"
+  ],
+  "primary_rule": "CTX DTM in the Jezero bbox passing CTX QA nearest the Mars 2020 landing site; primary = eligible window nearest the landing site (PRD 5 crater-floor rule, G0-02 addition)",
+  "primary_window_id": "mars-jezero-d12-031871-x2-y9",
+  "reference_set_size": 194,
+  "reference_spreads": {
+    "terrain_relief": {
+      "max": 2.695824907988517,
+      "median": 0.9347056712827074,
+      "min": 0.010823518798428891,
+      "n": 194
+    },
+    "terrain_texture": {
+      "max": 2.5561675376743653,
+      "median": 0.8295574976274446,
+      "min": 0.011197106054210789,
+      "n": 194
+    }
+  },
+  "run_id": "sha256:ff4ccabde227884ca81d488c9ee8aff5d018f43659aa9d759084e34495abb892",
+  "shortlist": [
+    "earth-utm11n-e157-n1546",
+    "earth-utm27n-e280-n2882",
+    "earth-utm27n-e282-n2877"
+  ],
+  "shortlist_size": 3,
+  "target_id": "mars-jezero-w000",
+  "target_universe": {
+    "eligible": 195,
+    "generated": 234,
+    "rejected": 39,
+    "rejected_by_reason": {
+      "ctx_valid_fraction_below_min": 39
+    },
+    "unknown": 0,
+    "unknown_by_reason": {}
+  },
+  "top_candidates": [
+    {
+      "earth_window_id": "earth-utm11n-e157-n1546",
+      "pareto_layer": 1,
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": 0.0938909774915462,
+      "terrain_texture": 0.0400617620151637
+    },
+    {
+      "earth_window_id": "earth-utm27n-e280-n2882",
+      "pareto_layer": 1,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.05440175710202982,
+      "terrain_texture": 0.10813814931181176
+    },
+    {
+      "earth_window_id": "earth-utm27n-e282-n2877",
+      "pareto_layer": 1,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.07012642264112653,
+      "terrain_texture": 0.054951638867812534
+    },
+    {
+      "earth_window_id": "earth-utm11n-e160-n1542",
+      "pareto_layer": 2,
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": 0.09778964616095108,
+      "terrain_texture": 0.1124074552284487
+    },
+    {
+      "earth_window_id": "earth-utm27n-e283-n2882",
+      "pareto_layer": 2,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.05915351071491303,
+      "terrain_texture": 0.1905951853016376
+    },
+    {
+      "earth_window_id": "earth-utm27n-e281-n2883",
+      "pareto_layer": 3,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.10006941572297909,
+      "terrain_texture": 0.15550376331751709
+    },
+    {
+      "earth_window_id": "earth-utm11n-e158-n1546",
+      "pareto_layer": 4,
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": 0.10329186495458001,
+      "terrain_texture": 0.18604244669034325
+    },
+    {
+      "earth_window_id": "earth-utm11n-e159-n1546",
+      "pareto_layer": 4,
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": 0.11836499628260314,
+      "terrain_texture": 0.17198367760920547
+    },
+    {
+      "earth_window_id": "earth-utm11n-e161-n1542",
+      "pareto_layer": 5,
+      "search_region_id": "rosamond-dry-lake",
+      "terrain_relief": 0.19047760932729635,
+      "terrain_texture": 0.20648429491986056
+    },
+    {
+      "earth_window_id": "earth-utm27n-e282-n2883",
+      "pareto_layer": 5,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.26562399155773475,
+      "terrain_texture": 0.1847101654563704
+    }
+  ],
+  "universe_region_ids": [
+    "holuhraun",
+    "rosamond-dry-lake"
+  ],
+  "windows_failed": 0,
+  "windows_files": {
+    "earth": {
+      "bytes": 464119,
+      "n": 73,
+      "path": "data/processed/windows/earth.json",
+      "sha256": "fb7f8911aff25ce3aa75621e20188f04350eb1b87ef131d6ce7fbdcf1e39a101"
+    },
+    "mars": {
+      "bytes": 2753008,
+      "n": 433,
+      "path": "data/processed/windows/mars.json",
+      "sha256": "5693c0b80100ad29f93f94409921d4a267c749a32ebaca747f63df788eed2308"
+    }
+  },
+  "windows_processed": 307
+}

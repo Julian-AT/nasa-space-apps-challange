@@ -2,7 +2,7 @@
 // team ships in the bundle and the G5 GateRecord of validation.json. Nothing here is typed in:
 // every status, threshold and number is a record field. The encoder is EXPERIMENTAL and outside
 // every ranking while G5 is not PASS; every metric is Predicted.
-import type { GateRecord, Metrics, ModelRecord } from '@terraluna/schema';
+import type { Curves, Examples, GateRecord, Metrics, ModelRecord } from '@terraluna/schema';
 
 import { EvidenceLabel } from '@/components/evidence-label';
 import { LabelledValue } from '@/components/labelled-value';
@@ -11,6 +11,7 @@ import { Section } from '@/components/section';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
+import { CurvesSection, ExamplesSection } from './curves-examples.tsx';
 import { UnavailablePanel } from './unavailable-panel.tsx';
 
 type MetricRecord = Metrics['tests'][number];
@@ -266,9 +267,11 @@ export interface ModelReportProps {
   readonly metrics: Metrics | null;
   /** The G5 GateRecord of validation.json, or null when it lists none. */
   readonly g5: GateRecord | null;
+  readonly curves?: Curves | null;
+  readonly examples?: Examples | null;
 }
 
-export function ModelReport({ modelCard, metrics, g5 }: ModelReportProps) {
+export function ModelReport({ modelCard, metrics, g5, curves = null, examples = null }: ModelReportProps) {
   return (
     <>
       <PageHeader
@@ -363,6 +366,8 @@ export function ModelReport({ modelCard, metrics, g5 }: ModelReportProps) {
           </Section>
         </>
       )}
+      <CurvesSection curves={curves} />
+      <ExamplesSection examples={examples} />
     </>
   );
 }

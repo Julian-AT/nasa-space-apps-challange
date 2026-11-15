@@ -1,0 +1,174 @@
+{
+  "background": {
+    "actual_n": 71,
+    "requested_n": 1000,
+    "seed": 0
+  },
+  "bytes_read": 401440464,
+  "claim_limits": [],
+  "comparisons_dropped": 0,
+  "comparisons_path": "outputs/search/comparisons/moon-cr-site01-w000.json",
+  "comparisons_raw_sha256": "71dcd456d8b38b1c09e2afa8d0d2a7e2264b6606a05936bbe62ad37b4d57fb3b",
+  "comparisons_sha256": "71dcd456d8b38b1c09e2afa8d0d2a7e2264b6606a05936bbe62ad37b4d57fb3b",
+  "config_sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
+  "earth_universe": {
+    "eligible": 71,
+    "generated": 73,
+    "rejected": 2,
+    "rejected_by_reason": {
+      "land_cover_below_min_fraction": 2
+    },
+    "unknown": 0,
+    "unknown_by_reason": {}
+  },
+  "elapsed_s_total_run": 42.3,
+  "isotropic_rule": "direction_mean",
+  "mock": false,
+  "n_compared": 71,
+  "not_ranked": [
+    {
+      "reasons": [
+        "land_cover_below_min_fraction"
+      ],
+      "status": "rejected",
+      "window_id": "earth-utm11n-e157-n1542"
+    },
+    {
+      "reasons": [
+        "land_cover_below_min_fraction"
+      ],
+      "status": "rejected",
+      "window_id": "earth-utm11n-e157-n1543"
+    }
+  ],
+  "notes": [
+    "permanent_shadow_fraction is null: no permanent-shadow product is named (G0-10, reason permanent_shadow_product_unset)",
+    "observed fraction: LOLA return count > 0 at the nearest 5 m pixel of each 90 m centre"
+  ],
+  "primary_proposals": [
+    "moon-sps-x2-y2"
+  ],
+  "primary_rule": "eligible window containing the Site01 ROI-union centroid (PRD 6.1; G0-02)",
+  "primary_window_id": "moon-sps-x2-y2",
+  "reference_set_size": 24,
+  "reference_spreads": {
+    "terrain_relief": {
+      "max": 0.4365571057469057,
+      "median": 0.16957927134396467,
+      "min": 0.02121068035527006,
+      "n": 24
+    },
+    "terrain_texture": {
+      "max": 1.0554162118538175,
+      "median": 0.3661141583777035,
+      "min": 0.01952413627627068,
+      "n": 24
+    }
+  },
+  "run_id": "sha256:0d8cb5b95e7c43222da1809b7e249c503f630c80dd7e59d9670ffd09e416dfa2",
+  "shortlist": [
+    "earth-utm27n-e285-n2879"
+  ],
+  "shortlist_size": 1,
+  "target_id": "moon-cr-site01-w000",
+  "target_universe": {
+    "eligible": 25,
+    "generated": 25,
+    "rejected": 0,
+    "rejected_by_reason": {},
+    "unknown": 0,
+    "unknown_by_reason": {}
+  },
+  "top_candidates": [
+    {
+      "earth_window_id": "earth-utm27n-e285-n2879",
+      "pareto_layer": 1,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.6785492291449825,
+      "terrain_texture": 0.6584769659702211
+    },
+    {
+      "earth_window_id": "earth-utm27n-e285-n2877",
+      "pareto_layer": 2,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.6957689700370495,
+      "terrain_texture": 0.7007430718199641
+    },
+    {
+      "earth_window_id": "earth-utm27n-e285-n2878",
+      "pareto_layer": 3,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.7552141697194209,
+      "terrain_texture": 0.7352036253083675
+    },
+    {
+      "earth_window_id": "earth-utm27n-e285-n2880",
+      "pareto_layer": 3,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.7400721916936188,
+      "terrain_texture": 0.7659587142651997
+    },
+    {
+      "earth_window_id": "earth-utm27n-e284-n2877",
+      "pareto_layer": 4,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.8810676870385997,
+      "terrain_texture": 0.9161744667758414
+    },
+    {
+      "earth_window_id": "earth-utm27n-e284-n2878",
+      "pareto_layer": 5,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 1.0913891118091699,
+      "terrain_texture": 1.090129475040099
+    },
+    {
+      "earth_window_id": "earth-utm27n-e284-n2883",
+      "pareto_layer": 5,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 0.9692777314286407,
+      "terrain_texture": 1.0995259034694524
+    },
+    {
+      "earth_window_id": "earth-utm27n-e285-n2881",
+      "pareto_layer": 6,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 1.1290734176618367,
+      "terrain_texture": 1.1352167198550371
+    },
+    {
+      "earth_window_id": "earth-utm27n-e285-n2883",
+      "pareto_layer": 6,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 1.1069546294307273,
+      "terrain_texture": 1.2541165004473716
+    },
+    {
+      "earth_window_id": "earth-utm27n-e283-n2883",
+      "pareto_layer": 7,
+      "search_region_id": "holuhraun",
+      "terrain_relief": 1.2075956132022523,
+      "terrain_texture": 1.2505885700571246
+    }
+  ],
+  "universe_region_ids": [
+    "holuhraun",
+    "rosamond-dry-lake"
+  ],
+  "windows_failed": 0,
+  "windows_files": {
+    "earth": {
+      "bytes": 464119,
+      "n": 73,
+      "path": "data/processed/windows/earth.json",
+      "sha256": "fb7f8911aff25ce3aa75621e20188f04350eb1b87ef131d6ce7fbdcf1e39a101"
+    },
+    "moon": {
+      "bytes": 160116,
+      "n": 25,
+      "path": "data/processed/windows/moon.json",
+      "sha256": "9882b84b2c204eefd8aee80f1441fd9ca54227fe4e43acac5d1a9479cb80e132"
+    }
+  },
+  "windows_processed": 98
+}

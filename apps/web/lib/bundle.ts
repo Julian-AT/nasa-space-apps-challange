@@ -2,7 +2,7 @@
 // the web reads from the selected bundle into apps/web/data/: manifest.json, validation.json and,
 // when the manifest lists them, every path in lib/bundle-paths.ts (sources.json, targets.json,
 // windows/<body>.json, comparisons/<target_id>.json, cards/<card_id>.json, model/model_card.json,
-// report/metrics.json and figures/<name>.svg). `next build` and the API read apps/web/data/ through
+// report/metrics.json, report/curves.json, report/examples.json and figures/<name>.svg). `next build` and the API read apps/web/data/ through
 // loadBundle, which repeats every check, so nothing reads a bundle that bundle:pull refuses.
 //
 // Every copied file must be listed in the manifest, and its byte count and SHA-256 must match the
@@ -34,6 +34,8 @@ import {
 import {
   type CardRecord,
   type Comparisons,
+  type Curves,
+  type Examples,
   type Metrics,
   type ModelRecord,
   type Sources,
@@ -100,6 +102,8 @@ export interface BundleRecords {
   readonly cards: ReadonlyMap<string, CardRecord>;
   readonly modelCard: ModelRecord | null;
   readonly metrics: Metrics | null;
+  readonly curves: Curves | null;
+  readonly examples: Examples | null;
   /** figures/<name>.svg by bundle path, as text that passed the allowlist. */
   readonly figures: ReadonlyMap<string, string>;
 }
@@ -365,6 +369,8 @@ function parseRecords(files: ReadonlyMap<string, Uint8Array>, where: string): Bu
   let targets: Targets | null = null;
   let modelCard: ModelRecord | null = null;
   let metrics: Metrics | null = null;
+  let curves: Curves | null = null;
+  let examples: Examples | null = null;
   const windows = new Map<string, Windows>();
   const comparisons = new Map<string, Comparisons>();
   const cards = new Map<string, CardRecord>();
@@ -419,11 +425,17 @@ function parseRecords(files: ReadonlyMap<string, Uint8Array>, where: string): Bu
       case 'Metrics':
         metrics = data as Metrics;
         break;
+      case 'Curves':
+        curves = data as Curves;
+        break;
+      case 'Examples':
+        examples = data as Examples;
+        break;
       default:
         break;
     }
   }
-  return { sources, targets, windows, comparisons, cards, modelCard, metrics, figures };
+  return { sources, targets, windows, comparisons, cards, modelCard, metrics, curves, examples, figures };
 }
 
 interface ReadBundle {

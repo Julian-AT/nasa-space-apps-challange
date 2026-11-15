@@ -150,6 +150,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             "status": "Unavailable",
             "reason": "run by the web probe (Vitest onnxruntime-web)",
         },
+        # The parity block in the format terraluna_ml.g5 reads (python only; wasm is the web's).
+        "python": {
+            "model_sha256": sha256_path(fp32_path),
+            "fp16_model_sha256": sha256_path(fp16_path),
+            "n_windows": int(rows.size),
+            "fp32_max_abs_diff": max_abs,
+            "fp16_cosine_min": min_cos,
+        },
     }
     (args.out / "export_record.json").write_text(canonical_json(record), encoding="utf-8")
 
