@@ -1,0 +1,9 @@
+{
+  "consequence": "The encoder stays EXPERIMENTAL with the failed tests named; its report and live probe still ship and rankings stay on M0 (PRD 11.7).",
+  "evidence_path": "outputs/ml/evaluation/test/g5_conditions.json",
+  "gate_id": "G5",
+  "result": "failed: condition_3:body_invariance, condition_4:physics_agreement, condition_5:seed_stability",
+  "run_id": "sha256:a903a6e10a32fb72d78ad5e6c6552b6bca44f92d70a3c49b637022cf62fbee68",
+  "scope": "encoder on spatial test blocks",
+  "status": "FAIL"
+}

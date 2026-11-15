@@ -1,0 +1,252 @@
+{
+  "conditions": [
+    {
+      "components": [
+        {
+          "ci_high": 0.9673803703117905,
+          "ci_low": 0.9436878161361877,
+          "component": "relief_lag_270",
+          "observed": 0.965846356486989,
+          "passed": true,
+          "reason": null
+        },
+        {
+          "ci_high": 0.9646448096227959,
+          "ci_low": 0.9389730614353847,
+          "component": "relief_lag_360",
+          "observed": 0.959983061539762,
+          "passed": true,
+          "reason": null
+        },
+        {
+          "ci_high": 0.9650338868272603,
+          "ci_low": 0.9078223160486164,
+          "component": "relief_lag_540",
+          "observed": 0.9459819843247061,
+          "passed": true,
+          "reason": null
+        },
+        {
+          "ci_high": 0.9606403018583672,
+          "ci_low": 0.8938669216519354,
+          "component": "relief_lag_720",
+          "observed": 0.9383130909866998,
+          "passed": true,
+          "reason": null
+        },
+        {
+          "ci_high": 0.9503154741731126,
+          "ci_low": 0.8738821469525818,
+          "component": "relief_lag_1080",
+          "observed": 0.9262770224377734,
+          "passed": true,
+          "reason": null
+        }
+      ],
+      "condition": 1,
+      "observed": 0.8738821469525818,
+      "passed": true,
+      "reason": null,
+      "statistic": "lower_95",
+      "test_id": "physics_probe",
+      "threshold": 0.8
+    },
+    {
+      "components": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "moon:morph_gain",
+          "observed": null,
+          "passed": null,
+          "reason": "crater labels do not exist in this dataset: no Robbins catalogue is ingested, so no log crater density can be formed for Moon or Mars windows"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "mars:morph_gain",
+          "observed": null,
+          "passed": null,
+          "reason": "crater labels do not exist in this dataset: no Robbins catalogue is ingested, so no log crater density can be formed for Moon or Mars windows"
+        }
+      ],
+      "condition": 2,
+      "observed": null,
+      "passed": null,
+      "reason": "crater labels do not exist in this dataset: no Robbins catalogue is ingested, so no log crater density can be formed for Moon or Mars windows",
+      "statistic": "lower_95",
+      "test_id": "morphology_probe",
+      "threshold": 0.1
+    },
+    {
+      "components": [
+        {
+          "ci_high": 0.8492146627553249,
+          "ci_low": 0.6178125240816351,
+          "component": "lambda_0:reported_not_tested",
+          "observed": 0.7208404140536292,
+          "passed": null,
+          "reason": "reported beside the main run, not a pass condition"
+        }
+      ],
+      "condition": 3,
+      "observed": 0.707647609232532,
+      "passed": false,
+      "reason": null,
+      "statistic": "point",
+      "test_id": "body_invariance",
+      "threshold": 0.6
+    },
+    {
+      "components": [],
+      "condition": 4,
+      "observed": 0.19778943660997358,
+      "passed": false,
+      "reason": null,
+      "statistic": "point",
+      "test_id": "physics_agreement",
+      "threshold": 0.5
+    },
+    {
+      "components": [],
+      "condition": 5,
+      "observed": 0.31832611832611835,
+      "passed": false,
+      "reason": null,
+      "statistic": "point",
+      "test_id": "seed_stability",
+      "threshold": 0.5
+    },
+    {
+      "components": [
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "imagenet_resnet18:relief_lag_270",
+          "observed": null,
+          "passed": null,
+          "reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "imagenet_resnet18:relief_lag_360",
+          "observed": null,
+          "passed": null,
+          "reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "imagenet_resnet18:relief_lag_540",
+          "observed": null,
+          "passed": null,
+          "reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "imagenet_resnet18:relief_lag_720",
+          "observed": null,
+          "passed": null,
+          "reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "imagenet_resnet18:relief_lag_1080",
+          "observed": null,
+          "passed": null,
+          "reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "imagenet_resnet18:moon:morph_gain",
+          "observed": null,
+          "passed": null,
+          "reason": "no paired interval against this baseline"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "imagenet_resnet18:mars:morph_gain",
+          "observed": null,
+          "passed": null,
+          "reason": "no paired interval against this baseline"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "dino_vits8:relief_lag_270",
+          "observed": null,
+          "passed": null,
+          "reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "dino_vits8:relief_lag_360",
+          "observed": null,
+          "passed": null,
+          "reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "dino_vits8:relief_lag_540",
+          "observed": null,
+          "passed": null,
+          "reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "dino_vits8:relief_lag_720",
+          "observed": null,
+          "passed": null,
+          "reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "dino_vits8:relief_lag_1080",
+          "observed": null,
+          "passed": null,
+          "reason": "LIC-01: ImageNet ResNet-18 / DINO ViT-S/8 weights not fetched"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "dino_vits8:moon:morph_gain",
+          "observed": null,
+          "passed": null,
+          "reason": "no paired interval against this baseline"
+        },
+        {
+          "ci_high": null,
+          "ci_low": null,
+          "component": "dino_vits8:mars:morph_gain",
+          "observed": null,
+          "passed": null,
+          "reason": "no paired interval against this baseline"
+        }
+      ],
+      "condition": 6,
+      "observed": null,
+      "passed": null,
+      "reason": "paired intervals against ImageNet ResNet-18 and DINO baselines are Unavailable",
+      "statistic": "paired_interval",
+      "test_id": "physics_probe",
+      "threshold": null
+    }
+  ],
+  "failed_tests": [
+    "condition_2:morphology_probe (unavailable)",
+    "condition_3:body_invariance",
+    "condition_4:physics_agreement",
+    "condition_5:seed_stability",
+    "condition_6:physics_probe (unavailable)"
+  ],
+  "status": "FAIL"
+}
