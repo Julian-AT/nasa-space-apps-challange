@@ -8,12 +8,14 @@ import type { ZodType } from 'zod';
 
 import {
   BundleManifestSchema,
+  CardRecordSchema,
   ComparisonRecordSchema,
   ComparisonsSchema,
   FingerprintRecordSchema,
   GateRecordSchema,
   ProductRecordSchema,
   SourcesSchema,
+  TargetsSchema,
   ValidationSchema,
   WindowRecordSchema,
   WindowsSchema,
@@ -44,6 +46,8 @@ const SCHEMAS: ReadonlyMap<string, ZodType> = new Map<string, ZodType>([
   ['Windows', WindowsSchema],
   ['ComparisonRecord', ComparisonRecordSchema],
   ['Comparisons', ComparisonsSchema],
+  ['Targets', TargetsSchema],
+  ['CardRecord', CardRecordSchema],
 ]);
 
 const CASE_KEYS = ['name', 'schema', 'valid', 'value'];

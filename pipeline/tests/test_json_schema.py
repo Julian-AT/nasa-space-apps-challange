@@ -63,6 +63,8 @@ SCHEMA_FILES = {
     "Windows": "windows.schema.json",
     "ComparisonRecord": "comparison-record.schema.json",
     "Comparisons": "comparisons.schema.json",
+    "Targets": "targets.schema.json",
+    "CardRecord": "card-record.schema.json",
 }
 GENERATOR_CASES = ROOT / "fixtures" / "schema-cases" / "generator-cases.json"
 """Synthetic schemas with ``if``/``then`` and ``not``, and documents with authored verdicts. The
@@ -271,7 +273,8 @@ def test_sources_schema_is_an_array_of_product_records() -> None:
 
 
 @pytest.mark.parametrize(
-    ("array", "record"), [("Windows", "WindowEntry"), ("Comparisons", "ComparisonRecord")]
+    ("array", "record"),
+    [("Windows", "WindowEntry"), ("Comparisons", "ComparisonRecord"), ("Targets", "TargetRecord")],
 )
 def test_bundle_arrays_are_arrays_of_their_records(array: str, record: str) -> None:
     schema = committed_schema(array)
@@ -765,6 +768,122 @@ def test_science_cases_test_what_they_name() -> None:
     assert singles - set(SCIENCE_CASE_CHANGES) - bases == {
         "comparison-model-embedding-predicted-value",
         "comparison-model-embedding-derived-value",
+    }
+
+
+LAYER = (0, "tile_layers", 0)
+LEGEND = (*LAYER, "legend")
+CAMPAIGN = ("q6_campaign",)
+
+# Each Targets or CardRecord case and the base case it differs from, with the paths at which it
+# differs (CONTRACTS a.4, T0B-02).
+CARD_CASE_CHANGES: dict[str, tuple[str, set[tuple[Any, ...]]]] = {
+    "targets-unfrozen-nulls": (
+        "targets-one-frozen",
+        {
+            (0, "run_id"),
+            (0, "footprint"),
+            (0, "primary_window_id"),
+            (0, "window_grid", "n_generated"),
+            (0, "window_grid", "n_eligible"),
+            (0, "reference_window_ids"),
+            (0, "shortlist"),
+            (0, "shortlist_reason"),
+            (0, "shipping_mode"),
+            (0, "tile_layers"),
+        },
+    ),
+    "targets-classes-legend": (
+        "targets-one-frozen",
+        {(*LEGEND, key) for key in ("kind", "min", "max", "scale", "unit", "classes")},
+    ),
+    "targets-hillshade-cividis": (
+        "targets-one-frozen",
+        {(*LEGEND, key) for key in ("min", "max", "scale", "unit")} | {(*LAYER, "hillshade")},
+    ),
+    "targets-shortlist-and-reason-null": ("targets-one-frozen", {(0, "shortlist")}),
+    "targets-shortlist-and-reason-set": ("targets-one-frozen", {(0, "shortlist_reason")}),
+    "targets-unknown-field": ("targets-one-frozen", {(0, "score")}),
+    "targets-target-id-uppercase": ("targets-one-frozen", {(0, "target_id")}),
+    "targets-projection-kind-utm": ("targets-one-frozen", {(0, "projection", "kind")}),
+    "targets-projection-param-null": (
+        "targets-one-frozen",
+        {(0, "projection", "params", "lat_0")},
+    ),
+    "targets-tile-px-256": ("targets-one-frozen", {(*LAYER, "tile_px")}),
+    "targets-legend-scale-jet": ("targets-one-frozen", {(*LEGEND, "scale")}),
+    "targets-legend-kind-unknown": ("targets-one-frozen", {(*LEGEND, "kind")}),
+    "targets-legend-classes-kind-with-numeric-fields": ("targets-one-frozen", {(*LEGEND, "kind")}),
+    "targets-legend-without-kind": ("targets-one-frozen", {(*LEGEND, "kind")}),
+    "targets-hillshade-altitude-above-90": ("targets-one-frozen", {(*LAYER, "hillshade")}),
+    "targets-encoding-png": ("targets-one-frozen", {(*LAYER, "encoding", "format")}),
+    "targets-omitted-tile-two-numbers": ("targets-one-frozen", {(*LAYER, "omitted_tiles", 0)}),
+    "targets-layer-name-with-slash": ("targets-one-frozen", {(*LAYER, "layer")}),
+    "targets-window-grid-stride-zero": ("targets-one-frozen", {(0, "window_grid", "stride_m")}),
+    "card-mode-a": ("card-mode-b", {("shipping_mode",)}),
+    "card-campaign-checked-with-source": (
+        "card-mode-b",
+        {(*CAMPAIGN, "access", "value"), (*CAMPAIGN, "access", "source")},
+    ),
+    "card-missing-shipping-mode": ("card-mode-b", {("shipping_mode",)}),
+    "card-shipping-mode-null": ("card-mode-b", {("shipping_mode",)}),
+    "card-bundle-version": ("card-mode-b", {("bundle_version",)}),
+    "card-table-d-row-without-evidence-label": (
+        "card-mode-b",
+        {("q3_measurements", 0, "evidence_label")},
+    ),
+    "card-campaign-unknown-with-source": ("card-mode-b", {(*CAMPAIGN, "permits", "source")}),
+    "card-campaign-checked-without-source": ("card-mode-b", {(*CAMPAIGN, "season", "source")}),
+    "card-campaign-unknown-capitalised-without-source": (
+        "card-mode-b",
+        {(*CAMPAIGN, "access", "value")},
+    ),
+    "card-q2-observed": ("card-mode-b", {("q2_interpretation", "evidence_label")}),
+    "card-q7-derived": ("card-mode-b", {("q7_field_experiment", "evidence_label")}),
+    "card-q7-completed": ("card-mode-b", {("q7_field_experiment", "status")}),
+    "card-missing-radar-cpr": ("card-mode-b", {("distances_by_family", "radar_cpr")}),
+    "card-id-single-underscore": ("card-mode-b", {("card_id",)}),
+    "card-figure-path-and-reason-null": ("card-mode-b", {("figures", 2, "reason")}),
+    "card-figure-path-and-reason-set": ("card-mode-b", {("figures", 0, "reason")}),
+    "card-figure-d": ("card-mode-b", {("figures", 1, "figure")}),
+    "card-wording-capitalised": ("card-mode-b", {("wording",)}),
+    "card-tied-by-family-missing-family": (
+        "card-mode-b",
+        {("q5_stability", "tied_by_family", "model_embedding")},
+    ),
+    "card-run-id-null": ("card-mode-b", {("run_id",)}),
+    "card-g5-status-passed": ("card-mode-b", {("g5_status",)}),
+}
+
+
+def test_card_and_target_cases_test_what_they_name() -> None:
+    """Each Targets or CardRecord case differs from its base only at the paths its entry names.
+    The card base copies the distances and uncertainty of comparison-terrain-only unchanged."""
+    cases = cases_by_name()
+    for name, (base_name, paths) in CARD_CASE_CHANGES.items():
+        case, base = cases[name], cases[base_name]
+        assert case["schema"] == base["schema"], name
+        assert base["valid"] is True, base_name
+        assert set(leaf_changes(base["value"], case["value"])) == paths, name
+    frozen = cases["targets-one-frozen"]["value"]
+    unfrozen = cases["targets-unfrozen-nulls"]["value"]
+    assert cases["targets-empty"]["value"] == []
+    assert cases["targets-object"]["value"] == frozen[0]
+    assert cases["targets-frozen-and-unfrozen"]["value"] == [frozen[0], unfrozen[0]]
+    card = cases["card-mode-b"]["value"]
+    comparison = cases["comparison-terrain-only"]["value"]
+    assert card["distances_by_family"] == comparison["distances_by_family"]
+    assert card["q5_stability"]["uncertainty_components"] == comparison["uncertainty_components"]
+    assert (card["target"]["target_window_id"], card["earth"]["earth_window_id"]) == (
+        comparison["target_window_id"],
+        comparison["earth_window_id"],
+    )
+    named = {name for name, case in cases.items() if case["schema"] in ("Targets", "CardRecord")}
+    bases = {base for base, _ in CARD_CASE_CHANGES.values()}
+    assert named - set(CARD_CASE_CHANGES) - bases == {
+        "targets-empty",
+        "targets-object",
+        "targets-frozen-and-unfrozen",
     }
 
 
@@ -1310,3 +1429,163 @@ def test_slot_kinds_are_checked_by_pydantic_only() -> None:
     entry["terrain"] = science_case("fingerprint-radar")
     assert not pydantic_accepts("Windows", [entry])
     assert json_schema_accepts("Windows", [entry])
+
+
+# --- Science records II parity (CONTRACTS a.4, T0B-02) -----------------------------------------
+# The same two checks for the target, tile layer and card rules: the rules JSON Schema can state
+# agree with pydantic on every combination of the fields they read, and the rules that compare
+# values inside a card or layer are pydantic-only.
+
+
+def card_with(path: tuple[Any, ...], value: Any) -> dict[str, Any]:
+    document: dict[str, Any] = science_case("card-mode-b")
+    target = document
+    for key in path[:-1]:
+        target = target[key]
+    target[path[-1]] = value
+    return document
+
+
+def card_verdicts(values: list[Any]) -> tuple[int, int]:
+    return verdicts_agree(
+        "CardRecord", lambda value: json_schema_accepts("CardRecord", value), values
+    )
+
+
+def targets_verdicts(values: list[Any]) -> tuple[int, int]:
+    return verdicts_agree("Targets", lambda value: json_schema_accepts("Targets", value), values)
+
+
+def test_campaign_entry_rule_agrees_on_every_combination() -> None:
+    values = [
+        card_with(("q6_campaign", "access"), {"value": value, "source": source})
+        for value, source in itertools.product(
+            ["unknown", "Unknown", "unknown ", "open road"], [None, "land office"]
+        )
+    ]
+    # unknown without a source, and every other value with one.
+    assert card_verdicts(values) == (4, 4)
+
+
+def test_figure_rule_agrees_on_every_combination() -> None:
+    values = [
+        card_with(("figures", 0), {"figure": figure, "path": path, "alt": "Maps", "reason": reason})
+        for figure, path, reason in itertools.product(
+            ["A", "D"], [None, "figures/card-a.svg"], [None, "figure_not_rendered"]
+        )
+    ]
+    # Figure A with exactly one of path and reason.
+    assert card_verdicts(values) == (2, 6)
+
+
+def test_shortlist_rule_agrees_on_every_combination() -> None:
+    shortlist = science_case("targets-one-frozen")[0]["shortlist"]
+    values = []
+    for listed, reason in itertools.product(
+        [None, shortlist], [None, "search_not_run", "Search not run"]
+    ):
+        document = science_case("targets-one-frozen")
+        document[0]["shortlist"] = copy.deepcopy(listed)
+        document[0]["shortlist_reason"] = reason
+        values.append(document)
+    assert targets_verdicts(values) == (2, 4)
+
+
+def test_legend_union_agrees_on_every_combination() -> None:
+    numeric: dict[str, Any] = {"min": 0.125, "max": 1.875, "scale": "viridis", "unit": None}
+    classes: dict[str, Any] = {
+        "classes": [{"code": 60, "label": "Bare", "rgba": [180, 180, 180, 255]}]
+    }
+    values = []
+    for kind, fields in itertools.product(
+        ["classes", "numeric", "continuous", None], [numeric, classes, {**numeric, **classes}]
+    ):
+        document = science_case("targets-one-frozen")
+        legend: dict[str, Any] = copy.deepcopy(fields)
+        if kind is not None:
+            legend["kind"] = kind
+        document[0]["tile_layers"][0]["legend"] = legend
+        values.append(document)
+    # Only a kind with exactly its own fields.
+    assert targets_verdicts(values) == (2, 10)
+
+
+_RADAR_AVAILABLE = {
+    "value": 0.125,
+    "unit": "CPR Wasserstein-1",
+    "evidence_label": "Derived",
+    "status": "available",
+    "reason": None,
+    "reference_spread": {"min": 0.0625, "median": 0.125, "max": 0.25, "n": 12},
+    "reference_spread_reason": None,
+    "background_percentile": 12.5,
+    "background_percentile_reason": None,
+    "tied": None,
+    "tie_group": None,
+    "tie_reason": None,
+}
+_DUPLICATE_CODES = [
+    {"code": 60, "label": "Bare / sparse vegetation", "rgba": [180, 180, 180, 255]},
+    {"code": 60, "label": "Permanent water bodies", "rgba": [0, 100, 200, 255]},
+]
+
+
+@pytest.mark.parametrize(
+    ("name", "changes"),
+    [
+        ("card-mode-b", [(("card_id",), "earth-27n-0012-0040__moon-aeqd-0003-0007")]),
+        ("card-mode-b", [(("comparison_ref", "target_window_id"), "moon-aeqd-0003-0008")]),
+        ("card-mode-b", [(("comparison_ref", "earth_window_id"), "earth-27n-0012-0041")]),
+        ("card-mode-b", [(("comparison_ref", "path"), "comparisons/mars-jezero-w000.json")]),
+        ("card-mode-b", [(("q5_stability", "tied_by_family", "terrain_relief"), True)]),
+        ("card-mode-b", [(("q5_stability", "tie_group_by_family", "terrain_texture"), "tie-2")]),
+        ("card-mode-b", [(("distances_by_family", "radar_cpr"), _RADAR_AVAILABLE)]),
+        ("card-mode-b", [(("figures", 1, "figure"), "A")]),
+        (
+            "targets-one-frozen",
+            [
+                ((*LAYER, "zoom_min"), 3),
+                ((*LAYER, "zoom_max"), 2),
+                ((*LAYER, "metres_per_pixel_by_zoom"), []),
+                ((*LAYER, "omitted_tiles"), []),
+            ],
+        ),
+        ("targets-one-frozen", [((*LAYER, "metres_per_pixel_by_zoom"), [20.25, 10.125])]),
+        ("targets-one-frozen", [((*LAYER, "omitted_tiles"), [[3, 0, 0]])]),
+        ("targets-one-frozen", [((*LAYER, "extent_m"), [2560.5, -2560.5, -2560.5, 2560.5])]),
+        ("targets-one-frozen", [((*LEGEND, "min"), 1.875), ((*LEGEND, "max"), 0.125)]),
+        ("targets-classes-legend", [((*LEGEND, "classes"), _DUPLICATE_CODES)]),
+        ("targets-one-frozen", [((0, "window_grid", "n_eligible"), 50)]),
+        ("targets-one-frozen", [((0, "shortlist", "n_compared"), 0)]),
+    ],
+    ids=[
+        "card-id-not-its-windows",
+        "comparison-ref-other-target-window",
+        "comparison-ref-other-earth-window",
+        "comparison-ref-other-target-file",
+        "q5-tied-not-the-distance-flag",
+        "q5-tie-group-not-the-distance-group",
+        "mode-b-radar-distance",
+        "figure-twice",
+        "zoom-min-above-max",
+        "pixel-sizes-not-one-per-zoom",
+        "omitted-tile-outside-the-zooms",
+        "extent-reversed",
+        "numeric-legend-min-above-max",
+        "class-code-twice",
+        "eligible-above-generated",
+        "shortlist-above-compared",
+    ],
+)
+def test_card_and_target_rules_inside_a_document_are_checked_by_pydantic_only(
+    name: str, changes: list[tuple[tuple[Any, ...], Any]]
+) -> None:
+    case = cases_by_name()[name]
+    document = copy.deepcopy(case["value"])
+    for path, value in changes:
+        target = document
+        for key in path[:-1]:
+            target = target[key]
+        target[path[-1]] = copy.deepcopy(value)
+    assert not pydantic_accepts(case["schema"], document)
+    assert json_schema_accepts(case["schema"], document)

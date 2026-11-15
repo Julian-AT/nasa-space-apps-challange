@@ -210,6 +210,8 @@ describe('contracts', () => {
       'Windows',
       'ComparisonRecord',
       'Comparisons',
+      'Targets',
+      'CardRecord',
     ]);
   });
 });
