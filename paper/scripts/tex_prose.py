@@ -467,6 +467,18 @@ def key_options(name: str) -> tuple[int, ...]:
     return KEY_OPTIONS.get(name, (0,) * KEY_COMMANDS[name])
 
 
+def reads_star(name: str) -> bool:
+    r"""Whether a * right after \name belongs to the command rather than printing.
+
+    The commands defined here without a starred form read a * as their argument or leave it as
+    text, and either way it prints: lunar\textit*and prints lunar*and, and {\bf* b} a bold *.
+    A STARRED_KEY_COMMANDS name reads it with \@ifstar. A command whose definition is not known
+    here, such as \section, may have a starred form, so its * is taken as part of it; that
+    command prints a word break anyway, and a * is neither a token nor a lint trigger.
+    """
+    return name in STARRED_KEY_COMMANDS or argument_count(name) is None
+
+
 def argument_count(name: str) -> int | None:
     """The number of mandatory arguments of a command, or None if its definition is not known."""
     if name in TEXT_COMMANDS or name in ("begin", "end") or name in ACCENT_COMMANDS:
@@ -867,7 +879,7 @@ class _CodeScanner:
                 continue
             limit = argument_count(match[1])
             i = match.end()
-            if code.startswith("*", i):
+            if code.startswith("*", i) and reads_star(match[1]):
                 i += 1
             count = 0
             while limit is None or count < limit:
@@ -1104,7 +1116,7 @@ def _prose_command(code: str, start: int, out: _ProseWriter) -> int:
                 end = environment.end()
             out.write(_removed(code[start:end]), start)
             return end
-        if code.startswith("*", end):
+        if code.startswith("*", end) and reads_star(name):
             end += 1
         if name not in PRINTS_NO_TEXT:
             out.write(" ", start)
