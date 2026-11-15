@@ -91,19 +91,36 @@ function List({ items, empty }: { readonly items: readonly string[]; readonly em
   return (
     <ul className="list-disc space-y-1 pl-5 text-sm">
       {items.map((item) => (
-        <li key={item}>{item}</li>
+        <li key={item} className="wrap-anywhere">{item}</li>
       ))}
     </ul>
   );
 }
 
-function Polygon({ title, frame, crs, ring }: { title: string; frame: string; crs: string; ring: number[][] }) {
+function Polygon({
+  title,
+  polygon,
+}: {
+  readonly title: string;
+  readonly polygon: CardRecord['target']['polygon'];
+}) {
+  const short = [
+    polygon.frame,
+    polygon.epsg === null ? null : `EPSG:${String(polygon.epsg)}`,
+    polygon.utm_zone === null ? null : `zone ${polygon.utm_zone}`,
+  ]
+    .filter((x) => x !== null)
+    .join(' · ');
   return (
-    <div className="rounded-lg border border-border bg-background/40 p-3 text-sm">
-      <p className="font-semibold">{title}</p>
+    <div className="min-w-0 rounded-lg border border-border bg-background/40 p-3 text-sm">
+      <p className="font-semibold wrap-anywhere">{title}</p>
       <p className="text-muted-foreground">
-        {frame} · {crs} · {ring.length} vertices
+        {short} · {polygon.ring_lonlat.length} vertices
       </p>
+      <details className="mt-1 text-xs text-muted-foreground">
+        <summary className="cursor-pointer">Full CRS</summary>
+        <p className="mt-1 break-all">{polygon.crs}</p>
+      </details>
     </div>
   );
 }
@@ -266,7 +283,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
   const marsLimits = card.target.body === 'mars';
   const t = card.target;
   return (
-    <article data-slot="evidence-card" className="flex flex-col gap-8">
+    <article data-slot="evidence-card" className="flex min-w-0 flex-col gap-8 wrap-anywhere">
       {card.mock ? (
         <p role="status" className="rounded-lg bg-mock px-4 py-3 font-bold text-mock-foreground">
           MOCK PREVIEW: synthetic data, not production evidence
@@ -300,8 +317,8 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
         <Q n={1}>
           <p>{card.q1_compared}</p>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Polygon title={`Target ${t.target_window_id}`} {...polyProps(t.polygon)} />
-            <Polygon title={`Earth ${card.earth.earth_window_id}`} {...polyProps(card.earth.polygon)} />
+            <Polygon title={`Target ${t.target_window_id}`} polygon={t.polygon} />
+            <Polygon title={`Earth ${card.earth.earth_window_id}`} polygon={card.earth.polygon} />
           </div>
         </Q>
         <Q n={2}>
@@ -461,8 +478,4 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
       </footer>
     </article>
   );
-}
-
-function polyProps(p: CardRecord['target']['polygon']) {
-  return { frame: p.frame, crs: p.crs, ring: p.ring_lonlat };
 }
