@@ -1,0 +1,276 @@
+{
+  "code_sha256": {
+    "pipeline/src/terraluna_pipeline/polarimetry.py": "afd978010c3d2025c6d7c694e73c5b51d5b39ea030cd72cbb0ca4cc7d74ddba6",
+    "pipeline/tests/polarimetry/oracle.py": "7da3af71e6385c13caeae91d46ba73b6a7dd72808a7f8f6dc4c3ca61b8d17429",
+    "pipeline/tests/test_polarimetry_oracle.py": "5e7924c13f7924a7adfa22508629b5a22bea6a4fbb88418d55f97c087f9919b1"
+  },
+  "declarations": {
+    "conventions": "fixtures/polarimetry/oracle_conventions.json",
+    "conventions_sha256": "b4e84402851132eee648920ec8114b794ad01e4b3e35f9789a370b7631119373",
+    "tolerance": "fixtures/polarimetry/oracle_tolerance.json",
+    "tolerance_decided_by": "T2-07 author iteration (Claude Opus 5.5), as the person this story waits for, under the delegation in the orchestrator note on T2-07 (2026-11-14T23:34:56Z) and docs/ralph/DECISIONS.md (team, 2026-11-14)",
+    "tolerance_sha256": "ebab39570aea6be06e6433c5a4ebc06b13e415aa3966d9d621bc95f5c3a1aa9a"
+  },
+  "failures": [
+    "sc_ll: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.0948091, 1.38174e+06 times the allowance; 0 polsartools values not finite)",
+    "oc_ll: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.302607, 1.94066e+06 times the allowance; 0 polsartools values not finite)",
+    "sc_opp: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.18719, 1.55467e+06 times the allowance; 0 polsartools values not finite)",
+    "oc_opp: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.302607, 1.94066e+06 times the allowance; 0 polsartools values not finite)",
+    "base_sc: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.133192, 1.10913e+06 times the allowance; 0 polsartools values not finite)",
+    "s1@chi_tx=-45: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.365703, 2.65501e+06 times the allowance; 0 polsartools values not finite)",
+    "s2@chi_tx=-45: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.153597, 1.45387e+06 times the allowance; 0 polsartools values not finite)",
+    "s3@chi_tx=-45: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.13908, 1.43857e+06 times the allowance; 0 polsartools values not finite)",
+    "s4@chi_tx=-45: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.2807, 1.83075e+06 times the allowance; 0 polsartools values not finite)",
+    "s1@chi_tx=+45: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.445197, 2.67641e+06 times the allowance; 0 polsartools values not finite)",
+    "s2@chi_tx=+45: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.107197, 1.45775e+06 times the allowance; 0 polsartools values not finite)",
+    "s3@chi_tx=+45: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.2232, 1.68899e+06 times the allowance; 0 polsartools values not finite)",
+    "s4@chi_tx=+45: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.27571, 1.76816e+06 times the allowance; 0 polsartools values not finite)",
+    "m@chi_tx=-45: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.972837, 252398 times the allowance; 0 polsartools values not finite)",
+    "m@chi_tx=+45: 1023 of 262144 compared pixels differ beyond the declared tolerance (max |difference| 0.97703, 258077 times the allowance; 0 polsartools values not finite)"
+  ],
+  "fields": {
+    "base_sc": {
+      "convention_note": null,
+      "max_abs_diff": 0.1331922635436058,
+      "max_diff_over_allowance": 1109128.4494674213,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "m@chi_tx=+45": {
+      "convention_note": null,
+      "max_abs_diff": 0.9770304442444173,
+      "max_diff_over_allowance": 258076.91037664717,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "m@chi_tx=-45": {
+      "convention_note": null,
+      "max_abs_diff": 0.972837196245518,
+      "max_diff_over_allowance": 252398.00936362377,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "oc_ll": {
+      "convention_note": null,
+      "max_abs_diff": 0.3026072680950165,
+      "max_diff_over_allowance": 1940655.7330550165,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "oc_opp": {
+      "convention_note": null,
+      "max_abs_diff": 0.3026072680950165,
+      "max_diff_over_allowance": 1940655.7330550165,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s1@chi_tx=+45": {
+      "convention_note": null,
+      "max_abs_diff": 0.4451968944631517,
+      "max_diff_over_allowance": 2676412.933905914,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s1@chi_tx=-45": {
+      "convention_note": null,
+      "max_abs_diff": 0.36570272594690323,
+      "max_diff_over_allowance": 2655011.74221027,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s2@chi_tx=+45": {
+      "convention_note": null,
+      "max_abs_diff": 0.10719742625951767,
+      "max_diff_over_allowance": 1457749.4004413642,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s2@chi_tx=-45": {
+      "convention_note": null,
+      "max_abs_diff": 0.153596892952919,
+      "max_diff_over_allowance": 1453867.0729935286,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s3@chi_tx=+45": {
+      "convention_note": null,
+      "max_abs_diff": 0.22320036590099335,
+      "max_diff_over_allowance": 1688986.5190011286,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s3@chi_tx=-45": {
+      "convention_note": null,
+      "max_abs_diff": 0.13907990977168083,
+      "max_diff_over_allowance": 1438574.8860485759,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s4@chi_tx=+45": {
+      "convention_note": null,
+      "max_abs_diff": 0.2757096216082573,
+      "max_diff_over_allowance": 1768157.98642513,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "s4@chi_tx=-45": {
+      "convention_note": null,
+      "max_abs_diff": 0.28069985657930374,
+      "max_diff_over_allowance": 1830748.6625151816,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "sc_ll": {
+      "convention_note": null,
+      "max_abs_diff": 0.09480913355946542,
+      "max_diff_over_allowance": 1381744.4494984369,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    },
+    "sc_opp": {
+      "convention_note": null,
+      "max_abs_diff": 0.18718995666131377,
+      "max_diff_over_allowance": 1554667.8415561412,
+      "n_compared": 262144,
+      "n_mismatch": 1023,
+      "n_oracle_nonfinite": 0,
+      "n_pixels": 262144,
+      "not_compared_ours_not_valid": {}
+    }
+  },
+  "g1_note": "G1 may not be PASS before this check has run on a real scene and passed, unless a person decides otherwise (T2-07 for the story 6 scope statement).",
+  "layout": {
+    "cols": 5784,
+    "complex_dtype": "<c8",
+    "header_bytes": 0,
+    "lat_step_deg": -5.556e-05,
+    "lon_step_deg": 0.00011111,
+    "real_dtype": "<f4",
+    "rows": 30474,
+    "source": "the scene's .ann annotation (PRD 5)",
+    "tail_bytes": 0,
+    "upper_left_pixel_centre_lat_deg": 66.21774144000001,
+    "upper_left_pixel_centre_lon_deg": -16.84483155
+  },
+  "outcome": "MISMATCH",
+  "record_type": "terraluna polsartools oracle run (T2-07)",
+  "scene": {
+    "acquisition": "30-May-2015 06:01:16 UTC",
+    "directory_name": "Icelnd_00208_15083_004_150530_L090_CX_01",
+    "files": [
+      {
+        "bytes": 705046464,
+        "file": "Icelnd_00208_15083_004_150530_L090HHHH_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdHHHH",
+        "sha256": "5b725712885641dac3b97f545c2de0986a4cbbaa489d2bb509ba0ab3123e1eeb"
+      },
+      {
+        "bytes": 705046464,
+        "file": "Icelnd_00208_15083_004_150530_L090HVHV_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdHVHV",
+        "sha256": "c27950c5f1d07899ca5f8f39c30b0261a97f4b513de391edbfdfdfb0e84e3020"
+      },
+      {
+        "bytes": 705046464,
+        "file": "Icelnd_00208_15083_004_150530_L090VVVV_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdVVVV",
+        "sha256": "975c7814964d99b2aaa458df303f82edc2c5a5a714b9a11e2fee16964d2e8b6a"
+      },
+      {
+        "bytes": 1410092928,
+        "file": "Icelnd_00208_15083_004_150530_L090HHHV_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdHHHV",
+        "sha256": "4ad7c0b62953dce51035ae9b3872de221e070d81e2e218aee1ccd0fbca46a396"
+      },
+      {
+        "bytes": 1410092928,
+        "file": "Icelnd_00208_15083_004_150530_L090HHVV_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdHHVV",
+        "sha256": "3a6626fc4c4c6c9545813fb98ba66f8f6c5194542b5179600be16896cdd7c723"
+      },
+      {
+        "bytes": 1410092928,
+        "file": "Icelnd_00208_15083_004_150530_L090HVVV_CX_01.grd",
+        "matches_scene_sha256sums": true,
+        "role": "grdHVVV",
+        "sha256": "969d962605e49af621efe445e2da7b98fff2afe414b5322aea9fe2d1824266c2"
+      },
+      {
+        "bytes": 21921,
+        "file": "Icelnd_00208_15083_004_150530_L090_CX_01.ann",
+        "matches_scene_sha256sums": true,
+        "role": "annotation",
+        "sha256": "054ccd747e3576886f1e00066fff031fc33b6e0285086a315cc0b4717f2783ed"
+      }
+    ],
+    "look_direction": "Left",
+    "scene_id": "Icelnd_00208_15083_004_150530_L090_CX_01",
+    "source": "the directory named by TERRALUNA_UAVSAR_SCENE; its absolute path is not recorded"
+  },
+  "software": {
+    "gdal_python": "3.13.3",
+    "numpy": "2.5.4",
+    "polsartools": "0.13",
+    "python": "3.12.13",
+    "terraluna_pipeline": "0.1.0"
+  },
+  "window": {
+    "col0": 2469,
+    "cols": 512,
+    "first_pixel_centre_lat_deg": 65.38539708000002,
+    "first_pixel_centre_lon_deg": -16.570500959999997,
+    "indexing": "zero-based GRD row and column of the first pixel; rows and cols are counts",
+    "last_pixel_centre_lat_deg": 65.35700592,
+    "last_pixel_centre_lon_deg": -16.513723749999997,
+    "row0": 14981,
+    "rows": 512
+  },
+  "written_by": "pipeline/tests/test_polarimetry_oracle.py::test_real_scene_matches_polsartools"
+}
