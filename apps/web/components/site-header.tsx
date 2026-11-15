@@ -16,19 +16,18 @@ import { cn } from '@/lib/utils';
 
 export const NAV_ITEMS = [
   { label: 'Home', href: '/' },
-  { label: 'Moon', href: '/explore/moon' },
-  { label: 'Mars', href: '/explore/mars' },
-  { label: 'Earth', href: '/explore/earth' },
-  { label: 'Probe', href: '/probe' },
+  { label: 'Cards', href: '/site' },
+  { label: 'Compare', href: '/compare' },
+  { label: 'Find', href: '/find' },
+  { label: 'Maps', href: '/explore/earth' },
   { label: 'Model', href: '/model' },
   { label: 'Methods', href: '/methods' },
-  { label: 'Data', href: '/data' },
   { label: 'Paper', href: '/paper' },
   { label: 'API docs', href: '/api/docs' },
 ] as const;
 
-/** Index in NAV_ITEMS after which a group divider is drawn: Home | Moon Mars Earth | Probe Model | Methods Data Paper API docs. */
-const GROUP_ENDS: ReadonlySet<number> = new Set([0, 3, 5]);
+/** Index in NAV_ITEMS after which a group divider is drawn: Home | Cards Compare Find Maps | Model Methods Paper | API docs. */
+const GROUP_ENDS: ReadonlySet<number> = new Set([0, 4, 7]);
 
 const LINK =
   'block rounded-full px-3.5 py-2 text-[13px] whitespace-nowrap no-underline transition-colors duration-200 lg:inline-block lg:py-1.5';
@@ -39,7 +38,8 @@ export function SiteNav({ pathname, className }: Readonly<{ pathname: string | n
     <nav aria-label="Primary" className={cn('min-w-0', className)}>
       <ul className="flex flex-col gap-0.5 lg:flex-row lg:items-center lg:gap-0.5 lg:rounded-full lg:border lg:border-line-2 lg:bg-panel lg:p-1">
         {NAV_ITEMS.map(({ label, href }, index) => {
-          const isCurrent = pathname === href;
+          const section = href === '/' ? '/' : '/' + href.split('/')[1];
+          const isCurrent = href === '/' ? pathname === '/' : pathname === section || pathname.startsWith(`${section}/`);
           const className = cn(
             LINK,
             isCurrent
