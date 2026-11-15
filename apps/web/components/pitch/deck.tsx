@@ -246,7 +246,7 @@ function slides(d: PitchData, qr: string | null, bench: BenchData, curves: Curve
       steps: 1,
       body: () => (
         <Frame title="Results" sub={<><A>{d.cardCount} evidence cards</A> in the release bundle. Two of them:</>}>
-          <div className="grid h-full grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 items-start gap-6 pt-[4vh]">
             {d.results.map((r, k) => (
               <In key={r.cardId} d={0.15 + k * 0.1} className="h-full">
                 <FigureCard
@@ -304,8 +304,7 @@ function slides(d: PitchData, qr: string | null, bench: BenchData, curves: Curve
             </In>
           ) : null}
           <p className="absolute bottom-0 left-0 text-sm" style={{ color: FAINT }}>
-            NASA Space Apps 2026, Team Terraluna, bundle {d.bundleVersion}
-            {d.shippingMode ? `, mode ${d.shippingMode}` : ''}
+            NASA Space Apps 2026, Team Terraluna
           </p>
         </div>
       ),
