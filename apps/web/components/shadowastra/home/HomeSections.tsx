@@ -16,7 +16,8 @@ import { AnimatePresence, motion } from "motion/react";
 import clsx from "clsx";
 import { ArrowRight, ArrowUpRight, Award, Check, CircleDashed, Gamepad2, Globe, GraduationCap, Layers, Leaf, Lock, MapPin, Orbit, Radar, ShieldCheck, Target } from "lucide-react";
 import { Github, REPO_URL, WorldDot } from "../ui/Chrome";
-import { Astronaut, type Action, type Mood } from "../../../lib/shadowastra-home/astra-stub";
+import { Astronaut, type Action, type Mood } from "../chrome/Astronaut";
+import { useSmoothScroll } from "../../../lib/shadowastra-home/useSmoothScroll";
 import { Counter, EASE, GlyphTile, Kicker, Magnetic } from "../ui/kit";
 import { EarthOrMars } from "./EarthOrMars";
 import { CheckTown } from "./CheckTown";
@@ -34,6 +35,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
 const GSAP_EASE = "expo.out";
 
 export default function HomeSections() {
+  useSmoothScroll();
   const root = useRef<HTMLDivElement>(null);
   const reduced = useMotionReduced();
 
@@ -81,9 +83,11 @@ export default function HomeSections() {
       <HowItWorks />
       <TownSection />
       <PlaySection />
+      <MeetAstra />
       <Sustainability />
       <Library />
       <Progress />
+      <TeamTeaser />
       <FinalCta />
     </div>
   );
@@ -401,6 +405,101 @@ function PlaySection() {
 const PROFILE_A = "M0,120 C60,118 90,96 140,100 S230,128 280,110 S380,84 430,96 S520,120 600,104";
 const PROFILE_B = "M0,128 C40,126 60,60 90,58 S120,140 160,132 S200,30 240,40 S290,150 330,138 S380,48 420,60 S470,146 520,128 S570,70 600,80";
 const PROFILE_T = "M0,126 C40,124 70,64 100,62 S130,138 170,130 S210,36 250,44 S300,146 340,136 S390,52 430,62 S480,142 530,126 S570,76 600,84";
+
+/* ------------------------------------------------------------ meet astra */
+
+const MOODS: { label: string; mood: Mood; action: Action; say: string }[] = [
+  { label: "Say hello", mood: "happy", action: "wave", say: "Hi! I'm Astra. I test places so real crews don't have to guess." },
+  { label: "Scan the ground", mood: "focused", action: "scan", say: "Scanning slopes and rocks at the same scale as the target…" },
+  { label: "Drill a core", mood: "focused", action: "drill", say: "A core sample tells us what the ground is made of." },
+  { label: "Take a sample", mood: "happy", action: "sample", say: "Bagged and labelled. Clean hands, clean science." },
+  { label: "Look far", mood: "thinking", action: "binoculars", say: "Somewhere out there is a place nobody has tested yet." },
+  { label: "Cold night", mood: "cold", action: "shiver", say: "Brr! −40 °C. The lunar night is far colder, but this is good practice." },
+  { label: "Hot noon", mood: "hot", action: "fan", say: "The ground is 60 °C. Great for testing how gear handles heat." },
+  { label: "Great match", mood: "happy", action: "celebrate", say: "0.86! This place copies the mission really well." },
+  { label: "Poor match", mood: "sad", action: "slump", say: "0.31. It looks right, but it won't test what matters." },
+  { label: "Plant a flag", mood: "wow", action: "flag", say: "New candidate site! Let's tell the field teams." },
+];
+
+function MeetAstra() {
+  const [k, setK] = useState(0);
+  const m = MOODS[k];
+  const got = useFieldLog();
+  useEffect(() => {
+    const t = setInterval(() => setK((n) => (n + 1) % MOODS.length), 5200);
+    return () => clearInterval(t);
+  }, [k]);
+  return (
+    <Section id="meet-astra">
+      <div className="grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr]">
+        <div data-theme="dark" className="relative overflow-hidden rounded-3xl border border-line bg-void">
+          <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_100%,rgba(242,200,121,0.16),transparent_70%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-[url(/textures/moon_lroc_1k.webp)] bg-[length:200%] bg-[position:30%_60%] opacity-30 [mask-image:linear-gradient(to_top,black,transparent)]" />
+          <div className="relative grid min-h-[460px] place-items-center p-8">
+            <div className="flex flex-col items-center">
+              <AnimatePresence mode="wait">
+                <motion.p key={k} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.35, ease: EASE }} aria-live="polite" className="glass mb-6 max-w-[320px] rounded-2xl px-4 py-3 text-center text-[14.5px] leading-snug text-platinum">
+                  {m.say}
+                </motion.p>
+              </AnimatePresence>
+              <Astronaut size={240} mood={m.mood} action={m.action} />
+            </div>
+          </div>
+        </div>
+        <div>
+          <Kicker n="08">Meet Astra</Kicker>
+          <H2 className="mt-8">
+            He goes where you point him. <Em>And he tells you the truth.</Em>
+          </H2>
+          <p data-reveal className="mt-6 max-w-[560px] text-[16px] leading-relaxed text-chrome">
+            Astra is ShadowAstra's field-test astronaut. He checks every place you open, shivers in the cold, sweats in the heat, and says plainly when a place is poor
+            practice. He also answers questions in the corner of every page. The numbers in his lines are illustrative, not Terraluna results.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-2">
+            {MOODS.map((x, i) => (
+              <button
+                key={x.label}
+                type="button"
+                onClick={() => setK(i)}
+                aria-pressed={i === k}
+                className={clsx("rounded-full border px-3.5 py-1.5 text-[12.5px] transition-colors", i === k ? "border-flare/60 bg-flare/10 text-flare" : "border-line-2 text-chrome hover:border-chrome hover:text-platinum")}
+              >
+                {x.label}
+              </button>
+            ))}
+          </div>
+          <div className="surface mt-10 rounded-2xl p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[14px] text-platinum">
+                <Award size={16} className="text-flare" /> Astra's field log
+              </div>
+              <span className="font-mono text-[12px] text-dim">
+                {got.length} of {BADGES.length} badges
+              </span>
+            </div>
+            <div className="mt-2 h-1 overflow-hidden rounded-full bg-line">
+              <motion.div className="h-full rounded-full bg-flare" initial={{ width: 0 }} whileInView={{ width: `${(got.length / BADGES.length) * 100}%` }} viewport={{ once: true }} transition={{ duration: 1.2, ease: EASE }} />
+            </div>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+              {BADGES.map((b) => {
+                const on = got.includes(b.id);
+                return (
+                  <li key={b.id} className={clsx("flex items-start gap-2.5 rounded-xl border p-2.5", on ? "border-flare/40 bg-flare/[0.06]" : "border-line")}>
+                    <span className={clsx("mt-0.5 grid size-6 shrink-0 place-items-center rounded-full", on ? "bg-flare text-void" : "bg-ink text-dim")}>{on ? <Check size={12} /> : <Lock size={11} />}</span>
+                    <span>
+                      <span className={clsx("block text-[12.5px]", on ? "text-platinum" : "text-chrome")}>{b.title}</span>
+                      <span className="block text-[11px] leading-snug text-dim">{b.how}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </Section>
+  );
+}
 
 function FalseFriend() {
   const ref = useRef<HTMLDivElement>(null);
@@ -776,6 +875,42 @@ function Progress() {
         </div>
       </div>
     </Section>
+  );
+}
+
+/* -------------------------------------------------------------------- team */
+
+// Terraluna wording: placeholders until the member names are added; no photos.
+const TEAM_SLOTS = [1, 2, 3, 4];
+
+function TeamTeaser() {
+  return (
+    <section className="relative scroll-mt-16 border-t border-line bg-ink px-4 py-28 sm:px-6 md:py-36">
+      <div className="mx-auto max-w-[1400px]">
+        <Kicker n="12">Team Terraluna</Kicker>
+        <div className="mt-8 flex flex-wrap items-end justify-between gap-6">
+          <H2>
+            Four people, <Em>one terrain fingerprint.</Em>
+          </H2>
+          <Link href="/about" className="link-wipe inline-flex items-center gap-2 pb-1 text-sm text-chrome hover:text-platinum">
+            Meet the team <ArrowUpRight size={15} />
+          </Link>
+        </div>
+        <div className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {TEAM_SLOTS.map((n) => (
+            <Link href="/about" key={n} data-reveal className="group">
+              <div className="grid aspect-[4/5] place-items-center overflow-hidden rounded-xl border border-dashed border-line-2 bg-panel">
+                <span aria-hidden="true" className="font-serif text-[64px] text-dim italic transition-colors duration-500 group-hover:text-flare">
+                  T
+                </span>
+              </div>
+              <div className="mt-2 text-[13px] text-platinum">Team member — name to be added</div>
+              <div className="font-mono text-[10.5px] tracking-[0.16em] text-dim uppercase">Placeholder</div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
