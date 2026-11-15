@@ -26,7 +26,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Physics fingerprint',
     from: 20,
     to: 34,
-    text: 'Take the same **five-kilometre square** on both worlds, here Jezero and Rosamond. This figure shows how much the height changes from **270 to 1080 metres**. The two curves almost overlap: relief distance **0.094**. Hover to read the values.',
+    text: 'We compute a **physics fingerprint** of relief and texture for every five-kilometre window, **71 Earth windows per target**. Every dot is one window. For **Jezero**, the best Earth match is **15 times closer** than the median window.',
   },
   {
     title: 'Live finder',
@@ -44,7 +44,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Training',
     from: 62,
     to: 70,
-    text: 'Here is **training**, straight from the release bundle: every loss term **falls and settles** over twelve epochs, averaged over three seeds. The physics head learns the fingerprint fast.',
+    text: 'Training on Moon, Mars and Earth windows: the **self-supervised loss falls**, and the **physics error drops tenfold**, so the encoder learns the fingerprint.',
   },
   {
     title: 'Benchmarks',
@@ -62,7 +62,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Results',
     from: 96,
     to: 114,
-    text: 'The result is **seven evidence cards**, each with figures and a proposed field test. Besides Rosamond for **Jezero**, **Arcadia Planitia** matches **Holuhraun in Iceland**, closer than **97%** of all candidate windows.',
+    text: 'The result is **seven evidence cards**. The best match per target: **Jezero** and **Arcadia** both find **Holuhraun in Iceland**, and every card comes with figures and a proposed field test.',
   },
   {
     title: 'Close',
