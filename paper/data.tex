@@ -28,7 +28,7 @@ Moon & Mini-RF south polar CPR mosaic \citep{nozette2010} & mosaic & south polar
 
 \paragraph{Moon.} The lunar target is Site01 of the high resolution site products that \citet{barker2021} built from Lunar Orbiter Laser Altimeter ranges \citep{smith2010}, the site that the provider names Connecting ridge. The product gives surface
 height at 5 m per pixel in south polar stereographic metres, the number of LOLA returns per pixel,
-the total height uncertainty, and 100 error clones of the elevation model. Pixels without a
+the total height uncertainty, and \ConfigClones{} error clones of the elevation model. Pixels without a
 LOLA return are filled by interpolation in the provider's surface height, so we carry the observed
 fraction of each window beside its statistics. The Site01 extent is tiled with \ConfigWindowM\,m
 windows at a \ConfigStrideM\,m stride, giving \MoonWindowsGenerated{} windows, of which
@@ -61,8 +61,9 @@ $y_j = W/2 - (j + \tfrac12)\Delta$ for width $W$ and spacing $\Delta$. The spher
 radii of the Moon, Mars and Earth (1737400, 3396190 and 6371008.8\,m). Each output
 pixel is a bilinear interpolation of its four source neighbours and is nodata if any neighbour is
 nodata. No other resampling is used, and the same code runs in Python and in the browser, where a
-parity test holds the two implementations to floating point error. The fingerprint uses a
+parity test on shared fixtures holds the two implementations to the tolerance stated in each
+fixture. The fingerprint uses a
 \ConfigGridM\,m grid; the encoder uses \ConfigInputPx{} by \ConfigInputPx{} pixels at
 \ConfigInputSpacing\,m.
 
-\paragraph{Encoder dataset and splits.} Encoder windows are sampled uniformly in projected area from the lunar model within the cap south of 80 degrees, from the Martian models that pass the quality threshold, and from Earth tiles at a fixed number of windows per tile, with the Earth land cover rule applied. They are split by space, never at random: lunar longitude sectors, groups of Martian models, and 2 degree Earth blocks. Windows that straddle a block boundary are dropped, and so is every window within 10\,km of the lunar target or of the Jezero box, in every split; the Arcadia footprint is not set, so no exclusion around it could be checked. The dataset holds \DatasetWindows{} windows. The training split has \DatasetMoonWindows{} lunar, \DatasetMarsWindows{} Martian and \DatasetEarthWindows{} terrestrial windows; validation has \DatasetMoonVal, \DatasetMarsVal{} and \DatasetEarthVal; and test has \DatasetMoonTest, \DatasetMarsTest{} and \DatasetEarthTest; the lunar target window is stored outside the splits. These counts are far below the planned two hundred thousand windows per body; the dataset was built on a CPU server at a reduced scope, and its small size limits every encoder result.
+\paragraph{Encoder dataset and splits.} Encoder windows are sampled uniformly in projected area from the lunar model within the cap south of 80 degrees, from the Martian models that pass the quality threshold, and from Earth tiles at a fixed number of windows per tile, with the Earth land cover rule applied. They are split by space, never at random: lunar longitude sectors, groups of Martian models, and 2 degree Earth blocks. Windows that straddle a block boundary are dropped, and so is every window within 10\,km of the lunar target or of the Jezero box, in every split; the Arcadia footprint is not set, so no exclusion around it could be checked. The dataset holds \DatasetWindows{} windows. The training split has \DatasetMoonWindows{} lunar, \DatasetMarsWindows{} Martian and \DatasetEarthWindows{} terrestrial windows; validation has \DatasetMoonVal, \DatasetMarsVal{} and \DatasetEarthVal; and test has \DatasetMoonTest, \DatasetMarsTest{} and \DatasetEarthTest; the lunar target window is stored outside the splits. These counts are far below the dataset size planned for the encoder; the dataset was built on a CPU server at a reduced scope, and its small size limits every encoder result.
