@@ -148,6 +148,9 @@ describe('the web shell stays light (PRD 8.10, D35)', () => {
       '@deck.gl/layers',
       '@deck.gl/react',
       '@observablehq/plot',
+      // The live probe's encoder (T13-03): imported only by lib/probe/embedding.ts, dynamically,
+      // inside the probe Web Worker, so it never enters a page's initial JavaScript.
+      'onnxruntime-web',
     ]);
   });
 

@@ -38,14 +38,22 @@ export interface ProbeTerrain {
   texture_reason: string | null;
 }
 
-export type DistanceValue =
+export type DistanceValue = (
   | { status: 'available'; value: number; unit: string; label: string; shared_lags_m: number[]; reason: null }
-  | { status: 'unavailable'; value: null; unit: string; label: 'Unavailable'; shared_lags_m: number[]; reason: string };
+  | { status: 'unavailable'; value: null; unit: string; label: 'Unavailable'; shared_lags_m: number[]; reason: string }
+) & {
+  /** Percentile against the same family's background only; exactly one of the pair is null. */
+  background_percentile?: number | null;
+  background_percentile_reason?: string | null;
+};
 
 /** Three separate families per target (PRD 6.5, 11.10): never combined, summed or ranked. */
 export interface TargetDistances {
   target_id: string;
   target_window_id: string;
+  /** The target's nu(L) as the bundle holds it, for the curves (pipeline evidence, not live). */
+  target_relief_nu_m: Record<string, number | null>;
+  target_texture_nu_m: Record<string, number | null> | null;
   terrain_relief: DistanceValue;
   terrain_texture: DistanceValue;
   radar: DistanceValue;
@@ -86,6 +94,8 @@ export interface ProbeSuccess {
   timings: StageTimings;
   bundle_version: string | null;
   model_id: string | null;
+  model_status: string | null;
+  g5_status: string | null;
 }
 
 export interface ProbeStop {
