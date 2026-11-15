@@ -1,0 +1,152 @@
+{
+  "task_id": "T7-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "5d858c25b8e8897db6938d04ae005faaaf2a1d24",
+    "head": "cb3b8eeaa309b3cccc00800e91ec5619d72bfcd3",
+    "files": [
+      {
+        "path": "apps/web/app/globals.css",
+        "sha256": "9b828d4a3e75dea324300ca4fc6529606f4a70eee69870437369ad4ad0e1244f"
+      },
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "e0af84ad34217d002cc14f4626e8cafb3f03b84b92a878a324c0e6ffc6038f3b"
+      },
+      {
+        "path": "apps/web/components.json",
+        "sha256": "9fab771c63762a68aad921eeb7dea9b1678e72e4afa0e611167f1792bb44f911"
+      },
+      {
+        "path": "apps/web/components/ui/badge.tsx",
+        "sha256": "88df057e3aa01a4a16ed8a5fa3c4589b166039f4fe02b421cead133eba365ed8"
+      },
+      {
+        "path": "apps/web/components/ui/button.tsx",
+        "sha256": "86007b055118c4fb98ac204f5f2b583db5257b9f176ad47b34d3d684f4c87150"
+      },
+      {
+        "path": "apps/web/lib/utils.ts",
+        "sha256": "d24c1b6b0fda1dcbf920dc904c196c25defa7bea1632d684e2779ef65dc0d8d3"
+      },
+      {
+        "path": "apps/web/package.json",
+        "sha256": "5503bac7c1b2e929cfd61a0594a59a9777ce4786a9f8280519b027f9f0124412"
+      },
+      {
+        "path": "apps/web/postcss.config.mjs",
+        "sha256": "9777e035417bdee03422101fb4efa8745c8a2d4ba5f6ab24ecef45dd0581ffa4"
+      },
+      {
+        "path": "apps/web/tests/contrast.ts",
+        "sha256": "d6a0b7d83730ceafc670ccc362a454a2cdeddbe8047d42f746e7ba805da8982d"
+      },
+      {
+        "path": "apps/web/tests/styling-setup.test.ts",
+        "sha256": "85788a89e8d52d76bc5bf9190aa8e3e3f46eaf835d5a813073a10c27f17056e4"
+      },
+      {
+        "path": "apps/web/tests/theme.test.ts",
+        "sha256": "be859f19236c4409665a6e7b454e493ba62f1b55d411605e0bc9eda5799cc8c7"
+      },
+      {
+        "path": "apps/web/tests/ui.test.tsx",
+        "sha256": "ab7dc7e3ba14b0de2676ee03901d14d5250df2cb320a8a39e253308619130583"
+      },
+      {
+        "path": "apps/web/tsconfig.json",
+        "sha256": "db38ac7d9e302628887bc4714a4a24ae69d45febf7bbf2d15b9695839c8d6936"
+      },
+      {
+        "path": "apps/web/vitest.config.ts",
+        "sha256": "99cb1fd578ba3793bdb17ec6b7e82de46de7cfa593a930ebaa3d8d84926f1e01"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "f94a39196e5b9101bd61ed6c2959b10a2fbc4ba04eb6cbf16f530a241d273277"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:38:32Z",
+  "finished_utc": "2026-11-14T19:39:17Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T7-01 passes. I ran all four story checks and each exited cleanly. I judged the six acceptance criteria from the changed files and command output. All changed paths are inside the story's files list, plus `apps/web/components/` added to tsconfig include. I found no blocker or high issues. I did not run the contrast test file or the `.next` CSS output separately. The WCAG numbers and the no-red claim rest on `tests/theme.test.ts` passing (14 tests), not on my own calculation.",
+  "checks": [
+    {
+      "criterion": "Tailwind v4 with @tailwindcss/postcss, postcss.config.*, @import \"tailwindcss\", CSS-variable tokens, no tailwind.config",
+      "command": "Read apps/web/app/globals.css, postcss.config.mjs and package.json; Grep for tailwind.config",
+      "outcome": "PASS",
+      "evidence": "globals.css:1 `@import \"tailwindcss\" source(none)` and :14-32 define the CSS variables. package.json adds @tailwindcss/postcss 4.3.5 and tailwindcss 4.3.5. postcss.config.mjs exists. No tailwind.config file exists; the only matches are comments and a test that asserts absence."
+    },
+    {
+      "criterion": "components.json for shadcn (Radix, App Router, RSC, CSS variables, aliases that exist in tsconfig); only button and badge added",
+      "command": "Read apps/web/components.json, tsconfig.json diff and components/ui/*",
+      "outcome": "PASS",
+      "evidence": "components.json has rsc:true, cssVariables:true, and the style is radix-nova. tsconfig.json adds paths `@/*` -> `./*`. components/ui contains only button.tsx and badge.tsx. Both import @radix-ui/react-slot, and utils.ts re-exports `cn` from the shadcn-ui `cn` package (0.5.2, repository shadcn-ui/cn)."
+    },
+    {
+      "criterion": "High-contrast light theme with AA contrast, visible focus ring, red reserved for the mock banner, no webfont, images or illustrations",
+      "command": "Read globals.css; make test (tests/theme.test.ts, 14 tests)",
+      "outcome": "PASS",
+      "evidence": "globals.css:28 --ring is #1d4ed8, and :67-70 sets a 2px focus-visible outline. :30 --mock is #b91c1c. :36-37 reset the red and rose palettes. The system font stack is used and no url() or font import appears. theme.test.ts passes."
+    },
+    {
+      "criterion": "No map, 3D, chart or ONNX dependency",
+      "command": "git diff of apps/web/package.json; Grep",
+      "outcome": "PASS",
+      "evidence": "The added dependencies are @radix-ui/react-slot, class-variance-authority, cn, @tailwindcss/postcss, postcss and tailwindcss. styling-setup.test.ts forbids three, @react-three/*, onnxruntime-* and @observablehq/plot, and it passes."
+    },
+    {
+      "criterion": "/ renders the exact T0-05 texts; web-smoke passes; server components only, no new client JS",
+      "command": "make web-smoke",
+      "outcome": "PASS",
+      "evidence": "Smoke output: \"shows the mock banner, 'Shipping mode: not chosen (G0 NOT_RUN)' and bundle version mock-0 in the footer\". layout.tsx still renders text.mockBanner, text.shippingMode and text.footer through shellText. Grep found no 'use client' in app or components, and ui.test.tsx:96 asserts its absence."
+    },
+    {
+      "criterion": "typecheck, lint and test pass in @terraluna/web; make web-build succeeds",
+      "command": "make check; make test; make web-build",
+      "outcome": "PASS",
+      "evidence": "make check: ruff and mypy clean, turbo lint and typecheck 4/4 successful. make test: pytest 404 passed, web vitest 116 passed (8 files). make web-build: Compiled successfully, / is prerendered static."
+    },
+    {
+      "criterion": "Story checks: make check, make test, make web-build, make web-smoke",
+      "command": "make check; make test; make web-build; make web-smoke",
+      "outcome": "PASS",
+      "evidence": "All four ran without a failing exit. The turbo steps in make check and make test replayed cached logs (`cache hit`), so the web lint, typecheck and test results are replayed cache output, not fresh runs. The make web-build and make web-smoke builds ran fresh."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/lib/utils.ts:4",
+      "claim": "cn is the only class-merge helper, and it comes from the less common `cn` package rather than clsx and tailwind-merge.",
+      "evidence": "apps/web/node_modules/cn/package.json lists repository github.com/shadcn-ui/cn, MIT, and the comment cites shadcn 4.x. This is a pinned exact version and is acceptable. Optionally confirm that dependency choice at merge.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "This is the dependency shadcn/ui itself ships for the chosen style. The registry item https://ui.shadcn.com/r/styles/radix-nova/utils.json (fetched 2026-11-14) lists dependencies [\"cn\"], and its lib/utils.ts is exactly `export { cn } from \"cn\"`, which apps/web/lib/utils.ts reproduces. The package is published from github.com/shadcn-ui/cn (MIT; apps/web/node_modules/cn/package.json), describes itself as a drop-in replacement for clsx and tailwind-merge, and is pinned at 0.5.2. tests/ui.test.tsx checks the behaviour the components rely on: falsy values are dropped and the later Tailwind class wins (px-2 then px-4 gives px-4). Swapping in clsx and tailwind-merge would diverge from the registry that components.json points at. The finding itself rates the choice acceptable, so no change is needed."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/components/ui/button.tsx:16",
+      "claim": "Two Button/Badge classes (`disabled:opacity-50` and the 80%-opacity hover) could fall below AA contrast when shown. Disabled controls are exempt from WCAG contrast, and the hover state is not covered by a contrast test I saw.",
+      "evidence": "button.tsx:16 and :20 (`hover:bg-primary/80`). Nothing renders these components yet, so there is no current impact.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "fixed",
+        "commit": "c7fa0502d89c58a6fedd85ee644729b5e96531c6",
+        "reason": "Hover and expanded states are now covered by a contrast test that derives colours from the variant classes, not a hand-kept list. tests/variant-colours.ts reads each Button and Badge variant at rest, under hover:, [a]:hover: and aria-expanded:, and in every combination of those states. Translucent fills such as hover:bg-primary/80 are composited in sRGB over each page surface (background, secondary, muted, accent) with the new composite() in tests/contrast.ts. Each case must reach 4.5:1. The 80% primary hover measures 9.19:1 on --background, 9.48:1 on --secondary/--muted and 9.92:1 on --accent, so no component class needed to change. A class the model cannot judge (opacity outside disabled:, arbitrary or non-token colours, gradients) throws instead of being skipped. Changing the Button hover to bg-primary/30 made the test fail at 1.88:1 (checked, then reverted). The disabled:opacity-50 part needs no change: WCAG 2.2 SC 1.4.3 sets no contrast requirement for text in an inactive user interface component, so the disabled state is skipped explicitly. Failing tests first in 2f5ee6b."
+      }
+    }
+  ]
+}

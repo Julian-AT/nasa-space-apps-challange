@@ -1,10 +1,16 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  // The @/* alias of tsconfig.json, which components.json gives shadcn/ui (PRD 8.2).
+  resolve: { tsconfigPaths: true },
   test: {
-    // T0-05's tests live in tests/; the loader's T15-01 tests sit beside it as lib/bundle*.test.ts,
-    // so `vitest run lib/bundle` selects them. The API's route tests sit beside the Hono app in
-    // server/api/ (T15-02), so `vitest run server/api` selects them.
-    include: ['tests/**/*.test.ts', 'lib/**/*.test.ts', 'server/**/*.test.ts'],
+    // T0-05 tests in tests/, the T15 loader tests in lib/, the API route tests in server/api/ and the
+    // T7 component tests next to their components.
+    include: [
+      'tests/**/*.test.{ts,tsx}',
+      'lib/**/*.test.{ts,tsx}',
+      'server/**/*.test.{ts,tsx}',
+      'components/**/*.test.{ts,tsx}',
+    ],
   },
 });

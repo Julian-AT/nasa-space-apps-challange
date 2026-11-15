@@ -1,0 +1,105 @@
+{
+  "task_id": "T7-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "32b1f21ade7db5b0a158bcfeb9c3578ff93c74cc",
+    "head": "b4b06ff8810a24a3029aa180c07a7c45ab5d170b",
+    "files": [
+      {
+        "path": "apps/web/app/methods/page.tsx",
+        "sha256": "afa8b693dc2d2377921fd33438548faf317f5956d8d6543880250113c8de66dc"
+      },
+      {
+        "path": "apps/web/components/gates-board.test.tsx",
+        "sha256": "6583f36534e2f6b4befa090920487d0a84b417e5a7ee9ca7048fd62140410606"
+      },
+      {
+        "path": "apps/web/components/gates-board.tsx",
+        "sha256": "a0898e9ffbcd792ee8337d527d40a955d3e5a2327516eeaa66c3b0227fdb07fd"
+      },
+      {
+        "path": "apps/web/tests/methods-page.test.tsx",
+        "sha256": "c402958e311498da3c725790553d3d182e399c5b6fc3446ebf728362e0fe690c"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "c545533fce81495e1c6fb3dea332c702eb089dcc52939728351fc7fbaed197d0"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:29:34Z",
+  "finished_utc": "2026-11-15T00:32:04Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No concrete defects found in the scoped change. Source and tests were reviewed; required checks were not executed under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests first; all GateRecord fields, literal statuses and explicit unavailable handling.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Commit b0a8cbd adds the tests before either implementation exists. apps/web/components/gates-board.test.tsx:125-206 covers the fixture, fields, statuses and null results; gates-board.tsx:55-70 renders these explicitly. Runtime behavior remains unverified because check execution was prohibited."
+    },
+    {
+      "criterion": "AC2: Static /methods, one h1, accessible table, ordered gates and explicit absent records.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/app/methods/page.tsx:12 declares dynamic='error' and line 20 supplies one h1. gates-board.tsx:63-114 provides row/column headers, caption and schema-ordered rows with absent-record messages. Tests cover ordering and absence at gates-board.test.tsx:209-248. Static build and rendered behavior were not executed."
+    },
+    {
+      "criterion": "AC3: Literal status text; no hardcoded scientific results, thresholds or passes.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/gates-board.tsx:30-33 applies uniform styling; lines 55-70 render record values directly, with explicit null handling. Other board text is structural or required absence wording. apps/web/app/methods/page.tsx:16-25 supplies headings and the bundle-backed board."
+    },
+    {
+      "criterion": "AC4: No added encoder, model or embedding content before G5 passes; G5 uses its GateRecord.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The complete methods/page.tsx and gates-board.tsx contain no such presentation content. gates-board.tsx:109-114 handles G5 through the same record lookup and rendering as every gate; gates-board.test.tsx:251-256 checks its fields."
+    },
+    {
+      "criterion": "AC5: Layout banners, passing web-smoke and static Next build output.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/app/layout.tsx:24-36 supplies both banners around page content; methods-page.test.tsx:102-106 checks them. lib/bundle.ts:235-240 retains production mock rejection. Build output and smoke behavior could not be verified because execution was prohibited."
+    },
+    {
+      "criterion": "Required check: make check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox blocks cache and generated-file writes."
+    },
+    {
+      "criterion": "Required check: make test",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox blocks test/cache writes."
+    },
+    {
+      "criterion": "Required check: focused gates-board Vitest suite",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/gates-board.test.tsx",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed under the read-only restriction."
+    },
+    {
+      "criterion": "Required check: make web-build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: Makefile:92-94 pulls bundle files and creates build artifacts."
+    },
+    {
+      "criterion": "Required check: make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: Makefile:97-98 depends on the write-producing web-build."
+    }
+  ],
+  "findings": []
+}

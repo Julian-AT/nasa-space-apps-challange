@@ -1,0 +1,130 @@
+{
+  "task_id": "T7-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "32b1f21ade7db5b0a158bcfeb9c3578ff93c74cc",
+    "head": "b4b06ff8810a24a3029aa180c07a7c45ab5d170b",
+    "files": [
+      {
+        "path": "apps/web/app/methods/page.tsx",
+        "sha256": "afa8b693dc2d2377921fd33438548faf317f5956d8d6543880250113c8de66dc"
+      },
+      {
+        "path": "apps/web/components/gates-board.test.tsx",
+        "sha256": "6583f36534e2f6b4befa090920487d0a84b417e5a7ee9ca7048fd62140410606"
+      },
+      {
+        "path": "apps/web/components/gates-board.tsx",
+        "sha256": "a0898e9ffbcd792ee8337d527d40a955d3e5a2327516eeaa66c3b0227fdb07fd"
+      },
+      {
+        "path": "apps/web/tests/methods-page.test.tsx",
+        "sha256": "c402958e311498da3c725790553d3d182e399c5b6fc3446ebf728362e0fe690c"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "c545533fce81495e1c6fb3dea332c702eb089dcc52939728351fc7fbaed197d0"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:29:34Z",
+  "finished_utc": "2026-11-15T00:30:20Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T7-04 passes. All five story checks exit 0. /methods is prerendered static and renders a validation board from validation.json GateRecords. Rendered HTML shows the layout's nav link \"Model\" and nothing else matching encoder, model or embedding. web-smoke only requests \"/\", so /methods is checked by vitest and the build output rather than a live smoke request. I did not check the layout banners on /methods or the diff's two ralph-managed files (see findings).",
+  "checks": [
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, eslint and tsc all passed (exit 0)."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "404 pytest tests passed. Web: 13 files, 352 tests passed (turbo replayed cached logs). Schema: 157 tests passed."
+    },
+    {
+      "criterion": "Targeted vitest on gates-board.test.tsx",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/gates-board.test.tsx",
+      "outcome": "PASS",
+      "evidence": "1 file, 20 tests passed."
+    },
+    {
+      "criterion": "make web-build; /methods included in the Next build output as static",
+      "command": "make web-build",
+      "outcome": "PASS",
+      "evidence": "Route table: '○ /methods' under '(Static) prerendered as static content'."
+    },
+    {
+      "criterion": "make web-smoke still passes",
+      "command": "make web-smoke",
+      "outcome": "PASS",
+      "evidence": "Smoke shows the mock banner, \"Shipping mode: not chosen (G0 NOT_RUN)\" and bundle version mock-0 at '/'."
+    },
+    {
+      "criterion": "Every GateRecord field is rendered; NOT_RUN, PASS, FAIL, PARTIAL and NOT_APPLICABLE each show their literal text; a null result shows an unavailable reason, never 0",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "gates-board.tsx:17 derives the columns from GateRecordSchema.shape. Cell values are printed verbatim (:58) and null becomes LabelledValue 'Unavailable' with a reason (:58). Tests at gates-board.test.tsx:161-200 cover NOT_RUN, per-status literals and null result. All 20 tests passed. I read only the test titles, not the test bodies."
+    },
+    {
+      "criterion": "Static /methods with one h1, a table with caption and column headers, rows sorted G0 to G6, and absent gates shown as \"No record in this bundle\"",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page.tsx:20 has one h1 and `dynamic='error'` (:12). gates-board.tsx:98 has the caption, :101-105 the th scope=col headers, :109 iterates GATE_IDS in schema order, :82-83 prints NO_RECORD for absent gates. recordsByGate throws on duplicate or unknown ids (:40-53), so no row is dropped or invented. Tests at gates-board.test.tsx:209-246 cover sorting, absent gates and both refusals."
+    },
+    {
+      "criterion": "Status is not conveyed by colour alone, and no threshold, metric, result or pass is typed in a component or page",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "cellClass is per column and does not depend on the value (gates-board.tsx:32-34). The only fixed strings are the caption, NO_RECORD and NULL_REASON. page.tsx has only the headings 'Methods' and 'Validation board'. Test at gates-board.test.tsx:270 checks that no status literal is typed in the source."
+    },
+    {
+      "criterion": "No encoder, model or embedding content, and no standing encoder sentence, before G5 passes; G5 appears only as a GateRecord",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Neither source file mentions the encoder. The rendered methods.html contains only the layout nav link 'Model' (href /model). G5 is rendered like any other gate (test at gates-board.test.tsx:251)."
+    },
+    {
+      "criterion": "A mock-bundle banner and mode banner appear through the layout",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "No /methods request in web-smoke, and I did not read the rendered methods.html for the banners. The layout is outside this story's diff, and web-smoke confirms the banners only at '/'."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/.next/server/app/methods.html",
+      "claim": "The rendered /methods page contains the word 'Model' as a layout nav link. The story's own new files contain no encoder, model or embedding text.",
+      "evidence": "grep of methods.html matched only `<a href=\"/model\">Model</a>`. It comes from the pre-existing layout, not from this change, and is a navigation label, not encoder content. A strict reading of the 'no model content of any kind' criterion would still want the owner of the layout to confirm this link is acceptable.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The only match is the layout navigation link <a href=\"/model\">Model</a> from components/site-header.tsx NAV_ITEMS (added by T7-03, commit 1f9cf43, which passed). That file is outside T7-04 files, and the link is a route label in the PRD 8.6 route table (/model, static, model card and training report 11.9), shown on every page, not encoder content on /methods. PRD 10 requires the model report to show the G5 verdict whatever it is, so the /model route name is not a claim about the encoder. T7-04 sources (app/methods/page.tsx, components/gates-board.tsx) contain no encoder, model or embedding text, and G5 appears only as a GateRecord row."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "scripts/ralph/batches/t7-shell/prd.json",
+      "claim": "The diff range also touches prd.json and progress.txt. These are orchestrator files outside the story's files list, though the review scope lists only the five story paths.",
+      "evidence": "git diff --stat shows scripts/ralph/batches/t7-shell/prd.json (4 lines) and progress.txt (12 lines) changed. They look like ralph bookkeeping, so I did not read them.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "scripts/ralph/batches/t7-shell/prd.json and progress.txt are the batch story list and progress log, which the Ralph loop lets every iteration change in addition to the story files (author prompt section 2). The prd.json diff sets review.state to requested and records the review base commit; the progress.txt diff appends the T7-04 implement entry. Neither is product code."
+      }
+    }
+  ]
+}

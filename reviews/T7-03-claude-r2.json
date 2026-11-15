@@ -1,0 +1,168 @@
+{
+  "task_id": "T7-03",
+  "round": 2,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "70dc9458693ee1a31b3d12a09056498b5e231ab8",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "e59732f5b504bd1886defe75f945178f53e38eb63418a4ade3efba9bbfcf31c3"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "b92607be990829cff9bfbddd890c34ab13203607099ad789f1c29584421d8269"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "eac73067cc9261dd9454f266e01c6a8bcc430503493897c51637a28ee2c18364"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "d2b96f8ef179a404afd0e4b7ce17fef6cf8baa189303aa76d1b7cc2177144a0b"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "2b702bb4bc621461944df0d8eb7a7e4148795f89d7248accb7ac67ef9d88518b"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:55:11Z",
+  "finished_utc": "2026-11-14T21:56:04Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T7-03 round 2 passes. All five story checks ran and exited 0. The round-1 blocker (codex-r1-1) is fixed: page-check.ts now requires the mock banner, mode banner and footer to match as whole texts. The change adds no NuqsAdapter, and site-header.tsx is the only client module. I did not reproduce the gzip -9 initial-JS figure. The permission rules forbid piping, so that part of the last criterion is NOT_RUN. The author's 177,190 B figure is plausible and well under the 250 kB budget.",
+  "checks": [
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, eslint and typecheck all passed; turbo reported 4 successful tasks."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest: 404 passed. web vitest: 246 passed in 11 files, including page-check.test.ts (27) and site-layout.test.tsx (32). schema vitest: 157 passed. The web results were cache hits replaying the logs."
+    },
+    {
+      "criterion": "mode-banner vitest",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "PASS",
+      "evidence": "1 file, 14 tests passed."
+    },
+    {
+      "criterion": "make web-build",
+      "command": "make web-build",
+      "outcome": "PASS",
+      "evidence": "Route table shows ○ / and ○ /_not-found, both static, so / stays statically rendered with the layout."
+    },
+    {
+      "criterion": "make web-smoke and the T0-05 assertions",
+      "command": "make web-smoke",
+      "outcome": "PASS",
+      "evidence": "web-smoke: GET / (prerendered) shows the mock banner, \"Shipping mode: not chosen (G0 NOT_RUN)\" and bundle version mock-0 in the footer."
+    },
+    {
+      "criterion": "AC1 mode and mock banner texts",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "mode-banner.tsx:10-21 matches the PRD 4 titles at PRD.md:168-170 word for word. The null mode reads \"Shipping mode: not chosen (G0 <status>)\". The mock banner renders only when shellText gives non-null text (mock-banner.tsx:9-10). The 14 banner tests pass."
+    },
+    {
+      "criterion": "AC2 layout landmarks",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "layout.tsx:28-38 renders, in order: SkipLink, header (MockBanner, ModeBanner, SiteHeader), main#main and SiteFooter. The mock banner has role=\"status\" and carries its own text (mock-banner.tsx:12). The footer reads \"Bundle version: <v> · Schema <schema_version>\" (site-footer.tsx:9)."
+    },
+    {
+      "criterion": "AC3 and AC4 navigation",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "site-header.tsx:11-19 lists exactly the seven links as next/link, with no /api/docs, /paper, /probe or /compare. aria-current=\"page\" is set only on an exact pathname match (line 32). The links are plain anchors in DOM order, and the focus ring comes from the global style; tests/site-layout.test.tsx covers this."
+    },
+    {
+      "criterion": "AC5 wording rules and / content",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page.tsx:13-14 shows the title plus one factual line with no numbers or claims. The banners add only the PRD 4 title for a mode, with no radar-match or analog-result wording."
+    },
+    {
+      "criterion": "AC6 and AC7 page-check update, exact protected texts, mock guard",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page-check.ts:86-119 requires the mock banner and mode banner as exact text runs, the footer as exact text, one mode line, and <main> equal to title + HOME_LINE. The Mock-bundle-on-real-bundle check is kept. lib/bundle.ts is not in the diff, so the production guard is untouched. The round-1 mutations (v10, BA, missing title, extra words) are covered by page-check.test.ts."
+    },
+    {
+      "criterion": "AC8 client component scope and initial JS size",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "site-header.tsx has 'use client'. The other new components have no directive, and layout.tsx and page.tsx are server components. Static rendering is confirmed by the build route table. I could not run the gzip -9 measurement because pipes and loops are forbidden. The author reports 177,190 B against the 173,974 B baseline and the 250 kB budget."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/components/site-footer.tsx:9",
+      "claim": "AC2 reads 'Bundle <bundle_version>', but the footer keeps T0-05's 'Bundle version: <v> · Schema <v>' wording.",
+      "evidence": "The web-smoke output shows 'Bundle version: mock-0'. T0-05 requires that wording, so it is consistent with the existing assertions; it is a literal reading difference from AC2 only.",
+      "id": "claude-r2-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "This wording was decided before the reviews. The orchestrator decision of 2026-11-14T21:24:28Z in the story notes says: 'The footer keeps T0-05's \"Bundle version: <bundle_version>\" and appends \" · Schema <schema_version>\".' T0-05's shellText (apps/web/lib/shell.ts, not in this story's files) builds 'Bundle version: <v>', and AC6/AC7 require make web-smoke to keep asserting it. So 'Bundle <bundle_version>' in AC2 is met by 'Bundle version: <bundle_version> · Schema <schema_version>' (site-footer.tsx:9). The finding itself calls this consistent with the existing assertions."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/.next/server/app/index.html",
+      "claim": "The initial-JS gzip -9 measurement was not independently reproduced.",
+      "evidence": "The command needs a shell loop or pipe, which the review permission rules forbid, so I could not run it.",
+      "id": "claude-r2-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect in the change. The reviewer skipped the measurement because of its own permission rules. Measured again after make web-build at ee9cbca: the six <script src> files of apps/web/.next/server/app/index.html are 48,186 + 71,595 + 3,936 + 6,629 + 39,390 + 7,454 = 177,190 B at gzip -9. That matches the story notes and the round-1 measurement: +3,216 B over the T0 baseline of 173,974 B and within PRD 8.10's 250 kB. __RSC_MANIFEST['/page'].clientModules in page_client-reference-manifest.js lists 9 modules, and the only one outside next is [project]/apps/web/components/site-header.tsx. [project]/apps/web/app/layout appears only as an entryCSSFiles key, for globals.css. The command is the bash loop under Codebase Patterns in progress.txt."
+      }
+    }
+  ]
+}

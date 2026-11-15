@@ -1,0 +1,180 @@
+{
+  "task_id": "T7-03",
+  "round": 6,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "427c5410f886c3c06506caced53ddf1f63cc2243",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "e59732f5b504bd1886defe75f945178f53e38eb63418a4ade3efba9bbfcf31c3"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "dc0e5d5f4d286c0d836e3a813d834fda929794428a54e5cf510d6e482a95ec0a"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "70493811f7a1d479f4eb8ddc8b48a6718bcc63fbca7ec485a1e97eba3783f365"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "d2b96f8ef179a404afd0e4b7ce17fef6cf8baa189303aa76d1b7cc2177144a0b"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "f4ce752d0340791629b76a8bea9bda6bc82fa64a3e6799dc88d67ea6ed896fc8"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T23:51:28Z",
+  "finished_utc": "2026-11-14T23:52:14Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T7-03 round 6 (reviewer claude, Sonnet 5.5, range ceeae12..427c541). All five story checks exit 0 in my runs. I found no blocker or high finding. The round-5 fixes are in place: page-check.ts accounts for all text outside main (strayTexts) and requires exactly one footer. The root layout renders the skip link, the mock banner, the mode banner, the nav, main and the footer. site-header.tsx is the only 'use client' module. I did not reproduce the gzip -9 initial-JS figure of 177,190 B, because it needs a shell loop the review rules forbid.",
+  "checks": [
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, eslint and tsc all pass; exit 0."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed; web vitest 305 passed (page-check 85, site-layout 33, mode-banner 14); schema 157 passed."
+    },
+    {
+      "criterion": "mode-banner vitest",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "PASS",
+      "evidence": "1 file, 14 tests passed."
+    },
+    {
+      "criterion": "make web-build",
+      "command": "make web-build",
+      "outcome": "PASS",
+      "evidence": "Route table shows / and /_not-found as ○ Static."
+    },
+    {
+      "criterion": "make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "PASS",
+      "evidence": "web-smoke: GET / shows the mock banner, \"Shipping mode: not chosen (G0 NOT_RUN)\" and bundle version mock-0 in the footer."
+    },
+    {
+      "criterion": "AC1 mode and mock banner texts",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "mode-banner.tsx:17-21 builds the 'Shipping mode: not chosen (G0 …)' line from shellText, and for A/B/C adds the PRD 4 title. mock-banner.tsx:8-15 renders only when shellText gives non-null. The 14 mode-banner tests pass. I did not read the test file itself."
+    },
+    {
+      "criterion": "AC2 layout on every route",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "layout.tsx:28-38 has SkipLink, header with MockBanner (role=status, text not colour alone), ModeBanner and SiteHeader, then main#MAIN_ID, then SiteFooter. site-footer.tsx:9 reads 'Bundle version: <v> · Schema <v>', which the orchestrator decision allows (claude-r2-1 rebuttal accepted)."
+    },
+    {
+      "criterion": "AC3 nav links",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "site-header.tsx:11-19 lists Home, /explore/moon, /explore/mars, /explore/earth, /model, /methods, /data as next/link. There are no links to /api/docs, /paper, /probe or /compare."
+    },
+    {
+      "criterion": "AC4 keyboard, focus ring, aria-current",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "site-header.tsx:26-38 renders links in DOM order with aria-current='page' only on the current route. The focus ring is in the global CSS, tested by the vitest suite. I did not inspect globals.css."
+    },
+    {
+      "criterion": "AC5 Mode B/C wording and / content",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page.tsx:13-14 has the title plus one factual line with no numbers or claims, and sets dynamic='error'. The mode banner has no radar-match wording beyond the PRD 4 titles."
+    },
+    {
+      "criterion": "AC6 static rendering, web-smoke unchanged",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The build shows / as static. web-smoke passes with the T0-05 assertions."
+    },
+    {
+      "criterion": "AC7 page-check updated test-first, nothing weakened",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page-check.ts:291-339 applies exact equality to main, the footer, the mock banner (container and every live region) and the mode banner, and rejects stray text outside main (strayTexts). It requires exactly one footer, which addresses codex-r5-1 and codex-r5-2. Tests (85 in page-check.test.ts) pass; the test-first commit ordering in git log is consistent with this. The mock-in-production guard in lib/bundle.ts is not touched."
+    },
+    {
+      "criterion": "AC8 one client component; JS budget",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The only 'use client' file in the story's files is site-header.tsx, and layout.tsx, the banners and the footer have no directive, so the client-component part passes. The gzip -9 measurement needs a shell loop, which my permissions forbid. I did not reproduce the author's figure of 177,190 B, which is under the 250 kB budget."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "git diff ceeae12..427c541 --name-only",
+      "claim": "The range also contains files outside the story's files list: scripts/ralph/*, logs/agents/*, reviews/* and the t7-shell prd.json and progress.txt.",
+      "evidence": "The diff of the whole range lists scripts/ralph/{new-batch.sh,prompt.md,ralph.sh,review.sh}. I did not check which commits touched them. They look like orchestrator or run-record changes, not story code, and the story's own non-merge commits touch only the listed paths.",
+      "id": "claude-r6-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "These paths are not the story's changes. `git log --first-parent --no-merges ceeae12..427c541 -- scripts/ralph/new-batch.sh scripts/ralph/prompt.md scripts/ralph/ralph.sh scripts/ralph/review.sh` lists no commit. They arrived through the orchestrator's merge 1c59a9b (Merge branch 'ralph/tooling' into ralph/t7-shell), which brought a6dfe83, c02fb70, c97ca63, 3dc1c63 and 151ee09, all on ralph/integration or ralph/t0b-contracts. reviews/*, logs/agents/* and this batch's prd.json and progress.txt are ralph.sh's own bookkeeping commits. The story's own commits touch only paths in its files list, which ralph.sh checks before review (bounces 0), and c97ca63 makes the reviewers review only those commits."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/components/mode-banner.tsx:10 and apps/web/scripts/page-check.ts:20",
+      "claim": "The PRD 4 titles are kept as two copies, MODE_TITLES and PRD4_TITLES.",
+      "evidence": "The two copies are identical. The tests compare PRD4_TITLES with PRD.md via tests/prd.ts. I did not verify that the mode-banner test compares MODE_TITLES with PRD.md too. The risk is only drift between the copies.",
+      "id": "claude-r6-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Both copies are tied to PRD.md, so neither can drift without make test failing. components/mode-banner.test.tsx:55-58 asserts MODE_TITLES toStrictEqual prd4Titles(), and tests/page-check.test.ts:427 asserts PRD4_TITLES toStrictEqual prd4Titles(). tests/prd.ts reads both from the PRD 4 'Title wording' text in PRD.md. The second copy is on purpose: page-check.ts is make web-smoke's independent check of the rendered page. If it imported the component's MODE_TITLES, a wrong title in the component would pass its own check (page-check.ts:23-26 says this is the check's own copy)."
+      }
+    }
+  ]
+}

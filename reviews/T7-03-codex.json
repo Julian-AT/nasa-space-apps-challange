@@ -1,0 +1,164 @@
+{
+  "task_id": "T7-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "ba7f010903802712005d1287c9fe6fc1f4ba5a14",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "aa8945d5e675aaca9e78e708af6b08c02d87d2322e9459030c2b08a04bbd2113"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "03267fe4a49c1105a3e208bac63c590d4b31150457998716f8b14ea39e678078"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "99e9701339c4b7d50ba6480389944fcf6a2b01828b78d5834da27960455ed211"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "73f5530f51f2b8b7c6d383c8e6a59eed5992258dbb542d7cec97ff88a3c59751"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:42:17Z",
+  "finished_utc": "2026-11-14T21:46:19Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Criterion 7 fails: restricting exact-text validation to main leaves banner, mode and bundle-version checks vulnerable to prefix matches. All execution checks and the JavaScript-size measurement remain NOT_RUN under the read-only restriction. The existing T0-05 loader is apps/web/lib/bundle.ts and is unchanged.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests first; exact mode titles, G0 status or absence, and conditional mock banner.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "components/mode-banner.test.tsx:75-165 covers these cases; mode-banner.tsx:10-20 matches PRD 4, and lib/shell.ts:17-25 preserves missing G0 explicitly. Test execution was prohibited because caches may write in this read-only sandbox."
+    },
+    {
+      "criterion": "AC2: Shared layout includes skip link, accessible red mock banner, mode banner, navigation, main and versioned footer.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/app/layout.tsx:23-38 renders all elements around route children. components/mock-banner.tsx:9-13 supplies conditional status text; app/globals.css:30 defines the red token. components/site-footer.tsx:8-9 renders bundle and schema versions."
+    },
+    {
+      "criterion": "AC3: Seven specified plain next/link navigation items and no excluded destinations.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/site-header.tsx:8-18 defines exactly the seven required destinations; lines 26-38 render them with next/link."
+    },
+    {
+      "criterion": "AC4: Keyboard-operable navigation in DOM order, visible focus ring and active-route aria-current.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/site-header.tsx:25-39 renders native links in array order without tabindex overrides; lines 27-32 set aria-current=\"page\" by pathname. app/globals.css:67-69 supplies the visible focus outline."
+    },
+    {
+      "criterion": "AC5: Mode B/C wording stays within PRD claims; home preserves required texts and adds only a factual line.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/mode-banner.tsx:10-20 uses the verbatim PRD titles. app/page.tsx:12-15 contains only the title and factual bundle-record sentence; layout.tsx:30-38 retains banners and footer."
+    },
+    {
+      "criterion": "AC6: Build-time bundle reads, static home rendering and passing web-smoke.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/app/layout.tsx:18-24 uses the unchanged loader; app/page.tsx:8 declares dynamic='error'. Static build output and web-smoke require execution, which the user prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC7: Test-first main-only text validation preserves all other smoke assertions and the production mock guard.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "apps/web/scripts/page-check.ts:55-73 checks protected text only with includes, while lines 75-85 now restrict equality to main. A footer containing 'Bundle version: v10' satisfies the expected 'Bundle version: v1'. The former whole-body equality rejected that incorrect version. lib/bundle.ts and scripts/smoke.ts are unchanged; smoke execution was prohibited."
+    },
+    {
+      "criterion": "AC8: Only site-header adds a client boundary; static rendering and gzip JavaScript budget are verified.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/components/site-header.tsx:1-9 contains the sole added client directive and imports only next/link and next/navigation; no bundle or provider is passed. Static rendering and gzip -9 size against the 173,974 B baseline were not independently executed because the user prohibited checks."
+    },
+    {
+      "criterion": "Required command: make check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited execution: the read-only sandbox blocks dependency, generated-file and cache writes."
+    },
+    {
+      "criterion": "Required command: make test",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited execution: tests may create temporary files and caches in this read-only sandbox."
+    },
+    {
+      "criterion": "Required command: focused mode-banner Vitest tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited execution because test caches may write in this read-only sandbox."
+    },
+    {
+      "criterion": "Required command: make web-build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited execution; bundle:pull and Next build write data and build artifacts."
+    },
+    {
+      "criterion": "Required command: make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited execution; this target depends on web-build, which writes artifacts."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "apps/web/scripts/page-check.ts:75",
+      "claim": "Preserve exact protected-text validation when moving the whole-page equality check into main. The remaining substring checks allow incorrect bundle versions and malformed shipping-mode lines, violating criterion 7.",
+      "evidence": "By inspection, replacing 'Bundle version: v1' with 'Bundle version: v10' in REAL_PAGE at apps/web/tests/page-check.test.ts:32-34 produces no problem: page-check.ts:72 accepts the expected version as a prefix, and lines 82-85 validate only main. Similarly, 'Shipping mode: BA' contains the expected 'Shipping mode: B' and still has one mode occurrence. The previous whole-body equality rejected both. Add negative cases for these mutations and validate complete protected values while allowing the approved mode title and schema suffix.",
+      "id": "codex-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "1301e9dbd4b25e20862053d43342d0c432cf4fd2",
+        "reason": "Confirmed: after the check was narrowed to <main>, the banner, mode and footer checks were substring checks. Failing tests first (bf47795): v10 for v1, mock-01 for mock-0, mode BA for B, mode B without its PRD 4 title, the mode A title on a mode B bundle, a title while no mode is chosen, words after the G0 status, words added to the mock banner, and a missing or wrong schema version or extra footer words. All 12 failed against ba7f010. The fix (1301e9d) checks each protected text as a whole text run of the rendered markup. The mock banner must equal MOCK_BANNER. The mode banner must equal the shipping-mode line from shellText, plus ' — ' and the PRD 4 title for a chosen mode (PRD4_TITLES, which the new test compares with PRD.md through tests/prd.ts). The <footer> text must equal 'Bundle version: <v> · Schema <schema_version>'. The 'Mock bundle' check for real bundles, the once-only 'Shipping mode:' count, the single-<main> equality and the mock-in-production guard in lib/bundle.ts are unchanged. site-layout.test.tsx now renders RootLayout around Home for a mock bundle and a mode B bundle, and pageProblems returns [] for both, so the check matches the real layout. make web-smoke passes on the built page."
+      }
+    }
+  ]
+}

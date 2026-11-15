@@ -1,0 +1,96 @@
+@import "tailwindcss" source(none);
+
+/*
+ * Terraluna design tokens (PRD 8.2, 8.10, D35). One high-contrast light theme: every text pair
+ * meets WCAG 2.2 AA (4.5:1) and the focus ring and borders meet 3:1, checked by
+ * tests/theme.test.ts. The system font stack is used, so no webfont is downloaded, and nothing
+ * here loads an image.
+ *
+ * Classes are read only from the app's own code; tests, scripts and bundle data are not scanned.
+ */
+@source "../app";
+@source "../components";
+
+:root {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #3f3f46;
+  --accent: #e4e4e7;
+  --accent-foreground: #18181b;
+  --border: #71717a;
+  --input: #71717a;
+  --ring: #1d4ed8;
+  /* Reserved for the mock-bundle banner (PRD 8.4, 8.6). No other token or component is red. */
+  --mock: #b91c1c;
+  --mock-foreground: #ffffff;
+}
+
+@theme inline {
+  /* The default palette's reds would let other elements look like the mock banner. */
+  --color-red-*: initial;
+  --color-rose-*: initial;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-mock: var(--mock);
+  --color-mock-foreground: var(--mock-foreground);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  /* One visible focus indicator for every focusable element; components must not hide it. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Preflight removes link underlines; links must not be told apart by colour alone. */
+  a {
+    text-decoration-line: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  /* Preflight sets headings to body size; keep the page outline visible. */
+  h1 {
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+    font-weight: var(--font-weight-bold);
+  }
+
+  h2 {
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  h3 {
+    font-size: var(--text-xl);
+    line-height: var(--text-xl--line-height);
+    font-weight: var(--font-weight-semibold);
+  }
+}

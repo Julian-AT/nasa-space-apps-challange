@@ -1,0 +1,175 @@
+{
+  "task_id": "T7-03",
+  "round": 8,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "9864e9499b0363cf73de4cbc572c4829c9d514ff",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "e59732f5b504bd1886defe75f945178f53e38eb63418a4ade3efba9bbfcf31c3"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/package.json",
+        "sha256": "e24729b42b65b4a4e66bd8179bd2432e086b1f1cc6a6d1433880993438d5475b"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "33001326b1ac1bdc99d000c7cce7306374a297cd08888264663998461be5677b"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "bfbff0e4fe5d6ccac5ed9ec83dfe4065ebec90cff315dc4e66196e40234395d7"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "d2b96f8ef179a404afd0e4b7ce17fef6cf8baa189303aa76d1b7cc2177144a0b"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "f4ce752d0340791629b76a8bea9bda6bc82fa64a3e6799dc88d67ea6ed896fc8"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "6055d6786fc392a00c0ee2b1dcb5ce8144cebec737729e765189baef25e4e6a5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:15:55Z",
+  "finished_utc": "2026-11-15T00:20:43Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Previous source fixes and rebuttals were checked. Required execution checks and the gzip measurement remain unverified under the explicit read-only restriction.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests first; exact mode and mock banner wording",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Commit contents and first-parent ordering show tests in 642bedb before implementation. apps/web/components/mode-banner.test.tsx:63-81 covers G0 statuses, absent G0 and A/B/C; lines 121-140 cover mock visibility and wording. mode-banner.tsx:10-20 and lib/shell.ts:15-27 implement the required strings."
+    },
+    {
+      "criterion": "AC2: Shared layout landmarks, banners and version footer",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/app/layout.tsx:23-38 renders the skip link, banners, navigation, main and footer around every page. mock-banner.tsx:12 supplies role=status and mock colour classes; globals.css:30 defines red. site-footer.tsx:9 preserves the authorized T0 wording and appends the schema version."
+    },
+    {
+      "criterion": "AC3: Seven permitted navigation links using plain next/link",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/site-header.tsx:8-18 imports next/link and lists exactly the seven required destinations. Lines 26-38 render them directly as links without additional destinations."
+    },
+    {
+      "criterion": "AC4: Keyboard order, visible focus ring and aria-current",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/site-header.tsx:26-38 renders ordinary anchors in array order without tabindex overrides and sets aria-current=page for exact pathname matches. apps/web/app/globals.css:67-69 supplies the visible outline. tests/site-layout.test.tsx:121-154 exercises route marking and anchor semantics."
+    },
+    {
+      "criterion": "AC5: Mode B/C claims and factual home-page text",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/mode-banner.tsx:11-13 matches PRD section 4 titles verbatim. apps/web/app/page.tsx:13-14 contains only the title and factual bundle line; the shared layout retains the T0 texts. mode-banner.test.tsx:55-58 and tests/page-check.test.ts:460-461 independently compare both title copies with PRD.md."
+    },
+    {
+      "criterion": "AC6: Build-time bundle loading, static home page and passing smoke check",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Source uses the unchanged T0-05 loader at apps/web/lib/bundle.ts:235-240 through app/layout.tsx:24; app/page.tsx:8 retains dynamic=error. Actual static rendering and smoke success require execution, prohibited by this read-only review."
+    },
+    {
+      "criterion": "AC7: Preserve smoke protections while checking only main content",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/scripts/page-check.ts:229-255 checks complete banners and outside-main text; lines 304-321 enforce one mode line, one exact footer and exact main text. Previous regression cases remain in tests/page-check.test.ts. Diff inspection confirms lib/bundle.ts and scripts/smoke.ts are unchanged. Required web-smoke execution was prohibited."
+    },
+    {
+      "criterion": "AC8: Only site-header is added as a client component; static rendering and JavaScript budget",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/components/site-header.tsx:1-9 contains the client directive and only next/link and next/navigation imports; its layout invocation receives no bundle props. Other changed components remain server components without providers. Loader identification and a gzip figure are recorded in the notes, but static-build output and gzip measurement were not independently executed under the review restriction."
+    },
+    {
+      "criterion": "Previous Codex fixes, rounds 1-7",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection confirms exact comparisons, complete banner containers/live regions, stray-text accounting, unique footer, parse5 parsing, inline-normalized counting and exclusion of document-head banner holders in apps/web/scripts/page-check.ts:135-325. Corresponding negative fixtures are present in tests/page-check.test.ts:55-114,124-326,351-447 and 469-480. No test-pass claim is inferred."
+    },
+    {
+      "criterion": "Previous wording, scope, title-copy and measurement rebuttals",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "site-footer.tsx:9 follows the supplied footer decision; missing routes are explicitly permitted. Reading the listed non-merge commits' changed paths found only authorized story files. Both title copies are checked against PRD.md. Unreproduced measurements remain a verification limitation, not a demonstrated implementation defect."
+    },
+    {
+      "criterion": "Required check: make check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: this read-only sandbox cannot support toolchain synchronization, generated types and check caches."
+    },
+    {
+      "criterion": "Required check: make test",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: test execution can write caches and temporary fixtures in this read-only sandbox."
+    },
+    {
+      "criterion": "Required check: focused mode-banner Vitest suite",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: Vitest execution and its cache writes are unavailable in this read-only review."
+    },
+    {
+      "criterion": "Required check: make web-build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: Makefile:92 runs bundle:pull and the build, which write apps/web/data and .next."
+    },
+    {
+      "criterion": "Required check: make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: Makefile:97 makes web-smoke depend on the writing web-build target."
+    }
+  ],
+  "findings": []
+}

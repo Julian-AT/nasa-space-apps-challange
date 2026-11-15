@@ -1,0 +1,393 @@
+{
+  "project": "Terraluna",
+  "branchName": "ralph/t7-shell",
+  "description": "PRD section 12, T7 web shell on the mock bundle: styling, layout and banners, evidence labels, the gates board, a sources page with an empty state, route skeletons with explicit Unavailable states, and Playwright with axe. Everything that needs real data (maps, cards, charts, twins, probe) is out of scope. Stories run in priority order. The author iteration never sets passes; ralph.sh runs two independent reviews and a deterministic gate first. This file is Ralph's task list, not the product PRD.",
+  "userStories": [
+    {
+      "id": "T7-01",
+      "title": "Tailwind CSS v4 and shadcn/ui foundation",
+      "owner": "web-frontend",
+      "prdRefs": [
+        "8.2",
+        "8.10",
+        "D35"
+      ],
+      "description": "Add the styling layer to the T0 web shell without changing what / says. Fetch the current Tailwind v4 (PostCSS plugin for Next.js) and shadcn/ui (Radix, components.json) installation documentation first.",
+      "files": [
+        "apps/web/app/globals.css",
+        "apps/web/app/layout.tsx",
+        "apps/web/components.json",
+        "apps/web/components/ui/*",
+        "apps/web/eslint.config.mjs",
+        "apps/web/lib/utils.ts",
+        "apps/web/package.json",
+        "apps/web/postcss.config.*",
+        "apps/web/styles/*",
+        "apps/web/tests/*",
+        "apps/web/tsconfig.json",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "Tailwind CSS v4 is installed with @tailwindcss/postcss and a postcss.config.* file; styles/ or app/globals.css uses @import \"tailwindcss\" and CSS-variable design tokens. No tailwind.config.js unless the current documentation requires it.",
+        "components.json is created for shadcn/ui (Radix, App Router, RSC, CSS variables, alias paths that exist in apps/web/tsconfig.json). Only components that a later T7 story imports are added under components/ui/, starting with button and badge; no unused components.",
+        "Tokens define a high-contrast light theme meeting WCAG 2.2 AA text contrast, a visible focus ring, and a distinct red reserved for the mock banner. No webfont download, no image assets, no illustrations (D35).",
+        "No map, 3D, chart or ONNX dependency is added (deck.gl, three, @react-three/*, onnxruntime-web, Observable Plot stay out).",
+        "/ still renders the exact T0-05 texts: the mock banner \"Mock bundle — placeholder data, not results\" when mock=true, the shipping-mode line and the bundle version in the footer; make web-smoke still passes. Pages stay server components with no new client JavaScript.",
+        "pnpm --filter @terraluna/web typecheck, lint and test pass; make web-build succeeds."
+      ],
+      "checks": [
+        "make check",
+        "make test",
+        "make web-build",
+        "make web-smoke"
+      ],
+      "priority": 1,
+      "passes": true,
+      "review": {
+        "state": "passed",
+        "round": 1,
+        "base": "5d858c25b8e8897db6938d04ae005faaaf2a1d24",
+        "head": "cb3b8eeaa309b3cccc00800e91ec5619d72bfcd3",
+        "files": [
+          "reviews/T7-01-claude.json",
+          "reviews/T7-01-codex.json"
+        ],
+        "digests": {
+          "reviews/T7-01-claude.json": "26f9d89d1f75347c1011005808882f0df738153a6639d76e1b3af5618d0c89e9",
+          "reviews/T7-01-codex.json": "4ef2cdde2a374a49b99fc9cab584253f5d06386c2ec9fbb6798e75603293083d"
+        }
+      },
+      "notes": "shadcn init creates apps/web/lib/utils.ts (cn helper) and may edit apps/web/tsconfig.json for the @/* alias; both are in files. apps/web/package.json and pnpm-lock.yaml are also edited by T15 (hono deps); the orchestrator resolves that at merge. T7 keeps all other files disjoint from T15 (apps/web/server/*, apps/web/app/api/*) and does not touch apps/web/lib/bundle* or apps/web/scripts/*."
+    },
+    {
+      "id": "T7-02",
+      "title": "Evidence-label components with PRD 3 definitions",
+      "owner": "web-frontend",
+      "prdRefs": [
+        "3",
+        "8.6",
+        "10",
+        "D08"
+      ],
+      "description": "Add one reusable component for the five evidence labels so every later number is shown with its label. Labels and meanings are copied verbatim from PRD section 3; no scientific value is typed into a component.",
+      "files": [
+        "apps/web/components/evidence-label.test.tsx",
+        "apps/web/components/evidence-label.tsx",
+        "apps/web/components/evidence-legend.tsx",
+        "apps/web/components/labelled-value.tsx",
+        "apps/web/eslint.config.mjs",
+        "apps/web/package.json",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "Vitest component tests are written first and run failing. They cover each of Observed, Derived, Predicted, Assumed and Unavailable rendering its text, and a type-level check that no other label string compiles.",
+        "EvidenceLabel takes a label union of exactly those five values and renders the label text plus the PRD 3 meaning in an accessible description (visible text or aria-describedby, not colour alone). Each label has a distinct shape or icon-free text treatment in addition to colour, so a greyscale screenshot still tells them apart.",
+        "LabelledValue takes {label, value, unit, source} props, renders the value only when label is not Unavailable, and for Unavailable requires a reason string and renders it. A missing value without Unavailable is a type error; missing evidence is never rendered as 0, empty or a dash.",
+        "EvidenceLegend lists the five labels with the PRD 3 meanings and is a server component. The test checks the sentence \"Every displayed or exported quantity carries one of these labels.\" is not altered if used.",
+        "Components contain no numbers, targets or claims of their own; tests use clearly synthetic values such as 'test-value' and no domain figures.",
+        "Typecheck, lint and Vitest pass. No client directive is used unless an interaction requires it."
+      ],
+      "checks": [
+        "make check",
+        "make test",
+        "pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx"
+      ],
+      "priority": 2,
+      "passes": true,
+      "review": {
+        "state": "passed",
+        "round": 1,
+        "base": "e095c98aa2ecc163c802024636022447c10e7a01",
+        "head": "74bb51ceee89cd92006fc7d0a313bd7451fea63d",
+        "files": [
+          "reviews/T7-02-claude.json",
+          "reviews/T7-02-codex.json"
+        ],
+        "digests": {
+          "reviews/T7-02-claude.json": "12bfeb06d90d7f1a4c3fd7cc51ef518ea34edd2fdbdd6db368093e923b8fc2d9",
+          "reviews/T7-02-codex.json": "af7832025c09717f144da7f652cd4e9a727f601644de8f680ea2fa495d0ffb08"
+        }
+      },
+      "notes": "Checks run the story's own test file by filter so a test file that Vitest does not collect fails loudly instead of passing unseen."
+    },
+    {
+      "id": "T7-03",
+      "title": "Site layout: mode banner, mock banner, navigation, footer on every page",
+      "owner": "web-frontend",
+      "prdRefs": [
+        "3",
+        "4",
+        "8.6",
+        "8.10",
+        "D08"
+      ],
+      "description": "Move the T0 banners into a shared root layout so every route shows the shipping-mode banner, the red mock banner when mock=true, primary navigation, and the bundle version in the footer. Reads the bundle only through the module T0-05 created to load apps/web/data/manifest.json and validation.json (T0-05 does not fix its path, so find it first and name it in notes); do not edit it. The layout adds no NuqsAdapter. Its only client component is site-header.tsx, for aria-current (orchestrator decision).",
+      "files": [
+        "apps/web/app/layout.tsx",
+        "apps/web/app/page.tsx",
+        "apps/web/components/mock-banner.tsx",
+        "apps/web/components/mode-banner.test.tsx",
+        "apps/web/components/mode-banner.tsx",
+        "apps/web/components/site-footer.tsx",
+        "apps/web/components/site-header.tsx",
+        "apps/web/components/skip-link.tsx",
+        "apps/web/eslint.config.mjs",
+        "apps/web/package.json",
+        "apps/web/scripts/page-check.ts",
+        "apps/web/tests/*",
+        "apps/web/tests/page-check.test.ts",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "Vitest tests first: the mode banner for shipping_mode null reads \"Shipping mode: not chosen (G0 <status>)\" with the G0 status from validation.json (or states that G0 has no record when absent); for A, B or C it reads \"Shipping mode: <mode>\" plus the PRD 4 title wording for that mode, copied verbatim; the mock banner appears iff mock=true and reads \"Mock bundle — placeholder data, not results\".",
+        "The root layout renders, on every route: skip-to-content link, mock banner (red, role=\"status\" or equivalent landmark text, not colour alone), mode banner, header navigation, main landmark, footer with \"Bundle <bundle_version>\" and the schema version.",
+        "Navigation links, as plain next/link: Home, Moon (/explore/moon), Mars (/explore/mars), Earth (/explore/earth), Model (/model), Methods (/methods), Data (/data). Routes that do not exist yet may 404 until later stories; no link to /api/docs, /paper, /probe or /compare (not built here).",
+        "Navigation is keyboard-operable in DOM order with a visible focus ring and aria-current on the active route.",
+        "The Mode C and Mode B wording rules from PRD 3 and 4 apply: no banner text implies a radar match or analog result. / keeps its three T0 required texts and adds only a short factual line saying the pages show records from the bundle; it states no numbers, targets or claims.",
+        "The layout reads the bundle at build time only (static rendering); / remains statically rendered. make web-smoke still passes with its existing assertions.",
+        "make web-smoke still passes after this story. apps/web/scripts/page-check.ts is updated test-first (apps/web/tests/page-check.test.ts) so that its \"only these texts\" assertion applies to the <main> element (the title plus the factual line), while the mock banner text, the shipping-mode line and the footer bundle version are each still asserted exactly as T0-05 requires, wherever they sit in the layout. No other check in page-check.ts is weakened, and the mock-in-production guard is untouched (orchestrator decision).",
+        "The only client component this story adds is apps/web/components/site-header.tsx (\"use client\"): static next/link items plus usePathname for aria-current=\"page\", with no bundle data and no provider. The root layout, banners, footer and pages stay server components, and / stays statically rendered. The initial JavaScript on / is measured with gzip -9 against the T0 baseline of 173,974 B, recorded in the notes, and stays within the PRD 8.10 budget of 250 kB."
+      ],
+      "checks": [
+        "make check",
+        "make test",
+        "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+        "make web-build",
+        "make web-smoke"
+      ],
+      "priority": 3,
+      "passes": true,
+      "review": {
+        "state": "passed",
+        "round": 8,
+        "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+        "head": "9864e9499b0363cf73de4cbc572c4829c9d514ff",
+        "files": [
+          "reviews/T7-03-claude-r8.json",
+          "reviews/T7-03-codex-r8.json"
+        ],
+        "digests": {
+          "reviews/T7-03-claude-r8.json": "a4a582da1b8410a26abc5b55d16baa9744a5d7ccdc563d65ddc61aade87ca3ed",
+          "reviews/T7-03-codex-r8.json": "1fe53c6b1498cb04019d5827f3ad73f762c7a3c2fff9283f4aa433de1cafa1cf"
+        },
+        "bounces": 0
+      },
+      "notes": "Name the T0-05 bundle loader module path here once found. T15 owns extending bundle:pull and the loader (apps/web/lib/bundle*, apps/web/scripts/*); T7 does not touch them.\nAuthor 2026-11-14T20:25Z: BLOCKED, cannot be done inside files. The T0-05 bundle loader is apps/web/lib/bundle.ts (loadBundle; shellText in apps/web/lib/shell.ts builds the banner, mode and footer strings). The conflict: make web-smoke runs pageProblems in apps/web/scripts/page-check.ts, which requires the visible text of <body> on / to equal exactly \"<mock banner> <shipping-mode line> Terraluna <footer>\". The skip link, navigation, the factual line on / and the schema version in the footer, all required by the acceptance criteria, each fail it (checked by running pageProblems on such a page). The criterion \"make web-smoke still passes with its existing assertions\" therefore contradicts the others, and apps/web/scripts/* belongs to T15, so T7 may not edit it. Human decision needed: either add apps/web/scripts/page-check.ts to this story's files (coordinated with T15) and let the \"only these texts\" assertion apply to <main> (title plus the factual line) while banners and footer stay checked as now, or have T15 make that change first.\nralph orchestrator 2026-11-14T21:20:34Z: decision on the contradiction recorded above. T7-03 may edit apps/web/scripts/page-check.ts and apps/web/tests/page-check.test.ts, narrowing the exact-text assertion to <main> while keeping the banner, mode-line and footer assertions exact. t15-api owns the other files in apps/web/scripts/ (bundle-pull) and never edits page-check.ts, so the orchestrator resolves any merge overlap. Continue T7-03 with this criterion.\nAuthor 2026-11-14T21:24Z: BLOCKED again, by a second contradiction inside the story (needs a human decision). The criterion \"aria-current on the active route\" cannot be met by a server-only layout, but the description says \"The layout adds no NuqsAdapter and no client component.\" Next.js 16 docs (layout.mdx, via Context7): \"Layouts do not rerender on navigation and cannot access pathname\". usePathname and useSelectedLayoutSegment are client-only (\"Reading the current URL from a Server Component is not supported\"). Next 16.4.6 Link sets no aria-current, and next/root-params covers only dynamic segments. Internal APIs (workAsyncStorage route) would go stale after client navigation, because layouts are reused across routes. To unblock, choose one: (1, recommended) allow exactly one client module, apps/web/components/site-header.tsx (already in files): \"use client\", only the seven static next/link items plus usePathname for aria-current=\"page\", no bundle data and no provider. The root layout, banners, footer and pages stay server components, / stays static, and the added client JS on / is measured against the T0 baseline (6 scripts, 173,974 B gzip -9). The docs show this pattern for active links. (2) Drop aria-current from the criterion and keep the nav server-only. Planned interpretation, unless told otherwise: the footer keeps T0-05's \"Bundle version: <bundle_version>\" (shellText in lib/shell.ts, which page-check asserts and this story does not own) and appends \" · Schema <schema_version>\". That is how the story's \"Bundle <bundle_version>\" will be read.\nralph orchestrator 2026-11-14T21:24:28Z: decision on the second contradiction, adopting the author's recommended option (1). Exactly one client module is allowed: apps/web/components/site-header.tsx ('use client', only the static next/link items plus usePathname for aria-current='page', no bundle data, no provider). The root layout, banners, footer and pages stay server components, and / stays static. The added client JS on / is measured against the T0 baseline (6 scripts, 173,974 B gzip -9) and recorded, staying within PRD 8.10's 250 kB. The footer keeps T0-05's 'Bundle version: <bundle_version>' and appends ' · Schema <schema_version>'. Set this story back to pending and continue.\nAuthor 2026-11-14T21:40Z: implemented. The T0-05 bundle loader is apps/web/lib/bundle.ts (loadBundle); apps/web/lib/shell.ts (shellText) builds the mock banner, shipping-mode and footer strings. Both are read, never edited. Initial JavaScript on / after this story (the <script src> files of .next/server/app/index.html, gzip -9): 6 scripts, 177,190 B, which is 3,216 B over the T0 baseline of 173,974 B and within the PRD 8.10 budget of 250 kB. The client manifest for / has 9 modules; the only one outside next is components/site-header.tsx.\nralph orchestrator 2026-11-15T00:08:32Z: T7-03 reached 6 review rounds; both round-6 blockers were page-check edge cases and are fixed. This loop now allows up to 8 rounds. Scope: page-check.ts and the layout tests verify the pages this app actually renders (PRD 8.6, 8.10, T0-05 guarantees); they are not a security boundary against crafted markup. Fix every finding that a real rendered page could trigger. A finding that needs markup the app never produces may be rebutted with this reason. No assertion on the banner, mode line, footer or <main> text is weakened."
+    },
+    {
+      "id": "T7-04",
+      "title": "/methods gates board from validation.json",
+      "owner": "web-frontend",
+      "prdRefs": [
+        "8.4",
+        "8.6",
+        "9",
+        "8.12",
+        "10 (Validation board)",
+        "3"
+      ],
+      "description": "Add the static /methods page with the validation board, rendered from the bundle's validation.json GateRecords through @terraluna/schema types. The numerical-contract and MDX/KaTeX sections are out of scope for this batch.",
+      "files": [
+        "apps/web/app/methods/*",
+        "apps/web/components/gates-board.test.tsx",
+        "apps/web/components/gates-board.tsx",
+        "apps/web/eslint.config.mjs",
+        "apps/web/package.json",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "Vitest tests first, using fixtures/mock-bundle/validation.json and small in-test GateRecord arrays: every GateRecord field defined by the schema is rendered; NOT_RUN is shown as the literal text \"NOT_RUN\" and never as pass, zero, blank or green; PASS, FAIL, PARTIAL and NOT_APPLICABLE each render their own literal text; a record whose result is null renders as an explicit unavailable reason, never 0.",
+        "/methods is statically rendered, has one h1, a table with caption and column headers (gate_id, status and the other GateRecord fields) usable by screen readers, and sorts rows by gate_id G0 to G6 without dropping or inventing rows. Gates absent from validation.json are shown as \"No record in this bundle\", not as NOT_RUN.",
+        "Status text is never conveyed by colour alone. No threshold, metric, result or pass is typed in a component or page; all text beyond headings and PRD 3 wording comes from validation.json.",
+        "The page contains no encoder, model or embedding content of any kind, and no standing sentence about the encoder, before G5 passes. Gate rows (including G5) appear only as GateRecords from validation.json, with their literal status text.",
+        "A mock-bundle banner and mode banner appear through the layout; make web-smoke still passes; the page is included in the Next build output as static."
+      ],
+      "checks": [
+        "make check",
+        "make test",
+        "pnpm --filter @terraluna/web exec vitest run components/gates-board.test.tsx",
+        "make web-build",
+        "make web-smoke"
+      ],
+      "priority": 4,
+      "passes": true,
+      "review": {
+        "state": "passed",
+        "round": 1,
+        "base": "32b1f21ade7db5b0a158bcfeb9c3578ff93c74cc",
+        "head": "b4b06ff8810a24a3029aa180c07a7c45ab5d170b",
+        "files": [
+          "reviews/T7-04-claude.json",
+          "reviews/T7-04-codex.json"
+        ],
+        "digests": {
+          "reviews/T7-04-claude.json": "e7c74b369955664eed263d69677d76c45d8c7b58aa256fb5564ff9a432080ab6",
+          "reviews/T7-04-codex.json": "90372245fa7092ea89003f564c9eb2d7518492dd1aed574abc68217007495dd1"
+        }
+      },
+      "notes": "Removed the manifest.model-conditional encoder sentence: encoder content stays off every page until G5 is PASS (orchestrator decision 4). G5 appears only as an ordinary GateRecord row."
+    },
+    {
+      "id": "T7-05",
+      "title": "/data sources page with an explicit empty state",
+      "owner": "web-frontend",
+      "prdRefs": [
+        "8.4",
+        "8.6",
+        "5",
+        "3"
+      ],
+      "description": "Add the static /data page. It shows the bundle's own files from manifest.json and, when the bundle ships sources.json, its validated ProductRecords. The mock bundle lists no sources.json, so the page must show an honest empty state and render a source table only when the file is listed, present and valid.",
+      "files": [
+        "apps/web/app/data/*",
+        "apps/web/components/sources-table.test.tsx",
+        "apps/web/components/sources-table.tsx",
+        "apps/web/eslint.config.mjs",
+        "apps/web/package.json",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "Vitest tests first. When manifest.files does not list sources.json, the page component renders the text \"No sources.json in this bundle\" and the evidence label Unavailable with that reason, and no table. When it is listed but apps/web/data/sources.json is absent, or its sha256 or byte count differs from the manifest entry, the reader throws a build error naming the file; the empty-state text is never shown because a file was merely not copied. A malformed list renders no partial rows and fails with an explicit invalid-sources message. Test records are synthetic, in-test, with clearly fake ids such as 'test-product'.",
+        "A small T7-owned reader in apps/web/app/data/ or components/ (not apps/web/lib/bundle* or apps/web/scripts/*, which T15 extends so bundle:pull copies sources.json when the bundle has it) reads apps/web/data/sources.json only if it exists and validates it with the ProductRecord zod schema from @terraluna/schema. If @terraluna/schema has no ProductRecord schema on this branch (T1-01 adds it), the reader validates against whatever schema exists, renders no source rows, shows Unavailable with the reason \"ProductRecord schema not in @terraluna/schema\", and leaves a code comment naming the missing schema. It never guesses units, licences or field meanings.",
+        "The page also lists the bundle's own files from manifest.json (path, sha256, bytes) as 'Bundle files', because those are generated records; it states nothing about licences or attributions that are not in a record.",
+        "Licences, attribution and checksums columns show Unavailable with a reason when the record omits them; no row text is typed into the page.",
+        "/data is static, has one h1, passes typecheck and lint; make web-smoke still passes."
+      ],
+      "checks": [
+        "make check",
+        "make test",
+        "pnpm --filter @terraluna/web exec vitest run components/sources-table.test.tsx",
+        "make web-build",
+        "make web-smoke"
+      ],
+      "priority": 5,
+      "passes": false,
+      "review": {
+        "state": "reviewed",
+        "round": 1,
+        "base": "c90c7d07a9446acd0a9a6f07ed52191422168c67",
+        "head": "05fa2bff91e1b868cb01d49f781534304e378dde",
+        "files": [
+          "reviews/T7-05-claude.json",
+          "reviews/T7-05-codex.json"
+        ],
+        "digests": {
+          "reviews/T7-05-claude.json": "d73cef5ceddaacf61a6a215c0d421cd7f7a91c131aa20d8d1d8b9aa670fa19c6",
+          "reviews/T7-05-codex.json": "70a94e7c6e56fa9e23b940b569e8a62981e54c601253074f3f7e9af4f1f83efc"
+        }
+      },
+      "notes": "Presence of sources.json is decided from manifest.files, never from the file merely being on disk. T15 owns copying sources.json (and targets.json) in bundle:pull and the loader; until that lands, a bundle that lists sources.json fails the build here rather than showing a false empty state."
+    },
+    {
+      "id": "T7-06",
+      "title": "Route skeletons with Unavailable-in-this-bundle states",
+      "owner": "web-frontend",
+      "prdRefs": [
+        "8.6",
+        "10",
+        "3",
+        "D28",
+        "D35"
+      ],
+      "description": "Add the routes /explore/moon, /explore/mars, /explore/earth, /model and /site/[cardId] as honest skeletons. No map engine, 3D, chart or ONNX code, no placeholder images, no invented targets or cards, and no model view, model toggle or encoder content (PRD 10, 12: not before G5). Each page states what it will show from the bundle and that it is unavailable in this one.",
+      "files": [
+        "apps/web/app/explore/*",
+        "apps/web/app/explore/earth/layout.tsx",
+        "apps/web/app/model/*",
+        "apps/web/app/site/*",
+        "apps/web/components/unavailable-panel.test.tsx",
+        "apps/web/components/unavailable-panel.tsx",
+        "apps/web/components/view-state.tsx",
+        "apps/web/eslint.config.mjs",
+        "apps/web/package.json",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "Vitest tests first: UnavailablePanel renders the heading text \"Unavailable in this bundle\", the Unavailable evidence label, a required reason string and an optional list of what the bundle must contain (file paths from PRD 8.4); it throws or fails typechecking when reason is empty.",
+        "/explore/moon, /explore/mars and /explore/earth each render one h1 and one UnavailablePanel naming the bundle files they need (for example tiles/{layer}/{z}/{x}/{y}.webp and targets.json, windows/{body}.json), taken from PRD 8.4 and 8.6. /explore/mars notes \"Terrain only; no radar panel except an unavailable note\" (PRD 10) and shows a radar Unavailable note. /explore/earth states that nothing is shown outside processed regions and names its radar and terrain views as separate, both Unavailable. It has no model view, toggle or mention of an encoder. No coordinates, region names, window counts or targets are typed.",
+        "/model is a skeleton only: one h1, one UnavailablePanel with the heading \"Unavailable in this bundle\", and the G5 status read from the G5 GateRecord in validation.json (PRD 11.9 item 9) shown as its literal status text (or \"No G5 record in this bundle\"). It reads nothing from manifest.model, shows no model id, no ranking, no encoder distances and no encoder prose.",
+        "/site/[cardId] takes its card ids from manifest.files entries cards/{card_id}.json. The mock bundle lists none, so generateStaticParams returns none, and any id renders an Unavailable panel stating that the id is not in this bundle's card list, with the seven evidence-card questions from PRD 10 as headings marked Unavailable. If the manifest lists a card whose file is not in apps/web/data/, next build fails naming the file (T15 owns extending bundle:pull for such files); a listed card never gets a placeholder. Behaviour for an unknown id is verified with next build and next start (return the skeleton page or 404 explicitly; document the choice in the code comment).",
+        "View state uses nuqs only on /explore/earth. The NuqsAdapter for the Next.js App Router is mounted in apps/web/app/explore/earth/layout.tsx, not in the root layout, via the minimal client component the adapter requires (the only client JavaScript added here besides the switch itself). /explore/earth has a distance-family switch bound to a ?family= query parameter, keyboard-operable, with exactly two options, radar and terrain, whose only effect is the label of the unavailable panel. The parsed value falls back to a default for unknown input, including ?family=model. All other pages use no nuqs and ship no page-specific client JavaScript, and / stays within the 250 kB gzip JavaScript budget of PRD 8.10 (measured in T7-07).",
+        "Dependency check: package.json gains nuqs and nothing else heavy. The built chunks for these routes do not contain deck.gl, three, @react-three or onnxruntime (verified in story T7-07).",
+        "make web-smoke still passes; typecheck, lint and Vitest pass."
+      ],
+      "checks": [
+        "make check",
+        "make test",
+        "pnpm --filter @terraluna/web exec vitest run components/unavailable-panel.test.tsx",
+        "make web-build",
+        "make web-smoke"
+      ],
+      "priority": 6,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Orchestrator decisions: no model view or toggle before G5; /model is a skeleton with G5 read from validation.json. Engineering choice: nuqs adapter is scoped to the /explore/earth layout so the root layout and stateless pages stay server-only. Cards are listed from manifest.files, not from a directory scan."
+    },
+    {
+      "id": "T7-07",
+      "title": "Playwright with axe: every route, zero serious violations, bundle-size guard",
+      "owner": "web-frontend",
+      "prdRefs": [
+        "8.2",
+        "8.10",
+        "12 (T7 row)",
+        "D35"
+      ],
+      "description": "Add the browser test layer. Browsers are installed through a package script, not globally, and tests run deterministically against a production build of the mock bundle.",
+      "files": [
+        "apps/web/e2e/*",
+        "apps/web/eslint.config.mjs",
+        "apps/web/package.json",
+        "apps/web/playwright.config.*",
+        "apps/web/tests/*",
+        "apps/web/vitest.config.ts",
+        "pnpm-lock.yaml"
+      ],
+      "acceptanceCriteria": [
+        "Dev dependencies @playwright/test and @axe-core/playwright are added at exact versions after reading their current documentation. Package scripts: e2e:install runs playwright install --with-deps only when documented as needed for CI, otherwise playwright install chromium; e2e runs bundle:pull, next build and playwright test against next start. No global install and no use of the machine's own browser.",
+        "playwright.config.* uses chromium only, a fixed port that the config passes to next start, webServer with reuseExistingServer false, retries 0, workers 1, fixed viewport and reduced motion, and a timeout. No test depends on network access beyond localhost.",
+        "e2e tests cover /, /methods, /data, /explore/moon, /explore/mars, /explore/earth, /model and one /site/<unlisted-id>: each shows the shipping-mode banner, the mock banner (when the pulled bundle is the mock) and the bundle version in the footer; each runs axe with wcag2a, wcag2aa, wcag21aa and wcag22aa tags and fails on any violation of impact serious or critical.",
+        "Interaction tests: the skip link moves focus to main; every nav link is reachable by Tab in DOM order; on /explore/earth the family switch (radar, terrain only) changes ?family= through the keyboard and the URL survives a reload with the same selection, and ?family=model falls back to the default; /methods shows the literal text NOT_RUN for gates that the mock validation.json marks NOT_RUN (the expected set is read from the bundle file in the test, not typed); /model shows no encoder or ranking text.",
+        "A budget test loads / and sums the gzip size of its script responses, asserting at most 250 kB (PRD 8.10), and asserts that no requested script URL or content contains deck.gl, three.js, onnxruntime or maplibre markers on any tested route. If the measurement method differs from PRD intent, note it in the test comment.",
+        "Tests assert no AI-generated or raster illustrations: no img element on any route except those with an explicit alt from the bundle (none exist yet), so the test expects zero img elements.",
+        "The suite runs twice in a row with the same result; tests do not depend on wall-clock time or ordering.",
+        "Playwright specs live in apps/web/e2e/ and are named *.e2e.ts, and playwright.config.* sets testMatch to that pattern. Vitest's default include (**/*.{test,spec}.?(c|m)[jt]s?(x)) therefore never collects them and make test still passes with the Playwright files present. Playwright runs only through the e2e script, never through make test or make check."
+      ],
+      "checks": [
+        "pnpm --filter @terraluna/web e2e:install",
+        "pnpm --filter @terraluna/web e2e",
+        "make check",
+        "make test",
+        "make web-smoke"
+      ],
+      "priority": 7,
+      "passes": false,
+      "review": {
+        "state": "pending",
+        "round": 0,
+        "base": null,
+        "head": null,
+        "files": [],
+        "digests": {}
+      },
+      "notes": "Specs are named *.e2e.ts so no Vitest config edit is needed (that config belongs to T0-05). e2e:install downloads Chromium and needs network at every gate and review run; this is known and accepted."
+    }
+  ]
+}

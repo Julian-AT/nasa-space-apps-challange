@@ -1,0 +1,138 @@
+{
+  "task_id": "T7-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "e095c98aa2ecc163c802024636022447c10e7a01",
+    "head": "74bb51ceee89cd92006fc7d0a313bd7451fea63d",
+    "files": [
+      {
+        "path": "apps/web/components/evidence-label.test.tsx",
+        "sha256": "4e428c975ed2059f934b526f2365af0a7ea4c482f51dc68b106d643b5c1651b9"
+      },
+      {
+        "path": "apps/web/components/evidence-label.tsx",
+        "sha256": "ad3972c41e768989529adb5d116c618c46633ce4e81be940098a5a2cb20e8eb7"
+      },
+      {
+        "path": "apps/web/components/evidence-legend.tsx",
+        "sha256": "65fbcd9cac463396f6126129eea4654d43483529ff0e30d8fee0795cb585f9ad"
+      },
+      {
+        "path": "apps/web/components/labelled-value.tsx",
+        "sha256": "b5ca200670f4f32d11b7f3172cc28e1980744fb64736b11b518e7a73d6d4f5c8"
+      },
+      {
+        "path": "apps/web/tests/tailwind.ts",
+        "sha256": "f2857da354fa3d5a52c930251a6450748b355b0a4ded180f7c896f6f63896d1f"
+      },
+      {
+        "path": "apps/web/tests/theme.test.ts",
+        "sha256": "40cf60674a625f98932a777c341f1ad1e072a4d41139b0c705838e99940c3d5c"
+      },
+      {
+        "path": "apps/web/vitest.config.ts",
+        "sha256": "a339bd0edfe4b013a9bd5ffde797bc0c9b0feff61ff39edc9fe25bb389b822e3"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:05:15Z",
+  "finished_utc": "2026-11-14T20:05:43Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T7-02 (commit 74bb51c, base e095c98) meets every acceptance criterion on evidence I gathered myself. make check, make test and the targeted vitest run all pass. I found no blocker or high-severity defect. The review ran under Sonnet 5.5 (claude-sonnet-5-5) with Bash, Read and Grep. I did not run the tests-first-and-failing step, because I could only inspect the final state. I also didn't open the full test body line by line, so my reading of the tests rests on test names, grep results and passing runs.",
+  "checks": [
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, eslint and tsc all succeed. turbo reports 4/4 tasks successful, replayed from cache."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed. web vitest 9 files and 174 tests passed. schema vitest 157 passed. All were turbo cache replays, so I did not re-execute them. The targeted run below did execute."
+    },
+    {
+      "criterion": "pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx",
+      "outcome": "PASS",
+      "evidence": "1 file passed, 50 tests passed. This run was a real execution, not a cache replay."
+    },
+    {
+      "criterion": "Tests written first and cover each of the five labels rendering its text, plus a type-level check that no other string compiles",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "evidence-label.test.tsx has 50 tests. Lines 140 and 189-192 use @ts-expect-error for 'Measured' and for case variants. tsc passes in make check, so those directives are live. Tests-first ordering was not verified, because I only saw the final state."
+    },
+    {
+      "criterion": "EvidenceLabel: five-value union, label text plus PRD 3 meaning as accessible description, distinct non-colour treatment per label",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "evidence-label.tsx:16-27 holds the meanings. I compared them with PRD.md:124-128 and they are verbatim. Line 68 sets aria-describedby, and line 73 renders the meaning as sr-only or visible text. Lines 45-51 give each label a distinct border style or width, and line 234 tests that every pair differs in greyscale."
+    },
+    {
+      "criterion": "LabelledValue: {label, value, unit, source}; value shown only when not Unavailable; Unavailable requires and renders a reason; missing value is a type error and never 0, empty or a dash",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "labelled-value.tsx:10-31 is a discriminated union. Value labels need value, unit and source. Unavailable needs reason and forbids value and unit. Runtime guards at lines 35-56 and 69-73 refuse null, NaN, a blank string, dashes and n/a. Tests at lines 306-354 cover these cases, including @ts-expect-error."
+    },
+    {
+      "criterion": "EvidenceLegend is a server component listing the five labels with PRD 3 meanings; sentence unaltered",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "evidence-legend.tsx:8 holds the sentence, which matches PRD.md:120. It has no use-client directive. The test at evidence-label.test.tsx:435-438 asserts that none of the components uses a client directive. Tests at lines 399-426 check the sentence and the meanings."
+    },
+    {
+      "criterion": "No numbers, targets or claims in components; tests use synthetic values",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The component sources contain no domain figures. Test line 442 asserts that no digit is added to the page text. The value-label tests use synthetic values, and the 0 case checks that zero is rendered as a value."
+    },
+    {
+      "criterion": "Typecheck, lint and Vitest pass; no client directive",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "All three passed in the checks above. Test lines 435-438 enforce the no-directive rule."
+    },
+    {
+      "criterion": "Changed paths stay within the story's files list",
+      "command": "git diff --stat",
+      "outcome": "PASS",
+      "evidence": "Changed files are the three components, the test, tests/tailwind.ts, tests/theme.test.ts and vitest.config.ts. All fall under apps/web/tests/* or the listed files. tests/theme.test.ts only has its helpers moved into tests/tailwind.ts, and those tests still pass. There are no changes to config/run.yaml, package.json or the lockfile, and the working tree is clean apart from a log file."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/components/labelled-value.tsx:35",
+      "claim": "The placeholder regex may over-refuse a legitimate string value such as 'none' or 'unknown' for an Observed or Derived label. It would also let a placeholder like 'TBD' through.",
+      "evidence": "PLACEHOLDER matches blank, dashes, ?, n/a, nan, null, undefined, none and unknown. The behaviour is stricter than the criterion requires and fails safe. It is a judgement call, not a defect.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "5a529dd3463f2f0bd4c6345eeda14ec3de50dead",
+        "reason": "Fixed in 5a529dd (failing tests first in 4f24fcd). The PLACEHOLDER pattern in apps/web/components/labelled-value.tsx now also refuses a value that is only TBD, TBC, TBA or missing, in any case and with surrounding blanks. Such a value is a marker for evidence that is not there, and PRD 3 labels missing evidence Unavailable with a reason, so the build fails instead of showing it. None and unknown stay refused on purpose. A value labelled Observed, Derived, Predicted or Assumed that reads only unknown or none is missing evidence presented as a value, which section 3 and CLAUDE.md forbid. Refusing it fails next build loudly and names label Unavailable, so nothing is hidden; a record that means a real result can say so in words (for example \"no detection\"). The pattern is anchored, so a value that merely contains one of these words still renders. New tests show test-none-value, \"test-value tbd\" and unknown-test-value. pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx: 57 passed (4 failed before the fix)."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "apps/web/vitest.config.ts:7",
+      "claim": "The include list was widened to components/**, which the story's file list allows. Colocated component tests now run in the default `vitest run`, which is intended.",
+      "evidence": "`make test` shows components/evidence-label.test.tsx among the 9 files. No action needed.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted: this is not a defect, and the finding says no action is needed. vitest.config.ts is in the story files list. Widening include to components/**/*.test.{ts,tsx} is what makes the story check `pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx` find the colocated test at all. Before the change Vitest collected only tests/**, as the Codebase Patterns entry from T7-01 records. The same include serves the colocated tests that T7-03 to T7-06 name in their checks. make test runs 9 web test files and 181 tests, including this one."
+      }
+    }
+  ]
+}

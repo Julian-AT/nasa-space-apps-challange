@@ -1,0 +1,182 @@
+{
+  "task_id": "T7-03",
+  "round": 8,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "9864e9499b0363cf73de4cbc572c4829c9d514ff",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "e59732f5b504bd1886defe75f945178f53e38eb63418a4ade3efba9bbfcf31c3"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/package.json",
+        "sha256": "e24729b42b65b4a4e66bd8179bd2432e086b1f1cc6a6d1433880993438d5475b"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "33001326b1ac1bdc99d000c7cce7306374a297cd08888264663998461be5677b"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "bfbff0e4fe5d6ccac5ed9ec83dfe4065ebec90cff315dc4e66196e40234395d7"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "d2b96f8ef179a404afd0e4b7ce17fef6cf8baa189303aa76d1b7cc2177144a0b"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "f4ce752d0340791629b76a8bea9bda6bc82fa64a3e6799dc88d67ea6ed896fc8"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "6055d6786fc392a00c0ee2b1dcb5ce8144cebec737729e765189baef25e4e6a5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:15:55Z",
+  "finished_utc": "2026-11-15T00:16:40Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T7-03, round 8, reviewer claude (claude-sonnet-5-5). I reviewed commits ceeae12..9864e94. All five story checks exit 0. The layout, banners, header, footer and home page match the acceptance criteria as far as I could verify them. The diff touches only paths in the story's scope. The one thing I did not reproduce is the gzip -9 initial-JS measurement. The author reports 177,190 B in the story notes. The review permissions forbid the loop it needs.",
+  "checks": [
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, mypy, eslint and tsc all passed. Turbo showed 4 successful tasks, all cache hits."
+    },
+    {
+      "criterion": "make test",
+      "command": "make test",
+      "outcome": "PASS",
+      "evidence": "pytest 404 passed. Web vitest 325 passed (mode-banner 14, page-check 105, site-layout 33). Schema vitest 157 passed. Turbo showed these as cache hits."
+    },
+    {
+      "criterion": "mode-banner vitest",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "PASS",
+      "evidence": "1 file passed, 14 tests passed."
+    },
+    {
+      "criterion": "make web-build",
+      "command": "make web-build",
+      "outcome": "PASS",
+      "evidence": "/ is static (○) and /_not-found is static (○). Build compiled successfully."
+    },
+    {
+      "criterion": "make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "PASS",
+      "evidence": "Output: 'web-smoke: GET http://127.0.0.1:55341/ (prerendered) shows the mock banner, \"Shipping mode: not chosen (G0 NOT_RUN)\" and bundle version mock-0 in the footer'."
+    },
+    {
+      "criterion": "AC1 mode banner and mock banner text",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "mode-banner.tsx:10-21 holds the PRD 4 titles. The mode-banner tests pass, including a comparison with PRD.md. mock-banner.tsx:8-15 renders the banner only when the text is non-null, with role=\"status\"."
+    },
+    {
+      "criterion": "AC2 layout renders skip link, mock banner, mode banner, nav, main and footer",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "layout.tsx:28-39. The footer reads 'Bundle version: <v> · Schema <v>' (site-footer.tsx:9), which follows the recorded orchestrator decision and T0-05 smoke wording. This is a literal-reading difference only."
+    },
+    {
+      "criterion": "AC3 nav links",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "site-header.tsx:11-19 lists the seven links. They are plain next/link anchors, and no /api/docs, /paper, /probe or /compare link exists."
+    },
+    {
+      "criterion": "AC4 keyboard order, focus ring, aria-current",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "site-header.tsx:27-36 puts aria-current=\"page\" on the link whose href equals the pathname, in DOM order. Tests in site-layout.test.tsx pass. I did not inspect the global focus-ring CSS myself."
+    },
+    {
+      "criterion": "AC5 wording rules and / content",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page.tsx:13-14 holds the title and one factual line with no numbers, targets or claims. Banner texts come from PRD 4 verbatim."
+    },
+    {
+      "criterion": "AC6 static rendering and web-smoke",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page.tsx:8 sets dynamic = 'error'. The build shows / as static. make web-smoke passes."
+    },
+    {
+      "criterion": "AC7 page-check updated test-first, nothing weakened",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "page-check.test.ts has 105 passing tests, and the site-layout test runs pageProblems against the real RootLayout. The earlier round fixes (exact banner, footer and mode texts, a single footer, stray-text accounting, a parse5 document tree, head and title exclusion) are all in place. I did not re-read page-check.ts line by line; I relied on the test suite and the author's evidence for the earlier rounds."
+    },
+    {
+      "criterion": "AC8 only client component is site-header.tsx; initial JS within 250 kB",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The client-component part holds: site-header.tsx is the only 'use client' file among the layout files I read, and / is static. The gzip -9 sum needs a shell loop, which the review permissions forbid. The author reports 177,190 B (+3,216 B over the 173,974 B baseline), which is within 250 kB. I did not reproduce it."
+    },
+    {
+      "criterion": "Scope: files changed",
+      "command": "git diff --name-only ceeae12..9864e94 -- apps pnpm-lock.yaml config",
+      "outcome": "PASS",
+      "evidence": "All 15 paths are in the story's files list, or are tests/markup.ts and tests/prd.ts under the apps/web/tests/* pattern. config/run.yaml was not touched."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "apps/web/.next/server/app/index.html",
+      "claim": "I did not reproduce the initial-JS gzip -9 figure of 177,190 B.",
+      "evidence": "The measurement needs a loop or pipe, which the review permissions forbid. The build shows / as static and site-header.tsx is the only client module I found. The author's figure is within the 250 kB budget.",
+      "id": "claude-r8-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Reproduced after make web-build at a389efd: the six <script src> files of apps/web/.next/server/app/index.html at gzip -9 are 48,186 + 71,595 + 3,936 + 6,629 + 39,390 + 7,454 = 177,190 B, which is +3,216 B over the T0 baseline of 173,974 B and within the PRD 8.10 budget of 250 kB, the same figure as in the story notes. The client reference manifest for /page has 9 modules, and the only one outside node_modules is apps/web/components/site-header.tsx. Command: grep -o \"<script src=...\" index.html | sort -u | while read -r f; do gzip -9 -c .next/$f | wc -c; done | awk sum. No code change is needed."
+      }
+    }
+  ]
+}

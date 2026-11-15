@@ -1,0 +1,192 @@
+{
+  "task_id": "T7-03",
+  "round": 6,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "427c5410f886c3c06506caced53ddf1f63cc2243",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "e59732f5b504bd1886defe75f945178f53e38eb63418a4ade3efba9bbfcf31c3"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "dc0e5d5f4d286c0d836e3a813d834fda929794428a54e5cf510d6e482a95ec0a"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "70493811f7a1d479f4eb8ddc8b48a6718bcc63fbca7ec485a1e97eba3783f365"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "d2b96f8ef179a404afd0e4b7ce17fef6cf8baa189303aa76d1b7cc2177144a0b"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "f4ce752d0340791629b76a8bea9bda6bc82fa64a3e6799dc88d67ea6ed896fc8"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T23:51:28Z",
+  "finished_utc": "2026-11-14T23:55:57Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Two smoke-check gaps remain in criterion 7. The shared layout otherwise matches the inspected contract. No checks were executed and no files were changed.",
+  "checks": [
+    {
+      "criterion": "AC1: Test-first banner behavior and exact wording",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Inspected 642bedb's tests and tree: banner tests precede their implementation files. Current components/mode-banner.test.tsx:63-81 covers every G0 status, absent G0, and A/B/C titles; lines 120-140 cover mock visibility and exact text. Components use lib/shell.ts:15-27 and the verbatim titles in components/mode-banner.tsx:10-20."
+    },
+    {
+      "criterion": "AC2: Shared layout landmarks, banners and versioned footer",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/app/layout.tsx:23-38 renders the skip link, both banners, navigation, main and footer. mock-banner.tsx:9-14 conditionally renders red status text. site-footer.tsx:6-10 renders bundle and schema versions using the approved 'Bundle version:' wording."
+    },
+    {
+      "criterion": "AC3: Seven prescribed next/link destinations",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/site-header.tsx:11-18 contains exactly the seven prescribed destinations; lines 29-37 render plain next/link items. No prohibited destination is present."
+    },
+    {
+      "criterion": "AC4: Keyboard navigation, visible focus and aria-current",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "By inspection, site-header.tsx:24-40 renders native links in list order without tabindex overrides and sets aria-current only for an exact pathname match. app/globals.css:67-69 supplies the visible focus outline. tests/site-layout.test.tsx:105-154 covers ordering, active routes and keyboard-related markup."
+    },
+    {
+      "criterion": "AC5: Permitted Mode B/C claims and factual home-page text",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "components/mode-banner.tsx:10-13 matches PRD.md:169-171 verbatim. app/page.tsx:13-14 contains only the title and factual bundle-record line; the three T0 texts remain in the layout through the banners and footer."
+    },
+    {
+      "criterion": "AC6: Build-time bundle reading, static home route and passing smoke check",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The loader is apps/web/lib/bundle.ts, imported at app/layout.tsx:18 and called at line 24; app/page.tsx:8 retains dynamic='error'. Static build and smoke behavior require execution, which the user prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC7: Test-first page-check adjustment without weakening protected assertions",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The main equality and exact footer checks are present at scripts/page-check.ts:313-334, and lib/bundle.ts's production guard is untouched. However, line 51 exempts a nested html/head inside the body, while lines 309-312 miss duplicate mode text split inside a word by inline markup. Both are determinable by inspection; see findings."
+    },
+    {
+      "criterion": "AC8: Only site-header is client-side; static rendering and initial-JS budget",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Source inspection finds only components/site-header.tsx:1 declaring 'use client', with next/link and usePathname and no provider or bundle data. Story notes record the loader and 177,190 B measurement against 173,974 B. The build and gzip measurement were not independently executed because the user prohibited checks."
+    },
+    {
+      "criterion": "Previous Codex fixes: exact values, nested banner content, enclosing live regions and unique footer",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "By inspection, scripts/page-check.ts:225-252 validates complete banner parts and all recorded enclosing live regions; lines 313-322 require exactly one exact footer. tests/page-check.test.ts:75-266 and 335-352 exercise the reported r1-r4 and r5-2 mutations. The r5-1 non-live wrapper fixture is covered at lines 291-325, but its broader text-accounting guarantee remains incomplete as described in the first finding."
+    },
+    {
+      "criterion": "Previous rebuttals: footer wording and permitted 404 destinations",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "scripts/ralph/batches/t7-shell/prd.json:179 records the orchestrator's approved footer wording, which site-footer.tsx:9 implements. AC3 explicitly permits unfinished destinations to 404. Neither rebuttal establishes a new defect. Previous JavaScript-size rebuttals remain unverified under AC8."
+    },
+    {
+      "criterion": "Required check: make check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited executing checks in the read-only sandbox; type generation and tool caches can write files."
+    },
+    {
+      "criterion": "Required check: make test",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited executing checks in the read-only sandbox; test tooling can write caches and artifacts."
+    },
+    {
+      "criterion": "Required check: focused banner tests",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited executing checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: web build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited executing checks; this target copies bundle files and writes Next.js build artifacts."
+    },
+    {
+      "criterion": "Required check: web smoke",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited executing checks; this target depends on the writing web-build target."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "apps/web/scripts/page-check.ts:51",
+      "claim": "Restrict the head exemption to the actual document root. Criterion 7 and the r5-1 text-accounting fix remain incomplete.",
+      "evidence": "By inspection, MOCK_PAGE.replace('<header>', '<html><head>Radar match passed</head></html><header>') is accepted. blockTree records a nested html whose first child is head, so isDocumentHead returns true and strayTexts exempts the added claim. Browsers ignore these misplaced html/head start tags and display the claim in the body. The original whole-body equality rejected this addition. Existing head regressions at tests/page-check.test.ts:316-317 omit the nested html wrapper. Identify the actual document head or reject nested document elements, and add this regression.",
+      "id": "codex-r6-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "e0b4937cd33b9acd25093788c079e30829ba6cc7",
+        "reason": "page-check.ts now builds its block tree from the document parse5 8.0.1 builds (HTML Living Standard tree construction; dependency added in 3cb8825), not from a regex tokenizer. The parser keeps a single head and ignores html and head start tags in the body, so their text lands in the body. Only a title in that one document head is left out (isDocumentTitle, page-check.ts:59), and the old whole-head exemption is gone. Regression tests from e2ba0a8 and ae7f913 (tests/page-check.test.ts, from line 344): your fixture MOCK_PAGE.replace('<header>', '<html><head>Radar match passed</head></html><header>') and the same with a <title> are reported as stray text, as are text after the document title, text after </html>, comments ended by <!-->, <!---> or --!>, text between comments that hold script tags, and a lone '<'. A div written inside a banner's p is now expected beside it, where the parser closes the p. All 14 new cases failed before e0b4937 and pass after it."
+      }
+    },
+    {
+      "severity": "blocker",
+      "location": "apps/web/scripts/page-check.ts:309",
+      "claim": "Count shipping-mode banners using the same inline-text normalization used to validate them. The once-only assertion can currently be bypassed.",
+      "evidence": "By inspection, append '<p>Ship<span>ping</span> mode: B — Terrain analog candidates for Connecting Ridge, with radar context</p>' before REAL_PAGE's </header>. blockTree joins the inline text, so checkBanner accepts both complete mode paragraphs and accounts for both in strayTexts. However, visibleText replaces inline tags with spaces, making the added marker 'Ship ping mode:'; occurrences therefore counts only the original line and pageProblems returns no problems. The original whole-body equality rejected duplicates. Add a duplicate-banner regression with inline markup splitting the marker and enforce uniqueness from the parsed banner text.",
+      "id": "codex-r6-2",
+      "resolution": {
+        "action": "fixed",
+        "commit": "e0b4937cd33b9acd25093788c079e30829ba6cc7",
+        "reason": "The shipping-mode count and the non-mock 'Mock bundle' check now use the parsed page text, the text of the html block, where inline markup joins up as a browser shows it (page-check.ts:291). visibleText is removed, so no check splits words at inline tags any more. tests/page-check.test.ts:67-81 adds your fixture '<p>Ship<span>ping</span> mode: B — Terrain analog candidates for Connecting Ridge, with radar context</p>' before REAL_PAGE's </header>, which now gives '\"Shipping mode:\" appears 2 times; the page must state its mode once'. It also adds the words split across two blocks, and 'Mo<b>ck</b> bundle' on a bundle that is not mock. The inline case and the mock case failed before e0b4937."
+      }
+    }
+  ]
+}

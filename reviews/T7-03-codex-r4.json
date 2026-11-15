@@ -1,0 +1,168 @@
+{
+  "task_id": "T7-03",
+  "round": 4,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "ceeae12ca18d9f2a433d4c3d9e424036709b6279",
+    "head": "edbfe82c812eae821654976308df517eabde3bfd",
+    "files": [
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "186a46fcae7ec97716ce8a7521b302695b2e5b438248fde9483d288760a75085"
+      },
+      {
+        "path": "apps/web/app/page.tsx",
+        "sha256": "26883276510cbe42c622ce6a040ecf26579c6310fd9e004f96b4f67240c2d238"
+      },
+      {
+        "path": "apps/web/components/mock-banner.tsx",
+        "sha256": "0e3ca7d1fdf9b7547dcb19a044f62db0b2ffe7e58c311567c586535afabed685"
+      },
+      {
+        "path": "apps/web/components/mode-banner.test.tsx",
+        "sha256": "e59732f5b504bd1886defe75f945178f53e38eb63418a4ade3efba9bbfcf31c3"
+      },
+      {
+        "path": "apps/web/components/mode-banner.tsx",
+        "sha256": "6cd10fad93b287c16e9e85b218e7e2dce9f782353c6f15c627a1f0f0263923b0"
+      },
+      {
+        "path": "apps/web/components/site-footer.tsx",
+        "sha256": "8cadd8c40f4a12ec48e249f8547fd717a250a38e39af7da2e83751e9df218eac"
+      },
+      {
+        "path": "apps/web/components/site-header.tsx",
+        "sha256": "34a44b0b26d043a6a1ce42919684bfc794e790d18ef486f290a11f4eb7138d14"
+      },
+      {
+        "path": "apps/web/components/skip-link.tsx",
+        "sha256": "254856340be84c17cdf5845549a303601b168dcb7dc7d97e32f98a7d758797a2"
+      },
+      {
+        "path": "apps/web/scripts/page-check.ts",
+        "sha256": "f2107b007b2a6ee2d3ad9c0a5d890914d2b8a0779d60c47da39683cad8e5cb56"
+      },
+      {
+        "path": "apps/web/tests/markup.ts",
+        "sha256": "bdf46ad4729036f78c918cc7c715741b18d1864d72b9ec784f7e3fbe7a3b5059"
+      },
+      {
+        "path": "apps/web/tests/page-check.test.ts",
+        "sha256": "6d52f71ffc0686868938ed738d78fb5cd87cabc1fa513feea16476247b762218"
+      },
+      {
+        "path": "apps/web/tests/prd.ts",
+        "sha256": "d2b96f8ef179a404afd0e4b7ce17fef6cf8baa189303aa76d1b7cc2177144a0b"
+      },
+      {
+        "path": "apps/web/tests/site-layout.test.tsx",
+        "sha256": "2b702bb4bc621461944df0d8eb7a7e4148795f89d7248accb7ac67ef9d88518b"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:17:40Z",
+  "finished_utc": "2026-11-14T22:21:46Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "One blocker remains: nested status regions bypass exact banner validation, leaving codex-r3-1 partially unresolved. Required checks were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests first; exact shipping-mode and conditional mock-banner wording.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Source inspection: tests exist in 642bedb before the banner implementations exist in that tree. Current mode-banner.test.tsx:59-144 covers G0 statuses, absent G0, verbatim PRD titles and conditional mock text. Implementation matches at lib/shell.ts:15-27, components/mode-banner.tsx:10-26 and components/mock-banner.tsx:8-14. Tests were not executed."
+    },
+    {
+      "criterion": "AC2: Shared root layout includes skip link, banners, navigation, main and version footer.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "app/layout.tsx:23-38 renders all required components around children. mock-banner.tsx:12 supplies role=\"status\" and red theme classes; app/globals.css:30 defines the red token. site-footer.tsx:9 includes bundle and schema versions. The footer wording rebuttals agree with the explicit orchestrator decision in scripts/ralph/batches/t7-shell/prd.json:179."
+    },
+    {
+      "criterion": "AC3: Exactly the seven specified plain next/link navigation destinations.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "components/site-header.tsx:8-38 imports next/link and renders Home, Moon, Mars, Earth, Model, Methods and Data with the specified destinations. No forbidden destination appears. The earlier 404 rebuttal is consistent with AC3 expressly permitting unfinished routes to return 404."
+    },
+    {
+      "criterion": "AC4: Keyboard-operable navigation in DOM order, visible focus ring and active-route aria-current.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "By source inspection, site-header.tsx:25-38 renders ordinary links in array order without tabindex overrides and sets aria-current=\"page\" by pathname equality. app/globals.css:67-69 supplies a 2px focus-visible outline. tests/site-layout.test.tsx:121-154 covers current-route selection and keyboard-relevant markup."
+    },
+    {
+      "criterion": "AC5: PRD Mode B/C wording and factual-only home content.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "components/mode-banner.tsx:10-13 matches PRD.md section 4 verbatim, including Mode C's incomplete-radar statement. app/page.tsx:13-14 renders only the title and factual bundle-record line; the shared layout retains the T0 protected texts."
+    },
+    {
+      "criterion": "AC6: Build-time bundle reading, static home rendering and passing web-smoke.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The loader is apps/web/lib/bundle.ts:235-241, called by app/layout.tsx:24; app/page.tsx:8 retains dynamic='error'. Loader, shell helper and config/run.yaml have no diff. Static build and smoke behavior require execution, prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "AC7: Test-first main-only equality while preserving exact banner/footer checks and production guard.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "page-check.ts:210-226 checks exact footer and main text; lib/bundle.ts's production guard is unchanged. Earlier prefix and inline-suffix cases are addressed, but bannerParts at page-check.ts:153-162 can ignore an enclosing status banner when the inner paragraph is itself a status region. See the blocker finding."
+    },
+    {
+      "criterion": "AC8: Only site-header is client code; static rendering and measured initial JavaScript within budget.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Source inspection finds only components/site-header.tsx:1 declaring 'use client', importing only next/link and next/navigation, with no bundle data or provider. Story notes at scripts/ralph/batches/t7-shell/prd.json:179 record 177,190 B against 173,974 B. The repeated measurement rebuttals cannot substitute for independent build and gzip execution, prohibited here."
+    },
+    {
+      "criterion": "Required check: make check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibits running checks in this read-only sandbox; tooling may write generated files or caches."
+    },
+    {
+      "criterion": "Required check: make test",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibits running checks in this read-only sandbox; test tooling may write caches or artifacts."
+    },
+    {
+      "criterion": "Required check: focused mode-banner Vitest suite",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibits running checks in this read-only sandbox; Vitest may write caches."
+    },
+    {
+      "criterion": "Required check: make web-build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibits running checks. Makefile:92-94 runs bundle:pull and the build, which write apps/web/data and build artifacts."
+    },
+    {
+      "criterion": "Required check: make web-smoke",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibits running checks. Makefile:97 makes web-smoke depend on the writing web-build target."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "apps/web/scripts/page-check.ts:160",
+      "claim": "Validate the enclosing banner region even when its inner paragraph already has role=\"status\". AC7 and codex-r3-1 remain partially unresolved.",
+      "evidence": "By inspection, replace MOCK_P in tests/page-check.test.ts with '<div role=\"status\"><p role=\"status\">Mock bundle — placeholder data, not results</p><p>Radar match passed</p></div>'. The outer div has two text-bearing children, so the container walk at lines 156-159 stops at the first p. The live-region search at lines 160-162 also stops at that p, whose text is exact. The outer status region and its added claim are never checked; the unchanged mode, main and footer checks also accept the fixture. The existing second-paragraph regression at tests/page-check.test.ts:190 omits role=\"status\" from the inner p, unlike the actual MockBanner at components/mock-banner.tsx:12. Add this regression and validate the enclosing banner region's complete text.",
+      "id": "codex-r4-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "89eac14441079507fbed24bd4d237d41938ccd5a",
+        "reason": "Only the nearest live region around a banner was compared, so a status <div> around the status <p> of the mock banner could add a second paragraph. blockTree in apps/web/scripts/page-check.ts now tracks every open element, so an end tag closes its own element while only blocks split the text. Each block records every live region it sits in (role alert, log, marquee, status or timer, or aria-live polite or assertive), on a block or an inline element, and bannerParts returns the container plus all of them, nearest to outermost. Each must read exactly the banner. Tests first in fe077ef: the reviewer's fixture <div role=\"status\"><p role=\"status\">Mock bundle — placeholder data, not results</p><p>Radar match passed</p></div>, an aria-live wrapper, an alert region two blocks out, inline live regions around or after the paragraph, and the same case for the shipping-mode banner must all be reported; nested or inline live regions that read exactly the banner must pass. Against the pre-fix page-check.ts (ee47c2a) 7 of 63 tests in tests/page-check.test.ts fail; with 89eac14 all 63 pass. All five story checks exit 0 at 938d4aa, and TURBO_FORCE=true make check and make test also exit 0 (web 282 tests, schema 157, pytest 404)."
+      }
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "task_id": "T7-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "5d858c25b8e8897db6938d04ae005faaaf2a1d24",
+    "head": "cb3b8eeaa309b3cccc00800e91ec5619d72bfcd3",
+    "files": [
+      {
+        "path": "apps/web/app/globals.css",
+        "sha256": "9b828d4a3e75dea324300ca4fc6529606f4a70eee69870437369ad4ad0e1244f"
+      },
+      {
+        "path": "apps/web/app/layout.tsx",
+        "sha256": "e0af84ad34217d002cc14f4626e8cafb3f03b84b92a878a324c0e6ffc6038f3b"
+      },
+      {
+        "path": "apps/web/components.json",
+        "sha256": "9fab771c63762a68aad921eeb7dea9b1678e72e4afa0e611167f1792bb44f911"
+      },
+      {
+        "path": "apps/web/components/ui/badge.tsx",
+        "sha256": "88df057e3aa01a4a16ed8a5fa3c4589b166039f4fe02b421cead133eba365ed8"
+      },
+      {
+        "path": "apps/web/components/ui/button.tsx",
+        "sha256": "86007b055118c4fb98ac204f5f2b583db5257b9f176ad47b34d3d684f4c87150"
+      },
+      {
+        "path": "apps/web/lib/utils.ts",
+        "sha256": "d24c1b6b0fda1dcbf920dc904c196c25defa7bea1632d684e2779ef65dc0d8d3"
+      },
+      {
+        "path": "apps/web/package.json",
+        "sha256": "5503bac7c1b2e929cfd61a0594a59a9777ce4786a9f8280519b027f9f0124412"
+      },
+      {
+        "path": "apps/web/postcss.config.mjs",
+        "sha256": "9777e035417bdee03422101fb4efa8745c8a2d4ba5f6ab24ecef45dd0581ffa4"
+      },
+      {
+        "path": "apps/web/tests/contrast.ts",
+        "sha256": "d6a0b7d83730ceafc670ccc362a454a2cdeddbe8047d42f746e7ba805da8982d"
+      },
+      {
+        "path": "apps/web/tests/styling-setup.test.ts",
+        "sha256": "85788a89e8d52d76bc5bf9190aa8e3e3f46eaf835d5a813073a10c27f17056e4"
+      },
+      {
+        "path": "apps/web/tests/theme.test.ts",
+        "sha256": "be859f19236c4409665a6e7b454e493ba62f1b55d411605e0bc9eda5799cc8c7"
+      },
+      {
+        "path": "apps/web/tests/ui.test.tsx",
+        "sha256": "ab7dc7e3ba14b0de2676ee03901d14d5250df2cb320a8a39e253308619130583"
+      },
+      {
+        "path": "apps/web/tsconfig.json",
+        "sha256": "db38ac7d9e302628887bc4714a4a24ae69d45febf7bbf2d15b9695839c8d6936"
+      },
+      {
+        "path": "apps/web/vitest.config.ts",
+        "sha256": "99cb1fd578ba3793bdb17ec6b7e82de46de7cfa593a930ebaa3d8d84926f1e01"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "f94a39196e5b9101bd61ed6c2959b10a2fbc4ba04eb6cbf16f530a241d273277"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:38:32Z",
+  "finished_utc": "2026-11-14T19:41:32Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static review found no actionable defects or changes outside the allowed files. Required execution checks remain unverified because this review prohibits running them.",
+  "checks": [
+    {
+      "criterion": "AC1: Tailwind v4, PostCSS integration, CSS import and variable tokens; no unnecessary Tailwind configuration.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/package.json:27 pins @tailwindcss/postcss and tailwindcss to 4.3.5; postcss.config.mjs:3 registers the plugin; app/globals.css:1 imports Tailwind and :14 defines tokens. No tailwind.config file exists."
+    },
+    {
+      "criterion": "AC2: shadcn/ui configuration for Radix, App Router, RSC, CSS variables and valid aliases; only button and badge added.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components.json:3 specifies radix-nova, RSC and CSS variables; tsconfig.json:10 maps @/* to ./*. components/ui contains only button.tsx and badge.tsx, with no client directives."
+    },
+    {
+      "criterion": "AC3: High-contrast light tokens, visible focus ring, reserved mock red, and no downloaded fonts or image assets.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/app/globals.css:14 defines the light palette and :67 defines a 2px focus outline. tests/theme.test.ts:131 asserts contrast and :178 checks compiled focus CSS. No fonts or images were added, but contrast and compiled styling checks were not executed because execution is prohibited."
+    },
+    {
+      "criterion": "AC4: No map, 3D, chart or ONNX dependency added.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Reviewed apps/web/package.json:17 and the pnpm-lock.yaml diff. Added dependencies are Radix Slot, class-variance-authority, cn, Tailwind and PostCSS with their supporting packages; none are prohibited dependency families."
+    },
+    {
+      "criterion": "AC5: Preserve exact T0-05 texts, passing web-smoke and server-component pages without new client JavaScript.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/app/layout.tsx:15 preserves shellText(loadBundle()) and renders its three strings. lib/shell.ts:7 retains the exact mock wording. Page and layout have no client directive, and neither imports the UI primitives. make web-smoke was not run because execution is prohibited."
+    },
+    {
+      "criterion": "AC6: Web typecheck, lint and tests pass; web-build succeeds.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/package.json:10 defines the build, lint, typecheck and test scripts. Their success requires execution, prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "Web typecheck",
+      "command": "pnpm --filter @terraluna/web typecheck",
+      "outcome": "NOT_RUN",
+      "evidence": "Execution prohibited; next typegen writes generated files."
+    },
+    {
+      "criterion": "Web lint",
+      "command": "pnpm --filter @terraluna/web lint",
+      "outcome": "NOT_RUN",
+      "evidence": "The user explicitly instructed this reviewer not to run checks."
+    },
+    {
+      "criterion": "Web unit tests",
+      "command": "pnpm --filter @terraluna/web test",
+      "outcome": "NOT_RUN",
+      "evidence": "Execution prohibited; tests create temporary files and test tooling may write caches."
+    },
+    {
+      "criterion": "Required repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Execution prohibited; toolchain checks can write caches and generated files."
+    },
+    {
+      "criterion": "Required repository tests",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Execution prohibited; test suites create files and caches."
+    },
+    {
+      "criterion": "Required web build",
+      "command": "make web-build",
+      "outcome": "NOT_RUN",
+      "evidence": "Execution prohibited; bundle:pull and next build write apps/web/data and .next."
+    },
+    {
+      "criterion": "Required web smoke test",
+      "command": "make web-smoke",
+      "outcome": "NOT_RUN",
+      "evidence": "Execution prohibited; this target depends on the writing web-build target."
+    }
+  ],
+  "findings": []
+}

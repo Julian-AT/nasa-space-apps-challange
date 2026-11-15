@@ -1,0 +1,126 @@
+{
+  "task_id": "T7-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "e095c98aa2ecc163c802024636022447c10e7a01",
+    "head": "74bb51ceee89cd92006fc7d0a313bd7451fea63d",
+    "files": [
+      {
+        "path": "apps/web/components/evidence-label.test.tsx",
+        "sha256": "4e428c975ed2059f934b526f2365af0a7ea4c482f51dc68b106d643b5c1651b9"
+      },
+      {
+        "path": "apps/web/components/evidence-label.tsx",
+        "sha256": "ad3972c41e768989529adb5d116c618c46633ce4e81be940098a5a2cb20e8eb7"
+      },
+      {
+        "path": "apps/web/components/evidence-legend.tsx",
+        "sha256": "65fbcd9cac463396f6126129eea4654d43483529ff0e30d8fee0795cb585f9ad"
+      },
+      {
+        "path": "apps/web/components/labelled-value.tsx",
+        "sha256": "b5ca200670f4f32d11b7f3172cc28e1980744fb64736b11b518e7a73d6d4f5c8"
+      },
+      {
+        "path": "apps/web/tests/tailwind.ts",
+        "sha256": "f2857da354fa3d5a52c930251a6450748b355b0a4ded180f7c896f6f63896d1f"
+      },
+      {
+        "path": "apps/web/tests/theme.test.ts",
+        "sha256": "40cf60674a625f98932a777c341f1ad1e072a4d41139b0c705838e99940c3d5c"
+      },
+      {
+        "path": "apps/web/vitest.config.ts",
+        "sha256": "a339bd0edfe4b013a9bd5ffde797bc0c9b0feff61ff39edc9fe25bb389b822e3"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:05:15Z",
+  "finished_utc": "2026-11-14T20:08:38Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static review found one test-cache invalidation gap. Test-first execution and required checks remain unverified because running checks is prohibited in this read-only sandbox.",
+  "checks": [
+    {
+      "criterion": "Component tests are written first, run failing, cover all five labels, and reject other label strings at type level.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "apps/web/components/evidence-label.test.tsx:140 contains exact-union type assertions; :151 covers rendering every label; :189 contains invalid-label checks. Source inspection cannot establish test-first order or an initial failing execution, and execution is prohibited."
+    },
+    {
+      "criterion": "EvidenceLabel accepts exactly five labels, supplies verbatim accessible meanings, and distinguishes labels without relying on colour.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/evidence-label.tsx:16 defines the exact union; :21 copies the PRD 3 meanings; :45 supplies filled, outlined, dashed, dotted and double-border treatments; :68 connects the badge to its meaning using aria-describedby."
+    },
+    {
+      "criterion": "LabelledValue requires available values and Unavailable reasons, preserves units and sources, and never substitutes missing evidence with zero, blank text or a dash.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/labelled-value.tsx:10 and :21 define discriminated props with required value or reason. :45 rejects absent, placeholder and non-finite values; :69 renders Unavailable with its reason; :93 renders supplied values. Tests at apps/web/components/evidence-label.test.tsx:306, :317, :330 and :361 cover zero preservation and missing-value rejection."
+    },
+    {
+      "criterion": "EvidenceLegend lists all five meanings, remains a server component, and tests the exact PRD sentence.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "apps/web/components/evidence-legend.tsx:8 contains the exact sentence; :23 maps every label with showMeaning. The file has no client directive. apps/web/components/evidence-label.test.tsx:399 asserts the exact sentence and rendered paragraph; :408 checks all labels and meanings."
+    },
+    {
+      "criterion": "Components introduce no scientific numbers, targets or claims; test values are synthetic.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The three component files contain PRD definitions, presentation markup and caller-supplied values only. apps/web/components/evidence-label.test.tsx:297 uses test-value, test-unit and test-source; :306 uses zero solely to verify zero preservation."
+    },
+    {
+      "criterion": "Typecheck, lint and Vitest pass, with no unnecessary client directive.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "No client directive appears in the three component files. Typecheck, lint and Vitest execution are prohibited by the review instructions because their generated files and caches cannot be written in this sandbox."
+    },
+    {
+      "criterion": "Required make check command.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents dependency, generated-type and cache writes."
+    },
+    {
+      "criterion": "Required make test command.",
+      "command": "make test",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: the read-only sandbox prevents test and Turborepo cache writes."
+    },
+    {
+      "criterion": "Required focused component-test command.",
+      "command": "pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: test execution and cache writes are prohibited in this read-only review."
+    },
+    {
+      "criterion": "Changed paths remain within story scope and introduce no production mock data, invented results or kickoff settings.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The specified diff changes seven files, all within the story's files list. It changes no config/run.yaml, release, data or gate records. Synthetic values occur in the component test file."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "apps/web/components/evidence-label.test.tsx:33",
+      "claim": "Include PRD.md in the web test cache inputs so changes to evidence definitions rerun their contract tests.",
+      "evidence": "The new tests read repository-root PRD.md at runtime. turbo.json:23 configures test inputs as $TURBO_DEFAULT$ and $TURBO_ROOT$/fixtures/**; its globalDependencies also omit PRD.md. Consequently, a PRD-only definition change can replay a cached successful web test result through make test without evaluating the new definitions.",
+      "id": "codex-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted as a defect of this story. The cache-key fact is correct: `turbo run test --filter @terraluna/web --dry=json` lists no PRD.md among the task inputs, and the global inputs are only .gitattributes, eslint.config.mjs and tsconfig.base.json. But the change it asks for is in turbo.json, whose test inputs were set by T0-04 and T0-05. turbo.json is in no T7 story files list (T7-02 owns the four component files, apps/web/{eslint.config.mjs,package.json,tests/*,vitest.config.ts} and pnpm-lock.yaml), and ralph.sh sends a story back when it changes a path outside them. Nothing inside those files can change what Turborepo hashes. The test file is right to read PRD.md at run time, because that is how a copy that drifts from section 3 fails. Removing that read to suit the cache would weaken the test. The PRD contract is still checked fresh where it matters: this story check runs `pnpm --filter @terraluna/web exec vitest run components/evidence-label.test.tsx` directly, outside Turborepo, at every gate (57 passed now). Any change under apps/web, which every later T7 story makes, also misses the cache. The repo has no CI workflow that could replay a remote cache. The leftover gap is a PRD-only edit followed by a warm local make test. The one-line turbo.json fix (add \"$TURBO_ROOT$/PRD.md\" to the test inputs) is proposed for a human under \"Proposed instruction changes\" in progress.txt (T7-02 implement and resolve entries). Until then, run `TURBO_FORCE=true make test` after editing PRD section 3."
+      }
+    }
+  ]
+}
