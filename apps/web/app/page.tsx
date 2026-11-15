@@ -15,6 +15,7 @@ import { ModelSection } from '../components/home/model-section.tsx';
 import { ringCentroid, type GlobePin } from '../components/globe/index.ts';
 import { Badge } from '../components/ui/badge.tsx';
 import { loadBundle } from '../lib/bundle.ts';
+import HomeSections from '../components/shadowastra/home/HomeSections.tsx';
 
 // Fail the build if anything here would make the route dynamic.
 export const dynamic = 'error';
@@ -217,6 +218,9 @@ export default function Home() {
           </EntryCard>
         </div>
       </Numbered>
+
+      {/* ShadowAstra Atlas's home sections (MIT, Team ShadowAstra), each labelled as theirs. */}
+      <HomeSections />
     </>
   );
 }
