@@ -67,7 +67,7 @@ function DistanceRow({ name, entry, source }: { readonly name: string; readonly 
             {entry.background_percentile === null ? (
               <LabelledValue label="Unavailable" reason={entry.background_percentile_reason ?? NO_REASON} />
             ) : (
-              entry.background_percentile
+              <span title={String(entry.background_percentile)}>{sig(entry.background_percentile, 4)}</span>
             )}
           </dd>
         </div>
