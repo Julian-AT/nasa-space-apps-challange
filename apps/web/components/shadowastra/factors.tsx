@@ -13,7 +13,7 @@ import { modelLine } from "@/lib/shadowastra/gaps";
 import { PARAMS, TASK_WEIGHTS } from "@/lib/shadowastra/scoring";
 import { TARGET_BY_ID, TASKS, type TaskId } from "@/lib/shadowastra/data/sites";
 
-export const FACTOR_PROVENANCE = "Factor scores: ShadowAstra Atlas model and grid (MIT, Team ShadowAstra)";
+export const FACTOR_PROVENANCE = "ShadowAstra Atlas (MIT)";
 
 export function FactorProvenance({ className }: { className?: string }) {
   return (
@@ -42,9 +42,9 @@ export function FactorBreakdown({ lat, lon, targetId, task, className }: FactorB
   const job: TaskId | undefined = task ?? T?.tasks[0];
 
   const shell = (body: React.ReactNode) => (
-    <section className={clsx("surface rounded-2xl p-4", className)} aria-label="ShadowAstra factor breakdown" data-factor-breakdown>
+    <section className={clsx("surface rounded-2xl p-6", className)} aria-label="ShadowAstra factor breakdown" data-factor-breakdown>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-mono text-[10px] tracking-[0.22em] text-dim uppercase">Six factors, weighted for the job</h3>
+        <h3 className="text-balance text-sm font-semibold text-platinum">Factor breakdown</h3>
         <div className="flex flex-wrap gap-1">
           <KindBadge kind="computed" />
           <KindBadge kind="model" />
@@ -80,38 +80,28 @@ export function FactorBreakdown({ lat, lon, targetId, task, className }: FactorB
 
   return shell(
     <>
-      <p className="mt-2 text-[11.5px] text-dim">
-        Earth cell {grid.lat(k).toFixed(2)}°, {grid.lon(k).toFixed(2)}° against {T.name}, for “{jobLabel.toLowerCase()}”.
+      <p className="mt-2 truncate text-[12px] text-dim">
+        {T.name} · {jobLabel}
       </p>
-      <div className="mt-3 space-y-3">
+      <div className="mt-4 space-y-3 tabular-nums">
         {PARAMS.map((p) =>
-          p.id === "radiation" ? (
-            <div key={p.id}>
-              <div className="flex items-center justify-between gap-3 text-[13px]">
-                <span className="flex items-center gap-2 text-platinum">
-                  {p.label} <KindBadge kind="gap" />
-                </span>
-                <span className="font-mono text-dim">not scored</span>
-              </div>
-              <div className="mt-1.5 text-[11.5px] leading-snug text-dim">{p.what}</div>
-            </div>
-          ) : (
+          p.id === "radiation" ? null : (
             <Meter
               key={p.id}
               value={cs.dims[p.id]}
               label={p.label}
               kind="computed"
               right={cs.dims[p.id].toFixed(2)}
-              hint={`Weight ${Math.round((weights[p.id] / wsum) * 100)}% · ${p.what}`}
+              hint={`Weight ${Math.round((weights[p.id] / wsum) * 100)}%`}
               thin
             />
           ),
         )}
-        <Meter value={cs.model} label="Learned model" kind="model" tone="var(--color-earth)" right={cs.model.toFixed(2)} hint={`${modelLine(cs.model, T.body)}, judged by three models trained together on 38 known test sites.`} thin />
+        <Meter value={cs.model} label="Learned model" kind="model" tone="var(--color-earth)" right={cs.model.toFixed(2)} hint={modelLine(cs.model, T.body)} thin />
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-line pt-3 text-[12.5px]">
-        <span className="text-chrome">ShadowAstra match (mission blend)</span>
-        <span className="font-mono text-platinum">{cs.total.toFixed(2)}</span>
+        <span className="text-chrome">Match</span>
+        <span className="font-mono text-platinum tabular-nums">{cs.total.toFixed(2)}</span>
       </div>
     </>,
   );
