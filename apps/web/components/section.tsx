@@ -16,9 +16,9 @@ export function Section({ title, description, id, className, children }: Section
   const generated = useId();
   const headingId = id ?? generated;
   return (
-    <section aria-labelledby={headingId} className={cn('mt-20 flex flex-col gap-6 border-t border-line pt-12 sm:mt-24', className)}>
+    <section aria-labelledby={headingId} className={cn('mt-16 flex flex-col gap-6 border-t pt-10 sm:mt-20', className)}>
       <div className="flex flex-col gap-2">
-        <h2 id={headingId}>{title}</h2>
+        <h2 id={headingId} className="text-2xl font-semibold tracking-tight">{title}</h2>
         {description === undefined ? null : <p className="max-w-3xl text-muted-foreground">{description}</p>}
       </div>
       {children}
