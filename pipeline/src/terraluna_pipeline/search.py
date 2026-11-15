@@ -361,6 +361,11 @@ def projected_grid(
 # --- Window evaluation --------------------------------------------------------------------------
 
 
+DEM_SINK: dict[str, tuple[npt.NDArray[np.float64], float, str]] = {}
+"""window_id -> (resampled elevation in metres, NaN where invalid, analysis grid spacing in
+metres, DEM product id): the figure inputs ``compute`` writes to data/processed/dem_windows."""
+
+
 @dataclass
 class Evaluated:
     """A window after evaluation: status, ordered reasons and its fingerprint."""
@@ -853,7 +858,6 @@ def search_target(
         "source_ids": sample_sources,
         "families": families_bg,
         "family_reasons": family_reasons,
-        "target_window_id": primary.grid.window_id,
     }
     top = [
         {
@@ -913,10 +917,18 @@ class Sources:
 
     def __init__(self, repo: Path) -> None:
         self.known: dict[str, str | None] = {}
-        p = repo / "outputs" / "sources.json"
-        if p.exists():
-            for rec in json.loads(p.read_text()):
-                self.known[rec["product_id"]] = rec.get("checksum")
+        # The committed fragments export merges (a VERIFIED record wins over a PARTIAL one), so
+        # a run_id built here equals the run_id export recomputes from the merged sources.
+        status: dict[str, str] = {}
+        for name in ("outputs/sources.json", "outputs/realcard/sources.json"):
+            p = repo / name
+            if p.exists():
+                for rec in json.loads(p.read_text()):
+                    pid = rec["product_id"]
+                    rank = 1 if rec.get("verification_status") == "VERIFIED" else 0
+                    if pid not in self.known or rank > int(status[pid]):
+                        self.known[pid] = rec.get("checksum")
+                        status[pid] = str(rank)
         self.used: dict[str, str | None] = {}
         self.files: dict[str, dict[str, Any]] = {}
         self.bytes_read = 0
@@ -1016,6 +1028,8 @@ def evaluate_earth(
                 merged_v = np.full((grid.size, grid.size), np.nan)
                 merged_ok = np.zeros((grid.size, grid.size), dtype=bool)
             rg = ResampledGrid(values=merged_v, valid=merged_ok, inside=merged_ok.copy())
+            if pids:
+                DEM_SINK[g.window_id] = (rg.values, terrain.analysis_grid_m, pids[0])
             dem_valid = float(merged_ok.mean())
             fp = fingerprint_grid(rg, terrain, window_m)
             classes = None
@@ -1131,6 +1145,7 @@ def evaluate_moon(
         ok = (r >= 0) & (r < cnt.array.shape[0]) & (c >= 0) & (c < cnt.array.shape[1])
         observed = np.zeros(r.shape, bool)
         observed[ok] = cnt.array[r[ok], c[ok]] > 0
+        DEM_SINK[g.window_id] = (rg.values, terrain.analysis_grid_m, pids[0])
         valid = rg.valid
         obs = float(observed[valid].mean()) if valid.any() else None
         dem_valid = float(valid.mean())
@@ -1359,6 +1374,11 @@ def evaluate_mars(
             continue
         rg = resample_window(
             arr, lk, grid=grid, body="mars", lat0_rad=lat0, lon0_rad=lon0, nodata=d.nodata
+        )
+        DEM_SINK[g.window_id] = (
+            rg.values,
+            terrain.analysis_grid_m,
+            pids[0],
         )
         dem_valid = float(rg.valid.mean())
         fp = fingerprint_grid(rg, terrain, window_m)
@@ -1884,6 +1904,15 @@ def compute(raw: Path, repo: Path, config_path: Path, processed: Path) -> int:
         summary["bytes_read"] = sources.bytes_read
         summary["elapsed_s_total_run"] = round(elapsed, 1)
         write_bytes(out_dir / f"summary_{tid}.json", dump(summary))
+    dem_dir = processed / "dem_windows"
+    dem_dir.mkdir(parents=True, exist_ok=True)
+    for window_id, (values, spacing, product_id) in sorted(DEM_SINK.items()):
+        np.savez(
+            dem_dir / f"{window_id}.npz",
+            elevation_m=values,
+            spacing_m=np.float64(spacing),
+            product_id=np.str_(product_id),
+        )
     tiles_by_target, earth_layers, tile_bytes = build_tiles(
         targets, regions, raw, processed, sources
     )

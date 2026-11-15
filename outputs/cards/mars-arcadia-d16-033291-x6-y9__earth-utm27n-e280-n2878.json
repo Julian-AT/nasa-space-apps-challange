@@ -1,0 +1,386 @@
+{
+  "card_id": "mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878",
+  "claim_limits": [
+    "candidate window identified by this search; not a proven analog",
+    "Copernicus GLO-30 heights are a digital surface model including vegetation and buildings, referenced to EGM2008 (PRD 5)",
+    "Mars target: terrain only, radar unavailable for this body",
+    "the encoder is EXPERIMENTAL and not used in any ranking",
+    "WorldCover v200 2021 land-cover mask, nearest class at 90 m centres (ANA-05 default)",
+    "Mars targets are compared on terrain only; no radar product is used.",
+    "Mode C: radar comparison not completed. The radar inputs were not qualified within the pilot, so no radar distance or radar signature is part of this card.",
+    "The encoder is EXPERIMENTAL (G5 NOT_RUN); its distance, if shown, is Predicted and takes no part in any ranking.",
+    "Field confirmation is future work; similarity here does not establish block sizes, soil strength, buried structure or low-gravity mobility (PRD 3)."
+  ],
+  "comparison_ref": {
+    "earth_window_id": "earth-utm27n-e280-n2878",
+    "path": "comparisons/mars-arcadia-w000.json",
+    "target_window_id": "mars-arcadia-d16-033291-x6-y9"
+  },
+  "distances_by_family": {
+    "model_embedding": {
+      "background_percentile": null,
+      "background_percentile_reason": "encoder_not_evaluated",
+      "evidence_label": "Unavailable",
+      "reason": "encoder_not_evaluated",
+      "reference_spread": null,
+      "reference_spread_reason": "encoder_not_evaluated",
+      "status": "unavailable",
+      "tie_group": null,
+      "tie_reason": null,
+      "tied": null,
+      "unit": "cosine distance",
+      "value": null
+    },
+    "radar_cpr": {
+      "background_percentile": null,
+      "background_percentile_reason": "radar_unavailable_for_body",
+      "evidence_label": "Unavailable",
+      "reason": "radar_unavailable_for_body",
+      "reference_spread": null,
+      "reference_spread_reason": "radar_unavailable_for_body",
+      "status": "unavailable",
+      "tie_group": null,
+      "tie_reason": null,
+      "tied": null,
+      "unit": "CPR Wasserstein-1",
+      "value": null
+    },
+    "terrain_relief": {
+      "background_percentile": 9.274214281430405,
+      "background_percentile_reason": null,
+      "evidence_label": "Derived",
+      "reason": null,
+      "reference_spread": {
+        "max": 1.3342523018945294,
+        "median": 0.38994250100337113,
+        "min": 0.022044011256831603,
+        "n": 163
+      },
+      "reference_spread_reason": null,
+      "status": "available",
+      "tie_group": null,
+      "tie_reason": "spread_unavailable",
+      "tied": null,
+      "unit": "RMS of log nu",
+      "value": 0.28854934861205206
+    },
+    "terrain_texture": {
+      "background_percentile": 0.7285540682504543,
+      "background_percentile_reason": null,
+      "evidence_label": "Derived",
+      "reason": null,
+      "reference_spread": {
+        "max": 1.3376495268431123,
+        "median": 0.34931308455559834,
+        "min": 0.020110811866996196,
+        "n": 163
+      },
+      "reference_spread_reason": null,
+      "status": "available",
+      "tie_group": null,
+      "tie_reason": "spread_unavailable",
+      "tied": null,
+      "unit": "RMS of log nu",
+      "value": 0.05931653833563583
+    }
+  },
+  "earth": {
+    "earth_window_id": "earth-utm27n-e280-n2878",
+    "polygon": {
+      "crs": "EPSG:32627",
+      "epsg": 32627,
+      "frame": "utm",
+      "ring_lonlat": [
+        [
+          -16.78479683917855,
+          64.8194967612042
+        ],
+        [
+          -16.679775394624603,
+          64.81647535230421
+        ],
+        [
+          -16.672583271077063,
+          64.86121257837709
+        ],
+        [
+          -16.777778268171225,
+          64.86424010016455
+        ],
+        [
+          -16.78479683917855,
+          64.8194967612042
+        ]
+      ],
+      "ring_m": [
+        [
+          700000.0,
+          7195000.0
+        ],
+        [
+          705000.0,
+          7195000.0
+        ],
+        [
+          705000.0,
+          7200000.0
+        ],
+        [
+          700000.0,
+          7200000.0
+        ],
+        [
+          700000.0,
+          7195000.0
+        ]
+      ],
+      "utm_zone": "27N"
+    },
+    "product_ids": [
+      "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif"
+    ],
+    "search_region_id": "holuhraun"
+  },
+  "figures": [
+    {
+      "alt": "Location maps: the Earth polygon and the Mars target window, each with a scale bar",
+      "figure": "A",
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_A.svg",
+      "reason": null
+    },
+    {
+      "alt": "nu(L) on log-log axes for the target and the Earth window, relief and texture",
+      "figure": "B",
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_B.svg",
+      "reason": null
+    },
+    {
+      "alt": "Radar block distributions with band labels, or the reason they are unavailable",
+      "figure": "C",
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_C.svg",
+      "reason": null
+    }
+  ],
+  "g5_status": "NOT_RUN",
+  "mock": false,
+  "q1_compared": "Earth window earth-utm27n-e280-n2878 (holuhraun; EPSG:32627, UTM zone 27N) compared with the Mars target window mars-arcadia-d16-033291-x6-y9 of Arcadia Planitia (azimuthal equidistant on the Mars sphere (product CRS)), each a 5000 m window on a 90 m analysis grid. Mode C.",
+  "q2_interpretation": {
+    "evidence_label": "Assumed",
+    "text": "Assumed: this Earth window could help investigate how surfaces with comparable supported descriptors (terrain_relief, terrain_texture) behave, as a candidate window identified by this search for the Mars target. It is an interpretation to test, not a measured result."
+  },
+  "q3_measurements": [
+    {
+      "band": null,
+      "evidence_label": "Derived",
+      "geometry": "aeqd_sphere target window; utm Earth",
+      "observable": "terrain_relief distance",
+      "product_id": null,
+      "reason": null,
+      "support": "90 m analysis grid in 5000 m windows",
+      "unit": "RMS of log nu",
+      "value": 0.28854934861205206
+    },
+    {
+      "band": null,
+      "evidence_label": "Derived",
+      "geometry": "aeqd_sphere target window; utm Earth",
+      "observable": "terrain_texture distance",
+      "product_id": null,
+      "reason": null,
+      "support": "90 m analysis grid in 5000 m windows",
+      "unit": "RMS of log nu",
+      "value": 0.05931653833563583
+    },
+    {
+      "band": null,
+      "evidence_label": "Unavailable",
+      "geometry": null,
+      "observable": "radar_cpr distance",
+      "product_id": null,
+      "reason": "radar_unavailable_for_body",
+      "support": "no qualified radar pair",
+      "unit": "CPR Wasserstein-1",
+      "value": null
+    },
+    {
+      "band": null,
+      "evidence_label": "Unavailable",
+      "geometry": null,
+      "observable": "model_embedding distance",
+      "product_id": null,
+      "reason": "encoder_not_evaluated",
+      "support": "encoder embedding of each window (experimental)",
+      "unit": "cosine distance",
+      "value": null
+    }
+  ],
+  "q4_differences": {
+    "ambiguous": [],
+    "differing": [],
+    "limits": [
+      "Gravity: about 0.38 of Earth's on Mars.",
+      "Atmosphere: a thin CO₂ atmosphere in which wind and dust act but rain does not.",
+      "Water and life: no liquid surface water or biology today.",
+      "Temperature and radiation: lower temperatures and higher surface radiation than on Earth.",
+      "Resolution: CTX DTMs resolve only features of roughly 100 m and larger, so finer roughness is not compared."
+    ],
+    "not_observed": [
+      "radar_cpr: radar_unavailable_for_body",
+      "model_embedding: encoder_not_evaluated",
+      "radar_cpr: unavailable (radar_unavailable_for_body)",
+      "model_embedding: unavailable (encoder_not_evaluated)"
+    ]
+  },
+  "q5_stability": {
+    "tie_group_by_family": {
+      "model_embedding": null,
+      "radar_cpr": null,
+      "terrain_relief": null,
+      "terrain_texture": null
+    },
+    "tied_by_family": {
+      "model_embedding": null,
+      "radar_cpr": null,
+      "terrain_relief": null,
+      "terrain_texture": null
+    },
+    "uncertainty_components": {
+      "heterogeneity": {
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "rank_frequency": null,
+        "reason": "uncertainty_not_annotated",
+        "scenarios": null,
+        "status": "unavailable"
+      },
+      "measurement_error": {
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "rank_frequency": null,
+        "reason": "uncertainty_not_annotated",
+        "scenarios": null,
+        "status": "unavailable"
+      },
+      "scenario_sensitivity": {
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "rank_frequency": null,
+        "reason": "uncertainty_not_annotated",
+        "scenarios": null,
+        "status": "unavailable"
+      },
+      "statistical_prediction_error": {
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "rank_frequency": null,
+        "reason": "uncertainty_not_annotated",
+        "scenarios": null,
+        "status": "unavailable"
+      }
+    }
+  },
+  "q6_campaign": {
+    "access": {
+      "source": null,
+      "value": "unknown"
+    },
+    "land_status": {
+      "source": null,
+      "value": "unknown"
+    },
+    "logistics": {
+      "source": null,
+      "value": "unknown"
+    },
+    "permits": {
+      "source": null,
+      "value": "unknown"
+    },
+    "season": {
+      "source": null,
+      "value": "unknown"
+    }
+  },
+  "q7_field_experiment": {
+    "evidence_label": "Assumed",
+    "status": "proposed",
+    "text": "Proposed, not yet carried out: survey a surface patch in this Earth window with a clast-size and coverage distribution, material and moisture notes, and calibrated radar observations under controlled geometry. Dimensions and sampling would be chosen for the sensor and site; none of these measurements has been made."
+  },
+  "radar_context": [],
+  "run_id": "sha256:6f8a744305d7f9dcf488863acfbb7ff8dd8d51f20af46cb05d2279bdd2c18179",
+  "shipping_mode": "C",
+  "target": {
+    "body": "mars",
+    "polygon": {
+      "crs": "+proj=aeqd +lat_0=44.590090596630276 +lon_0=-174.38415051679638 +R=3396190.0",
+      "epsg": null,
+      "frame": "aeqd_sphere",
+      "ring_lonlat": [
+        [
+          -174.44333197887235,
+          44.54789879646586
+        ],
+        [
+          -174.3249690547204,
+          44.54789879646586
+        ],
+        [
+          -174.32488310103608,
+          44.63225179092888
+        ],
+        [
+          -174.44341793255668,
+          44.63225179092888
+        ],
+        [
+          -174.44333197887235,
+          44.54789879646586
+        ]
+      ],
+      "ring_m": [
+        [
+          -2500.0,
+          -2500.0
+        ],
+        [
+          2500.0,
+          -2500.0
+        ],
+        [
+          2500.0,
+          2500.0
+        ],
+        [
+          -2500.0,
+          2500.0
+        ],
+        [
+          -2500.0,
+          -2500.0
+        ]
+      ],
+      "utm_zone": null
+    },
+    "product_ids": [
+      "CTX/mro_ctx_controlled_usgs_dtms/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W_dtm.tif",
+      "CTX/mro_ctx_controlled_usgs_dtms/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W/qa_metrics.txt"
+    ],
+    "target_id": "mars-arcadia-w000",
+    "target_window_id": "mars-arcadia-d16-033291-x6-y9"
+  },
+  "title": "Terrain analog pilot for Arcadia Planitia; radar comparison not completed",
+  "wording": "candidate window identified by this search"
+}
