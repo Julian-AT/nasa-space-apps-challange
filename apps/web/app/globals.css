@@ -3,6 +3,12 @@
  */
 @import "tailwindcss" source(none);
 @import "./shadowastra-atlas.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/*
+ ---break---
+ */
+@custom-variant dark (&:is(.dark *));
 
 /*
  * Terraluna design tokens (PRD 8.2, 8.10, D35). Dark "observatory" theme, adapted from the
@@ -33,28 +39,25 @@
   --moon: #c9c5bc;
   --mars: #e08a5f;
   --earth: #8fb4ea;
-
-  --background: #07080a;
-  --foreground: #edeae4;
-  --card: #101114;
-  --card-foreground: #edeae4;
-  --popover: #16171b;
-  --popover-foreground: #edeae4;
-  --primary: #f2c879;
-  --primary-foreground: #07080a;
-  --secondary: #16171b;
-  --secondary-foreground: #edeae4;
-  --muted: #16171b;
-  --muted-foreground: #a8a59e;
-  --accent: #1f2025;
-  --accent-foreground: #edeae4;
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.518 0.253 323.949);
+  --primary-foreground: oklch(0.977 0.017 320.058);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
   /* Component borders and inputs: 3:1 against the page (WCAG 1.4.11). */
-  --border: #6b6962;
-  --input: #6b6962;
-  --ring: #f2c879;
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
   /* Decorative hairlines only (card chrome, dividers); never the sole boundary of a control. */
   --line: #2a2b31;
-  --destructive: #f08a74;
+  --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: #07080a;
   /* Mock-bundle banner (PRD 8.4, 8.6): shown only when manifest.mock is true. */
   --mock: #b91c1c;
@@ -79,7 +82,37 @@
   --world-mars: #e08a5f;
   --world-earth: #8fb4ea;
 
-  --radius: 1.25rem;
+  --radius: 0.625rem;
+
+  --background: oklch(1 0 0);
+
+  --foreground: oklch(0.145 0 0);
+
+  --chart-1: oklch(0.833 0.145 321.434);
+
+  --chart-2: oklch(0.667 0.295 322.15);
+
+  --chart-3: oklch(0.591 0.293 322.896);
+
+  --chart-4: oklch(0.518 0.253 323.949);
+
+  --chart-5: oklch(0.452 0.211 324.591);
+
+  --sidebar: oklch(0.985 0 0);
+
+  --sidebar-foreground: oklch(0.145 0 0);
+
+  --sidebar-primary: oklch(0.591 0.293 322.896);
+
+  --sidebar-primary-foreground: oklch(0.977 0.017 320.058);
+
+  --sidebar-accent: oklch(0.97 0 0);
+
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+
+  --sidebar-border: oklch(0.922 0 0);
+
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 /*
@@ -174,7 +207,7 @@ html {
   --color-rose-*: initial;
 
   /* next/font/google (app/layout.tsx) self-hosts these at build time and sets the variables. */
-  --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-serif: var(--font-instrument), ui-serif, Georgia, "Times New Roman", serif;
   --font-wide: var(--font-michroma), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
@@ -243,16 +276,36 @@ html {
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 @layer base {
   * {
     border-color: var(--line);
+    @apply border-border outline-ring/50;
   }
 
   html {
     -webkit-text-size-adjust: 100%;
     scroll-padding-top: 80px;
+    @apply font-sans;
   }
 
   body {
@@ -262,6 +315,7 @@ html {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    @apply bg-background text-foreground;
   }
 
   ::selection {
@@ -473,4 +527,56 @@ html {
       scroll-behavior: auto;
     }
   }
+}
+/*
+ ---break---
+ */
+.dark:not([data-theme="light"]) {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.452 0.211 324.591);
+  --primary-foreground: oklch(0.977 0.017 320.058);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.833 0.145 321.434);
+  --chart-2: oklch(0.667 0.295 322.15);
+  --chart-3: oklch(0.591 0.293 322.896);
+  --chart-4: oklch(0.518 0.253 323.949);
+  --chart-5: oklch(0.452 0.211 324.591);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.667 0.295 322.15);
+  --sidebar-primary-foreground: oklch(0.977 0.017 320.058);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+/*
+ * shadcn preset b2W4NKwNs: the Terraluna and ShadowAstra tokens follow the preset's semantic
+ * variables, so every page (including the ported ShadowAstra pages) uses one palette.
+ */
+:root {
+  --void: var(--background);
+  --ink: var(--background);
+  --panel: var(--card);
+  --panel-2: var(--secondary);
+  --line: var(--border);
+  --line-2: var(--border);
+  --platinum: var(--foreground);
+  --chrome: var(--muted-foreground);
+  --dim: var(--muted-foreground);
+  --flare: var(--primary);
 }

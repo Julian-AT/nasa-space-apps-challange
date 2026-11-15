@@ -1,67 +1,115 @@
-// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
-// shadcn-style Table (PRD 8.2, 8.10). The wrapper scrolls horizontally on narrow screens and is
-// focusable so keyboard users can scroll it. Server components.
-import type { ComponentProps } from 'react';
+"use client"
 
-import { cn } from '@/lib/utils';
+import * as React from "react"
+import { cn } from "cn"
 
-function Table({ className, ...props }: ComponentProps<'table'>) {
+function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
-      tabIndex={0}
-      role="region"
-      aria-label="Table, scrollable"
-      className="w-full overflow-x-auto surface rounded-2xl"
+      className="relative w-full overflow-x-auto"
     >
-      <table data-slot="table" className={cn('w-full border-collapse text-sm', className)} {...props} />
+      <table
+        data-slot="table"
+        className={cn("w-full caption-bottom text-xs", className)}
+        {...props}
+      />
     </div>
-  );
+  )
 }
 
-function TableHeader({ className, ...props }: ComponentProps<'thead'>) {
-  return <thead data-slot="table-header" className={cn('border-b border-line-2 bg-ink', className)} {...props} />;
+function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
+  return (
+    <thead
+      data-slot="table-header"
+      className={cn("[&_tr]:border-b", className)}
+      {...props}
+    />
+  )
 }
 
-function TableBody({ className, ...props }: ComponentProps<'tbody'>) {
-  return <tbody data-slot="table-body" className={cn(className)} {...props} />;
+function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
+  return (
+    <tbody
+      data-slot="table-body"
+      className={cn("[&_tr:last-child]:border-0", className)}
+      {...props}
+    />
+  )
 }
 
-function TableRow({ className, ...props }: ComponentProps<'tr'>) {
+function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
+  return (
+    <tfoot
+      data-slot="table-footer"
+      className={cn(
+        "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
       data-slot="table-row"
-      className={cn('border-b border-line transition-colors last:border-b-0 hover:bg-platinum/[0.03]', className)}
+      className={cn(
+        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        className
+      )}
       {...props}
     />
-  );
+  )
 }
 
-function TableHead({ className, ...props }: ComponentProps<'th'>) {
+function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       data-slot="table-head"
       className={cn(
-        'px-3 py-3 text-left align-top font-mono text-[10.5px] font-medium tracking-[0.16em] whitespace-nowrap text-chrome uppercase',
-        className,
+        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        className
       )}
       {...props}
     />
-  );
+  )
 }
 
-function TableCell({ className, ...props }: ComponentProps<'td'>) {
-  return <td data-slot="table-cell" className={cn('px-3 py-2.5 text-left align-top wrap-anywhere', className)} {...props} />;
+function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+  return (
+    <td
+      data-slot="table-cell"
+      className={cn(
+        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        className
+      )}
+      {...props}
+    />
+  )
 }
 
-function TableCaption({ className, ...props }: ComponentProps<'caption'>) {
+function TableCaption({
+  className,
+  ...props
+}: React.ComponentProps<"caption">) {
   return (
     <caption
       data-slot="table-caption"
-      className={cn('px-3 py-2.5 text-left text-sm text-muted-foreground', className)}
+      className={cn("mt-4 text-xs text-muted-foreground", className)}
       {...props}
     />
-  );
+  )
 }
 
-export { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow };
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+}

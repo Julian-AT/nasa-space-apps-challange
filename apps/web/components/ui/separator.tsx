@@ -1,24 +1,27 @@
-// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
-// shadcn-style Separator (PRD 8.2), a plain server component: decorative by default.
-import type { ComponentProps } from 'react';
+"use client"
 
-import { cn } from '@/lib/utils';
+import * as React from "react"
+import { cn } from "cn"
+import { Separator as SeparatorPrimitive } from "radix-ui"
 
 function Separator({
   className,
-  orientation = 'horizontal',
+  orientation = "horizontal",
   decorative = true,
   ...props
-}: ComponentProps<'div'> & { orientation?: 'horizontal' | 'vertical'; decorative?: boolean }) {
+}: React.ComponentProps<typeof SeparatorPrimitive.Root>) {
   return (
-    <div
+    <SeparatorPrimitive.Root
       data-slot="separator"
-      role={decorative ? 'none' : 'separator'}
-      aria-orientation={decorative ? undefined : orientation}
-      className={cn('shrink-0 bg-line', orientation === 'horizontal' ? 'h-px w-full' : 'h-full w-px', className)}
+      decorative={decorative}
+      orientation={orientation}
+      className={cn(
+        "shrink-0 bg-border data-horizontal:h-px data-horizontal:w-full data-vertical:w-px data-vertical:self-stretch",
+        className
+      )}
       {...props}
     />
-  );
+  )
 }
 
-export { Separator };
+export { Separator }

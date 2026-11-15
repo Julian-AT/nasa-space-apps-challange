@@ -48,7 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     cardCount: cardRecords.length,
   };
   return (
-    <html lang="en" suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`dark ${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
