@@ -50,8 +50,8 @@ describe('pageProblems', () => {
     expect(pageProblems(html, MOCK).join('\n')).toMatch(/banner/);
   });
 
-  // The document title shows in the browser tab, not on the page, so it cannot stand in for a
-  // banner (codex-r7-1).
+  // The document head is not shown on the page; its title shows in the browser tab. Neither can
+  // stand in for a banner (codex-r7-1).
   it.each([
     {
       name: 'the mock banner',
@@ -71,7 +71,16 @@ describe('pageProblems', () => {
       shown: REAL,
       problem: /shipping-mode banner .* is missing/,
     },
-  ])('reports $name missing from the page when only the document title holds its text', ({ html, shown, problem }) => {
+    {
+      name: 'the mock banner (in a head noscript)',
+      html: MOCK_PAGE.replace('</title>', '</title><noscript>Mock bundle — placeholder data, not results</noscript>').replace(
+        '<p role="status">Mock bundle — placeholder data, not results</p>',
+        '',
+      ),
+      shown: MOCK,
+      problem: /mock banner .* is missing/,
+    },
+  ])('reports $name missing from the page when only the document head holds its text', ({ html, shown, problem }) => {
     expect(pageProblems(html, shown).join('\n')).toMatch(problem);
   });
 
