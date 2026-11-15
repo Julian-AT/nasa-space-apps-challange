@@ -70,7 +70,6 @@ const OTHER_FILES: FileSet = {
   'model/embeddings.f16.bin': Buffer.from('f16 test placeholder'),
   [`reference/background_${TARGET}.json`]: placeholder('background'),
   'report/umap.bin': Buffer.from('umap test placeholder'),
-  'report/curves.json': placeholder('curves (no generated schema yet)'),
   'comparisons/nested/test.json': placeholder('nested comparison'),
 };
 
