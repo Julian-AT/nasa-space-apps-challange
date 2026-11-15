@@ -14,7 +14,8 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { ACCENT, EASE, FAINT, INK, LINE, MUTED, PAPER } from './bits';
 import { C, FigureCard, LineFigure, type LineSeries } from './figure';
 import { FigBenchmarks, type BenchData } from './fig-benchmarks';
-import { FigResults, type ResultsData } from './fig-results';
+import { FigBest } from './fig-best';
+import type { ResultsData } from './fig-results';
 import { FigSearch, type SearchData } from './fig-search';
 import { FigTraining, type CurvesJson } from './fig-training';
 import { mmss, NOTES, TOTAL_S } from './notes';
@@ -224,9 +225,9 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
       id: 'results',
       steps: 1,
       body: () => (
-        <Frame title="Results" sub={<><A>{d.cardCount} evidence cards</A>, best Earth match per target.</>}>
-          <div className="pt-[2vh]">
-            <FigResults data={results} />
+        <Frame title="Results" sub={<><A>{d.cardCount} evidence cards</A>. The best Earth match for each target.</>}>
+          <div className="pt-[1vh]">
+            <FigBest data={search} />
           </div>
         </Frame>
       ),

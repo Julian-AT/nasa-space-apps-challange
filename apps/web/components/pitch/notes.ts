@@ -62,7 +62,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Results',
     from: 96,
     to: 114,
-    text: 'The result is **seven evidence cards**. The best match per target: **Jezero** and **Arcadia** both find **Holuhraun in Iceland**, and every card comes with figures and a proposed field test.',
+    text: 'The result is **seven evidence cards**. One row per target: the best Earth match and how many times closer it is than the median window. **Jezero** and **Arcadia** both find **Holuhraun in Iceland**, and every card comes with figures and a proposed field test.',
   },
   {
     title: 'Close',
