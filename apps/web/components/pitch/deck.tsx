@@ -12,7 +12,7 @@ import { EarthIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 
 import { ArchDiagram, ARCH_STEPS } from './arch';
-import { ACCENT, CountUp, EASE, FAINT, HillTile, INK, LagProfile, LINE, MUTED, NuChart, PAPER, WORLD } from './bits';
+import { ACCENT, CountUp, EASE, FAINT, INK, LagProfile, LINE, MUTED, NuChart, PAPER, WORLD } from './bits';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
 
@@ -354,36 +354,35 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       steps: 1,
       body: () => (
         <Frame title="Results" sub={<><A><CountUp value={d.cardCount} duration={0.8} /> evidence cards</A> in the release bundle. Two of them:</>}>
-          <div className="grid h-full grid-cols-2 gap-6">
+          <div className="grid h-full grid-cols-2 gap-8">
             {d.results.map((r, k) => (
               <In key={r.cardId} d={0.2 + k * 0.15} className="h-full">
-                <div className="h-full">
-                  <div className="flex h-full flex-col gap-5 rounded-2xl border border-zinc-200 bg-zinc-50 p-7">
-                    <p className="text-2xl font-semibold tracking-tight">
-                      {r.targetName} and {r.earthName.split(',')[0]}
+                <div className="flex h-full flex-col justify-between rounded-3xl border border-zinc-200 bg-zinc-50 p-10">
+                  <div className="flex flex-col gap-2">
+                    <span className="font-mono text-sm uppercase tracking-[0.14em]" style={{ color: FAINT }}>{BODY[r.body]} vs Earth</span>
+                    <p className="text-[2rem] font-semibold leading-tight tracking-tight">
+                      {r.targetName}
+                      <span style={{ color: FAINT }}> and </span>
+                      {r.earthName.split(',')[0]}
                     </p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <HillTile tile={r.targetTile} className="max-h-[28vh]" />
-                      <HillTile tile={r.earthTile} className="max-h-[28vh]" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <p className="text-5xl font-bold tracking-tight text-zinc-950">
-                          <CountUp value={Number(r.relief.toPrecision(3))} digits={Math.max(0, 2 - Math.floor(Math.log10(r.relief)))} delay={0.5 + k * 0.15} />
-                        </p>
-                        <p className="text-base">relief distance</p>
-                        <p className="text-sm" style={{ color: MUTED }}>{r.unit}, lower is closer</p>
-                      </div>
-                      {r.closerThan !== null ? (
-                        <div>
-                          <p className="text-5xl font-bold tracking-tight text-zinc-950">{r.closerThan}%</p>
-                          <p className="text-base">closer than</p>
-                          <p className="text-sm" style={{ color: MUTED }}>of candidate windows</p>
-                        </div>
-                      ) : null}
-                    </div>
-                    <p className="mt-auto text-xs" style={{ color: MUTED }}>{r.label}, {BODY[r.body]} vs Earth, candidate windows found by this search, not proven analogs</p>
                   </div>
+                  <div className="grid grid-cols-2 gap-8 border-t border-zinc-200 pt-8">
+                    <div className="flex flex-col gap-1">
+                      <p className="text-[4.5rem] font-bold leading-none tracking-tight tabular-nums" style={{ color: ACCENT }}>
+                        <CountUp value={Number(r.relief.toPrecision(3))} digits={Math.max(0, 2 - Math.floor(Math.log10(r.relief)))} delay={0.5 + k * 0.15} />
+                      </p>
+                      <p className="mt-2 text-xl">relief distance</p>
+                      <p className="text-base" style={{ color: MUTED }}>{r.unit}, lower is closer</p>
+                    </div>
+                    {r.closerThan !== null ? (
+                      <div className="flex flex-col gap-1">
+                        <p className="text-[4.5rem] font-bold leading-none tracking-tight tabular-nums">{r.closerThan}%</p>
+                        <p className="mt-2 text-xl">closer than</p>
+                        <p className="text-base" style={{ color: MUTED }}>of candidate windows searched</p>
+                      </div>
+                    ) : null}
+                  </div>
+                  <p className="text-sm" style={{ color: FAINT }}>{r.label}, candidate windows found by this search, not proven analogs</p>
                 </div>
               </In>
             ))}
