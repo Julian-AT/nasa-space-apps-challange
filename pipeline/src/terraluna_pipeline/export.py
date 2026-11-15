@@ -1935,7 +1935,12 @@ def plan_stage(root: Path, config: Path) -> StagePlan:
             plan.problems.append(str(error))
             entries = []
         for entry in entries:
-            source = root / entry.path
+            # The index names the bundle path (figures/<name>.svg); the SVG itself lives in
+            # data/processed/figures/ (CONTRACTS b). Any other path is read as a repo path.
+            if entry.path.startswith("figures/"):
+                source = processed / "figures" / Path(entry.path).name
+            else:
+                source = root / entry.path
             svg = _copy_one(plan, root, f"figures/{Path(entry.path).name}", source, "figures cards")
             if svg is not None and hashlib.sha256(svg).hexdigest() != entry.sha256:
                 plan.problems.append(
