@@ -1,0 +1,101 @@
+{
+  "task_id": "T3-02",
+  "round": 4,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "4609837fa23b4370d7029e03545c8130bd84c7ce",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "3e9209ef8e2efafe28a4473498d6426183a2458774946099af47cb8ca0e1b996"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "bba1457a06441ef035bd04932e4a4da402fd32673175affc00417c98ea83cb5a"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "09d4ff4b6f1b5adba9ecb515209efb9167eb74768a99b0877a956b5799fe0fb1"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "f0e8fb434d2ad8116bb5c09624e0ce5ceb506cc5c01f7e313ee0ba42d0b38686"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:45:10Z",
+  "finished_utc": "2026-11-14T19:49:25Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by static review. Previous fixes and rebuttals agree with the supplied amended contract. Execution-dependent criteria and required checks remain unverified because running checks was prohibited.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests were written and run failing before implementation, with the failure recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The ac27c1a source snapshot imports AEQD symbols absent from its geometry.py, establishing test-before-implementation source order. Historical execution was not independently observed; notes and commit messages were not accepted as execution evidence."
+    },
+    {
+      "criterion": "AC2: Independent grid formula and hand-computed corners and centre for W=5000 m, D=90 m.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:321-332 independently constructs coordinates with loops; :391-411 asserts all four corners and centre (-25, 25) m. geometry.py:113-119 implements the correct signs and offsets. Execution was prohibited."
+    },
+    {
+      "criterion": "AC3: PRD-equivalent inverse, exact zero-offset centre including poles, and independent forward round trips at contracted tolerances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "geometry.py:221-245 uses rho/R and the PRD longitude, an algebraically equivalent latitude increment, and explicit centre selection. Tests at test_geometry_aeqd.py:595-623 cover exact centres and poles; :652-700 cover the specified latitudes, bodies and both grids. Assertions at :335-340 compare plain metres with rtol=1e-10, atol=1e-12. Execution was prohibited."
+    },
+    {
+      "criterion": "AC4: Independent great-circle distance equals rho to 1e-9 relative for all three spheres.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_geometry_aeqd.py:296-300 independently computes haversine distance; :857-867 compares every analysis-grid point against hypot(x,y), with rtol=1e-9 and atol=0, across all bodies and specified latitudes including poles. Execution was prohibited."
+    },
+    {
+      "criterion": "AC5: Both configured grids round-trip at every pixel centre; continuous offsets receive independent directional reference checks without tolerance relaxation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_geometry_aeqd.py:85-109 constructs both configured grids; :965-1030 checks each drawn full grid at random centres. Continuous strategies at :1068-1072 and tests at :1103-1206 retain zero, subnormal, tiny and near-axis offsets. Independent vector references use 40-digit arithmetic at :164-293, with unreduced exact longitude differences and true-period wrapping. Tolerances remain 1e-10/1e-12. Execution was prohibited."
+    },
+    {
+      "criterion": "AC6: Geometry uses metres on body spheres and remains separate from radar and model distances.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:25-31 supplies the PRD radii; :228 divides metre offsets by radius; :343-344 scales angular distance back to metres. Imports at :9-18 contain only the standard library and NumPy, with no radar or model code."
+    },
+    {
+      "criterion": "Required focused test command.",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user in this read-only sandbox; dependency synchronization and test caches can write files."
+    },
+    {
+      "criterion": "Required repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user in this read-only sandbox; uv and checker caches can write files."
+    },
+    {
+      "criterion": "Independent numerical derivation and previous-round fixes and rebuttals.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static derivation confirms geometry.py:234-242 rationalizes H-cos(phi0) and reconstructs the PRD latitude; :334-339 implements N=sin(phi-phi0)+sin(phi0)cos(phi)(1-cos(d)) and the corresponding U identity. Compensated longitude reduction at :319-328 and :367-385 carries the true-period residual, while the reference at test_geometry_aeqd.py:250 does not reduce longitude. Regression assertions at :719-830 and :918-938 exercise the earlier rounding and antimeridian cases. Plain-metre assertions, restored continuous coverage and full-grid coverage address the earlier blockers. mpmath remains a development dependency in pipeline/pyproject.toml:19-23. The alternative latitude evaluation and forward precision machinery are mathematically justified; future TypeScript parity is not established by this review."
+    },
+    {
+      "criterion": "Story scope and scientific guardrails.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The supplied implementation commits touch only geometry.py, test_geometry_aeqd.py, pipeline/pyproject.toml and uv.lock. Non-finite coordinates and invalid centres or radii raise errors at geometry.py:219-223, :313-318 and :347-357. No mock production path or invented measurements were introduced. config/run.yaml retains unresolved kickoff fields as null."
+    }
+  ],
+  "findings": []
+}

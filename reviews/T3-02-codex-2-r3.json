@@ -1,0 +1,114 @@
+{
+  "task_id": "T3-02",
+  "round": 3,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "a5eaba95ab8022a23cb6425b46a1b960e34678c0",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "3e9209ef8e2efafe28a4473498d6426183a2458774946099af47cb8ca0e1b996"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "f4c79368dc8e60ffcd8a587781fc0392a485047e0621c454d65f8fe62a76b2bf"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "36b32bc15871bdea57dbc09547a8296f2deeb05806012a7edbc27323ba84521a"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "f0e8fb434d2ad8116bb5c09624e0ce5ceb506cc5c01f7e313ee0ba42d0b38686"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:13:28Z",
+  "finished_utc": "2026-11-14T19:19:54Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Two AC5 blockers: missing random width/spacing coverage, and an antimeridian error shared by the forward implementation and its high-precision oracle. Checks were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests were written and run failing before implementation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "No failing execution was observed independently. Author notes cannot establish this criterion under the review's evidence rules, and executing checks is prohibited."
+    },
+    {
+      "criterion": "AC2: Independently calculated 5000 m / 90 m grid, including corners, centre and row orientation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static inspection supports the formulas: pipeline/tests/test_geometry_aeqd.py:289 independently calculates centres; :353 checks corners and (-25, 25) at pixel (27, 27). Execution is prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "AC3: PRD inverse formulas, exact centre return including poles, and independent metre round trips at the specified bodies and latitudes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Re-derived geometry.py:223-231: with S=sin(phi0)+s and H=cos(phi0)+h, the latitude increment computes the same principal latitude as asin(S), accepting that rebuttal. Lines 232 and 235 explicitly return the centre. Tests at test_geometry_aeqd.py:511, :568 and :585 cover the specified cases. Runtime accuracy remains unverified because execution is prohibited."
+    },
+    {
+      "criterion": "AC4: Independently computed great-circle distances equal rho within 1e-9 relative for all three radii.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:264 implements an independent haversine distance; :711-721 compares every grid point with rho using rtol=1e-9 and atol=0. Execution is prohibited."
+    },
+    {
+      "criterion": "AC5: Required Hypothesis domains and independent high-precision directional checks at unchanged tolerances.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:760-789 never generates widths or spacings. Lines 827-965 restore continuous-offset coverage, and :307-308 fix the earlier metre-normalization findings. However, exact_forward at :210-219 duplicates production's rounded-period longitude reduction, masking the antimeridian error described below."
+    },
+    {
+      "criterion": "AC6: Spherical terrain geometry uses metres and remains separate from radar and model distances.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/geometry.py:11-18 imports only standard-library modules and NumPy; :25-30 contains the PRD radii, :217 divides metres by radius, and :330 restores metres. mpmath is confined to the pipeline dev group at pipeline/pyproject.toml:20-23 and tests, accepting that dependency rebuttal. All four changed paths are permitted; config/run.yaml is unchanged."
+    },
+    {
+      "criterion": "Focused geometry check",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the sandbox is read-only and dependency/test-cache writes are unavailable."
+    },
+    {
+      "criterion": "Repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instructions."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/geometry.py:309",
+      "claim": "Longitude reduction introduces an antimeridian error exceeding the directional metre tolerance, and the high-precision oracle repeats it.",
+      "evidence": "Production subtracts 2*math.pi before trigonometry. pipeline/tests/test_geometry_aeqd.py:210-219 also constructs its high-precision period from math.pi rather than preserving the input angle or reducing by true 2*pi. Algebraic counterexample, not executed: on Earth, lat0=lat=0, lon0=-math.pi+1e-7 and lon=math.pi-1e-7 describe points about 1.2742 m apart. The rounded-period reduction changes the spherical angle by approximately 2.4492936e-16 rad, shifting x by 1.56e-9 m against an allowance of approximately 1.28e-10 m. Both implementation and oracle share that shift. A stated longitude range does not change the sphere's trigonometric period; use an independent true-sphere oracle and retain the period residual in production reduction.",
+      "id": "codex2-r3-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "df775d3",
+        "reason": "Confirmed and fixed. Under a true-sphere oracle the reviewer's case (Earth, lat0 = lat = 0, lon0 = -math.pi + 1e-7, lon = math.pi - 1e-7) moved x by 1.56e-9 m against an allowance of 1.28e-10 m. 96bb648 makes the oracles independent of the module's convention: exact_forward takes each float64 longitude at its exact value with mpmath's pi and no reduction, exact_inverse turns by the true 2 pi, and assert_angles_close turns by 2 * math.pi plus the mpmath residual. It adds the counterexample and eight more antimeridian cases per body, and a test that the inverse returns the in-range float64 nearest the exact longitude on the true circle (76 failed before the fix). df775d3 carries the residual 2.4492935982947064e-16 in the low part of the forward's exact longitude difference, and the inverse forms lam0 + atan2(N, M) exactly and returns the nearest in-range float64 on the true circle, -math.pi or the largest float64 below math.pi in the 2.4e-16 rad gap at the antimeridian. Both directions must change together: with only the forward changed, pixel-centre round trips in Earth windows just east of -pi used up to 1.19 of the allowance against the true sphere (168 of 400 such centres in a scratch search); 7b2d4b6 pins three. Now 0 of 400 fail, peak 0.565 (the longitude floor), and 20,000-example runs of the three property tests pass."
+      }
+    },
+    {
+      "severity": "blocker",
+      "location": "pipeline/tests/test_geometry_aeqd.py:760",
+      "claim": "The round-trip property omits the required random window widths and spacings.",
+      "evidence": "The @given arguments at :761-765 vary only body, centre and pixel indices. Lines 783-785 always select coordinates from window_grid(WINDOW_M, GRID_M), fixed to 5000 m and 90 m by config/run.yaml:21-24. Other grid dimensions at :376-395 only test grid construction, without projection round trips. AC5 explicitly requires generated widths up to 5000 m and spacings. These grids can contain zero or much smaller components, so fixed-grid coverage does not establish the required domain. Add that coverage or obtain an explicit contract amendment addressing its float64 limitations.",
+      "id": "codex2-r3-2",
+      "resolution": {
+        "action": "fixed",
+        "commit": "0f6e079",
+        "reason": "Fixed under the orchestrator decision of 2026-11-14T19:41:28Z (story notes), which amends criterion 5 (1). Random widths and spacings turned the round trip into a continuous-offset round trip in metres, which float64 cannot meet at PRD 7 atol 1e-12 m in about 2% of random grids, and contradicted part (2). Part (1) now covers the two D29 grids the system evaluates: W = 5000 m at 90 m (terrain.analysis_grid_m) and W = 5000 m at 78.125 m (ml.input_m_per_px, 64 px), at random centres on all three bodies and at every pixel centre, with PRD 7 rtol 1e-10 and atol 1e-12 m unchanged. f81b1a9 added the encoder grid, read from the run config, to the parametrised grid round trips and to the Hypothesis round-trip property. 0f6e079 makes the property round-trip every pixel centre of the drawn grid through the module forward at each random centre, and the drawn pixels also through the 40-digit reference forward. Random widths and spacings stay in test_grid_property_at_random_widths_and_spacings, which checks the grid formula only. Checks: uv run pytest pipeline/tests/test_geometry_aeqd.py, 713 passed; make check exit 0. Scratch run, not committed: 10,000 random examples of the property, each over a full grid, passed in 15.6 s."
+      }
+    }
+  ]
+}

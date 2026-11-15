@@ -1,0 +1,102 @@
+{
+  "task_id": "T3-02",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "14af29a8b2902b68f74b9b3030a6448bb0590230",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "3e9209ef8e2efafe28a4473498d6426183a2458774946099af47cb8ca0e1b996"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "635ddb7f10e1cd8314b4ed68514b893297e00fc54deccffa3d26dac9cbf84259"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "1207838ff9401a7a1f403b6c52ad2d8591d2f3e331e9d9fb883b02ce7db04cc1"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "f0e8fb434d2ad8116bb5c09624e0ce5ceb506cc5c01f7e313ee0ba42d0b38686"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:27:32Z",
+  "finished_utc": "2026-11-14T18:33:11Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "The raw-metre assertions address the prior normalization findings, and the asin rebuttal is supported algebraically. However, the property test replaces arbitrary offsets with grid-only sampling without an approved contract amendment. Numerical checks were not run.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests fail before implementation, with the failing run recorded in notes.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Captured pytest stdout in logs/agents/2026-11-14/t3-terrain/raw/ralph-science-analyst-174034.jsonl:493 reports ImportError for AeqdDomainError and one collection error. At ac27c1a, geometry.py contains only the body-radius implementation. scripts/ralph/batches/t3-terrain/prd.json:112 records the failing run."
+    },
+    {
+      "criterion": "AC2: Independent grid formulas and hand-computed corners and centre for W=5000, D=90.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:174-185 independently constructs coordinates with loops; :227-247 asserts all four corners and the centre pixel. Execution was prohibited because the sandbox is read-only and test tooling can write caches."
+    },
+    {
+      "criterion": "AC3: AEQD formulas, exact centre and pole handling, and independent forward round trips at the specified tolerances.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "geometry.py:204-229 uses rho, c, an algebraically equivalent stable latitude evaluation, atan2 longitude, and explicit centre returns. Tests :188-220 now compare raw metres at rtol=1e-10, atol=1e-12, addressing claude-r1-2, codex2-r1-1 and codex-r1-1. Tests :333-430 cover the required bodies, latitudes and poles. The claude-r1-1 rebuttal is algebraically reasonable, but numerical compliance requires execution, prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC4: Independent great-circle distances equal rho to 1e-9 relative for all three radii.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:149-153 implements haversine independently; :507-517 compares the full grid against rho with rtol=1e-9 and atol=0 for all bodies. Execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "AC5: Hypothesis round trips for random centres and offsets within a 5 km window, with a documented longitude range.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:549-585 generates only grid indices and looks up pixel-centre offsets. Both coordinate magnitudes are therefore at least 25 m. Smaller offsets at general centres receive only finiteness assertions at :593-605; their round-trip assertion at :609-614 uses only the origin centre. Longitude range [-pi, pi) is asserted, but the previous arbitrary-offset property has been removed."
+    },
+    {
+      "criterion": "AC6: Terrain geometry uses metres on body spheres and remains separate from radar and model distances.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:25-31 defines the contracted sphere radii; :113-119 constructs metric coordinates; :211 and :295-297 convert between angular and metric distances using the radius. Imports at :9-18 contain only the standard library and NumPy. No radar/model distance code, mock production path, or kickoff configuration change appears in the four-file diff."
+    },
+    {
+      "criterion": "Required focused test command.",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review request: the sandbox is read-only and uv/test caches may require writes."
+    },
+    {
+      "criterion": "Required repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review request: the sandbox is read-only and the invoked tooling may require writes."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/tests/test_geometry_aeqd.py:549",
+      "claim": "The tolerance fix narrows the required random-offset property to pixel centres, removing coverage where the stricter tolerance is hardest to meet. Restore that coverage or obtain an explicit contract amendment for the finite-precision limitation.",
+      "evidence": "Commit 1ae554b replaces continuous st.floats offset strategies and zero-axis examples with integer pixel indices. Current lines 579-585 restrict round trips to the 55×55 grid, excluding zero axes and all coordinate magnitudes below 25 m. Lines 593-605 check only finiteness for tiny offsets at general centres. This weakens the previous test domain while AC5 remains unchanged; PRD.md:1548 prohibits weakening tests to make them pass.",
+      "id": "codex-r2-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "d7af150ac5fbfb9122c9d6af25f7c00ac3a9c5f4",
+        "reason": "Fixed per the orchestrator decision of 2026-11-14 recorded in the T3-02 story notes: criterion 5 now requires the round trip at random D29 pixel centres and per-direction checks of continuous offsets against a high-precision reference (review options a + d), both at the unchanged PRD 7 tolerances, rtol 1e-10 and atol 1e-12. Commit d7af150 restores the continuous-offset coverage in pipeline/tests/test_geometry_aeqd.py. Two Hypothesis tests, 400 examples each, draw random centres for each body and continuous offsets (x, y) anywhere in [-2500, 2500] m, including signed zeros, subnormal components and near-axis offsets, plus explicit examples: poles, the antimeridian, tiny centres, a round-1 regression centre and a pole window near an axis. The inverse must match a 40-digit mpmath exact inverse of the same offset in radians, as values and as differences from the centre. The forward must match the 40-digit exact forward of the same float64 point in plain metres, for points from the inverse and points stepped from the centre without it. The D29 pixel-centre round trip is unchanged. The exact inverse and forward invert each other to 1e-25 m at 40 digits (8ae7158). The new forward check exposed a real defect: a scratch search over 1.6 million near-axis points in windows centred within 3.6 km of a pole found 7 at 1.00 to 1.28 of the metre allowance. They are pinned (6599008) and fixed by an exact two-sum longitude difference (84cd786) and a double-double north component (90744e9). Afterwards 0 of 1.6 million exceed the allowance, worst 0.19, and pixel-centre round trips still peak at the known 0.57 longitude floor. Scratch evidence, not committed: 20,000-example runs of both tests pass. With the explicit examples stripped, 400 random examples still catch the round-0 forward (direct north formula) and an inverse whose distance is scaled by 1 + 1e-8. Checks: uv run pytest pipeline/tests/test_geometry_aeqd.py, 534 passed; make check exit 0."
+      }
+    }
+  ]
+}

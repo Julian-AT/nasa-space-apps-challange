@@ -1,0 +1,106 @@
+{
+  "task_id": "T3-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "b1191ababde57c06ee6abe47ae3071d99b3557b2",
+    "head": "ebc973bbee57a2c6f8908fd6c0a71746ab3f7751",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "b5c5df4adcbc17940511dbbdbd948cab92565e4a35d891f88bc854509d32f454"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_resample.py",
+        "sha256": "eaa7d4690ffef9b07bf0f16b25a49f20485ca5175a8674f9f0cf5ed64eeab377"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:17:00Z",
+  "finished_utc": "2026-11-14T21:23:38Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found two nodata defects: source masks are discarded, and float32 sentinel matching can miss missing pixels. Checks were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "1. Tests run failing before implementation, with the failure recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Historical revision 63bc9ea contains tests importing lookup classes absent from that revision's geometry.py. This establishes test-before-implementation ordering, but no failing execution was independently observed. Execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "2. Three explicit lookup forms with independent forward/inverse tests and missing-parameter rejection.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "geometry.py:510,612,760 defines the three forms with required keyword parameters. Independently derived geographic, vector-stereographic and equirectangular references appear in test_geometry_resample.py:157-270; missing-parameter tests start at :407. Formula and sign inspection found no discrepancy, but tests were not executed because this review prohibits execution."
+    },
+    {
+      "criterion": "3. Four-neighbour bilinear interpolation with nodata propagation and outside-source nodata.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "geometry.py:1144-1159 correctly restricts interpolation to four neighbours and makes outside points NaN. However, :1122 discards masked-array validity before :1132 constructs the source validity mask, allowing missing neighbours to contribute valid values."
+    },
+    {
+      "criterion": "4. Window-frame plane residual satisfies the fixed tolerances with a stated curvature allowance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_geometry_resample.py:1573-1678 constructs a window-frame plane independently and checks the best-fit residual using rtol=1e-10, atol=1e-12. The curvature expansion and interpolation bound are consistent by derivation. Actual residuals require execution, prohibited in this read-only review."
+    },
+    {
+      "criterion": "5. Exact nodata footprints, all-nodata output, and NaN/sentinel equivalence.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Tests exist at test_geometry_resample.py:1196-1268 and :1514-1566. They omit float32 sentinel equivalence: geometry.py:1131 promotes source values before :1134 compares against the original float64 sentinel, so a stored float32 encoding of a nonrepresentable sentinel is treated as data."
+    },
+    {
+      "criterion": "6. Float64 output with an explicit boolean valid mask; missing is never zero.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "geometry.py:1070-1088 enforces output dtype and mask consistency. Nevertheless, :1122 discards source masks: an all-masked 2×2 source backed by zeros with nodata=None follows the valid-data branch and produces valid zero rather than missing output."
+    },
+    {
+      "criterion": "Focused geometry resampling tests.",
+      "command": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user prohibits checks in the read-only sandbox because dependency and test-cache writes are unavailable."
+    },
+    {
+      "criterion": "Repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed: the user prohibits checks in the read-only sandbox because dependency and cache writes are unavailable."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/geometry.py:1122",
+      "claim": "Masked source pixels silently become valid observations. Preserve the input mask when building source validity, or reject masked inputs explicitly.",
+      "evidence": "np.asarray(source) strips a NumPy MaskedArray's mask. Lines 1131-1134 subsequently recognize only nonfinite values and sentinel equality. By inspection, np.ma.array(np.zeros((2, 2)), mask=True), sampled at column=row=0.5 with nodata=None, therefore yields valid zero. No masked-source test covers this. This violates CLAUDE.md:20 and PRD.md:415,458.",
+      "id": "codex2-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "3a2b203eb58110d14696bd630b083987b0383a33",
+        "reason": "fixed in 3a2b203 (tests first in 2e5decc, which failed 5 of 6 new tests). bilinear_resample now takes a numpy masked array's mask with np.ma.getmaskarray before np.ma.getdata, so a masked pixel masks its four-neighbour footprint like NaN, whatever value it hides; resample_window passes the source through unchanged. The reviewer's case, np.ma.array(np.zeros((2, 2)), mask=True) at (0.5, 0.5) with nodata=None, now gives valid False and NaN. New tests: that case; a Hypothesis property (300 examples, hidden values 0, -9999 and 1e6, with and without a sentinel) that masked equals NaN bit for bit; a mask combined with NaN and a sentinel; masked arrays with nothing masked; an int16 masked source; and a 5 km Mars window through resample_window. A scratch run of the property at 5,000 examples passed. Checks: uv run pytest pipeline/tests/test_geometry_resample.py exit 0 (226 passed), make check exit 0."
+      }
+    },
+    {
+      "severity": "blocker",
+      "location": "pipeline/src/terraluna_pipeline/geometry.py:1131",
+      "claim": "Sentinel detection after float64 promotion misses nodata encoded in float32. Compare against the sentinel in the source storage representation before promotion and add a float32 equivalence test.",
+      "evidence": "A float32 source filled with declared nodata -9999.1 stores -9999.099609375. Line 1131 preserves that stored value during promotion, while lines 1134 and 1194 compare it against float64 -9999.1; every comparison reports data. Thus an all-nodata raster produces finite, valid output instead of matching its NaN equivalent. The sentinel tests at test_geometry_resample.py:1223-1245 construct float64 sources, leaving this case uncovered.",
+      "id": "codex2-r1-2",
+      "resolution": {
+        "action": "fixed",
+        "commit": "d28539a1e2bf65b440111c45ac2646e71d10b424",
+        "reason": "fixed in d28539a (tests first in 8f99977, 31 failures before the fix, among them the reviewer's float32 -9999.1 case and a Hypothesis-found uint64 pixel 2**64 - 1024 merged with the sentinel 2**64 - 1023 through float64). The sentinel is now compared in the source's storage type, as GDAL's nodata mask band does (gcore/gdalnodatamaskband.cpp converts the double nodata with static_cast<float> for Float32 bands and compares integer bands in their own type). A float sentinel is taken as a float64 and rounded to the source type, then compared exactly. An integer source needs an integral sentinel in its range and compares exactly, beyond 2**53 too. A sentinel the type cannot hold (0.5 or 256 for uint8, 1e39 for float32, an int beyond float64) raises ResampleError rather than masking nothing. GDAL also treats float pixels within about 4.8e-7 relative of the sentinel as nodata (ARE_REAL_EQUAL in gcore/gdal_cpp_functions.h); this rule stays exact and the docstring says so, recorded as a human decision in the story notes. New tests: float16/32/64 sources filled with rounded sentinels are all nodata; Hypothesis equivalence of NaN and the sentinel in every float and integer type (300 examples each, 5,000 in a scratch run); exact matching of float32/float16 neighbours, a float64 source holding the float32 value, int64 and uint64 beyond 2**53; NaN and infinite sentinels; unrepresentable sentinels raise. Checks: uv run pytest pipeline/tests/test_geometry_resample.py exit 0 (226 passed), make check exit 0."
+      }
+    }
+  ]
+}

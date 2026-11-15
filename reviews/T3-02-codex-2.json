@@ -1,0 +1,94 @@
+{
+  "task_id": "T3-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "33fa95401a0c6fd722fe413ec3d13e64ce7f58dc",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "ca907c649cec23e38b0e7054c1ff0b6df1dce148966936e476d1d092a317093a"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "5ed93ec05dfb93393d9d933cdbe607c8e7456e7504b0935eade5f46ea8c0a370"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:56:43Z",
+  "finished_utc": "2026-11-14T18:01:11Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found a required accuracy check missing: round-trip assertions normalize coordinates by window width, increasing the story's stated absolute tolerance. The formulas and coordinate conventions are consistent with spherical AEQD. Execution remains unverified under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "Tests were written and run failing before implementation, with the failing run recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The ac27c1a source snapshot contains the tests before the AEQD implementation, but this does not establish that they were executed. No independently observed failing run is available; notes and progress logs were not treated as execution evidence."
+    },
+    {
+      "criterion": "Grid test independently checks the PRD formula and hand-computed values for W=5000, D=90.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:123-172 independently constructs coordinates with loops and asserts the four corners and centre (-25, 25). geometry.py:113-119 uses the correct signs and float64 coordinates. Test execution was prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "Inverse AEQD follows the PRD, handles rho=0 including poles, and independently round-trips at the required tolerances for every specified body and latitude.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "geometry.py:183-202 implements rho/R and the correct longitude expression, with explicit centre restoration. Independently deriving S²+N²+M²=1 establishes that atan2(S,hypot(N,M)) equals the PRD asin latitude on its principal range. Tests cover the required bodies, latitudes and poles at test_geometry_aeqd.py:258-340, but their helper changes the absolute allowance by dividing coordinates by W. Numerical execution was prohibited."
+    },
+    {
+      "criterion": "Independent great-circle distance equals rho to 1e-9 relative for all three radii.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:98-102 independently implements haversine distance; lines 383-393 compare it with hypot(x,y) using rtol=1e-9 and atol=0 across bodies, specified latitudes and poles. Execution was prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "Hypothesis checks random centres and offsets within a 5 km window, with a documented longitude range.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:425-456 generates centres and offsets and asserts longitude in [-pi,pi). Both forward implementations are exercised through the normalized comparison helper. Hypothesis execution was prohibited by the read-only review instructions."
+    },
+    {
+      "criterion": "Terrain geometry uses metres on the body sphere and remains separate from radar and model distances.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:25-31 contains the exact three PRD radii in metres; rho/radius at line 190 is dimensionless, and the forward scale at line 260 restores metres. Imports at lines 9-18 contain only standard-library modules and NumPy."
+    },
+    {
+      "criterion": "Focused AEQD test command.",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited for this read-only review because dependency synchronization and test caches can write files."
+    },
+    {
+      "criterion": "Required project checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited for this read-only review. Makefile:22-25 invokes uv, Ruff and mypy, which can write environment or cache files."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "high",
+      "location": "pipeline/tests/test_geometry_aeqd.py:137-141",
+      "claim": "The story's explicit round-trip tolerance on metre-valued (x,y) is untested.",
+      "evidence": "The helper compares x/W and y/W with atol=1e-12. With W=5000, this permits |error| <= 1e-10*|coordinate| + 5e-9 metres, whereas criterion 3 specifies +1e-12. At a 25 m grid coordinate, the allowances are 7.5e-9 m versus 2.501e-9 m. Every grid round-trip assertion uses this helper, including the independent forward reference. Add the direct metre-coordinate assertion or obtain an explicit contract amendment authorizing this normalization; comments and notes do not establish that amendment.",
+      "id": "codex2-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "1ae554b47869b04b96ce4c5e5d2486b68f3e1067",
+        "reason": "Fixed: the direct metre-coordinate assertion is in place (1ae554b). The module forward (full 55 x 55 grid) and a 40-digit mpmath reference forward (81 points per case) must give back x and y with rtol 1e-10, atol 1e-12 in metres. At a 25 m coordinate that allows 2.501e-9 m, as computed in the finding. No normalisation remains anywhere in the file. The Hypothesis test uses random centres and random D29 pixel centres in metres, for the float64 reason given under codex-r1-1. The metre check exposed real failures, which were fixed test-first: 2c6e7b9 (failing cases, 22 failed), f8538d5 (inverse latitude as an increment, range guard tested in ce5b1ce) and 795230c (forward N without cancellation). The worst use is now 0.31 over 600,000 Earth centres where it had been up to 1.12, and 0.57 overall, at the longitude floor. Checks: 498 passed; make check exit 0."
+      }
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "task_id": "T3-02",
+  "round": 4,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "4609837fa23b4370d7029e03545c8130bd84c7ce",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "3e9209ef8e2efafe28a4473498d6426183a2458774946099af47cb8ca0e1b996"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "bba1457a06441ef035bd04932e4a4da402fd32673175affc00417c98ea83cb5a"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "09d4ff4b6f1b5adba9ecb515209efb9167eb74768a99b0877a956b5799fe0fb1"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "f0e8fb434d2ad8116bb5c09624e0ce5ceb506cc5c01f7e313ee0ba42d0b38686"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T19:45:10Z",
+  "finished_utc": "2026-11-14T19:48:51Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No static defects found in the scoped change. Previous fixes and rebuttals match the current contract. Numerical results and historical failing-run execution remain unverified because this review explicitly prohibits running checks.",
+  "checks": [
+    {
+      "criterion": "AC1: Tests written and run failing before implementation, with the failing run recorded",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The ac27c1a tree contains test imports for AEQD symbols absent from its geometry.py. This establishes test-before-implementation ordering, but does not independently establish execution. Historical run claims in notes were not treated as execution evidence."
+    },
+    {
+      "criterion": "AC2: Independent grid formula and hand-computed 5000 m / 90 m corner and centre checks",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:321-332 independently constructs coordinates with loops; :391-411 asserts all coordinates, four corners and the centre pixel. Implementation is at geometry.py:102-119. Assertions were read but not executed because checks are prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC3: Spherical inverse, exact zero-offset centre including poles, and independent forward round trips",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "geometry.py:221-245 computes rho, c, the algebraically equivalent latitude increment and atan2 longitude, with explicit centre returns. Tests at test_geometry_aeqd.py:595-623 cover zero offsets and poles; :672-700 cover both grids, all bodies and specified latitudes against module and independent forward implementations. Numerical tolerances require execution, prohibited here."
+    },
+    {
+      "criterion": "AC4: Independent great-circle distance equals rho to 1e-9 relative for all three radii",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:296-300 implements haversine independently; :857-867 checks every analysis-grid point for all bodies, specified latitudes and poles using rtol=1e-9 and atol=0. Execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC5: Both D29 grids at every pixel centre, continuous directional properties, unchanged tolerances and documented longitude range",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_geometry_aeqd.py:73-75 retains the contracted tolerances; :335-340 compares raw metres. Both configured grids are defined at :85-109. The property at :965-1030 round-trips every pixel of the selected grid at random centres. Properties at :1103-1206 check continuous offsets against 40-digit independent references. Range assertions appear at :1025 and :1137. These properties were not executed because checks are prohibited."
+    },
+    {
+      "criterion": "AC6: Terrain geometry uses metres on the body sphere and remains separate from radar and model distances",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/geometry.py:11-18 imports only standard-library modules and NumPy. Radius enters the inverse as rho/radius at :228 and the forward metre scale at :343. No radar or model distance code is imported or reused."
+    },
+    {
+      "criterion": "Previous fixes and rebuttals: static verification",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Raw-metre assertions replace normalization at test_geometry_aeqd.py:339-340; continuous coverage is restored at :1068-1206; full-grid coverage is present at :1023-1030. True-period residuals are carried at geometry.py:323 and :380, while the independent oracle uses unreduced high-precision longitude differences at test_geometry_aeqd.py:245-251. Antimeridian regressions are asserted at :744-751, :822-830 and :918-938. The latitude increment at geometry.py:234-243 is algebraically equivalent to the PRD expression; double-double forward evaluation is present at :334-337. The mpmath dependency is development-only in pipeline/pyproject.toml:19-22 and uv.lock:488-506. Future TypeScript parity remains a T10 requirement."
+    },
+    {
+      "criterion": "Story scope and scientific guardrails",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The listed implementation commits touch only the four scoped paths. No kickoff configuration, observations, gate records or production mock paths are introduced. geometry.py:219-220 and :313-314 reject non-finite inputs rather than coercing missing values to zero."
+    },
+    {
+      "criterion": "Required focused check",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review instructions because the sandbox is read-only and test tooling may write caches or synchronize dependencies."
+    },
+    {
+      "criterion": "Required repository check",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the review instructions. The Makefile invokes uv-backed Ruff and mypy checks, which were not executed."
+    }
+  ],
+  "findings": []
+}

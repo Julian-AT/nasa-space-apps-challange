@@ -1,0 +1,117 @@
+{
+  "task_id": "T3-03",
+  "round": 3,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "b1191ababde57c06ee6abe47ae3071d99b3557b2",
+    "head": "327d1d04781f563908a507a5f796d8c1f27001ac",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "5d2548fe96ccd758d2bb58ce40645c0f230297710d877a1ab7de661181976476"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_resample.py",
+        "sha256": "557ea95d2abf6a0ddefe847288b230058a020750f2d6bab849690593d75a0eb5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:52:30Z",
+  "finished_utc": "2026-11-14T21:55:44Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new source-level defects found. Prior fixes and rebuttals are supported by inspection. Required checks and execution-dependent criteria remain unverified because running checks was prohibited.",
+  "checks": [
+    {
+      "criterion": "1. Tests precede implementation and an actual failing run is recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The historical tree at 63bc9ea contains the test before the lookup implementation; scripts/ralph/batches/t3-terrain/prd.json:167 contains the failing-run note. The historical execution was not independently observed, and rerunning it is prohibited."
+    },
+    {
+      "criterion": "2. Three lookup forms have independent forward/inverse tests and explicit required georeferencing parameters.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:510,612,760 define the three forms with required keyword fields. test_geometry_resample.py:398,409 checks defaults and omitted parameters. Independent formulas at :158,163,218,240,256,265 are exercised by directional tests at :582,597,720,742,844,864."
+    },
+    {
+      "criterion": "3. Bilinear interpolation uses only four neighbours; missing neighbours and outside points produce nodata.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static inspection supports the implementation: geometry.py:1167-1182 selects four neighbours, combines their validity and writes NaN outside validity. Tests at test_geometry_resample.py:1105,1156,1175,1186 exercise these requirements. Execution is prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "4. The window-frame plane residual meets the unchanged PRD tolerances with a stated curvature allowance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_geometry_resample.py:2101-2117 constructs a window-frame plane, bounds curvature below half of ATOL and checks the fitted plane using RTOL=1e-10 and ATOL=1e-12 (:78-79). The numerical residual cannot be verified without the prohibited test execution."
+    },
+    {
+      "criterion": "5. Nodata footprints, all-nodata output and NaN/sentinel equivalence are tested.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Nontrivial assertions cover footprints (:1199), NaN/sentinel equivalence (:1226,1390,1447), all-nodata sources (:1239,1371) and window integration (:1930). These tests were read but cannot be executed under the supplied restriction."
+    },
+    {
+      "criterion": "6. Output includes float64 values and an explicit boolean validity mask; missing values are never zero.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1066-1088 requires matching float64/boolean arrays, finite valid values and NaN invalid values. bilinear_resample constructs these arrays at :1179-1182. test_geometry_resample.py:1687-1715 asserts the representation and rejects inconsistent masks."
+    },
+    {
+      "criterion": "Required focused test command",
+      "command": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the sandbox is read-only and dependency/test-cache writes are unavailable."
+    },
+    {
+      "criterion": "Required repository check command",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited in the read-only sandbox. Makefile defines real ruff lint, formatting and mypy checks."
+    },
+    {
+      "criterion": "Prior finding codex2-r1-1: masked source observations",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Fix verified by reading geometry.py:1138-1157: the input mask is captured before extracting data and contributes to source validity. Regression assertions cover fully masked zeros (:1276), mixed missing representations (:1300) and resample_window (:1985)."
+    },
+    {
+      "criterion": "Prior finding codex2-r1-2: sentinel matching in source storage type",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1151 computes sentinel matches before float64 promotion. :1230-1264 compares floating and integer sentinels in the source dtype. Tests at test_geometry_resample.py:1466-1498 explicitly distinguish rounded float sentinels and adjacent integers beyond 2**53."
+    },
+    {
+      "criterion": "Prior finding codex-r2-1 and latest underflow fix",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1241-1254 rounds under controlled overflow/underflow handling, then rejects infinite conversions and nonzero declarations rounded to zero. Tests at test_geometry_resample.py:1518-1619 cover finite rounding beyond the maximum and underflow boundaries; :1653-1684 covers overflow rejection."
+    },
+    {
+      "criterion": "Prior rebuttal claude-r2-1: maximum-float cast warning",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The criticized pre-cast range guard is absent. geometry.py:1241-1247 controls cast overflow and validates the rounded result. Boundary cases are asserted at test_geometry_resample.py:1545 and :1682, with warnings configured as errors at :72. Runtime results remain unverified."
+    },
+    {
+      "criterion": "Prior rebuttal claude-r1-1: bookkeeping outside story paths",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "First-parent non-merge history shows product changes confined to geometry.py and test_geometry_resample.py. Other changes are story/progress bookkeeping and review/run records. scripts/ralph/prompt.md:21 permits story/progress changes; PRD.md:1534-1549 requires review and agent-run records."
+    },
+    {
+      "criterion": "Prior rebuttal claude-r1-2: lookup composition tolerance",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Independent projection and geotransform comparisons retain RTOL=1e-10 and ATOL=1e-12 through test_geometry_resample.py:99-101. Composition tests at :975 and :992 verify wiring separately. The required small-extent plane test at :2101 retains the same tolerances."
+    }
+  ],
+  "findings": []
+}

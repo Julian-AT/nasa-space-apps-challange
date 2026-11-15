@@ -1,0 +1,114 @@
+{
+  "task_id": "T3-02",
+  "round": 2,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "4573b4655afbab377ec9a4718c920cf798e4d605",
+    "head": "14af29a8b2902b68f74b9b3030a6448bb0590230",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "3e9209ef8e2efafe28a4473498d6426183a2458774946099af47cb8ca0e1b996"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "635ddb7f10e1cd8314b4ed68514b893297e00fc54deccffa3d26dac9cbf84259"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_aeqd.py",
+        "sha256": "1207838ff9401a7a1f403b6c52ad2d8591d2f3e331e9d9fb883b02ce7db04cc1"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "f0e8fb434d2ad8116bb5c09624e0ce5ceb506cc5c01f7e313ee0ba42d0b38686"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T18:27:32Z",
+  "finished_utc": "2026-11-14T18:33:09Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "The metre-tolerance assertions are fixed, and the revised latitude formula is algebraically equivalent to the PRD expression. However, the property test removes previously covered arbitrary offsets without an approved contract amendment. Checks were not executed, as instructed.",
+  "checks": [
+    {
+      "criterion": "1. Tests fail before implementation, with the failing run recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "A failing-run account exists in scripts/ralph/batches/t3-terrain/prd.json:113, but notes cannot establish execution under the requested evidence standard. Historical execution was not independently observed; replay was prohibited."
+    },
+    {
+      "criterion": "2. Independent grid formula and hand-computed corners and centre for W=5000, D=90.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Static inspection confirms independent loop formulas at pipeline/tests/test_geometry_aeqd.py:174-185 and concrete corner/centre assertions at :227-247. Implementation signs and indexing agree at pipeline/src/terraluna_pipeline/geometry.py:113-119. Execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "3. PRD inverse formulas, exact centre including poles, and independent forward round trips at the specified tolerance, bodies and latitudes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Re-derivation confirms geometry.py:217-225 evaluates the principal asin latitude through an equivalent angle increment; :227 implements the PRD longitude. Centre selection is explicit at :226-229. Tests cover the specified cases at test_geometry_aeqd.py:333-430, with independent vector forward at :92-146 and direct metre assertions at :188-193. Numerical outcomes require execution, which was prohibited."
+    },
+    {
+      "criterion": "4. Independent great-circle distance equals rho to 1e-9 relative for all three radii.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:149-153 implements haversine independently; :507-517 compares every grid point with rho using rtol=1e-9 and atol=0. Execution was prohibited in the read-only sandbox."
+    },
+    {
+      "criterion": "5. Hypothesis round trips for random centres and offsets within a 5 km window, with documented longitude normalization.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "pipeline/tests/test_geometry_aeqd.py:549-585 restricts offsets to grid indices, replacing the previous arbitrary floating-offset strategies. Every sampled coordinate component has magnitude at least 25 m. General-centre tiny-offset tests at :593-605 assert only finiteness; their round-trip assertions occur only at centre (0,0), :609-614. The broader required coverage was weakened."
+    },
+    {
+      "criterion": "6. Terrain geometry uses metres on body spheres and remains separate from radar/model distances.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/geometry.py:11-30 imports only standard-library modules and NumPy and defines the PRD radii. Inverse angular distance is rho/radius at :211; forward coordinates multiply by radius at :296-297. No radar or model code is imported or reused."
+    },
+    {
+      "criterion": "Previous-round fixes and rebuttal.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The shared normalization defect identified by codex-r1-1, codex2-r1-1 and claude-r1-2 is removed: test_geometry_aeqd.py:192-193 compares metre coordinates directly. For claude-r1-1, rationalizing H-cos(phi0) and expanding sin/cos of the latitude difference independently reproduces geometry.py:222-225 and establishes algebraic equivalence to asin(S). Reported mutation and stress-run results were not independently verified."
+    },
+    {
+      "criterion": "Changed paths and configuration guardrails.",
+      "command": "git diff --name-only 4573b4655afbab377ec9a4718c920cf798e4d605 14af29a8b2902b68f74b9b3030a6448bb0590230 -- . ':!scripts/ralph' ':!reviews' ':!logs'",
+      "outcome": "PASS",
+      "evidence": "The diff changes only geometry.py, test_geometry_aeqd.py, pipeline/pyproject.toml and uv.lock, all allowed paths. config/run.yaml is unchanged; inspected kickoff choices remain null."
+    },
+    {
+      "criterion": "Focused AEQD check.",
+      "command": "uv run pytest pipeline/tests/test_geometry_aeqd.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user because dependency synchronization and test caches can write in this read-only sandbox."
+    },
+    {
+      "criterion": "Repository checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user in the read-only sandbox. Makefile inspection confirms this invokes Ruff checking, format checking and mypy."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "pipeline/tests/test_geometry_aeqd.py:549",
+      "claim": "The tolerance fix weakens required property coverage by replacing arbitrary window offsets with grid pixels. Restore that coverage or obtain an explicit human-approved contract amendment.",
+      "evidence": "The round-1-to-current diff removes floating offsets spanning [-2500,2500] m and explicit zero-component examples, replacing them with integer pixel indices at :549-561. Conversion at :580-581 ensures both component magnitudes are at least 25 m, allowing at least 2.501e-9 m error per component versus 1e-12 m at zero. General-centre tiny-offset assertions at :603-605 check only finiteness. This also excludes near-axis offsets far from the origin, since the allowance is component-wise. Float64 resolution explains the contract difficulty but does not authorize removing failing input domains; PRD 23.7 prohibits weakening tests to pass.",
+      "id": "codex2-r2-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "d7af150ac5fbfb9122c9d6af25f7c00ac3a9c5f4",
+        "reason": "Fixed by the same commit as codex-r2-1 in reviews/T3-02-codex-r2.json, under the orchestrator decision of 2026-11-14 recorded in the T3-02 story notes: criterion 5 now requires the round trip at random D29 pixel centres and per-direction checks of continuous offsets against a high-precision reference (options a + d), with PRD 7 rtol 1e-10 and atol 1e-12 unchanged. Commit d7af150 brings back the input domains this finding names. Hypothesis draws continuous offsets anywhere in [-2500, 2500] m, including zero components of both signs, subnormal and tiny components, and near-axis offsets far from the origin. Explicit examples include (2400, 1e-9), (-1e-7, -2450), (5e-324, 0), (2500, -0.0) and offsets near an axis in a pole window. Each direction is checked against a 40-digit mpmath reference of the same float64 input: the inverse (latitude, longitude) in radians, as values and as differences from the centre, and the forward (x, y) in plain metres. This avoids the float64 floor of a metre round trip at continuous offsets: one ulp of latitude or longitude is up to 1.4e-9 to 2.8e-9 m on Earth, against atol 1e-12 m. That floor is why the decision put the round trip at pixel centres. The forward check found 7 points in pole windows at 1.00 to 1.28 of the allowance (pinned in 6599008). They are fixed in 84cd786 (exact longitude difference) and 90744e9 (double-double north component); afterwards a 1.6-million-point scratch search finds a worst case of 0.19. Checks: uv run pytest pipeline/tests/test_geometry_aeqd.py, 534 passed; make check exit 0."
+      }
+    }
+  ]
+}

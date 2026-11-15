@@ -1,0 +1,118 @@
+{
+  "task_id": "T3-04",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "c60143a45f0efb7ede716b8e91c2c3d948ab7c25",
+    "head": "38d1a3601c745f0ce436e7c8fbb5194b017451bb",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/terrain.py",
+        "sha256": "017dce63925103111463510cb19723e5680d3a3d2011e24f942b8933d738ea75"
+      },
+      {
+        "path": "pipeline/tests/test_terrain_structure.py",
+        "sha256": "7ffbaeb599cffd62ffa6e36cdbc141991d7590133b5a7da4c64a3b73fc1eb797"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:12:25Z",
+  "finished_utc": "2026-11-14T22:12:54Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T3-04 passes every acceptance criterion. Both listed checks exit 0 (82 tests passed; ruff and mypy strict clean). The tests are real and compare against independent references. The diagonal-lag and isotropic-rule decisions are documented and surfaced in the story notes. One consequence needs human attention: on the 90 m grid no diagonal is supported at any configured lag. I did not re-run the failing-first run at c59d0a5. The implementation reads as written, with no zero-fill and no randomness.",
+  "checks": [
+    {
+      "criterion": "Failing test run recorded before implementation (test_terrain_structure.py fails first)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Commit order is c59d0a5 (tests only) then f9bf03d (terrain.py). The story notes in prd.json record ImportError: cannot import name 'terrain' at c59d0a5. I did not re-run that commit."
+    },
+    {
+      "criterion": "Plane test: per-direction nu equals |L|*|grad . u| at 270/360/540/720/1080 m, rtol 1e-10, atol 1e-12",
+      "command": "uv run pytest pipeline/tests/test_terrain_structure.py",
+      "outcome": "PASS",
+      "evidence": "test_plane_axis_nu_is_lag_times_gradient_along_the_axis (test_terrain_structure.py:188) uses LAGS from config and close() with RTOL 1e-10 and ATOL 1e-12. It passed. Diagonal planes are tested with diagonal lags at :208, with NE and NW told apart at :233."
+    },
+    {
+      "criterion": "Sinusoid test: x matches sqrt(2)*A*|sin(pi*L/lambda)| within a derived finite-window bound; y gives 0",
+      "command": "uv run pytest pipeline/tests/test_terrain_structure.py",
+      "outcome": "PASS",
+      "evidence": "The bound 1/(M|sin(2 pi D/lam)|) is derived in the comment at test_terrain_structure.py:248-260. Tests at :281 (limit within bound), :297 (closed-form sum), :312 (y is a supported 0.0) and :324 (convergence) passed."
+    },
+    {
+      "criterion": "Nodata: pairs need both cells valid; masked never zero; hole equals hand-removed pairs; no valid pairs is unsupported, not 0",
+      "command": "uv run pytest pipeline/tests/test_terrain_structure.py",
+      "outcome": "PASS",
+      "evidence": "Brute-force pair loop (:117) compared at :438. Filler tests with NaN, inf, 0 and 1e30 at :451. Masked-array mask at :472. Checkerboard, single column and all-nodata cases at :485-545, which assert reason set and nu_m None. The implementation _pair_differences (terrain.py:337) ANDs both cell masks; no zero fill."
+    },
+    {
+      "criterion": "Diagonal lag rule documented and tested for 270 m and 360 m; reason diagonal_lag_not_on_grid; surfaced to human",
+      "command": "uv run pytest pipeline/tests/test_terrain_structure.py",
+      "outcome": "PASS",
+      "evidence": "Rule is in the terrain.py:18-28 docstring and implemented at :314-326. test_configured_lags_are_not_on_the_diagonal_grid_at_90_m (:347) asserts the reason for 270 m and 360 m. It is recorded as decision (1) in the prd.json notes."
+    },
+    {
+      "criterion": "Isotropic rule documented, an explicit parameter recorded in the output, per-direction values unchanged",
+      "command": "uv run pytest pipeline/tests/test_terrain_structure.py",
+      "outcome": "PASS",
+      "evidence": "isotropic_rule is a required argument (terrain.py:217), stored in StructureFunction.isotropic_rule and IsotropicNu.rule. test_isotropic_rule_is_recorded_and_leaves_per_direction_values_unchanged (:609) passed. The rule is documented at terrain.py:39-48."
+    },
+    {
+      "criterion": "Pure numpy float64, no randomness, mypy --strict passes",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "make check exit 0: ruff check passed, ruff format --check passed, mypy 'Success: no issues found in 12 source files'. An AST no-randomness test exists at :776, and terrain.py imports only numpy and the stdlib."
+    },
+    {
+      "criterion": "Check: uv run pytest pipeline/tests/test_terrain_structure.py",
+      "command": "uv run pytest pipeline/tests/test_terrain_structure.py",
+      "outcome": "PASS",
+      "evidence": "82 passed in 0.62s"
+    },
+    {
+      "criterion": "Check: make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "Exit 0; ruff, format and mypy all clean"
+    },
+    {
+      "criterion": "Scope: changed paths within the story's files list",
+      "command": "git diff --stat c60143a..38d1a36",
+      "outcome": "PASS",
+      "evidence": "The code changes are only terrain.py and test_terrain_structure.py. The other touched paths are Ralph bookkeeping (prd.json state and notes, progress.txt). config/run.yaml is untouched."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/terrain.py:18-28",
+      "claim": "On the 90 m grid with the configured lags (270, 360, 540, 720, 1080 m) both diagonals are unsupported, so the isotropic summary rests on the two axes only.",
+      "evidence": "This follows from the documented rule: 270 m would need k=2.12 diagonal cells. test_configured_lags_are_not_on_the_diagonal_grid_at_90_m asserts it. The story notes surface it as human decision (1); the PRD 6.3 text and the T3-05 consumer should be settled before relying on the isotropic value.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Not a defect; this is the behaviour acceptance criterion 5 asks for. The criterion has the implementation choose a documented rule (an offset in whole cells whose length equals the lag within a stated tolerance, otherwise unsupported with diagonal_lag_not_on_grid), record it in the docstring, surface it to a human in notes, and assert it at 270 m and 360 m on the 90 m grid. terrain.py:18-28 documents the rule and states this exact consequence. test_configured_lags_are_not_on_the_diagonal_grid_at_90_m (test_terrain_structure.py:347) asserts it. Story notes decision (1) gives the consequence and three alternatives for a human: add diagonal lags k*127.28 m to terrain.lags_m, accept the nearest offset and record its true length, or interpolate. The progress log has a PRD 6.3 wording proposal. PRD 6.3 says diagonals are sampled explicitly and per-direction values are kept. It does not say a lag in metres may be approximated by a different offset, and PRD 7 allows no other resampling, so treating a diagonal as unsupported rather than mislabelling its lag keeps 'missing evidence is never zero' (CLAUDE.md). Settling the rule before T3-05 relies on the isotropic value is already recorded as a human decision. It does not block this story, and changing terrain.lags_m in config/run.yaml is outside its files."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/tests/test_terrain_structure.py:58",
+      "claim": "The module-level filterwarnings('error') applies to all tests in the file, so a numpy RuntimeWarning in the tests fails them. This is intended and not a defect.",
+      "evidence": "pytestmark at line 58; all 82 tests passed with it active.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The finding itself says this is intended and not a defect. pytestmark = pytest.mark.filterwarnings('error') (test_terrain_structure.py:58) is deliberate, as in the earlier T3 test files (progress log Codebase Patterns). It turns numpy RuntimeWarnings (divide by zero, invalid value, overflow) into failures, so a hidden NaN or overflow path in structure_function cannot pass silently. All 82 tests pass with it active. Nothing to change."
+      }
+    }
+  ]
+}

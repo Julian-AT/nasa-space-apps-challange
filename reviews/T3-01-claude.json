@@ -1,0 +1,98 @@
+{
+  "task_id": "T3-01",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "ff620c81e84d5c79f8418d2b54e3d241faf6ca6f",
+    "head": "f59015f3700130c4bb4d6b3314f64e670bba60e7",
+    "files": [
+      {
+        "path": "pipeline/pyproject.toml",
+        "sha256": "13dda9c53ccf88b37428c4abcbef5f783f1319a25e53c1b1b2216380bff2b76c"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/config.py",
+        "sha256": "2c4fc608a53e4db6c9f9d9a66b8cdb4251274d07ee40fbbda7be934bb2b3219e"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "5915e7dfd3af6740ab4e027f423f893aff6d6f8a2025f1d885e2b3f51e359748"
+      },
+      {
+        "path": "pipeline/tests/test_config.py",
+        "sha256": "725486cd096f2e088433719ea84a866ddddfeae1eab7054bf388b4ac0b4bac30"
+      },
+      {
+        "path": "pipeline/tests/test_geometry.py",
+        "sha256": "c67ab1a12ca4ba5de24d5a838dbafb9b626ab50d21f9745996cd3f81ae0d13db"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "79ef56a56e802d1e3cef8c4fb3abc62583a9a56c346ee9e8870f2c6888dafd3c"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T17:35:27Z",
+  "finished_utc": "2026-11-14T17:35:49Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T3-01 meets every acceptance criterion. All three checks pass: test_config.py (93 tests), test_geometry.py (20 tests) and make check (ruff, format and mypy). The diff stays inside the story's files, and config/run.yaml is untouched. I found no blocker or high finding. I judged the failing-first criterion from commit order only, because I did not read the progress notes.",
+  "checks": [
+    {
+      "criterion": "Tests written first and failing before implementation (test_config.py and test_geometry.py)",
+      "command": "git show --stat e818113",
+      "outcome": "PASS",
+      "evidence": "Commit e818113 adds only the two test files, and its message says both fail at collection because the modules don't exist. The implementation commits (e317365, 069e0a9) come after it. I did not read the failing-run record in the notes, so this rests on commit order alone."
+    },
+    {
+      "criterion": "pyproject gains numpy, scipy, pyyaml (+types-PyYAML dev); uv.lock updated",
+      "command": "git diff … -- pipeline/pyproject.toml",
+      "outcome": "PASS",
+      "evidence": "The diff adds numpy, pyyaml and scipy plus a dev group with types-pyyaml, and nothing else. uv.lock changes by +62 lines. `make check` runs `uv run --locked` and passes."
+    },
+    {
+      "criterion": "config.py loads the nine terrain and targets values, and a test asserts them against run.yaml",
+      "command": "uv run pytest pipeline/tests/test_config.py",
+      "outcome": "PASS",
+      "evidence": "93 passed. test_loader_returns_exactly_what_run_yaml_holds compares the loader output against a direct yaml.safe_load of config/run.yaml. test_committed_terrain_values_are_pinned checks 90, [270,360,540,720,1080], 4, 4, (none, plane), 0.8, aeqd_sphere, 5000 and 2500. run.yaml lines 21-30 hold the same values."
+    },
+    {
+      "criterion": "Loader rejects unknown resampler, missing key and non-positive grid with named errors; kickoff nulls stay None and are never defaulted",
+      "command": "uv run pytest pipeline/tests/test_config.py",
+      "outcome": "PASS",
+      "evidence": "config.py defines UnknownResamplerError, MissingConfigKeyError and NonPositiveValueError (config.py:77-98). _required raises on null terrain settings (config.py:218-222). RunConfig.value returns other entries unchanged, including null, as None (config.py:146-153). The null_paths test helper walks every null leaf."
+    },
+    {
+      "criterion": "geometry.py BODY_RADII_M is Moon 1737400.0, Mars 3396190.0, Earth 6371008.8 (float64); an unknown body raises",
+      "command": "uv run pytest pipeline/tests/test_geometry.py",
+      "outcome": "PASS",
+      "evidence": "geometry.py:18-25 holds a read-only MappingProxyType with exactly the three values. body_radius_m raises UnknownBodyError on any other name (geometry.py:36-46). 20 tests passed."
+    },
+    {
+      "criterion": "mypy --strict and ruff pass on the new files",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check: All checks passed. ruff format: 8 files already formatted. mypy: no issues found in 8 source files."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/config.py:44",
+      "claim": "DEFAULT_RUN_CONFIG finds config/run.yaml by walking up parents[3] from the module file, so it only works from the editable workspace install.",
+      "evidence": "The docstring at config.py:45-49 says to pass a path explicitly anywhere else. The test test_default_path_is_the_repository_run_yaml passes. This is acceptable and optional to change.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "93e6fdbb5b76c0ccd2a2a18cf29d18251d2c44e1",
+        "reason": "Kept the default from the editable workspace install, which is how the offline pipeline runs (PRD 8.3: config/run.yaml at the repository root, pipeline/ a uv workspace member), and documented it. A path that names no file, such as the default outside the workspace, now raises MissingRunConfigError (a ConfigError carrying key \"(document)\") naming the path and saying to pass it explicitly, instead of a bare FileNotFoundError. Test-first: 0dd8ac8 added test_missing_run_config_file_raises_a_named_error for load_run_config and load_terrain_config, which failed at import before the fix."
+      }
+    }
+  ]
+}

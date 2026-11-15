@@ -1,0 +1,81 @@
+{
+  "task_id": "T3-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "b1191ababde57c06ee6abe47ae3071d99b3557b2",
+    "head": "ebc973bbee57a2c6f8908fd6c0a71746ab3f7751",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "b5c5df4adcbc17940511dbbdbd948cab92565e4a35d891f88bc854509d32f454"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_resample.py",
+        "sha256": "eaa7d4690ffef9b07bf0f16b25a49f20485ca5175a8674f9f0cf5ed64eeab377"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:17:00Z",
+  "finished_utc": "2026-11-14T21:21:38Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No actionable defects found in the two-file static review. Historical failing-run evidence and numerical test results remain unverified. Checks were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "Tests precede implementation, fail first, and the failing run is recorded in notes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Inspected commit 63bc9ea: the test imports lookup and resampler symbols absent from that commit's geometry.py. This establishes test-first source ordering, but does not establish an executed failing run. Progress logs were not accepted as execution evidence."
+    },
+    {
+      "criterion": "Three lookup forms have independent forward and inverse tests, explicit georeferencing parameters, and missing-parameter tests.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:510, :612 and :760 define the three forms with required keyword arguments. test_geometry_resample.py:157-294 supplies separate reference formulas; :408 tests omitted parameters; :581-879 compares forward and inverse operations against references. PASS covers these static requirements, not test execution."
+    },
+    {
+      "criterion": "Interpolation uses only four neighbouring pixels; nodata neighbours and outside points produce nodata.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/geometry.py:1144-1159 computes bounds, selects four neighbours, requires all four valid, evaluates bilinear weights, and writes NaN where invalid. Outside coordinates temporarily use safe indices, but cannot become valid or zero-filled."
+    },
+    {
+      "criterion": "The window-frame plane meets rtol 1e-10 and atol 1e-12 with a stated curvature allowance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_resample.py:1588-1678 derives the curvature bound, constructs a plane in the window frame, fits a plane, and asserts the required tolerances. Actual residuals require execution, prohibited because this read-only sandbox cannot support test/cache writes."
+    },
+    {
+      "criterion": "Nodata tests verify exact footprint masking, all-nodata output, and NaN/sentinel equivalence.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "pipeline/tests/test_geometry_resample.py:1196-1245 contains the required direct tests; :1514-1566 also covers the composed window path with an independent footprint reference. Results require execution, prohibited by the read-only sandbox instructions."
+    },
+    {
+      "criterion": "Output includes an explicit boolean valid mask beside float64 values; missing is never zero.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/geometry.py:1066-1088 declares and validates float64 values and boolean masks, requiring NaN for invalid values. :1156-1159 constructs that output explicitly."
+    },
+    {
+      "criterion": "Focused story check",
+      "command": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: dependency synchronization and test/cache writes are unavailable in the read-only sandbox."
+    },
+    {
+      "criterion": "Repository checks",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not executed as instructed: uv and lint/type-check tooling may require writes unavailable in the read-only sandbox."
+    }
+  ],
+  "findings": []
+}

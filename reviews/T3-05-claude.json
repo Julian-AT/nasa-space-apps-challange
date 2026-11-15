@@ -1,0 +1,124 @@
+{
+  "task_id": "T3-05",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "3a04298e93fdd98a548a3cb41141d6b3d1114f05",
+    "head": "1e67ca1c4f5cbc9241dfb8e92012f8222b55d19e",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/terrain.py",
+        "sha256": "8dd5b509241fbd0b296181159079246effa134ce488be424f21951a84721ac34"
+      },
+      {
+        "path": "pipeline/tests/test_terrain_fingerprint.py",
+        "sha256": "d96fb151eb6fe1da68a31da2fd9428c16696087e5d3fb691375a6de358522022"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T23:53:26Z",
+  "finished_utc": "2026-11-14T23:53:56Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T3-05 passes on the evidence I saw. All three story checks exit 0, with 121 tests passing. Each acceptance criterion is met in the implementation and has tests that exercise it. The diff touches only terrain.py and test_terrain_fingerprint.py, plus Ralph orchestration files (prd.json, progress.txt, ralph.sh, the agent log). There are no config/run.yaml changes, no mock data and no missing-evidence-as-zero. The remaining items are low-severity: the 3-cell and quarter-window rules are constants rather than config keys, and an exactly-representable plane gives texture H Unavailable with no resolution floor. Both are flagged as human decisions in the notes.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests/test_terrain_fingerprint.py",
+      "command": "uv run pytest pipeline/tests/test_terrain_fingerprint.py",
+      "outcome": "PASS",
+      "evidence": "121 passed in 0.56s"
+    },
+    {
+      "criterion": "uv run mypy pipeline/src/terraluna_pipeline/terrain.py",
+      "command": "uv run mypy pipeline/src/terraluna_pipeline/terrain.py",
+      "outcome": "PASS",
+      "evidence": "Success: no issues found in 1 source file"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff check, ruff format --check and mypy all passed (13 source files)"
+    },
+    {
+      "criterion": "Tests written first and run failing; failing run recorded in notes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The commit order shows the test commit 72b3fe4 before the feat commit 2afd4a8. The prd.json notes record an ImportError at collection for the failing run. I did not re-run the failing state myself."
+    },
+    {
+      "criterion": "Lag support (config lags, >=3 cells, <=W/4, valid pairs, reasons; 270..1080 kept on full-valid W=5000 at 90 m)",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "terrain.py:896-901 (_lag_rule) and 904-921 (_lag_support). Tests at test_terrain_fingerprint.py:168, 181, 191, 203, 241."
+    },
+    {
+      "criterion": "H gate: min_lags_for_H and span factor from config; insufficient_lags, insufficient_lag_span; 3 lags, 270..900 and exactly 4x tested",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "terrain.py:684-689 (hurst_fit); config-driven at terrain.py:732-733. Tests at lines 353, 376, 429, 437."
+    },
+    {
+      "criterion": "nu_zero gives H Unavailable with no epsilon; plane gives texture nu_zero and relief H available",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "terrain.py:688-689 returns nu_zero before any log call. The exact integer plane fit is at terrain.py:986-1049. Tests at lines 449 (log(0) is never evaluated), 528, 537, 665."
+    },
+    {
+      "criterion": "Valid fraction: below 0.8 excluded with the exact fraction; exactly 0.8 passes (>=); all-nodata window; window too small for any lag",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "terrain.py:755-757 uses >=. Tests at lines 223, 710, 722, 765."
+    },
+    {
+      "criterion": "H estimator documented as a human decision and tested on power laws H=0.3, 0.5, 0.8 at rtol 1e-10",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Least-squares slope at terrain.py:690-701. Decision (1) is in the prd.json notes. Test at line 391 covers the three H values; line 409 checks agreement with polyfit."
+    },
+    {
+      "criterion": "Detrend none/plane from config, unknown raises, nodata ignored in plane removal, tilt recorded, outputs None never 0, analysis grid recorded",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "terrain.py:824-838 raises UnknownDetrendPolicyError. PlaneFit records the tilt at terrain.py:1042-1049. Tests at lines 563, 801, 813, 838, 860."
+    },
+    {
+      "criterion": "Coarsening factor only recorded, not inferred",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "terrain.py:736-743 and the coarsening_factor field. Tests at lines 280-325."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/terrain.py:201",
+      "claim": "The 3-cell and quarter-window rules are hard-coded constants, not config keys.",
+      "evidence": "MIN_LAG_CELLS = 3.0 and MAX_LAG_WINDOW_FRACTION = 0.25. The story only requires these values and the notes flag the choice for a human, so this is acceptable.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The three-cell and quarter-window rules are fixed PRD 6.3 rules (\"Lags: at least three analysis cells and at most a quarter of the window width\"), not tunable values. The PRD 8.13 config skeleton, which lists every terrain key, has only analysis_grid_m, lags_m, min_lags_for_H, min_lag_span_factor, detrend, min_valid_fraction and resampler. The tunable parts are read from config: lags_m and the window width. Adding a min_lag_cells or max_lag_window_fraction key would mean inventing config keys outside PRD 8.13, and it would require editing config/run.yaml, which is not in this story files list. The constants are named, documented with their PRD source (terrain.py:201-204), and boundary-tested at exactly 3 cells and exactly W/4. Decision (3) in the story notes flags a possible PRD 8.13 amendment for a human. The reviewer also rated this acceptable."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/terrain.py:986",
+      "claim": "There is no resolution floor for texture nu. An exactly representable plane yields texture nu exactly 0 and nu_zero, while a plane given as rounded floats gives a tiny positive nu and an H fitted on rounding noise.",
+      "evidence": "Notes decision (5) records this for a human. The criteria forbid an epsilon, so it is not a defect.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Adding a floor would break the acceptance criterion \"No epsilon is added; log(0) is never evaluated\" and the PRD 7 validity rule against epsilons. It would also be a new threshold that appears in neither PRD 6.3 nor the 8.13 config, while PRD 6.3 says terrain defaults change only on development data with a recorded reason. The behaviour is exact and deterministic: an exactly coplanar window gives texture nu = 0 and H Unavailable (nu_zero), and a non-coplanar window gives its true positive residual nu. PRD 7 (Tolerances) says real-data tolerances come from the product, so any vertical-precision floor belongs to product qualification of real DEMs on development data, not to this function. Decision (5) in the story notes records the option for a human. The reviewer also judged it not a defect."
+      }
+    }
+  ]
+}

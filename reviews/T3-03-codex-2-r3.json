@@ -1,0 +1,111 @@
+{
+  "task_id": "T3-03",
+  "round": 3,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex2",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "b1191ababde57c06ee6abe47ae3071d99b3557b2",
+    "head": "327d1d04781f563908a507a5f796d8c1f27001ac",
+    "files": [
+      {
+        "path": "pipeline/src/terraluna_pipeline/geometry.py",
+        "sha256": "5d2548fe96ccd758d2bb58ce40645c0f230297710d877a1ab7de661181976476"
+      },
+      {
+        "path": "pipeline/tests/test_geometry_resample.py",
+        "sha256": "557ea95d2abf6a0ddefe847288b230058a020750f2d6bab849690593d75a0eb5"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T21:52:30Z",
+  "finished_utc": "2026-11-14T21:57:21Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "No new defects found by inspection. The numerical formulas, validity rules, prior fixes and rebuttals are supported by the source and tests. Required execution checks were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "Tests precede implementation, fail first, and the failing run is recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "At 63bc9ea, test_geometry_resample.py imports lookup and resampler names absent from that revision's geometry.py. This establishes the pre-implementation test state, but does not independently establish an executed failing run. Execution is prohibited; author notes were not accepted as run evidence."
+    },
+    {
+      "criterion": "Three lookup forms have independent forward/inverse tests and explicit, required georeferencing parameters.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:510,612,760 define the three forms with required keyword-only fields. Independently derived projection, inverse and affine references appear at test_geometry_resample.py:158,218,240,256,265,277. Tests compare both directions and remove each required parameter at :408. Polar north/south signs, true-scale factors, radian/degree conversions and half-pixel offsets agree by inspection."
+    },
+    {
+      "criterion": "Interpolation uses exactly four neighbours; any missing neighbour or outside point produces nodata.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1167 defines the inside rectangle; :1170 selects the enclosing four pixels; :1174 requires all four to be valid regardless of weight; :1176 evaluates bilinear weights; :1180 emits NaN otherwise. Internal zero coordinates only make outside indexing safe. Locality and zero-weight-neighbour tests are present at test_geometry_resample.py:1156,1186."
+    },
+    {
+      "criterion": "A plane in the window frame satisfies the stated tolerances, with a justified curvature allowance.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "test_geometry_resample.py:2012 independently constructs window coordinates; :2027 derives the correct cubic terms and interpolation-error bound. The small-extent test at :2101 retains rtol=1e-10 and atol=1e-12 and checks the original plane as well as its best-fit residual. Actual residuals require execution, prohibited in this read-only review."
+    },
+    {
+      "criterion": "Nodata tests establish exact footprint masking, all-nodata output and NaN/sentinel equivalence.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Substantive assertions cover exact footprints at test_geometry_resample.py:1199,1930; all-nodata sources at :1239; masked inputs at :1276; storage-type sentinel equivalence at :1390,1447; and float boundaries at :1546,1597,1614. No skips or expected failures were found. Passing outcomes cannot be established without the prohibited execution."
+    },
+    {
+      "criterion": "Output includes float64 values and an explicit boolean valid mask; missing values are never zero.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1074 enforces float64 values, boolean masks, matching shapes, finite valid values and NaN invalid values. bilinear_resample constructs that representation at :1179. Tests explicitly check dtype, mask consistency, NaNs and valid zero data at test_geometry_resample.py:1249,1687,1704."
+    },
+    {
+      "criterion": "Required focused test command.",
+      "command": "uv run pytest pipeline/tests/test_geometry_resample.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Not attempted: the user prohibits running checks in this read-only sandbox because dependency and test-cache writes can fail."
+    },
+    {
+      "criterion": "Required repository check command.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Not attempted under the same explicit instruction. Makefile:22 invokes ruff check, ruff format --check and mypy."
+    },
+    {
+      "criterion": "Verify codex2-r1-1: preserve masked source pixels.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1139 extracts the mask before source conversion and :1156 incorporates it into validity. resample_window passes the source unchanged at :1208. Regression assertions include fully masked zeros, combined missing-data forms, integer sources and window integration at test_geometry_resample.py:1276,1300,1341,1985. Fix verified by reading; tests not executed."
+    },
+    {
+      "criterion": "Verify codex2-r1-2 and codex-r2-1: sentinel matching and representability after rounding.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "geometry.py:1151 detects sentinels before float64 promotion. :1241 rounds under controlled floating-point error handling, then rejects infinity and nonzero-to-zero conversions; :1261 compares integer sentinels in their storage type. Tests retain float32 -9999.1, exact integers beyond 2**53, finite rounded maxima, overflow ties, subnormals and signed zeros at test_geometry_resample.py:1466,1518,1569,1653. Fixes verified by reading."
+    },
+    {
+      "criterion": "Verify claude-r2-1 rebuttal about overflow below the largest finite value.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "A finite value at or below the largest representable value cannot round past it to infinity under rounding to nearest. The former itemsize/range guard is absent; geometry.py:1241 handles cast overflow explicitly. Boundary regressions at test_geometry_resample.py:1518 and :1653 cover both finite rounding and overflow."
+    },
+    {
+      "criterion": "Verify claude-r1-2 rebuttal about composition tests and tolerances.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_geometry_resample.py:78 and :99 preserve PRD tolerances. Independent tests check projection, inverse projection and both affine directions separately at :582,597,635,652,720,742,844,864,928,960. Composition checks at :975,992 supplement those references. The wider supplemental round-trip allowance does not replace the independent per-direction checks."
+    },
+    {
+      "criterion": "Verify scope/bookkeeping rebuttal and scientific configuration guardrails.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The supplied implementation/test commits touch only geometry.py and test_geometry_resample.py. scripts/ralph/prompt.md:21 explicitly permits story-list/progress bookkeeping, and :36 permits review-resolution records. The inspected range leaves config/run.yaml, PRD.md, CLAUDE.md, pipeline/pyproject.toml and uv.lock unchanged. Kickoff fields remain unset at config/run.yaml:2,11,16,19,33,62. No mock-data or fabricated gate-result path was introduced in the reviewed source."
+    }
+  ],
+  "findings": []
+}
