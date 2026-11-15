@@ -96,6 +96,8 @@ describe('bundle records', () => {
     ['a foreignObject', '<svg><foreignObject><p>x</p></foreignObject></svg>'],
     ['an https href', '<svg><image href="https://example.invalid/x.png"/></svg>'],
     ['an xlink:href to a file', '<svg><use xlink:href="other.svg#a"/></svg>'],
+    ['an svg data URI', '<svg><image href="data:image/svg+xml;base64,PHN2Zz4="/></svg>'],
+    ['a png data URI that is not base64', '<svg><image href="data:image/png;base64,ab:cd,javascript"/></svg>'],
   ])('refuses a figure with %s, naming the file, and writes nothing', (_, svg) => {
     const error = pullError({ 'figures/test-card_A.svg': Buffer.from(svg) });
     expect(error.path).toBe('figures/test-card_A.svg');
@@ -130,6 +132,7 @@ describe('the path map', () => {
   it('accepts a plain figure and refuses url() references to other files', () => {
     expect(svgRefusal(SVG_OK)).toBeNull();
     expect(svgRefusal('<svg><rect fill="url(#g)"/></svg>')).toBeNull();
+    expect(svgRefusal('<svg><image href="data:image/png;base64,iVBORw0KGgo="/></svg>')).toBeNull();
     expect(svgRefusal('<svg><rect style="fill:url(http://x/y)"/></svg>')).not.toBeNull();
   });
 });

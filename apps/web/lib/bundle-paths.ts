@@ -93,9 +93,12 @@ export function bundlePathEntry(path: string): { entry: BundlePathEntry; key: st
 
 /**
  * The figure allowlist (PRD 8.4, CONTRACTS a.3): an SVG with a script element, an on* event
- * attribute, a foreignObject or any href that is not a fragment reference is refused. Returns the
- * reason, or null when the SVG passes.
+ * attribute, a foreignObject or any href that is not a fragment reference or an embedded PNG
+ * (data:image/png;base64, as pipeline svg.py allows: the bytes are inside the SVG and the browser
+ * fetches nothing) is refused. Returns the reason, or null when the SVG passes.
  */
+const PNG_DATA_URI = /^data:image\/png;base64,[A-Za-z0-9+/]*={0,2}$/;
+
 export function svgRefusal(text: string): string | null {
   if (!/<svg[\s>]/i.test(text)) return 'it has no <svg> element';
   if (/<script[\s>/]/i.test(text)) return 'it contains a <script> element';
@@ -104,7 +107,9 @@ export function svgRefusal(text: string): string | null {
   if (/\son[a-z]+\s*=/i.test(text)) return 'it has an on* event attribute';
   const hrefs = text.matchAll(/(?:xlink:)?href\s*=\s*(["'])(.*?)\1/gi);
   for (const match of hrefs) {
-    if (!(match[2] ?? '').startsWith('#')) return `it has a non-fragment href ${JSON.stringify(match[2])}`;
+    const href = (match[2] ?? '').trim();
+    if (href.startsWith('#') || PNG_DATA_URI.test(href)) continue;
+    if (!href.startsWith('#')) return `it has a non-fragment href ${JSON.stringify(href.slice(0, 60))}`;
   }
   if (/url\(\s*['"]?(?!#)/i.test(text)) return 'it has a url() reference that is not a fragment';
   return null;
