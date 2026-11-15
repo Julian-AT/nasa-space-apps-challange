@@ -183,7 +183,10 @@ export default function LabTwin({ earth, target, earthName, targetName }: { read
       scene.traverse((o) => {
         const m = o as THREE.Mesh;
         if (m.isMesh && m.geometry instanceof THREE.PlaneGeometry && m.geometry.parameters.width === 80) {
-          (m.material as THREE.MeshStandardMaterial).color.set('#ffffff');
+          const mat = m.material as THREE.MeshStandardMaterial;
+          mat.color.set('#ffffff');
+          mat.emissive.set('#ffffff');
+          mat.emissiveIntensity = 0.92;
         }
       });
     }, 400);

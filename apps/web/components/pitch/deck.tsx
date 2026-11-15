@@ -41,6 +41,32 @@ function In({ d = 0, children, className }: { d?: number; children: ReactNode; c
   );
 }
 
+/** A word that swaps on a timer with a blur flip (after Aceternity's FlipWords, MIT). */
+function FlipWord({ words }: { words: readonly string[] }) {
+  const [k, setK] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setK((v) => (v + 1) % words.length), 2400);
+    return () => window.clearInterval(id);
+  }, [words.length]);
+  const w = words[k] ?? '';
+  return (
+    <span className="relative inline-block min-w-[3.2ch] text-left font-semibold" style={{ color: GOLD }}>
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={w}
+          className="inline-block"
+          initial={{ opacity: 0, y: 14, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -18, filter: 'blur(8px)' }}
+          transition={{ duration: 0.5, ease: EASE }}
+        >
+          {w}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
 function Kicker({ children }: { children: ReactNode }) {
   return (
     <p className={`${MONO} text-sm uppercase tracking-[0.22em]`} style={{ color: GOLD }}>
@@ -106,21 +132,6 @@ function Metric({ label, children, note, d }: { label: string; children: ReactNo
   );
 }
 
-function Dots() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0"
-      style={{
-        backgroundImage: 'radial-gradient(#d4d4d8 1px, transparent 1px)',
-        backgroundSize: '26px 26px',
-        maskImage: 'radial-gradient(ellipse at 75% 50%, black 0%, transparent 60%)',
-        WebkitMaskImage: 'radial-gradient(ellipse at 75% 50%, black 0%, transparent 60%)',
-      }}
-    />
-  );
-}
-
 interface Slide {
   readonly id: string;
   readonly steps: number;
@@ -147,7 +158,9 @@ function slides(d: PitchData, qr: string | null): Slide[] {
               </h1>
             </In>
             <In d={0.25}>
-              <p className="text-4xl tracking-tight text-zinc-500">Find the Moon and Mars on Earth.</p>
+              <p className="text-5xl tracking-tight text-zinc-500">
+                Find the <FlipWord words={['Moon', 'Mars']} /> on Earth.
+              </p>
             </In>
           </div>
           <div className="relative flex items-center justify-center">
@@ -199,7 +212,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       id: 'physics',
       steps: 1,
       body: () => (
-        <Frame kicker="Physics fingerprint" title={<>Structure function <span className="font-mono font-medium">ν(L)</span></>}>
+        <Frame kicker="Physics fingerprint" title={<>Structure function <span className="font-serif italic font-normal">ν(L)</span></>}>
           <div className="grid h-full grid-cols-[0.8fr_1.2fr] items-center gap-16">
             <Keywords items={[lagText, 'relief + texture', 'Python = browser']} />
             <In d={0.2} className="flex flex-col gap-3">
@@ -275,7 +288,7 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       steps: 1,
       body: () => (
         <Frame
-          kicker={`Experimental learned similarity, ${m.version ?? 'model card'}`}
+          kicker={`Experimental learned similarity, evidence label Predicted`}
           title="Small, fast, runs in your browser"
         >
           <div className="grid grid-cols-3 gap-x-14 gap-y-12 pt-4">
@@ -299,9 +312,6 @@ function slides(d: PitchData, qr: string | null): Slide[] {
             </Metric>
             <Metric d={0.55} label="physics probe R², lower bound" note="pooled relief ν, 95% CI">
               {m.probeR2Low === null ? <Unavailable reason="model card" /> : <CountUp value={Number(m.probeR2Low.toFixed(3))} digits={3} />}
-            </Metric>
-            <Metric d={0.65} label="evidence label" note="a second opinion beside the physics fingerprint">
-              <span style={{ color: GOLD }}>Predicted</span>
             </Metric>
           </div>
         </Frame>
@@ -542,7 +552,6 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
         touch.current = null;
       }}
     >
-      {slide?.id === 'title' || slide?.id === 'close' ? <Dots /> : null}
       {data.mock ? (
         <div role="alert" className="absolute inset-x-0 top-0 z-20 bg-amber-100 px-6 py-2 text-center text-sm font-medium text-amber-900">
           Mock preview: fixture bundle, not production data

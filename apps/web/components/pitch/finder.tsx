@@ -58,7 +58,19 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
 
   return (
     <div className="grid h-full grid-cols-[1.05fr_1fr] items-center gap-12">
-      <div className="relative mx-auto aspect-square h-full max-h-[62vh]" onClick={(e) => e.stopPropagation()}>
+      <div className="relative mx-auto aspect-square h-full max-h-[54vh]" onClick={(e) => e.stopPropagation()}>
+        {/* ripple rings behind the globe (after Magic UI's Ripple, MIT) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          {[0, 1, 2].map((k) => (
+            <motion.span
+              key={k}
+              className="absolute left-1/2 top-1/2 rounded-full border border-zinc-200"
+              style={{ width: `${100 + k * 11}%`, height: `${100 + k * 11}%`, x: '-50%', y: '-50%', opacity: 0.9 - k * 0.25 }}
+              animate={{ scale: [1, 0.96, 1] }}
+              transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut', delay: k * 0.12 }}
+            />
+          ))}
+        </div>
         <Globe body="earth" pins={[pin]} selectedId={step >= 1 ? 'finder' : null} autoRotate={step === 0} />
         <AnimatePresence>
           {step >= 1 ? (
