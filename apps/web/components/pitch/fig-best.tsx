@@ -1,7 +1,8 @@
-// "Results": one row per target with the best Earth window, its relief distance and how many
-// times closer it is than the median window of the same search. Every value is computed from the
-// bundle's comparison records via buildSearchData; a target without relief values shows
-// Unavailable, never zero. The bar under each row compares best and median on a shared log scale.
+// "Results": a comparison grid, one row per target and one column per searched Earth region. Each
+// cell shows the best terrain_relief distance found in that region and how many times closer it is
+// than the target's median window over all regions, with a thin bar on a shared log scale. The
+// overall best per row is highlighted. Every value is computed from the bundle's comparison records
+// via buildSearchData; a region without relief values shows Unavailable, never zero.
 import type { SearchData, SearchTarget } from './fig-search';
 
 const INK = '#1A1613';
@@ -9,9 +10,11 @@ const SECONDARY = '#4D4843';
 const MUTED = '#A39E95';
 const HAIR = 'rgba(26,22,19,0.10)';
 const BEST = '#CC5800';
-const TRACK = '#E8E4DC';
+const TRACK = '#EFECE6';
 const BODY_DOT: Record<string, string> = { mars: '#E08A5F', moon: '#A39E95' };
 const BODY_NAME: Record<string, string> = { mars: 'Mars', moon: 'Moon' };
+const REGION_COLOURS: Record<string, string> = { holuhraun: '#7AA7C7', 'rosamond-dry-lake': '#4A8044' };
+const REGION_ORDER = ['holuhraun', 'rosamond-dry-lake'];
 const MONO = 'var(--pitch-mono, ui-monospace), ui-monospace, SFMono-Regular, monospace';
 
 function fmt(v: number): string {
@@ -25,31 +28,59 @@ function median(values: readonly number[]): number | null {
   return s.length % 2 === 1 ? (s[m] as number) : ((s[m - 1] as number) + (s[m] as number)) / 2;
 }
 
-interface Row {
-  readonly target: SearchTarget;
-  readonly best: { readonly region: string; readonly relief: number } | null;
-  readonly med: number | null;
+interface Region {
+  readonly id: string;
+  readonly name: string;
+}
+
+interface Cell {
+  readonly best: number | null;
   readonly searched: number;
 }
 
-function row(target: SearchTarget): Row {
-  const avail = target.windows.filter((w) => w.relief !== null && w.relief > 0);
-  const sorted = [...avail].sort((a, b) => (a.relief as number) - (b.relief as number) || a.windowId.localeCompare(b.windowId));
-  const first = sorted[0];
-  return {
-    target,
-    best: first ? { region: first.regionName, relief: first.relief as number } : null,
-    med: median(avail.map((w) => w.relief as number)),
-    searched: target.windows.length,
+interface Row {
+  readonly target: SearchTarget;
+  readonly med: number | null;
+  readonly cells: readonly Cell[];
+  readonly bestIdx: number | null;
+}
+
+function regionsOf(data: SearchData): Region[] {
+  const names = new Map<string, string>();
+  for (const t of data.targets) for (const w of t.windows) if (!names.has(w.regionId)) names.set(w.regionId, w.regionName);
+  const rank = (id: string) => {
+    const k = REGION_ORDER.indexOf(id);
+    return k === -1 ? REGION_ORDER.length : k;
   };
+  return [...names.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => rank(a.id) - rank(b.id) || a.name.localeCompare(b.name));
+}
+
+function row(target: SearchTarget, regions: readonly Region[]): Row {
+  const avail = target.windows.filter((w) => w.relief !== null && w.relief > 0);
+  const cells = regions.map((r) => {
+    const vals = avail.filter((w) => w.regionId === r.id).map((w) => w.relief as number);
+    return { best: vals.length > 0 ? Math.min(...vals) : null, searched: target.windows.filter((w) => w.regionId === r.id).length };
+  });
+  let bestIdx: number | null = null;
+  cells.forEach((c, k) => {
+    if (c.best === null) return;
+    const cur = bestIdx === null ? null : (cells[bestIdx]?.best ?? null);
+    if (cur === null || c.best < cur) bestIdx = k;
+  });
+  return { target, med: median(avail.map((w) => w.relief as number)), cells, bestIdx };
 }
 
 export function FigBest({ data }: { data: SearchData }) {
-  const rows = data.targets.map(row);
-  const vals = rows.flatMap((r) => [r.best?.relief, r.med]).filter((v): v is number => typeof v === 'number' && v > 0);
+  const regions = regionsOf(data);
+  const rows = data.targets.map((t) => row(t, regions));
+  const vals = rows.flatMap((r) => [...r.cells.map((c) => c.best), r.med]).filter((v): v is number => typeof v === 'number' && v > 0);
   const lo = vals.length > 0 ? Math.min(...vals) / 2 : 0.01;
   const hi = vals.length > 0 ? Math.max(...vals) * 1.25 : 10;
-  const pct = (v: number) => ((Math.log10(v) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo))) * 100;
+  // bar length grows with closeness: full at the smallest distance, empty at the largest
+  const closeness = (v: number) => Math.max(2, ((Math.log10(hi) - Math.log10(v)) / (Math.log10(hi) - Math.log10(lo))) * 100);
+  // searched windows per region, as listed in the bundle (the same Earth windows for every target)
+  const searchedPerRegion = regions.map((_, k) => Math.max(0, ...rows.map((r) => r.cells[k]?.searched ?? 0)));
+  const cols = `minmax(260px, 0.9fr) ${regions.map(() => '1fr').join(' ')}`;
 
   return (
     <figure style={{ margin: 0, color: INK }}>
@@ -58,70 +89,64 @@ export function FigBest({ data }: { data: SearchData }) {
           Mock preview: values come from a mock bundle and are not results.
         </div>
       )}
-      <div className="rounded-xl bg-white" style={{ border: `1px solid ${HAIR}`, padding: '4px 36px' }}>
-        {rows.map((r, i) => {
-          const ratio = r.best !== null && r.med !== null ? Math.round(r.med / r.best.relief) : null;
-          return (
-            <div key={r.target.targetId} style={{ padding: '34px 0 30px', borderTop: i === 0 ? 'none' : `1px solid ${HAIR}` }}>
-              <div className="grid items-baseline" style={{ gridTemplateColumns: '1fr 1.15fr 1.25fr', gap: 24 }}>
-                <div className="flex items-baseline gap-3 whitespace-nowrap">
-                  <span aria-hidden="true" className="inline-block size-2.5 shrink-0 self-center rounded-full" style={{ background: BODY_DOT[r.target.body] ?? MUTED }} />
-                  <span style={{ fontSize: 22, fontWeight: 500 }}>{r.target.targetName}</span>
-                  <span style={{ fontSize: 15, color: MUTED }}>{BODY_NAME[r.target.body] ?? r.target.body}</span>
-                </div>
-                <div className="flex items-baseline gap-3 whitespace-nowrap">
-                  {r.best !== null ? (
-                    <>
-                      <span style={{ fontSize: 22, fontWeight: 400 }}>{r.best.region}</span>
-                      <span style={{ fontFamily: MONO, fontSize: 15, color: SECONDARY }}>{fmt(r.best.relief)}</span>
-                    </>
-                  ) : (
-                    <span style={{ fontSize: 18, color: MUTED }}>Unavailable (no relief distance in bundle)</span>
-                  )}
-                </div>
-                <div className="flex items-baseline justify-end gap-2.5 whitespace-nowrap">
-                  {ratio !== null ? (
-                    <>
-                      <span style={{ fontSize: 40, fontWeight: 500, lineHeight: 1, color: BEST, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{ratio}x</span>
-                      <span style={{ fontSize: 18, color: SECONDARY }}>closer than the median window</span>
-                    </>
-                  ) : (
-                    <span style={{ fontSize: 18, color: MUTED }}>Unavailable</span>
-                  )}
-                </div>
+      <div role="table" aria-label="Best relief distance per target in each searched Earth region" className="overflow-hidden rounded-xl bg-white" style={{ border: `1px solid ${HAIR}` }}>
+        <div role="row" className="grid" style={{ gridTemplateColumns: cols }}>
+          <div role="columnheader" style={{ padding: '22px 32px 18px', fontSize: 14, color: MUTED, alignSelf: 'end' }}>
+            Target
+          </div>
+          {regions.map((r, k) => (
+            <div key={r.id} role="columnheader" style={{ padding: '22px 32px 18px', borderLeft: `1px solid ${HAIR}` }}>
+              <div className="flex items-center gap-2.5 whitespace-nowrap" style={{ fontSize: 19, fontWeight: 500 }}>
+                <span aria-hidden="true" className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: REGION_COLOURS[r.id] ?? MUTED }} />
+                {r.name}
               </div>
-              {r.best !== null && r.med !== null && (
-                <div
-                  role="img"
-                  aria-label={`${r.target.targetName}: best ${fmt(r.best.relief)}, median ${fmt(r.med)} of ${r.searched} windows`}
-                  className="relative"
-                  style={{ height: 32, marginTop: 20 }}
-                >
-                  <div className="absolute left-0 rounded-full" style={{ top: 0, height: 6, width: `${pct(r.med)}%`, background: TRACK }} />
-                  <div className="absolute left-0 rounded-full" style={{ top: 0, height: 6, width: `${Math.max(pct(r.best.relief), 0.8)}%`, background: BEST }} />
-                  <div className="absolute" style={{ top: -3, height: 12, width: 1, left: `${pct(r.med)}%`, background: SECONDARY }} />
-                  <div
-                    className="absolute whitespace-nowrap"
-                    style={{ top: 12, left: `${Math.max(pct(r.best.relief), 0.8)}%`, transform: 'translateX(-50%)', fontSize: 13, color: BEST, fontWeight: 500 }}
-                  >
-                    best
-                  </div>
-                  <div
-                    className="absolute whitespace-nowrap"
-                    style={{ top: 12, left: `${pct(r.med)}%`, transform: 'translateX(-50%)', fontSize: 13, color: MUTED }}
-                  >
-                    median <span style={{ fontFamily: MONO }}>{fmt(r.med)}</span> of {r.searched}
-                  </div>
-                </div>
-              )}
+              <div style={{ marginTop: 4, fontSize: 14, color: MUTED }}>{searchedPerRegion[k]} windows searched</div>
             </div>
-          );
-        })}
+          ))}
+        </div>
+        {rows.map((r) => (
+          <div key={r.target.targetId} role="row" className="grid" style={{ gridTemplateColumns: cols, borderTop: `1px solid ${HAIR}` }}>
+            <div role="rowheader" className="flex flex-col justify-center" style={{ padding: '32px 32px' }}>
+              <div className="flex items-center gap-3 whitespace-nowrap">
+                <span aria-hidden="true" className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: BODY_DOT[r.target.body] ?? MUTED }} />
+                <span style={{ fontSize: 22, fontWeight: 500 }}>{r.target.targetName}</span>
+              </div>
+              <div style={{ marginTop: 4, marginLeft: 22, fontSize: 15, color: MUTED }}>{BODY_NAME[r.target.body] ?? r.target.body}</div>
+            </div>
+            {r.cells.map((c, k) => {
+              const isBest = r.bestIdx === k;
+              const ratio = c.best !== null && r.med !== null ? Math.max(1, Math.round(r.med / c.best)) : null;
+              return (
+                <div key={regions[k]?.id ?? k} role="cell" className="flex flex-col justify-center" style={{ padding: '32px 32px', borderLeft: `1px solid ${HAIR}` }}>
+                  {c.best !== null ? (
+                    <>
+                      <div className="flex items-baseline gap-3">
+                        <span style={{ fontFamily: MONO, fontSize: 28, lineHeight: 1.1, color: isBest ? BEST : INK, fontVariantNumeric: 'tabular-nums' }}>{fmt(c.best)}</span>
+                        {isBest && (
+                          <span className="rounded-full" style={{ padding: '2px 9px', fontSize: 12, fontWeight: 500, color: BEST, border: `1px solid ${BEST}`, lineHeight: 1.4 }}>
+                            best
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ marginTop: 6, fontSize: 14, color: SECONDARY }}>
+                        {ratio !== null ? `${ratio}x closer than the median window` : 'Median unavailable'}
+                      </div>
+                      <div aria-hidden="true" className="relative rounded-full" style={{ marginTop: 12, height: 4, background: TRACK }}>
+                        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${closeness(c.best)}%`, background: isBest ? BEST : SECONDARY, opacity: isBest ? 1 : 0.35 }} />
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ fontSize: 16, color: MUTED }}>Unavailable (no relief distance in bundle)</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
       <figcaption className="flex justify-between gap-6" style={{ marginTop: 14, fontSize: 14, lineHeight: 1.5, color: SECONDARY }}>
         <span>
-          <span style={{ color: INK, fontWeight: 500 }}>Figure 7.</span> Best Earth window per target, relief distance, lower is more alike.
-          {data.reliefUnit !== null && <> Distance in {data.reliefUnit}, log scale.</>}
+          <span style={{ color: INK, fontWeight: 500 }}>Figure 7.</span> Best Earth window per target in each searched region. Relief distance, lower is more alike.
         </span>
         <span style={{ fontFamily: MONO, fontSize: 12, color: MUTED, whiteSpace: 'nowrap' }}>bundle {data.bundleVersion}</span>
       </figcaption>
