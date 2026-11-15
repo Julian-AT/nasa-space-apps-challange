@@ -4,15 +4,21 @@
 
 Terrain-fingerprint analog candidates for Connecting Ridge, Jezero and Arcadia. Radar comparison not completed (Mode C); the terrain encoder is experimental (G5 FAIL) and unranked.
 
-## Start building
+Live app: https://terraluna-lovat.vercel.app. Every number in the app is read from one versioned, checksummed release bundle, and the [paper](paper/) is generated from the same pipeline outputs; the gate board on `/methods` shows every release gate, including those that failed or were not run.
 
-[PRD.md](PRD.md) defines the product and implementation backlog. Start with **section 12, T0** (repository and contracts) and **T1** (real-data pilot). Section 8 defines the architecture; section 23 defines the review workflow.
+## What it is
 
-Build toward one real evidence card flowing through the offline pipeline, a versioned release bundle and the web app.
+Terraluna compares terrain roughness fingerprints, the RMS height difference ν(L) at lags of 270 to 1080 m, computed from public elevation models:
 
-The PRD specifies **Python 3.12 + uv** for offline science and training, and **Node 22 + pnpm** for the web app and shared TypeScript packages.
+- **Moon:** a 5 km window of the PGDA product 78 Site01 LOLA-derived DEM at Connecting Ridge, an Artemis candidate region.
+- **Mars:** CTX DTMs at Jezero crater and Arcadia Planitia, terrain only.
+- **Earth:** 5 km Copernicus GLO-30 windows inside two declared regions, Holuhraun (Iceland) and Rosamond dry lake (California), masked with ESA WorldCover.
 
-[config/run.yaml](config/run.yaml) holds the starting configuration with kickoff decisions unset. [.env.example](.env.example) lists deployment variables. [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) provide working instructions; `.claude/agents/` contains the PRD's specialist roles.
+Relief and texture distances are kept separate; there is no combined score. Every value carries an evidence label (Observed, Derived, Predicted, Assumed, Unavailable). The shipping mode is C: the radar comparison was not completed. The learned terrain encoder failed its promotion gate (G5) and is shown on `/model` only, outside every ranking. A candidate window is a window this search identified, not a proven analog.
+
+The live probe on `/probe` measures any Earth point in the browser with the same resampler and fingerprint as the Python pipeline (parity-tested).
+
+[PRD.md](PRD.md) is the specification; [config/run.yaml](config/run.yaml) and [docs/ralph/DECISIONS.md](docs/ralph/DECISIONS.md) record the decisions taken.
 
 ## Build and test
 
@@ -45,8 +51,15 @@ uv run python -m terraluna_pipeline.export validate release/<version> --producti
 
 [CI](.github/workflows/ci.yml) runs the jobs `py` (`make setup-py check-py test-py`), `ts` (`make setup-ts check-ts test-ts`), `schema` (`make schema-check mock-bundle-check`) and `commitlint` (the pull request's commits) on pull requests and on pushes to `main`. CI has not run on GitHub yet. [apps/web/README.md](apps/web/README.md) explains how the web app selects its bundle and how the Vercel preview is deployed.
 
+## Credits
+
+- **Data:** NASA PGDA product 78 (LOLA-derived Site01 DEM) and LOLA polar products; USGS/ASU CTX DTMs; Copernicus DEM GLO-30 (ESA, © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA); ESA WorldCover 10 m 2021 v200 (CC BY 4.0); NASA/JPL UAVSAR (Iceland scene Icelnd_00208_15083_004_150530_L090_CX_01); LRO Mini-RF. Full source records with licences and checksums are on `/data` and in each bundle's `sources.json`.
+- **Holuhraun facies:** Voigt & Hamilton (2021) facies map (CC BY-NC), used for the G3 reproduction; not redistributed here.
+- **UI design ideas:** adapted from [ShadowAstra_Atlas](https://github.com/ABRUBAB/ShadowAstra_Atlas) (MIT, used with the authors' permission); see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). No data or results were copied.
+- **AI assistance:** Claude Code (Anthropic) and Codex (OpenAI) were used extensively for code, analysis scripts and writing, under human direction. No AI-generated images are used; all figures are drawn from data.
+
 ## Optional references
 
-[Five reference projects](reference-library/README.md) provide ideas for independent implementation (D17). Their local checkouts are ignored by Git; this repository keeps a small source index. Reference research is optional and does not block the build.
+[Five reference projects](reference-library/README.md) provided ideas for independent implementation (D17). Their local checkouts are ignored by Git; this repository keeps a small source index.
 
-Original project code uses [Apache-2.0](LICENSE); third-party material retains its own terms. Codex assisted with repository preparation and reference research. Record further AI assistance as required by the PRD.
+Original project code uses [Apache-2.0](LICENSE); third-party material retains its own terms.
