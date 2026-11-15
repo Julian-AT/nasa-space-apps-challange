@@ -12,11 +12,11 @@ import { EarthIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 
 import { ArchDiagram, ARCH_STEPS } from './arch';
-import { CountUp, EASE, HillTile, INK, LagProfile, LINE, MUTED, NuChart, WORLD } from './bits';
+import { ACCENT, CountUp, EASE, FAINT, HillTile, INK, LagProfile, LINE, MUTED, NuChart, PAPER, WORLD } from './bits';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
 
-const LabTwin = dynamic(() => import('./lab-twin'), { ssr: false, loading: () => <div className="size-full bg-white" /> });
+const LabTwin = dynamic(() => import('./lab-twin'), { ssr: false, loading: () => <div className="size-full" /> });
 const FinderDemo = dynamic(() => import('./finder'), { ssr: false, loading: () => null });
 
 const GITHUB = 'github.com/Julian-AT/nasa-space-apps-challange';
@@ -464,7 +464,7 @@ function Script({ text }: { text: string }) {
   );
 }
 
-export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
+export function Deck({ data, qr, fonts = '' }: { data: PitchData; qr: string | null; fonts?: string }) {
   const list = slides(data, qr);
   const n = list.length;
   const [pos, setPos] = useState({ i: 0, step: 0, dir: 1 });
@@ -563,10 +563,11 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
   const left = TOTAL_S - elapsed;
   const pace = note === undefined || t0 === null ? null : elapsed < note.from ? -(note.from - elapsed) : elapsed > note.to ? elapsed - note.to : 0;
 
-  if (host === null) return <div className="fixed inset-0 z-[1000] bg-white" />;
+  if (host === null) return <div className="fixed inset-0 z-[1000]" style={{ background: PAPER }} />;
   return createPortal(
     <div
-      className="fixed inset-0 z-[1000] overflow-hidden bg-white font-sans text-zinc-950 antialiased"
+      className={`pitch-root fixed inset-0 z-[1000] overflow-hidden antialiased ${fonts}`}
+      style={{ background: PAPER, color: INK }}
       role="region"
       aria-roledescription="slide deck"
       aria-label="Terraluna pitch"
@@ -647,7 +648,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
             exit={{ y: '100%' }}
             transition={{ duration: 0.35, ease: EASE }}
             onClick={(e) => e.stopPropagation()}
-            className="absolute inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-zinc-50/95 backdrop-blur"
+            className="absolute inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-[#F9F8F5]/95 backdrop-blur"
             aria-label="Speaker notes"
           >
             <div className="h-1 w-full bg-zinc-200">
@@ -686,7 +687,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
-            className="absolute inset-0 z-40 grid place-items-center bg-white/90 p-[6vw] backdrop-blur"
+            className="absolute inset-0 z-40 grid place-items-center bg-[#F9F8F5]/90 p-[6vw] backdrop-blur"
             aria-label="Slide overview"
           >
             <ol className="grid w-full grid-cols-3 gap-5">
@@ -698,7 +699,7 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
                       jump(k);
                       setOverview(false);
                     }}
-                    className="flex aspect-[16/7] w-full flex-col justify-between rounded-2xl border bg-white p-5 text-left transition-colors hover:border-zinc-950"
+                    className="flex aspect-[16/7] w-full flex-col justify-between rounded-2xl border bg-white/70 p-5 text-left transition-colors hover:border-zinc-950"
                     style={{ borderColor: k === i ? INK : LINE }}
                   >
                     <span className={`${MONO} text-sm text-zinc-400`}>
@@ -714,7 +715,16 @@ export function Deck({ data, qr }: { data: PitchData; qr: string | null }) {
       </AnimatePresence>
 
       <style>{`
-        .pitch-border-beam { padding: 1.5px; background: conic-gradient(from var(--pitch-a, 0deg), transparent 0deg, #a1a1aa 40deg, transparent 90deg) border-box;
+        .pitch-root, .pitch-root * { font-family: var(--pitch-sans), ui-sans-serif, system-ui, sans-serif; }
+        .pitch-root .font-mono, .pitch-root .font-mono * { font-family: var(--pitch-mono), ui-monospace, monospace; }
+        .pitch-root .text-zinc-950, .pitch-root .text-zinc-900 { color: #1A1613; }
+        .pitch-root .text-zinc-600, .pitch-root .text-zinc-500 { color: #4D4843; }
+        .pitch-root .text-zinc-400 { color: #A39E95; }
+        .pitch-root .border-zinc-200, .pitch-root .border-zinc-300 { border-color: rgba(26,22,19,0.1); }
+        .pitch-root .bg-zinc-50 { background-color: rgba(255,255,255,0.55); }
+        .pitch-root .bg-zinc-100, .pitch-root .bg-zinc-200 { background-color: rgba(26,22,19,0.08); }
+        .pitch-root .bg-zinc-950 { background-color: #1A1613; }
+        .pitch-border-beam { padding: 1.5px; background: conic-gradient(from var(--pitch-a, 0deg), transparent 0deg, #CC5800 40deg, transparent 90deg) border-box;
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: pitch-spin 6s linear infinite; }
         @property --pitch-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
         @keyframes pitch-spin { to { --pitch-a: 360deg; } }
