@@ -11,13 +11,14 @@ import { COP30_MODE } from '@/lib/probe/mode';
 import { type ProbeResult, isProbeResult } from '@/lib/probe/result';
 
 import { EASE } from './bits';
+import { DEEP_FADE_MS, DEEP_ZOOM_MS, DeepZoom } from './deep-zoom';
 import { EarthHero } from './earth-hero';
 import type { PitchData } from './pitch-data';
 
 type Finder = NonNullable<PitchData['finder']>;
 
-/** The → sequence: scan sweep while turning, camera dolly, then the target marker and the card. */
-type Phase = 'idle' | 'scan' | 'zoom' | 'mark';
+/** The → sequence: scan sweep while turning, camera dolly, deep satellite zoom, then the window and the card. */
+type Phase = 'idle' | 'scan' | 'zoom' | 'deep' | 'mark';
 const SCAN_MS = 1300;
 const ZOOM_MS = 1250;
 
@@ -52,7 +53,6 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
 
   const live = result?.kind === 'result' ? result.targets.find((t) => t.target_id === finder.targetId) ?? null : null;
   const relief = live?.terrain_relief.value ?? null;
-  const texture = live?.terrain_texture.value ?? null;
   const isLive = live !== null && relief !== null;
   const livePct = live?.terrain_relief.background_percentile;
   const closer = isLive && typeof livePct === 'number' ? Math.floor(100 - livePct) : finder.closerThan;
@@ -73,17 +73,47 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
     }
     setPhase('scan');
     const a = window.setTimeout(() => setPhase('zoom'), SCAN_MS);
-    const b = window.setTimeout(() => setPhase('mark'), SCAN_MS + ZOOM_MS);
+    const b = window.setTimeout(() => setPhase('deep'), SCAN_MS + ZOOM_MS);
+    const c = window.setTimeout(() => setPhase('mark'), SCAN_MS + ZOOM_MS + DEEP_FADE_MS + DEEP_ZOOM_MS);
     return () => {
       window.clearTimeout(a);
       window.clearTimeout(b);
+      window.clearTimeout(c);
     };
   }, [step, reduce]);
 
   // the card's Earth window centroid; the globe opens on the Americas and turns to it on →
   const at = phase !== 'idle' ? { lat: finder.lat, lon: finder.lon } : null;
-  const zoomed = phase === 'zoom' || phase === 'mark';
+  const zoomed = phase === 'zoom' || phase === 'deep' || phase === 'mark';
   const place = finder.earthName.split(',')[0] ?? finder.earthName;
+
+  // "What just happened": three narratable steps, revealed as the probe progresses
+  const body = finder.fingerprints[0]?.body;
+  const onBody = body === 'mars' ? ' on Mars' : body === 'moon' ? ' on the Moon' : '';
+  const settled = isLive || why !== null || (result !== null && result.kind !== 'result');
+  const steps: readonly { line: string; note: string | null }[] = [
+    { line: 'Fetched a 5 km window of real elevation', note: 'Copernicus GLO-30' },
+    {
+      line: 'Computed the terrain fingerprint in your browser',
+      note: isLive ? (ms === null ? null : `${(ms / 1000).toFixed(1)} s`) : why !== null ? `unavailable (${why}), stored values shown` : 'measuring…',
+    },
+    { line: `Compared it with ${finder.targetName}${onBody}`, note: null },
+  ];
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    if (phase !== 'mark') {
+      setShown(0);
+      return;
+    }
+    if (reduce) {
+      setShown(settled ? 3 : 2);
+      return;
+    }
+    const goal = settled ? 3 : 2;
+    if (shown >= goal) return;
+    const t = window.setTimeout(() => setShown((v) => Math.min(goal, v + 1)), shown === 0 ? 900 : 700);
+    return () => window.clearTimeout(t);
+  }, [phase, reduce, settled, shown]);
 
   return (
     <div className="grid h-full grid-cols-[1.05fr_1fr] items-center gap-12">
@@ -103,6 +133,8 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
         {/* clipped to a disc so the zoomed surface reads as a round lens */}
         <div className="absolute inset-0 overflow-hidden rounded-full">
           <EarthHero className="absolute inset-0" focus={at} startLon={-65} shadow={false} scan={phase === 'scan'} zoom={zoomed} />
+          {/* the globe crossfades into Sentinel-2 mosaics and zooms on to the true-to-scale window */}
+          <DeepZoom lat={finder.lat} lon={finder.lon} label={`${place}, 5 km window`} play={phase === 'deep' || phase === 'mark'} done={phase === 'mark'} reduce={reduce} />
         </div>
         <motion.div
           aria-hidden
@@ -111,34 +143,8 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
           animate={{ boxShadow: zoomed ? 'inset 0 0 0 1px rgba(26,22,19,0.12), inset 0 0 48px rgba(0,0,0,0.22)' : 'inset 0 0 0 0px rgba(26,22,19,0), inset 0 0 0px rgba(0,0,0,0)' }}
           transition={{ duration: 0.8, ease: EASE }}
         />
-        {/* target marker at the disc centre, where the focused point faces the camera (not to scale) */}
-        <AnimatePresence>
-          {phase === 'mark' ? (
-            <motion.div
-              key="mark"
-              aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2"
-              initial={{ opacity: 0, scale: 1.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: reduce ? 0 : 0.45, ease: EASE }}
-            >
-              <motion.span
-                className="absolute left-0 top-0 block size-8 rounded-full border-[1.5px] border-[#CC5800]"
-                style={{ x: '-50%', y: '-50%' }}
-                animate={reduce ? { opacity: 0.6 } : { scale: [1, 2.6], opacity: [0.8, 0] }}
-                transition={reduce ? { duration: 0 } : { duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
-              />
-              <span
-                className="absolute left-0 top-0 block size-[22px] -translate-x-1/2 -translate-y-1/2 rounded-[2px] border-[1.5px] border-[#CC5800]"
-                style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.55), 0 0 10px 1px rgba(255,138,42,0.7)' }}
-              />
-              <span className="absolute left-5 top-4 whitespace-nowrap rounded-md bg-white/92 px-2 py-0.5 text-sm font-medium text-[#1A1613] shadow-[0_1px_2px_rgba(0,0,0,0.12)]">
-                {place}
-              </span>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        {/* attribution for the deep-zoom imagery, under the lens */}
+        <p className="absolute inset-x-0 -bottom-9 text-center text-xs text-[#A39E95]">Sentinel-2 cloudless 2020 by EOX (CC BY-NC-SA 4.0)</p>
       </div>
       <div className="flex flex-col gap-6">
         <AnimatePresence mode="wait">
@@ -156,43 +162,42 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
               transition={{ duration: reduce ? 0 : 0.7, delay: reduce ? 0 : 0.45, ease: EASE }}
               className="flex flex-col gap-6 rounded-xl border border-[rgba(26,22,19,0.1)] bg-white p-7"
             >
-              <div className="flex items-center justify-between gap-4">
-                <span
-                  className="rounded-md px-2.5 py-1 text-sm font-medium"
-                  style={isLive ? { background: '#FFE8CC', color: '#CC5800' } : { background: '#F2F0EB', color: '#4D4843' }}
-                >
-                  {isLive ? `Measured live in your browser${ms === null ? '' : `, ${(ms / 1000).toFixed(1)} s`}` : why === null ? 'Measuring live…' : 'From the evidence card'}
-                </span>
-                <span className="font-mono text-sm text-[#A39E95]">
-                  {finder.lat.toFixed(3)}°, {finder.lon.toFixed(3)}°
-                </span>
-              </div>
-              <div>
-                <p className="text-[1.375rem] font-medium tracking-[-0.01em]">{finder.earthName}</p>
-                <p className="mt-1 text-sm text-[#A39E95]">vs {finder.targetName}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-6 border-t border-[rgba(26,22,19,0.1)] pt-6">
-                <div>
-                  <p className="text-5xl font-medium tracking-[-0.02em] tabular-nums text-[#CC5800]">
-                    {f3(isLive ? relief : finder.relief)}
+              <p className="text-sm font-medium uppercase tracking-[0.08em] text-[#A39E95]">What just happened</p>
+              <ol className="flex flex-col gap-4">
+                {steps.map((st, k) => (
+                  <motion.li
+                    key={k}
+                    className="flex items-start gap-3.5"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={k < shown ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
+                    transition={{ duration: reduce ? 0 : 0.4, ease: EASE }}
+                  >
+                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-[#FFE8CC] text-sm font-medium tabular-nums text-[#CC5800]">{k + 1}</span>
+                    <p className="text-xl leading-snug text-[#1A1613]">
+                      {st.line}
+                      {st.note !== null ? <span className="block whitespace-nowrap text-sm text-[#A39E95]">{st.note}</span> : null}
+                    </p>
+                  </motion.li>
+                ))}
+              </ol>
+              <motion.div
+                className="border-t border-[rgba(26,22,19,0.1)] pt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: shown >= 3 ? 1 : 0 }}
+                transition={{ duration: reduce ? 0 : 0.5, ease: EASE }}
+              >
+                {closer !== null ? (
+                  <p className="text-[2rem] font-medium leading-tight tracking-[-0.015em] text-[#1A1613]">
+                    Closer than <span className="text-[#CC5800]">{closer}%</span> of all Earth windows we searched
                   </p>
-                  <p className="mt-1 text-base text-[#4D4843]">relief distance, lower is closer</p>
-                </div>
-                <div>
-                  <p className="text-5xl font-medium tracking-[-0.02em] tabular-nums text-[#4A8044]">{f3(isLive ? texture : finder.texture)}</p>
-                  <p className="mt-1 text-base text-[#4D4843]">texture distance</p>
-                </div>
-              </div>
-              {closer !== null ? (
-                <p className="text-lg text-[#4D4843]">
-                  Closer than <span className="font-medium text-[#1A1613]">{closer}%</span> of candidate windows
-                  <span className="text-sm text-[#A39E95]">{closerFromCard ? ', from the evidence card' : ', live background'}</span>
+                ) : (
+                  <p className="text-[2rem] font-medium leading-tight tracking-[-0.015em] text-[#1A1613]">No background ranking for this window</p>
+                )}
+                <p className="mt-2 text-sm text-[#A39E95]">
+                  relief distance {f3(isLive ? relief : finder.relief)}, {isLive ? 'measured live' : 'from the evidence card'}
+                  {closerFromCard ? '; ranking from the evidence card' : ''}
                 </p>
-              ) : null}
-              <p className="text-sm text-[#A39E95]">
-                Figure. Derived (live), Copernicus GLO-30, terrain only
-                {why !== null && !isLive ? `, live probe unavailable (${why})` : ''}
-              </p>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
