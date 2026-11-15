@@ -94,3 +94,22 @@ def test_smoke_run_and_load_backbone(tmp_path: Path) -> None:
     assert enc(torch.zeros(1, 3, 64, 64)).shape == (1, 256)
     assert train.main(["run", "--name", "x", "--seed", "0"]) == 3
     assert train.main(["run", "--name", "x", "--seed", "0", "--dry-run"]) == 0
+
+
+def test_snapshot_loads_like_a_final_backbone(tmp_path: Path) -> None:
+    manifest = make_mock_shards(tmp_path / "s", per_body_split=8)
+    config = train.RunConfig(
+        name="snap",
+        seed=0,
+        epochs=1,
+        batch_size=12,
+        warmup_epochs=1,
+        precision="fp32",
+        stem_stride=2,
+    )
+    out = train.run(config, manifest, tmp_path / "run", threads=1)
+    snap = train.snapshot(out, tmp_path / "snap")
+    a, b = train.load_backbone(out), train.load_backbone(snap)
+    x = torch.randn(2, 3, 64, 64)
+    assert torch.equal(a(x), b(x))
+    assert json.loads((snap / "metrics.json").read_text())["interim_snapshot"]["epoch"] == 0
