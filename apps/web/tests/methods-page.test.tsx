@@ -48,8 +48,17 @@ const MOCK = bundle({ mock: true, shipping_mode: null, bundle_version: 'mock-0' 
 
 const PAGE_SOURCE = readFileSync(join(WEB_DIR, 'app', 'methods', 'page.tsx'), 'utf8');
 
+// useId gives different ids in separate render trees, so markup is compared without them.
+function withoutIds(html: string): string {
+  return html.replace(/\b(id|aria-describedby|aria-labelledby)="[^"]*"/g, '$1=""');
+}
+
 function page(): string {
-  return renderToStaticMarkup(<Methods />);
+  return withoutIds(renderToStaticMarkup(<Methods />));
+}
+
+function board(validation: Bundle['validation']): string {
+  return withoutIds(renderToStaticMarkup(<GatesBoard validation={validation} />));
 }
 
 function inLayout(): string {
@@ -77,8 +86,7 @@ describe('/methods', () => {
   });
 
   it('shows the board for the bundle validation.json, exactly as GatesBoard renders it', () => {
-    const board = renderToStaticMarkup(<GatesBoard validation={MOCK.validation} />);
-    expect(page()).toContain(board);
+    expect(page()).toContain(board(MOCK.validation));
     expect(elements(page()).filter((element) => element.tag === 'table')).toHaveLength(1);
   });
 
@@ -87,7 +95,7 @@ describe('/methods', () => {
       { ...gate('G0', 'PASS'), scope: 'Site01 and one Earth radar ROI' },
     ]);
     const html = page();
-    expect(html).toContain(renderToStaticMarkup(<GatesBoard validation={state.bundle.validation} />));
+    expect(html).toContain(board(state.bundle.validation));
     expect(textOf(html)).toContain('Site01 and one Earth radar ROI');
   });
 
@@ -105,8 +113,7 @@ describe('/methods', () => {
   });
 
   it('types no status, result or threshold: the page text beyond its headings comes from the board', () => {
-    const board = renderToStaticMarkup(<GatesBoard validation={MOCK.validation} />);
-    const rest = textOf(page().replace(board, ' '));
+    const rest = textOf(page().replace(board(MOCK.validation), ' '));
     expect(rest).toBe('Methods Validation board');
     expect(PAGE_SOURCE).not.toMatch(/NOT_RUN|PASS|FAIL|PARTIAL|NOT_APPLICABLE/);
   });
