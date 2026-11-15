@@ -22,6 +22,15 @@ export interface OneSlideData {
   readonly parameters: number | null;
   readonly parity: string | null;
   readonly parityTolerance: number | null;
+  readonly lagMin: number | null;
+  readonly lagMax: number | null;
+  readonly windowM: number | null;
+  /** e.g. "ResNet-18 layout", from the model card's architecture string. */
+  readonly archFamily: string | null;
+  readonly embeddingDim: number | null;
+  readonly inputPx: number | null;
+  /** Sum of the model card's train window counts over bodies. */
+  readonly trainWindows: number | null;
 }
 
 export interface QrLink {
@@ -44,15 +53,19 @@ const SANS = 'var(--pitch-sans), ui-sans-serif, system-ui, sans-serif';
 const MONO = 'var(--pitch-mono), ui-monospace, monospace';
 const NA = 'Unavailable';
 
-const fmtRelief = (v: number): string => (v >= 1 ? v.toFixed(2) : v.toFixed(3));
 
-function Metric({ value, label, sub }: { value: string; label: string; sub?: string }) {
-  const na = value === NA;
+function TechCard({ index, title, lines }: { index: string; title: string; lines: readonly string[] }) {
   return (
-    <div style={{ border: `1px solid ${HAIR}`, borderRadius: 10, padding: '28px 30px 26px', background: '#FFFFFF', display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ fontSize: na ? 34 : 60, fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1, color: na ? MUTED : INK, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-      <div style={{ fontSize: 20, lineHeight: 1.3, color: SECOND }}>{label}</div>
-      {sub !== undefined && <div style={{ fontSize: 16, lineHeight: 1.3, color: MUTED, marginTop: -6 }}>{sub}</div>}
+    <div style={{ border: `1px solid ${HAIR}`, borderRadius: 10, padding: '20px 22px 22px', background: '#FFFFFF', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ fontFamily: MONO, fontSize: 14, color: MUTED, letterSpacing: '0.04em' }}>{index}</div>
+      <div style={{ fontSize: 24, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.15, color: INK, marginTop: 10 }}>{title}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
+        {lines.map((l) => (
+          <div key={l} style={{ fontSize: 17, lineHeight: 1.35, color: SECOND }}>
+            {l}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -60,7 +73,7 @@ function Metric({ value, label, sub }: { value: string; label: string; sub?: str
 function Feature({ icon, color, text }: { icon: typeof Location01Icon; color: string; text: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 22, color: SECOND, lineHeight: 1.3 }}>
-      <span style={{ display: 'inline-flex', width: 40, height: 40, borderRadius: 10, border: `1px solid ${HAIR}`, alignItems: 'center', justifyContent: 'center', flex: 'none', background: '#FFFFFF' }}>
+      <span style={{ display: 'inline-flex', width: 36, height: 36, borderRadius: 10, border: `1px solid ${HAIR}`, alignItems: 'center', justifyContent: 'center', flex: 'none', background: '#FFFFFF' }}>
         <HugeiconsIcon icon={icon} size={20} color={color} strokeWidth={1.6} />
       </span>
       {text}
@@ -73,16 +86,30 @@ export function OneSlide({ data, qr, fonts }: { data: OneSlideData; qr: readonly
   const [scale, setScale] = useState(1);
   useEffect(() => {
     setHost(document.body);
-    const fit = () => setScale(Math.min(window.innerWidth / W, window.innerHeight / H));
+    const fit = () => {
+      setScale(Math.min(window.innerWidth / W, window.innerHeight / H));
+    };
     fit();
     window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
+    return () => {
+      window.removeEventListener('resize', fit);
+    };
   }, []);
 
-  const relief = data.jezeroBest === null ? NA : fmtRelief(data.jezeroBest);
-  const params = data.parameters === null ? NA : `${(data.parameters / 1e6).toFixed(1)}M`;
-  const parity = data.parity ?? NA;
-  const reliefLabel = data.jezeroEarth === null ? 'Best Jezero crater relief distance' : `Jezero crater vs ${data.jezeroEarth}`;
+  const fmtInt = (v: number): string => v.toLocaleString('en-US');
+  const lagLine = data.lagMin === null || data.lagMax === null ? `Lags ${NA}` : `Lags ${String(data.lagMin)} to ${String(data.lagMax)} m`;
+  const winLine = data.windowM === null ? '' : `, ${String(data.windowM / 1000)} km windows`;
+  const params = data.parameters === null ? `${NA} parameters` : `${(data.parameters / 1e6).toFixed(1)}M parameters`;
+  // 3 input channels: the encoder stem, nn.Conv2d(3, ...) in ml/src/terraluna_ml/model.py.
+  const input = data.inputPx === null ? `input ${NA}` : `${String(data.inputPx)}\u00a0x\u00a0${String(data.inputPx)}\u00a0x\u00a03 input`;
+  const emb = data.embeddingDim === null ? `embedding ${NA}` : `${String(data.embeddingDim)}-d embedding`;
+  const train = data.trainWindows === null ? `Training windows ${NA}` : `${fmtInt(data.trainWindows)} windows from Moon, Mars and Earth`;
+  const cards = [
+    { title: 'Physics fingerprint', lines: ['Structure function nu(L), relief and texture', lagLine + winLine] },
+    { title: 'Terrain encoder', lines: [`${data.archFamily ?? 'ResNet'}, ${params}`, `${emb}, ${input}`] },
+    { title: 'Self-supervised training', lines: ['VICReg, physics head, gradient-reversal planet adversary', train] },
+    { title: 'In the browser', lines: [`ONNX on WebAssembly, parity ${data.parity ?? NA}`, 'Live probe of any point on Earth'] },
+  ];
 
   if (host === null) return <div className="fixed inset-0 z-[1000]" style={{ background: PAPER }} />;
   return createPortal(
@@ -94,7 +121,7 @@ export function OneSlide({ data, qr, fonts }: { data: OneSlideData; qr: readonly
           top: '50%',
           width: W,
           height: H,
-          transform: `translate(-50%, -50%) scale(${scale})`,
+          transform: `translate(-50%, -50%) scale(${String(scale)})`,
           transformOrigin: 'center',
           background: PAPER,
         }}
@@ -106,7 +133,7 @@ export function OneSlide({ data, qr, fonts }: { data: OneSlideData; qr: readonly
         )}
 
         {/* left two thirds */}
-        <div style={{ position: 'absolute', left: 120, top: 100, width: 1100, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'absolute', left: 120, top: 88, width: 1130, display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 22, color: MUTED, letterSpacing: '0.01em', display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ width: 8, height: 8, borderRadius: 8, background: ACCENT, display: 'inline-block' }} />
             NASA Space Apps 2026, Team Terraluna
@@ -120,14 +147,13 @@ export function OneSlide({ data, qr, fonts }: { data: OneSlideData; qr: readonly
             the browser.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 0.8fr 1fr 1.2fr', gap: 18, marginTop: 50 }}>
-            <Metric value={relief} label={reliefLabel} sub="Relief distance, lower is closer" />
-            <Metric value={String(data.cardCount)} label="Evidence cards" sub="In the release bundle" />
-            <Metric value={params} label="Encoder parameters" sub="Self-supervised, experimental, runs in the browser" />
-            <Metric value={parity} label="Browser parity" sub={data.parityTolerance === null ? 'Lowest cosine, ONNX in WASM' : `Lowest cosine, tolerance ${data.parityTolerance}`} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginTop: 44 }}>
+            {cards.map((c, k) => (
+              <TechCard key={c.title} index={String(k + 1).padStart(2, '0')} title={c.title} lines={c.lines} />
+            ))}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 40 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 34 }}>
             <Feature icon={Location01Icon} color={ACCENT} text="Live finder: any point on Earth in seconds" />
             <Feature icon={Route01Icon} color={GREEN} text="Lab: same rover route on real Earth and Mars elevation" />
             <Feature icon={Pdf01Icon} color={BLUE} text="Paper with benchmarks" />
