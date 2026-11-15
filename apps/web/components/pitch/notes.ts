@@ -55,20 +55,20 @@ export const NOTES: readonly SlideNote[] = [
   {
     title: 'The Lab',
     from: 84,
-    to: 102,
+    to: 106,
     text: 'Then the **Lab**: real elevation of **Holuhraun in Iceland** and **Jezero crater**, side by side **at the same scale**. A rover drives **the same route** on both, and you see **slope, climb and descent** live.',
   },
   {
-    title: 'Results',
-    from: 102,
-    to: 114,
-    text: 'The result is **seven evidence cards**. In both regions we searched, **Iceland and California**, our best matches for Jezero and Arcadia are **many times closer** than a typical window.',
-  },
-  {
     title: 'Close',
-    from: 114,
+    from: 106,
     to: 120,
     text: 'Terraluna: **find the Moon and Mars on Earth.** Scan to try it, read the paper, or see the code.',
+  },
+  {
+    title: 'Results (extra, if time)',
+    from: 120,
+    to: 132,
+    text: 'The result is **seven evidence cards**. In both regions we searched, **Iceland and California**, our best matches for Jezero and Arcadia are **many times closer** than a typical window.',
   },
 ];
 

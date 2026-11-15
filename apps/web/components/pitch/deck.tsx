@@ -213,17 +213,6 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
       ),
     },
     {
-      id: 'results',
-      steps: 1,
-      body: () => (
-        <Frame title="Results" sub={<><A>{d.cardCount} evidence cards</A>. The best Earth match for each target.</>}>
-          <div className="pt-[1vh]">
-            <FigBest data={search} />
-          </div>
-        </Frame>
-      ),
-    },
-    {
       id: 'close',
       steps: 1,
       bare: true,
@@ -242,6 +231,17 @@ function slides(d: PitchData, qr: readonly QrLink[], bench: BenchData, curves: C
             NASA Space Apps 2026, Team Terraluna, nasa.julianschmidt.cv
           </p>
         </div>
+      ),
+    },
+    {
+      id: 'results',
+      steps: 1,
+      body: () => (
+        <Frame title="Results" sub={<><A>{d.cardCount} evidence cards</A>. The best Earth match for each target.</>}>
+          <div className="pt-[1vh]">
+            <FigBest data={search} />
+          </div>
+        </Frame>
       ),
     },
   ];
