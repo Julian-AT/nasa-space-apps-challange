@@ -38,9 +38,9 @@ export function PaperView({ paper }: { readonly paper: PaperInfo }) {
   }
   const size = paper.pdfBytes === null ? '' : ` (${String(Math.round(paper.pdfBytes / 1024))} KiB)`;
   return (
-    <>
+    <div>
       <PageHeader eyebrow="Paper" title="Paper" lead="The Terraluna paper, built from the same bundle artifacts as this site." />
-      <Card className="mt-6 w-full max-w-4xl self-start">
+      <Card className="mt-6 max-w-4xl">
         <CardHeader className="flex flex-col gap-2">
           <p className="text-xs font-medium text-muted-foreground">Terraluna · NASA Space Apps 2026</p>
           <h2 className="text-2xl leading-snug font-semibold tracking-tight text-balance">{paper.title ?? 'Terraluna'}</h2>
@@ -81,6 +81,6 @@ export function PaperView({ paper }: { readonly paper: PaperInfo }) {
           )}
         </CardFooter>
       </Card>
-    </>
+    </div>
   );
 }

@@ -21,7 +21,7 @@ export default function ProbePage() {
   const targets = probeTargets(bundle);
   const encoder = probeEncoder(bundle);
   return (
-    <>
+    <div>
       <PageHeader
         eyebrow="Live probe · browser worker"
         title="Live Earth probe"
@@ -41,6 +41,6 @@ export default function ProbePage() {
           encoder={encoder.encoder}
         />
       </Suspense>
-    </>
+    </div>
   );
 }
