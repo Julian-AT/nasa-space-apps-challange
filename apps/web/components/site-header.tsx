@@ -13,7 +13,6 @@ export const NAV_ITEMS = [
   { label: 'Moon', href: '/explore/moon' },
   { label: 'Mars', href: '/explore/mars' },
   { label: 'Earth', href: '/explore/earth' },
-  { label: 'Probe', href: '/probe' },
   { label: 'Model', href: '/model' },
   { label: 'Methods', href: '/methods' },
   { label: 'Data', href: '/data' },
