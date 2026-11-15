@@ -39,7 +39,7 @@ def _build(tmp_path: Path) -> tuple[Path, list[Path], Path]:
 
 
 def test_report_files_validate_and_are_deterministic(tmp_path: Path) -> None:
-    ev, runs, manifest = _build(tmp_path)  # noqa: RUF059
+    ev, runs, manifest = _build(tmp_path)
     for name in ("a", "b"):
         report.build_report(ev, runs, tmp_path / name, manifest=manifest, config_path=CONFIG)
     for rel in (
@@ -112,7 +112,7 @@ def test_different_seed_free_configs_in_a_group_raise(tmp_path: Path) -> None:
 
 
 def test_hygiene_and_g5_copy(tmp_path: Path) -> None:
-    ev, runs, manifest = _build(tmp_path)  # noqa: RUF059
+    ev, _, _ = _build(tmp_path)
     doc = json.loads((ev / "evaluation_metrics.json").read_text())
     doc["freeze"]["written_before_test_read"] = False
     (ev / "evaluation_metrics.json").write_text(json.dumps(doc))
@@ -128,7 +128,7 @@ def test_hygiene_and_g5_copy(tmp_path: Path) -> None:
 
 
 def test_examples_layout_and_cli(tmp_path: Path) -> None:
-    ev, runs, manifest = _build(tmp_path)  # noqa: RUF059
+    ev, runs, manifest = _build(tmp_path)
     ex = report.build_examples(ev)
     assert len(ex["gallery"]) == 4
     g = ex["gallery"][0]
