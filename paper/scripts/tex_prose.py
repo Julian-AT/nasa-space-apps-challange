@@ -724,9 +724,17 @@ class _CodeScanner:
         return i
 
     def verb_end(self, start: int, i: int) -> int:
+        """Index past \\verb's argument, read as latex.ltx (bundle v33) reads it.
+
+        \\verb makes the space an other character before \\@ifstar looks, so only tabs,
+        which stay spaces, may stand before its star. \\@sverb then skips spaces and tabs
+        before it takes the delimiter: \\verb |x y| and \\verb *x* are verbatim.
+        """
         text = self.text
+        i = len(text) - len(text[i:].lstrip("\t"))
         if text.startswith("*", i):
             i += 1
+        i = len(text) - len(text[i:].lstrip(" \t"))
         if i >= len(text) or text[i] == "\n":
             raise self.error(start, "unclosed \\verb")
         end = text.find(text[i], i + 1)
