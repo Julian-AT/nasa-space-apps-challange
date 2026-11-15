@@ -1532,7 +1532,7 @@
   },
   "mock": false,
   "model_id": "terraluna-encoder-experimental",
-  "run_id": null,
+  "run_id": "sha256:a903a6e10a32fb72d78ad5e6c6552b6bca44f92d70a3c49b637022cf62fbee68",
   "run_record": {
     "checkpoint_sha256s": [
       "2c3510d6024dcd725f386a3c82575c356b6496c9d7007bb5c1d4656145e7e475",

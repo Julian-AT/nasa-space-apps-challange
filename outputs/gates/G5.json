@@ -1,7 +1,23 @@
 {
+  "command": "python -m terraluna_ml.evaluate g5 --metrics outputs/ml/evaluation/test/evaluation_metrics.json --out outputs/ml/evaluation/test --parity outputs/ml/model/export_record.json --gate-out outputs/gates/G5.json",
+  "config_version": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
   "consequence": "The encoder stays EXPERIMENTAL with the failed tests named; its report and live probe still ship and rankings stay on M0 (PRD 11.7).",
   "evidence_path": "outputs/ml/evaluation/test/g5_conditions.json",
   "gate_id": "G5",
+  "input_hashes": [
+    {
+      "path": "config/run.yaml",
+      "sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675"
+    },
+    {
+      "path": "outputs/ml/evaluation/test/evaluation_metrics.json",
+      "sha256": "c991fa8ef16b0d5d5b18c9e94e0e89ef6b082a0f2b497b260c3e5a420548a1dc"
+    },
+    {
+      "path": "outputs/ml/model/export_record.json",
+      "sha256": "4487c0b41ce3cd511832468cdd470f4d02b79eed734c7a21fc55758aa19d2f4a"
+    }
+  ],
   "result": "failed: condition_3:body_invariance, condition_4:physics_agreement, condition_5:seed_stability",
   "run_id": "sha256:a903a6e10a32fb72d78ad5e6c6552b6bca44f92d70a3c49b637022cf62fbee68",
   "scope": "encoder on spatial test blocks",
