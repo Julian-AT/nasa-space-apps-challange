@@ -918,10 +918,18 @@ class Sources:
 
     def __init__(self, repo: Path) -> None:
         self.known: dict[str, str | None] = {}
-        p = repo / "outputs" / "sources.json"
-        if p.exists():
-            for rec in json.loads(p.read_text()):
-                self.known[rec["product_id"]] = rec.get("checksum")
+        # The committed fragments export merges (a VERIFIED record wins over a PARTIAL one), so
+        # a run_id built here equals the run_id export recomputes from the merged sources.
+        status: dict[str, str] = {}
+        for name in ("outputs/sources.json", "outputs/realcard/sources.json"):
+            p = repo / name
+            if p.exists():
+                for rec in json.loads(p.read_text()):
+                    pid = rec["product_id"]
+                    rank = 1 if rec.get("verification_status") == "VERIFIED" else 0
+                    if pid not in self.known or rank > int(status[pid]):
+                        self.known[pid] = rec.get("checksum")
+                        status[pid] = str(rank)
         self.used: dict[str, str | None] = {}
         self.files: dict[str, dict[str, Any]] = {}
         self.bytes_read = 0

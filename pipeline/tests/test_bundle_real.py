@@ -40,6 +40,21 @@ def _primary() -> object:
     return targets["moon"].get("primary_window_id")
 
 
+def _target_windows() -> set[str]:
+    """The Moon primary window and every Mars target's primary window (config targets)."""
+    targets = _config()["targets"]
+    assert isinstance(targets, dict)
+    found = {str(_primary())}
+    mars = targets.get("mars")
+    assert isinstance(mars, list)
+    found.update(
+        str(entry["primary_window_id"])
+        for entry in mars
+        if isinstance(entry, dict) and entry.get("primary_window_id") is not None
+    )
+    return found
+
+
 def _comparisons() -> list[ComparisonRecord]:
     records: list[ComparisonRecord] = []
     for path in COMPARISONS:
@@ -65,7 +80,7 @@ def test_real_card_matches_config_and_comparison(path: Path) -> None:
     card = CardRecord.model_validate_json(path.read_bytes())
     assert card.mock is False
     assert card.shipping_mode == _mode()
-    assert card.target.target_window_id == _primary()
+    assert card.target.target_window_id in _target_windows()
     matches = [
         c
         for c in _comparisons()
@@ -84,7 +99,11 @@ def test_real_card_matches_config_and_comparison(path: Path) -> None:
     assert card.distances_by_family.model_embedding.reason == "encoder_not_evaluated"
     for entry in (card.q6_campaign.access, card.q6_campaign.permits, card.q6_campaign.season):
         assert (entry.value == "unknown") == (entry.source is None)
-    assert len(card.q4_differences.limits) >= 7
+    # Moon cards carry the full difference list; Mars cards have no permanent-shadow or
+    # radar-geometry limits of their own, so they list gravity, atmosphere, resolution and the
+    # two unavailable families.
+    minimum = 7 if card.target.target_window_id == _primary() else 5
+    assert len(card.q4_differences.limits) >= minimum
 
 
 @pytest.mark.parametrize("path", CARDS, ids=[p.stem for p in CARDS])
