@@ -365,12 +365,15 @@ SourcesFile = Annotated[
 # --- Science records I: common types (CONTRACTS a.2; PRD 3, 8.4) --------------------------------
 #
 # Cross-field rules are written twice: as a pydantic validator and as JSON Schema conditionals in
-# ``allOf`` (``_when``), which the zod generator translates. Four rules compare values inside a
+# ``allOf`` (``_when``), which the zod generator translates. Some rules compare values inside a
 # document, which JSON Schema cannot express, so only pydantic checks them: a Distribution's
 # values are sorted and counted by ``n``, a WindowPolygon's rings are closed, a WindowEntry's
 # ``terrain`` and ``radar`` slots hold fingerprints of that kind, and an IncidenceRange's min
-# does not exceed its max. Every bundle file is written through these models, so the web never
-# receives a record that breaks them.
+# does not exceed its max. Science records II add the card's ids, comparison_ref, q5 ties,
+# Mode B or C radar and figure letters, a TileLayer's zooms, pixel sizes, omitted tiles and
+# extent, a numeric legend's range, distinct class codes, and the WindowGrid and Shortlist
+# counts (each named on its validator). Every bundle file is written through these models, so
+# the web never receives a record that breaks them.
 
 EvidenceLabel = Literal["Observed", "Derived", "Predicted", "Assumed", "Unavailable"]
 """The evidence label every displayed or exported quantity carries (PRD 3)."""
