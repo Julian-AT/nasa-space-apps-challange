@@ -218,7 +218,7 @@ export default function Find({ probe }: { probe: TerralunaProbeProps }) {
 
   return (
     <div className="bg-void">
-      <section className="relative xl:h-[calc(100dvh-64px)] xl:min-h-[700px]">
+      <section className="relative isolate xl:h-[calc(100dvh-112px)] xl:min-h-[700px]">
         {/* stage: a window into space */}
         <div
           data-theme="dark"
