@@ -95,7 +95,7 @@ export function NuChart({ name, series }: NuChartProps) {
         role="img"
         aria-label={`${name}. Log-log plot of ν against lag in metres; the same values are in the table below.`}
         data-chart="nu"
-        className="min-h-[340px] overflow-x-auto rounded-lg border border-line bg-card p-2"
+        className="min-h-[340px] overflow-x-auto rounded-lg border bg-card p-2"
       >
         {drawn ? (
           <p className="p-4 text-sm text-muted-foreground">Loading chart… the table below has every value.</p>

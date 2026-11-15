@@ -48,7 +48,7 @@ export function SwipeStage({
       <div className="absolute inset-0 z-[400]" style={{ clipPath: `inset(0 ${String((1 - value) * 100)}% 0 0)` }}>
         {left}
       </div>
-      <div className="absolute inset-y-0 z-[700] w-px bg-platinum/70" style={{ left: `${String(value * 100)}%` }}>
+      <div className="absolute inset-y-0 z-[700] w-px bg-foreground/70" style={{ left: `${String(value * 100)}%` }}>
         <button
           type="button"
           aria-label="Swipe divider between the target and the Earth hillshade"
@@ -76,10 +76,10 @@ export function SwipeStage({
           <span aria-hidden="true">⟷</span>
         </button>
       </div>
-      <div className="pointer-events-none absolute top-3 left-3 z-[700] flex max-w-[45%] items-center gap-2 truncate rounded-full bg-void/80 px-3 py-1.5 text-[12px] backdrop-blur">
+      <div className="pointer-events-none absolute top-3 left-3 z-[700] flex max-w-[45%] items-center gap-2 truncate rounded-full border bg-popover/95 px-3 py-1.5 text-xs shadow-sm">
         <WorldDot world={leftWorld} /> <span className="truncate">{leftLabel}</span>
       </div>
-      <div className="pointer-events-none absolute top-3 right-3 z-[700] flex max-w-[45%] items-center gap-2 truncate rounded-full bg-void/80 px-3 py-1.5 text-[12px] backdrop-blur">
+      <div className="pointer-events-none absolute top-3 right-3 z-[700] flex max-w-[45%] items-center gap-2 truncate rounded-full border bg-popover/95 px-3 py-1.5 text-xs shadow-sm">
         <WorldDot world="earth" /> <span className="truncate">{rightLabel}</span>
       </div>
     </div>

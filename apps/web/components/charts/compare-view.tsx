@@ -41,7 +41,7 @@ const sig = (v: number, n: number): string => (Number.isInteger(v) ? String(v) :
 function DistanceRow({ name, entry, source }: { readonly name: string; readonly entry: Entry; readonly source: string }) {
   const spread = entry.reference_spread;
   return (
-    <div data-family={name} className="[&_[data-slot=source]]:wrap-anywhere flex flex-col gap-2 border-b border-line py-4 last:border-0">
+    <div data-family={name} className="[&_[data-slot=source]]:wrap-anywhere flex flex-col gap-2 border-b py-4 last:border-0">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h4 className="font-semibold">{name}</h4>
         <span className="font-mono text-lg [&_[data-slot=source]]:block [&_[data-slot=source]]:font-sans [&_[data-slot=source]]:text-sm [&_[data-slot=source]]:font-normal [&_[data-slot=source]]:text-muted-foreground">
@@ -50,7 +50,7 @@ function DistanceRow({ name, entry, source }: { readonly name: string; readonly 
       </div>
       <dl className="grid gap-x-6 gap-y-1 text-sm text-muted-foreground sm:grid-cols-3">
         <div>
-          <dt className="font-mono text-xs tracking-[0.14em] uppercase">Reference-set spread</dt>
+          <dt className="text-xs font-medium">Reference-set spread</dt>
           <dd>
             {spread === null ? (
               <LabelledValue label="Unavailable" reason={entry.reference_spread_reason ?? NO_REASON} />
@@ -62,7 +62,7 @@ function DistanceRow({ name, entry, source }: { readonly name: string; readonly 
           </dd>
         </div>
         <div>
-          <dt className="font-mono text-xs tracking-[0.14em] uppercase">Background percentile</dt>
+          <dt className="text-xs font-medium">Background percentile</dt>
           <dd>
             {entry.background_percentile === null ? (
               <LabelledValue label="Unavailable" reason={entry.background_percentile_reason ?? NO_REASON} />
@@ -72,7 +72,7 @@ function DistanceRow({ name, entry, source }: { readonly name: string; readonly 
           </dd>
         </div>
         <div>
-          <dt className="font-mono text-xs tracking-[0.14em] uppercase">Ties</dt>
+          <dt className="text-xs font-medium">Ties</dt>
           <dd>{entry.tied === true ? `tied (${entry.tie_group ?? NO_REASON})` : entry.tied === false ? 'not tied' : 'not recorded'}</dd>
         </div>
       </dl>
@@ -82,10 +82,10 @@ function DistanceRow({ name, entry, source }: { readonly name: string; readonly 
 
 function FamilyTable({ title, note, children }: { readonly title: string; readonly note?: string; readonly children: React.ReactNode }) {
   return (
-    <Card data-family-group={title} className="rounded-2xl">
+    <Card data-family-group={title} className="rounded-xl">
       <CardHeader>
-        <p className="font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">Distance family</p>
-        <CardTitle className="font-serif text-2xl font-normal">{title}</CardTitle>
+        <p className="text-xs font-medium text-muted-foreground">Distance family</p>
+        <CardTitle className="text-xl font-semibold">{title}</CardTitle>
         {note === undefined ? null : <p className="text-sm text-muted-foreground">{note}</p>}
       </CardHeader>
       <CardContent>{children}</CardContent>
@@ -129,14 +129,14 @@ function RadarContext({ window: entry }: { readonly window: WindowEntry | null }
 
 function WindowCard({ role, id, entry }: { readonly role: string; readonly id: string; readonly entry: WindowEntry | null }) {
   return (
-    <Card data-window={id} className="rounded-2xl">
+    <Card data-window={id} className="rounded-xl">
       <CardHeader>
-        <p className="flex items-center gap-2 font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">
+        <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
           <span aria-hidden="true" className={role === 'Target' ? 'size-2.5 rounded-full bg-[#56B4E9]' : 'size-2.5 rounded-full bg-[#E69F00]'} />
           {role}
-          <span className="normal-case tracking-normal">{role === 'Target' ? '(solid line, circles)' : '(dashed line, squares)'}</span>
+          <span>{role === 'Target' ? '(solid line, circles)' : '(dashed line, squares)'}</span>
         </p>
-        <CardTitle className="font-serif text-2xl font-normal wrap-anywhere">{id}</CardTitle>
+        <CardTitle className="text-xl font-semibold wrap-anywhere">{id}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2 text-sm [&_[data-slot=labelled-value]]:max-w-full [&_[data-slot=source]]:max-w-full [&_[data-slot=source]]:wrap-anywhere">
         {entry === null ? (
@@ -207,15 +207,15 @@ export function CompareView({ records, a, b, detailOnly = false }: { readonly re
     <>
       {detailOnly ? null : (
       <div className="flex flex-col gap-3 pt-2">
-        <p className="font-mono text-xs tracking-[0.18em] text-primary uppercase">Compare</p>
-        <h1 className="font-serif text-4xl">Compare two windows</h1>
+        <p className="text-xs font-medium text-primary">Compare</p>
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Compare two windows</h1>
         <p className="flex flex-wrap items-center gap-2 font-mono text-sm">
-          <span className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1 wrap-anywhere">
+          <span className="inline-flex items-center gap-2 rounded-md border bg-card px-3 py-1 wrap-anywhere">
             <span aria-hidden="true" className="size-2.5 rounded-full bg-[#56B4E9]" />
             {a}
           </span>
           <span className="text-muted-foreground">vs</span>
-          <span className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1 wrap-anywhere">
+          <span className="inline-flex items-center gap-2 rounded-md border bg-card px-3 py-1 wrap-anywhere">
             <span aria-hidden="true" className="size-2.5 rounded-full bg-[#E69F00]" />
             {b}
           </span>
