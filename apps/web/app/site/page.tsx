@@ -31,7 +31,6 @@ export default function SiteIndex() {
   });
   // Moon targets first, then Mars.
   segments.sort((a, b) => Number(b.body === 'moon') - Number(a.body === 'moon'));
-  const modes = [...new Set(cards.map((c) => c.shipping_mode))];
   return (
     <>
       <PageHeader
@@ -39,9 +38,6 @@ export default function SiteIndex() {
         lead="Each card pairs a lunar or Martian terrain window with its closest Earth analogue. Lower distances mean more similar terrain."
       />
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        {modes.map((m) => (
-          <Badge key={m} variant="outline" data-slot="mode-pill">Mode {m} · {m === 'C' ? 'Terrain fingerprint' : MODE_TITLES[m]}</Badge>
-        ))}
         <span>Bundle {manifest.bundle_version}</span>
       </div>
       {cards.length === 0 ? (

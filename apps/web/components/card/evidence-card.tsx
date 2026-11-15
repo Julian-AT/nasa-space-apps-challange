@@ -277,7 +277,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual 
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary" className="capitalize">{t.body}</Badge>
-            <Badge data-slot="mode-pill" variant="outline">Mode {card.shipping_mode} · {modeTitle}</Badge>
+            <Badge data-slot="mode-pill" variant="outline">{modeTitle}</Badge>
           </div>
           <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{visual?.headline ?? card.title}</h1>
           <p className="max-w-3xl text-base text-muted-foreground">

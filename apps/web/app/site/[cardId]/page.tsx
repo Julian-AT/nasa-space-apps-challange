@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { cardId } = await params;
   const card = loadBundle().records.cards.get(cardId);
   if (card === undefined) return {};
-  return { title: `${card.target.target_id} · Mode ${card.shipping_mode} · ${SITE_TITLE}` };
+  return { title: `${card.target.target_id} · ${SITE_TITLE}` };
 }
 
 export default async function CardPage({ params }: Props) {
