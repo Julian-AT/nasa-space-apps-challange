@@ -14,8 +14,8 @@
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 .sa-atlas ::selection {
-  background: color-mix(in oklab, var(--color-flare) 35%, transparent);
-  color: #fff;
+  background: color-mix(in oklab, var(--primary) 30%, transparent);
+  color: var(--foreground);
 }
 .sa-atlas :focus-visible {
   outline: 1.5px solid var(--color-flare);
@@ -53,7 +53,7 @@
     var(--color-panel);
   box-shadow:
     inset 0 1px 0 color-mix(in oklab, var(--color-platinum) 5%, transparent),
-    0 26px 44px -34px rgb(0 0 0 / 0.75);
+    0 26px 44px -34px color-mix(in oklab, var(--foreground) 30%, transparent);
   transition:
     --glow 0.5s var(--ease-out-quint),
     border-color 0.4s var(--ease-out-quint),
@@ -97,7 +97,7 @@ html[data-theme="light"] .surface {
   backdrop-filter: blur(16px) saturate(140%);
   box-shadow:
     inset 0 1px 0 color-mix(in oklab, var(--color-platinum) 14%, transparent),
-    0 24px 60px -24px rgb(0 0 0 / 0.6);
+    0 24px 60px -24px color-mix(in oklab, var(--foreground) 25%, transparent);
 }
 .sa-atlas .outline-num {
   font-family: var(--font-wide);
@@ -205,7 +205,7 @@ html[data-theme="light"] .surface {
   font-family: var(--font-sans);
 }
 .sa-atlas .leaflet-control-attribution {
-  background: rgb(7 8 10 / 0.75) !important;
+  background: color-mix(in oklab, var(--card) 80%, transparent) !important;
   color: var(--color-dim) !important;
   font-size: 10px !important;
 }
@@ -213,7 +213,7 @@ html[data-theme="light"] .surface {
   color: var(--color-chrome) !important;
 }
 .sa-atlas .leaflet-bar a {
-  background: rgb(16 17 20 / 0.92) !important;
+  background: color-mix(in oklab, var(--card) 92%, transparent) !important;
   color: var(--color-platinum) !important;
   border-color: var(--color-line) !important;
 }
@@ -221,7 +221,7 @@ html[data-theme="light"] .surface {
   border: 1px solid var(--color-line) !important;
 }
 .sa-atlas .leaflet-tooltip.sa-tip {
-  background: rgb(11 12 15 / 0.94);
+  background: color-mix(in oklab, var(--popover) 94%, transparent);
   color: var(--color-platinum);
   border: 1px solid var(--color-line-2);
   border-radius: 6px;
@@ -242,7 +242,7 @@ html[data-theme="light"] .surface {
   inset: 5px;
   border-radius: 999px;
   background: var(--pin);
-  box-shadow: 0 0 0 2px rgb(7 8 10 / 0.9);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--background) 90%, transparent);
 }
 .sa-atlas .sa-pin .ring {
   position: absolute;
@@ -256,7 +256,7 @@ html[data-theme="light"] .surface {
 }
 .sa-atlas .sa-pin.active .core {
   inset: 4px;
-  background: #fff;
+  background: var(--foreground);
 }
 .sa-atlas .sa-pin.active .ring {
   animation: pin-breathe 2.8s var(--ease-out-quint) infinite;
@@ -514,17 +514,7 @@ body:has(.sa-ui, .sa-atlas)::before {
   background: var(--primary);
   color: var(--primary-foreground);
 }
-/* Accent text: the preset primary is too dark for text on the dark theme, so use its light tint. */
-.sa-ui,
-.sa-atlas {
-  --flare: oklch(0.74 0.19 322);
-  --color-flare: var(--flare);
-}
-[data-theme="light"] .sa-ui,
-[data-theme="light"] .sa-atlas {
-  --flare: var(--primary);
-  --color-flare: var(--flare);
-}
+/* The accent (--flare) is set per theme in globals.css. */
 /* Large panel radii follow the preset scale. */
 .sa-ui .rounded-3xl,
 .sa-atlas .rounded-3xl,

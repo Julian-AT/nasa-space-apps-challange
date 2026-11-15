@@ -42,59 +42,8 @@ export function Logo({ size = 34, withWord = true }: { size?: number; withWord?:
   );
 }
 
-/* ------------------------------------------------------------------ theme */
-
-type Theme = "dark" | "light";
-
-function readTheme(): Theme {
-  if (typeof document === "undefined") return "dark";
-  return document.documentElement.dataset.theme === "light" ? "light" : "dark";
-}
-
-/** Dark is the default; the choice is remembered per browser. */
-export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(readTheme);
-  useEffect(() => {
-    const on = () => setTheme(readTheme());
-    window.addEventListener("sa-theme", on);
-    return () => window.removeEventListener("sa-theme", on);
-  }, []);
-  const toggle = () => {
-    const next: Theme = readTheme() === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
-    try {
-      localStorage.setItem("sa-theme", next);
-    } catch {
-      /* private mode */
-    }
-    window.dispatchEvent(new Event("sa-theme"));
-  };
-  return { theme, toggle };
-}
-
-export function ThemeToggle({ className }: { className?: string }) {
-  const { theme, toggle } = useTheme();
-  return (
-    <button
-      onClick={toggle}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      title={theme === "dark" ? "Light mode" : "Dark mode"}
-      className={clsx("relative grid size-9 place-items-center overflow-hidden rounded-full border border-line-2 text-chrome transition-colors hover:border-chrome hover:text-platinum", className)}
-    >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={theme}
-          initial={{ y: 14, opacity: 0, rotate: -40 }}
-          animate={{ y: 0, opacity: 1, rotate: 0 }}
-          exit={{ y: -14, opacity: 0, rotate: 40 }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
-        </motion.span>
-      </AnimatePresence>
-    </button>
-  );
-}
+/* Theme: one implementation for the whole app (components/theme-toggle.tsx). */
+export { ThemeToggle, useTheme } from "@/components/theme-toggle";
 
 // Nav and Footer are not ported: Terraluna keeps its own site header and footer.
 
