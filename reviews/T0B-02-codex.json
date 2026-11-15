@@ -1,0 +1,171 @@
+{
+  "task_id": "T0B-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "dd1f7f7431c0889bf4e6d41af64c064dda5b66f5",
+    "head": "eb0cb54493aff923b836ed26be1b9f6f4ea13ba2",
+    "files": [
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "e546a198c18a79626f10f4792cb40036335ec42e8eafa4859199ce9820246f55"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "2a0e8941143adab2911cd69b0038eee91aaf7273760479e48a9868898a86f42b"
+      },
+      {
+        "path": "fixtures/schema-cases/generator-cases.json",
+        "sha256": "4c70e642b0fa40db2319a1c654a24de1e2c9946952857f43e0e7151b3d5a93d0"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "debd80da26aa4b30af37955f48bb5a9ba454943d5c4ad901a4aa3c3d2ff645c6"
+      },
+      {
+        "path": "packages/schema/json/card-record.schema.json",
+        "sha256": "8ba2274ca3c8df61d54ef2853951b6b8ef973a1d3ba7aa76b4308ee0a512eaa7"
+      },
+      {
+        "path": "packages/schema/json/targets.schema.json",
+        "sha256": "10a45922b10fe3c0b794afba0ea5d438298b08015fa72fb6dc6d2ab586316c7a"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "140ab18ded4c240a753d9a06c1a38753ee4049c73191d9dd411dbd2089f3df81"
+      },
+      {
+        "path": "packages/schema/src/generated/card-record.ts",
+        "sha256": "123e9e3238140058154673bf9839c71e68d6515df55805505552433e56ef7a89"
+      },
+      {
+        "path": "packages/schema/src/generated/targets.ts",
+        "sha256": "07af61526823639054d525318ae5f0d3b1b7354bb2f2d69fc83b6ce2d3f16df8"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "aa849b2c24836c175632d6c7718a99cfb6640f3341923aeeaddec549d854469a"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "7eaa052d4c630e7fb98ee5688acfeef84587111ddc9d9fd30b8eccfbbf18762a"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "99ab47e651ef09b383232f671313f8d467aaac8f466e32fa61c78e1f0f59f5a4"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "2edf43c9d888dee401c89378584e12a83105ca98e8a1f7aba36515c87116ecaa"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "f344078b92b43e3dd5570d281b9043c2af5f79c7b9b346f638521c11b0532adb"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "de5caebd6ea3c98db147b92efe1ba46038c4598727a566f3e906ede73f13fd11"
+      },
+      {
+        "path": "pipeline/tests/test_schema_cards.py",
+        "sha256": "14308c9ea4b5b2f1c72cf7d8a68f9f91d609cfebf9a1814d37433c0f4744e169"
+      },
+      {
+        "path": "pipeline/tests/test_schema_science.py",
+        "sha256": "f56123b4b0ca59de0faeb8c78e3f5091ff3aaa5f980b59542bc3650a40867339"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:08:46Z",
+  "finished_utc": "2026-11-15T00:16:04Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static review found no actionable defects against the supplied story contract. Execution-dependent criteria and generation drift remain unverified because this read-only review explicitly prohibited running checks.",
+  "checks": [
+    {
+      "criterion": "AC1: Failing tests first, with the failing run recorded in notes.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Source history shows test_schema_cards.py present at d962126 before the new models; scripts/ralph/batches/t0b-contracts/prd.json:177 contains the failing-run note. Actual failing execution was not independently observed; checks were prohibited."
+    },
+    {
+      "criterion": "AC2: TileLayer fields, 512-pixel tiles, and discriminated classes/numeric legends.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:1018, :1067 and :1086 define the required types and fields. packages/schema/src/generated/targets.ts:93 and :101 contain z.literal(512) and z.discriminatedUnion('kind'); numeric scales are restricted at :127."
+    },
+    {
+      "criterion": "AC3: TargetRecord, Targets, shortlist exclusivity, and preservation of nullable fields.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Required fields and shortlist exclusivity are implemented at pipeline/src/terraluna_pipeline/schema.py:1173; Targets is defined at :1214. pipeline/tests/test_schema_cards.py:882 asserts null preservation through serialization and reparsing, but the round trip could not be executed under the review restriction."
+    },
+    {
+      "criterion": "AC4: CardRecord, TableDRow, CampaignEntry and FigureRef contracts.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Declarations at pipeline/src/terraluna_pipeline/schema.py:1232, :1266, :1316, :1351, :1373 and :1394 match the supplied field contract. Campaign source equivalence is enforced at :1334 and card identities at :1425. CardRecord has no bundle_version field and stores only g5_status."
+    },
+    {
+      "criterion": "AC5: Nine named test cases written before implementation.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The d962126 test snapshot precedes the models; its subsequent diff changes only zoom-related coverage. Substantive assertions for all nine cases remain at pipeline/tests/test_schema_cards.py:736, :752, :776, :814, :843, :882, :999, :1186 and :1249. This assesses test coverage and ordering, not execution results."
+    },
+    {
+      "criterion": "AC6: Writer-supplied Earth or Mars limits without fixed wording or count; Mars handling recorded in notes.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:1284 declares limits as a string list without count constraints; packages/schema/src/generated/card-record.ts:97 preserves that shape. scripts/ralph/batches/t0b-contracts/prd.json:177 explicitly assigns Earth/Mars wording to T4L-06."
+    },
+    {
+      "criterion": "AC7: Pinned contracts, valid/invalid shared fixtures, three-validator execution, regeneration and no drift.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Pins include both contracts at pipeline/tests/test_json_schema.py:66. Valid/invalid fixtures are present at fixtures/schema-cases/cases.json:12196, :13029, :15377 and :16980. Evaluator assertions are wired at pipeline/tests/test_json_schema.py:890 and packages/schema/tests/cases.test.ts:139. Execution, regeneration provenance and absence of drift could not be independently verified because checks were prohibited."
+    },
+    {
+      "criterion": "Shared record invariants, schema version and story scope.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "New models inherit Record, whose strict/frozen/extra-forbidden/rust-regex configuration is at pipeline/src/terraluna_pipeline/schema.py:109. New declarations have no defaults, nullable keys remain required, ReasonCode uses the required pattern at :386, SCHEMA_VERSION remains 1.0.0 at :52, and both contracts are appended at :1477. The nine story commits touch only the supplied review paths."
+    },
+    {
+      "criterion": "Focused card tests.",
+      "command": "uv run pytest pipeline/tests/test_schema_cards.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instructions; tests and tooling can write caches or temporary files."
+    },
+    {
+      "criterion": "JSON Schema and shared-case tests.",
+      "command": "uv run pytest pipeline/tests/test_json_schema.py",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instructions; this suite also creates temporary generation outputs."
+    },
+    {
+      "criterion": "Generated Zod tests.",
+      "command": "pnpm --filter @terraluna/schema test",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instructions; generator tests create temporary files."
+    },
+    {
+      "criterion": "Generated schema drift check.",
+      "command": "make schema-check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instructions; the Python drift check regenerates into a temporary directory."
+    },
+    {
+      "criterion": "Repository lint and type checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the read-only review instructions."
+    }
+  ],
+  "findings": []
+}

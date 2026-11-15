@@ -28,6 +28,7 @@ import argparse
 import difflib
 import json
 import re
+import struct
 import sys
 import tempfile
 from collections.abc import Iterator, Sequence
@@ -365,12 +366,17 @@ SourcesFile = Annotated[
 # --- Science records I: common types (CONTRACTS a.2; PRD 3, 8.4) --------------------------------
 #
 # Cross-field rules are written twice: as a pydantic validator and as JSON Schema conditionals in
-# ``allOf`` (``_when``), which the zod generator translates. Four rules compare values inside a
+# ``allOf`` (``_when``), which the zod generator translates. Some rules compare values inside a
 # document, which JSON Schema cannot express, so only pydantic checks them: a Distribution's
 # values are sorted and counted by ``n``, a WindowPolygon's rings are closed, a WindowEntry's
 # ``terrain`` and ``radar`` slots hold fingerprints of that kind, and an IncidenceRange's min
-# does not exceed its max. Every bundle file is written through these models, so the web never
-# receives a record that breaks them.
+# does not exceed its max. Science records II add the card's ids, comparison_ref, q5 ties,
+# Mode B or C radar and figure letters, a TileLayer's zooms, pixel sizes, omitted tiles and
+# extent, a numeric legend's range, distinct class codes, and the WindowGrid and Shortlist
+# counts (each named on its validator). Model records I add the ordered intervals of a metric,
+# a baseline and a G5 component, a G5 pass that names its evidence, float16 embedding values,
+# and an EmbeddingsIndex's row count and row positions. Every bundle file is written through
+# these models, so the web never receives a record that breaks them.
 
 EvidenceLabel = Literal["Observed", "Derived", "Predicted", "Assumed", "Unavailable"]
 """The evidence label every displayed or exported quantity carries (PRD 3)."""
@@ -986,6 +992,848 @@ ComparisonsFile = Annotated[
 """comparisons/{target_id}.json: an array of ComparisonRecords."""
 
 
+# --- Science records II: TileLayer and TargetRecord (CONTRACTS a.4; PRD 4, 8.4, 8.10, 10) -------
+
+TargetId = Annotated[str, Field(pattern=r"^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$")]
+"""A target id such as ``moon-cr-site01-w000`` (PRD 8.4): body-prefixed and lower case, like a
+WindowId, so it is a safe file name in comparisons/{target_id}.json."""
+
+LayerName = Annotated[str, Field(pattern=rf"^{_SEGMENT}$")]
+"""A tile layer name, one BundlePath segment: tiles/{layer}/{z}/{x}/{y}.webp (PRD 8.4)."""
+
+SafeInt = Annotated[int, Field(ge=-JS_MAX_SAFE_INTEGER, le=JS_MAX_SAFE_INTEGER)]
+"""An integer that JavaScript reads exactly."""
+
+Channel = Annotated[int, Field(ge=0, le=255)]
+"""One 8-bit colour channel."""
+
+Rgba = Annotated[list[Channel], Field(min_length=4, max_length=4)]
+
+
+def _refuse_non_int(value: object) -> object:
+    # pydantic matches an integer Literal such as Literal[512] by equality, so 512.0 would pass;
+    # every other count in the records is a strict integer.
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError("must be an integer")
+    return value
+
+
+TilePx = Annotated[Literal[512], BeforeValidator(_refuse_non_int)]
+"""The tile edge in pixels: always 512 (PRD 8.4)."""
+
+TileIndex = Annotated[list[Count], Field(min_length=3, max_length=3)]
+"""A tile as ``[z, x, y]``."""
+
+Extent = Annotated[list[Float], Field(min_length=4, max_length=4)]
+"""``[min_x, min_y, max_x, max_y]`` in the layer's metres."""
+
+
+class LegendClass(Record):
+    """One class of a categorical layer, such as a WorldCover code."""
+
+    code: SafeInt
+    label: NonEmptyStr
+    rgba: Rgba
+
+
+class ClassesLegend(Record):
+    """The legend of a categorical layer: one entry per class code, each code once."""
+
+    kind: Literal["classes"]
+    classes: Annotated[list[LegendClass], Field(min_length=1)]
+
+    @model_validator(mode="after")
+    def _codes_are_distinct(self) -> Self:
+        codes = [entry.code for entry in self.classes]
+        if len(set(codes)) != len(codes):
+            raise ValueError("each class code appears once")
+        return self
+
+
+class NumericLegend(Record):
+    """The legend of a numeric layer on a colour-blind-safe scale (PRD 8.10). ``min`` is below
+    ``max``, so the scale has a range."""
+
+    kind: Literal["numeric"]
+    min: Float
+    max: Float
+    scale: Literal["viridis", "cividis"]
+    unit: NonEmptyStr | None
+
+    @model_validator(mode="after")
+    def _min_below_max(self) -> Self:
+        if not self.min < self.max:
+            raise ValueError(f"min {self.min} must be below max {self.max}")
+        return self
+
+
+Legend = Annotated[ClassesLegend | NumericLegend, Field(discriminator="kind")]
+"""A tile layer legend, told apart by ``kind``."""
+
+
+class Hillshade(Record):
+    """The light of a hillshade layer, in degrees."""
+
+    azimuth_deg: Annotated[float, Field(ge=0, le=360, allow_inf_nan=False)]
+    altitude_deg: Annotated[float, Field(ge=0, le=90, allow_inf_nan=False)]
+
+
+class TileEncoding(Record):
+    """How the tiles are encoded: always WebP (PRD 8.4)."""
+
+    format: Literal["webp"]
+    lossless: bool
+    quality: Annotated[int, Field(ge=0, le=100)] | None
+
+
+class TileLayer(Record):
+    """A tiled raster layer of a target, at tiles/{layer}/{z}/{x}/{y}.webp (PRD 8.4).
+
+    ``metres_per_pixel_by_zoom`` holds one pixel size per zoom level, from ``zoom_min`` to
+    ``zoom_max``. ``omitted_tiles`` lists the all-nodata tiles, as ``[z, x, y]`` within that zoom
+    range, which are never written as images. ``extent_m`` is ``[min_x, min_y, max_x, max_y]``.
+    """
+
+    layer: LayerName
+    body: Body
+    crs: NonEmptyStr
+    units: NonEmptyStr | None
+    evidence_label: EvidenceLabel
+    source_product_ids: list[NonEmptyStr]
+    origin_x_m: Float
+    origin_y_m: Float
+    y_direction: Literal["down", "up"]
+    tile_px: TilePx
+    metres_per_pixel_by_zoom: list[Positive]
+    zoom_min: Count
+    zoom_max: Count
+    extent_m: Extent
+    omitted_tiles: list[TileIndex]
+    legend: Legend
+    hillshade: Hillshade | None
+    encoding: TileEncoding
+    bytes_total: Count
+    mock: bool
+
+    @model_validator(mode="after")
+    def _zooms_tiles_and_extent_agree(self) -> Self:
+        if self.zoom_min > self.zoom_max:
+            raise ValueError(f"zoom_min {self.zoom_min} exceeds zoom_max {self.zoom_max}")
+        levels = self.zoom_max - self.zoom_min + 1
+        if len(self.metres_per_pixel_by_zoom) != levels:
+            raise ValueError(f"metres_per_pixel_by_zoom needs one size for each of {levels} zooms")
+        for z, _, _ in self.omitted_tiles:
+            if not self.zoom_min <= z <= self.zoom_max:
+                raise ValueError(
+                    f"omitted tile zoom {z} is outside {self.zoom_min}..{self.zoom_max}"
+                )
+        min_x, min_y, max_x, max_y = self.extent_m
+        if not (min_x < max_x and min_y < max_y):
+            raise ValueError("extent_m is [min_x, min_y, max_x, max_y] with min below max")
+        return self
+
+
+class Projection(Record):
+    """The target's map projection and its parameters, as read from the product."""
+
+    kind: Literal["polar_stereographic", "equirectangular", "geographic"]
+    params: dict[ObservableName, Float | NonEmptyStr]
+
+
+class WindowGrid(Record):
+    """The window grid over a target; the counts are null until the grid is built."""
+
+    window_m: Positive
+    stride_m: Positive
+    n_generated: Count | None
+    n_eligible: Count | None
+
+    @model_validator(mode="after")
+    def _eligible_within_generated(self) -> Self:
+        if (
+            self.n_generated is not None
+            and self.n_eligible is not None
+            and self.n_eligible > self.n_generated
+        ):
+            raise ValueError("n_eligible cannot exceed n_generated")
+        return self
+
+
+class Shortlist(Record):
+    """The Earth windows shortlisted for a target (PRD 6.5 step 4), and the rule used."""
+
+    earth_window_ids: list[WindowId]
+    rule: NonEmptyStr
+    n_compared: Count | None
+
+    @model_validator(mode="after")
+    def _within_the_compared_windows(self) -> Self:
+        if self.n_compared is not None and len(self.earth_window_ids) > self.n_compared:
+            raise ValueError("a shortlist cannot hold more windows than were compared")
+        return self
+
+
+class TargetRecord(Record):
+    """A target in targets.json (PRD 8.4). The footprint and primary window are null until G0
+    freezes them, and exactly one of ``shortlist`` and ``shortlist_reason`` is null."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when(
+                    {"shortlist": _NULL},
+                    {"shortlist_reason": _STRING},
+                    {"shortlist_reason": _NULL},
+                )
+            ]
+        }
+    )
+
+    target_id: TargetId
+    mock: bool
+    run_id: RunId | None
+    body: Body
+    name: NonEmptyStr
+    description: NonEmptyStr
+    product_ids: list[NonEmptyStr]
+    crs: NonEmptyStr
+    projection: Projection
+    footprint: WindowPolygon | None
+    primary_window_id: WindowId | None
+    window_grid: WindowGrid
+    reference_window_ids: list[WindowId]
+    shortlist: Shortlist | None
+    shortlist_reason: ReasonCode | None
+    shipping_mode: ShippingMode | None
+    tile_layers: list[TileLayer]
+
+    @model_validator(mode="after")
+    def _shortlist_or_its_reason(self) -> Self:
+        if not _exactly_one_null(self.shortlist, self.shortlist_reason):
+            raise ValueError("exactly one of shortlist and shortlist_reason must be null")
+        return self
+
+
+TargetsFile = Annotated[
+    list[TargetRecord],
+    Strict(),
+    Field(title="Targets", description="targets.json: the TargetRecords (PRD 8.4)."),
+]
+"""targets.json: an array of TargetRecords."""
+
+
+# --- Science records II: CardRecord (CONTRACTS a.4; PRD 3, 4, 10) --------------------------------
+# PRD 8.12 lists no card record. This one is built on PRD 10: the seven answers and table D.
+
+CardId = Annotated[
+    str,
+    Field(pattern=r"^(moon|mars|earth)-[a-z0-9][a-z0-9-]*__(moon|mars|earth)-[a-z0-9][a-z0-9-]*$"),
+]
+"""``<target_window_id>__<earth_window_id>``; window ids hold no underscore, so it splits once."""
+
+
+class CardTarget(Record):
+    """The lunar or Mars window the card compares (question 1)."""
+
+    target_id: TargetId
+    target_window_id: WindowId
+    body: Body
+    polygon: WindowPolygon
+    product_ids: list[NonEmptyStr]
+
+
+class CardEarth(Record):
+    """The Earth window the card compares (question 1)."""
+
+    earth_window_id: WindowId
+    polygon: WindowPolygon
+    product_ids: list[NonEmptyStr]
+    search_region_id: NonEmptyStr | None
+
+
+class ComparisonRef(Record):
+    """Where the card's ComparisonRecord is: comparisons/{target_id}.json."""
+
+    path: BundlePath
+    target_window_id: WindowId
+    earth_window_id: WindowId
+
+
+class CardInterpretation(Record):
+    """Question 2: the task the candidate could help investigate, always an assumption."""
+
+    text: NonEmptyStr
+    evidence_label: Literal["Assumed"]
+
+
+class TableDRow(Record):
+    """One row of card table D (PRD 10): an observable, its value and its evidence label."""
+
+    observable: NonEmptyStr
+    value: Float | None
+    unit: NonEmptyStr | None
+    evidence_label: EvidenceLabel
+    support: NonEmptyStr
+    product_id: NonEmptyStr | None
+    band: NonEmptyStr | None
+    geometry: NonEmptyStr | None
+    reason: ReasonCode | None
+
+
+class CardDifferences(Record):
+    """Question 4. ``limits`` holds Earth's seven limits, or the Mars list, of PRD 10 as the
+    card writer supplies them; the schema fixes neither the wording nor the count."""
+
+    limits: list[NonEmptyStr]
+    differing: list[NonEmptyStr]
+    ambiguous: list[NonEmptyStr]
+    not_observed: list[NonEmptyStr]
+
+
+class TiedByFamily(Record):
+    """Each family's ``tied`` flag, as in the card's distances_by_family."""
+
+    terrain_relief: bool | None
+    terrain_texture: bool | None
+    radar_cpr: bool | None
+    model_embedding: bool | None
+
+
+class TieGroupByFamily(Record):
+    """Each family's ``tie_group``, as in the card's distances_by_family."""
+
+    terrain_relief: NonEmptyStr | None
+    terrain_texture: NonEmptyStr | None
+    radar_cpr: NonEmptyStr | None
+    model_embedding: NonEmptyStr | None
+
+
+class CardStability(Record):
+    """Question 5: the uncertainty components and the ties of every family, kept separate."""
+
+    uncertainty_components: UncertaintyComponents
+    tied_by_family: TiedByFamily
+    tie_group_by_family: TieGroupByFamily
+
+
+class CampaignEntry(Record):
+    """A campaign answer (question 6): ``unknown`` exactly when it has no source."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when(
+                    {"value": {"const": UNKNOWN}},
+                    {"source": _NULL},
+                    {"source": _STRING},
+                )
+            ]
+        }
+    )
+
+    value: NonEmptyStr
+    source: NonEmptyStr | None
+
+    @model_validator(mode="after")
+    def _unknown_without_a_source(self) -> Self:
+        if (self.value == UNKNOWN) != (self.source is None):
+            raise ValueError("value is 'unknown' exactly when source is null")
+        return self
+
+
+class CardCampaign(Record):
+    """Question 6: the practical campaign questions."""
+
+    access: CampaignEntry
+    permits: CampaignEntry
+    season: CampaignEntry
+    land_status: CampaignEntry
+    logistics: CampaignEntry
+
+
+class FieldExperiment(Record):
+    """Question 7: the field observation that would test the candidate, always a proposal."""
+
+    text: NonEmptyStr
+    evidence_label: Literal["Assumed"]
+    status: Literal["proposed"]
+
+
+class RadarContextEntry(Record):
+    """An observed radar statistic shown next to the card with its band (PRD 4 Mode B)."""
+
+    product_id: NonEmptyStr
+    band: NonEmptyStr
+    observable: NonEmptyStr
+    statistic: NonEmptyStr
+    value: Float | None
+    unit: NonEmptyStr | None
+    evidence_label: EvidenceLabel
+    support_m: Positive | None
+    reason: ReasonCode | None
+
+
+class FigureRef(Record):
+    """A card figure A to C (PRD 10): its SVG path, or the reason it was not rendered."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [_when({"path": _NULL}, {"reason": _STRING}, {"reason": _NULL})]
+        }
+    )
+
+    figure: Literal["A", "B", "C"]
+    path: BundlePath | None
+    alt: NonEmptyStr
+    reason: ReasonCode | None
+
+    @model_validator(mode="after")
+    def _path_or_its_reason(self) -> Self:
+        if not _exactly_one_null(self.path, self.reason):
+            raise ValueError("exactly one of path and reason must be null")
+        return self
+
+
+class CardRecord(Record):
+    """An evidence card, cards/{card_id}.json (PRD 10).
+
+    The card carries no ``bundle_version``: the page shows the manifest's (D08). Gate states on
+    the page come from validation.json; ``g5_status`` is the state the card was built under. The
+    distances are the comparison's, unchanged, and question 5 repeats their ties. A Mode B or C
+    card has no radar distance (PRD 4).
+    """
+
+    card_id: CardId
+    mock: bool
+    run_id: RunId
+    shipping_mode: ShippingMode
+    title: NonEmptyStr
+    wording: Literal["candidate window identified by this search"]
+    target: CardTarget
+    earth: CardEarth
+    comparison_ref: ComparisonRef
+    q1_compared: NonEmptyStr
+    q2_interpretation: CardInterpretation
+    q3_measurements: list[TableDRow]
+    q4_differences: CardDifferences
+    q5_stability: CardStability
+    q6_campaign: CardCampaign
+    q7_field_experiment: FieldExperiment
+    distances_by_family: DistancesByFamily
+    radar_context: list[RadarContextEntry]
+    figures: list[FigureRef]
+    g5_status: GateStatus
+    claim_limits: list[NonEmptyStr]
+
+    @model_validator(mode="after")
+    def _one_consistent_card(self) -> Self:
+        target_window, earth_window = self.target.target_window_id, self.earth.earth_window_id
+        if self.card_id != f"{target_window}__{earth_window}":
+            raise ValueError("card_id must be '<target_window_id>__<earth_window_id>'")
+        ref = self.comparison_ref
+        if (ref.target_window_id, ref.earth_window_id) != (target_window, earth_window):
+            raise ValueError("comparison_ref names the card's target and Earth windows")
+        if ref.path != f"comparisons/{self.target.target_id}.json":
+            raise ValueError("comparison_ref.path is comparisons/<target_id>.json")
+        stability = self.q5_stability
+        for family, entry in self.distances_by_family.items():
+            if getattr(stability.tied_by_family, family) != entry.tied:
+                raise ValueError(f"q5 tied_by_family.{family} differs from its distance")
+            if getattr(stability.tie_group_by_family, family) != entry.tie_group:
+                raise ValueError(f"q5 tie_group_by_family.{family} differs from its distance")
+        if self.shipping_mode != "A" and self.distances_by_family.radar_cpr.status == "available":
+            raise ValueError(f"a Mode {self.shipping_mode} card has no radar distance (PRD 4)")
+        letters = [figure.figure for figure in self.figures]
+        if len(set(letters)) != len(letters):
+            raise ValueError("each figure appears at most once")
+        return self
+
+
+# --- Model records I: model card, metrics, G5 conditions, embeddings (CONTRACTS a.4; PRD 8.12,
+# 11.6, 11.7, 11.9) --------------------------------------------------------------------------
+#
+# The encoder stays EXPERIMENTAL and outside rankings until G5 passes (PRD 11.7). These records
+# store what evaluation measured; they recompute no threshold and decide no gate. Their reasons
+# are free text (CONTRACTS a.4 types them ``str``), unlike the snake_case ReasonCodes above.
+
+
+def _ordered(low: float | None, high: float | None, name: str) -> None:
+    """Refuse an interval whose two ends are set and out of order. A percentile interval may
+    exclude its point estimate, so the estimate is not compared with it (review-ml #40)."""
+    if low is not None and high is not None and low > high:
+        raise ValueError(f"{name} has its low end {low} above its high end {high}")
+
+
+Split = Literal["train", "val", "test"]
+"""The data splits of PRD 11.2: spatial blocks, never overlapping windows across splits."""
+
+
+class TrainingData(Record):
+    """The ModelRecord's training data (PRD 8.12): bodies, product IDs, window counts per body
+    and split (null when not counted) and the split grouping of each body."""
+
+    bodies: list[Body]
+    product_ids: list[NonEmptyStr]
+    window_counts: dict[Body, dict[Split, Count | None]]
+    split_groups: dict[Body, NonEmptyStr]
+
+
+class VicregWeights(Record):
+    """The VICReg term weights (PRD 11.4). A weight is at least 0."""
+
+    invariance: NonNegative
+    variance: NonNegative
+    covariance: NonNegative
+
+
+class ObjectivesAndWeights(Record):
+    """The ModelRecord's objectives and loss weights (PRD 8.12, 11.4). ``vicreg`` is null for a
+    run without the VICReg terms."""
+
+    vicreg: VicregWeights | None
+    alpha_phys: NonNegative
+    lambda_max: NonNegative
+    schedule: NonEmptyStr
+
+
+MetricTestId = Literal[
+    "physics_probe",
+    "morphology_probe",
+    "body_invariance",
+    "physics_agreement",
+    "target_retrieval",
+    "seed_stability",
+    "held_out_body",
+    "out_of_distribution",
+]
+"""The eight evaluation tests of PRD 11.6, in table order."""
+
+MetricBody = Literal["moon", "mars", "earth", "pooled"]
+"""A Body, or ``pooled`` for a metric over the test blocks of every body."""
+
+
+class MetricBaseline(Record):
+    """A baseline compared with the encoder on one test (PRD 11.6), with the paired bootstrap
+    interval of the difference. A missing value is null with its reason; a baseline with a
+    value may still give a reason, for example for a paired interval that was not computed."""
+
+    model_config = ConfigDict(
+        json_schema_extra={"allOf": [_when({"value": _NULL}, {"unavailable_reason": _STRING})]}
+    )
+
+    name: NonEmptyStr
+    value: Float | None
+    ci_low: Float | None
+    ci_high: Float | None
+    paired_diff_ci_low: Float | None
+    paired_diff_ci_high: Float | None
+    unavailable_reason: NonEmptyStr | None
+
+    @model_validator(mode="after")
+    def _a_missing_value_has_a_reason(self) -> Self:
+        if self.value is None and self.unavailable_reason is None:
+            raise ValueError("a null baseline value needs an unavailable_reason")
+        _ordered(self.ci_low, self.ci_high, "the baseline interval")
+        _ordered(self.paired_diff_ci_low, self.paired_diff_ci_high, "the paired interval")
+        return self
+
+
+class MetricRecord(Record):
+    """One measured test result with its 95% bootstrap interval over spatial blocks (PRD 11.6;
+    review-ml #40). Always Predicted.
+
+    ``value`` is null exactly when ``unavailable_reason`` is set, so missing is never zero, and
+    ``n_blocks`` and ``n_bootstrap`` are null exactly when ``value`` is; a value comes from at
+    least one block and one resample. Only ``ci_low <= ci_high`` is checked: a percentile
+    interval may exclude the point estimate.
+    """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when(
+                    {"value": _NULL},
+                    {"unavailable_reason": _STRING, "n_blocks": _NULL, "n_bootstrap": _NULL},
+                    {
+                        "unavailable_reason": _NULL,
+                        "n_blocks": {"type": "integer"},
+                        "n_bootstrap": {"type": "integer"},
+                    },
+                )
+            ]
+        }
+    )
+
+    test_id: MetricTestId
+    measure: NonEmptyStr
+    target: NonEmptyStr | None
+    body: MetricBody | None
+    value: Float | None
+    ci_low: Float | None
+    ci_high: Float | None
+    n_blocks: PositiveCount | None
+    n_bootstrap: PositiveCount | None
+    unavailable_reason: NonEmptyStr | None
+    evidence_label: Literal["Predicted"]
+    baselines: list[MetricBaseline]
+
+    @model_validator(mode="after")
+    def _missing_is_null_with_a_reason(self) -> Self:
+        if (self.value is None) != (self.unavailable_reason is not None):
+            raise ValueError("unavailable_reason is set exactly when value is null")
+        if self.value is None and (self.n_blocks is not None or self.n_bootstrap is not None):
+            raise ValueError("a null value has null n_blocks and n_bootstrap")
+        if self.value is not None and (self.n_blocks is None or self.n_bootstrap is None):
+            raise ValueError("a value needs n_blocks and n_bootstrap")
+        _ordered(self.ci_low, self.ci_high, "the interval")
+        return self
+
+
+class G5Component(Record):
+    """One part of a G5 condition, such as ``relief_lag_270`` or ``dino:morph_gain`` (review-ml
+    #41). ``passed`` null needs a reason."""
+
+    model_config = ConfigDict(
+        json_schema_extra={"allOf": [_when({"passed": _NULL}, {"reason": _STRING})]}
+    )
+
+    component: NonEmptyStr
+    observed: Float | None
+    ci_low: Float | None
+    ci_high: Float | None
+    passed: bool | None
+    reason: NonEmptyStr | None
+
+    @model_validator(mode="after")
+    def _unknown_has_a_reason(self) -> Self:
+        if self.passed is None and self.reason is None:
+            raise ValueError("passed null needs a reason")
+        _ordered(self.ci_low, self.ci_high, "the component interval")
+        return self
+
+
+G5ConditionNumber = Annotated[int, Field(ge=1, le=6)]
+"""The six G5 conditions of PRD 11.7."""
+
+
+class G5ConditionRecord(Record):
+    """One G5 condition as evaluated (PRD 11.7; review-ml #41).
+
+    ``threshold`` is copied from config ml.g5 and is null only for condition 6, which compares
+    paired intervals with 0. ``passed`` is stored as evaluation found it, the 11.7 conjunction or
+    disjunction of its components, and is not recomputed here. ``passed`` null needs a reason,
+    and a pass names its evidence: an observed value or at least one component.
+    """
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when({"threshold": _NULL}, {"condition": {"type": "integer", "const": 6}}),
+                _when({"passed": _NULL}, {"reason": _STRING}),
+            ]
+        }
+    )
+
+    condition: G5ConditionNumber
+    test_id: NonEmptyStr
+    statistic: Literal["lower_95", "point", "paired_interval"]
+    threshold: Float | None
+    observed: Float | None
+    passed: bool | None
+    reason: NonEmptyStr | None
+    components: list[G5Component]
+
+    @model_validator(mode="after")
+    def _a_threshold_and_a_reason(self) -> Self:
+        if self.threshold is None and self.condition != 6:
+            raise ValueError(f"condition {self.condition} needs its threshold from ml.g5")
+        if self.passed is None and self.reason is None:
+            raise ValueError("passed null needs a reason")
+        if self.passed is True and self.observed is None and not self.components:
+            raise ValueError("a passed condition needs an observed value or a component")
+        return self
+
+
+class G5Summary(Record):
+    """The G5 verdict in report/metrics.json, copied unchanged from the G5 GateRecord and the
+    evaluation's g5_conditions.json (CONTRACTS a.4)."""
+
+    status: GateStatus
+    conditions: list[G5ConditionRecord]
+    failed_tests: list[NonEmptyStr]
+
+
+class Ablation(Record):
+    """One ablation run (PRD 11.9 item 5). An unavailable run says why and has no metrics; an
+    available one has no reason."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                _when(
+                    {"status": {"const": "unavailable"}},
+                    # maxItems 0 admits only the empty array, whatever its items would be.
+                    {
+                        "reason": _STRING,
+                        "metrics": {"type": "array", "items": _NULL, "maxItems": 0},
+                    },
+                    {"reason": _NULL},
+                )
+            ]
+        }
+    )
+
+    run_name: NonEmptyStr
+    status: Literal["available", "unavailable"]
+    reason: NonEmptyStr | None
+    metrics: list[MetricRecord]
+
+    @model_validator(mode="after")
+    def _unavailable_has_a_reason_and_no_metrics(self) -> Self:
+        if (self.status == "unavailable") != (self.reason is not None):
+            raise ValueError("reason is set exactly when the ablation is unavailable")
+        if self.status == "unavailable" and self.metrics:
+            raise ValueError("an unavailable ablation has no metrics")
+        return self
+
+
+class RunRecord(Record):
+    """The evaluation run behind report/metrics.json: hashes, hardware and compute cost."""
+
+    config_hash: Sha256
+    data_manifest_sha256: Sha256 | None
+    split_map_sha256: Sha256 | None
+    checkpoint_sha256s: list[Sha256]
+    git_sha: NonEmptyStr | None
+    uv_lock_sha256: Sha256
+    hardware: NonEmptyStr
+    gpu_hours_total: NonNegative | None
+    gpu_hours_partial: bool
+
+
+class MetricsFile(Record):
+    """report/metrics.json (PRD 8.4, 11.9): every test of PRD 11.6 with its interval, the G5
+    verdict, the ablations and the run record. Contract name Metrics."""
+
+    mock: bool
+    run_id: RunId | None
+    model_id: NonEmptyStr
+    evaluated_split: Literal["val", "test"]
+    g5: G5Summary
+    tests: list[MetricRecord]
+    ablations: list[Ablation]
+    run_record: RunRecord
+
+
+class ModelRecord(Record):
+    """model/model_card.json: exactly the PRD 8.12 ModelRecord fields. ``mock`` lives in the
+    manifest. ``g5_status`` is a gate status; EXPERIMENTAL is ModelSummary.status."""
+
+    model_id: NonEmptyStr
+    version: NonEmptyStr
+    architecture: NonEmptyStr
+    parameter_count: PositiveCount
+    training_data: TrainingData
+    objectives_and_weights: ObjectivesAndWeights
+    seeds: list[Count]
+    metrics_with_ci: list[MetricRecord]
+    g5_status: GateStatus
+    intended_use: NonEmptyStr
+    limitations: NonEmptyStr
+    licence: NonEmptyStr
+    onnx_sha256: Sha256 | None
+
+
+EMBEDDING_DIM = 256
+"""The embedding length (PRD 8.12, 11.3)."""
+
+
+def _exact_float16(value: float) -> float:
+    # The bundle stores embeddings as IEEE binary16 (embeddings.f16.bin), so each JSON value must
+    # survive a float16 round trip unchanged. struct's 'e' format avoids a numpy dependency.
+    try:
+        packed = struct.pack("<e", value)
+    except OverflowError as error:
+        raise ValueError(f"{value} is outside the float16 range") from error
+    if struct.unpack("<e", packed)[0] != value:
+        raise ValueError(f"{value} is not exactly representable in float16")
+    return value
+
+
+Float16 = Annotated[Float, AfterValidator(_exact_float16)]
+"""A finite number that is exactly a float16 value."""
+
+
+class EmbeddingRecord(Record):
+    """One window's encoder embedding: exactly the PRD 8.12 EmbeddingRecord fields. The values
+    are Predicted (PRD 11.10). ``ood_score`` is the Mahalanobis distance to the training
+    embeddings (PRD 11.6), null when not computed."""
+
+    window_id: WindowId
+    body: Body
+    model_id: NonEmptyStr
+    embedding_f16: Annotated[
+        list[Float16], Field(min_length=EMBEDDING_DIM, max_length=EMBEDDING_DIM)
+    ]
+    input_hash: Sha256
+    valid_fraction: Fraction
+    ood_score: NonNegative | None
+
+
+class EmbeddingRow(Record):
+    """One row of model/embeddings.f16.bin: a test window (PRD 11.8). ``ood_flag`` is null
+    without an ``ood_score``, and also while the 99th-percentile threshold is unset."""
+
+    model_config = ConfigDict(
+        json_schema_extra={"allOf": [_when({"ood_score": _NULL}, {"ood_flag": _NULL})]}
+    )
+
+    row: Count
+    window_id: WindowId
+    body: Body
+    split: Literal["test"]
+    input_hash: Sha256
+    valid_fraction: Fraction
+    ood_score: NonNegative | None
+    ood_flag: bool | None
+
+    @model_validator(mode="after")
+    def _a_flag_needs_a_score(self) -> Self:
+        if self.ood_score is None and self.ood_flag is not None:
+            raise ValueError("ood_flag is null without an ood_score")
+        return self
+
+
+EmbeddingDim = Annotated[Literal[256], BeforeValidator(_refuse_non_int)]
+"""The embedding length 256 as an integer; pydantic would otherwise accept 256.0."""
+
+
+class EmbeddingsIndex(Record):
+    """model/embeddings.index.json: the layout of model/embeddings.f16.bin (PRD 8.4, 11.8).
+
+    The binary holds ``n_rows`` rows of ``dim`` little-endian float16 values. ``n_rows`` equals
+    the number of rows, and row i describes binary row i (an engineering choice, CONTRACTS a.4).
+    """
+
+    model_id: NonEmptyStr
+    onnx_sha256: Sha256 | None
+    mock: bool
+    dim: EmbeddingDim
+    dtype: Literal["float16"]
+    byte_order: Literal["little"]
+    n_rows: Count
+    rows: list[EmbeddingRow]
+
+    @model_validator(mode="after")
+    def _rows_are_the_binary_rows(self) -> Self:
+        if self.n_rows != len(self.rows):
+            raise ValueError(f"n_rows is {self.n_rows} but there are {len(self.rows)} rows")
+        for position, entry in enumerate(self.rows):
+            if entry.row != position:
+                raise ValueError(f"rows[{position}].row is {entry.row}, not {position}")
+        return self
+
+
 # --- JSON Schema generation (PRD 8.3, 8.9) ------------------------------------------------------
 
 JSON_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
@@ -1014,6 +1862,12 @@ CONTRACTS: tuple[Contract, ...] = (
     Contract("Windows", "windows.schema.json", TypeAdapter(WindowsFile)),
     Contract("ComparisonRecord", "comparison-record.schema.json", TypeAdapter(ComparisonRecord)),
     Contract("Comparisons", "comparisons.schema.json", TypeAdapter(ComparisonsFile)),
+    Contract("Targets", "targets.schema.json", TypeAdapter(TargetsFile)),
+    Contract("CardRecord", "card-record.schema.json", TypeAdapter(CardRecord)),
+    Contract("ModelRecord", "model-record.schema.json", TypeAdapter(ModelRecord)),
+    Contract("Metrics", "metrics.schema.json", TypeAdapter(MetricsFile)),
+    Contract("EmbeddingRecord", "embedding-record.schema.json", TypeAdapter(EmbeddingRecord)),
+    Contract("EmbeddingsIndex", "embeddings-index.schema.json", TypeAdapter(EmbeddingsIndex)),
 )
 
 

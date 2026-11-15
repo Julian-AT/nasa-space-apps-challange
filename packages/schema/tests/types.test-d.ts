@@ -7,18 +7,30 @@ import type { z } from 'zod';
 import type {
   BundleManifest,
   BundleManifestSchema,
+  CardRecord,
+  CardRecordSchema,
   ComparisonRecord,
   ComparisonRecordSchema,
   Comparisons,
   ComparisonsSchema,
+  EmbeddingRecord,
+  EmbeddingRecordSchema,
+  EmbeddingsIndex,
+  EmbeddingsIndexSchema,
   FingerprintRecord,
   FingerprintRecordSchema,
   GateRecord,
   GateRecordSchema,
+  Metrics,
+  MetricsSchema,
+  ModelRecord,
+  ModelRecordSchema,
   ProductRecord,
   ProductRecordSchema,
   Sources,
   SourcesSchema,
+  Targets,
+  TargetsSchema,
   Validation,
   ValidationSchema,
   WindowRecord,
@@ -251,6 +263,276 @@ expectTypeOf<ComparisonRecord>().toEqualTypeOf<{
 
 expectTypeOf<Comparisons>().toEqualTypeOf<ComparisonRecord[]>();
 
+// Science records II (CONTRACTS a.4, T0B-02). The legend is a union told apart by `kind`; the
+// q5 tie maps name all four families, as distances_by_family does.
+type ShippingMode = 'A' | 'B' | 'C';
+type Polygon = WindowRecord['polygon'];
+
+interface TileLayer {
+  layer: string;
+  body: Body;
+  crs: string;
+  units: string | null;
+  evidence_label: EvidenceLabel;
+  source_product_ids: string[];
+  origin_x_m: number;
+  origin_y_m: number;
+  y_direction: 'down' | 'up';
+  tile_px: 512;
+  metres_per_pixel_by_zoom: number[];
+  zoom_min: number;
+  zoom_max: number;
+  extent_m: number[];
+  omitted_tiles: number[][];
+  legend:
+    | { kind: 'classes'; classes: { code: number; label: string; rgba: number[] }[] }
+    | { kind: 'numeric'; min: number; max: number; scale: 'viridis' | 'cividis'; unit: string | null };
+  hillshade: { azimuth_deg: number; altitude_deg: number } | null;
+  encoding: { format: 'webp'; lossless: boolean; quality: number | null };
+  bytes_total: number;
+  mock: boolean;
+}
+
+expectTypeOf<Targets>().toEqualTypeOf<
+  {
+    target_id: string;
+    mock: boolean;
+    run_id: string | null;
+    body: Body;
+    name: string;
+    description: string;
+    product_ids: string[];
+    crs: string;
+    projection: {
+      kind: 'polar_stereographic' | 'equirectangular' | 'geographic';
+      params: Record<string, number | string>;
+    };
+    footprint: Polygon | null;
+    primary_window_id: string | null;
+    window_grid: {
+      window_m: number;
+      stride_m: number;
+      n_generated: number | null;
+      n_eligible: number | null;
+    };
+    reference_window_ids: string[];
+    shortlist: { earth_window_ids: string[]; rule: string; n_compared: number | null } | null;
+    shortlist_reason: string | null;
+    shipping_mode: ShippingMode | null;
+    tile_layers: TileLayer[];
+  }[]
+>();
+
+interface CampaignEntry {
+  value: string;
+  source: string | null;
+}
+
+expectTypeOf<CardRecord>().toEqualTypeOf<{
+  card_id: string;
+  mock: boolean;
+  run_id: string;
+  shipping_mode: ShippingMode;
+  title: string;
+  wording: 'candidate window identified by this search';
+  target: {
+    target_id: string;
+    target_window_id: string;
+    body: Body;
+    polygon: Polygon;
+    product_ids: string[];
+  };
+  earth: {
+    earth_window_id: string;
+    polygon: Polygon;
+    product_ids: string[];
+    search_region_id: string | null;
+  };
+  comparison_ref: { path: string; target_window_id: string; earth_window_id: string };
+  q1_compared: string;
+  q2_interpretation: { text: string; evidence_label: 'Assumed' };
+  q3_measurements: {
+    observable: string;
+    value: number | null;
+    unit: string | null;
+    evidence_label: EvidenceLabel;
+    support: string;
+    product_id: string | null;
+    band: string | null;
+    geometry: string | null;
+    reason: string | null;
+  }[];
+  q4_differences: {
+    limits: string[];
+    differing: string[];
+    ambiguous: string[];
+    not_observed: string[];
+  };
+  q5_stability: {
+    uncertainty_components: ComparisonRecord['uncertainty_components'];
+    tied_by_family: Record<Family, boolean | null>;
+    tie_group_by_family: Record<Family, string | null>;
+  };
+  q6_campaign: {
+    access: CampaignEntry;
+    permits: CampaignEntry;
+    season: CampaignEntry;
+    land_status: CampaignEntry;
+    logistics: CampaignEntry;
+  };
+  q7_field_experiment: { text: string; evidence_label: 'Assumed'; status: 'proposed' };
+  distances_by_family: Record<Family, DistanceEntry>;
+  radar_context: {
+    product_id: string;
+    band: string;
+    observable: string;
+    statistic: string;
+    value: number | null;
+    unit: string | null;
+    evidence_label: EvidenceLabel;
+    support_m: number | null;
+    reason: string | null;
+  }[];
+  figures: { figure: 'A' | 'B' | 'C'; path: string | null; alt: string; reason: string | null }[];
+  g5_status: GateStatus;
+  claim_limits: string[];
+}>();
+
+type MetricRecord = ModelRecord['metrics_with_ci'][number];
+
+expectTypeOf<MetricRecord>().toEqualTypeOf<{
+  test_id:
+    | 'physics_probe'
+    | 'morphology_probe'
+    | 'body_invariance'
+    | 'physics_agreement'
+    | 'target_retrieval'
+    | 'seed_stability'
+    | 'held_out_body'
+    | 'out_of_distribution';
+  measure: string;
+  target: string | null;
+  body: Body | 'pooled' | null;
+  value: number | null;
+  ci_low: number | null;
+  ci_high: number | null;
+  n_blocks: number | null;
+  n_bootstrap: number | null;
+  unavailable_reason: string | null;
+  evidence_label: 'Predicted';
+  baselines: {
+    name: string;
+    value: number | null;
+    ci_low: number | null;
+    ci_high: number | null;
+    paired_diff_ci_low: number | null;
+    paired_diff_ci_high: number | null;
+    unavailable_reason: string | null;
+  }[];
+}>();
+
+expectTypeOf<ModelRecord>().toEqualTypeOf<{
+  model_id: string;
+  version: string;
+  architecture: string;
+  parameter_count: number;
+  training_data: {
+    bodies: Body[];
+    product_ids: string[];
+    window_counts: Partial<Record<Body, Partial<Record<'train' | 'val' | 'test', number | null>>>>;
+    split_groups: Partial<Record<Body, string>>;
+  };
+  objectives_and_weights: {
+    vicreg: { invariance: number; variance: number; covariance: number } | null;
+    alpha_phys: number;
+    lambda_max: number;
+    schedule: string;
+  };
+  seeds: number[];
+  metrics_with_ci: MetricRecord[];
+  g5_status: GateStatus;
+  intended_use: string;
+  limitations: string;
+  licence: string;
+  onnx_sha256: string | null;
+}>();
+
+expectTypeOf<Metrics>().toEqualTypeOf<{
+  mock: boolean;
+  run_id: string | null;
+  model_id: string;
+  evaluated_split: 'val' | 'test';
+  g5: {
+    status: GateStatus;
+    conditions: {
+      condition: number;
+      test_id: string;
+      statistic: 'lower_95' | 'point' | 'paired_interval';
+      threshold: number | null;
+      observed: number | null;
+      passed: boolean | null;
+      reason: string | null;
+      components: {
+        component: string;
+        observed: number | null;
+        ci_low: number | null;
+        ci_high: number | null;
+        passed: boolean | null;
+        reason: string | null;
+      }[];
+    }[];
+    failed_tests: string[];
+  };
+  tests: MetricRecord[];
+  ablations: {
+    run_name: string;
+    status: 'available' | 'unavailable';
+    reason: string | null;
+    metrics: MetricRecord[];
+  }[];
+  run_record: {
+    config_hash: string;
+    data_manifest_sha256: string | null;
+    split_map_sha256: string | null;
+    checkpoint_sha256s: string[];
+    git_sha: string | null;
+    uv_lock_sha256: string;
+    hardware: string;
+    gpu_hours_total: number | null;
+    gpu_hours_partial: boolean;
+  };
+}>();
+
+expectTypeOf<EmbeddingRecord>().toEqualTypeOf<{
+  window_id: string;
+  body: Body;
+  model_id: string;
+  embedding_f16: number[];
+  input_hash: string;
+  valid_fraction: number;
+  ood_score: number | null;
+}>();
+
+expectTypeOf<EmbeddingsIndex>().toEqualTypeOf<{
+  model_id: string;
+  onnx_sha256: string | null;
+  mock: boolean;
+  dim: 256;
+  dtype: 'float16';
+  byte_order: 'little';
+  n_rows: number;
+  rows: {
+    row: number;
+    window_id: string;
+    body: Body;
+    split: 'test';
+    input_hash: string;
+    valid_fraction: number;
+    ood_score: number | null;
+    ood_flag: boolean | null;
+  }[];
+}>();
+
 // Parsing transforms nothing, so a schema's input type is its output type.
 expectTypeOf<z.input<typeof BundleManifestSchema>>().toEqualTypeOf<BundleManifest>();
 expectTypeOf<z.input<typeof GateRecordSchema>>().toEqualTypeOf<GateRecord>();
@@ -262,3 +544,9 @@ expectTypeOf<z.input<typeof FingerprintRecordSchema>>().toEqualTypeOf<Fingerprin
 expectTypeOf<z.input<typeof WindowsSchema>>().toEqualTypeOf<Windows>();
 expectTypeOf<z.input<typeof ComparisonRecordSchema>>().toEqualTypeOf<ComparisonRecord>();
 expectTypeOf<z.input<typeof ComparisonsSchema>>().toEqualTypeOf<Comparisons>();
+expectTypeOf<z.input<typeof TargetsSchema>>().toEqualTypeOf<Targets>();
+expectTypeOf<z.input<typeof CardRecordSchema>>().toEqualTypeOf<CardRecord>();
+expectTypeOf<z.input<typeof ModelRecordSchema>>().toEqualTypeOf<ModelRecord>();
+expectTypeOf<z.input<typeof MetricsSchema>>().toEqualTypeOf<Metrics>();
+expectTypeOf<z.input<typeof EmbeddingRecordSchema>>().toEqualTypeOf<EmbeddingRecord>();
+expectTypeOf<z.input<typeof EmbeddingsIndexSchema>>().toEqualTypeOf<EmbeddingsIndex>();

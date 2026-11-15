@@ -1,0 +1,191 @@
+{
+  "task_id": "T0B-03",
+  "round": 1,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "f6d8032045d33dac6c99bb8777221b1ac25d73f6",
+    "head": "6eb8c86305436bb94dc804983c8a8715d3a6e033",
+    "files": [
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "5457f3d41372bd1aa983326c84ecce8ebeb922457da2641383176927d5fc2567"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "cd755688eebb667e5feeb06ac6cc88b5edcf0f0770cf2c0dfd3592ce082b3b7d"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "b89df8bd80316f549467b6f84fbef928e333b8feb8771906c1a2e8289e8bdf27"
+      },
+      {
+        "path": "packages/schema/json/embedding-record.schema.json",
+        "sha256": "9af663d604943139cb959c70fae5809c667c0a66cf2201b52074213ca5494db6"
+      },
+      {
+        "path": "packages/schema/json/embeddings-index.schema.json",
+        "sha256": "158617a824b8eed978433f0f1c8c60973369046244f3c682fdea6f112fcc08d3"
+      },
+      {
+        "path": "packages/schema/json/metrics.schema.json",
+        "sha256": "6da1467f200d0ed5ac0c3d2a8f80efb0700c41187679eb1b347fd48f97edc4f9"
+      },
+      {
+        "path": "packages/schema/json/model-record.schema.json",
+        "sha256": "2025852c4ed01cbc7ab44b0eb46d1f89d1170d7f359dc780e1048b5f603a0726"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "e576ed156ba0bf94d320de01a8a6e177e14a6f0384c17328c142af141f8618f3"
+      },
+      {
+        "path": "packages/schema/src/generated/embedding-record.ts",
+        "sha256": "444a2d4993121ccb53e00b08e717e35b10a77853c40645014bb41e4736c5f5c5"
+      },
+      {
+        "path": "packages/schema/src/generated/embeddings-index.ts",
+        "sha256": "7553bdc21ec1d8a7f04ce81eb2db9f4aa06209bba670bec6c7afa945cb987e32"
+      },
+      {
+        "path": "packages/schema/src/generated/metrics.ts",
+        "sha256": "da781c9345989a7118a87f8df3dcf8c4c8716f3cece890b48b790733c05ce1fc"
+      },
+      {
+        "path": "packages/schema/src/generated/model-record.ts",
+        "sha256": "e0a453280b86126b8bc8d11c5e038f7fb5378eff7847db42a3ba9aba68adb186"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "63c6421bbcfb6da1674fa8b2a60075043a24a0129e7e81e7880a7759724b7aa2"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "a79c3d132789b94369e0bbf9c878968a2eb460ffa98a5da9f979338ccaf21bd0"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "51e74e19ac154046ed2c6c4435ad553b5293927e278ba8895e69d181c749ce5f"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "93e8e610fa43a32c859cf17d4faf3dad15933c6c113a7a7b655cd7c84a6ce3b1"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "3a369b1a92b49b320b42e451bc8d9d79d93a4ddbc8130bdf2e2c8c390dd2e739"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "2f88200efaca3850efc00330af4996eb9d7585a7911f3d7a1035ab95359f7e75"
+      },
+      {
+        "path": "pipeline/tests/test_schema_model.py",
+        "sha256": "c48879464dc5b60bb699e5a6018b881c180b47f3040a0067154cb47080e0a734"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:32:29Z",
+  "finished_utc": "2026-11-15T00:38:02Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "NOT_RUN",
+  "summary": "Static review found no blocking defects. Required checks, the historical failing run, and generation without drift could not be independently verified because execution was prohibited.",
+  "checks": [
+    {
+      "criterion": "AC1: Failing tests precede implementation and the failing run is recorded.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Git snapshots show test_schema_model.py was added before the records. scripts/ralph/batches/t0b-contracts/prd.json:234 contains the failing-run note, but no independently observed execution establishes that run."
+    },
+    {
+      "criterion": "AC2: ModelRecord fields, GateStatus, required keys, unknown-field rejection and nullable ONNX hash.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:1728 defines the required fields without mock or defaults and reuses GateStatus and Sha256. pipeline/tests/test_schema_model.py:540, :555, :624 and :649 contain substantive parsing, missing-field, hash round-trip and EXPERIMENTAL rejection assertions."
+    },
+    {
+      "criterion": "AC3: MetricRecord fields, eight test IDs, Predicted label, availability/count rules and interval handling.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:1499 and :1541 define the enums, fields and validators. The validator preserves nulls and checks interval endpoint order without bounding the estimate. pipeline/tests/test_schema_model.py:669, :679, :707, :722, :730 and :784 exercise the required behaviors."
+    },
+    {
+      "criterion": "AC4: G5ConditionRecord fields, threshold nullability, reasons, components and pass evidence.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:1615 defines the condition bounds and :1619 defines the fields and guards. pipeline/tests/test_schema_model.py:810, :851, :869, :889 and :906 exercise the required cases. Pass-without-evidence rejection is Python-only; pipeline/tests/test_json_schema.py:1874 explicitly covers that limitation."
+    },
+    {
+      "criterion": "AC5: MetricsFile, G5 summary, ablations and run-record fields.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:1657, :1666, :1700 and :1714 define the records. Unavailable ablations require a reason and empty metrics. pipeline/tests/test_schema_model.py:1045 and :1063 exercise mock/null-run parsing and unavailable-ablation rejection."
+    },
+    {
+      "criterion": "AC6: EmbeddingRecord and EmbeddingsIndex fields, exact float16 values and row count.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "pipeline/src/terraluna_pipeline/schema.py:1751 uses struct packing and unpacking to check exact float16 representation; :1767 fixes embedding length at 256; :1811 checks n_rows against rows. pipeline/tests/test_schema_model.py:927, :932, :939 and :998 cover the boundaries. The row-count engineering choice is recorded at scripts/ralph/batches/t0b-contracts/prd.json:234."
+    },
+    {
+      "criterion": "AC7: All 13 named test scenarios were written before implementation.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The a5a6caa tree contains the named scenarios now at pipeline/tests/test_schema_model.py:540 through :1045, before the implementation addition. The subsequent test-file diff contains only the override-helper correction and strengthened record round-trip comparison."
+    },
+    {
+      "criterion": "AC8: Contract pin, valid/invalid shared cases, three-validator execution and regeneration without drift.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The four contracts are pinned at pipeline/tests/test_json_schema.py:68 and registered at schema.py:1867. Shared cases start at fixtures/schema-cases/cases.json:24183; Python and Zod runners exercise their authored verdicts. Execution and regeneration were prohibited, so validator results and drift remain unverified."
+    },
+    {
+      "criterion": "Story-wide record base, required nullable fields, registration and unchanged schema version.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "All new record classes inherit Record and declare fields without defaults. Record retains strict, frozen, extra-forbidden and rust-regex configuration. SCHEMA_VERSION remains 1.0.0. Required-field and frozen-record assertions appear at pipeline/tests/test_schema_model.py:475 and :494."
+    },
+    {
+      "criterion": "Scope, configuration, production mock exposure and invented scientific results.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The supplied range changes the listed implementation paths plus Ralph review bookkeeping in prd.json and progress.txt. config/run.yaml is unchanged. Synthetic measurements remain in test inputs; no production consumer or release artifact is added."
+    },
+    {
+      "criterion": "Focused model tests.",
+      "command": "uv run pytest pipeline/tests/test_schema_model.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox; environment and test-cache writes are unavailable."
+    },
+    {
+      "criterion": "JSON Schema tests.",
+      "command": "uv run pytest pipeline/tests/test_json_schema.py",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox; these tests also create temporary files."
+    },
+    {
+      "criterion": "Generated Zod package tests.",
+      "command": "pnpm --filter @terraluna/schema test",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox; test-cache writes are unavailable."
+    },
+    {
+      "criterion": "Generated artifact drift check.",
+      "command": "make schema-check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks; Python schema checking creates a temporary regeneration directory."
+    },
+    {
+      "criterion": "Repository lint, formatting and type checks.",
+      "command": "make check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox; tool and task-cache writes are unavailable."
+    }
+  ],
+  "findings": []
+}

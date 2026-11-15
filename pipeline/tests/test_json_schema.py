@@ -63,6 +63,12 @@ SCHEMA_FILES = {
     "Windows": "windows.schema.json",
     "ComparisonRecord": "comparison-record.schema.json",
     "Comparisons": "comparisons.schema.json",
+    "Targets": "targets.schema.json",
+    "CardRecord": "card-record.schema.json",
+    "ModelRecord": "model-record.schema.json",
+    "Metrics": "metrics.schema.json",
+    "EmbeddingRecord": "embedding-record.schema.json",
+    "EmbeddingsIndex": "embeddings-index.schema.json",
 }
 GENERATOR_CASES = ROOT / "fixtures" / "schema-cases" / "generator-cases.json"
 """Synthetic schemas with ``if``/``then`` and ``not``, and documents with authored verdicts. The
@@ -271,7 +277,8 @@ def test_sources_schema_is_an_array_of_product_records() -> None:
 
 
 @pytest.mark.parametrize(
-    ("array", "record"), [("Windows", "WindowEntry"), ("Comparisons", "ComparisonRecord")]
+    ("array", "record"),
+    [("Windows", "WindowEntry"), ("Comparisons", "ComparisonRecord"), ("Targets", "TargetRecord")],
 )
 def test_bundle_arrays_are_arrays_of_their_records(array: str, record: str) -> None:
     schema = committed_schema(array)
@@ -765,6 +772,122 @@ def test_science_cases_test_what_they_name() -> None:
     assert singles - set(SCIENCE_CASE_CHANGES) - bases == {
         "comparison-model-embedding-predicted-value",
         "comparison-model-embedding-derived-value",
+    }
+
+
+LAYER = (0, "tile_layers", 0)
+LEGEND = (*LAYER, "legend")
+CAMPAIGN = ("q6_campaign",)
+
+# Each Targets or CardRecord case and the base case it differs from, with the paths at which it
+# differs (CONTRACTS a.4, T0B-02).
+CARD_CASE_CHANGES: dict[str, tuple[str, set[tuple[Any, ...]]]] = {
+    "targets-unfrozen-nulls": (
+        "targets-one-frozen",
+        {
+            (0, "run_id"),
+            (0, "footprint"),
+            (0, "primary_window_id"),
+            (0, "window_grid", "n_generated"),
+            (0, "window_grid", "n_eligible"),
+            (0, "reference_window_ids"),
+            (0, "shortlist"),
+            (0, "shortlist_reason"),
+            (0, "shipping_mode"),
+            (0, "tile_layers"),
+        },
+    ),
+    "targets-classes-legend": (
+        "targets-one-frozen",
+        {(*LEGEND, key) for key in ("kind", "min", "max", "scale", "unit", "classes")},
+    ),
+    "targets-hillshade-cividis": (
+        "targets-one-frozen",
+        {(*LEGEND, key) for key in ("min", "max", "scale", "unit")} | {(*LAYER, "hillshade")},
+    ),
+    "targets-shortlist-and-reason-null": ("targets-one-frozen", {(0, "shortlist")}),
+    "targets-shortlist-and-reason-set": ("targets-one-frozen", {(0, "shortlist_reason")}),
+    "targets-unknown-field": ("targets-one-frozen", {(0, "score")}),
+    "targets-target-id-uppercase": ("targets-one-frozen", {(0, "target_id")}),
+    "targets-projection-kind-utm": ("targets-one-frozen", {(0, "projection", "kind")}),
+    "targets-projection-param-null": (
+        "targets-one-frozen",
+        {(0, "projection", "params", "lat_0")},
+    ),
+    "targets-tile-px-256": ("targets-one-frozen", {(*LAYER, "tile_px")}),
+    "targets-legend-scale-jet": ("targets-one-frozen", {(*LEGEND, "scale")}),
+    "targets-legend-kind-unknown": ("targets-one-frozen", {(*LEGEND, "kind")}),
+    "targets-legend-classes-kind-with-numeric-fields": ("targets-one-frozen", {(*LEGEND, "kind")}),
+    "targets-legend-without-kind": ("targets-one-frozen", {(*LEGEND, "kind")}),
+    "targets-hillshade-altitude-above-90": ("targets-one-frozen", {(*LAYER, "hillshade")}),
+    "targets-encoding-png": ("targets-one-frozen", {(*LAYER, "encoding", "format")}),
+    "targets-omitted-tile-two-numbers": ("targets-one-frozen", {(*LAYER, "omitted_tiles", 0)}),
+    "targets-layer-name-with-slash": ("targets-one-frozen", {(*LAYER, "layer")}),
+    "targets-window-grid-stride-zero": ("targets-one-frozen", {(0, "window_grid", "stride_m")}),
+    "card-mode-a": ("card-mode-b", {("shipping_mode",)}),
+    "card-campaign-checked-with-source": (
+        "card-mode-b",
+        {(*CAMPAIGN, "access", "value"), (*CAMPAIGN, "access", "source")},
+    ),
+    "card-missing-shipping-mode": ("card-mode-b", {("shipping_mode",)}),
+    "card-shipping-mode-null": ("card-mode-b", {("shipping_mode",)}),
+    "card-bundle-version": ("card-mode-b", {("bundle_version",)}),
+    "card-table-d-row-without-evidence-label": (
+        "card-mode-b",
+        {("q3_measurements", 0, "evidence_label")},
+    ),
+    "card-campaign-unknown-with-source": ("card-mode-b", {(*CAMPAIGN, "permits", "source")}),
+    "card-campaign-checked-without-source": ("card-mode-b", {(*CAMPAIGN, "season", "source")}),
+    "card-campaign-unknown-capitalised-without-source": (
+        "card-mode-b",
+        {(*CAMPAIGN, "access", "value")},
+    ),
+    "card-q2-observed": ("card-mode-b", {("q2_interpretation", "evidence_label")}),
+    "card-q7-derived": ("card-mode-b", {("q7_field_experiment", "evidence_label")}),
+    "card-q7-completed": ("card-mode-b", {("q7_field_experiment", "status")}),
+    "card-missing-radar-cpr": ("card-mode-b", {("distances_by_family", "radar_cpr")}),
+    "card-id-single-underscore": ("card-mode-b", {("card_id",)}),
+    "card-figure-path-and-reason-null": ("card-mode-b", {("figures", 2, "reason")}),
+    "card-figure-path-and-reason-set": ("card-mode-b", {("figures", 0, "reason")}),
+    "card-figure-d": ("card-mode-b", {("figures", 1, "figure")}),
+    "card-wording-capitalised": ("card-mode-b", {("wording",)}),
+    "card-tied-by-family-missing-family": (
+        "card-mode-b",
+        {("q5_stability", "tied_by_family", "model_embedding")},
+    ),
+    "card-run-id-null": ("card-mode-b", {("run_id",)}),
+    "card-g5-status-passed": ("card-mode-b", {("g5_status",)}),
+}
+
+
+def test_card_and_target_cases_test_what_they_name() -> None:
+    """Each Targets or CardRecord case differs from its base only at the paths its entry names.
+    The card base copies the distances and uncertainty of comparison-terrain-only unchanged."""
+    cases = cases_by_name()
+    for name, (base_name, paths) in CARD_CASE_CHANGES.items():
+        case, base = cases[name], cases[base_name]
+        assert case["schema"] == base["schema"], name
+        assert base["valid"] is True, base_name
+        assert set(leaf_changes(base["value"], case["value"])) == paths, name
+    frozen = cases["targets-one-frozen"]["value"]
+    unfrozen = cases["targets-unfrozen-nulls"]["value"]
+    assert cases["targets-empty"]["value"] == []
+    assert cases["targets-object"]["value"] == frozen[0]
+    assert cases["targets-frozen-and-unfrozen"]["value"] == [frozen[0], unfrozen[0]]
+    card = cases["card-mode-b"]["value"]
+    comparison = cases["comparison-terrain-only"]["value"]
+    assert card["distances_by_family"] == comparison["distances_by_family"]
+    assert card["q5_stability"]["uncertainty_components"] == comparison["uncertainty_components"]
+    assert (card["target"]["target_window_id"], card["earth"]["earth_window_id"]) == (
+        comparison["target_window_id"],
+        comparison["earth_window_id"],
+    )
+    named = {name for name, case in cases.items() if case["schema"] in ("Targets", "CardRecord")}
+    bases = {base for base, _ in CARD_CASE_CHANGES.values()}
+    assert named - set(CARD_CASE_CHANGES) - bases == {
+        "targets-empty",
+        "targets-object",
+        "targets-frozen-and-unfrozen",
     }
 
 
@@ -1310,3 +1433,472 @@ def test_slot_kinds_are_checked_by_pydantic_only() -> None:
     entry["terrain"] = science_case("fingerprint-radar")
     assert not pydantic_accepts("Windows", [entry])
     assert json_schema_accepts("Windows", [entry])
+
+
+# --- Science records II parity (CONTRACTS a.4, T0B-02) -----------------------------------------
+# The same two checks for the target, tile layer and card rules: the rules JSON Schema can state
+# agree with pydantic on every combination of the fields they read, and the rules that compare
+# values inside a card or layer are pydantic-only.
+
+
+def card_with(path: tuple[Any, ...], value: Any) -> dict[str, Any]:
+    document: dict[str, Any] = science_case("card-mode-b")
+    target = document
+    for key in path[:-1]:
+        target = target[key]
+    target[path[-1]] = value
+    return document
+
+
+def card_verdicts(values: list[Any]) -> tuple[int, int]:
+    return verdicts_agree(
+        "CardRecord", lambda value: json_schema_accepts("CardRecord", value), values
+    )
+
+
+def targets_verdicts(values: list[Any]) -> tuple[int, int]:
+    return verdicts_agree("Targets", lambda value: json_schema_accepts("Targets", value), values)
+
+
+def test_campaign_entry_rule_agrees_on_every_combination() -> None:
+    values = [
+        card_with(("q6_campaign", "access"), {"value": value, "source": source})
+        for value, source in itertools.product(
+            ["unknown", "Unknown", "unknown ", "open road"], [None, "land office"]
+        )
+    ]
+    # unknown without a source, and every other value with one.
+    assert card_verdicts(values) == (4, 4)
+
+
+def test_figure_rule_agrees_on_every_combination() -> None:
+    values = [
+        card_with(("figures", 0), {"figure": figure, "path": path, "alt": "Maps", "reason": reason})
+        for figure, path, reason in itertools.product(
+            ["A", "D"], [None, "figures/card-a.svg"], [None, "figure_not_rendered"]
+        )
+    ]
+    # Figure A with exactly one of path and reason.
+    assert card_verdicts(values) == (2, 6)
+
+
+def test_shortlist_rule_agrees_on_every_combination() -> None:
+    shortlist = science_case("targets-one-frozen")[0]["shortlist"]
+    values = []
+    for listed, reason in itertools.product(
+        [None, shortlist], [None, "search_not_run", "Search not run"]
+    ):
+        document = science_case("targets-one-frozen")
+        document[0]["shortlist"] = copy.deepcopy(listed)
+        document[0]["shortlist_reason"] = reason
+        values.append(document)
+    assert targets_verdicts(values) == (2, 4)
+
+
+def test_legend_union_agrees_on_every_combination() -> None:
+    numeric: dict[str, Any] = {"min": 0.125, "max": 1.875, "scale": "viridis", "unit": None}
+    classes: dict[str, Any] = {
+        "classes": [{"code": 60, "label": "Bare", "rgba": [180, 180, 180, 255]}]
+    }
+    values = []
+    for kind, fields in itertools.product(
+        ["classes", "numeric", "continuous", None], [numeric, classes, {**numeric, **classes}]
+    ):
+        document = science_case("targets-one-frozen")
+        legend: dict[str, Any] = copy.deepcopy(fields)
+        if kind is not None:
+            legend["kind"] = kind
+        document[0]["tile_layers"][0]["legend"] = legend
+        values.append(document)
+    # Only a kind with exactly its own fields.
+    assert targets_verdicts(values) == (2, 10)
+
+
+_RADAR_AVAILABLE = {
+    "value": 0.125,
+    "unit": "CPR Wasserstein-1",
+    "evidence_label": "Derived",
+    "status": "available",
+    "reason": None,
+    "reference_spread": {"min": 0.0625, "median": 0.125, "max": 0.25, "n": 12},
+    "reference_spread_reason": None,
+    "background_percentile": 12.5,
+    "background_percentile_reason": None,
+    "tied": None,
+    "tie_group": None,
+    "tie_reason": None,
+}
+_DUPLICATE_CODES = [
+    {"code": 60, "label": "Bare / sparse vegetation", "rgba": [180, 180, 180, 255]},
+    {"code": 60, "label": "Permanent water bodies", "rgba": [0, 100, 200, 255]},
+]
+
+
+@pytest.mark.parametrize(
+    ("name", "changes"),
+    [
+        ("card-mode-b", [(("card_id",), "earth-27n-0012-0040__moon-aeqd-0003-0007")]),
+        ("card-mode-b", [(("comparison_ref", "target_window_id"), "moon-aeqd-0003-0008")]),
+        ("card-mode-b", [(("comparison_ref", "earth_window_id"), "earth-27n-0012-0041")]),
+        ("card-mode-b", [(("comparison_ref", "path"), "comparisons/mars-jezero-w000.json")]),
+        ("card-mode-b", [(("q5_stability", "tied_by_family", "terrain_relief"), True)]),
+        ("card-mode-b", [(("q5_stability", "tie_group_by_family", "terrain_texture"), "tie-2")]),
+        ("card-mode-b", [(("distances_by_family", "radar_cpr"), _RADAR_AVAILABLE)]),
+        ("card-mode-b", [(("figures", 1, "figure"), "A")]),
+        (
+            "targets-one-frozen",
+            [
+                ((*LAYER, "zoom_min"), 3),
+                ((*LAYER, "zoom_max"), 2),
+                ((*LAYER, "metres_per_pixel_by_zoom"), []),
+                ((*LAYER, "omitted_tiles"), []),
+            ],
+        ),
+        ("targets-one-frozen", [((*LAYER, "metres_per_pixel_by_zoom"), [20.25, 10.125])]),
+        ("targets-one-frozen", [((*LAYER, "omitted_tiles"), [[3, 0, 0]])]),
+        ("targets-one-frozen", [((*LAYER, "extent_m"), [2560.5, -2560.5, -2560.5, 2560.5])]),
+        ("targets-one-frozen", [((*LEGEND, "min"), 1.875), ((*LEGEND, "max"), 0.125)]),
+        ("targets-classes-legend", [((*LEGEND, "classes"), _DUPLICATE_CODES)]),
+        ("targets-one-frozen", [((0, "window_grid", "n_eligible"), 50)]),
+        ("targets-one-frozen", [((0, "shortlist", "n_compared"), 0)]),
+    ],
+    ids=[
+        "card-id-not-its-windows",
+        "comparison-ref-other-target-window",
+        "comparison-ref-other-earth-window",
+        "comparison-ref-other-target-file",
+        "q5-tied-not-the-distance-flag",
+        "q5-tie-group-not-the-distance-group",
+        "mode-b-radar-distance",
+        "figure-twice",
+        "zoom-min-above-max",
+        "pixel-sizes-not-one-per-zoom",
+        "omitted-tile-outside-the-zooms",
+        "extent-reversed",
+        "numeric-legend-min-above-max",
+        "class-code-twice",
+        "eligible-above-generated",
+        "shortlist-above-compared",
+    ],
+)
+def test_card_and_target_rules_inside_a_document_are_checked_by_pydantic_only(
+    name: str, changes: list[tuple[tuple[Any, ...], Any]]
+) -> None:
+    case = cases_by_name()[name]
+    document = copy.deepcopy(case["value"])
+    for path, value in changes:
+        target = document
+        for key in path[:-1]:
+            target = target[key]
+        target[path[-1]] = copy.deepcopy(value)
+    assert not pydantic_accepts(case["schema"], document)
+    assert json_schema_accepts(case["schema"], document)
+
+
+# --- Model records I (T0B-03) -------------------------------------------------------------------
+
+METRIC = ("metrics_with_ci",)
+CONDITION = ("g5", "conditions")
+ABLATION = ("ablations", 0)
+
+# Each ModelRecord, Metrics, EmbeddingRecord or EmbeddingsIndex case and the base case it differs
+# from, with the paths at which it differs (CONTRACTS a.4, T0B-03).
+MODEL_CASE_CHANGES: dict[str, tuple[str, set[tuple[Any, ...]]]] = {
+    "model-record-onnx-sha256-null": ("model-record-every-prd-field", {("onnx_sha256",)}),
+    "model-record-interval-excludes-estimate": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "value")},
+    ),
+    "model-record-mock-field": ("model-record-every-prd-field", {("mock",)}),
+    "model-record-missing-licence": ("model-record-every-prd-field", {("licence",)}),
+    "model-record-g5-status-experimental": ("model-record-every-prd-field", {("g5_status",)}),
+    "model-record-onnx-sha256-63-characters": ("model-record-every-prd-field", {("onnx_sha256",)}),
+    "model-record-onnx-sha256-uppercase": ("model-record-every-prd-field", {("onnx_sha256",)}),
+    "model-record-metric-observed": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "evidence_label")},
+    ),
+    "model-record-metric-null-with-bootstrap": (
+        "model-record-every-prd-field",
+        {(*METRIC, 1, "n_bootstrap")},
+    ),
+    "model-record-metric-value-without-bootstrap": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "n_bootstrap")},
+    ),
+    "model-record-metric-bootstrap-zero": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "n_bootstrap")},
+    ),
+    "model-record-metric-null-without-reason": (
+        "model-record-every-prd-field",
+        {(*METRIC, 1, "unavailable_reason")},
+    ),
+    "model-record-metric-value-with-reason": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "unavailable_reason")},
+    ),
+    "model-record-metric-test-id-unknown": (
+        "model-record-every-prd-field",
+        {(*METRIC, 0, "test_id")},
+    ),
+    "model-record-window-counts-unknown-split": (
+        "model-record-every-prd-field",
+        {("training_data", "window_counts", "moon", "holdout")},
+    ),
+    "model-record-parameter-count-zero": ("model-record-every-prd-field", {("parameter_count",)}),
+    "metrics-mock-run-id-null": ("metrics-test-split", {("mock",), ("run_id",)}),
+    "metrics-condition-failing-component": (
+        "metrics-test-split",
+        {(*CONDITION, 0, "passed"), (*CONDITION, 0, "components", 0, "passed")},
+    ),
+    "metrics-condition-passed-null-with-reason": (
+        "metrics-test-split",
+        {(*CONDITION, 0, "passed"), (*CONDITION, 0, "reason")},
+    ),
+    "metrics-ablation-unavailable": (
+        "metrics-test-split",
+        {(*ABLATION, "status"), (*ABLATION, "reason"), (*ABLATION, "metrics")},
+    ),
+    "metrics-condition-1-threshold-null": ("metrics-test-split", {(*CONDITION, 0, "threshold")}),
+    "metrics-condition-7": ("metrics-test-split", {(*CONDITION, 1, "condition")}),
+    "metrics-condition-passed-null-without-reason": (
+        "metrics-test-split",
+        {(*CONDITION, 0, "passed")},
+    ),
+    "metrics-component-passed-null-without-reason": (
+        "metrics-test-split",
+        {(*CONDITION, 0, "components", 0, "passed")},
+    ),
+    "metrics-ablation-unavailable-without-reason": ("metrics-test-split", {(*ABLATION, "status")}),
+    "metrics-ablation-unavailable-with-metrics": (
+        "metrics-test-split",
+        {(*ABLATION, "status"), (*ABLATION, "reason")},
+    ),
+    "metrics-ablation-available-with-reason": ("metrics-test-split", {(*ABLATION, "reason")}),
+    "metrics-g5-status-experimental": ("metrics-test-split", {("g5", "status")}),
+    "metrics-evaluated-split-train": ("metrics-test-split", {("evaluated_split",)}),
+    "metrics-run-id-bare-hex": ("metrics-test-split", {("run_id",)}),
+    "metrics-baseline-null-without-reason": (
+        "metrics-test-split",
+        {("tests", 0, "baselines", 0, "value")},
+    ),
+    "metrics-config-hash-null": ("metrics-test-split", {("run_record", "config_hash")}),
+    "embedding-record-ood-score-null": ("embedding-record-moon", {("ood_score",)}),
+    "embedding-record-unknown-field": ("embedding-record-moon", {("split",)}),
+    "embedding-record-valid-fraction-above-1": ("embedding-record-moon", {("valid_fraction",)}),
+    "embeddings-index-onnx-sha256-null": ("embeddings-index-two-rows", {("onnx_sha256",)}),
+    "embeddings-index-dim-128": ("embeddings-index-two-rows", {("dim",)}),
+    "embeddings-index-dtype-float32": ("embeddings-index-two-rows", {("dtype",)}),
+    "embeddings-index-byte-order-big": ("embeddings-index-two-rows", {("byte_order",)}),
+    "embeddings-index-row-split-train": ("embeddings-index-two-rows", {("rows", 0, "split")}),
+    "embeddings-index-ood-flag-without-score": (
+        "embeddings-index-two-rows",
+        {("rows", 1, "ood_flag")},
+    ),
+    "embeddings-index-missing-mock": ("embeddings-index-two-rows", {("mock",)}),
+}
+MODEL_SCHEMAS = ("ModelRecord", "Metrics", "EmbeddingRecord", "EmbeddingsIndex")
+
+
+def test_model_cases_test_what_they_name() -> None:
+    """Each model case differs from its base only at the paths its entry names."""
+    cases = cases_by_name()
+    for name, (base_name, paths) in MODEL_CASE_CHANGES.items():
+        case, base = cases[name], cases[base_name]
+        assert case["schema"] == base["schema"], name
+        assert base["valid"] is True, base_name
+        assert set(leaf_changes(base["value"], case["value"])) == paths, name
+    model = cases["model-record-every-prd-field"]["value"]
+    assert "mock" not in model
+    metrics = cases["metrics-test-split"]["value"]
+    assert metrics["tests"] == model["metrics_with_ci"]
+    unavailable = metrics["tests"][1]
+    assert [unavailable[key] for key in ("value", "n_blocks", "n_bootstrap")] == [None] * 3
+    six = metrics["g5"]["conditions"][1]
+    assert (six["condition"], six["threshold"]) == (6, None)
+    assert cases["metrics-ablation-unavailable"]["value"]["ablations"][0]["metrics"] == []
+    estimate = cases["model-record-interval-excludes-estimate"]["value"]["metrics_with_ci"][0]
+    assert estimate["value"] > estimate["ci_high"]
+    embedding = cases["embedding-record-moon"]["value"]
+    assert len(embedding["embedding_f16"]) == 256
+    for name, n in (("embedding-record-255-values", 255), ("embedding-record-257-values", 257)):
+        value = cases[name]["value"]
+        assert len(value["embedding_f16"]) == n, name
+        assert value["embedding_f16"] == (embedding["embedding_f16"] * 2)[:n], name
+        assert {**value, "embedding_f16": None} == {**embedding, "embedding_f16": None}, name
+    empty = cases["embeddings-index-empty"]["value"]
+    base_index = cases["embeddings-index-two-rows"]["value"]
+    assert (empty["n_rows"], empty["rows"]) == (0, [])
+    assert {k: v for k, v in empty.items() if k not in ("n_rows", "rows")} == {
+        k: v for k, v in base_index.items() if k not in ("n_rows", "rows")
+    }
+    named = {name for name, case in cases.items() if case["schema"] in MODEL_SCHEMAS}
+    bases = {base for base, _ in MODEL_CASE_CHANGES.values()}
+    assert named - set(MODEL_CASE_CHANGES) - bases == {
+        "embedding-record-255-values",
+        "embedding-record-257-values",
+        "embeddings-index-empty",
+    }
+
+
+def model_case(name: str, path: tuple[Any, ...], value: Any) -> dict[str, Any]:
+    document: dict[str, Any] = science_case(name)
+    target = document
+    for key in path[:-1]:
+        target = target[key]
+    target[path[-1]] = copy.deepcopy(value)
+    return document
+
+
+def schema_verdicts(name: str, values: list[Any]) -> tuple[int, int]:
+    return verdicts_agree(name, lambda value: json_schema_accepts(name, value), values)
+
+
+def test_metric_rules_agree_on_every_combination() -> None:
+    base = science_case("model-record-every-prd-field")["metrics_with_ci"][0]
+    values = []
+    for value, reason, n_blocks, n_bootstrap in itertools.product(
+        [None, 0, 0.83], [None, "not run"], [None, 0, 48], [None, 0, 1, 1000]
+    ):
+        entry = {
+            **base,
+            "value": value,
+            "unavailable_reason": reason,
+            "n_blocks": n_blocks,
+            "n_bootstrap": n_bootstrap,
+        }
+        values.append(model_case("model-record-every-prd-field", (*METRIC, 0), entry))
+    # A null value with a reason and both counts null (1), or a value of 0 or 0.83 without a
+    # reason and with n_blocks 48 and n_bootstrap 1 or 1000 (2 x 2).
+    assert schema_verdicts("ModelRecord", values) == (5, 67)
+
+
+def test_baseline_rule_agrees_on_every_combination() -> None:
+    base = science_case("metrics-test-split")["tests"][0]["baselines"][0]
+    values = [
+        model_case(
+            "metrics-test-split",
+            ("tests", 0, "baselines", 0),
+            {**base, "value": value, "unavailable_reason": reason},
+        )
+        for value, reason in itertools.product([None, 0, 0.61], [None, "not evaluated"])
+    ]
+    # Only a null value without a reason fails.
+    assert schema_verdicts("Metrics", values) == (5, 1)
+
+
+def test_g5_condition_rules_agree_on_every_combination() -> None:
+    base = science_case("metrics-test-split")["g5"]["conditions"][0]
+    values = []
+    for number, threshold, passed, reason in itertools.product(
+        [1, 5, 6, 7], [None, 0.8], [None, False, True], [None, "not evaluated"]
+    ):
+        entry = {**base, "condition": number, "threshold": threshold, "passed": passed}
+        values.append(
+            model_case("metrics-test-split", (*CONDITION, 0), {**entry, "reason": reason})
+        )
+    # Condition 1 to 6, a threshold unless condition 6, and a reason when passed is null:
+    # (1, 5 with 0.8; 6 with either) = 4 pairs, each with 5 of the 6 passed and reason pairs.
+    assert schema_verdicts("Metrics", values) == (20, 28)
+
+
+def test_g5_component_rule_agrees_on_every_combination() -> None:
+    base = science_case("metrics-test-split")["g5"]["conditions"][0]["components"][0]
+    values = [
+        model_case(
+            "metrics-test-split",
+            (*CONDITION, 0, "components", 0),
+            {**base, "passed": passed, "reason": reason},
+        )
+        for passed, reason in itertools.product([None, False, True], [None, "lag unsupported"])
+    ]
+    assert schema_verdicts("Metrics", values) == (5, 1)
+
+
+def test_ablation_rule_agrees_on_every_combination() -> None:
+    base = science_case("metrics-test-split")["ablations"][0]
+    values = [
+        model_case(
+            "metrics-test-split",
+            ABLATION,
+            {**base, "status": status, "reason": reason, "metrics": metrics},
+        )
+        for status, reason, metrics in itertools.product(
+            ["available", "unavailable", "missing"],
+            [None, "no compute left"],
+            [[], base["metrics"]],
+        )
+    ]
+    # available without a reason (either metrics), unavailable with a reason and no metrics.
+    assert schema_verdicts("Metrics", values) == (3, 9)
+
+
+def test_ood_flag_rule_agrees_on_every_combination() -> None:
+    base = science_case("embeddings-index-two-rows")["rows"][0]
+    values = [
+        model_case(
+            "embeddings-index-two-rows",
+            ("rows", 0),
+            {**base, "ood_score": score, "ood_flag": flag},
+        )
+        for score, flag in itertools.product([None, 0, 3.25], [None, False, True])
+    ]
+    # A null score allows only a null flag.
+    assert schema_verdicts("EmbeddingsIndex", values) == (7, 2)
+
+
+@pytest.mark.parametrize(
+    ("name", "changes"),
+    [
+        pytest.param(
+            "model-record-every-prd-field",
+            [((*METRIC, 0, "ci_low"), 0.9)],
+            id="metric-interval-reversed",
+        ),
+        pytest.param(
+            "metrics-test-split",
+            [(("tests", 0, "baselines", 0, "ci_low"), 0.7)],
+            id="baseline-interval-reversed",
+        ),
+        pytest.param(
+            "metrics-test-split",
+            [(("tests", 0, "baselines", 0, "paired_diff_ci_high"), 0.1)],
+            id="paired-interval-reversed",
+        ),
+        pytest.param(
+            "metrics-test-split",
+            [((*CONDITION, 0, "components", 0, "ci_high"), 0.5)],
+            id="component-interval-reversed",
+        ),
+        pytest.param(
+            "metrics-test-split",
+            [((*CONDITION, 0, "observed"), None), ((*CONDITION, 0, "components"), [])],
+            id="pass-without-evidence",
+        ),
+        pytest.param(
+            "embedding-record-moon", [(("embedding_f16", 17), 0.1)], id="value-not-float16"
+        ),
+        pytest.param(
+            "embedding-record-moon", [(("embedding_f16", 17), 65520.5)], id="value-above-float16"
+        ),
+        pytest.param("embeddings-index-two-rows", [(("n_rows",), 3)], id="n-rows-not-the-rows"),
+        pytest.param(
+            "embeddings-index-two-rows",
+            [(("rows", 0, "row"), 1), (("rows", 1, "row"), 0)],
+            id="rows-out-of-order",
+        ),
+    ],
+)
+def test_model_rules_inside_a_document_are_checked_by_pydantic_only(
+    name: str, changes: list[tuple[tuple[Any, ...], Any]]
+) -> None:
+    case = cases_by_name()[name]
+    document = copy.deepcopy(case["value"])
+    for path, value in changes:
+        target = document
+        for key in path[:-1]:
+            target = target[key]
+        target[path[-1]] = copy.deepcopy(value)
+    assert not pydantic_accepts(case["schema"], document)
+    assert json_schema_accepts(case["schema"], document)

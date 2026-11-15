@@ -1,0 +1,184 @@
+{
+  "task_id": "T0B-02",
+  "round": 1,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "dd1f7f7431c0889bf4e6d41af64c064dda5b66f5",
+    "head": "eb0cb54493aff923b836ed26be1b9f6f4ea13ba2",
+    "files": [
+      {
+        "path": "fixtures/schema-cases/README.md",
+        "sha256": "e546a198c18a79626f10f4792cb40036335ec42e8eafa4859199ce9820246f55"
+      },
+      {
+        "path": "fixtures/schema-cases/cases.json",
+        "sha256": "2a0e8941143adab2911cd69b0038eee91aaf7273760479e48a9868898a86f42b"
+      },
+      {
+        "path": "fixtures/schema-cases/generator-cases.json",
+        "sha256": "4c70e642b0fa40db2319a1c654a24de1e2c9946952857f43e0e7151b3d5a93d0"
+      },
+      {
+        "path": "packages/schema/README.md",
+        "sha256": "debd80da26aa4b30af37955f48bb5a9ba454943d5c4ad901a4aa3c3d2ff645c6"
+      },
+      {
+        "path": "packages/schema/json/card-record.schema.json",
+        "sha256": "8ba2274ca3c8df61d54ef2853951b6b8ef973a1d3ba7aa76b4308ee0a512eaa7"
+      },
+      {
+        "path": "packages/schema/json/targets.schema.json",
+        "sha256": "10a45922b10fe3c0b794afba0ea5d438298b08015fa72fb6dc6d2ab586316c7a"
+      },
+      {
+        "path": "packages/schema/scripts/generate-zod.ts",
+        "sha256": "140ab18ded4c240a753d9a06c1a38753ee4049c73191d9dd411dbd2089f3df81"
+      },
+      {
+        "path": "packages/schema/src/generated/card-record.ts",
+        "sha256": "123e9e3238140058154673bf9839c71e68d6515df55805505552433e56ef7a89"
+      },
+      {
+        "path": "packages/schema/src/generated/targets.ts",
+        "sha256": "07af61526823639054d525318ae5f0d3b1b7354bb2f2d69fc83b6ce2d3f16df8"
+      },
+      {
+        "path": "packages/schema/src/index.ts",
+        "sha256": "aa849b2c24836c175632d6c7718a99cfb6640f3341923aeeaddec549d854469a"
+      },
+      {
+        "path": "packages/schema/tests/cases.test.ts",
+        "sha256": "7eaa052d4c630e7fb98ee5688acfeef84587111ddc9d9fd30b8eccfbbf18762a"
+      },
+      {
+        "path": "packages/schema/tests/generate-zod.test.ts",
+        "sha256": "99ab47e651ef09b383232f671313f8d467aaac8f466e32fa61c78e1f0f59f5a4"
+      },
+      {
+        "path": "packages/schema/tests/types.test-d.ts",
+        "sha256": "2edf43c9d888dee401c89378584e12a83105ca98e8a1f7aba36515c87116ecaa"
+      },
+      {
+        "path": "pipeline/src/terraluna_pipeline/schema.py",
+        "sha256": "f344078b92b43e3dd5570d281b9043c2af5f79c7b9b346f638521c11b0532adb"
+      },
+      {
+        "path": "pipeline/tests/test_json_schema.py",
+        "sha256": "de5caebd6ea3c98db147b92efe1ba46038c4598727a566f3e906ede73f13fd11"
+      },
+      {
+        "path": "pipeline/tests/test_schema_cards.py",
+        "sha256": "14308c9ea4b5b2f1c72cf7d8a68f9f91d609cfebf9a1814d37433c0f4744e169"
+      },
+      {
+        "path": "pipeline/tests/test_schema_science.py",
+        "sha256": "f56123b4b0ca59de0faeb8c78e3f5091ff3aaa5f980b59542bc3650a40867339"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:08:46Z",
+  "finished_utc": "2026-11-15T00:09:40Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T0B-02 passes every acceptance criterion I checked, and all five check commands pass. I reviewed commit eb0cb54. The seven records and the two new contracts (Targets, CardRecord) match CONTRACTS a.4. Failing tests were committed before the implementation. The only findings are low severity. The story's own notes cover the failing-run and Mars-wording items, but I only grepped prd.json for them; I did not read those notes in full. I did not run the cases independently. I only read the story's own accounts of the hand-authored verdicts and of the generator agent's mutation checks.",
+  "checks": [
+    {
+      "criterion": "uv run pytest pipeline/tests/test_schema_cards.py",
+      "command": "uv run pytest pipeline/tests/test_schema_cards.py",
+      "outcome": "PASS",
+      "evidence": "454 passed"
+    },
+    {
+      "criterion": "uv run pytest pipeline/tests/test_json_schema.py",
+      "command": "uv run pytest pipeline/tests/test_json_schema.py",
+      "outcome": "PASS",
+      "evidence": "779 passed"
+    },
+    {
+      "criterion": "pnpm --filter @terraluna/schema test",
+      "command": "pnpm --filter @terraluna/schema test",
+      "outcome": "PASS",
+      "evidence": "3 files, 877 tests passed"
+    },
+    {
+      "criterion": "make schema-check (no drift)",
+      "command": "make schema-check",
+      "outcome": "PASS",
+      "evidence": "JSON Schemas match schema.py; zod matches the JSON Schemas"
+    },
+    {
+      "criterion": "make check",
+      "command": "make check",
+      "outcome": "PASS",
+      "evidence": "ruff, format and mypy clean; turbo lint and typecheck 4/4 successful (cached)"
+    },
+    {
+      "criterion": "Failing tests first",
+      "command": "git log --stat",
+      "outcome": "PASS",
+      "evidence": "d962126 adds the 1419-line test_schema_cards.py before cf8d0a6 adds the records; b2dad39 adds the generator cases before 4009dbc adds the generator code. progress.txt records the failing runs for the earlier T0B-01 story and says the ImportError is the honest failing state."
+    },
+    {
+      "criterion": "TileLayer, TargetRecord, Targets, CardRecord, TableDRow, CampaignEntry and FigureRef fields match CONTRACTS a.4",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "schema.py shows the field lists and types as specified. The legend is a discriminated union on kind, tile_px is Literal[512] with an integer guard, the numeric scale is viridis or cividis only, there is no bundle_version field, shipping_mode is non-null on the card, and the Assumed and proposed literals are fixed. test_schema_cards.py has a test named for each of the 9 listed cases."
+    },
+    {
+      "criterion": "Cross-field rules: shortlist/shortlist_reason exactly one null; CampaignEntry unknown iff source null; card_id and comparison_ref equal the window ids; every Family key required",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "TargetRecord._shortlist_or_its_reason with a JSON Schema _when conditional; CampaignEntry has both a validator and a conditional; CardRecord._one_consistent_card; DistancesByFamily is reused. Tests: test_schema_cards.py lines 901-905, 814-829, 1186-1249."
+    },
+    {
+      "criterion": "q4 limits are writer-supplied strings with no count enforced; Mars wording recorded in notes",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "CardDifferences.limits is list[NonEmptyStr]; test_q4_limits_are_the_strings_the_writer_supplies. prd.json line 157 mentions 'Mars wording' and 'Mars list' (grep only)."
+    },
+    {
+      "criterion": "CONTRACTS and the pinned list updated; cases.json has valid and invalid cases; make schema was run",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "CONTRACTS gains Targets and CardRecord. cases.json grows by 11987 lines, and progress.txt reports 45 shared cases. test_json_schema.py and the pytest and Vitest runs pass. The generated json and zod files are committed and schema-check shows no drift. SCHEMA_VERSION is tested as 1.0.0."
+    },
+    {
+      "criterion": "Scope: changes stay inside the story's files list",
+      "command": "git diff --stat -- config PRD.md CONTRACTS.md docs",
+      "outcome": "PASS",
+      "evidence": "No output for config, PRD.md or docs. The diff paths are fixtures/schema-cases, packages/schema, schema.py and the three listed test files. The ralph state files also changed but are orchestration bookkeeping."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/schema.py:NumericLegend._min_below_max",
+      "claim": "A numeric legend requires min < max, which CONTRACTS a.4 does not state. A constant-valued layer (min == max) would be refused.",
+      "evidence": "The validator raises when not self.min < self.max. The story only specifies kind, min, max, scale and unit. The rule is documented in the docstring.",
+      "id": "claude-r1-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "The min < max rule follows from what a numeric legend is: PRD 8.10 asks for colour-blind-safe scales (viridis, cividis) with numeric legends, and the browser maps a value v to the scale position (v - min) / (max - min). With min == max that division is by zero and the legend ramp shows no range, so a record that allowed it would move the failure into the app. The legend range is a display stretch chosen by the tile writer, not the data range, so a constant-valued layer is still writable: the writer widens the stretch around the constant (or uses a classes legend) and the legend stays honest. The rule is documented in the NumericLegend docstring (schema.py:1051), in the pydantic-only list in packages/schema/README.md, in fixtures/schema-cases/README.md and in the story notes, and it is tested: test_schema_cards.py refuses min == max and min > max (lines 1061-1062), and test_json_schema.py::test_card_and_target_rules_inside_a_document_are_checked_by_pydantic_only (numeric-legend-min-above-max) shows pydantic refuses what JSON Schema accepts. IncidenceRange (T0B-01) accepts min == max because a single incidence angle is a real observation; a legend with no range is not."
+      }
+    },
+    {
+      "severity": "low",
+      "location": "pipeline/src/terraluna_pipeline/schema.py:CardRecord._one_consistent_card",
+      "claim": "Several rules beyond the acceptance criteria are enforced in pydantic only: q5 ties equal the distances' tied and tie_group, comparison_ref.path equals comparisons/<target_id>.json, a Mode B or C card has no available radar_cpr, and each figure letter appears once. The generated JSON Schema and zod do not enforce them, and ComparisonRecord has no matching Mode B/C rule.",
+      "evidence": "The schema.py comment lists them as pydantic-only. 16 pydantic-only rule tests exist. progress.txt proposes a follow-up for ComparisonRecord and asks the orchestrator to copy the rules into CONTRACTS.",
+      "id": "claude-r1-2",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "These rules are intended and documented as pydantic-only, which is the established schema.py convention (progress Codebase Patterns: rules that compare values inside one document stay pydantic-only; each touches the model_validator, the schema.py comment at line 369, a param in test_json_schema.py (for these card rules, test_card_and_target_rules_inside_a_document_are_checked_by_pydantic_only, 16 params), packages/schema/README.md and fixtures/schema-cases/README.md). Equality between two values in one document (q5 ties against distances_by_family, comparison_ref.path against target_id, distinct figure letters) cannot be written in the JSON Schema subset generate-zod.ts translates, and Python writes every bundle file through the pydantic models, with validate_bundle the authoritative check (packages/schema/README.md), so a producer cannot emit a document that breaks them. The story acceptance criteria do not ask for them in JSON Schema or zod. The ComparisonRecord Mode B/C rule belongs to T0B-01 (already passed) and lies outside T0B-02; it is proposed to the orchestrator in the progress log (Proposed instruction changes, 2026-11-15T00:45Z), as is copying these rules into CONTRACTS.md, which is outside this batch."
+      }
+    }
+  ]
+}

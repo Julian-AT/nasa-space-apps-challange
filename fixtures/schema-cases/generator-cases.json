@@ -2698,5 +2698,600 @@
         }
       }
     ]
+  },
+  {
+    "name": "integer-const",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "IntegerConst",
+      "description": "Synthetic: tile_px is the integer 512, as pydantic emits Literal[512].",
+      "type": "object",
+      "properties": {
+        "tile_px": {
+          "const": 512,
+          "title": "Tile Px",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tile_px"
+      ],
+      "additionalProperties": false
+    },
+    "cases": [
+      {
+        "name": "tile-512",
+        "valid": true,
+        "value": {
+          "tile_px": 512
+        }
+      },
+      {
+        "name": "tile-511",
+        "valid": false,
+        "value": {
+          "tile_px": 511
+        }
+      },
+      {
+        "name": "tile-513",
+        "valid": false,
+        "value": {
+          "tile_px": 513
+        }
+      },
+      {
+        "name": "tile-string",
+        "valid": false,
+        "value": {
+          "tile_px": "512"
+        }
+      },
+      {
+        "name": "tile-true",
+        "valid": false,
+        "value": {
+          "tile_px": true
+        }
+      },
+      {
+        "name": "tile-null",
+        "valid": false,
+        "value": {
+          "tile_px": null
+        }
+      },
+      {
+        "name": "tile-fractional",
+        "valid": false,
+        "value": {
+          "tile_px": 512.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "discriminated-union",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$defs": {
+        "ClassesLegend": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "classes",
+              "title": "Kind",
+              "type": "string"
+            },
+            "count": {
+              "title": "Count",
+              "type": "integer",
+              "minimum": 1
+            },
+            "labels": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Labels",
+              "type": "array"
+            }
+          },
+          "required": [
+            "kind",
+            "count",
+            "labels"
+          ],
+          "title": "ClassesLegend",
+          "type": "object"
+        },
+        "NumericLegend": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "numeric",
+              "title": "Kind",
+              "type": "string"
+            },
+            "maximum": {
+              "title": "Maximum",
+              "type": "number"
+            },
+            "scale": {
+              "enum": [
+                "viridis",
+                "cividis"
+              ],
+              "title": "Scale",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "maximum",
+            "scale"
+          ],
+          "title": "NumericLegend",
+          "type": "object"
+        }
+      },
+      "title": "DiscriminatedUnion",
+      "description": "Synthetic: legend is a ClassesLegend or a NumericLegend chosen by kind, as pydantic emits a discriminated union.",
+      "type": "object",
+      "properties": {
+        "legend": {
+          "discriminator": {
+            "mapping": {
+              "classes": "#/$defs/ClassesLegend",
+              "numeric": "#/$defs/NumericLegend"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ClassesLegend"
+            },
+            {
+              "$ref": "#/$defs/NumericLegend"
+            }
+          ],
+          "title": "Legend"
+        }
+      },
+      "required": [
+        "legend"
+      ],
+      "additionalProperties": false
+    },
+    "cases": [
+      {
+        "name": "classes-legend",
+        "valid": true,
+        "value": {
+          "legend": {
+            "kind": "classes",
+            "count": 3,
+            "labels": [
+              "a",
+              "b",
+              "c"
+            ]
+          }
+        }
+      },
+      {
+        "name": "numeric-legend",
+        "valid": true,
+        "value": {
+          "legend": {
+            "kind": "numeric",
+            "maximum": 2.5,
+            "scale": "viridis"
+          }
+        }
+      },
+      {
+        "name": "numeric-legend-integer-maximum",
+        "valid": true,
+        "value": {
+          "legend": {
+            "kind": "numeric",
+            "maximum": 3,
+            "scale": "cividis"
+          }
+        }
+      },
+      {
+        "name": "classes-legend-no-labels",
+        "valid": true,
+        "value": {
+          "legend": {
+            "kind": "classes",
+            "count": 1,
+            "labels": []
+          }
+        }
+      },
+      {
+        "name": "unknown-kind",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "binary",
+            "count": 3,
+            "labels": [
+              "a",
+              "b",
+              "c"
+            ]
+          }
+        }
+      },
+      {
+        "name": "missing-kind",
+        "valid": false,
+        "value": {
+          "legend": {
+            "count": 3,
+            "labels": [
+              "a",
+              "b",
+              "c"
+            ]
+          }
+        }
+      },
+      {
+        "name": "classes-kind-with-numeric-fields",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "classes",
+            "maximum": 2.5,
+            "scale": "viridis"
+          }
+        }
+      },
+      {
+        "name": "numeric-kind-with-classes-fields",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "numeric",
+            "count": 3,
+            "labels": [
+              "a"
+            ]
+          }
+        }
+      },
+      {
+        "name": "classes-extra-field",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "classes",
+            "count": 3,
+            "labels": [
+              "a",
+              "b",
+              "c"
+            ],
+            "extra": 1
+          }
+        }
+      },
+      {
+        "name": "numeric-extra-field",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "numeric",
+            "maximum": 2.5,
+            "scale": "viridis",
+            "count": 3
+          }
+        }
+      },
+      {
+        "name": "kind-number",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": 1,
+            "count": 3,
+            "labels": [
+              "a",
+              "b",
+              "c"
+            ]
+          }
+        }
+      },
+      {
+        "name": "kind-null",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": null,
+            "maximum": 2.5,
+            "scale": "viridis"
+          }
+        }
+      },
+      {
+        "name": "wrong-scale",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "numeric",
+            "maximum": 2.5,
+            "scale": "magma"
+          }
+        }
+      },
+      {
+        "name": "classes-count-fractional",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "classes",
+            "count": 2.5,
+            "labels": [
+              "a",
+              "b",
+              "c"
+            ]
+          }
+        }
+      },
+      {
+        "name": "classes-count-zero",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "classes",
+            "count": 0,
+            "labels": [
+              "a",
+              "b",
+              "c"
+            ]
+          }
+        }
+      },
+      {
+        "name": "classes-labels-number",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "classes",
+            "count": 3,
+            "labels": [
+              1
+            ]
+          }
+        }
+      },
+      {
+        "name": "legend-null",
+        "valid": false,
+        "value": {
+          "legend": null
+        }
+      },
+      {
+        "name": "legend-string",
+        "valid": false,
+        "value": {
+          "legend": "classes"
+        }
+      },
+      {
+        "name": "legend-array",
+        "valid": false,
+        "value": {
+          "legend": [
+            {
+              "kind": "classes",
+              "count": 3,
+              "labels": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "name": "discriminated-union-nullable",
+    "schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$defs": {
+        "ClassesLegend": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "classes",
+              "title": "Kind",
+              "type": "string"
+            },
+            "count": {
+              "title": "Count",
+              "type": "integer",
+              "minimum": 1
+            },
+            "labels": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Labels",
+              "type": "array"
+            }
+          },
+          "required": [
+            "kind",
+            "count",
+            "labels"
+          ],
+          "title": "ClassesLegend",
+          "type": "object"
+        },
+        "NumericLegend": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "numeric",
+              "title": "Kind",
+              "type": "string"
+            },
+            "maximum": {
+              "title": "Maximum",
+              "type": "number"
+            },
+            "scale": {
+              "enum": [
+                "viridis",
+                "cividis"
+              ],
+              "title": "Scale",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "maximum",
+            "scale"
+          ],
+          "title": "NumericLegend",
+          "type": "object"
+        }
+      },
+      "title": "DiscriminatedUnionNullable",
+      "description": "Synthetic: legend is a discriminated union or null, as pydantic emits the union with None.",
+      "type": "object",
+      "properties": {
+        "legend": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "classes": "#/$defs/ClassesLegend",
+                  "numeric": "#/$defs/NumericLegend"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ClassesLegend"
+                },
+                {
+                  "$ref": "#/$defs/NumericLegend"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Legend"
+        }
+      },
+      "required": [
+        "legend"
+      ],
+      "additionalProperties": false
+    },
+    "cases": [
+      {
+        "name": "classes-legend",
+        "valid": true,
+        "value": {
+          "legend": {
+            "kind": "classes",
+            "count": 3,
+            "labels": [
+              "a",
+              "b",
+              "c"
+            ]
+          }
+        }
+      },
+      {
+        "name": "numeric-legend",
+        "valid": true,
+        "value": {
+          "legend": {
+            "kind": "numeric",
+            "maximum": 2.5,
+            "scale": "viridis"
+          }
+        }
+      },
+      {
+        "name": "legend-null",
+        "valid": true,
+        "value": {
+          "legend": null
+        }
+      },
+      {
+        "name": "unknown-kind",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "binary",
+            "count": 3,
+            "labels": [
+              "a",
+              "b",
+              "c"
+            ]
+          }
+        }
+      },
+      {
+        "name": "missing-kind",
+        "valid": false,
+        "value": {
+          "legend": {
+            "maximum": 2.5,
+            "scale": "viridis"
+          }
+        }
+      },
+      {
+        "name": "wrong-scale",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "numeric",
+            "maximum": 2.5,
+            "scale": "magma"
+          }
+        }
+      },
+      {
+        "name": "kind-classes-with-numeric-fields",
+        "valid": false,
+        "value": {
+          "legend": {
+            "kind": "classes",
+            "maximum": 2.5,
+            "scale": "viridis"
+          }
+        }
+      },
+      {
+        "name": "legend-string",
+        "valid": false,
+        "value": {
+          "legend": "classes"
+        }
+      }
+    ]
   }
 ]
