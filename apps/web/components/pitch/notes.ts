@@ -32,7 +32,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Live finder',
     from: 34,
     to: 48,
-    text: "Here's the **finder**: click any spot, and we fetch **real elevation** and compute the fingerprint **right here in the browser**. *(Press the right arrow.)* **Rosamond Dry Lake** in California: relief **0.09** against **Jezero crater**, closer than **91 %** of all windows.",
+    text: "Here's the **finder**: click any spot, and we fetch **real elevation** and compute the fingerprint **right here in the browser**. *(Press the right arrow.)* **Rosamond Dry Lake** in California: relief **0.09** against **Jezero crater**, closer than **91%** of all windows.",
   },
   {
     title: 'Our model: architecture',
@@ -56,7 +56,7 @@ export const NOTES: readonly SlideNote[] = [
     title: 'Results',
     from: 96,
     to: 114,
-    text: 'The result is **seven evidence cards**. **Jezero** matches **Rosamond Dry Lake, California**, with a relief distance of **0.09**, closer than **91 %** of all candidate windows. **Arcadia** matches **Holuhraun**, closer than **97 %**.',
+    text: 'The result is **seven evidence cards**, each with figures and a proposed field test. Besides Rosamond for **Jezero**, **Arcadia Planitia** matches **Holuhraun in Iceland**, closer than **97%** of all candidate windows.',
   },
   {
     title: 'Close',
