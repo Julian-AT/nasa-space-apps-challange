@@ -1,6 +1,7 @@
-// The validation board on /methods (PRD 8.4, 8.6, 8.12, 9, 10 "Validation board"): one table row
-// per gate G0 to G6, each GateRecord field in its own column, every status as its literal text,
-// null fields as an explicit unavailable reason and absent gates as "No record in this bundle".
+// The validation board on /methods (PRD 8.4, 8.6, 8.12, 9, 10 "Validation board"): one panel per
+// gate G0 to G6 with every GateRecord field in an element named by data-field, every status as its
+// literal text, null fields as an explicit unavailable reason and absent gates as "No record in
+// this bundle". The provenance fields sit in a per-gate disclosure.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -16,21 +17,6 @@ import { prd812GateFields } from '../tests/prd.ts';
 
 type Node = DefaultTreeAdapterTypes.ChildNode | DefaultTreeAdapterTypes.DocumentFragment;
 type Element = DefaultTreeAdapterTypes.Element;
-
-interface Cell {
-  readonly tag: string;
-  readonly text: string;
-  readonly scope: string | null;
-  readonly colSpan: number;
-  readonly classes: string;
-}
-
-interface Table {
-  readonly count: number;
-  readonly caption: string;
-  readonly headers: readonly Cell[];
-  readonly rows: readonly (readonly Cell[])[];
-}
 
 const STATUSES = GateRecordSchema.shape.status.options;
 
@@ -62,35 +48,56 @@ function attribute(element: Element, name: string): string | null {
   return element.attrs.find((attr) => attr.name === name)?.value ?? null;
 }
 
-function cell(element: Element): Cell {
-  return {
-    tag: element.tagName,
-    text: text(element),
-    scope: attribute(element, 'scope'),
-    colSpan: Number(attribute(element, 'colspan') ?? '1'),
-    classes: attribute(element, 'class') ?? '',
-  };
+interface Panel {
+  readonly gate: string;
+  readonly text: string;
+  /** Text of each data-field element, by field name. */
+  readonly fields: ReadonlyMap<string, string>;
+  /** Fields inside the <details> disclosure. */
+  readonly folded: ReadonlySet<string>;
+  readonly summary: string | null;
+  readonly classes: ReadonlyMap<string, string>;
+  readonly titles: readonly string[];
 }
 
-function cellsOf(row: Element): Cell[] {
-  return row.childNodes.filter((node) => defaultTreeAdapter.isElementNode(node)).map(cell);
+function allElements(node: Node): Element[] {
+  return children(node).flatMap((child) =>
+    defaultTreeAdapter.isElementNode(child) ? [child, ...allElements(child)] : [],
+  );
 }
 
-function readTable(html: string): Table {
+function readBoard(html: string): { list: Element; panels: Panel[] } {
   const fragment = parseFragment(html);
-  const tables = descendants(fragment, 'table');
-  const [table] = tables;
-  if (table === undefined) throw new Error('no table');
-  const [thead] = descendants(table, 'thead');
-  const [tbody] = descendants(table, 'tbody');
-  if (thead === undefined || tbody === undefined) throw new Error('the table needs thead and tbody');
-  const [caption] = descendants(table, 'caption');
-  return {
-    count: tables.length,
-    caption: caption === undefined ? '' : text(caption),
-    headers: descendants(thead, 'tr').flatMap(cellsOf),
-    rows: descendants(tbody, 'tr').map(cellsOf),
-  };
+  const [list] = descendants(fragment, 'ol');
+  if (list === undefined) throw new Error('no ordered list');
+  const panels = descendants(list, 'li')
+    .filter((li) => attribute(li, 'data-gate') !== null)
+    .map((li): Panel => {
+      const fields = new Map<string, string>();
+      const classes = new Map<string, string>();
+      const folded = new Set<string>();
+      const [details] = descendants(li, 'details');
+      const inDetails = new Set(details === undefined ? [] : allElements(details));
+      for (const element of allElements(li)) {
+        const field = attribute(element, 'data-field');
+        if (field === null) continue;
+        fields.set(field, text(element));
+        // The wrapper's own classes: the status badge inside it carries the status colour with its text.
+        classes.set(field, attribute(element, 'class') ?? '');
+        if (inDetails.has(element)) folded.add(field);
+      }
+      const [summary] = descendants(li, 'summary');
+      return {
+        gate: attribute(li, 'data-gate') ?? '',
+        text: text(li),
+        fields,
+        folded,
+        summary: summary === undefined ? null : text(summary),
+        classes,
+        titles: allElements(li).flatMap((e) => attribute(e, 'title') ?? []),
+      };
+    });
+  return { list, panels };
 }
 
 function render(records: readonly unknown[]): string {
@@ -141,9 +148,9 @@ function fullRecord(gateId: string, status: string): GateRecord {
   });
 }
 
-/** The text a field's cell shows: an input_hashes list is one "path sha256" line per entry. */
+/** The text a field shows: an input_hashes list is one "path <first 12 hex>" per entry. */
 function cellText(value: GateRecord[keyof GateRecord]): string | null {
-  return Array.isArray(value) ? value.map((input) => `${input.path} ${input.sha256}`).join(' ') : value;
+  return Array.isArray(value) ? value.map((input) => `${input.path} ${input.sha256.slice(0, 12)}`).join(' ') : value;
 }
 
 const MOCK_VALIDATION: unknown = JSON.parse(readFileSync(join(MOCK_DIR, 'validation.json'), 'utf8'));
@@ -163,109 +170,101 @@ describe('GATE_FIELDS and GATE_IDS', () => {
   });
 });
 
+const SUMMARY = ['scope', 'result', 'consequence'] as const;
+const PROVENANCE = ['evidence_path', 'run_id', 'command', 'config_version', 'input_hashes'] as const;
+
 describe('GatesBoard on the mock bundle', () => {
   const records = ValidationSchema.parse(MOCK_VALIDATION);
-  const table = readTable(render(records));
+  const { list, panels } = readBoard(render(records));
 
-  it('renders one table with a caption and a column header for every GateRecord field', () => {
-    expect(table.count).toBe(1);
-    expect(table.caption).not.toBe('');
-    expect(table.headers.map((header) => [header.tag, header.text, header.scope])).toEqual(
-      GATE_FIELDS.map((field) => ['th', field, 'col']),
-    );
+  it('renders one labelled list with one panel per gate, G0 to G6', () => {
+    expect(attribute(list, 'aria-label')).toMatch(/validation\.json/);
+    expect(panels.map((panel) => panel.gate)).toEqual([...GATE_IDS]);
   });
 
-  it('renders one row per record, led by its gate_id as a row header', () => {
-    expect(table.rows).toHaveLength(records.length);
-    expect(table.rows.map((row) => [row[0]?.tag, row[0]?.scope, row[0]?.text])).toEqual(
-      records.map((entry) => ['th', 'row', entry.gate_id]),
-    );
+  it('renders every GateRecord field once per recorded gate, the provenance fields folded', () => {
+    for (const panel of panels.filter((p) => p.fields.has('status'))) {
+      expect([...panel.fields.keys()].sort()).toEqual([...GATE_FIELDS].sort());
+      expect([...panel.folded].sort()).toEqual([...PROVENANCE].sort());
+      expect(panel.summary).toBe('Provenance');
+    }
   });
 
   it('shows NOT_RUN as the literal text NOT_RUN, never as a pass, zero, blank or green', () => {
-    for (const row of table.rows) {
-      const status = row[GATE_FIELDS.indexOf('status')];
-      expect(status?.text).toBe('NOT_RUN');
-      expect(status?.classes).not.toMatch(GREEN);
+    for (const panel of panels) {
+      expect(panel.fields.get('status')).toBe('NOT_RUN');
+      expect(panel.classes.get('status')).not.toMatch(GREEN);
     }
-    expect(textOfTable(table)).not.toMatch(/\bPASS\b|\b0\b/);
+    expect(panels.map((panel) => panel.text).join(' ')).not.toMatch(/\bPASS\b|\b0\b/);
   });
 
   it('shows every null field as Unavailable with the reason, never as 0 or a blank', () => {
-    for (const row of table.rows) {
-      expect(row).toHaveLength(GATE_FIELDS.length);
-      for (const field of ['evidence_path', 'run_id', 'scope', 'result', 'consequence', 'command', 'config_version'] as const) {
-        expect(row[GATE_FIELDS.indexOf(field)]?.text).toBe(UNAVAILABLE_TEXT);
+    for (const panel of panels) {
+      for (const field of ['evidence_path', 'run_id', 'scope', 'result', 'consequence', 'command', 'config_version']) {
+        expect(panel.fields.get(field), field).toBe(UNAVAILABLE_TEXT);
       }
       // An empty input list is absent evidence too, with its own reason; it is never a blank or 0.
-      expect(row[GATE_FIELDS.indexOf('input_hashes')]?.text).toBe(
-        `Unavailable ${EVIDENCE_MEANINGS.Unavailable} ${NO_INPUTS_REASON}`,
-      );
+      expect(panel.fields.get('input_hashes')).toBe(`Unavailable ${EVIDENCE_MEANINGS.Unavailable} ${NO_INPUTS_REASON}`);
     }
   });
 });
 
-function textOfTable(table: Table): string {
-  return [table.caption, ...table.headers.map((c) => c.text), ...table.rows.flat().map((c) => c.text)].join(' ');
-}
-
 describe('GatesBoard on small GateRecord arrays', () => {
-  it('renders every field of a full record verbatim in its own column', () => {
+  it('renders every field of a full record in its own element, input hashes shortened with the full hash as title', () => {
     const full = fullRecord('G3', 'PARTIAL');
-    const [row] = readTable(render([full])).rows.filter((cells) => cells[0]?.text === 'G3');
-    expect(row?.map((c) => c.text)).toEqual(
-      GATE_FIELDS.map((field) => cellText(full[field])),
-    );
+    const panel = readBoard(render([full])).panels.find((p) => p.gate === 'G3');
+    for (const field of GATE_FIELDS) {
+      expect(panel?.fields.get(field), field).toBe(field === 'gate_id' ? 'G3' : cellText(full[field]));
+    }
+    expect(panel?.titles).toContain('f'.repeat(64));
   });
 
-  it('renders each status as its own literal text, with the same styling for every status', () => {
+  it('renders each status as its own literal text, with the same wrapper styling for every status', () => {
     const records = STATUSES.map((status, index) => fullRecord(`G${String(index)}`, status));
-    const rows = readTable(render(records)).rows.slice(0, STATUSES.length);
-    const cells = rows.map((row) => row[GATE_FIELDS.indexOf('status')]);
-    expect(cells.map((c) => c?.text)).toEqual([...STATUSES]);
-    expect(new Set(cells.map((c) => c?.classes)).size).toBe(1);
-    for (const c of cells) expect(c?.classes).not.toMatch(GREEN);
+    const panels = readBoard(render(records)).panels.slice(0, STATUSES.length);
+    expect(panels.map((panel) => panel.fields.get('status'))).toEqual([...STATUSES]);
+    for (const panel of panels) expect(panel.classes.get('status')).not.toMatch(GREEN);
   });
 
   it('renders a null result as an explicit unavailable reason, not 0', () => {
-    const row = readTable(render([fullRecord('G1', 'PASS'), record('G2', { status: 'FAIL', result: null })]))
-      .rows[2];
-    expect(row?.[0]?.text).toBe('G2');
-    const result = row?.[GATE_FIELDS.indexOf('result')];
-    expect(result?.text).toBe(UNAVAILABLE_TEXT);
-    expect(result?.text).not.toMatch(/^0$|^$|^[-–—]$/);
+    const panels = readBoard(render([fullRecord('G1', 'PASS'), record('G2', { status: 'FAIL', result: null })])).panels;
+    const result = panels[2]?.fields.get('result');
+    expect(panels[2]?.gate).toBe('G2');
+    expect(result).toBe(UNAVAILABLE_TEXT);
+    expect(result).not.toMatch(/^0$|^$|^[-–—]$/);
   });
 
-  it('sorts rows G0 to G6 without dropping or inventing records', () => {
+  it('sorts panels G0 to G6 without dropping or inventing records', () => {
     const shuffled = ['G6', 'G2', 'G0', 'G5', 'G1', 'G4', 'G3'].map((id, index) =>
       fullRecord(id, STATUSES[index % STATUSES.length] ?? 'NOT_RUN'),
     );
-    const rows = readTable(render(shuffled)).rows;
-    expect(rows.map((row) => row[0]?.text)).toEqual(GATE_IDS);
-    for (const row of rows) {
-      const source = shuffled.find((entry) => entry.gate_id === row[0]?.text);
-      expect(row.map((c) => c.text)).toEqual(GATE_FIELDS.map((field) => (source === undefined ? undefined : cellText(source[field]))));
+    const { panels } = readBoard(render(shuffled));
+    expect(panels.map((panel) => panel.gate)).toEqual(GATE_IDS);
+    for (const panel of panels) {
+      const source = shuffled.find((entry) => entry.gate_id === panel.gate);
+      for (const field of [...SUMMARY, ...PROVENANCE, 'status'] as const) {
+        expect(panel.fields.get(field)).toBe(source === undefined ? undefined : cellText(source[field]));
+      }
     }
   });
 
   it('shows gates absent from validation.json as "No record in this bundle", not as NOT_RUN', () => {
-    const rows = readTable(render([fullRecord('G4', 'FAIL'), fullRecord('G1', 'PASS')])).rows;
-    expect(rows.map((row) => row[0]?.text)).toEqual(GATE_IDS);
-    for (const row of rows) {
-      const id = row[0]?.text;
-      if (id === 'G1' || id === 'G4') {
-        expect(row).toHaveLength(GATE_FIELDS.length);
+    const { panels } = readBoard(render([fullRecord('G4', 'FAIL'), fullRecord('G1', 'PASS')]));
+    expect(panels.map((panel) => panel.gate)).toEqual(GATE_IDS);
+    for (const panel of panels) {
+      if (panel.gate === 'G1' || panel.gate === 'G4') {
+        expect(panel.fields.has('status')).toBe(true);
         continue;
       }
-      expect(row.map((c) => c.text)).toEqual([id, NO_RECORD]);
-      expect(row[1]?.colSpan).toBe(GATE_FIELDS.length - 1);
-      expect(row[1]?.text).not.toMatch(/NOT_RUN|Unavailable/);
+      expect(panel.text).toBe(`${panel.gate} ${NO_RECORD}`);
+      expect(panel.fields.has('status')).toBe(false);
+      expect(panel.text).not.toMatch(/NOT_RUN|Unavailable/);
     }
   });
 
   it('shows "No record in this bundle" for every gate of an empty validation.json', () => {
-    const rows = readTable(render([])).rows;
-    expect(rows.map((row) => row.map((c) => c.text))).toEqual(GATE_IDS.map((id) => [id, NO_RECORD]));
+    const { panels } = readBoard(render([]));
+    expect(panels.map((panel) => panel.text)).toEqual(GATE_IDS.map((id) => `${id} ${NO_RECORD}`));
   });
 
   it('refuses a validation.json that lists a gate twice, rather than drop a record', () => {
@@ -280,23 +279,39 @@ describe('GatesBoard on small GateRecord arrays', () => {
 
   it('renders a G5 record like any other gate, from its record alone', () => {
     const g5 = fullRecord('G5', 'FAIL');
-    const rows = readTable(render([g5])).rows;
-    expect(rows.find((row) => row[0]?.text === 'G5')?.map((c) => c.text)).toEqual(
-      GATE_FIELDS.map((field) => cellText(g5[field])),
-    );
+    const panel = readBoard(render([g5])).panels.find((p) => p.gate === 'G5');
+    for (const field of GATE_FIELDS.filter((f) => f !== 'gate_id')) {
+      expect(panel?.fields.get(field), field).toBe(cellText(g5[field]));
+    }
   });
 
-  it('adds no text of its own beyond the caption, the field names and the two fixed reasons', () => {
+  it('adds no text of its own beyond the gate ids, field names, Provenance and the fixed reasons', () => {
     const records = ['G0', 'G2'].map((id) => fullRecord(id, 'PASS'));
-    const table = readTable(render(records));
-    const own = new Set([...GATE_IDS, NO_RECORD, ...records.flatMap((entry) => GATE_FIELDS.map((f) => cellText(entry[f])))]);
-    for (const c of table.rows.flat()) expect(own).toContain(c.text);
+    const html = render(records);
+    const own = new Set<string>([
+      ...GATE_IDS,
+      NO_RECORD,
+      'Provenance',
+      ...GATE_FIELDS,
+      ...records.flatMap((entry) => GATE_FIELDS.map((f) => cellText(entry[f]) ?? '')),
+    ]);
+    const fragment = parseFragment(html);
+    for (const element of allElements(fragment)) {
+      if (!['dt', 'dd', 'h3', 'summary', 'p'].includes(element.tagName)) continue;
+      const own_ = text(element);
+      // Whole-element text is a field value, a field name, a gate id, the summary or a fixed reason.
+      const parts = own_ === '' ? [] : [own_];
+      for (const part of parts) {
+        if (own.has(part)) continue;
+        // A dd holding a list or badge reads as the joined field text; accept values listed above.
+        expect([...own].some((value) => part.includes(value)), part).toBe(true);
+      }
+    }
   });
 });
 
 describe('gates-board.tsx source', () => {
   const source = readFileSync(join(WEB_DIR, 'components', 'gates-board.tsx'), 'utf8');
-  const tableSource = readFileSync(join(WEB_DIR, 'components', 'ui', 'table.tsx'), 'utf8');
   const badgeSource = readFileSync(join(WEB_DIR, 'components', 'ui', 'badge.tsx'), 'utf8');
 
   it('types no status, result or threshold: every status literal comes from the records', () => {
@@ -315,8 +330,8 @@ describe('gates-board.tsx source', () => {
     expect(classes.size).toBeGreaterThan(0);
     for (const name of classes) {
       const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // The board's classes live in its own source and in the table and badge primitives it uses.
-      expect(`${source}${tableSource}${badgeSource}`, name).toMatch(new RegExp(`['"\\s]${escaped}['"\\s]`));
+      // The board's classes live in its own source and in the badge primitive it uses.
+      expect(`${source}${badgeSource}`, name).toMatch(new RegExp(`['"\\s]${escaped}['"\\s]`));
     }
   });
 

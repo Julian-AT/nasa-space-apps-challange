@@ -23,6 +23,13 @@ function PanelSection({ title, children }: { readonly title: string; readonly ch
   );
 }
 
+/** The name inside a WKT (PROJCRS["name", ...]) or the first 48 characters of the CRS text. */
+export function crsShortName(crs: string): string {
+  const named = /^[A-Za-z_]*\[\s*"([^"]+)"/u.exec(crs);
+  if (named?.[1] !== undefined) return named[1];
+  return crs.length > 48 ? `${crs.slice(0, 48)}…` : crs;
+}
+
 export function TargetInfo({ target }: { readonly target: MapTarget }) {
   const grid = target.windowGrid;
   return (
@@ -36,7 +43,11 @@ export function TargetInfo({ target }: { readonly target: MapTarget }) {
         </dd>
         <dt className="text-muted-foreground">Frame</dt>
         <dd>
-          {target.projectionKind.replaceAll('_', ' ')}; <code className="break-all text-xs">{target.crs}</code>
+          {target.projectionKind.replaceAll('_', ' ')}; {crsShortName(target.crs)}
+          <details className="mt-1">
+            <summary className="cursor-pointer text-xs text-muted-foreground">Full CRS</summary>
+            <code className="block max-h-40 overflow-auto text-xs break-all whitespace-pre-wrap">{target.crs}</code>
+          </details>
         </dd>
         <dt className="text-muted-foreground">Window</dt>
         <dd>
@@ -300,6 +311,20 @@ export function WindowsPanel({ target }: { readonly target: MapTarget }) {
                 ))}
               </ul>
             </div>
+          )}
+          {target.windows.length === 0 ? null : (
+            <details>
+              <summary className="cursor-pointer text-sm font-medium">Numbered window list</summary>
+              <ol className="mt-1 text-xs">
+                {target.windows.map((w) => (
+                  <li key={w.id}>
+                    <code className="break-all">{w.id}</code> {ELIGIBILITY_TONES[w.status].label}
+                    {w.reasons.length === 0 ? '' : `: ${w.reasons.join(', ')}`}
+                    {w.isPrimary ? ' (target window)' : ''}
+                  </li>
+                ))}
+              </ol>
+            </details>
           )}
           <p className="text-xs text-muted-foreground">
             Excluded windows are shown with a dashed outline and keep their reasons; they are not poor matches.

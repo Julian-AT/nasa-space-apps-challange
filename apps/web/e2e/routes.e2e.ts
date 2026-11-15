@@ -59,7 +59,7 @@ for (const path of ROUTES) {
       const mock = page.getByRole('status').filter({ hasText: 'Mock bundle' });
       if (shell.mockBanner === null) await expect(mock).toHaveCount(0);
       else await expect(mock.first()).toHaveText(shell.mockBanner);
-      await expect(page.locator('footer')).toContainText(bundle.manifest.bundle_version);
+      await expect(page.getByRole('contentinfo')).toContainText(bundle.manifest.bundle_version);
       await expect(page.locator('h1')).toHaveCount(1);
     });
 
@@ -118,7 +118,7 @@ test('every primary navigation link is reachable by Tab in DOM order', async ({ 
 test('/methods shows NOT_RUN literally for every gate validation.json marks NOT_RUN', async ({ page }) => {
   await page.goto('/methods');
   for (const record of bundle.validation.filter((gate) => gate.status === 'NOT_RUN')) {
-    await expect(page.locator('tr', { hasText: record.gate_id }).first()).toContainText('NOT_RUN');
+    await expect(page.locator(`[data-gate="${record.gate_id}"]`)).toContainText('NOT_RUN');
   }
 });
 

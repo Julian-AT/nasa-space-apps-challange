@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import RootLayout from '../app/layout.tsx';
 import Methods, { dynamic } from '../app/methods/page.tsx';
+import { EvidenceLegend } from '../components/evidence-legend.tsx';
 import { GatesBoard } from '../components/gates-board.tsx';
 import type { Bundle } from '../lib/bundle.ts';
 import { MOCK_BANNER, shellText } from '../lib/shell.ts';
@@ -67,6 +68,14 @@ function board(validation: Bundle['validation']): string {
   return withoutIds(renderToStaticMarkup(<GatesBoard validation={validation} />));
 }
 
+const PAGE_LEAD =
+  "Each release gate with its status, scope, result and consequence, as recorded in the bundle's validation.json. A status is always shown as its literal text, and a missing field is labelled Unavailable.";
+
+/** The evidence legend's text; its ids differ per render, so it is compared as text. */
+function legendText(): string {
+  return textOf(withoutIds(renderToStaticMarkup(<EvidenceLegend />)));
+}
+
 function inLayout(): string {
   return renderToStaticMarkup(
     <RootLayout>
@@ -93,7 +102,7 @@ describe('/methods', () => {
 
   it('shows the board for the bundle validation.json, exactly as GatesBoard renders it', () => {
     expect(page()).toContain(board(MOCK.validation));
-    expect(elements(page()).filter((element) => element.tag === 'table')).toHaveLength(1);
+    expect(elements(page()).filter((element) => element.tag === 'ol')).toHaveLength(1);
   });
 
   it('follows the selected bundle: other records give another board', () => {
@@ -114,13 +123,14 @@ describe('/methods', () => {
 
   it('has no encoder, model or embedding content before G5 passes', () => {
     const forbidden = /encoder|model|embedding|onnx|learned|second opinion|predicted/i;
-    expect(textOf(page())).not.toMatch(forbidden);
+    // The PRD 3 evidence legend defines the Predicted label; that is not model content.
+    expect(textOf(page()).replace(legendText(), ' ')).not.toMatch(forbidden);
     expect(PAGE_SOURCE).not.toMatch(forbidden);
   });
 
   it('types no status, result or threshold: the page text beyond its headings comes from the board', () => {
-    const rest = textOf(page().replace(board(MOCK.validation), ' '));
-    expect(rest).toBe('Methods Validation board');
+    const rest = textOf(page().replace(board(MOCK.validation), ' ')).replace(legendText(), ' ');
+    expect(rest.replace(/\s+/g, ' ').trim()).toBe(`Methods ${PAGE_LEAD} Validation board`);
     expect(PAGE_SOURCE).not.toMatch(/NOT_RUN|PASS|FAIL|PARTIAL|NOT_APPLICABLE/);
   });
 });

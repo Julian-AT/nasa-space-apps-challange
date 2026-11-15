@@ -166,3 +166,17 @@ export function tileBounds(
     ? [bbox.left, bbox.bottom, bbox.right, bbox.top]
     : [bbox.left, bbox.top, bbox.right, bbox.bottom];
 }
+
+/**
+ * The frame used to draw the window grid when the bundle has no tile layer: one pyramid unit is one
+ * metre of the windows' own frame (WindowRecord.polygon.ring_m), y up. No origin or scale is
+ * invented; it only fixes the drawing coordinates.
+ */
+export const METRIC_FRAME: Frame = {
+  originX: 0,
+  originY: 0,
+  metresPerUnit: 1,
+  flipY: false,
+  zoomMin: 0,
+  zoomMax: 0,
+};

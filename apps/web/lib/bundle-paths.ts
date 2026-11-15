@@ -1,15 +1,16 @@
 // The bundle paths the web copies and the @terraluna/schema contract each one is validated with
 // (PRD 8.4, CONTRACTS a.3 BUNDLE_PATHS). The Python side owns the canonical map
-// (BUNDLE_PATHS in pipeline schema.py, generated to packages/schema/json/bundle-paths.json); when
-// that generated file exists, tests/bundle-paths.test.ts checks that every template here is in it
-// with the same contract name. Until it exists this list is the CONTRACTS a.3 table, restricted to
-// the files the web reads and that have a generated schema.
+// (BUNDLE_PATHS in pipeline schema.py, generated to packages/schema/json/bundle-paths.json);
+// lib/bundle-records.test.ts checks that every template here is in it with the same contract
+// name. This list is that map restricted to the small files the web reads.
 //
 // A path that matches no entry is never copied. Large artifacts (tiles/, windows/*.parquet,
 // model/*.onnx, model/embeddings.*, report/umap.bin, reference/) stay in object storage.
 import {
   CardRecordSchema,
   ComparisonsSchema,
+  CurvesSchema,
+  ExamplesSchema,
   MetricsSchema,
   ModelRecordSchema,
   SourcesSchema,
@@ -74,6 +75,13 @@ export const BUNDLE_PATH_ENTRIES: readonly BundlePathEntry[] = [
     schema: ModelRecordSchema,
   },
   { template: 'report/metrics.json', contract: 'Metrics', pattern: exact('report/metrics.json'), schema: MetricsSchema },
+  { template: 'report/curves.json', contract: 'Curves', pattern: exact('report/curves.json'), schema: CurvesSchema },
+  {
+    template: 'report/examples.json',
+    contract: 'Examples',
+    pattern: exact('report/examples.json'),
+    schema: ExamplesSchema,
+  },
   {
     template: 'figures/{name}.svg',
     contract: 'svg_allowlist',

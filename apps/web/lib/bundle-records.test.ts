@@ -56,6 +56,8 @@ describe('bundle records', () => {
     expect(records.targets).toBeNull();
     expect(records.modelCard).toBeNull();
     expect(records.metrics).toBeNull();
+    expect(records.curves).toBeNull();
+    expect(records.examples).toBeNull();
     expect(records.windows.size).toBe(0);
     expect(records.comparisons.size).toBe(0);
     expect(records.cards.size).toBe(0);
@@ -105,8 +107,8 @@ describe('bundle records', () => {
   });
 
   it('never copies a path without an entry in the path map', () => {
-    const { outDir } = pull({ 'report/curves.json': toBytes({ any: 1 }), 'tiles/a/0/0/0.webp': Buffer.from('x') });
-    expect(existsSync(join(outDir, 'report/curves.json'))).toBe(false);
+    const { outDir } = pull({ 'report/umap.bin': Buffer.from('x'), 'tiles/a/0/0/0.webp': Buffer.from('x') });
+    expect(existsSync(join(outDir, 'report/umap.bin'))).toBe(false);
     expect(existsSync(join(outDir, 'tiles'))).toBe(false);
   });
 });
@@ -122,7 +124,6 @@ describe('the path map', () => {
 
   it('agrees with the generated bundle-paths.json when packages/schema ships it', () => {
     const generated = join(REPO_ROOT, 'packages', 'schema', 'json', 'bundle-paths.json');
-    if (!existsSync(generated)) return;
     const map = JSON.parse(readFileSync(generated, 'utf8')) as Record<string, string>;
     for (const entry of BUNDLE_PATH_ENTRIES) {
       expect(map[entry.template], entry.template).toBe(entry.contract);
