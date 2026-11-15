@@ -1,0 +1,22 @@
+{
+  "name": "@terraluna/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "TypeScript mirror of the Terraluna numerical contract (PRD 8.3, 8.8): D29 resampler, nu(L), H, probe quality and terrain distances, parity-tested against the Python reference.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p src",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "eslint": "9.39.5",
+    "typescript": "6.0.3",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  }
+}

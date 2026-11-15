@@ -156,7 +156,8 @@ describe('primary navigation', () => {
 
   it('is the only client module: next/link and usePathname, no bundle data and no provider', () => {
     const clients = appSources().filter((file) => isClientModule(readFileSync(join(WEB_DIR, file), 'utf8')));
-    expect(clients).toEqual(['components/site-header.tsx']);
+    // The live probe (T13-07) hosts its Web Worker in its own client module under app/probe/.
+    expect(clients.filter((file) => !file.startsWith('app/probe/'))).toEqual(['components/site-header.tsx']);
     const header = readFileSync(join(WEB_DIR, 'components', 'site-header.tsx'), 'utf8');
     const imports = [...header.matchAll(/^import\b[^'"]*['"]([^'"]+)['"]/gm)].map((match) => match[1]);
     expect(imports).toEqual(expect.arrayContaining(['next/link', 'next/navigation']));
