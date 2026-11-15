@@ -11,10 +11,10 @@ import { createPortal } from 'react-dom';
 import { EarthIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 
-import { ArchDiagram, ARCH_STEPS } from './arch';
 import { ACCENT, CountUp, EASE, FAINT, INK, LagProfile, LINE, MUTED, NuChart, PAPER, WORLD } from './bits';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
+import { SslExplainer, SSL_STEPS } from './ssl-explainer';
 
 const LabTwin = dynamic(() => import('./lab-twin'), { ssr: false, loading: () => <div className="size-full" /> });
 const FinderDemo = dynamic(() => import('./finder'), { ssr: false, loading: () => null });
@@ -273,33 +273,14 @@ function slides(d: PitchData, qr: string | null): Slide[] {
     },
     {
       id: 'model',
-      steps: ARCH_STEPS.length,
-      body: (step) => {
-        const cur = ARCH_STEPS[Math.min(step, ARCH_STEPS.length - 1)];
-        return (
-          <Frame title="Our model" sub={<>A ResNet terrain encoder, trained <A>self-supervised</A>, that learns the physics.</>}>
-            <div className="flex h-full flex-col justify-between gap-6">
-              <In d={0.15} className="flex min-h-0 flex-1 items-center">
-                <ArchDiagram step={step} />
-              </In>
-              {cur ? (
-                <div className="grid grid-cols-[auto_1fr_auto] items-center gap-10 rounded-3xl border border-zinc-200 bg-zinc-50 px-10 py-6">
-                  <span className="font-mono text-lg tabular-nums text-zinc-400">
-                    {String(step + 1).padStart(2, '0')} / {String(ARCH_STEPS.length).padStart(2, '0')}
-                  </span>
-                  <AnimatePresence mode="wait">
-                    <motion.div key={cur.key} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3, ease: EASE }} className="flex flex-col gap-1">
-                      <span className="text-3xl font-bold tracking-tight">{cur.title}</span>
-                      <span className="text-xl" style={{ color: MUTED }}>{cur.line}</span>
-                    </motion.div>
-                  </AnimatePresence>
-                  <span className="text-4xl font-black tracking-tight tabular-nums">{cur.num}</span>
-                </div>
-              ) : null}
-            </div>
-          </Frame>
-        );
-      },
+      steps: SSL_STEPS.length,
+      body: (step) => (
+        <Frame title="Our model" sub={<>A ResNet terrain encoder, trained <A>self-supervised</A>, that learns the physics.</>}>
+          <In d={0.15} className="flex h-full min-h-0 items-start">
+            <SslExplainer step={step} />
+          </In>
+        </Frame>
+      ),
     },
     {
       id: 'metrics',
