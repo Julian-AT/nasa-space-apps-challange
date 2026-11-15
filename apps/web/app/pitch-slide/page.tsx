@@ -44,6 +44,13 @@ export default async function PitchSlidePage() {
   const jez = bench.relief.targets.find((t) => t.targetId === 'mars-jezero-w000') ?? null;
   const jezRow = results.groups.find((g) => g.targetId === 'mars-jezero-w000')?.rows.find((r) => r.best) ?? null;
   const params = bench.parameters ?? pitch.model.parameters;
+  const tex = readNumbersTex();
+  const lags = (tex.get('ConfigLags') ?? '').split(/,| and /).map((v) => Number(v.trim())).filter((v) => Number.isFinite(v) && v > 0);
+  const num = (k: string): number | null => {
+    const n = Number((tex.get(k) ?? '').replace(/,/g, ''));
+    return tex.has(k) && Number.isFinite(n) ? n : null;
+  };
+  const arch = bundle.records.modelCard?.architecture ?? null;
 
   const data: OneSlideData = {
     bundleVersion: results.bundleVersion,
@@ -56,6 +63,13 @@ export default async function PitchSlidePage() {
     parameters: params,
     parity: bench.parity.minCosineText,
     parityTolerance: bench.parity.tolerance,
+    lagMin: lags.length ? Math.min(...lags) : null,
+    lagMax: lags.length ? Math.max(...lags) : null,
+    windowM: num('ConfigWindowM'),
+    archFamily: arch?.match(/^(ResNet-\d+ layout)/)?.[1] ?? null,
+    embeddingDim: num('ConfigEmbeddingDim') ?? pitch.model.embeddingDim,
+    inputPx: num('ConfigInputPx'),
+    trainWindows: bench.trainWindows,
   };
 
   const links = [
