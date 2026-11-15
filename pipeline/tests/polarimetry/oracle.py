@@ -422,6 +422,31 @@ class Window:
         }
 
 
+def polsartools_extent(
+    window: Window, *, margin: int, grid_rows: int, grid_cols: int
+) -> tuple[Window, slice, slice]:
+    """The extent polsartools processes for ``window``, and where the window lies inside it.
+
+    The extent is the window grown by ``margin`` pixels on each side, stopped at the grid edge.
+    polsartools 0.13 processes rasters in blocks (``utils/proc_utils.py``,
+    ``write_chunk_to_temp_file``); for ``win >= 1`` it trims ``win`` pixels from the right and
+    bottom of a block that touches the left and top border, even when that block also reaches
+    the right and bottom border and read no overlap there, so those pixels are never written
+    and stay 0. With a margin of ``win`` pixels those unwritten pixels fall outside the window.
+    Returns the extent and the row and column slices that select the window from it.
+    """
+    if margin < 0:
+        raise ValueError(f"negative margin {margin}")
+    row0 = max(window.row0 - margin, 0)
+    col0 = max(window.col0 - margin, 0)
+    row1 = min(window.row0 + window.rows + margin, grid_rows)
+    col1 = min(window.col0 + window.cols + margin, grid_cols)
+    extent = Window(row0=row0, col0=col0, rows=row1 - row0, cols=col1 - col0)
+    rows = slice(window.row0 - row0, window.row0 - row0 + window.rows)
+    cols = slice(window.col0 - col0, window.col0 - col0 + window.cols)
+    return extent, rows, cols
+
+
 def read_window(scene: Scene, product: str, window: Window) -> npt.NDArray[Any]:
     """One product's window, in its stored dtype (float32 or complex64), as a new array."""
     window.check(scene.layout)
@@ -714,8 +739,9 @@ def run_polsartools(
 
     ``import_uavsar_grd`` builds the C3 matrix from the annotation and the six GRD files (it
     reads whole files and writes the scene extent beside the annotation, so it runs on
-    symbolic links in ``work``, not in the scene directory), ``clip`` cuts the window, and per
-    ellipticity ``simulate_CP`` synthesizes the compact-pol C2 matrix and ``m_chi`` computes m.
+    symbolic links in ``work``, not in the scene directory), ``clip`` cuts the window with the
+    margin of :func:`polsartools_extent`, and per ellipticity ``simulate_CP`` synthesizes the
+    compact-pol C2 matrix and ``m_chi`` computes m. The window is read back from the extent.
     """
     gdal.UseExceptions()
     links = work / "scene"
@@ -727,16 +753,22 @@ def run_polsartools(
     polsartools.import_uavsar_grd(
         str(links / scene.annotation_path.name), mat="C3", fmt=processing.fmt, out_dir=str(full)
     )
+    extent, rows, cols = polsartools_extent(
+        window,
+        margin=processing.win,
+        grid_rows=scene.layout.rows,
+        grid_cols=scene.layout.cols,
+    )
     outputs: dict[float, PolsartoolsOutputs] = {}
     for chi in chis:
         clipped = work / f"chi_{'plus' if chi > 0 else 'minus'}_{abs(chi):g}"
         polsartools.clip(
             str(full / "C3"),
             output_folder=str(clipped),
-            start_x=window.col0,
-            start_y=window.row0,
-            dx=window.cols,
-            dy=window.rows,
+            start_x=extent.col0,
+            start_y=extent.row0,
+            dx=extent.cols,
+            dy=extent.rows,
         )
         polsartools.simulate_CP(
             str(clipped),
@@ -762,7 +794,9 @@ def run_polsartools(
             "c22": c2 / "C22.tif",
             "m": c2 / "m_cp.tif",
         }
-        outputs[chi] = {key: _read_raster(gdal, path, window) for key, path in names.items()}
+        outputs[chi] = {
+            key: _read_raster(gdal, path, extent)[rows, cols] for key, path in names.items()
+        }
     shutil.rmtree(full)
     return outputs
 
@@ -1125,6 +1159,19 @@ def run_oracle_check(
             "source": "the scene's .ann annotation (PRD 5)",
         },
         "window": window.as_record(scene.layout),
+        "polsartools_extent": {
+            **polsartools_extent(
+                window,
+                margin=conventions.processing.win,
+                grid_rows=scene.layout.rows,
+                grid_cols=scene.layout.cols,
+            )[0].as_record(scene.layout),
+            "why": (
+                "polsartools processes the window inside a margin of win pixels, because its "
+                "tiled writer leaves the last win rows and columns of a single-block raster "
+                "unwritten (utils/proc_utils.py); the window is read back from the extent"
+            ),
+        },
         "software": {
             "polsartools": _version("polsartools"),
             "gdal_python": str(getattr(gdal, "__version__", None)),
