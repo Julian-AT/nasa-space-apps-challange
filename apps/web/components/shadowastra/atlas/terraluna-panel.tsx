@@ -30,9 +30,8 @@ function Relief({ r, what }: { r: WindowRelief | null; what: string }) {
   const ok = r !== null && r.evidenceLabel !== "Unavailable";
   return (
     <div className="flex items-center justify-between gap-3 text-[12px] text-chrome">
-      <span className="truncate">
+      <span className="truncate" title={ok ? `ν at ${r.lagM} m lag` : undefined}>
         {what}
-        {ok ? <span className="text-dim"> · ν {r.lagM} m</span> : null}
       </span>
       <span className="flex shrink-0 items-center gap-2 tabular-nums">
         <span className="font-mono text-platinum">{ok ? `${r.valueM.toFixed(2)} m` : "—"}</span>
