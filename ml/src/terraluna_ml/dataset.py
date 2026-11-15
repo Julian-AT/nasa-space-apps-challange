@@ -1,10 +1,11 @@
 """Encoder input windows (T11-01; PRD 7 "Window resampler (D29)", 11.2, 8.13 ``ml``).
 
 :func:`sample_window` cuts one 64 x 64 window at 78.125 m per pixel, exactly 5,000 m on a side,
-centred on (``lat0``, ``lon0``) of a :class:`terraluna_ml.synthetic.DemSource`. The window is
-resampled by ``terraluna_pipeline.geometry.resample_window`` (the D29 resampler: inverse
-spherical AEQD on the body's sphere, the source's T3 lookup and bilinear interpolation) and by
-nothing else. :func:`encode_channels` then turns the window into the three encoder channels.
+centred on (``lat0``, ``lon0``) of a :class:`DemSource` (defined here, so this production path
+never imports the mock module ``terraluna_ml.synthetic``). The window is resampled by
+``terraluna_pipeline.geometry.resample_window`` (the D29 resampler: inverse spherical AEQD on
+the body's sphere, the source's T3 lookup and bilinear interpolation) and by nothing else.
+:func:`encode_channels` then turns the window into the three encoder channels.
 The browser probe mirrors these rules in ``@terraluna/core`` (t10 T10-07, CONTRACTS).
 
 Rules (decisions recorded for a human where the PRD is silent)
@@ -35,15 +36,15 @@ from __future__ import annotations
 import dataclasses
 import math
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, Protocol
 
 import numpy as np
 import numpy.typing as npt
 
-from terraluna_ml.synthetic import DemSource
 from terraluna_pipeline.geometry import (
     Body,
     ResampledGrid,
+    SourceLookup,
     WindowGrid,
     body_radius_m,
     resample_window,
@@ -86,6 +87,31 @@ if WINDOW_GRID.size != WINDOW_PX or WINDOW_PX * PIXEL_M != WINDOW_M:
 
 class DatasetError(ValueError):
     """Raised for a window centre or window values the encoder input cannot be built from."""
+
+
+class DemSource(Protocol):
+    """A DEM source raster and its metadata: the only interface window sampling reads.
+
+    A real reader (T11-07) implements these five members and nothing else. ``raster`` is a 2-D
+    float64 array indexed ``[row, column]``; ``nodata`` is the declared sentinel or None;
+    ``lookup`` maps (latitude, longitude) to the raster's pixel space; ``mock`` is True for
+    synthetic or other mock data, which never reaches a production path.
+    """
+
+    @property
+    def body(self) -> Body: ...
+
+    @property
+    def raster(self) -> FloatArray: ...
+
+    @property
+    def nodata(self) -> float | None: ...
+
+    @property
+    def lookup(self) -> SourceLookup: ...
+
+    @property
+    def mock(self) -> bool: ...
 
 
 @dataclass(frozen=True, slots=True)

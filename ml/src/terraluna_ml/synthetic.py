@@ -5,11 +5,13 @@ window sampling before real DEMs are read (T11-07) and never reaches a productio
 builder is deterministic from an explicit non-negative integer ``seed`` (numpy's PCG64 through
 ``numpy.random.default_rng``) and records its parameters.
 
-:class:`DemSource` is the one interface a real reader implements later. It supplies the source
-raster and its metadata only: the body, a float64 raster indexed ``[row, column]``, the
-declared nodata value and the T3 lookup (``terraluna_pipeline.geometry``), built with explicit
-georeferencing parameters. A source never evaluates elevation at a latitude and longitude:
-every window is cut by the D29 resampler in :func:`terraluna_ml.dataset.sample_window`.
+:class:`terraluna_ml.dataset.DemSource` is the one interface a real reader implements later;
+:class:`SyntheticDem` implements it here. The protocol lives in the production module, which
+never imports this one. It supplies the source raster and its metadata only: the body, a
+float64 raster indexed ``[row, column]``, the declared nodata value and the T3 lookup
+(``terraluna_pipeline.geometry``), built with explicit georeferencing parameters. A source
+never evaluates elevation at a latitude and longitude: every window is cut by the D29
+resampler in :func:`terraluna_ml.dataset.sample_window`.
 
 The builders:
 
@@ -35,7 +37,7 @@ import math
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Final, Literal, Protocol
+from typing import Final, Literal
 
 import numpy as np
 import numpy.typing as npt
@@ -71,34 +73,10 @@ class SyntheticDemError(ValueError):
     """Raised for a seed, size or parameter a synthetic DEM cannot be built from."""
 
 
-class DemSource(Protocol):
-    """A DEM source raster and its metadata: the only interface window sampling reads.
-
-    A real reader (T11-07) implements these five members and nothing else. ``raster`` is a 2-D
-    float64 array indexed ``[row, column]``; ``nodata`` is the declared sentinel or None;
-    ``lookup`` maps (latitude, longitude) to the raster's pixel space; ``mock`` is True for
-    synthetic or other mock data, which never reaches a production path.
-    """
-
-    @property
-    def body(self) -> Body: ...
-
-    @property
-    def raster(self) -> FloatArray: ...
-
-    @property
-    def nodata(self) -> float | None: ...
-
-    @property
-    def lookup(self) -> SourceLookup: ...
-
-    @property
-    def mock(self) -> bool: ...
-
-
 @dataclass(frozen=True, eq=False, kw_only=True)
 class SyntheticDem:
-    """A labelled mock DEM: a :class:`DemSource` with its builder name, seed and parameters."""
+    """A labelled mock DEM: a :class:`terraluna_ml.dataset.DemSource` with its builder name, seed
+    and parameters."""
 
     name: SyntheticName
     body: Body
