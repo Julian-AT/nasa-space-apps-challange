@@ -9,7 +9,7 @@ is a generated macro; a value that the training record does not contain yet is p
 split of Section~\ref{sec:data}, with each batch balanced so that each body contributes a third of
 its windows. The training split holds \DatasetMoonWindows{} lunar, \DatasetMarsWindows{} Martian and \DatasetEarthWindows{} terrestrial windows (Section~\ref{sec:data}); the manifest records an upper estimate of about \DatasetCpuHours{} CPU hours for building the dataset. Physics targets are computed for every window by the same fingerprint code that ranks
 candidates (Section~\ref{sec:fingerprint}) and standardised with statistics of the training blocks
-only. Morphology labels, the crater densities of the lunar and Martian crater catalogues \citep{robbins2019,robbins2012}, are reserved for the probes and never used in training; the evaluation code records the morphology probe as unavailable until these labels are built.
+only. Morphology labels, the crater densities of the lunar and Martian crater catalogues \citep{robbins2019,robbins2012}, are reserved for the probes and never used in training. These labels were not built for this study, so the morphology probe is not available.
 
 \paragraph{Hardware and schedule.} The runs evaluated on test blocks were trained on a CPU server at a reduced scope, without a GPU. Table~\ref{tab:training} gives the schedule as the training record states it; Section~\ref{sec:benchmarks} adds later runs on a laptop accelerator, evaluated on validation blocks only.
 

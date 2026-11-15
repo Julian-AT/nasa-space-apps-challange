@@ -16,9 +16,9 @@ correlation between embedding and fingerprint distances reaches \GFiveRhoMin, th
 neighbours agree across seeds with a Jaccard index of at least \GFiveJaccardMin, and the encoder
 beats both frozen image baselines on the two probes with paired bootstrap intervals that exclude zero, the morphology gain having a positive lower bound, and the exported model matches the training model within the parity tolerance. These acceptance criteria were fixed in the
 configuration before training. Table~\ref{tab:probes} reports the probes from the evaluation
-record. The recorded outcome of the criteria is \GFiveVerdict, so the encoder is reported as experimental and every ranking in this paper uses the fingerprint alone.
+record. The recorded outcome of the criteria is \GFiveVerdict, so the encoder is reported as experimental and every ranking in this paper uses the fingerprint alone. Criterion by criterion, the physics probe passes; the body probe, the agreement with the fingerprint and the seed stability fail; and the morphology gain and the comparison with the image baselines are not available, because they were not evaluated.
 
-The probes explain the verdict. The physics probe passes its threshold: the smallest lower bound of the relief \Rsq{} over the lags is \EncoderPhysRReliefMin. But an untrained copy of the same network reaches a smallest lower bound of \RandomPhysRReliefMin, so a linear readout of the fingerprint from these windows does not show that training added anything. The body probe classifies the body with a balanced accuracy of \EncoderBodyAcc{} (interval \EncoderBodyAccLow{} to \EncoderBodyAccHigh), above the threshold of \GFiveBodyAccMax{} and close to the \NoAdvBodyAcc{} of the run without gradient reversal, so the adversarial head at the trained weight did not remove body information. Agreement between embedding distances and fingerprint distances is \EncoderAgreementRho{} (interval \EncoderAgreementLow{} to \EncoderAgreementHigh), against \RandomAgreementRho{} for the untrained network: training moved the embedding away from the physics that the fingerprint measures. The top twenty Earth neighbours agree across seeds with a mean Jaccard index of \EncoderSeedJaccard, above the \RandomSeedJaccard{} of a random ranking but below the threshold. The morphology probe and the comparison with the ImageNet and DINO baselines could not be run, because no crater labels were ingested and the baseline weights were not fetched. At this reduced scope the encoder is therefore a negative result, and the paper makes no claim for learned similarity. The model report is built in the model card form of \citet{mitchell2019}, with intended use, evaluation conditions and limitations stated beside the metrics.
+The probes explain the verdict. The physics probe passes its threshold: the smallest lower bound of the relief \Rsq{} over the lags is \EncoderPhysRReliefMin. But an untrained copy of the same network reaches a smallest lower bound of \RandomPhysRReliefMin, so a linear readout of the fingerprint from these windows does not show that training added anything. The body probe classifies the body with a balanced accuracy of \EncoderBodyAcc{} (interval \EncoderBodyAccLow{} to \EncoderBodyAccHigh), above the threshold of \GFiveBodyAccMax{} and close to the \NoAdvBodyAcc{} of the run without gradient reversal, so the adversarial head at the trained weight did not remove body information. Agreement between embedding distances and fingerprint distances is \EncoderAgreementRho{} (interval \EncoderAgreementLow{} to \EncoderAgreementHigh), against \RandomAgreementRho{} for the untrained network: training moved the embedding away from the physics that the fingerprint measures. The top twenty Earth neighbours agree across seeds with a mean Jaccard index of \EncoderSeedJaccard, above the \RandomSeedJaccard{} of a random ranking but below the threshold. The morphology probe and the comparison with the ImageNet and DINO baselines are not available: no crater labels were built and the baseline weights were not obtained, so neither was evaluated. At this reduced scope the encoder is therefore a negative result, and the paper makes no claim for learned similarity. The model report is built in the model card form of \citet{mitchell2019}, with intended use, evaluation conditions and limitations stated beside the metrics.
 
 The browser export can be checked independently of the embedding quality. An ONNX export of the backbone of the first main run (opset \OnnxOpset; training run status in the export record: \OnnxSourceStatus) reproduces the training model on \OnnxParityN{} validation windows with a largest absolute difference of \OnnxFpDiff{} in single precision (tolerance \OnnxFpThreshold) and a smallest cosine similarity of \OnnxHalfCosine{} in half precision (tolerance \OnnxHalfThreshold), for a half precision file of \OnnxHalfBytes{} bytes. This shows that the exported graph computes the same function; it says nothing about the quality of the embedding. The web probe's own check runs the half precision file in ONNX Runtime Web \WasmOrtVersion{} under \WasmRuntime{} with \WasmThreads{} thread on \WasmWindows{} windows, with a smallest cosine similarity to the single precision Python model of \WasmMinCosine{} (tolerance \WasmThreshold) and \WasmMs{} ms per window; that timing comes from Node.js, not from a browser on a typical laptop.
 
@@ -27,20 +27,23 @@ The browser export can be checked independently of the embedding quality. An ONN
 \caption{Probes on test blocks. Physics: the smallest lower bound of the probe \Rsq{} over the
 relief lags. Morphology: the \Rsq{} gain over the fingerprint ridge. Body: balanced accuracy of the
 body probe, where chance is one third. Agreement: Spearman correlation of embedding and fingerprint
-distances on cross body pairs.}
+distances on cross body pairs. Seeds: mean Jaccard index of the top twenty Earth neighbours across
+seeds, against \RandomSeedJaccard{} for a random ranking. Not available marks a probe that was not
+evaluated.}
 \label{tab:probes}
 \footnotesize
-\begin{tabular}{@{}lcccc@{}}
+\begin{tabular}{@{}lccccc@{}}
 \toprule
-Representation & Physics & Morphology & Body & Agreement \\
+Representation & Physics & Morphology & Body & Agreement & Seeds \\
 \midrule
-Random initialisation & \RandomPhysRReliefMin{} & & \RandomBodyAcc{} & \RandomAgreementRho{} \\
-ImageNet ResNet & \ResNetPhysRReliefMin{} & & & \\
-DINO & \DinoPhysRReliefMin{} & & & \\
-Terraluna encoder & \EncoderPhysRReliefMin{} & \EncoderMorphGain{} & \EncoderBodyAcc{} & \EncoderAgreementRho{} \\
-Encoder without gradient reversal & & & \NoAdvBodyAcc{} & \\
+Random initialisation & \RandomPhysRReliefMin{} & \NotAvailable{} & \RandomBodyAcc{} & \RandomAgreementRho{} & \NotAvailable{} \\
+ImageNet ResNet & \ResNetPhysRReliefMin{} & \NotAvailable{} & \NotAvailable{} & \NotAvailable{} & \NotAvailable{} \\
+DINO & \DinoPhysRReliefMin{} & \NotAvailable{} & \NotAvailable{} & \NotAvailable{} & \NotAvailable{} \\
+Terraluna encoder & \EncoderPhysRReliefMin{} & \EncoderMorphGain{} & \EncoderBodyAcc{} & \EncoderAgreementRho{} & \EncoderSeedJaccard{} \\
+No gradient reversal & \VarLambdaZeroPhysR{} & \NotAvailable{} & \NoAdvBodyAcc{} & \VarLambdaZeroRho{} & \NotAvailable{} \\
 \midrule
-Acceptance threshold & \GFivePhysRMin{} & \GFiveMorphGainMin{} & \GFiveBodyAccMax{} & \GFiveRhoMin{} \\
+Acceptance threshold & \GFivePhysRMin{} & \GFiveMorphGainMin{} & \GFiveBodyAccMax{} & \GFiveRhoMin{} & \GFiveJaccardMin{} \\
+Encoder outcome & pass & \NotAvailable{} & fail & fail & fail \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -51,8 +54,8 @@ Acceptance threshold & \GFivePhysRMin{} & \GFiveMorphGainMin{} & \GFiveBodyAccMa
 
 The lunar target window was compared with \ComparedCount{} eligible Earth windows from the two
 declared regions. Only the relief and texture distances of Equation~\eqref{eq:distance} were
-comparable; the radar distance is not comparable in this mode and the encoder distance was not
-evaluated. Over the compared windows the relief distance ranges from \ReliefDistanceMin{} to
+comparable; no radar distance exists (Section~\ref{sec:results-radar}) and the encoder distance was
+not evaluated, so both are not available. Over the compared windows the relief distance ranges from \ReliefDistanceMin{} to
 \ReliefDistanceMax{} with a median of \ReliefDistanceMedian, and the texture distance from
 \TextureDistanceMin{} to \TextureDistanceMax{} with a median of \TextureDistanceMedian. The first
 Pareto layer holds \ShortlistCount{} window, \texttt{\ShortlistWindow} at Holuhraun, with a relief
@@ -89,7 +92,7 @@ texture, lie near the highland median of \citet{rosenburg2011}, although their b
 estimator differ from ours. Removing the plane barely changes the lunar statistics, while it
 lowers the Holuhraun texture exponent to \EarthCardTextureH, so at the longer lags much of this window's relief comes from its regional tilt. Holuhraun lava facies have been studied with UAVSAR CPR as a measure of radar roughness \citep{tolometti2022holuhraun}, yet at the hectometre scale of this fingerprint it is
 far smoother than the lunar target. Radar scattering and the fingerprint describe different scales
-of one surface, and this pilot ranks on the fingerprint only.
+of one surface, and this study ranks on the fingerprint only.
 
 \begin{table}[tbp]
 \centering
@@ -213,8 +216,8 @@ Acceptance threshold & & & & \GFivePhysRMin{} & \GFiveBodyAccMax{} & \GFiveRhoMi
 \paragraph{Training throughput.} The run records give the measured training throughput per epoch at
 a batch of \TrainBatch{} with the same model and data. On a server with \ThruCpuCount{} virtual
 CPUs, the first main run trained at a median of \ThruCpuMedian{} windows per second (\ThruCpuMin{}
-to \ThruCpuMax{} over its epochs). On an Apple M4 Pro with the Metal Performance Shaders backend,
-a \TrainEpochs{} epoch run of the sweep trained at a median of \ThruMpsTwelveMedian{} windows per
+to \ThruCpuMax{} over its epochs). On a laptop accelerator through the PyTorch Metal Performance
+Shaders backend, a \TrainEpochs{} epoch run of the sweep trained at a median of \ThruMpsTwelveMedian{} windows per
 second (\ThruMpsTwelveMin{} to \ThruMpsTwelveMax), and a \ThruMpsFortyEpochs{} epoch run at
 \ThruMpsFortyMedian{} (\ThruMpsFortyMin{} to \ThruMpsFortyMax), finishing in
 \ThruMpsFortyWallSeconds\,s of wall clock time. The CPU throughput varied widely between epochs,
@@ -228,12 +231,14 @@ smallest cosine similarity of \WasmMinCosine{} against a tolerance of \WasmThres
 \WasmMs{} ms per window in \WasmRuntime{} with \WasmThreads{} thread
 (Section~\ref{sec:results-ml}). The fingerprint and the window resampling have a TypeScript port
 that the browser worker runs; shared fixtures hold it to the Python implementation within the
-tolerances recorded in each fixture file.
+tolerances recorded in each fixture file, which are not reported here as generated values. The
+latency of the fingerprint and of the encoder in a browser on typical hardware is not available,
+because neither was timed in a browser.
 
 \subsection{Held out body}
 \label{sec:results-heldout}
 
-A run trained on the Moon and Earth only and probed on Mars is planned to test whether the physics probe transfers to a body the encoder has not seen. The smallest relief probe \Rsq{} on Mars in the evaluation record is \HeldOutMarsR.
+A run trained on the Moon and Earth only and probed on Mars would test whether the physics probe transfers to a body the encoder has not seen. The evaluation record holds no such run, so the smallest relief probe \Rsq{} on held out Mars is \HeldOutMarsR.
 
 \subsection{Radar context for the lunar target}
 \label{sec:results-radar}

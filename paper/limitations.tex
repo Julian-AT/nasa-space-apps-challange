@@ -10,8 +10,9 @@ roughness spectrum is measured. No contact scale property, such as block size, s
 trafficability, is inferred.
 
 \paragraph{The lunar target is largely interpolated.} For only \MoonTargetObservedPct\% of the target window's valid analysis cells does the nearest 5 m pixel hold a LOLA return; elsewhere the heights are the provider's interpolation between
-tracks \citep{barker2021}. At the \ConfigGridM\,m analysis grid almost every cell contains a
-return, but the short lag statistics of the target still depend on the interpolation. The
+tracks \citep{barker2021}. The fraction of \ConfigGridM\,m analysis cells that contain a return
+anywhere inside the cell is not available, because only the nearest product pixel was checked, and the
+short lag statistics of the target depend on the interpolation. The
 provider's error clones measure this uncertainty under the published error model; they were
 propagated to the shortlist distances, but not to the background or to the encoder.
 
@@ -30,12 +31,16 @@ ambiguity that CPR is not monotonic with rock abundance \citep{riveravalentin202
 \paragraph{Search universe and independence.} Two regions were searched, and overlapping windows
 on a half window stride are not independent samples. A short distance makes an Earth window a
 candidate for interpreting the lunar signature under these observables, not a confirmed analog,
-and a window that was not evaluated is not a negative.
+and a window that was not evaluated is not a negative. For the lunar target the only shortlisted
+window lies farther from the target than any other window of the target site and is not a close
+analog; any analog statement in this paper is limited to terrain statistics at the stated lags.
 
 \paragraph{The encoder.} The encoder was trained on only \DatasetWindows{} windows at the reduced
 scope of Section~\ref{sec:training}, and it did not meet its acceptance criteria (\GFiveVerdict). An
 untrained copy of the network is a strong baseline on these probes. The validation sweep of
 Section~\ref{sec:benchmarks} chose the probe penalty on the scored rows and rests its seed
-stability on one target window. The morphology probe and the image baselines were not run. The
+stability on one target window. On test blocks the encoder's physics probe passes, but its body probe, agreement and seed
+stability fail, and the morphology probe and the image baselines are not available. A run with a
+held out body is not available either. The
 encoder is reported as experimental, labelled Predicted, and kept out of every ranking. Its probes
 test agreement with our own fingerprint; they do not show that it captures geology.
