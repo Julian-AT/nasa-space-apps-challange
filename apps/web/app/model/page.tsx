@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // /model (PRD 8.6, 11.9): the model card, metrics and G5 verdict from the release bundle,
 // statically rendered. Without model/model_card.json and report/metrics.json it is an honest
 // Unavailable state.

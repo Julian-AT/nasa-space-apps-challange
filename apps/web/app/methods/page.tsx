@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // `/methods` (PRD 8.6, 9, 10 "Validation board"), statically rendered inside the root layout's
 // main landmark. It shows the validation board: the GateRecords of the bundle's validation.json,
 // read at build time through loadBundle (lib/bundle.ts). Beyond its headings the page adds no

@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // `/data` (PRD 8.6), statically rendered inside the root layout's main landmark. It shows the
 // bundle's sources from sources.json, read through readSources (./sources.ts) when manifest.json
 // lists that file, and the bundle's own files from manifest.json. Beyond its headings the page adds
@@ -24,7 +25,7 @@ export default function DataPage() {
   return (
     <>
       <PageHeader title="Data sources" />
-      <Section title="Sources" id="sources">
+      <Section title="Sources" id="sources" className="mt-8 border-t-0 pt-0">
         {sources.kind === 'records' ? (
           <SourcesTable records={sources.records} />
         ) : (

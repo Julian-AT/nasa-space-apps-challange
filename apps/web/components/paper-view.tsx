@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // /paper body (PRD 8.6, D35): the released PDF with its abstract and BibTeX, or an honest
 // "Paper not yet released" panel. No placeholder text, no generated imagery.
 import { PageHeader } from '@/components/page-header';

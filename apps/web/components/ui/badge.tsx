@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // shadcn/ui Badge, radix-nova style (shadcn 4.23 registry, MIT), adapted for Terraluna (PRD 8.2,
 // 8.10). A server component: Slot comes from @radix-ui/react-slot, which has no client directive.
 // Changes from the registry copy:

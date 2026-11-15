@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // shadcn-style Separator (PRD 8.2), a plain server component: decorative by default.
 import type { ComponentProps } from 'react';
 

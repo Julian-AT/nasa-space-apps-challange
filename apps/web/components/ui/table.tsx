@@ -1,4 +1,4 @@
-// Adapted from ShadowAstra_Atlas (MIT, (c) 2026 Team ShadowAstra), https://github.com/ABRUBAB/ShadowAstra_Atlas
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // shadcn-style Table (PRD 8.2, 8.10). The wrapper scrolls horizontally on narrow screens and is
 // focusable so keyboard users can scroll it. Server components.
 import type { ComponentProps } from 'react';
@@ -12,7 +12,7 @@ function Table({ className, ...props }: ComponentProps<'table'>) {
       tabIndex={0}
       role="region"
       aria-label="Table, scrollable"
-      className="w-full overflow-x-auto surface rounded-3xl"
+      className="w-full overflow-x-auto surface rounded-2xl"
     >
       <table data-slot="table" className={cn('w-full border-collapse text-sm', className)} {...props} />
     </div>
@@ -20,7 +20,7 @@ function Table({ className, ...props }: ComponentProps<'table'>) {
 }
 
 function TableHeader({ className, ...props }: ComponentProps<'thead'>) {
-  return <thead data-slot="table-header" className={cn('bg-muted', className)} {...props} />;
+  return <thead data-slot="table-header" className={cn('border-b border-line-2 bg-ink', className)} {...props} />;
 }
 
 function TableBody({ className, ...props }: ComponentProps<'tbody'>) {
@@ -31,7 +31,7 @@ function TableRow({ className, ...props }: ComponentProps<'tr'>) {
   return (
     <tr
       data-slot="table-row"
-      className={cn('border-b border-line transition-colors hover:bg-accent/40', className)}
+      className={cn('border-b border-line transition-colors last:border-b-0 hover:bg-platinum/[0.03]', className)}
       {...props}
     />
   );
@@ -42,7 +42,7 @@ function TableHead({ className, ...props }: ComponentProps<'th'>) {
     <th
       data-slot="table-head"
       className={cn(
-        'px-3 py-2.5 text-left align-top text-xs font-semibold tracking-wide whitespace-nowrap text-muted-foreground uppercase',
+        'px-3 py-3 text-left align-top font-mono text-[10.5px] font-medium tracking-[0.16em] whitespace-nowrap text-chrome uppercase',
         className,
       )}
       {...props}
