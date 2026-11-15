@@ -308,6 +308,9 @@ def clone_percentile_spread(
 # --- G4 (T6-04): candidate table, masks, rank sensitivity, counterexample ---------------------
 
 TERRAIN_FAMILIES: Final = ("terrain_relief", "terrain_texture")
+G4_GATE_TARGET: Final = "moon-cr-site01-w000"
+"""The target G4 is recorded for (the shipping Mode C target); other targets get the same
+candidate record without a gate fragment."""
 G4_PARTS: Final = ("table", "masks", "distances_and_rank_sensitivity", "counterexample")
 FORBIDDEN_CLAIMS: Final = ("analog confirmed", "valid analog", "probability")
 
@@ -544,7 +547,7 @@ def _clone_variants(
         variants = {}
         for family, prefix in (("terrain_relief", "relief"), ("terrain_texture", "texture")):
             variant = base[family]
-            nu = {lag: values.get(f"{prefix}.nu_m@{lag}") for lag in variant.nu_m}
+            nu = {lag: values.get(f"{prefix}.nu_m@{float(lag):g}") for lag in variant.nu_m}
             variants[family] = variant.model_copy(update={"nu_m": nu})
         out[cid] = variants
     return out
@@ -561,8 +564,7 @@ def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
     targets_path = root / "outputs" / "search" / "targets.json"
     comparisons_path = root / "outputs" / "comparisons" / f"{target_id}.json"
     earth_path = root / "data" / "processed" / "windows" / "earth.json"
-    moon_path = root / "data" / "processed" / "windows" / "moon.json"
-    needed = [targets_path, comparisons_path, earth_path, moon_path]
+    needed = [targets_path, comparisons_path, earth_path]
     missing = [str(p.relative_to(root)) for p in needed if not p.is_file()]
     if missing:
         print(f"blocked: missing T5 outputs {', '.join(missing)}; G4 stays NOT_RUN")
@@ -572,18 +574,32 @@ def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
     if target is None:
         print(f"blocked: {target_id} not in outputs/search/targets.json")
         return EXIT_BLOCKED
+    body = str(target["body"])
     primary = target["primary_window_id"]
+    moon_path = root / "data" / "processed" / "windows" / f"{body}.json"
+    if not moon_path.is_file():
+        print(f"blocked: missing T5 outputs {moon_path.relative_to(root)}")
+        return EXIT_BLOCKED
+    is_gate_target = target_id == G4_GATE_TARGET
     clones_path = root / "outputs" / "uncertainty" / f"clones_{primary}.json"
-    if not clones_path.is_file():
+    if body == "moon" and not clones_path.is_file():
         print(f"blocked: {clones_path.relative_to(root)} (run uncertainty run-clones)")
         return EXIT_BLOCKED
     comparisons = json.loads(comparisons_path.read_text(encoding="utf-8"))
     earth = json.loads(earth_path.read_text(encoding="utf-8"))
     moon = json.loads(moon_path.read_text(encoding="utf-8"))
-    clones = json.loads(clones_path.read_text(encoding="utf-8"))
     moon_entry = next(e for e in moon if e["window"]["window_id"] == primary)
     base_target = _target_variants(moon_entry)
-    spread = clones["by_isotropic_rule"][PRIMARY_RULE]
+    if body == "moon":
+        clones = json.loads(clones_path.read_text(encoding="utf-8"))
+        spread = clones["by_isotropic_rule"][PRIMARY_RULE]
+    else:
+        spread = {
+            "per_clone": {},
+            "n_requested": None,
+            "note": "No published elevation-error clone set exists for this body's DTM; "
+            "measurement error is Unavailable (PRD 6.6 clones are PGDA78 only).",
+        }
     clone_targets = _clone_variants(base_target, spread["per_clone"])
     eligible, excluded = split_windows(earth)
     by_id = {e["window"]["window_id"]: e for e in earth}
@@ -597,8 +613,14 @@ def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
         record = compared.get(wid)
         for family in TERRAIN_FAMILIES:
             committed = None if record is None else record["distances_by_family"][family]["value"]
-            if committed != row["distances"][family]["base"]:
-                mismatches.append(f"{wid}:{family}")
+            ours = row["distances"][family]["base"]
+            same = (committed is None and ours is None) or (
+                committed is not None
+                and ours is not None
+                and math.isclose(committed, ours, rel_tol=1e-12, abs_tol=1e-15)
+            )
+            if not same:
+                mismatches.append(f"{wid}:{family} {committed!r} vs {ours!r}")
     if mismatches:
         print(f"check failed: base distances differ from {comparisons_path.name}: {mismatches[:5]}")
         return EXIT_CHECK_FAILED
@@ -644,7 +666,9 @@ def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
         )
     shortlist = target.get("shortlist") or {}
     scenarios = mask_scenarios(table, base_threshold=float(masks_cfg["min_allowed_fraction"]))  # type: ignore[index]
-    counter_ok, counter_reason = counterexample_ok(root)
+    counter_ok, counter_reason = (
+        counterexample_ok(root) if is_gate_target else (False, "not the G4 gate target")
+    )
     parts = {
         "table": bool(table) or True,
         "masks": True,
@@ -652,7 +676,9 @@ def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
         "counterexample": counter_ok,
     }
     status, missing_parts = g4_status(parts, t5_outputs=True)
-    committed_inputs = [config_path, targets_path, comparisons_path, clones_path]
+    committed_inputs = [config_path, targets_path, comparisons_path]
+    if body == "moon":
+        committed_inputs.append(clones_path)
     if counter_ok:
         committed_inputs.append(root / COUNTEREXAMPLE_PATH)
     evidence = {
@@ -666,11 +692,12 @@ def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
         },
         "target_id": target_id,
         "target_window_id": primary,
+        "body": body,
         "shipping_mode": run.value("run.shipping_mode"),
         "scope": (
-            "Slice search over the configured Earth regions (outputs/search/targets.json "
+            "T5 search over the configured Earth regions (outputs/search/targets.json "
             f"n_compared = {shortlist.get('n_compared')}), terrain families only (Mode C). "
-            "Not the full T5 search universe."
+            "Earth search universe = the declared regions only."
         ),
         "sort_rule": shortlist.get("rule"),
         "sort_note": (
@@ -701,8 +728,12 @@ def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
             "PGDA78 clone 2.5-97.5 percentile distance range (measurement error only)"
         ),
         "rank_sensitivity": {
-            "runs": "PGDA78 Site01 clones of the target window, each re-measured through D29 and "
-            "T3; Earth windows held fixed (no Earth error model)",
+            "runs": (
+                "PGDA78 Site01 clones of the target window, each re-measured through D29 and "
+                "T3; Earth windows held fixed (no Earth error model)"
+                if body == "moon"
+                else "none: no published clone set for this body"
+            ),
             "n_runs": sensitivity["n_runs"],
             "n_requested": spread["n_requested"],
             "wording": "rank stability is a frequency over clone runs, never a probability",
@@ -714,8 +745,14 @@ def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
         "status": status,
         "missing_parts": missing_parts,
     }
-    evidence_path = root / "analysis" / "g4_candidates.json"
+    evidence_path = (
+        root
+        / "analysis"
+        / ("g4_candidates.json" if is_gate_target else f"g4_candidates_{target_id}.json")
+    )
     _write(evidence_path, evidence)
+    if not is_gate_target:
+        return EXIT_OK
     n_first = sum(1 for r in table if r["base_pareto_layer"] == 1)
     stable = [
         r["window_id"]
