@@ -33,6 +33,10 @@ export function ProbeClient({
   const [result, setResult] = useState<ProbeResult | null>(null);
   const [running, setRunning] = useState(false);
   const [workerError, setWorkerError] = useState<string | null>(null);
+  // Wall-clock evidence measured here: request to result, and page start to result.
+  const [shown, setShown] = useState<{ requestToResultMs: number; pageToResultMs: number; probeIndex: number } | null>(null);
+  const requestedAt = useRef(0);
+  const probeCount = useRef(0);
   const worker = useRef<Worker | null>(null);
   const nextId = useRef(1);
   const latest = useRef(0);
@@ -49,7 +53,9 @@ export function ProbeClient({
     w.onmessage = (event: MessageEvent<unknown>) => {
       const data = event.data;
       if (!isProbeResult(data) || data.request_id !== latest.current) return;
+      const t = performance.now();
       setResult(data);
+      setShown({ requestToResultMs: t - requestedAt.current, pageToResultMs: t, probeIndex: probeCount.current });
       setRunning(false);
     };
     w.onerror = () => {
@@ -70,6 +76,9 @@ export function ProbeClient({
     latest.current = id;
     setRunning(true);
     setResult(null);
+    setShown(null);
+    probeCount.current += 1;
+    requestedAt.current = performance.now();
     worker.current.postMessage({ type: 'probe', id, latDeg: lat, lonDeg: lon });
   }, [lat, lon]);
 
@@ -120,6 +129,17 @@ export function ProbeClient({
       <div aria-live="polite" className="mt-4">
         {running ? <p>Reading the window and measuring it in your browser…</p> : null}
         {result === null ? null : <ProbeCard result={result} names={names} />}
+        {shown === null ? null : (
+          <p
+            className="mt-2 text-sm tabular-nums"
+            data-probe-index={shown.probeIndex}
+            data-request-to-result-ms={Math.round(shown.requestToResultMs)}
+            data-page-to-result-ms={Math.round(shown.pageToResultMs)}
+          >
+            Probe {shown.probeIndex} on this page: result {Math.round(shown.requestToResultMs)} ms after the request
+            {shown.probeIndex === 1 ? `, ${String(Math.round(shown.pageToResultMs))} ms after the page started loading` : ''}.
+          </p>
+        )}
       </div>
     </div>
   );
