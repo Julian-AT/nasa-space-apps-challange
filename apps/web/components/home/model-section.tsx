@@ -26,7 +26,7 @@ export function G5Badge({ status, className }: { readonly status: string | null;
 
 function Tile({ label, fact, render, note }: { readonly label: string; readonly fact: Fact<unknown> | null; readonly render: ReactNode; readonly note?: ReactNode }) {
   return (
-    <Card className="min-h-[132px] justify-between gap-3 sm:min-h-[160px]">
+    <Card className="h-full justify-between gap-3">
       <CardHeader>
         <p className="text-xs font-medium text-muted-foreground">{label}</p>
       </CardHeader>
@@ -38,7 +38,7 @@ function Tile({ label, fact, render, note }: { readonly label: string; readonly 
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          <p className="text-[clamp(22px,2.6vw,34px)] leading-none font-semibold tracking-tight tabular-nums">{render}</p>
+          <p className="text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-3xl">{render}</p>
           {note === undefined ? null : <div className="text-xs leading-relaxed text-muted-foreground">{note}</div>}
         </div>
       )}
@@ -56,10 +56,10 @@ function Bullet({ children }: { readonly children: ReactNode }) {
   );
 }
 
-export function ModelStats({ facts }: { readonly facts: ModelFacts }) {
+export function ModelStats({ facts, compact = false }: { readonly facts: ModelFacts; readonly compact?: boolean }) {
   const { parameters, trainingWindows, embeddingDim, wasmParity } = facts;
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className={compact ? 'grid grid-cols-1 gap-4 min-[420px]:grid-cols-2' : 'grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4'}>
       <Tile
         label="Parameters"
         fact={parameters}
@@ -104,11 +104,11 @@ export function ModelSection({ facts }: { readonly facts: ModelFacts }) {
   const lagText = lagsM === null || lagsM.length === 0 ? 'common lags' : `lags of ${lagsM.map((l) => String(l)).join(', ')} m`;
   const targetText = targets.length === 0 ? 'the lunar and Martian targets' : targets.map((t) => `${t.name} (${t.body === 'moon' ? 'Moon' : 'Mars'})`).join(', ');
   return (
-    <section aria-labelledby="home-model" className="mt-16 pt-6 sm:mt-20">
+    <section aria-labelledby="home-model" className="mt-16 border-t pt-12 sm:mt-20 sm:pt-16">
       <div className="mb-8 flex flex-col gap-3">
-        <Badge variant="secondary" className="w-fit">00 / Our model</Badge>
+        <p className="text-xs font-medium tracking-wide text-primary uppercase">Our model</p>
         <div className="flex flex-col gap-3">
-          <h2 id="home-model" className="text-[clamp(30px,4vw,52px)] leading-[1.05] font-semibold tracking-tight text-balance">
+          <h2 id="home-model" className="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">
             Our own physics model, <span className="text-primary">measured live.</span>
           </h2>
           <p className="max-w-3xl text-base leading-relaxed text-muted-foreground sm:text-lg">

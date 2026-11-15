@@ -39,7 +39,7 @@ export interface HeroProps {
   readonly bundleVersion: string;
 }
 
-export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
+export function Hero({ eyebrow, cards }: HeroProps) {
   const [index, setIndex] = useState(0);
   const reduced = useReducedMotion();
   const [paused, setPaused] = useState(false);
@@ -123,8 +123,8 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
             </div>
             <p className="text-xs text-muted-foreground">{card.wording}</p>
             </CardContent>
-            <CardFooter className="flex flex-col items-stretch gap-3">
-            <div className="flex items-center justify-between gap-3 text-sm">
+            <CardFooter>
+            <div className="flex w-full items-center justify-between gap-3 text-sm">
               <Link href={`/site/${encodeURIComponent(card.cardId)}`} className="font-medium text-primary no-underline hover:underline">
                 Open evidence card {'→'}
               </Link>
@@ -142,7 +142,6 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
                 </Button>
               ) : null}
             </div>
-            <p className="font-mono text-[10px] tracking-wide text-muted-foreground">BUNDLE {bundleVersion}</p>
             </CardFooter>
           </Card>
           </aside>
