@@ -6,7 +6,13 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+import { ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+
 import { EvidenceLabel, type EvidenceLabelName } from '@/components/evidence-label';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Globe, type GlobePin } from '@/components/globe';
 import { useReducedMotion } from '@/components/globe/use-reduced-motion';
 
@@ -42,7 +48,7 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
   const selectedId = card?.windowId ?? null;
 
   return (
-    <section data-full-bleed className="relative isolate min-h-[820px] overflow-hidden bg-void md:min-h-[680px] md:h-[calc(100dvh-7.5rem)] md:max-h-[860px]">
+    <section data-full-bleed className="relative isolate min-h-[820px] overflow-hidden bg-background md:min-h-[680px] md:h-[calc(100dvh-7.5rem)] md:max-h-[860px]">
       <div className="absolute inset-0 -z-10">
         <Globe
           body="earth"
@@ -58,88 +64,97 @@ export function Hero({ eyebrow, pins, cards, bundleVersion }: HeroProps) {
           }}
         />
       </div>
-      <div className="pointer-events-none absolute inset-0 -z-0 bg-[linear-gradient(90deg,rgba(7,8,10,0.92)_0%,rgba(7,8,10,0.55)_38%,transparent_62%)] max-md:bg-[linear-gradient(180deg,transparent_0%,transparent_34%,rgba(7,8,10,0.92)_52%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-0 bg-[linear-gradient(90deg,var(--background)_0%,color-mix(in_oklab,var(--background)_60%,transparent)_38%,transparent_62%)] max-md:bg-[linear-gradient(180deg,transparent_0%,transparent_34%,var(--background)_52%)]" />
       <div className="pointer-events-none relative z-10 mx-auto flex h-full min-h-[inherit] max-w-[1400px] flex-col justify-end gap-8 px-4 pt-[360px] pb-10 sm:px-6 md:justify-center md:pt-0 md:pb-0">
         <div className="pointer-events-auto max-w-[760px]">
-          <p className="mb-6 flex items-center gap-3 font-mono text-[11px] tracking-[0.22em] text-chrome uppercase">
-            <span aria-hidden="true" className="h-px w-8 shrink-0 bg-chrome/50" />
+          <Badge variant="outline" className="mb-6 bg-background/60 backdrop-blur">
             {eyebrow}
-          </p>
-          <h1 className="text-[clamp(40px,min(6.4vw,8.6vh),96px)] leading-[0.95] font-medium tracking-[-0.045em] text-balance text-platinum">
+          </Badge>
+          <h1 className="text-[clamp(40px,min(6vw,8.2vh),84px)] leading-[1] font-semibold tracking-tight text-balance text-foreground">
             <span className="block">Find the Moon and Mars</span>
-            <span className="block font-serif font-normal tracking-[-0.02em] text-flare italic">on Earth.</span>
+            <span className="block text-primary">on Earth.</span>
           </h1>
-          <p className="mt-6 max-w-[580px] text-[17px] leading-relaxed text-chrome">
-            <span className="text-platinum">Our own physics model, measured live:</span> Terraluna computes a relief and texture
+          <p className="mt-6 max-w-[580px] text-base leading-relaxed text-muted-foreground sm:text-lg">
+            <span className="font-medium text-foreground">Our own physics model, measured live:</span> Terraluna computes a relief and texture
             fingerprint of NASA and ESA elevation models, in your browser for any Earth point, to find terrain that resembles lunar
             and Martian targets. Terrain only (Mode C): the radar comparison was not completed.
           </p>
           <ul className="mt-8 flex flex-wrap gap-3">
             <li>
-              <Link href="/find" className="btn-primary inline-flex h-11 items-center rounded-full px-6 text-sm font-semibold no-underline">
-                <span className="relative z-10">Measure any point live</span>
-              </Link>
+              <Button asChild size="lg">
+                <Link href="/find" className="no-underline">
+                  Measure any point live
+                  <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
+                </Link>
+              </Button>
             </li>
             <li>
-              <Link
-                href="/site"
-                className="inline-flex h-11 items-center rounded-full border border-border px-6 text-sm font-medium no-underline transition-colors hover:bg-platinum/5"
-              >
-                Browse evidence cards
-              </Link>
+              <Button asChild size="lg" variant="outline" className="bg-background/60 backdrop-blur">
+                <Link href="/site" className="no-underline">
+                  Browse evidence cards
+                </Link>
+              </Button>
             </li>
             <li>
-              <Link
-                href="/explore/earth"
-                className="inline-flex h-11 items-center rounded-full border border-border px-6 text-sm font-medium no-underline transition-colors hover:bg-platinum/5"
-              >
-                Explore the map
-              </Link>
+              <Button asChild size="lg" variant="ghost">
+                <Link href="/explore/earth" className="no-underline">
+                  Explore the map
+                </Link>
+              </Button>
             </li>
           </ul>
         </div>
         {card === undefined ? null : (
           <div className="pointer-events-auto w-full max-w-[380px] md:absolute md:right-6 md:bottom-8">
-          <aside aria-label="Featured evidence card" className="surface w-full rounded-3xl p-5">
-            <p className="flex items-center justify-between gap-2 font-mono text-[11px] tracking-[0.18em] text-chrome uppercase">
+          <aside aria-label="Featured evidence card">
+          <Card className="w-full bg-card/90 backdrop-blur">
+            <CardHeader>
+            <p className="flex items-center justify-between gap-2 text-xs font-medium text-muted-foreground">
               <span>Candidate window</span>
-              <span>{String(index + 1).padStart(2, '0')} / {String(cards.length).padStart(2, '0')}</span>
+              <span className="font-mono">{String(index + 1).padStart(2, '0')} / {String(cards.length).padStart(2, '0')}</span>
             </p>
-            <p className="mt-3 text-lg leading-snug font-medium tracking-tight">
-              {card.region} <span className="text-chrome">practises for</span>{' '}
-              <span className="font-serif font-normal text-flare italic">{card.target}</span>
-              <span className="text-chrome"> ({card.body})</span>
+            <p className="text-lg leading-snug font-semibold tracking-tight">
+              {card.region} <span className="font-normal text-muted-foreground">practises for</span>{' '}
+              <span className="text-primary">{card.target}</span>
+              <span className="font-normal text-muted-foreground"> ({card.body})</span>
             </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-              <span className="text-chrome">Terrain relief distance</span>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Terrain relief distance</span>
               {card.relief.label === 'Unavailable' ? (
                 <span>{card.relief.reason}</span>
               ) : (
                 <span className="font-mono">
-                  {card.relief.value} <span className="text-chrome">{card.relief.unit}</span>
+                  {card.relief.value} <span className="text-muted-foreground">{card.relief.unit}</span>
                 </span>
               )}
               <EvidenceLabel label={card.relief.label} />
             </div>
-            <p className="mt-3 text-xs text-chrome">{card.wording}</p>
-            <div className="mt-4 flex items-center justify-between gap-3 text-sm">
-              <Link href={`/site/${encodeURIComponent(card.cardId)}`} className="font-medium text-flare no-underline hover:underline">
+            <p className="text-xs text-muted-foreground">{card.wording}</p>
+            </CardContent>
+            <CardFooter className="flex flex-col items-stretch gap-3">
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <Link href={`/site/${encodeURIComponent(card.cardId)}`} className="font-medium text-primary no-underline hover:underline">
                 Open evidence card {'→'}
               </Link>
               {cards.length > 1 ? (
-                <button
+                <Button
                   type="button"
-                  className="rounded-full border border-border px-3 py-1 text-xs text-chrome hover:bg-platinum/5"
+                  size="sm"
+                  variant="outline"
                   onClick={() => {
                     setPaused(false);
                     setIndex((n) => (n + 1) % cards.length);
                   }}
                 >
                   Next card
-                </button>
+                </Button>
               ) : null}
             </div>
-            <p className="mt-3 font-mono text-[10px] tracking-[0.12em] text-dim">BUNDLE {bundleVersion}</p>
+            <p className="font-mono text-[10px] tracking-wide text-muted-foreground">BUNDLE {bundleVersion}</p>
+            </CardFooter>
+          </Card>
           </aside>
           </div>
         )}

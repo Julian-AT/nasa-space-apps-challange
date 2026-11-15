@@ -17,8 +17,8 @@ export function EvidenceLegend({ headingLevel = 2 }: EvidenceLegendProps) {
   const headingId = useId();
   const Heading = `h${String(headingLevel)}` as 'h2' | 'h3' | 'h4';
   return (
-    <section data-slot="evidence-legend" aria-labelledby={headingId} className="flex flex-col gap-3 rounded-xl border border-line bg-card p-5">
-      <Heading id={headingId}>Evidence labels</Heading>
+    <section data-slot="evidence-legend" aria-labelledby={headingId} className="flex flex-col gap-3 rounded-xl border bg-card p-5 text-card-foreground">
+      <Heading id={headingId} className="text-base font-semibold">Evidence labels</Heading>
       <p className="text-sm text-muted-foreground">{EVIDENCE_LEGEND_SENTENCE}</p>
       <ul className="flex flex-col gap-3">
         {EVIDENCE_LABELS.map((label) => (
