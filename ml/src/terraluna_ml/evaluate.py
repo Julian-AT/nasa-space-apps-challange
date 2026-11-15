@@ -223,9 +223,8 @@ def choose_main_arm(specs: Sequence[RunSpec]) -> str:
 
 
 def pick_device() -> str:
-    import torch
-
-    return "mps" if torch.backends.mps.is_available() else "cpu"
+    """CPU unless ``--device`` says otherwise (team rule: no heavy compute on the laptop)."""
+    return "cpu"
 
 
 def embed_rows(
@@ -1348,7 +1347,8 @@ def main(argv: Sequence[str] | None = None, *, loaders: Loaders = DEFAULT_LOADER
     run.add_argument("--freeze", type=Path, default=None)
     run.add_argument("--read-log", type=Path, default=None)
     run.add_argument("--max-train", type=int, default=MAX_TRAIN_ROWS)
-    run.add_argument("--device", default=None)
+    run.add_argument("--device", default=None, help="default cpu")
+    run.add_argument("--threads", type=int, default=None, help="torch CPU threads")
     run.add_argument("--n-pairs", type=int, default=N_PAIRS)
     run.add_argument("--n-resamples", type=int, default=stats.N_RESAMPLES)
     g5p = sub.add_parser("g5", help="compute the G5 conditions from evaluation_metrics.json")
@@ -1361,6 +1361,10 @@ def main(argv: Sequence[str] | None = None, *, loaders: Loaders = DEFAULT_LOADER
     try:
         if args.command == "run":
             out = args.out or Path("outputs/ml/evaluation") / args.split
+            if args.threads:
+                import torch
+
+                torch.set_num_threads(args.threads)
             run_evaluation(
                 manifest=args.manifest,
                 run_tokens=args.runs,

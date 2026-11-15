@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
@@ -37,7 +38,7 @@ def _inputs(tmp_path: Path) -> tuple[Path, list[str]]:
     return manifest, [*(str(r) for r in runs), "random_init"]
 
 
-def _run(tmp_path: Path, split: str, **kw: object) -> dict[str, object]:
+def _run(tmp_path: Path, split: str, **kw: object) -> dict[str, Any]:
     manifest, runs = (
         _inputs(tmp_path)
         if not (tmp_path / "shards").exists()
@@ -69,7 +70,7 @@ def test_val_run_writes_valid_records_and_freeze(tmp_path: Path) -> None:
     out = tmp_path / "out" / "val"
     assert (out / "freeze.json").is_file() and (out / "evaluation_curves.json").is_file()
     assert (out / "evaluation_metrics.json").read_text().endswith("}\n")
-    tests = [MetricRecord.model_validate(t) for t in doc["tests"]]  # type: ignore[attr-defined]
+    tests = [MetricRecord.model_validate(t) for t in doc["tests"]]
     ids = {t.test_id for t in tests}
     assert ids == {
         "physics_probe",
@@ -87,10 +88,10 @@ def test_val_run_writes_valid_records_and_freeze(tmp_path: Path) -> None:
             assert t.value is None and t.unavailable_reason
     morph = next(t for t in tests if t.test_id == "morphology_probe")
     assert "Robbins" in (morph.unavailable_reason or "")
-    assert {a for a in doc["arms"]} == {"lambda_1", "lambda_0", "no_phys_head", "random_init"}  # type: ignore[attr-defined]
+    assert {a for a in doc["arms"]} == {"lambda_1", "lambda_0", "no_phys_head", "random_init"}
     assert doc["main_arm"] == "lambda_1" and doc["mock"] is True
-    rr = doc["run_record"]  # type: ignore[index]
-    assert rr["gpu_hours_partial"] is False and len(rr["checkpoint_sha256s"]) == 6  # type: ignore[index]
+    rr = doc["run_record"]
+    assert rr["gpu_hours_partial"] is False and len(rr["checkpoint_sha256s"]) == 6
     seed = next(t for t in tests if t.test_id == "seed_stability")
     assert seed.value is not None and seed.baselines[0].name == "random_ranking"
     body = next(t for t in tests if t.test_id == "body_invariance")
