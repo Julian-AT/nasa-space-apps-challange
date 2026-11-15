@@ -767,6 +767,7 @@ def write_record(path: Path, contract: str, value: object, *, allow_mock: bool =
     with tempfile.NamedTemporaryFile(dir=target.parent, delete=False, suffix=".tmp") as handle:
         handle.write(data)
         temporary = Path(handle.name)
+    temporary.chmod(0o644)
     temporary.replace(target)
     return data
 
@@ -990,6 +991,23 @@ def default_card_limits(comparison: ComparisonRecord, body: Body) -> CardLimits:
         ambiguous=tuple(ambiguous),
         not_observed=tuple(not_observed),
     )
+
+
+def frame_text(polygon: WindowPolygon, body: Body) -> str:
+    """A short frame name for card text: EPSG and zone for UTM, otherwise the frame with the
+    note that the CRS is the product's. The full CRS stays in the polygon."""
+    if polygon.epsg is not None:
+        zone = f", UTM zone {polygon.utm_zone}" if polygon.utm_zone else ""
+        return f"EPSG:{polygon.epsg}{zone}"
+    if polygon.frame == "polar_stereographic":
+        pole = "south" if min(lat for _, lat in polygon.ring_lonlat) < 0 else "north"
+        return f"{pole} polar stereographic (product CRS)"
+    names = {
+        "utm": "UTM (product CRS)",
+        "equirectangular": "equirectangular (product CRS)",
+        "aeqd_sphere": f"azimuthal equidistant on the {_BODY_NAME[body]} sphere (product CRS)",
+    }
+    return names[polygon.frame]
 
 
 def _polygon_pair(window_id: str, polygon: WindowPolygon) -> tuple[str, str]:
@@ -1269,9 +1287,10 @@ def export_card(
         raise CardExportError(f"unknown campaign questions: {', '.join(unknown_questions)}")
     region = card_earth.search_region_id or "an undeclared region"
     q1 = (
-        f"Earth window {card_earth.earth_window_id} ({region}; {card_earth.polygon.crs}) "
-        f"compared with the {_BODY_NAME[body]} target window {card_target.target_window_id} "
-        f"of {target.name} ({card_target.polygon.crs}), each a "
+        f"Earth window {card_earth.earth_window_id} ({region}; "
+        f"{frame_text(card_earth.polygon, 'earth')}) compared with the {_BODY_NAME[body]} "
+        f"target window {card_target.target_window_id} of {target.name} "
+        f"({frame_text(card_target.polygon, body)}), each a "
         f"{math.sqrt(target_entry.window.area_m2):g} m window on a "
         f"{target_entry.window.analysis_grid_m:g} m analysis grid. Mode {mode}."
     )

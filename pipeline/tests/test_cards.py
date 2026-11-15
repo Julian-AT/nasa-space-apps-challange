@@ -845,3 +845,16 @@ def test_card_limits_add_to_the_card(tmp_path: Path) -> None:
     )
     assert card.q4_differences.differing == ["x"]
     assert card.q2_interpretation.text == "Assumed: test interpretation."
+
+
+def test_q1_names_the_frame_not_the_full_crs(tmp_path: Path) -> None:
+    card = build(tmp_path)
+    assert "EPSG:32627, UTM zone 27N" in card.q1_compared
+    assert "+proj=aeqd" not in card.q1_compared
+    assert "azimuthal equidistant on the lunar sphere (product CRS)" in card.q1_compared
+
+
+def test_written_records_are_world_readable(tmp_path: Path) -> None:
+    path = tmp_path / "outputs" / "comparisons" / f"{TARGET_ID}.json"
+    write_comparisons(path, [comparison("C")])
+    assert path.stat().st_mode & 0o777 == 0o644
