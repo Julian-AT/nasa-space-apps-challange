@@ -33,7 +33,7 @@ function Relief({ r, what }: { r: WindowRelief | null; what: string }) {
     <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
       <span className="truncate" title={ok ? `${what}, relief ν at ${r.lagM} m lag` : undefined}>
         {what.replace(" window", "")}
-        {ok ? <span> · relief at {Math.round(Number(r.lagM))} m</span> : null}
+        {ok ? <span> · {Math.round(Number(r.lagM))} m</span> : null}
       </span>
       <span className="flex shrink-0 items-center gap-2 tabular-nums">
         <span className="font-medium text-foreground">{ok ? `${r.valueM.toFixed(2)} m` : "—"}</span>
@@ -91,7 +91,7 @@ export function TerralunaEvidence({ data, onPin }: { data: TerralunaAtlas; onPin
           ))}
         </ul>
       )}
-      <p className="mt-3 text-[11px] leading-relaxed text-dim">Relief: terrain relief from the windows file terrain fingerprint, at the shortest lag the bundle holds.</p>
+      <p className="mt-3 text-[11px] leading-relaxed text-dim">Rows show terrain relief (ν) from the windows file terrain fingerprint, at the shortest lag the bundle holds.</p>
     </section>
   );
 }

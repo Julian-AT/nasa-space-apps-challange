@@ -259,7 +259,7 @@ export default function Atlas({ initialBody, terraluna }: { initialBody: Body; t
     <div className="bg-void">
       <div className="relative lg:h-[calc(100dvh-98px)] lg:min-h-[680px]">
         {/* ------------------------------------------------ stage */}
-        <main data-theme="dark" className="relative h-[62vh] min-h-[420px] overflow-hidden border-b border-line bg-void lg:absolute lg:inset-0 lg:h-auto lg:border-b-0">
+        <main data-theme="dark" className={clsx("relative h-[62vh] min-h-[420px] overflow-hidden border-b border-line bg-void lg:absolute lg:inset-0 lg:h-auto lg:border-b-0", panels.right && "lg:[&_.leaflet-right]:right-[400px]!")}>
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.div
               key={`${body}-${view}`}
