@@ -25,41 +25,41 @@ export function PinpointCard({ lat, lon, targetHist, targetId, targetName, task 
   const { v } = useValidation();
   const verdict = pinpointVerdict(v?.pinpoint);
   return (
-    <div className="surface mt-4 rounded-2xl p-6" aria-live="polite">
+    <div className="mt-4 rounded-xl border bg-card p-6 text-card-foreground shadow-xs" aria-live="polite">
       <div className="flex items-center justify-between gap-3">
-        <span className="flex items-center gap-2 text-[13px] text-platinum">
-          <Crosshair size={14} className="text-flare" /> Best 10 km spot <KindBadge kind="computed" />
+        <span className="flex items-center gap-2 text-[13px] text-foreground">
+          <Crosshair size={14} className="text-primary" /> Best 10 km spot <KindBadge kind="computed" />
         </span>
         <span className="text-xs font-medium text-muted-foreground">{lat <= 60 && lat >= -56 ? "SRTM" : "Terrain Tiles"} · 1.2 km grid</span>
       </div>
       {pin === null && <div className="shimmer mt-3 h-[58px] rounded-xl" />}
-      {pin === "failed" && <p className="mt-2 text-[12px] text-dim">Terrain tiles are still on their way.</p>}
+      {pin === "failed" && <p className="mt-2 text-[12px] text-muted-foreground">Terrain tiles are still on their way.</p>}
       {pin && pin !== "failed" && (
         <>
-          <p className="mt-2 text-[12.5px] leading-relaxed text-chrome">
-            Best of {pin.windows} tiles at <span className="font-mono text-platinum">{formatCoord(pin.best.lat, pin.best.lon)}</span> · average {Math.round(pin.mean * 100)}% alike to {targetName}.
+          <p className="mt-2 text-[12.5px] leading-relaxed text-muted-foreground">
+            Best of {pin.windows} tiles at <span className="font-medium tabular-nums text-foreground">{formatCoord(pin.best.lat, pin.best.lon)}</span> · average {Math.round(pin.mean * 100)}% alike to {targetName}.
           </p>
-          <dl className="mt-3 grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line text-center">
+          <dl className="mt-3 grid grid-cols-3 gap-px overflow-hidden rounded-xl border bg-border text-center">
             {[
               ["Slopes alike", `${Math.round(pin.best.score * 100)}%`],
               ["Average slope", `${pin.best.meanSlope.toFixed(1)}°`],
               ["Height range", `${Math.round(pin.best.relief)} m`],
             ].map(([a, b]) => (
-              <div key={a} className="bg-panel px-2 py-2">
-                <dt className="text-[10.5px] text-dim">{a}</dt>
-                <dd className="font-mono text-[14px] text-platinum">{b}</dd>
+              <div key={a} className="bg-card px-2 py-2">
+                <dt className="text-[10.5px] text-muted-foreground">{a}</dt>
+                <dd className="text-[15px] font-semibold tabular-nums text-foreground">{b}</dd>
               </div>
             ))}
           </dl>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-            <Link href={`/probe?lat=${pin.best.lat.toFixed(3)}&lon=${pin.best.lon.toFixed(3)}`} data-target={targetId} data-task={task} className="text-[12px] text-flare hover:underline">
+            <Link href={`/probe?lat=${pin.best.lat.toFixed(3)}&lon=${pin.best.lon.toFixed(3)}`} data-target={targetId} data-task={task} className="text-[12px] text-primary hover:underline">
               Compare this spot in 3D
             </Link>
-            {pin.missing > 0.05 && <span className="text-[11px] text-dim">{Math.round(pin.missing * 100)}% of heights missing here</span>}
+            {pin.missing > 0.05 && <span className="text-[11px] text-muted-foreground">{Math.round(pin.missing * 100)}% of heights missing here</span>}
           </div>
         </>
       )}
-      {verdict && <p className="mt-3 border-t border-line pt-3 text-[11px] leading-relaxed text-dim">{verdict}</p>}
+      {verdict && <p className="mt-3 border-t pt-3 text-[11px] leading-relaxed text-muted-foreground">{verdict}</p>}
     </div>
   );
 }

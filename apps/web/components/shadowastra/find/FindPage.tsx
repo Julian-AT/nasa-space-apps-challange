@@ -1224,14 +1224,14 @@ function SiteReport({ grid, k, m, result, probe, onBack }: { grid: Grid; k: numb
   });
   return (
     <div>
-      <button onClick={onBack} className="flex items-center gap-1.5 text-[12px] text-chrome hover:text-platinum">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
         <ArrowLeft size={13} /> All results
       </button>
-      <div className="relative mt-3 overflow-hidden rounded-2xl border border-line bg-ink">
+      <div className="relative mt-3 overflow-hidden rounded-xl border bg-muted">
         {thumb ? <motion.img src={thumb} alt={`Satellite view of ${nm.title}, 50 km across`} initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, ease: EASE }} className="h-56 w-full object-cover" /> : <div className="shimmer h-56" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-void/95 via-void/45 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-4">
-          <div className="flex flex-wrap gap-1.5 [&>span]:bg-void/80 [&>span]:backdrop-blur-sm">
+          <div className="flex flex-wrap gap-1.5 [&>span]:border-white/25 [&>span]:bg-black/55 [&>span]:text-white [&>span]:backdrop-blur-sm">
             {knownKm(grid)[k] >= 150 ? <Chip tone="flare">New candidate</Chip> : <Chip tone="moon">Known site nearby</Chip>}
             <ConfidenceChip {...conf} />
             {lat < -60 && <Chip>Antarctic Treaty area</Chip>}

@@ -24,10 +24,10 @@ export function MineralCard({ grid, k, target, targetName, compact = false }: { 
   const moon = target.body === "moon";
 
   return (
-    <div className="surface rounded-2xl p-4">
+    <div className="rounded-xl border bg-card p-6 text-card-foreground shadow-xs">
       <div className="flex items-center justify-between gap-3">
-        <span className="flex items-center gap-2 text-[13px] text-platinum">
-          <Gem size={14} className="text-flare" /> Minerals from orbit <KindBadge kind="computed" />
+        <span className="flex items-center gap-2 text-[13px] text-foreground">
+          <Gem size={14} className="text-primary" /> Minerals from orbit <KindBadge kind="computed" />
         </span>
         <span className="text-xs font-medium text-muted-foreground">NASA EMIT · ISS</span>
       </div>
@@ -38,7 +38,7 @@ export function MineralCard({ grid, k, target, targetName, compact = false }: { 
             <Meter
               className="mt-3"
               value={match}
-              label={<span className="text-[12.5px] text-chrome">Match with {targetName}'s minerals</span>}
+              label={<span className="text-[12.5px] text-muted-foreground">Match with {targetName}'s minerals</span>}
               hint={`Shows ${targetName}'s ${fams.map((f) => MINERAL_INFO[f].label.toLowerCase()).join(", ")} more strongly than ${Math.round(match * 100)}% of the dry land EMIT measured.`}
             />
           )}
@@ -49,13 +49,13 @@ export function MineralCard({ grid, k, target, targetName, compact = false }: { 
               return (
                 <li key={f}>
                   <div className="flex items-baseline justify-between gap-2 text-[12px]">
-                    <span className={hit ? "text-platinum" : "text-chrome"}>
+                    <span className={hit ? "text-foreground" : "text-muted-foreground"}>
                       {MINERAL_INFO[f].label}
-                      {!compact && <span className="ml-1.5 text-[10.5px] text-dim">{MINERAL_INFO[f].plain}</span>}
+                      {!compact && <span className="ml-1.5 text-[10.5px] text-muted-foreground">{MINERAL_INFO[f].plain}</span>}
                     </span>
                     <span className="flex items-center gap-2">
                       {hit && <span className="rounded-full border border-flare/40 bg-flare/10 px-1.5 py-px text-xs font-medium text-primary" title={`This mineral family is also found at ${targetName}`}>also at {targetName.split(" ")[0]}</span>}
-                      <span className="font-mono text-platinum tabular">{sharePct(share[f])}</span>
+                      <span className="font-medium text-foreground tabular-nums">{sharePct(share[f])}</span>
                     </span>
                   </div>
                   <div className="relative mt-1 h-1 overflow-hidden rounded-full bg-line">
@@ -71,7 +71,7 @@ export function MineralCard({ grid, k, target, targetName, compact = false }: { 
               );
             })}
           </ul>
-          <p className="mt-3 text-[11px] leading-relaxed text-dim">
+          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
             Percent is the share of the ground. Bars show how this place ranks among the {seenCount.toLocaleString()} dry, bare places EMIT measured.{" "}
             {moon
               ? "The Moon never had liquid water, so it has none of these minerals: here they describe your field site, not the match."
@@ -81,7 +81,7 @@ export function MineralCard({ grid, k, target, targetName, compact = false }: { 
           </p>
         </>
       ) : (
-        <p className="mt-3 text-[12px] leading-relaxed text-chrome">
+        <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">
           EMIT has no clear view of this place: plants, water, snow, cloud or towns hide the ground, or it lies beyond 52° north or south. We don't guess minerals here
           {match !== null && USE_MINERALS ? ", so the mineral match counts as neutral." : "."}
         </p>
