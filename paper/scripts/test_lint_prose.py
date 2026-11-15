@@ -131,6 +131,8 @@ def test_banned_words_are_the_list_of_prd_22_6() -> None:
         "sea%\nmless",
         "seam\\label{sec:a}less",
         "seam\\label *less",
+        "seam\\label\\empty less",
+        "seam\\label\\empty\nless",
         "a \\label[seamless]{} fit",
         "seam\\label[less]{}",
         "seam\\textcolor{red}{less}",

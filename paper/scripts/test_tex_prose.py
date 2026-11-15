@@ -305,6 +305,33 @@ def test_a_star_after_a_command_without_a_starred_form_is_its_argument(
     assert words(text) == expected
 
 
+# An unbraced argument may be a control word, and TeX skips the spaces, comment and one line
+# break after a control word wherever it stands: seam\label\empty less sets the label \empty and
+# prints seamless. A control symbol such as \% skips nothing, and a blank line is \par.
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("seam\\label\\empty less", ["seamless"]),
+        ("seam\\label\\empty\nless", ["seamless"]),
+        ("seam\\label\\empty % note\n  less", ["seamless"]),
+        ("lu\\nocite\\empty nar", ["lunar"]),
+        ("lu\\ref\\empty nar", ["lu", "nar"]),
+        ("seam\\label\\% less", ["seam", "less"]),
+        ("seam\\label\\empty\n\nless", ["seam", "less"]),
+    ],
+)
+def test_the_gap_after_a_control_word_argument_is_not_printed(
+    text: str, expected: list[str]
+) -> None:
+    assert words(text) == expected
+
+
+def test_a_line_break_after_a_control_word_argument_keeps_the_line_count() -> None:
+    source = extract("seam\\label\\empty\nless\nnext")
+    assert source.prose.count("\n") == 2
+    assert source.prose.split("\n")[0].strip() == "seamless"
+
+
 def test_starred_key_commands_are_key_commands() -> None:
     assert all(
         name in KEY_COMMANDS or CITE_COMMAND.fullmatch(name) for name in STARRED_KEY_COMMANDS
