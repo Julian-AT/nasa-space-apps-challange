@@ -39,3 +39,15 @@ Every page shows the same shell, from `app/layout.tsx` and `lib/shell.ts`:
 The Vercel project `terraluna` has Root Directory `apps/web`, framework Next.js, Node.js 22.x and files outside the root directory included in the build; it is not connected to Git. [`vercel.json`](vercel.json) runs `pnpm install --frozen-lockfile` (the workspace, with the pnpm version from `packageManager`) and then `bundle:pull` and `next build`. [`.vercelignore`](../../.vercelignore) keeps local caches, pulled data, release artifacts and `.env` files out of the upload.
 
 Link once from the repository root with `vercel link --project terraluna`, then deploy a preview from the repository root with `vercel deploy`. Vercel sets `VERCEL_ENV=preview`, so the mock bundle builds; never pass `--prod` while `BUNDLE_VERSION` is unset, because `bundle:pull` refuses the mock for production. Previews use Vercel Authentication, so `curl` needs `vercel curl` or a protection bypass.
+
+## Live probe (`/probe?lat=&lon=`)
+
+The probe runs in a Web Worker: it reads Copernicus GLO-30 through `/api/v1/dem/cop30/{tile}` (decision G0-03: proxy), measures the window with `@terraluna/core` and, when `public/probe-model/` holds an encoder export, embeds it with onnxruntime-web. The encoder is EXPERIMENTAL, labelled Predicted with the bundle's G5 status, and never ranks anything.
+
+| Command (in `apps/web`) | Does |
+| --- | --- |
+| `pnpm probe:model [--from <export dir>]` | Copies `encoder.fp16.onnx`, `export_record.json` and `background_*.json` from an encoder export (default `outputs/ml/model/`) into `public/probe-model/`, after checking the SHA-256, the 10 MB budget, `mock: false`, status EXPERIMENTAL and ONNX IR version 13 or lower. Swapping in a later export is this command plus a commit of `public/probe-model/`. |
+| `TERRALUNA_RAW_DIR=… node tests/probe-parity/make-windows.ts` | Cuts 256 real 64 x 64 encoder windows from the local GLO-30 tiles into `ml/checkpoints/onnx-parity/` |
+| `uv run --locked python -I tests/probe-parity/expected.py <export dir> ../../ml/checkpoints/onnx-parity` | Python onnxruntime embeddings of those windows (fp32 and fp16); needs onnxruntime in the environment |
+| `pnpm test:parity` | onnxruntime-web (WASM) on `public/probe-model/encoder.fp16.onnx` against them; requires per-window cosine ≥ 0.999 and writes `wasm_parity.json` |
+| `pnpm probe:bench --out <file> --point lat,lon[,window_id]` | Node timings of the probe against the public bucket, with an optional comparison to pipeline fingerprints |
