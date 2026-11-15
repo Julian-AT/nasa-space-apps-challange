@@ -70,6 +70,13 @@ describe('model download', () => {
   });
 });
 
+describe('parity suite separation', () => {
+  it('the default Vitest config does not include tests/probe-parity', async () => {
+    const config = (await import('../../vitest.config.ts')).default as { test?: { include?: string[] } };
+    for (const pattern of config.test?.include ?? []) expect(pattern).not.toMatch(/probe-parity|\.parity\./);
+  });
+});
+
 describe('import boundary', () => {
   it('only lib/probe/embedding.ts imports onnxruntime-web, and only dynamically', () => {
     const root = join(import.meta.dirname, '..', '..');

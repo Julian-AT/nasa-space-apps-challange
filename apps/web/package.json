@@ -13,7 +13,8 @@
     "probe:bench": "node scripts/probe-bench.ts",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p server/api",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:parity": "vitest run --config vitest.parity.config.ts"
   },
   "dependencies": {
     "@deck.gl/core": "9.4.1",
