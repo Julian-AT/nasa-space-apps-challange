@@ -23,9 +23,12 @@ Isotropic summary: ``direction_mean`` (an engineering choice; at G0 both T3 rule
 
 from __future__ import annotations
 
+import functools
+import itertools
 import math
 import os
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Final
@@ -34,6 +37,7 @@ import numpy as np
 import numpy.typing as npt
 from affine import Affine
 from rasterio.warp import transform as warp_transform  # type: ignore[import-untyped]
+from rasterio.windows import Window  # type: ignore[import-untyped]
 
 from terraluna_pipeline.config import RunConfig, TerrainConfig, load_run_config
 from terraluna_pipeline.geometry import (
@@ -277,7 +281,7 @@ def cop30_product(base: ProductRecord, tile: str, path: Path, checksum: str) -> 
     grid are this file's. outputs/sources.json holds a PARTIAL record of a byte-range cache for
     the same product id; the whole-file record supersedes it at staging (export stage).
     """
-    raster = read_geotiff_window(path, None)
+    raster = _read_tile(path)
     t = _transform(raster, path)
     height, width = raster.array.shape
     return ProductRecord.model_validate(
@@ -317,7 +321,7 @@ def earth_window(
     lon0_deg, lat0_deg = float(clon[0]), float(clat[0])
     tile = cop30_tile_name(lat0_deg, lon0_deg)
     path = _find(raw, "copernicus_glo30", f"{tile}.tif")
-    checksum = _checked(path, None)
+    checksum = _tile_sha256(path)
     base = next(
         (record for record in sources.values() if record.product_id.startswith(COP30_PREFIX)),
         None,
@@ -325,7 +329,7 @@ def earth_window(
     if base is None:
         raise RealCardError("outputs/sources.json holds no Copernicus GLO-30 record to extend")
     product = cop30_product(base, tile, path, checksum)
-    dem = read_geotiff_window(path)
+    dem = _read_tile(path)
     t = _transform(dem, path)
     if not (t.b == 0 and t.d == 0):
         raise RealCardError(f"{path}: rotated geotransform {t}")
@@ -369,6 +373,16 @@ def earth_window(
         grid_index=(ix, iy),
     )
     return window, product
+
+
+@functools.lru_cache(maxsize=4)
+def _read_tile(path: Path) -> Any:
+    return read_geotiff_window(path)
+
+
+@functools.lru_cache(maxsize=8)
+def _tile_sha256(path: Path) -> str:
+    return sha256_file(path)
 
 
 def save_dem_cache(window: RealWindow, out_dir: Path) -> Path:
@@ -658,6 +672,358 @@ def build(root: Path, target_window_id: str, earth_window_id: str) -> list[Path]
     return written
 
 
+# --- Region slice search: every eligible window of the configured Earth regions ---------------
+#
+# A small, honest stand-in for the full t5 search over the two G0-04 regions: every 5 km UTM
+# square of the stride grid whose four corners lie inside the region polygon is generated, put
+# on its D29 grid and measured by T3; the WorldCover rule is the config's (allowed classes and
+# min_allowed_fraction, water = class 80), sampled at the nearest class of each 90 m cell centre
+# (ANA-05 default). Every eligible window is compared with the target, and the shortlist is the
+# first Pareto layer over the terrain families (ANA-03: no single order), computed by
+# matching.pareto_shortlist with the encoder excluded while G5 is not PASS.
+
+WORLDCOVER_PREFIX: Final = "WorldCover/esa-worldcover/v200/2021/map"
+WORLDCOVER_CODES: Final = {
+    "tree_cover": 10,
+    "shrubland": 20,
+    "grassland": 30,
+    "cropland": 40,
+    "built_up": 50,
+    "bare_sparse": 60,
+    "snow_ice": 70,
+    "permanent_water": 80,
+    "herbaceous_wetland": 90,
+    "mangroves": 95,
+    "moss_lichen": 100,
+}
+WORLDCOVER_WATER: Final = 80
+
+
+def _inside(polygon: list[list[float]], lon: float, lat: float) -> bool:
+    """Ray casting on the (lon, lat) polygon; the regions are small and far from the poles."""
+    inside = False
+    for (x1, y1), (x2, y2) in itertools.pairwise(polygon):
+        if (y1 > lat) != (y2 > lat):
+            x = x1 + (lat - y1) * (x2 - x1) / (y2 - y1)
+            if lon < x:
+                inside = not inside
+    return inside
+
+
+def region_window_ids(run: RunConfig, region: dict[str, Any]) -> list[str]:
+    """Every window id of a region: UTM stride squares with all four corners inside."""
+    epsg = int(region["epsg"])
+    zone = str(region["utm_zone"]).lower()
+    size = float(run.value("earth_search.window_m"))  # type: ignore[arg-type]
+    stride = float(run.value("earth_search.stride_m"))  # type: ignore[arg-type]
+    polygon = [[float(a), float(b)] for a, b in region["polygon_lonlat"]]
+    xs, ys = warp_transform(
+        "EPSG:4326", f"EPSG:{epsg}", [p[0] for p in polygon], [p[1] for p in polygon]
+    )
+    ids: list[str] = []
+    for ix in range(math.floor(min(xs) / stride), math.ceil(max(xs) / stride) + 1):
+        for iy in range(math.floor(min(ys) / stride), math.ceil(max(ys) / stride) + 1):
+            e0, n0 = ix * stride, iy * stride
+            corners = [(e0, n0), (e0 + size, n0), (e0 + size, n0 + size), (e0, n0 + size)]
+            lons, lats = warp_transform(
+                f"EPSG:{epsg}", "EPSG:4326", [c[0] for c in corners], [c[1] for c in corners]
+            )
+            if all(_inside(polygon, lo, la) for lo, la in zip(lons, lats, strict=True)):
+                ids.append(f"earth-utm{zone}-e{ix}-n{iy}")
+    return ids
+
+
+def worldcover_tile_name(lat_deg: float, lon_deg: float) -> str:
+    """The WorldCover v200 3-degree tile holding a point, e.g. ..._N63W018_Map."""
+    lat_i = 3 * math.floor(lat_deg / 3)
+    lon_i = 3 * math.floor(lon_deg / 3)
+    ns = "N" if lat_i >= 0 else "S"
+    ew = "E" if lon_i >= 0 else "W"
+    return f"ESA_WorldCover_10m_2021_v200_{ns}{abs(lat_i):02d}{ew}{abs(lon_i):03d}_Map"
+
+
+def worldcover_product(base: ProductRecord, tile: str, path: Path, checksum: str) -> ProductRecord:
+    """A VERIFIED ProductRecord for a whole WorldCover tile read from the local cache."""
+    head = read_geotiff_window(path, Window(0, 0, 1, 1))
+    t = head.raster_transform
+    return ProductRecord.model_validate(
+        {
+            **base.model_dump(),
+            "product_id": f"{WORLDCOVER_PREFIX}/{tile}.tif",
+            "source_url": f"https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/{tile}.tif",
+            "local_path": f"data/raw/esa_worldcover/v200/2021/map/{tile}.tif",
+            "checksum": checksum,
+            "native_grid": (
+                f"width={head.raster_width} height={head.raster_height} "
+                f"transform={tuple(t)[:6] if t is not None else None}"
+            ),
+            "verification_status": "VERIFIED",
+        }
+    )
+
+
+@dataclass(frozen=True)
+class LandCover:
+    allowed_fraction: float
+    water_fraction: float
+    nodata_fraction: float
+    unknown_fraction: float
+    reasons: tuple[str, ...]
+
+
+def land_cover(window: RealWindow, path: Path, allowed: list[str], min_allowed: float) -> LandCover:
+    """WorldCover classes at the nearest 10 m pixel of each 90 m cell centre (ANA-05)."""
+    head = read_geotiff_window(path, Window(0, 0, 1, 1))
+    t = head.raster_transform
+    if t is None:
+        raise RealCardError(f"{path}: no geotransform")
+    lon_deg, lat_deg = window.centre_lonlat_deg
+    gx, gy = window.grid.mesh_m()
+    lat, lon = aeqd_inverse(
+        gx,
+        gy,
+        lat0_rad=math.radians(lat_deg),
+        lon0_rad=math.radians(lon_deg),
+        radius_m=body_radius_m("earth"),
+    )
+    lat_d, lon_d = np.degrees(lat), np.degrees(lon)
+    c0 = max(math.floor((float(lon_d.min()) - t.c) / t.a) - 2, 0)
+    c1 = min(math.ceil((float(lon_d.max()) - t.c) / t.a) + 2, head.raster_width)
+    r0 = max(math.floor((float(lat_d.max()) - t.f) / t.e) - 2, 0)
+    r1 = min(math.ceil((float(lat_d.min()) - t.f) / t.e) + 2, head.raster_height)
+    sub = read_geotiff_window(path, Window(c0, r0, c1 - c0, r1 - r0))
+    st = _transform(sub, path)
+    lookup = GeographicLookup(
+        origin_lon_deg=st.c, origin_lat_deg=st.f, pixel_width_deg=st.a, pixel_height_deg=st.e
+    )
+    col, row = lookup.to_pixel(lat, lon)
+    r, c = np.rint(row).astype(int), np.rint(col).astype(int)
+    ok = (r >= 0) & (r < sub.array.shape[0]) & (c >= 0) & (c < sub.array.shape[1])
+    classes = np.full(r.shape, -1, dtype=int)
+    classes[ok] = sub.array[r[ok], c[ok]]
+    n = classes.size
+    codes = {WORLDCOVER_CODES[name] for name in allowed}
+    nodata = sub.nodata
+    nodata_mask = (classes == -1) | ((classes == int(nodata)) if nodata is not None else False)
+    unknown = ~np.isin(classes, list(WORLDCOVER_CODES.values())) & ~nodata_mask
+    allowed_fraction = float(np.isin(classes, list(codes)).sum() / n)
+    result_reasons: list[str] = []
+    if float(nodata_mask.sum() / n) > 1 - min_allowed:
+        result_reasons.append("land_cover_nodata")
+    if float(unknown.sum() / n) > 1 - min_allowed:
+        result_reasons.append("unknown_class")
+    if allowed_fraction < min_allowed:
+        result_reasons.append("land_cover_below_min_fraction")
+    return LandCover(
+        allowed_fraction=allowed_fraction,
+        water_fraction=float((classes == WORLDCOVER_WATER).sum() / n),
+        nodata_fraction=float(nodata_mask.sum() / n),
+        unknown_fraction=float(unknown.sum() / n),
+        reasons=tuple(result_reasons),
+    )
+
+
+SEARCH_SORT_RULE: Final = (
+    "first Pareto layer over terrain_relief, terrain_texture (smaller is closer; encoder "
+    "excluded while G5 is not PASS); then window_id"
+)
+
+
+def search(root: Path, also_card: Sequence[str] = ()) -> list[Path]:
+    """Compare every eligible window of the configured Earth regions with the target window.
+
+    Writes data/processed/windows/{moon,earth}.json, outputs/comparisons/<target_id>.json,
+    outputs/realcard/sources.json and outputs/search/targets.json with the shortlist.
+    """
+    from terraluna_pipeline import export, matching, provenance
+    from terraluna_pipeline.schema import TargetRecord
+
+    config_path = root / "config" / "run.yaml"
+    run = load_run_config(config_path)
+    mode = run.value("run.shipping_mode")
+    primary = run.value("targets.moon.primary_window_id")
+    regions = run.value("earth_search.regions")
+    missing = [
+        name
+        for name, value in (
+            ("G0-01 run.shipping_mode", mode),
+            ("G0-02 primary_window_id", primary),
+            ("G0-04 earth_search.regions", regions or None),
+        )
+        if value is None
+    ]
+    if missing:
+        raise BlockedError("blocked: " + ", ".join(missing))
+    allowed = run.value("earth_search.masks.worldcover_allowed")
+    min_allowed = float(run.value("earth_search.masks.min_allowed_fraction"))  # type: ignore[arg-type]
+    raw = raw_dir()
+    sources = _sources(root)
+    moon = moon_window(str(primary), run, sources, raw)
+    moon_products = [sources[PGDA78_LDEC], sources[PGDA78_SURF]]
+    wc_base = next(
+        (r for r in sources.values() if r.product_id.startswith(WORLDCOVER_PREFIX)), None
+    )
+    settings = matching.QualifySettings.from_config(config_path)
+    extra_products: dict[str, ProductRecord] = {}
+    earth_entries: list[Any] = []
+    comparisons: list[Any] = []
+    windows_by_id: dict[str, RealWindow] = {}
+    assert isinstance(regions, list)
+    moon_entry = window_entry(moon, moon_products, config_path, None)
+    target_summary = matching.WindowSummary.from_entry(moon_entry)
+    for region in regions:
+        for window_id in region_window_ids(run, region):
+            earth, cop30 = earth_window(window_id, run, sources, raw)
+            extra_products[cop30.product_id] = cop30
+            products = [cop30]
+            reasons: list[str] = []
+            lon, lat = earth.centre_lonlat_deg
+            tile = worldcover_tile_name(lat, lon)
+            try:
+                wc_path = _find(raw, "esa_worldcover", f"{tile}.tif")
+            except CacheMissingError:
+                wc_path = None
+            if wc_path is None or wc_base is None:
+                reasons.append("worldcover_missing")
+            else:
+                wc = worldcover_product(wc_base, tile, wc_path, _tile_sha256(wc_path))
+                extra_products[wc.product_id] = wc
+                products.append(wc)
+                cover = land_cover(earth, wc_path, list(allowed), min_allowed)  # type: ignore[call-overload]
+                reasons.extend(cover.reasons)
+            if earth.fingerprint.excluded_reason is not None:
+                reasons.insert(0, str(earth.fingerprint.excluded_reason))
+            entry = window_entry(earth, products, config_path, None)
+            status = (
+                "eligible"
+                if not reasons
+                else ("unknown" if reasons == ["worldcover_missing"] else "rejected")
+            )
+            entry = entry.model_copy(update={"status": status, "reasons": reasons})
+            entry = type(entry).model_validate(entry.model_dump())
+            earth_entries.append(entry)
+            windows_by_id[window_id] = earth
+            if status != "eligible":
+                continue
+            earth_summary = matching.WindowSummary.from_entry(entry)
+            eligibility: dict[str, matching.QualifyResult] = {
+                observable: matching.qualify_pair(
+                    None if observable == "radar_cpr" else sources[PGDA78_SURF],
+                    None if observable == "radar_cpr" else cop30,
+                    observable,
+                    mode,  # type: ignore[arg-type]
+                    target_summary,
+                    earth_summary,
+                    settings=settings,
+                    config_path=config_path,
+                )
+                for observable in matching.OBSERVABLES
+            }
+            comparisons.append(
+                matching.compare_windows(
+                    moon_entry,
+                    entry,
+                    eligibility,
+                    shipping_mode=mode,  # type: ignore[arg-type]
+                    source_ids=[*moon_products, *products],
+                    claim_limits=_search_claim_limits(moon, str(mode), region),
+                    config_path=config_path,
+                )
+            )
+    shortlist_ids = _first_pareto_layer(comparisons)
+    compared = {c.earth_window_id for c in comparisons}
+    for wid in also_card:
+        if wid not in compared:
+            raise RealCardError(f"--also-card {wid} is not an eligible compared window")
+    card_ids = {wid: f"{moon.window_id}__{wid}" for wid in sorted({*shortlist_ids, *also_card})}
+    earth_entries = [
+        type(e).model_validate({**e.model_dump(), "card_id": card_ids.get(e.window.window_id)})
+        for e in earth_entries
+    ]
+    moon_entry = window_entry(moon, moon_products, config_path, None)
+    comparisons = [
+        type(c).model_validate({**c.model_dump(), "sort_rule": SEARCH_SORT_RULE})
+        for c in sorted(
+            comparisons, key=lambda c: (c.earth_window_id not in card_ids, c.earth_window_id)
+        )
+    ]
+    target = _target_record(
+        provenance.run_id(config_path, moon_products), moon_products, str(mode), moon
+    )
+    target = TargetRecord.model_validate(
+        {
+            **target.model_dump(),
+            "shortlist": {
+                "earth_window_ids": sorted(shortlist_ids),
+                "rule": SEARCH_SORT_RULE,
+                "n_compared": len(comparisons),
+            },
+            "shortlist_reason": None,
+        }
+    )
+    written: list[Path] = []
+    for path, writer, value in (
+        (root / WINDOWS_DIR / "moon.json", export.write_windows, [moon_entry]),
+        (root / WINDOWS_DIR / "earth.json", export.write_windows, earth_entries),
+        (root / COMPARISONS_DIR / f"{TARGET_ID}.json", export.write_comparisons, comparisons),
+        (
+            root / SOURCES_FRAGMENT,
+            export.write_sources,
+            [extra_products[k] for k in sorted(extra_products)],
+        ),
+        (root / TARGETS_PATH, export.write_targets, [target]),
+    ):
+        writer(path, value)
+        written.append(path)
+    written.append(save_dem_cache(moon, root / DEM_CACHE_DIR))
+    for window_id in card_ids:
+        written.append(save_dem_cache(windows_by_id[window_id], root / DEM_CACHE_DIR))
+    return written
+
+
+def _first_pareto_layer(comparisons: list[Any]) -> list[str]:
+    """Earth window ids of the comparisons no other comparison dominates on the terrain
+    families (no worse on both, strictly better on one); matching.pareto_shortlist is used
+    when it exists."""
+    from terraluna_pipeline import matching
+
+    pareto = getattr(matching, "pareto_shortlist", None)
+    if pareto is not None:
+        result = pareto(comparisons, "NOT_RUN")
+        ids = getattr(result, "shortlist", None) or getattr(result, "earth_window_ids", None)
+        if ids is not None:
+            return sorted(str(i) for i in ids)
+    families = ("terrain_relief", "terrain_texture")
+    points = []
+    for c in comparisons:
+        values = [c.distances_by_family[f].value for f in families]
+        if all(v is not None for v in values):
+            points.append((c.earth_window_id, values))
+    layer = [
+        wid
+        for wid, v in points
+        if not any(
+            all(o[i] <= v[i] for i in range(2)) and any(o[i] < v[i] for i in range(2))
+            for _, o in points
+        )
+    ]
+    return sorted(layer)
+
+
+def _search_claim_limits(moon: RealWindow, mode: str, region: dict[str, Any]) -> list[str]:
+    limits = _claim_limits(moon, moon, mode)[1:]
+    limits[1] = (
+        f"Earth windows: every 5 km UTM square of the {region['id']} search region (G0-04) "
+        "whose corners lie inside the region polygon; eligibility from the T3 valid fraction "
+        "and the config WorldCover rule at the nearest class of each 90 m cell centre."
+    )
+    limits[5] = (
+        "This is a slice search over the configured regions, not the full t5 search; the "
+        "shortlist is the first Pareto layer of the windows compared."
+    )
+    return limits
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
     import sys
@@ -668,9 +1034,23 @@ def main(argv: list[str] | None = None) -> int:
     build_cmd = commands.add_parser("build", help="build the slice records of one pair")
     build_cmd.add_argument("--target", required=True)
     build_cmd.add_argument("--earth", required=True)
+    search_cmd = commands.add_parser(
+        "search", help="compare every eligible window of the Earth regions"
+    )
+    search_cmd.add_argument(
+        "--also-card",
+        action="append",
+        default=[],
+        help="an Earth window that gets a card besides the shortlist (G0-05)",
+    )
     args = parser.parse_args(argv)
     try:
-        for path in build(args.root, args.target, args.earth):
+        paths = (
+            build(args.root, args.target, args.earth)
+            if args.command == "build"
+            else search(args.root, args.also_card)
+        )
+        for path in paths:
             print(f"wrote {path}")
     except (BlockedError, CacheMissingError) as error:
         print(str(error), file=sys.stderr)
