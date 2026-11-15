@@ -20,7 +20,6 @@ export function MethodsHero({ title, lead }: { title: string; lead: string }) {
   const flat = useMemo(() => (grid ? new Float32Array(grid.n).fill(0.45) : null), [grid]);
   return (
     <section data-theme="dark" className="relative isolate flex min-h-[72dvh] flex-col overflow-hidden bg-void text-platinum">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_72%_42%,rgba(143,180,234,0.10),transparent_65%),radial-gradient(40%_50%_at_10%_90%,rgba(242,200,121,0.06),transparent_70%)]" />
       <div aria-hidden="true" className="absolute inset-y-0 right-[-30vw] w-[100vw] opacity-60 sm:right-[-14vw] lg:right-[-4vw] lg:w-[52vw] lg:opacity-100">
         <Suspense fallback={null}>
           <DotGlobe grid={grid} values={flat} tint="#8fb4ea" startLon={10} className="h-full w-full" size={2.1} stillNote={false} />

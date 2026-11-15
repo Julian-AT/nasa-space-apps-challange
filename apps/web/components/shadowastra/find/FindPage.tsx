@@ -364,7 +364,6 @@ function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[num
   const still = useMotionReduced(); // Motion's own reduced mode leaves background loops running
   return (
     <section data-theme="dark" className="relative overflow-hidden bg-void">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(143,180,234,0.10),transparent_70%),radial-gradient(40%_40%_at_100%_100%,rgba(224,138,95,0.10),transparent_70%)]" />
       <motion.div
         aria-hidden
         className="pointer-events-none absolute -top-24 -left-24 size-[340px] rounded-full opacity-70"

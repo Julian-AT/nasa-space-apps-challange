@@ -221,7 +221,6 @@ export default function Learn() {
       <style>{`@media print { .no-print { display: none !important } .print-only { display: block !important } body::before { display: none } } .print-only { display: none }`}</style>
       <div className="no-print">
         <section data-theme="dark" className="relative overflow-hidden bg-void px-4 pt-24 pb-20 text-platinum sm:px-6">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(55%_60%_at_80%_20%,rgba(224,138,95,0.12),transparent_70%),radial-gradient(45%_50%_at_10%_80%,rgba(143,180,234,0.10),transparent_70%)]" />
           <div className="relative mx-auto grid max-w-[1200px] items-center gap-10 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
               <div className="flex items-center justify-between gap-4">
@@ -303,7 +302,6 @@ export default function Learn() {
         </section>
 
         <section className="relative overflow-hidden border-t border-line px-4 py-24 text-center sm:px-6">
-          <div className="absolute inset-0 bg-[radial-gradient(50%_70%_at_50%_120%,rgba(242,200,121,0.14),transparent_70%)]" />
           <div className="relative mx-auto flex max-w-[900px] flex-col items-center">
             <div className="flex flex-wrap justify-center gap-3">
               <Magnetic>
