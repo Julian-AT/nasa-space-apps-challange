@@ -34,7 +34,7 @@ known-first-party = ["terraluna_pipeline", "terraluna_ml"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["pipeline/src", "ml/src", "pipeline/tests"]
+files = ["pipeline/src", "ml/src", "pipeline/tests", "ml/tests"]
 mypy_path = ["pipeline/src", "ml/src"]
 explicit_package_bases = true
 plugins = ["pydantic.mypy"]
