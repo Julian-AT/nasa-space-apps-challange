@@ -156,7 +156,7 @@ export function TerralunaLayers({
         <input type="checkbox" checked={showPins} onChange={(e) => onPins(e.target.checked)} className="mt-0.5 size-4 accent-[#f2c879]" />
         <span>
           <span className="block text-[13px] text-platinum">Terraluna pins · {count}</span>
-          <span className="block text-[11px] leading-relaxed text-dim">{body === "earth" ? "Earth windows that an evidence card compares." : "Targets from the release bundle."} Bundle {data.bundleVersion}.</span>
+          <span className="block text-[11px] leading-relaxed text-dim">{body === "earth" ? "Evidence card windows" : "Bundle targets"}</span>
         </span>
       </label>
       {body === "earth" ? (
