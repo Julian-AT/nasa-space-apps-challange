@@ -6,6 +6,8 @@
 // model behind the scores on /find and /explore; its numbers are ShadowAstra's, not Terraluna's.
 import type { Metadata } from 'next';
 
+import { Badge } from '@/components/ui/badge';
+
 import { EvidenceLegend } from '../../components/evidence-legend.tsx';
 import { GatesBoard } from '../../components/gates-board.tsx';
 import { MethodsHero, MethodsKicker } from '../../components/shadowastra/learn/MethodsHero.tsx';
@@ -24,29 +26,29 @@ const LEAD =
 export default function Methods() {
   const { validation } = loadBundle();
   return (
-    <div className="bg-void">
+    <div className="bg-background">
       <MethodsHero title="Methods" lead={LEAD} />
-      <section aria-labelledby="validation-board" className="border-t border-line px-4 py-20 sm:px-6">
+      <section aria-labelledby="validation-board" className="border-t px-4 py-16 sm:px-6">
         <div className="mx-auto flex max-w-[1200px] flex-col gap-8">
           <MethodsKicker n="01" id="validation-board">Validation board</MethodsKicker>
           <GatesBoard validation={validation} />
         </div>
       </section>
-      <div className="border-t border-line px-4 py-16 sm:px-6">
+      <div className="border-t px-4 py-12 sm:px-6">
         <div className="mx-auto max-w-[1200px]">
           <EvidenceLegend />
         </div>
       </div>
-      <section aria-labelledby="shadowastra-model" className="border-t-4 border-line-2">
+      <section aria-labelledby="shadowastra-model" className="border-t">
         <div className="px-4 pt-20 pb-6 sm:px-6">
-          <div className="mx-auto max-w-[1200px] rounded-2xl border border-line-2 bg-panel/60 p-6 sm:p-8">
-            <p className="inline-flex items-center rounded-full border border-flare/40 bg-flare/10 px-3 py-1 font-mono text-[11px] tracking-[0.14em] text-flare uppercase">
+          <div className="mx-auto max-w-[1200px] rounded-xl border bg-card p-6 shadow-xs sm:p-8">
+            <Badge variant="secondary" className="h-auto py-1">
               From ShadowAstra Atlas (MIT, Team ShadowAstra)
-            </p>
-            <h2 id="shadowastra-model" className="mt-5 max-w-[900px] text-[clamp(28px,3.6vw,48px)] leading-[1.05] font-medium tracking-[-0.03em]">
+            </Badge>
+            <h2 id="shadowastra-model" className="mt-4 max-w-[900px] text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
               How ShadowAstra Atlas scores sites (the factor model used on /find and /explore)
             </h2>
-            <p className="mt-4 max-w-[820px] text-[15px] leading-relaxed text-chrome">
+            <p className="mt-4 max-w-[820px] text-sm leading-relaxed text-muted-foreground">
               Everything below is ShadowAstra Atlas&apos;s own methods page, copied with permission. It explains the factor scores shown on /find and /explore, which come from their model and their 0.5° Earth grid. Its tests, ranks and counts are ShadowAstra&apos;s validation, not Terraluna results; Terraluna&apos;s own gates are the validation board above.
             </p>
           </div>
