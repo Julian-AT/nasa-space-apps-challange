@@ -106,12 +106,28 @@ def test_math_environment_end_inside_a_comment_does_not_close_it() -> None:
         "\\verb+a?+",
         "\\verb*|a b|",
         "\\verb|%|",
+        "\\verb |a b|",
+        "\\verb  +a? b+",
+        "\\verb* |a b|",
+        "\\verb\t|a b|",
+        "\\verb\t*|a b|",
+        "\\verb *a b*",
+        "\\verb* *a b*",
         "\\begin{verbatim}\n% x -- y?\n\\end{verbatim}",
         "\\begin{verbatim*}\nx\n\\end{verbatim*}",
     ],
 )
 def test_verbatim_is_removed(verbatim: str) -> None:
     assert words(f"before {verbatim} after") == ["before", "after"]
+
+
+def test_spaces_before_a_verb_delimiter_keep_the_line_count() -> None:
+    # latex.ltx (bundle v33) \\@sverb skips spaces before it takes the delimiter.
+    text = "a \\verb |x y| b\nc"
+    source = extract(text)
+    assert len(source.code) == len(text)
+    assert source.prose.count("\n") == text.count("\n")
+    assert words(text) == ["a", "b", "c"]
 
 
 def test_percent_inside_verb_is_not_a_comment() -> None:
@@ -902,6 +918,9 @@ def test_line_at_counts_from_one() -> None:
         ("\\begin{equation}\na", 1),
         ("\\begin{verbatim}\na", 1),
         ("x \\verb|a", 1),
+        ("x \\verb |a", 1),
+        ("x\n\\verb \n|a|", 2),
+        ("x \\verb* ", 1),
         ("\\begin{tikzpicture}\na", 1),
         ("\\cite{a", 1),
         ("\\url{a", 1),

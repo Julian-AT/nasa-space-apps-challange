@@ -213,6 +213,8 @@ def twelve_with(change: str) -> str:
             + "} "
             + " ".join(w[6:])
         )
+    if change == "space before a verb delimiter":
+        return " ".join(w[:6]) + " \\verb |x y| " + " ".join(w[6:])
     raise AssertionError(change)
 
 
@@ -249,6 +251,7 @@ def twelve_with(change: str) -> str:
         "comment inside an input file name",
         "space before link text",
         "line break before colour text",
+        "space before a verb delimiter",
     ],
 )
 def test_changes_do_not_hide_a_run(change: str) -> None:

@@ -77,6 +77,7 @@ def test_dash_rule_fails(text: str) -> None:
         "\\ref{fig:a--b} and \\label{sec:a---b}",
         "\\ref *{fig:a--b} and \\citep\n*{a---b}",
         "\\verb|a -- b|",
+        "\\verb |a -- b|",
         "\\begin{tikzpicture}\n\\draw (a) -- (b);\n\\draw (b) -> (c);\n\\end{tikzpicture}",
         "$x$-axis",
     ],
@@ -177,6 +178,8 @@ def test_banned_word_rule_fails(text: str) -> None:
         "\\input figures/seamless-map\nText.",
         "seam\\textit*less",
         "seam\\emph *less",
+        "a \\verb |x seamless| b",
+        "a \\verb* +x robust+ b",
     ],
 )
 def test_banned_word_rule_passes(text: str) -> None:
@@ -318,6 +321,7 @@ def test_question_rule_fails(text: str) -> None:
         "% why?\nText.",
         "$P(A?)$",
         "\\verb|?|",
+        "\\verb |x?|",
         "\\begin{tikzpicture}\\node {Why?};\\end{tikzpicture}",
     ],
 )
