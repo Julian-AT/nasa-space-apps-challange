@@ -16,7 +16,6 @@ import { ringCentroid, type GlobePin } from '../components/globe/index.ts';
 import { Badge } from '../components/ui/badge.tsx';
 import { Card, CardContent, CardHeader } from '../components/ui/card.tsx';
 import { loadBundle } from '../lib/bundle.ts';
-import HomeSections from '../components/shadowastra/home/HomeSections.tsx';
 
 // Fail the build if anything here would make the route dynamic.
 export const dynamic = 'error';
@@ -136,71 +135,24 @@ export default function Home() {
         bundleVersion={bundle.manifest.bundle_version}
       />
       <ModelSection facts={modelFacts} />
-      <p className="mt-8 max-w-2xl text-sm text-muted-foreground">{HOME_LINE}</p>
-      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        Earth candidates come only from the declared regions{regions.length === 0 ? '' : `: ${regions.join(' and ')}`}. The Moon target is
-        Connecting Ridge (an Artemis candidate region) and the Mars targets are Jezero and Arcadia, compared by terrain roughness
-        fingerprints ν(L) from public elevation data.
-      </p>
 
-      <Numbered n="01" title="In this bundle">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Stat label="Evidence cards">
-            <LabelledValue label="Derived" value={cards.length} unit="cards" source="cards/ files of the bundle" />
-          </Stat>
-          <Stat label="Targets">
-            {targets === null ? (
-              <LabelledValue label="Unavailable" reason="the bundle lists no targets.json" />
-            ) : (
-              <LabelledValue label="Derived" value={targets.length} unit="targets" source="targets.json" />
-            )}
-          </Stat>
-        </div>
-      </Numbered>
-
-      <Numbered n="02" title="Where to go">
+      <section aria-labelledby="home-entry" className="mt-16 flex flex-col gap-6">
+        <h2 id="home-entry" className="text-2xl font-semibold tracking-tight text-balance">Start exploring</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <EntryCard href="/explore/moon" kicker="Explore" title="Moon">
-            Projected polar map of the Connecting Ridge region.
+          <EntryCard href="/site" kicker="Evidence" title="Cards">
+            Each lunar and Martian target beside its nearest Earth terrain.
           </EntryCard>
-          <EntryCard href="/explore/mars" kicker="Explore" title="Mars">
-            Projected map, terrain only.
+          <EntryCard href="/find" kicker="Live" title="Find">
+            Measure any Earth point in your browser.
           </EntryCard>
-          <EntryCard href="/explore/earth" kicker="Explore" title="Earth">
-            Candidate Earth windows from the declared regions.
+          <EntryCard href="/compare" kicker="Side by side" title="Compare">
+            Swipe between a target and its Earth window.
           </EntryCard>
-          {firstCard === undefined ? (
-            <Card>
-              <CardContent className="flex flex-col gap-2">
-              <p className="text-xs font-medium text-muted-foreground">Evidence</p>
-              <p className="text-lg font-semibold tracking-tight">Evidence cards</p>
-              <LabelledValue label="Unavailable" reason="the bundle holds no evidence cards" />
-              </CardContent>
-            </Card>
-          ) : (
-            <EntryCard href={`/site/${encodeURIComponent(firstCard)}`} kicker="Evidence" title="Evidence cards">
-              One card per target, with evidence labels.
-            </EntryCard>
-          )}
           <EntryCard href="/model" kicker="Model" title="Model">
-            Our encoder: architecture, training curves and metrics.
-          </EntryCard>
-          <EntryCard href="/methods" kicker="Validation" title="Methods">
-            How the fingerprint and validation work.
-          </EntryCard>
-          <EntryCard href="/data" kicker="Provenance" title="Data">
-            Source products, licences and bundle checksums.
-          </EntryCard>
-          <EntryCard href="/paper" kicker="Write-up" title="Paper">
-            The write-up generated from the same bundle.
+            Architecture, training curves and metrics.
           </EntryCard>
         </div>
-      </Numbered>
-
-      {/* ShadowAstra Atlas's home sections (MIT, Team ShadowAstra), each labelled as theirs. */}
-      <div data-full-bleed>
-        <HomeSections />
-      </div>
+      </section>
     </>
   );
 }
