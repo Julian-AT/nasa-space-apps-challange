@@ -1854,7 +1854,7 @@ function LabProvenance() {
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Put an Earth field site beside a Moon or Mars target at the same scale, then test it in 3D with a rover.</p>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <Badge variant="outline">ShadowAstra model, not Terraluna evidence</Badge>
+        <Badge variant="outline">Scores: ShadowAstra Atlas model</Badge>
         <span>Ported from ShadowAstra Atlas (MIT)</span>
         <span aria-hidden>·</span>
         <Link href="/compare" className="underline decoration-dotted underline-offset-4 hover:text-foreground">Terraluna fingerprint comparison</Link>
