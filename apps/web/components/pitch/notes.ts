@@ -1,0 +1,72 @@
+// Speaker notes for /pitch: the two-minute script, verbatim per slide (**bold** = stress), with each
+// slide's planned window in seconds. The presenter drawer (N) and the pace bar read these.
+export interface SlideNote {
+  readonly title: string;
+  readonly from: number;
+  readonly to: number;
+  readonly text: string;
+}
+
+export const TOTAL_S = 120;
+
+export const NOTES: readonly SlideNote[] = [
+  {
+    title: 'Title',
+    from: 0,
+    to: 8,
+    text: 'Before anyone walks on the Moon or drives on Mars, they **practise on Earth**. Terraluna answers one question: **where on Earth does the ground actually look like the target?**',
+  },
+  {
+    title: 'Problem',
+    from: 8,
+    to: 20,
+    text: "NASA's candidate sites are **Connecting Ridge** at the lunar south pole, and **Jezero** and **Arcadia Planitia** on Mars. Today, Earth analog sites are picked from **experience**. We **measure** them.",
+  },
+  {
+    title: 'Physics fingerprint',
+    from: 20,
+    to: 34,
+    text: 'For every five-kilometre elevation window we compute the **structure function**: how much the ground rises and falls from **270 metres to a kilometre**. That gives a **relief** and a **texture** fingerprint. The same code runs in Python and **in your browser**.',
+  },
+  {
+    title: 'Live finder',
+    from: 34,
+    to: 48,
+    text: "Here's the **finder**: click any spot, and we fetch **real elevation** and compute the fingerprint **right here in the browser**. *(Press the right arrow.)* **Rosamond Dry Lake** in California: relief **0.09** against **Jezero crater**, closer than **91 %** of all windows.",
+  },
+  {
+    title: 'Our model: architecture',
+    from: 48,
+    to: 66,
+    text: "On top of that we trained **our own model**. It's a **ResNet terrain encoder**, trained **self-supervised** with VICReg. A **physics head** teaches it the fingerprint, and a **gradient-reversal adversary** pushes it to ignore which planet a window comes from. *(Press the right arrow to build the diagram: backbone, embedding, three heads.)*",
+  },
+  {
+    title: 'Model metrics',
+    from: 66,
+    to: 75,
+    text: '**2.8 million parameters**, trained on **19,000 windows** from the Moon, Mars and Earth. It trains **34 times faster** on a laptop GPU than on our server, and it runs **in the browser** with **0.99999** agreement to the training model.',
+  },
+  {
+    title: 'The Lab',
+    from: 75,
+    to: 96,
+    text: 'Then the **Lab**: **real elevation** for both places, side by side **at the same scale**. A simulated **rover drives the same route** on **Holuhraun in Iceland** and in **Jezero crater**, so you see the slopes it would face on each.',
+  },
+  {
+    title: 'Results',
+    from: 96,
+    to: 114,
+    text: 'The result is **seven evidence cards**. **Jezero** matches **Rosamond Dry Lake, California**, with a relief distance of **0.09**, closer than **91 %** of all candidate windows. **Arcadia** matches **Holuhraun**, closer than **97 %**.',
+  },
+  {
+    title: 'Close',
+    from: 114,
+    to: 120,
+    text: 'Terraluna: **measure any point on Earth, live.** terraluna-lovat.vercel.app',
+  },
+];
+
+export const mmss = (s: number): string => {
+  const a = Math.abs(Math.round(s));
+  return `${s < 0 ? '-' : ''}${Math.floor(a / 60)}:${String(a % 60).padStart(2, '0')}`;
+};
