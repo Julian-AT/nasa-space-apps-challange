@@ -1,0 +1,152 @@
+{
+  "task_id": "T16-02",
+  "round": 7,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "f5232e40b75733fbbb1e40dc11667ab89d2d7436",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "bcd14b36861854f50304b62e2191281fcd7a52aab9972676bb1a8599701d82a5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "e38fd48c8ee57a805e5c2984e124b977b24530b276f01a2af351d8cb883b7267"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "b55f3a35575563a5da41d8bdd85b31ab84c5b52dd5fbde114fc01db21d8b0f52"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "07a44f66bf31a40922d4171b580155995f417a21253dc0f4ff598ce0c7e9fdc2"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "adddbf79c3c75cab1e274f427467355c01f8b3b6bf452545177af4c244ccee27"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "65f3a0a556ce5003f59c4db41365506f2c0ec1e00dd80602a4ff4f8d7c7b5a4f"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:12:56Z",
+  "finished_utc": "2026-11-14T22:20:58Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found one blocker: star handling on unstarred commands can delete prose and bypass both guards. Required commands were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX-to-prose extraction with source locations and required exclusions.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Both consumers use tex_prose.py, but key_arguments_end() unconditionally consumes a star before reading every key command's argument (paper/scripts/tex_prose.py:676). For unstarred commands such as label, this deletes subsequent prose; see the finding."
+    },
+    {
+      "criterion": "AC2: Check every .tex file except figures/styles.tex, report findings, fail on findings, and provide no rule-disabling option.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: paper/scripts/tex_prose.py:436 selects the required files; paper/scripts/lint_prose.py:116 formats findings; :252 exposes only --root and help; :260 returns 1 on findings."
+    },
+    {
+      "criterion": "AC3: Enforce all six prose rules, including the robust exception and TikZ handling.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Static trace: seam\\label *less renders seamless, but extraction deletes the literal-star label argument and the following l, producing seamess. The required banned-word finding is therefore missed. Rule implementations are at paper/scripts/lint_prose.py:147."
+    },
+    {
+      "criterion": "AC4: Normalize and detect maximal shared runs of at least 12 tokens, with required record validation and reporting.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The normalization, fixed threshold and record validation are present at paper/scripts/overlap_check.py:37, :73 and :163. However, replacing lunar with lu\\label *nar in the test abstract's first 12 words extracts luar and hides that shared run at :146."
+    },
+    {
+      "criterion": "AC5: Create reference-verification.json as an empty references object.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1 contains exactly {\"references\": {}}."
+    },
+    {
+      "criterion": "AC6: Required regression tests exist and were run failing before implementation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "Read all three test files; assertions cover the listed cases using strings and tmp_path. The tree at fbf3c38 contains the tests without the implementation modules. Historical failing execution was not independently observed, and execution is prohibited for this review."
+    },
+    {
+      "criterion": "AC7: Wire ordered blocking build targets, document commands, and pass both checks on the manuscript.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5, :25, :43 and :47 establish ordered targets and invoke both scripts. paper/README.md:22 documents the commands. Manuscript passes and command execution remain unverified because checks must not run in this read-only review."
+    },
+    {
+      "criterion": "Previous fixes and rebuttals; story path scope.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Original reported cases are addressed by comment scanning (:760), raw TikZ handling (:619), contextual group boundaries (:778), skipped-space handling (:810), input filenames (:716), text-argument gaps (:698), source locations (:932), control-sequence matching (:420), accent folding (:352), and separated stars (:687) in tex_prose.py. The broad bf match and unknown-macro argument policy support the stated rebuttals. git show --name-only for the supplied implementation commits lists only the nine scoped files. The additional star-handling defect is reported separately."
+    },
+    {
+      "criterion": "Required check command",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the sandbox is read-only and check tooling may write caches."
+    },
+    {
+      "criterion": "Required check command",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited for this read-only review."
+    },
+    {
+      "criterion": "Required check command",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited for this read-only review."
+    },
+    {
+      "criterion": "Required check command",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: tests and their caches can write files."
+    },
+    {
+      "criterion": "Required check command",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited: the build writes generated files and PDF artifacts."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:676",
+      "claim": "Unconditional star parsing on unstarred key commands deletes prose and bypasses the linter and overlap check.",
+      "evidence": "Static trace, not executed: key_arguments_end() calls star_end() for label, although label takes one ordinary argument without a starred variant ([LaTeX kernel definition](https://raw.githubusercontent.com/latex3/latex2e/develop/base/ltxref.dtx)). Thus seam\\label *less uses * as the actual label argument and renders seamless. The scanner instead consumes * as a variant marker, then consumes l as the argument; UNPRINTED_KEY_COMMANDS drops both, leaving seamess and no banned-word finding. Likewise, 'We measure the roughness of lu\\label *nar and martian terrain at baselines from' renders the existing test abstract's first 12 words but extracts luar instead of lunar, hiding the overlap. Restrict star parsing to commands that support starred variants and add extraction and consumer regressions for literal-star arguments of unstarred commands.",
+      "id": "codex-r7-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "ef84417386ec519f06c54d8d380716dcb88a2469",
+        "reason": "key_arguments_end now reads a star only for STARRED_KEY_COMMANDS, the key commands that the pinned bundle v33 defines with \\@ifstar (checked in latex.ltx, hyperref.sty, nameref.sty, graphics.sty, cleveref.sty and natbib.sty), and for \\\\. Every other command reads a * as its argument, as TeX does, so seam\\label *less reads seamless (banned-word finding) and lu\\label *nar reads lunar (the 12-word run is found). Failing tests first in a21a617: extraction cases for \\label, \\nocite, \\eqref, \\citeyear and \\citenum, a lint case and an overlap case. All five checks pass (833 tests)."
+      }
+    }
+  ]
+}

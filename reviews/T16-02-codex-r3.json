@@ -1,0 +1,188 @@
+{
+  "task_id": "T16-02",
+  "round": 3,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "658ff8c6c76525ff219bb8b0513b9a1a7b44b58b",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "092cc3e750fc669814216db555594a94f2e937cfb9de4ffbf2f3fe6f42e62b55"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "1602b41792066a92142fd26b4aa62342ed175a4f30820a65a9c310dc06eadb9e"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "a5cacf02e46e10e3d73c08260992bdb722e4980001bb4158e637d31f4252ef69"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "06a9884f579bae6c17a803c87c8b6c9acfc0fcdf3657be989f0a2d428795a47d"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "3e2920f3173bffbce5336dab4271ead406d368c6b32974a112e336dc14778a72"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "e0702b093c1b9549bc1777d2ab437d5da0b94289c205c79e2aef1abc86da5319"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:53:50Z",
+  "finished_utc": "2026-11-14T21:00:04Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Two extraction defects can bypass the required guards. Previous findings are addressed by static inspection. All five execution checks remain NOT_RUN as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX-to-prose extraction with source lines and required exclusions.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Both consumers import tex_prose, but paper/scripts/tex_prose.py:753 preserves whitespace that TeX ignores after formatting commands, and :654 consumes only one character of an unbraced input filename. See findings."
+    },
+    {
+      "criterion": "AC2: Recursive file coverage, finding format, failure exit and no rule-disabling option.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/scripts/tex_prose.py:307 recursively selects .tex files with only figures/styles.tex excluded. paper/scripts/lint_prose.py:115 formats findings; :246 exposes only --root; :254 prints findings and returns 1."
+    },
+    {
+      "criterion": "AC3: All six prose rules, permitted exceptions and TikZ handling.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Rules are implemented at paper/scripts/lint_prose.py:56 and :141, but extraction turns seam\\emph {less} into separate words and similarly splits impor\\emph {tant} inside the forbidden phrase. Mandatory rules b and c can therefore miss rendered prose."
+    },
+    {
+      "criterion": "AC4: Normalized 12-token overlap detection, maximal reporting and reference-record handling.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "paper/scripts/overlap_check.py:36 fixes the threshold at 12; :72 normalizes tokens; :80 finds maximal runs; :138 validates records. However, extraction defects feed incorrect tokens into :118 and can hide a shared 12-word passage."
+    },
+    {
+      "criterion": "AC5: Initialize the reference-verification record with an empty references object.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1 contains exactly {\"references\": {}}."
+    },
+    {
+      "criterion": "AC6: Required meaningful tests, test-first failing execution and temporary inputs.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The test files contain substantive assertions and temporary inputs. git ls-tree at fbf3c38 shows tests present before the three implementation modules. Historical failing execution and current test results were not independently observed; execution is prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC7: Build targets and ordering, passing manuscript and README commands.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5 serializes execution; :25 orders numbers, lint, overlap, test and pdf; :43 and :47 invoke the scripts. paper/README.md:22 documents both commands. Manuscript passes and successful command execution cannot be established without running checks."
+    },
+    {
+      "criterion": "Required check: static analysis and formatting.",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited check execution because the read-only sandbox prevents dependency and cache writes."
+    },
+    {
+      "criterion": "Required check: manuscript prose lint.",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited check execution in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: abstract overlap.",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited check execution in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check: paper test suite.",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited check execution; tests also write temporary files and caches."
+    },
+    {
+      "criterion": "Required check: complete paper build.",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibited check execution; the build writes generated artifacts, logs and PDF output."
+    },
+    {
+      "criterion": "Previous fix codex-r1-1: comments before command arguments.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: paper/scripts/tex_prose.py:558 skips and records comments while locating arguments; :644 uses that scanner. Regression assertions cover extraction at test_tex_prose.py:145, lint at test_lint_prose.py:419 and overlap at test_overlap_check.py:123."
+    },
+    {
+      "criterion": "Previous fix codex-r1-2: retained TikZ command arguments.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: paper/scripts/tex_prose.py:483 retains the TikZ region and blanks only comments. paper/scripts/lint_prose.py:216 uses that extraction for word rules. test_lint_prose.py:374 covers the previously discarded tikzset label."
+    },
+    {
+      "criterion": "Previous fix codex-r2-1: ordinary adjacent groups.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: paper/scripts/tex_prose.py:281 limits known command arity; :576 marks argument boundaries instead of every adjacent group. Existing reported examples have regressions at test_tex_prose.py:308, test_lint_prose.py:122 and test_overlap_check.py:129."
+    },
+    {
+      "criterion": "Previous rebuttal claude-r1-1: Ralph bookkeeping outside story paths.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "scripts/ralph/prompt.md:21 expressly permits the batch story list and progress log. Reading the changed-path lists of the 15 specified implementation commits shows only the nine scoped paper paths; no config/run.yaml or scientific artifacts changed."
+    },
+    {
+      "criterion": "Previous rebuttal claude-r1-2: matching bare bold declarations.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/scripts/lint_prose.py:104 bounds the command names; :205 exempts tabular spans. Matching bare \\bf is consistent with prohibiting bold prose. test_lint_prose.py:325 covers declarations and :349 excludes the longer command name."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:753",
+      "claim": "Ignored whitespace after formatting commands becomes a word boundary, allowing both prose and overlap guards to be bypassed.",
+      "evidence": "Static trace, not executed: _prose_command returns immediately after the control word, leaving its following whitespace for _prose to copy. Thus seam\\emph {less} renders seamless but extracts as seam less, escaping banned_word_hits. Against the existing test abstract, 'We measure the roughness of lu\\emph {nar} and martian terrain at baselines from' similarly splits lunar and hides the shared 12-word run. Consume nonprinting control-word whitespace while preserving source locations, and add regressions for both consumers.",
+      "id": "codex-r3-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "58b4e9a9681afb1d909aa22614161bd08b963e6a",
+        "reason": "Fixed in 58b4e9a, with the failing tests first in f22803b. A follow-up for the same class (failing tests cfa60ff, fix f228753) joins the text around key commands that print nothing. Pass 1 now records, in _CodeScanner.unprinted(), what TeX skips without printing a space: (1) the spaces, comments and single line break after every control word, and before the letter of an accent control symbol such as \\', found with space_end on the source, where a comment line is not a blank line; (2) each comment with its line break and the indent of the next line; (3) each key command in UNPRINTED_KEY_COMMANDS (\\label, \\nocite, \\color, \\vspace, the colour of \\textcolor, the URL of \\href and the setup commands) with its keys. Pass 2 drops those offsets. Formatting commands, font and size declarations (the new DECLARATIONS set, split out of NO_ARGUMENT_COMMANDS) and accents add no word break. So your examples seam\\emph {less} and lu\\emph {nar}, and also seam\\emph followed by a line break and {less}, seam\\emph % note followed by a line break and {less}, seam{\\bf less}, seam{\\itshape less}, \\v or \\' with the letter on the next line, sea% followed by a line break and mless, seam\\label{x}less and seam\\textcolor{red}{less}, now read as one word, as TeX prints them. A blank line still breaks a word (\\par), as do unknown commands, \\quad, \\newline, \\hspace, citations, references, URLs and files. A line break skipped inside a word is held back by _ProseWriter until the word ends. The prose therefore keeps every line break of the source, and each word sits on the line where it starts (new test_a_word_joined_across_a_line_break_is_written_on_its_first_line). Regressions cover both consumers: test_tex_prose.py (prose and kept TikZ), test_lint_prose.py (banned-word: seam\\emph {less}, with a line break, with a comment, \\itshape, a comment inside the word, \\label, \\textcolor; important-to-note: impor\\emph {tant}, impor\\textit with a line break, impor% with a line break) and test_overlap_check.py (your lu\\emph {nar} case, a line break after \\emph, \\itshape, a comment, \\label and \\textcolor inside the sixth abstract word). All of them failed before the fix. A fuzz over 40,000 random inputs and every manuscript file kept the source line count and character offsets. All five story checks pass, with 682 tests."
+      }
+    },
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:644",
+      "claim": "Unbraced input filenames are only partially removed, violating the required exclusion and contaminating overlap tokens.",
+      "evidence": "Static trace, not executed: \\input is routed through the generic mandatory-argument scanner. For the valid form '\\input generated/numbers.tex', the fallback at line 654 consumes only 'g', leaving 'enerated/numbers.tex' as prose. Inserted between words six and seven of a shared passage, those filename tokens interrupt the 12-word match. Handle input's complete filename syntax and add extraction and consumer regressions; existing tests cover only braced input.",
+      "id": "codex-r3-2",
+      "resolution": {
+        "action": "fixed",
+        "commit": "24efbc6620a3dcee8b5fd018bf0a1af86777c590",
+        "reason": "Fixed in 24efbc6, with the failing tests first in f22803b. key_arguments_end() now sends \\input to input_argument_end(), which reads the argument as LaTeX does. After space_end (spaces, comments, one line break), a { means a braced name, read as before. Otherwise TeX's \\input primitive reads the name up to the first space or line break, and XeTeX lets double quotes hold spaces in it. A comment, a brace or a control sequence also ends the name here (FILE_NAME_END). An unclosed quote, a quote across a line break, a blank line or a missing name raises TexSyntaxError, so the check fails. \\include is a macro with one argument, so the generic scanner already reads it as TeX does. New regressions: test_tex_prose.py removes \"\\input generated/numbers.tex\" with and without the extension, at a line end, after a line break, after a comment, and with quoted names, and raises on the three malformed forms. test_lint_prose.py checks that \\input figures/seamless-map.tex is not read as the banned word. test_overlap_check.py covers your case, an unbraced \\input between abstract words six and seven, in the middle of a line and at its end. All of them failed before the fix, except \\input}, which already raised. All five story checks pass, with 682 tests."
+      }
+    }
+  ]
+}

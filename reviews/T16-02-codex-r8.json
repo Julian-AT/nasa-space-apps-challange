@@ -1,0 +1,164 @@
+{
+  "task_id": "T16-02",
+  "round": 8,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "2a4e0722cc9a1d0e2396a338e12d1eb1ef2b2b0a",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "bcd14b36861854f50304b62e2191281fcd7a52aab9972676bb1a8599701d82a5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "e38fd48c8ee57a805e5c2984e124b977b24530b276f01a2af351d8cb883b7267"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "9b1eee319d47d9d67c9c2770627415e91ae4f2c644ea29cf1090f43a93598e88"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "f76ec9927b6f48ffe36205cec29c4ba2ce055ba1aff5b70d5292cf79fc7f47ad"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "7a836dac1dde7dafabd458651c0075ffacda1a524cfb17c8efe8a6565da965c6"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "0b729c113806a11d6d3d2bb8ed71732e6f55f66621f861cfb7ff140fff7b855d"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:26:13Z",
+  "finished_utc": "2026-11-14T22:30:46Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "One blocking extraction defect remains: unsupported optional-argument parsing can discard printed prose and bypass both guards. Prior fixes and rebuttals were inspected. All five execution checks remain NOT_RUN as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX-to-prose extraction with source line numbers and required exclusions",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Both consumers use tex_prose.extract, but tex_prose.py:706-720 treats bracketed text as optional arguments even for commands without them. Consequently, \\label[seamless]{} discards printed prose beyond the actual label argument."
+    },
+    {
+      "criterion": "AC2: File coverage, finding format, failure exit and no rule-disabling option",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static review: tex_prose.py:470-476 recursively selects every .tex file except figures/styles.tex. lint_prose.py:116-117 formats findings; :252-276 exposes only --root and returns 1 when findings exist."
+    },
+    {
+      "criterion": "AC3: All six prose rules and TikZ-specific handling",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The six rules are dispatched at lint_prose.py:223-229, but the extraction defect removes seamless from \\label[seamless]{}, so banned_word_hits at :161-168 receives no prohibited word. See the blocking finding."
+    },
+    {
+      "criterion": "AC4: Normalization, fixed 12-token threshold, maximal runs and record handling",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "overlap_check.py:37 fixes the threshold at 12 and :163-194 validates records, but extraction drops lunar from 'We measure the roughness of \\label[lunar]{} and martian terrain at baselines from'. The rendered text has the existing test abstract's first 12 tokens; the scanner leaves only 11."
+    },
+    {
+      "criterion": "AC5: Initial empty reference-verification record",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1 contains exactly an object with an empty references object."
+    },
+    {
+      "criterion": "AC6: Required meaningful tests, written and run failing before implementation",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The required cases are present in test_lint_prose.py and test_overlap_check.py. The fbf3c38 tree contains those tests importing implementation modules that are absent from that tree. Actual failing runs cannot be verified from source; checks were prohibited in this read-only review."
+    },
+    {
+      "criterion": "AC7: Blocking Make targets, required order, passing manuscript and README commands",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5,25,43-51 establishes sequential numbers/lint/overlap/test/pdf targets; paper/README.md:22-26 documents both commands. Manuscript passes and command execution were not verified because checks were prohibited."
+    },
+    {
+      "criterion": "Prior Codex fixes from rounds 1–4",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection confirms comment-aware argument scanning (tex_prose.py:796), retained TikZ arguments (:653), contextual group boundaries (:814), dropped control-word gaps (:846), unbraced input scanning (:752), kept-text argument gaps (:734), source-line mapping (:347,953), and scanned control-sequence matching (:454). Corresponding consumer regressions are present."
+    },
+    {
+      "criterion": "Prior Codex fixes from rounds 5–7",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection confirms shared left-to-right accent folding at tex_prose.py:386-427, multiline accent support at :293-310, gap-aware star parsing at :722-732, and the command-specific star restriction at :710-711. Regressions cover both consumers."
+    },
+    {
+      "criterion": "Prior Claude rebuttals and story scope",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "The enumerated story commits touch only the nine scoped paths. Bare bold declarations remain bounded control-sequence matches at lint_prose.py:105,211-215. Unknown macro argument separation remains explicit at tex_prose.py:430-440,814-844; known formatting-command adjacency is covered by test_tex_prose.py:445-466."
+    },
+    {
+      "criterion": "Required check command",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because the sandbox is read-only."
+    },
+    {
+      "criterion": "Required check command",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because the sandbox is read-only."
+    },
+    {
+      "criterion": "Required check command",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because the sandbox is read-only."
+    },
+    {
+      "criterion": "Required check command",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because the sandbox is read-only."
+    },
+    {
+      "criterion": "Required check command",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks because the sandbox is read-only."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:716",
+      "claim": "Unconditional optional-argument parsing deletes printed prose after commands without optional arguments, bypassing both guards.",
+      "evidence": "Static trace, not executed: key_arguments_end() invokes optional_arguments_end() for label. That helper consumes [seamless], then mandatory_argument_end() consumes {}, and command() blanks the entire construct. However, \\label has one undelimited argument and no optional form ([LaTeX kernel source](https://raw.githubusercontent.com/latex3/latex2e/main/base/ltxref.dtx)); in \\label[seamless]{}, its argument is the single '[' token and 'seamless]' prints as prose. The linter therefore misses seamless. Likewise, 'We measure the roughness of \\label[lunar]{} and martian terrain at baselines from' renders the test abstract's first 12 tokens but extracts only 11, hiding the overlap. Consume optional arguments only at positions and counts supported by each command, and add extraction and consumer regressions.",
+      "id": "codex-r8-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "9647950cac6bb23d5beb45466f209443bb1fc266",
+        "reason": "Reproduced: \\label[seamless]{} gave the prose \"a  b\" and \\label[lunar]{} dropped lunar, as did \\nocite[x]{y} and \\eqref [x]{y}. In bundle v33 \\label, \\ref, \\eqref and \\nocite read no option (latex.ltx 10837-10850, 13310; amsmath.sty 1134), so TeX reads the [ as the key and prints the rest. 9647950 bounds options per command and position: KEY_OPTIONS (\\documentclass, \\usepackage, \\RequirePackage, \\bibitem, \\includegraphics with two, \\href, \\definecolor, \\color, \\textcolor, \\multirow), two for the \\cite family (natbib \\NAT@citetp) except \\citenum and \\citetext, ENVIRONMENT_ARGUMENTS per layout argument, one placement for floats, and TEXT_OPTIONS (\\newcommand two, \\multirow one). Tests in c6eefdd: 10 extraction cases, 2 lint and 2 overlap cases (including the reviewer's roughness-of-lunar run) failed first; 15 guards for options the commands do read passed before and after. All five checks pass (863 tests)."
+      }
+    }
+  ]
+}

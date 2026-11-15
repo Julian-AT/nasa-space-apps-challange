@@ -1,0 +1,158 @@
+{
+  "task_id": "T16-02",
+  "round": 6,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "73963d6c0fbf088e2902f6b670a6b5fa73f03d53",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "bcd14b36861854f50304b62e2191281fcd7a52aab9972676bb1a8599701d82a5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "e38fd48c8ee57a805e5c2984e124b977b24530b276f01a2af351d8cb883b7267"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "631b4d702a7c9bc26762cd1ce5b6c6634b34b8b3447fbe4e6dab9213ce37b1f1"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "37e2b041121bf07747ad3bf8141b78436f1a9c8d5173776ca4d431635e0938b5"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "be5c778751f11ab954baaff2c40c9286837740e85ced2b4fcefb0594ed511431"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "03495bbb3dd6bde237c77375390099a9d45176e9686178f9268ca6b5455bb3fc"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T22:00:30Z",
+  "finished_utc": "2026-11-14T22:06:12Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "One blocker: whitespace before a citation's star leaves its key in prose and can hide a 12-word overlap. Previous fixes and rebuttals were checked statically. Required commands were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX-to-prose extraction with source lines and required exclusions.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "paper/scripts/tex_prose.py:678 recognizes '*' only immediately after the command name. For '\\citep *{other}', mandatory_argument_end() at :854 consumes the star as the argument, leaving 'other' in prose. Both consumers use extract()."
+    },
+    {
+      "criterion": "AC2: Check every required .tex file, print located findings, exit 1 on findings, and provide no rule-disabling option.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: tex_prose.py:436 recursively selects .tex files and excludes only figures/styles.tex. lint_prose.py:116 formats findings; :252 exposes only --root; :260 reports findings and returns 1."
+    },
+    {
+      "criterion": "AC3: Implement all six prose rules, robust's line-local exception, and TikZ handling.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: lint_prose.py:57 defines inflections, :85 the robust exception, :87 the phrase, and :147 through :215 the six checks. :221 uses separate ordinary and kept-TikZ extractions. test_lint_prose.py contains assertions for the required rule cases and prior regressions."
+    },
+    {
+      "criterion": "AC4: Normalize both sides consistently and report maximal overlaps of at least 12 tokens; validate the reference record.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Normalization, MIN_RUN=12, maximal-run matching, record validation and null counting are implemented in overlap_check.py. However, its extract() call at :146 receives leaked citation-key tokens from AC1, which can interrupt an otherwise shared 12-token run."
+    },
+    {
+      "criterion": "AC5: Create the empty reference-verification record.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1 contains exactly {\"references\": {}}."
+    },
+    {
+      "criterion": "AC6: Required regression tests were written and run failing before implementation; inputs remain strings or temporary files.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The test assertions and temporary-file inputs were inspected. The fbf3c38 tree contains the three test files without the implementation modules, establishing test-first file ordering. Historical failing executions cannot be established from permitted evidence, and the user prohibited running checks."
+    },
+    {
+      "criterion": "AC7: Blocking Makefile targets, required build order, passing manuscript, and README commands.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5 disables parallel execution; :25 orders numbers, lint, overlap, test and pdf; :43 and :47 invoke the scripts. README.md:22 documents both commands. Current manuscript success and command execution remain unverified because checks were prohibited."
+    },
+    {
+      "criterion": "Previous review fixes and rebuttals.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection confirmed comment scanning, raw TikZ arguments, group adjacency, skipped whitespace, unbraced filenames, text-argument gaps, source-line mapping, control-sequence matching and left-to-right multiline accent folding, with corresponding regression assertions. The broader bold match and unknown-macro argument treatment remain consistent with their stated scope. Ralph's bookkeeping exceptions are explicit in scripts/ralph/prompt.md:21 and :36."
+    },
+    {
+      "criterion": "Story commit scope and scientific guardrails.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "git show --format= --name-only over the user-listed implementation commits returned exactly the nine scoped paper paths. Those changes introduce no production mock data, numerical coercions, gate results or config/run.yaml values."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "User prohibited running checks in the read-only sandbox."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:678",
+      "claim": "A citation star separated from its command by whitespace is consumed as the citation argument, leaking the actual key and allowing overlap detection to be bypassed.",
+      "evidence": "Static trace, not executed: key_arguments_end() tests for '*' before skipping whitespace. In '\\citep *{other}', optional_arguments_end() leaves its original position and mandatory_argument_end() consumes only '*'; the remaining '{other}' becomes prose. Thus 'We measure the roughness of lunar \\citep *{other} and martian terrain at baselines from' inserts 'other' between the two six-word halves of the existing test abstract's first 12 words, so shared_runs() reports nothing. Existing tests cover only the adjacent '\\citep*{...}' spelling (test_tex_prose.py:119). Natbib uses @ifstar ([package source](https://sources.debian.org/src/texlive-base/2026.20261111-1/texmf-dist/tex/latex/natbib/natbib.sty)), whose whitespace-skipping implementation is in the [LaTeX kernel](https://raw.githubusercontent.com/latex3/latex2e/develop/base/ltdefns.dtx). Consume the skipped gap before recognizing the star and add extraction and consumer regressions.",
+      "id": "codex-r6-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "4a947c05eecc21d0336f028bb5ede4b1f51f19ab",
+        "reason": "Reproduced: \"\\citep *{other}\" left \"other\" in the prose, so the reviewer's 13-word example hid the shared 12-word run. TeX skips the spaces after a control word, and LaTeX's \\@ifstar (latex.ltx:1621 in the pinned Tectonic bundle v33) finds the star with \\@ifnextchar, which skips space tokens (latex.ltx:1602-1619). The new _CodeScanner.star_end looks past what space_end skips (spaces, comments, one line break; a blank line is \\par) before the star. key_arguments_end and line_break_end use it, so \\citep *{key}, \\ref *{x}, \\vspace *{2pt} and \\\\ *[2pt] no longer leak keys or lengths; \\url keeps its same-line rule (spaces only). Failing cases first in aa8f02b (16 extraction, overlap and lint cases; 15 failed), fix in 4a947c0. All five checks pass, 821 tests. A fuzz over 128,986 parsed inputs kept code length, line counts, prose_lines and located tokens == tokens(prose)."
+      }
+    }
+  ]
+}

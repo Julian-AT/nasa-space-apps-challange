@@ -1,0 +1,115 @@
+{
+  "task_id": "T16-02",
+  "round": 12,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "67e4cb517ba8b70012568d0c1506cf25dc8924ec",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "bcd14b36861854f50304b62e2191281fcd7a52aab9972676bb1a8599701d82a5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "e38fd48c8ee57a805e5c2984e124b977b24530b276f01a2af351d8cb883b7267"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "50d4ad0532f108982dc023bae284419879bbb4038d4a37212ba19047e341a630"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "29c7cd41375fe0ed724b6ea31c2893fbdf0395002016f160c13e6f9663becc67"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "64ba8937a298417ea1666f41a1bdf6444e409f4cb551b99734e0c065908c26a7"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "204a2dbb1cc212f1defad085c2104dcb040b92cf79ab96dd5eb8f06ab8367727"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:40:17Z",
+  "finished_utc": "2026-11-15T00:40:35Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "I judged round 12 by running the five story checks and reading the Makefile and README diffs, the record file and the test summary. All five checks passed. Both new targets run, and the full make order is numbers, lint, overlap, test, pdf. Round 12 changed only the verb-delimiter fix (a9094e5) and its tests (1c888fc), and I did not read the scanner code or those tests. I found no new problems.",
+  "checks": [
+    {
+      "criterion": "make -C paper check",
+      "command": "make -C paper check",
+      "outcome": "PASS",
+      "evidence": "ruff check and format check passed; mypy --strict reported no issues in 12 source files."
+    },
+    {
+      "criterion": "make -C paper lint (current manuscript passes lint)",
+      "command": "make -C paper lint",
+      "outcome": "PASS",
+      "evidence": "lint_prose.py: no findings in 15 .tex files"
+    },
+    {
+      "criterion": "make -C paper overlap (the manuscript passes the overlap check; a missing record file fails)",
+      "command": "make -C paper overlap",
+      "outcome": "PASS",
+      "evidence": "overlap_check.py: 15 .tex files, 0 abstracts, 0 references without an abstract skipped; no run of 12 or more shared words. The record file exists, so the run did not fail on a missing file. I did not exercise the missing-file failure myself; the test suite is meant to."
+    },
+    {
+      "criterion": "make -C paper test (the tests for the shared extraction, the linter and the overlap check)",
+      "command": "make -C paper test",
+      "outcome": "PASS",
+      "evidence": "902 passed in 0.74s, across test_lint_prose.py, test_overlap_check.py and test_tex_prose.py among others."
+    },
+    {
+      "criterion": "make -C paper (the all target runs numbers, lint, overlap, test, pdf in that order)",
+      "command": "make -C paper",
+      "outcome": "PASS",
+      "evidence": "The output showed numbers, then lint, overlap, test (902 passed), then the tectonic pdf build, and finally 'check_log.py: main.log clean'. This matches paper/Makefile `all: numbers lint overlap test pdf`."
+    },
+    {
+      "criterion": "paper/reference-verification.json is created as {\"references\": {}}",
+      "command": "cat paper/reference-verification.json",
+      "outcome": "PASS",
+      "evidence": "Content is {\"references\": {}}."
+    },
+    {
+      "criterion": "README gains one line for each new command that ran",
+      "command": "git diff paper/README.md",
+      "outcome": "PASS",
+      "evidence": "The diff adds entries for `make -C paper lint` and `make -C paper overlap`, and the `make -C paper` line now lists the new order. Each new entry runs to about three lines, which is longer than \"one line\"; I do not count that as a defect."
+    },
+    {
+      "criterion": "Story scope: only the story's files changed",
+      "command": "git diff --stat 8669311..67e4cb5 -- paper",
+      "outcome": "PASS",
+      "evidence": "The nine changed paths are paper/Makefile, README.md, reference-verification.json, and the paper/scripts files lint_prose.py, overlap_check.py, tex_prose.py and the three test files. All are covered by the story's files list."
+    },
+    {
+      "criterion": "AC1–AC4 and the lint and overlap behaviours are covered by tests that run",
+      "command": "make -C paper test",
+      "outcome": "PASS",
+      "evidence": "The test files exist, the diff stat shows large test additions (590, 447 and 955 lines), and all 902 tests pass. I did not re-derive each individual case."
+    }
+  ],
+  "findings": []
+}

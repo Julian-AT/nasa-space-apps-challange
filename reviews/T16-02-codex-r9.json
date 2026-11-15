@@ -1,0 +1,146 @@
+{
+  "task_id": "T16-02",
+  "round": 9,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "e537028caff435fba4a1532dcd791f205802386e",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "bcd14b36861854f50304b62e2191281fcd7a52aab9972676bb1a8599701d82a5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "e38fd48c8ee57a805e5c2984e124b977b24530b276f01a2af351d8cb883b7267"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "e0f427ba2c6af39e9a55958ff2c48034497becceada66e3a1e832e2c87c5f943"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "02f43ac5785393c4d84f48ba20aac77ebdade3ee7c00b4a9178234f60aa3750c"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "56d267a487c0c1455fac0a50252b2efb480e2f735abae4718c1612c4ed83021a"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "62c8ed63c836896671890e8b85ea8b48599b3ea880270f90c063c3f2f39c5d09"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T23:43:56Z",
+  "finished_utc": "2026-11-14T23:49:22Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "Static review found one remaining extraction bypass affecting both guards. Prior fixes and rebuttals were inspected. Required build checks were not run under the read-only restriction.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX-to-prose extraction with source locations and required exclusions.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Both consumers use the shared extractor, but tex_prose.py:949-951 leaves ignored whitespace after a control-word key argument. See the finding below."
+    },
+    {
+      "criterion": "AC2: Check all required files, report file:line:rule:text, fail on findings, and provide no rule-disabling option.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Static inspection: tex_prose.py:510-516 selects all .tex files except figures/styles.tex; lint_prose.py:116-117 formats findings; :252-276 exposes only --root and returns 1 on findings."
+    },
+    {
+      "criterion": "AC3: Enforce all six prose rules, including the TikZ word rules.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The rules are implemented at lint_prose.py:57-229, but the extractor turns seam\\label\\empty less into separate words, hiding the printed banned word seamless."
+    },
+    {
+      "criterion": "AC4: Normalize tokens, detect maximal shared runs of at least 12 words per abstract, and validate the record.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "overlap_check.py:37 fixes the limit at 12; :73-194 implements normalization, matching and record validation. However, the extraction defect can split lunar into lu and nar inside the test abstract's first 12 words, preventing detection."
+    },
+    {
+      "criterion": "AC5: Create reference-verification.json with an empty references object.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1-3 contains exactly {\"references\": {}}."
+    },
+    {
+      "criterion": "AC6: Write and run failing tests before implementation, cover the specified cases, and keep fixtures in strings or tmp_path.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The required assertions and temporary inputs are present in all three new test files. Git tree fbf3c38 contains the tests before the implementation modules exist. Pre-implementation failing execution was not independently observed; tests were not run because this review prohibits execution."
+    },
+    {
+      "criterion": "AC7: Integrate ordered build targets, pass the current manuscript, and document the new commands.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5,25,43-48 provides serial ordering and both targets; paper/README.md:22-26 documents them. Current-manuscript passes and successful command execution require checks prohibited by this read-only review."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user's read-only review instructions; tool execution may write caches."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user's read-only review instructions; uv/Python execution may write caches."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user's read-only review instructions; uv/Python execution may write caches."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user's read-only review instructions; pytest creates temporary files and caches."
+    },
+    {
+      "criterion": "Required check command.",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "Explicitly prohibited by the user's read-only review instructions; this target writes generated LaTeX, logs and PDF output."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:949",
+      "claim": "Whitespace after an unbraced control-word key argument can split printed words and bypass both guards.",
+      "evidence": "Static trace, not executed: mandatory_argument_end() returns word.end() for a control-word argument at :949-951. command() then blanks that control word at :672, so unprinted() at :895-899 cannot recognize and drop its trailing lexical whitespace. Thus valid source seam\\label\\empty less prints seamless because TeX ignores the space after \\empty, but extracts as seam less and escapes the banned-word rule. Likewise, 'We measure the roughness of lu\\label\\empty nar and martian terrain at baselines from' prints the existing test abstract's first 12 words but extracts lu and nar separately, hiding the overlap. Record the whitespace skipped after control-word argument tokens before masking them, and add extraction and consumer regressions.",
+      "id": "codex-r9-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "6aa8fe7",
+        "reason": "Fixed in 6aa8fe7: mandatory_argument_end now records the gap after an unbraced control-word argument (space_end: spaces, a comment and one line break) as unprinted, so seam\\label\\empty less gives seamless and lu\\label\\empty nar gives lunar. A control symbol such as \\% skips nothing and a blank line stays \\par. Regressions in 09ccd2f: test_tex_prose.py (extraction, line count kept), test_lint_prose.py (banned word) and test_overlap_check.py (run not hidden)."
+      }
+    }
+  ]
+}

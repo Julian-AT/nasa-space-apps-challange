@@ -1,0 +1,152 @@
+{
+  "task_id": "T16-02",
+  "round": 10,
+  "reviewer": {
+    "kind": "codex",
+    "label": "codex",
+    "model": "gpt-6.1-sol",
+    "tool_version": "codex-cli 0.166.0"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "ef9a2e1f73a329ba96617820c8c8fc3f5e45043c",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "bcd14b36861854f50304b62e2191281fcd7a52aab9972676bb1a8599701d82a5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "e38fd48c8ee57a805e5c2984e124b977b24530b276f01a2af351d8cb883b7267"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "9d51541a021c15632f149e0eef93c8b659112127828cdf2d8a140f4a7b4eaf6d"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "31c61c9d6fd0b4875dfe44129accb3e55db95abfa439b1ccabec0eede83b13af"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "5fd0e9b6d3ba056cff10c2385969b7cf470cd0d6d79508f1a80d52d0e74e5880"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "561ef4757db3377c1ac35ba58d9fe95d4851a2e2f0d63c1138a373e946127d6e"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:24:26Z",
+  "finished_utc": "2026-11-15T00:30:01Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "FAIL",
+  "summary": "A remaining star-handling defect changes formatting-command text and can hide a 12-word overlap. Requested checks were not run, as instructed.",
+  "checks": [
+    {
+      "criterion": "AC1: Shared LaTeX-to-prose extraction preserves source locations and required text.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Both consumers use tex_prose.extract, but paper/scripts/tex_prose.py:1107 discards a literal star after unstarred formatting commands, losing their text argument."
+    },
+    {
+      "criterion": "AC2: Linter file coverage, finding format, failure exit and mandatory rules.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/scripts/tex_prose.py:510 selects every .tex file except figures/styles.tex. paper/scripts/lint_prose.py:116 formats findings; :252 exposes no rule-disable option; :267 prints findings and returns 1."
+    },
+    {
+      "criterion": "AC3: Required prose rules and TikZ handling.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "Static trace: seam\\textit*less prints seam*less, but paper/scripts/tex_prose.py:1107 removes the star and extracts seamless. paper/scripts/lint_prose.py:163 consequently reports a banned word absent from the printed prose."
+    },
+    {
+      "criterion": "AC4: Normalization and blocking detection of maximal shared runs of at least 12 tokens.",
+      "command": null,
+      "outcome": "FAIL",
+      "evidence": "The literal-star deletion can merge lunar and and into lunarand, hiding the 12-token passage detailed in the finding. MIN_RUN remains fixed at 12; record validation and null counting are implemented at paper/scripts/overlap_check.py:163."
+    },
+    {
+      "criterion": "AC5: Initial reference-verification record.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/reference-verification.json:1 contains exactly an object with an empty references object."
+    },
+    {
+      "criterion": "AC6: Required regression tests were written and run failing before implementation.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "The required cases are present. The fbf3c38 tree contains the tests and lacks the three implementation modules, establishing test-first ordering. No historical failing execution was independently observed, and this review prohibits running tests."
+    },
+    {
+      "criterion": "AC7: Build order, lint/overlap targets, current manuscript passes and README commands.",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "paper/Makefile:5 disables parallel execution; :25 orders numbers, lint, overlap, test and pdf; :43 and :47 invoke the scripts. paper/README.md:22 documents both commands. Current manuscript and build success require execution, which is prohibited."
+    },
+    {
+      "criterion": "Previous fixes and rebuttals.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "Reviewed the prior fixes in the scanner, source mapping, accent folding and regression tests. The round-9 fix is present at paper/scripts/tex_prose.py:955. Unknown-command grouping remains the stated convention; bold matching stays control-sequence bounded. scripts/ralph/prompt.md:21 permits batch bookkeeping, and git history attributes the ralph.sh change to tooling merge bb93a4a and commit 151ee09."
+    },
+    {
+      "criterion": "make -C paper check",
+      "command": "make -C paper check",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibits running checks in this read-only review."
+    },
+    {
+      "criterion": "make -C paper lint",
+      "command": "make -C paper lint",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibits running checks in this read-only review."
+    },
+    {
+      "criterion": "make -C paper overlap",
+      "command": "make -C paper overlap",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibits running checks in this read-only review."
+    },
+    {
+      "criterion": "make -C paper test",
+      "command": "make -C paper test",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibits running checks in this read-only review."
+    },
+    {
+      "criterion": "make -C paper",
+      "command": "make -C paper",
+      "outcome": "NOT_RUN",
+      "evidence": "User explicitly prohibits running checks in this read-only review."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "blocker",
+      "location": "paper/scripts/tex_prose.py:1107",
+      "claim": "Unconditional star removal after formatting commands deletes printed punctuation and can bypass the overlap check.",
+      "evidence": "Static trace, not executed: \\textit has one text argument and no starred form, so 'We measure the roughness of lunar\\textit*and martian terrain at baselines from' prints lunar*and and tokenizes to the existing test abstract's first 12 words. _prose_command nevertheless consumes the star and adds no separator for textit, extracting lunarand and leaving only 11 tokens. The same deletion turns seam\\textit*less into seamless, producing a false banned-word finding. Existing literal-star regressions at test_tex_prose.py:288 cover key commands only. Preserve literal stars after unstarred formatting commands and add extraction and consumer regressions.",
+      "id": "codex-r10-1",
+      "resolution": {
+        "action": "fixed",
+        "commit": "b4ce6b6",
+        "reason": "Reproduced: lunar\\textit*and gave the prose lunarand and seam\\textit*less gave seamless. \\textit, like every formatting command, declaration and accent defined in tex_prose.py, has no starred form in bundle v33, so TeX reads the * as its argument or as text and prints it. b4ce6b6 adds reads_star(): pass 2 (_prose_command) and argument_breaks drop an adjacent * only after STARRED_KEY_COMMANDS and commands whose definition is not known here (such as \\section), which write a word break anyway. lunar\\textit*and now gives lunar*and (two tokens), seam\\textit*less no longer reports a banned word, \\emph*{seamless} still does, and the reviewer's 12-word run is found. Regressions in e1f78e9 for extraction, the banned-word rule and the overlap run; all five checks pass (886 tests)."
+      }
+    }
+  ]
+}

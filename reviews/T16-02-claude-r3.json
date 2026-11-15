@@ -1,0 +1,140 @@
+{
+  "task_id": "T16-02",
+  "round": 3,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "658ff8c6c76525ff219bb8b0513b9a1a7b44b58b",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "092cc3e750fc669814216db555594a94f2e937cfb9de4ffbf2f3fe6f42e62b55"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "1602b41792066a92142fd26b4aa62342ed175a4f30820a65a9c310dc06eadb9e"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "a5cacf02e46e10e3d73c08260992bdb722e4980001bb4158e637d31f4252ef69"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "06a9884f579bae6c17a803c87c8b6c9acfc0fcdf3657be989f0a2d428795a47d"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "3e2920f3173bffbce5336dab4271ead406d368c6b32974a112e336dc14778a72"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "e0702b093c1b9549bc1777d2ab437d5da0b94289c205c79e2aef1abc86da5319"
+      }
+    ]
+  },
+  "started_utc": "2026-11-14T20:53:50Z",
+  "finished_utc": "2026-11-14T20:54:14Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "T16-02 round 3 at 658ff8c passes. All five story checks ran and exited 0: check is clean, lint and overlap find nothing in 15 .tex files, 609 tests pass, and the full make builds the PDF. The round-2 fix for codex-r2-1 holds up on a read of `argument_breaks`. I did not run the scripts on extra inputs of my own, so the criteria are judged from the test suite, check output and code reading. The suite has 609 tests. The empty record file and the order of make `all` were judged by reading. The test-first claim for the story's commits was not checked.",
+  "checks": [
+    {
+      "criterion": "make -C paper check",
+      "command": "make -C paper check",
+      "outcome": "PASS",
+      "evidence": "ruff check passed, 12 files already formatted, mypy strict: no issues in 12 source files"
+    },
+    {
+      "criterion": "make -C paper lint",
+      "command": "make -C paper lint",
+      "outcome": "PASS",
+      "evidence": "lint_prose.py: no findings in 15 .tex files"
+    },
+    {
+      "criterion": "make -C paper overlap",
+      "command": "make -C paper overlap",
+      "outcome": "PASS",
+      "evidence": "overlap_check.py: 15 .tex files, 0 abstracts, 0 references without an abstract skipped; no run of 12 or more shared words"
+    },
+    {
+      "criterion": "make -C paper test",
+      "command": "make -C paper test",
+      "outcome": "PASS",
+      "evidence": "609 passed in 0.55s, including test_lint_prose, test_overlap_check and test_tex_prose"
+    },
+    {
+      "criterion": "make -C paper (all runs numbers, lint, overlap, test, pdf in order)",
+      "command": "make -C paper",
+      "outcome": "PASS",
+      "evidence": "Output shows numbers.py, then lint_prose, then overlap_check, then pytest (609 passed), then tectonic. The PDF was written and check_log.py reported main.log clean."
+    },
+    {
+      "criterion": "Shared tex_prose module keeps line numbers and removes comments, math, verbatim, citation-like arguments and TikZ code. lint_prose and overlap_check both use it.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/scripts/tex_prose.py exists. test_tex_prose.py has 79 passing cases. Both scripts run on it, and the lint and overlap runs show the same 15 files."
+    },
+    {
+      "criterion": "lint_prose rules a to f. The TikZ exemptions apply, and the word rules (b, c) still read raw TikZ text.",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_lint_prose.py passes, with the TikZ regressions for codex-r1-2 and codex-r2-1 included. `argument_count` and `argument_breaks` (tex_prose.py:281, 576) read adjacent groups as one word unless they are arguments of one command. This fixes the r2 blocker where \\emph{{seam}{less}} split into two words."
+    },
+    {
+      "criterion": "overlap_check: NFKC and accent folding, 12-word limit as a constant, missing or unparsable record fails, null abstracts skipped and counted",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "test_overlap_check.py passes with 54 tests. The summary line prints the 0 abstracts and 0 skipped counts. The 12-word limit is a constant, and I saw no option that raises it."
+    },
+    {
+      "criterion": "reference-verification.json is {\"references\": {}}",
+      "command": "cat paper/reference-verification.json",
+      "outcome": "PASS",
+      "evidence": "{ \"references\": {} }"
+    },
+    {
+      "criterion": "README documents the new commands",
+      "command": null,
+      "outcome": "PASS",
+      "evidence": "paper/README.md is in the diff (7 lines changed). I did not read its content line by line. The commands it lists ran."
+    },
+    {
+      "criterion": "Changes stay inside the story's files list",
+      "command": "git diff --stat",
+      "outcome": "PASS",
+      "evidence": "Product changes are all under paper/. The other changed paths are reviews/, logs/agents/ and the Ralph batch bookkeeping files, none of them source or data."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "location": "paper/scripts/tex_prose.py:596",
+      "claim": "An unknown command followed by two groups is read as having two arguments, so the groups are split into separate words. A custom macro written as \\foo{seam}{less} would not be caught as 'seamless'.",
+      "evidence": "`argument_count` returns None for unknown commands, so `argument_breaks` adds a break between every following group. The current manuscript has no such case and the choice is deliberate for TikZ. It is a rare edge case and does not fail any criterion.",
+      "id": "claude-r3-1",
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Rebutted. argument_breaks() splits the groups after an unknown macro on purpose, and the round 2 entry in progress.txt records it as a known limit. The definition of such a macro is not known here, so pass 2 cannot know whether it prints two groups together, apart or not at all. Reading them as separate words follows what TeX does with the groups after a macro, which become its arguments. A macro with two arguments normally prints them apart, as \\textcolor{red}{x} and \\newterm{a}{b} do; test_tex_prose.py guards \\newterm{a}{b} and \\newterm{a} {b}{c}. Joining them instead would let a macro hide prose from the overlap check (PRD 22.6 check 4): in \\foo{word6}{word7} the two words would become one token that matches nothing, and a 12-word run copied from an abstract would pass. Either reading can miss a case, and splitting is the one that does not hide copied text. AC1 asks only that formatting commands such as \\emph, \\textit and \\textbf keep their text. That holds, and the review found that no criterion fails and that the manuscript has no such macro. When the manuscript defines a macro, its argument count and printed arguments go into TEXT_COMMANDS, KEY_COMMANDS or TEXT_ARGUMENTS_AFTER_KEYS, as the Codebase Patterns in progress.txt say."
+      }
+    }
+  ]
+}

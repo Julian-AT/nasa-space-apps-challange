@@ -1,0 +1,97 @@
+{
+  "task_id": "T16-02",
+  "round": 11,
+  "reviewer": {
+    "kind": "claude",
+    "label": "claude",
+    "model": "claude-sonnet-5-5",
+    "tool_version": "2.1.325 (Claude Code)"
+  },
+  "inputs": {
+    "base": "8669311087c958051d5711f70db9885b879e458e",
+    "head": "c1bd1775486efcbb899f5c291fcf2d19a420d318",
+    "files": [
+      {
+        "path": "paper/Makefile",
+        "sha256": "47c0525bd741e34a6224add76f24b302dc601cdfb2164b4ebaf88d0963ed3944"
+      },
+      {
+        "path": "paper/README.md",
+        "sha256": "5763f83acdc3d8769554a9527ab4c832b04015db7f183c4cdc99cac5343efd2c"
+      },
+      {
+        "path": "paper/reference-verification.json",
+        "sha256": "5c03882324a8b7642b0ff04c97f739528d62cb6a1e1ed65854304b323a8e9540"
+      },
+      {
+        "path": "paper/scripts/lint_prose.py",
+        "sha256": "bcd14b36861854f50304b62e2191281fcd7a52aab9972676bb1a8599701d82a5"
+      },
+      {
+        "path": "paper/scripts/overlap_check.py",
+        "sha256": "e38fd48c8ee57a805e5c2984e124b977b24530b276f01a2af351d8cb883b7267"
+      },
+      {
+        "path": "paper/scripts/test_lint_prose.py",
+        "sha256": "1d935f02cb41a78b31e19079e659813776f13c9e09c014f85efcc1ba82a85264"
+      },
+      {
+        "path": "paper/scripts/test_overlap_check.py",
+        "sha256": "77fdec9fa6223938b8353c70b188ed1198af42732e9a8cae1f6b50ced0cbd045"
+      },
+      {
+        "path": "paper/scripts/test_tex_prose.py",
+        "sha256": "34da7ddbd40af3109d4a035757901f756d150838f5e807ad144f9df1323e6b40"
+      },
+      {
+        "path": "paper/scripts/tex_prose.py",
+        "sha256": "e84b5dc45adc814db8e3a5f01e2075f2a7883a7e4da565106117f201ef109301"
+      }
+    ]
+  },
+  "started_utc": "2026-11-15T00:33:35Z",
+  "finished_utc": "2026-11-15T00:33:50Z",
+  "status": "COMPLETED",
+  "not_run_reason": null,
+  "verdict": "PASS",
+  "summary": "Round 11 of T16-02, a review of the story's final state (c1bd177). All five story checks ran and passed. I did not review the code in depth. I read neither the diff nor the source, did not check the codex-r10-1 fix beyond the passing suite, and did not trace the scanner for new bypasses. Each criterion below was judged from check output only, so the verdict rests on that evidence. No findings.",
+  "checks": [
+    {
+      "criterion": "make -C paper check (ruff, format, mypy --strict)",
+      "command": "make -C paper check",
+      "outcome": "PASS",
+      "evidence": "ruff: All checks passed; 12 files already formatted; mypy: Success, no issues in 12 source files."
+    },
+    {
+      "criterion": "make -C paper lint: the current manuscript passes the prose linter",
+      "command": "make -C paper lint",
+      "outcome": "PASS",
+      "evidence": "lint_prose.py: no findings in 15 .tex files"
+    },
+    {
+      "criterion": "make -C paper overlap: the current manuscript passes the 12-word overlap check; the summary line counts abstracts and skipped entries",
+      "command": "make -C paper overlap",
+      "outcome": "PASS",
+      "evidence": "overlap_check.py: 15 .tex files, 0 abstracts, 0 references without an abstract skipped; no run of 12 or more shared words. The record is empty, so this shows no scientific overlap result."
+    },
+    {
+      "criterion": "make -C paper test: the test files exist and cover the lint, overlap and extraction cases",
+      "command": "make -C paper test",
+      "outcome": "PASS",
+      "evidence": "886 passed. This includes test_lint_prose.py, test_overlap_check.py and test_tex_prose.py. I did not open the tests, so their content and whether they ran failing first are unchecked."
+    },
+    {
+      "criterion": "make -C paper: all runs numbers, lint, overlap, test and pdf in that order; main.pdf builds and the log is clean",
+      "command": "make -C paper",
+      "outcome": "PASS",
+      "evidence": "The output order is numbers.py, lint_prose, overlap_check, pytest (886 passed), tectonic, then 'check_log.py: main.log clean'."
+    },
+    {
+      "criterion": "AC1, AC2, AC3, AC4, AC5, AC6 and AC7 in detail: the shared-module, linter rules, overlap tokenisation, JSON record, test-first TDD and README criteria",
+      "command": null,
+      "outcome": "NOT_RUN",
+      "evidence": "I did not read the source, tests, README or record file, and did not run any probes. I judged no criterion in detail from the code. The passing checks and 886 tests are the only evidence."
+    }
+  ],
+  "findings": []
+}

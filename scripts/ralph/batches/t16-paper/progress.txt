@@ -1,0 +1,1042 @@
+# Ralph progress: t16-paper
+
+Append-only. Each iteration adds one entry at the end. Keep general, reusable facts in Codebase Patterns.
+
+## Codebase Patterns
+- Build Mac, checked 2026-11-14: uv 0.9.26; Python 3.12.13 via uv; Node 22.23.3 (nvm); pnpm 12.16.1; jq 1.8.2; GNU Make 3.81; actionlint installed.
+- `python3` on PATH is Anaconda's 3.14. Always use `uv run`, never bare `python3`.
+- GNU Make 3.81: no .ONESHELL, no grouped targets (`&:`), no `!=` assignment. Keep recipes POSIX sh.
+- No system GDAL (`gdalinfo` is missing). GDAL comes from the rasterio wheel.
+- macOS has no coreutils `timeout`.
+- Other workers may share this repository. Stage explicit paths only.
+- Commits: commitlint (config-conventional, scopes lower case such as t0-01) runs from the husky commit-msg hook (core.hooksPath=.husky/_). The root package.json already exists for this; T0-04 extends it.
+- ralph.sh commits review files, gate results, loop notes and compact logs (logs/agents/<date>/*.jsonl). Full transcripts are in git-ignored logs/agents/<date>/raw/.
+- ralph.sh matches story `files` with bash `[[ $p == $glob ]]`, so `*` also matches `/`: `pipeline/*` covers nested paths.
+- Context7 works over plain HTTP via WebFetch: https://context7.com/api/v1/<org>/<repo>?topic=<words>&tokens=<n>. For flags of an installed CLI, `<cli> --help` is authoritative.
+- The uv workspace root is virtual (no [project]). A plain `uv sync --locked` there installs both members and the dev group (checked on a fresh copy).
+- Bundle records live in pipeline/src/terraluna_pipeline/schema.py. Base `Record` uses extra=forbid, strict=True, frozen=True and regex_engine="rust-regex". Constraints are kept to what JSON Schema can express (patterns, enums, minLength, minimum), so T0-03/T0-04 can stay in parity.
+- Parity traps for T0-03 (both checked with jsonschema 4.26.0): (1) the Python `jsonschema` package matches `pattern` with `re.search`, where `$` also matches before a trailing newline, so "<64 hex>\n" passes `^[0-9a-f]{64}$` there but fails pydantic (rust-regex) and ECMA/zod. (2) pydantic strict rejects JSON `1.0` for an int, while JSON Schema `integer` accepts it and JS cannot tell 1.0 from 1.
+- mypy --strict reports a tuple of lambdas that are called later as no-untyped-call. Call the functions directly.
+- `mktemp` + `mv` leaves a file with mode 600. Run `chmod 644` after a jq rewrite of prd.json. `jq .` reproduces prd.json's formatting byte for byte.
+- The Codex reviewer runs in a read-only sandbox, so it marks every check command NOT_RUN. Only the Claude reviewer and the gate run commands. To show that a resolution edit changed only resolution fields, compare the hash of `jq 'del(.findings[].resolution)'` before and after.
+- paper/scripts/ is a package (scripts/__init__.py): a top-level numbers.py would shadow the standard library `numbers` module, which mypy refuses and which pydantic/_decimal import. Tests import `scripts.<name>`. Run scripts with `python -P` (the Makefile does). numbers.py exits if `sys.flags.safe_path` is false.
+- make -C paper runs pytest with the repository root as rootdir, so the root pyproject's pytest options (--strict-config, -ra) apply. ruff and mypy use paper/ruff.toml and paper/mypy.ini, passed explicitly.
+- Tectonic 0.17.0 caches in ~/Library/Caches/TectonicProject.Tectonic and reruns TeX by itself when aux/out files change. It exits 0 on undefined citations and on BibTeX errors. TeX log lines wrap at 79 characters, so match the opening words of a message. A \bibliography with no \cite gives "I found no \citation commands---while reading file main.aux" and "(There was 1 error message)" in main.blg.
+- zsh traps: `for c in "make -C paper x"; do $c; done` does not word-split (exit 127); use `sh -c "$c"`. `echo ===` fails (`==` expansion); use `echo ---`.
+- To test against another branch's unmerged work without merging or switching: `git archive HEAD | tar -x -C $tmp`, then `git archive <branch> <paths> | tar -x -C $tmp`, then `uv sync --locked` and the checks inside $tmp. The uv cache makes the sync fast and offline; Tectonic's cache is shared.
+- ralph/t0-bootstrap was merged into ralph/t16-paper at c2eac70, so terraluna_pipeline.export and fixtures/mock-bundle are present. Run `uv sync --locked` after any merge that touches pyproject.toml or uv.lock, before the paper checks.
+- A paper script that imports a sibling module (`from scripts.tex_prose import ...`) cannot run as `python -P scripts/x.py`: -P keeps both scripts/ and the working directory off sys.path. The Makefile runs such scripts as `PYTHONPATH=. uv run --frozen python -P -m scripts.<name>` from paper/ (variable PYTHON_MODULE). PYTHONPATH is still honoured under -P.
+- paper/scripts/tex_prose.py is the one LaTeX reader for paper checks: `extract(text)` gives `code` (comments, verbatim, math, key-command arguments and TikZ blanked, same length as the source), `prose` (markup removed) and `comments` by line. Both keep every line break, so `line_at(view, offset)` is the source line. Reuse it for any new manuscript check instead of another regex stripper.
+- tex_prose.py reads the gap before an argument as TeX does (`space_end`: spaces, comments, single line breaks; a blank line is \par) and locates every non-prose argument in pass 1, where comments are still visible: key-command arguments, \begin/\end names, environment layout arguments and the [length] of \\. Pass 2 only drops command names and braces. A regex over the code view must allow any white space between \begin or \end and its brace, because a blanked comment line looks blank there: build it with `environment_boundary()`. hyperref's \url makes % and the end of a line active before it reads its argument; \href reads its { first.
+- The Tectonic cache holds the pinned bundle's package sources (~/Library/Caches/TectonicProject.Tectonic/bundles/data/<digest>/, e.g. hyperref.sty), so you can check what a LaTeX command really does offline with grep.
+- tex_prose.py pass 2 joins adjacent groups as TeX prints them ({seam}{less} is one word). Only two arguments of one command are separate words: `_CodeScanner.argument_breaks` counts them with `argument_count()` (TEXT_COMMANDS, accents, begin/end 1; NO_ARGUMENT_COMMANDS 0; key commands their keys plus TEXT_ARGUMENTS_AFTER_KEYS; unknown commands every following group). When you add a command to one of those tables, check its argument count too.
+- ruff RUF001 rejects literal en dashes, minus signs, fullwidth question marks and similar characters in strings. Write them as \u escapes, and check new files with `grep -nP '[^\x00-\x7f]'`, because a file written with escapes in the editor can still end up holding the literal characters.
+- tex_prose.py drops what TeX prints nothing for. `_CodeScanner.unprinted(code)` collects the offsets: the spaces, comments and one line break after a control word or before an accent letter (space_end on the source), each comment with its line break and the next line's indent, and the span of each key command in UNPRINTED_KEY_COMMANDS. Pass 2 drops them, and `_ProseWriter` holds a skipped line break until the word ends. The prose keeps the source's line count, and a word joined across lines sits on the line where it starts. When you add a key command, decide whether it prints anything (UNPRINTED_KEY_COMMANDS). When you add a command with no argument, decide whether it prints nothing (DECLARATIONS, PRINTS_NO_TEXT).
+- Report a prose finding with `Source.prose_line(offset)`, never `line_at(prose, offset)`: a held line break follows its joined word, so text after it can sit on the line before in the prose (Text.% then robust gives Text.robust). overlap_check.located_tokens() gives tokens with their source lines. `line_at` stays right for the code view.
+- Search the code view for a command with `tex_prose.find_commands(pattern, code)`, not `pattern.finditer(code)`: a regex also matches after the first backslash of an escape pair (\\begin{tabular} is a line break and text). The pattern must start with a backslash.
+- When a key command has text arguments (TEXT_ARGUMENTS_AFTER_KEYS), the gap before each one prints nothing (drop_text_argument_gaps); options before the text are dropped only for OPTIONS_BEFORE_TEXT, because \href and \textcolor read a [ there as their text.
+- Abstracts (fold_latex) and the prose of .tex files (pass 2) fold accents and special letters through one helper, `tex_prose._letter_at`, with ACCENT_GAP (spaces and at most one line break) wherever TeX skips it, and fold_latex reads left to right as pass 2 does. Change accent reading there only, and keep `located_tokens(extract(t))[0] == tokens(t)` for accent-only text (test_accents_tokenise_alike_in_prose_and_abstracts). A pass 2 match that spans a line break must hold it (`_write_letter`), or the prose loses a line.
+- A starred command's * may follow a gap: TeX skips the spaces after a control word, and LaTeX's \@ifstar finds the * through \@ifnextchar, which skips space tokens (latex.ltx:1602-1621 in bundle v33). Read the star of \\ and of STARRED_KEY_COMMANDS with `_CodeScanner.star_end` (space_end before the *), never `text.startswith("*", i)`. Only commands that bundle v33 defines with \@ifstar are in STARRED_KEY_COMMANDS; any other command reads a * as its argument (seam\label *less prints seamless; natbib's \citeyear *{b} cites the key * and prints b). When you add a key command, check whether it has a starred form (`tectonic -X bundle cat <pkg>.sty | grep ifstar`). Pass 2 and argument_breaks still drop only an adjacent *, which is harmless: a * is neither a token nor a lint trigger.
+- A command reads only the optional [..] arguments it defines, where it defines them: tex_prose.KEY_OPTIONS (one count per key), key_options() for the \cite family (two, none for \citenum and \citetext), ENVIRONMENT_ARGUMENTS (one count per layout argument), one for floats, and TEXT_OPTIONS before a text argument. Any other [ is the argument, as TeX reads any one token (\label[x]{} prints x]). When you add a key command or an environment, look up its options in bundle v33 (`tectonic -X bundle cat <pkg>.sty`, follow \@ifnextchar[ and \@testopt) and pass optional_arguments_end an explicit limit.
+- A key command's unbraced argument may be a control word (\label\empty). The gap after it (space_end) prints nothing, but command() blanks the argument before unprinted() reads the code, so mandatory_argument_end records that gap in unprinted_offsets itself. Any new reader that blanks a control-word token must do the same.
+- Ask `tex_prose.reads_star(name)` before skipping a * after a control word. Only STARRED_KEY_COMMANDS and commands with no known definition take it; after a formatting command, declaration, accent or no-argument command the * prints (lunar\textit*and is two tokens).
+- \verb is not a key command: it makes the space an other character before \@ifstar, so only tabs may precede its star, and \@sverb skips spaces and tabs before the delimiter (latex.ltx 11086, 11106-11112, bundle v33). \verb *x* has the delimiter *. tex_prose.verb_end follows this.
+---
+
+## 2026-11-14T17:56Z · T16-01 · implement
+- Done: paper/ skeleton: main.tex (one-column 11pt article, 22.1 working title, Gradient Descent, empty \date), arxiv.sty written for this repository, the ten 22.2 section files and two appendices (heading and label only), empty abstract.tex. scripts/numbers.py (MACROS empty; --bundle validates with validate_bundle(production=True), re-hashes each read file, JSON pointer per RFC 6901, null/non-finite/non-number/unlisted are errors, atomic write) and generated/numbers.tex (header only). scripts/check_log.py (undefined citations or references, changed labels, missing characters, Overfull \hbox over 1pt, TeX errors, every BibTeX error or warning). test_numbers.py, test_check_log.py and test_manuscript.py (rules 1 to 6 on strings, then on paper/). Makefile (all = numbers test pdf, numbers-check, test, check, pdf with pinned v33 bundle), ruff.toml, mypy.ini, README.md.
+- BLOCKED, state left pending: terraluna_pipeline.export (write_bundle, validate_bundle) and fixtures/mock-bundle do not exist on ralph/t16-paper. Only T0-01 has passed here; T0-02 has only its failing tests (3073be6), while the batch description assumes T0 has passed. pipeline/ and fixtures/ are outside this story's files, so it cannot be fixed here. A human needs to merge the finished T0 work into ralph/t16-paper. Then rerun the checks: nothing in paper/ should need to change unless the final export API differs from pipeline/tests/test_export.py.
+- Commits: a8e74f1 test(t16-01): add failing tests for generated number macros; 69800c6 build(t16-01): add ruff and mypy settings for paper scripts; d71a236 style(t16-01): format number macro tests with ruff; 9e7d514 test(t16-01): add failing tests for the tectonic log gate; 70db065 test(t16-01): add failing manuscript tests for structure and figures; 9e0ba17 feat(t16-01): generate number macros from a validated release bundle; e3a90f2 feat(t16-01): fail the paper build on tectonic log and bibtex problems; 30c1500 feat(t16-01): add the paper skeleton with the prd 22.2 sections; 0598dea build(t16-01): add the paper makefile with a pinned tectonic bundle; 1ea7799 docs(t16-01): add the paper readme with prerequisites and working commands
+- Checks: `make -C paper check` FAIL (ruff check and ruff format --check pass; mypy: import-not-found terraluna_pipeline.export in numbers.py and test_numbers.py). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (test_numbers.py cannot import terraluna_pipeline.export; the other 139 tests pass with --ignore=paper/scripts/test_numbers.py). `make -C paper` FAIL at test (numbers ran; pdf alone passes: `make -C paper pdf` builds a clean 1-page letter PDF with embedded Latin Modern and check_log.py reports main.log clean). Also verified: numbers-check fails with a diff on drift; pdf with TECTONIC=no-such-tectonic prints the required message and exits 2; `make -C paper numbers BUNDLE_VERSION=absent-0` exits 2 and leaves numbers.tex unchanged.
+- Docs used: Tectonic 0.17.0 (`tectonic --help`; log and blg formats observed on scratch documents in /tmp); ruff 0.17.5 (docs.astral.sh/ruff/configuration: closest config, --config); mypy 2.4.1 (mypy.readthedocs.io config_file); pytest 9.2.0; GNU Make 3.81. Context7 queries for ruff and mypy config returned too little, so the official docs were used.
+- Learnings: see the new Codebase Patterns lines (scripts package and python -P, Tectonic log behaviour, zsh traps). README lists only numbers, numbers-check and pdf because check, test and the default target have not yet passed; add them when they do.
+
+### Proposed instruction changes
+- Root README, build section (human to apply; outside this story's files): "Paper: `make -C paper` builds `paper/main.pdf`; it needs Tectonic 0.17.0 (`brew install tectonic`) and network access on the first build. See paper/README.md."
+- Batch setup: merge the passed T0 work (at least T0-02: terraluna_pipeline.export and fixtures/mock-bundle) into ralph/t16-paper before the next iteration, as the batch description assumes.
+---
+
+## 2026-11-14T17:58Z · T16-01 · implement
+- Done: No paper/ change; the story is still blocked and stays `pending`. ralph/t16-paper still lacks terraluna_pipeline.export and fixtures/mock-bundle. T0-02 has since passed on ralph/t0-bootstrap (54fc7a5). Its write_bundle(out_dir, files, manifest_fields) and validate_bundle(dir, *, production) -> list[BundleError] (str gives "path: code: message") match what numbers.py and test_numbers.py use. Built a scratch copy in /tmp: HEAD from git archive, with pipeline/, fixtures/ and the root Makefile taken from ralph/t0-bootstrap. T0 changed no pyproject.toml or uv.lock since the merge base 3073be6. All four checks passed there. Updated the T16-01 notes; the scratch copy is deleted.
+- Commits: chore(ralph): record that t16-01 passes its checks once t0-02 is merged
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21; ruff passes). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Checks on the simulated merge (not this branch): check PASS (ruff, ruff format, mypy --strict on 6 files); numbers-check PASS; test PASS (179 passed); make -C paper PASS (Tectonic 0.17.0, main.pdf written, check_log.py reports main.log clean).
+- Docs used: none new. The export API was read from ralph/t0-bootstrap:pipeline/src/terraluna_pipeline/export.py with git show.
+- Learnings: once ralph/t0-bootstrap is merged, the next iteration only needs to rerun the four checks and request review. Codebase Patterns now records the scratch-copy method.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap (through 54fc7a5, T0-02 passed) into ralph/t16-paper. This is the only thing blocking T16-01.
+---
+
+## 2026-11-14T18:10Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper since iteration 2, so terraluna_pipeline.export and fixtures/mock-bundle are still missing. ralph/t0-bootstrap moved from 54fc7a5 to 6cd7120 (T0-03: jsonschema and types-jsonschema dev dependencies in pyproject.toml and uv.lock). export.py and fixtures/ are unchanged since 54fc7a5, and the branch does not touch paper/. Re-ran the scratch-copy simulation at the new tip and updated the T16-01 notes. The scratch copy is deleted.
+- Commits: chore(ralph): record that t16-01 still passes against the t0-bootstrap tip
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Checks on the simulated merge (HEAD plus pipeline/, fixtures/, Makefile, pyproject.toml and uv.lock from ralph/t0-bootstrap at 6cd7120; not this branch): `uv sync --locked` exit 0; check PASS (mypy --strict, 6 files); numbers-check PASS; test PASS (179 passed); make -C paper PASS (check_log.py: main.log clean).
+- Docs used: none new.
+- Learnings: merging the t0-bootstrap tip, with the T0-03 dev dependencies, is as safe for paper/ as merging 54fc7a5.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap (54fc7a5 or later; 6cd7120 checked) into ralph/t16-paper. This is still the only thing blocking T16-01.
+---
+
+## 2026-11-14T18:01Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper since iteration 2 (merge base with ralph/t0-bootstrap is still 3073be6), so terraluna_pipeline.export and fixtures/mock-bundle are still missing. ralph/t0-bootstrap moved from 6cd7120 to 8bb1ae9, which only adds the T0-03 failing tests (pipeline/tests/test_json_schema.py, a one-line change in test_schema.py) and fixtures/schema-cases/. export.py and fixtures/mock-bundle are unchanged since 54fc7a5, and the branch does not touch paper/. Re-ran the scratch-copy simulation at the new tip and updated the T16-01 notes. The scratch copy is deleted.
+- Commits: chore(ralph): record that t16-01 still passes against t0-bootstrap at 8bb1ae9
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Checks on the simulated merge (HEAD plus pipeline/, fixtures/, Makefile, pyproject.toml and uv.lock from ralph/t0-bootstrap at 8bb1ae9; not this branch): `uv sync --locked` exit 0; check PASS (mypy --strict, 6 files); numbers-check PASS; test PASS (179 passed); make -C paper PASS (check_log.py: main.log clean).
+- Docs used: none new.
+- Learnings: the T0-03 failing tests on ralph/t0-bootstrap do not affect paper/, because make -C paper test collects only paper/scripts/. A merge of the current tip would still leave the root pipeline tests red until T0-03 passes, so a human may prefer to merge 54fc7a5 (T0-02 passed) instead.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, either at 54fc7a5 (T0-02 passed, pipeline tests green) or at a later tip once T0-03 passes. This is still the only thing blocking T16-01; repeated author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:20Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6), and ralph/t0-bootstrap is still at 8bb1ae9, the tip already simulated in iteration 4. No other local branch has pipeline/src/terraluna_pipeline/export.py; main is at its initial commit. No new simulation was needed. Only the iteration number and tip wording in the T16-01 notes changed.
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap 8bb1ae9
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Until the human merge happens, an author iteration can only confirm the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at 54fc7a5 (T0-02 passed, pipeline tests green) or at a later tip once T0-03 passes. This is the only thing blocking T16-01. Consider pausing this batch's loop until then, since further author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:03Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6). ralph/t0-bootstrap moved from 8bb1ae9 to dcbce75 (T0-03 implemented, review requested; T0-01 and T0-02 passed). The new commits change pipeline/src/terraluna_pipeline/schema.py, the root Makefile, packages/schema/json/*.schema.json and pipeline/tests/test_json_schema.py. export.py and fixtures/mock-bundle are unchanged since 54fc7a5, and paper/ is untouched. Because validate_bundle depends on schema.py, I reran the scratch-copy simulation at dcbce75 and updated the T16-01 notes. The scratch copy is deleted.
+- Commits: chore(ralph): record that t16-01 still passes against t0-bootstrap at dcbce75
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Checks on the simulated merge (HEAD plus pipeline/, fixtures/, packages/, Makefile, pyproject.toml and uv.lock from ralph/t0-bootstrap at dcbce75; not this branch): `uv sync --locked` exit 0; check PASS (ruff, ruff format, mypy --strict on 6 files); numbers-check PASS; test PASS (179 passed); make -C paper PASS (check_log.py: main.log clean).
+- Docs used: none new.
+- Learnings: the T0-03 schema changes do not affect numbers.py or its tests. The T0 story list on ralph/t0-bootstrap is scripts/ralph/prd.json, not a batches/ path. Read pass states with `git show ralph/t0-bootstrap:scripts/ralph/prd.json | jq`.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at 54fc7a5 (T0-02 passed) or at dcbce75 or later once T0-03 passes its review. This is still the only thing blocking T16-01. Consider pausing this batch's loop until then: six author iterations have now confirmed the block and cannot clear it.
+---
+
+## 2026-11-14T18:04Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6). ralph/t0-bootstrap moved from dcbce75 to 9acf9cc ("chore(ralph): request review for t0-03"), which changes only its scripts/ralph/prd.json and progress.txt. The dcbce75 simulation from iteration 6 still applies, so I did not rerun it. Only ralph/t0-bootstrap has pipeline/src/terraluna_pipeline/export.py. Updated the iteration number and tip in the T16-01 notes.
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap 9acf9cc
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Seven author iterations have now confirmed the block. Only a human merge can clear it.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at 54fc7a5 (T0-02 passed) or at 9acf9cc or later once T0-03 passes its review. This is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:05Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6). ralph/t0-bootstrap is still at 9acf9cc (T0-01 and T0-02 passed, T0-03 review requested), the tip already covered by the dcbce75 simulation, so I did not rerun it. main, ralph/t2-polarimetry, ralph/t3-terrain and ralph/tooling have no pipeline/src/terraluna_pipeline/export.py. Only the iteration number in the T16-01 notes changed.
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap 9acf9cc
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Eight author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at 54fc7a5 (T0-02 passed) or at 9acf9cc or later once T0-03 passes its review. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:06Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6). ralph/t0-bootstrap moved from 9acf9cc to 6440fee ("chore(ralph): record round 1 reviews for t0-03"), which adds only logs/agents/*.jsonl, reviews/T0-03-claude.json, reviews/T0-03-codex.json and its scripts/ralph/prd.json. No code changed, so the dcbce75 simulation still applies and I did not rerun it. main, ralph/t2-polarimetry, ralph/t3-terrain and ralph/tooling still have no pipeline/src/terraluna_pipeline/export.py. Only the iteration number and tip in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap 6440fee
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Nine author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at 54fc7a5 (T0-02 passed) or at a later tip once T0-03 passes its review (it is now in round 1, state reviewed). This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:07Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6). ralph/t0-bootstrap moved from 6440fee to fcf539b ("chore(ralph): mark t0-03 as passed"), so T0-01, T0-02 and T0-03 have now all passed there. 6440fee..fcf539b changes only reviews/T0-03-claude.json and its scripts/ralph files. export.py and fixtures/mock-bundle are unchanged, so the dcbce75 simulation still applies and I did not rerun it. Only the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: T0-03 has passed, so merging the t0-bootstrap tip no longer leaves the root pipeline tests red (the concern raised in iteration 4). Ten author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:09Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6). ralph/t0-bootstrap is still at fcf539b (T0-01 to T0-03 passed), so the dcbce75 simulation still applies and I did not rerun it. Besides ralph/t0-bootstrap, only ralph/t1-pilot (323dfba), another batch, has pipeline/src/terraluna_pipeline/export.py. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Eleven author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:10Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6). ralph/t0-bootstrap is still at fcf539b (T0-01 to T0-03 passed), so the dcbce75 simulation still applies and I did not rerun it. main (8e3e5a9), ralph/t2-polarimetry, ralph/t3-terrain and ralph/tooling still have no pipeline/src/terraluna_pipeline/export.py; ralph/t1-pilot (323dfba, another batch) does. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twelve author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:10Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). ralph/t0-bootstrap is still at fcf539b (T0-01 to T0-03 passed), so the dcbce75 simulation still applies and I did not rerun it. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirteen author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:11Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). ralph/t0-bootstrap is still at fcf539b (T0-01 to T0-03 passed), so the dcbce75 simulation still applies and I did not rerun it. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fourteen author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:12Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). ralph/t0-bootstrap is still at fcf539b (T0-01 to T0-03 passed), so the dcbce75 simulation still applies and I did not rerun it. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifteen author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:14Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). ralph/t0-bootstrap is still at fcf539b (T0-01 to T0-03 passed), so the dcbce75 simulation still applies and I did not rerun it. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ImportError, terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixteen author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:16Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). ralph/t0-bootstrap is still at fcf539b (T0-01 to T0-03 passed), so the dcbce75 simulation still applies and I did not rerun it. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Seventeen author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:15Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). ralph/t0-bootstrap is still at fcf539b (T0-01 to T0-03 passed), so the dcbce75 simulation still applies and I did not rerun it. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Eighteen author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:16Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). ralph/t0-bootstrap is still at fcf539b (T0-01 to T0-03 passed), so the dcbce75 simulation still applies and I did not rerun it. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked at t0-bootstrap fcf539b
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Nineteen author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:17Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). New: ralph/t0-bootstrap moved from fcf539b to 4497f9c (`build(t0-04): add pnpm and turborepo workspace with strict typescript`). T0-04 is still `pending` there, and `git diff fcf539b ralph/t0-bootstrap -- pipeline fixtures pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still applies and I did not rerun it. Only the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twenty author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed; 4497f9c adds unfinished T0-04 web workspace files only) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:19Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). ralph/t0-bootstrap is still at 4497f9c, and `git diff fcf539b ralph/t0-bootstrap -- pipeline fixtures pyproject.toml uv.lock Makefile` is still empty, so the dcbce75 simulation still applies and I did not rerun it. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twenty-one author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed; 4497f9c adds unfinished T0-04 web workspace files only) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:19Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). New: ralph/t0-bootstrap moved from 4497f9c to f01ce0c (`test(t0-04): add failing tests for generated zod schemas and their generator`, packages/schema only). `git diff fcf539b ralph/t0-bootstrap -- pipeline fixtures pyproject.toml uv.lock Makefile` is still empty, so the dcbce75 simulation still applies and I did not rerun it. Only the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twenty-two author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed; 4497f9c and f01ce0c add unfinished T0-04 web workspace and schema test files only) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:21Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). ralph/t0-bootstrap is still at f01ce0c, and `git diff fcf539b ralph/t0-bootstrap -- pipeline fixtures pyproject.toml uv.lock Makefile` is still empty, so the dcbce75 simulation still applies and I did not rerun it. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twenty-three author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed; 4497f9c and f01ce0c add unfinished T0-04 web workspace and schema test files only) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:23Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). New: ralph/t0-bootstrap moved from f01ce0c to cf724bb (`test(t0-04): require zod write to refuse a json schema without a contract`, packages/schema/tests only). `git diff fcf539b ralph/t0-bootstrap -- pipeline fixtures pyproject.toml uv.lock Makefile` is still empty, so the dcbce75 simulation still applies and I did not rerun it. Only the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twenty-four author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed; 4497f9c, f01ce0c and cf724bb add unfinished T0-04 web workspace and schema test files only) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:22Z · T16-01 · implement
+- Done: No paper/ change; still blocked, state left `pending`. Nothing has been merged into ralph/t16-paper (merge base with ralph/t0-bootstrap is still 3073be6; pipeline/src/terraluna_pipeline/ has no export.py and fixtures/ is absent). ralph/t0-bootstrap is still at cf724bb, and `git diff fcf539b ralph/t0-bootstrap -- pipeline fixtures pyproject.toml uv.lock Makefile` is still empty, so the dcbce75 simulation still applies and I did not rerun it. Only the iteration number in the T16-01 notes changed (checked: prd.json without that notes field hashes the same before and after).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export in numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twenty-five author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b (T0-01 to T0-03 passed; 4497f9c, f01ce0c and cf724bb add unfinished T0-04 web workspace and schema test files only) into ralph/t16-paper. This is the only thing blocking T16-01. Please pause this batch's loop until the merge. Author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:30Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. New: ralph/t0-bootstrap moved from cf724bb to 78cca54 (539b9fd, ea5cce1, 78cca54: T0-04 zod generator and generated schemas). `git diff fcf539b ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is still empty, so the dcbce75 simulation still holds and I did not rerun it. Only the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy reports import-not-found for terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twenty-six author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b into ralph/t16-paper. T0-01 to T0-03 have passed there. The later commits (4497f9c through 78cca54) are unfinished T0-04 web workspace and schema work only. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:24Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. ralph/t0-bootstrap is still at 78cca54, and `git diff fcf539b ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is still empty, so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twenty-seven author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b into ralph/t16-paper. T0-01 to T0-03 have passed there; the later commits (4497f9c through 78cca54) are unfinished T0-04 web workspace and schema work only. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:25Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. New: ralph/t0-bootstrap moved from 78cca54 to 811adc9 (`build(t0-04): add typescript make targets and generate zod in make schema`). `git diff fcf539b ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock` is still empty. The only new change in that path set is the root Makefile: `setup` now also runs `setup-ts` (needs Node 22 and `pnpm install --frozen-lockfile`), and `schema`/`schema-check` also run the zod generator. paper/Makefile does not call the root Makefile, so the dcbce75 simulation still holds and I did not rerun it. Only the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy reports import-not-found for terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: if the human merges the t0-bootstrap tip instead of fcf539b, root `make setup` (a paper/README prerequisite) then also needs Node 22 and pnpm. paper/ needs no change either way. Twenty-eight author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b into ralph/t16-paper. T0-01 to T0-03 have passed there; the later commits (4497f9c through 811adc9) are unfinished T0-04 web workspace, schema and Makefile work only. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:26Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. ralph/t0-bootstrap is still at 811adc9. `git diff fcf539b ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` still changes only the root Makefile, as recorded in the previous entry, so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Twenty-nine author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b into ralph/t16-paper. T0-01 to T0-03 have passed there; the later commits (4497f9c through 811adc9) are unfinished T0-04 web workspace, schema and Makefile work only. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:27Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. New: ralph/t0-bootstrap moved from 811adc9 to 11082b8 (8be9b9f, c25c431, 0e1fcf8, 11082b8). Those commits change only packages/schema/ (README, package.json, generate-zod.ts and its test). `git diff 811adc9 ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Only the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirty author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b into ralph/t16-paper. T0-01 to T0-03 have passed there; the later commits (4497f9c through 11082b8) are unfinished T0-04 web workspace, schema and Makefile work only. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:28Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9 (initial commit). ralph/t0-bootstrap is still at 11082b8, and `git diff 11082b8 ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirty-one author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap at fcf539b into ralph/t16-paper. T0-01 to T0-03 have passed there; the later commits (4497f9c through 11082b8) are unfinished T0-04 web workspace, schema and Makefile work only. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:30Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. New: ralph/t0-bootstrap moved from 11082b8 to b6ee40a (`chore(ralph): request review for t0-04`, which changes only scripts/ralph/prd.json and progress.txt). `git diff 11082b8 ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Only the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: T0-04 now has review requested on ralph/t0-bootstrap. If it passes before the merge, the human can merge the t0-bootstrap tip instead of fcf539b; paper/ needs no change either way (see the 18:25Z entry on root `make setup` needing Node 22 and pnpm). Thirty-two author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (review requested at b6ee40a). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:30Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap is still at b6ee40a (T0-04 review requested), so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirty-three author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (review requested at b6ee40a). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:31Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap is still at b6ee40a (T0-04 review requested), and `git diff b6ee40a ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirty-four author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (review requested at b6ee40a). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:33Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap is still at b6ee40a (T0-04 review requested), and `git diff b6ee40a ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirty-five author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (review requested at b6ee40a). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:32Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap is still at b6ee40a (T0-04 review requested), and `git diff b6ee40a ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirty-six author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (review requested at b6ee40a). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:34Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap is still at b6ee40a (T0-04 review requested), and `git diff b6ee40a ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirty-seven author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (review requested at b6ee40a). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:34Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap is still at b6ee40a (T0-04 review requested), and `git diff b6ee40a ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirty-eight author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (review requested at b6ee40a). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:36Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap is still at b6ee40a (T0-04 review requested), and `git diff b6ee40a ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Only the iteration number in the T16-01 notes changed. I checked that prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Thirty-nine author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (review requested at b6ee40a). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:40Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap moved from b6ee40a to eefb695, which only records T0-04 round 1 reviews (reviews/, logs/, scripts/ralph/prd.json); `git diff b6ee40a ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number and the t0-bootstrap tip in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Forty author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (round 1 reviews recorded at eefb695). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:38Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap moved from eefb695 to a36aa11, which adds only packages/schema/tests/generate-zod.test.ts (a T0-04 test); `git diff eefb695 ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number and the t0-bootstrap tip in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Forty-one author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (tip now a36aa11). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:38Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap moved from a36aa11 to 4ab0389, which changes only packages/schema/scripts/generate-zod.ts (T0-04 fix codex-r1-2); `git diff a36aa11 ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number and the t0-bootstrap tip in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export, 1 collection error). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Forty-two author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (tip now 4ab0389). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:40Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap moved from 4ab0389 to c27dd95, which changes only the root Makefile's setup-ts Node check (now 22.18 or later, T0-04 fix codex-r1-1). `git diff 4ab0389 ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock` is empty, so the dcbce75 simulation still holds and I did not rerun it. I updated the iteration number and the t0-bootstrap tip in the T16-01 notes. prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export, 1 collection error). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Forty-three author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper, at fcf539b (T0-01 to T0-03 passed) or at the tip once T0-04 passes (tip now c27dd95). This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:45Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. T0 has now fully passed: ralph/t0-bootstrap moved from c27dd95 to aaec3d2 (1181d74 resolves T0-04 review findings, aaec3d2 marks T0-04 passed; both touch only reviews/, logs/ and scripts/ralph/). `git diff c27dd95 ralph/t0-bootstrap -- pipeline fixtures paper pyproject.toml uv.lock Makefile` is empty, so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number and the t0-bootstrap tip in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export, 1 collection error). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Forty-four author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at its tip aaec3d2; every T0 story (T0-01 to T0-04) has now passed. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:42Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9. ralph/t0-bootstrap is unchanged at aaec3d2 (all T0 stories passed), so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Forty-five author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at its tip aaec3d2; every T0 story (T0-01 to T0-04) has passed. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:43Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9 and ralph/t0-bootstrap is unchanged at aaec3d2 (all T0 stories passed), so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Forty-six author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at its tip aaec3d2; every T0 story (T0-01 to T0-04) has passed. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:45Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9 and ralph/t0-bootstrap is unchanged at aaec3d2 (all T0 stories passed), so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Forty-seven author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at its tip aaec3d2; every T0 story (T0-01 to T0-04) has passed. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:44Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9 and ralph/t0-bootstrap is unchanged at aaec3d2 (all T0 stories passed), so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Forty-eight author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at its tip aaec3d2; every T0 story (T0-01 to T0-04) has passed. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:47Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9 and ralph/t0-bootstrap is unchanged at aaec3d2 (all T0 stories passed), so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Forty-nine author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at its tip aaec3d2; every T0 story (T0-01 to T0-04) has passed. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:46Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has no export.py, and fixtures/ does not exist. main is still at 8e3e5a9 and ralph/t0-bootstrap is unchanged at aaec3d2 (all T0 stories passed), so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifty author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at its tip aaec3d2; every T0 story (T0-01 to T0-04) has passed. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:48Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. New since iteration 50: ralph/t0-bootstrap moved from aaec3d2 to 04b9ec4 (build(t0-05): add the @terraluna/web next.js package) and now lists T0-05 and T0-06 as pending. That commit changes only apps/web/, .gitignore and pnpm-lock.yaml, so the Python code this story needs is unchanged and the dcbce75 simulation still holds; I did not rerun it. Rewrote the T16-01 notes to say this; prd.json with the notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: T0 is no longer "fully passed" as a batch, because T0-05 and T0-06 were added. T16 needs only the Python side, which T0-01 to T0-04 delivered at aaec3d2.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 04b9ec4 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:49Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. ralph/t0-bootstrap is unchanged at 04b9ec4 and main at 8e3e5a9, so the dcbce75 simulation still holds and I did not rerun it. ralph/t1-pilot now has export.py (it branched from ralph/t0-bootstrap at fcf539b and T1-01 has passed), but T16 should take T0 from ralph/t0-bootstrap, not from another batch. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifty-two author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 04b9ec4 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:49Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. ralph/t0-bootstrap is unchanged at 04b9ec4 and main at 8e3e5a9, so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifty-three author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 04b9ec4 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:50Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. New since iteration 53: ralph/t0-bootstrap moved from 04b9ec4 to 2858335 (test(t0-05): add failing tests for bundle pull, build loader and shell text). Since aaec3d2 it changes only apps/web/, .gitignore and pnpm-lock.yaml, so the Python code this story needs is unchanged and the dcbce75 simulation still holds; I did not rerun it. Updated the iteration number and the T0 tip SHA in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifty-four author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 2858335 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:51Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. ralph/t0-bootstrap is unchanged at 2858335 and main at 8e3e5a9, so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export in numbers.py and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifty-five author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 2858335 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:53Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. New since iteration 55: ralph/t0-bootstrap moved from 2858335 to 4a873c9 (feat(t0-05): add bundle pull, build loader and shell text for the web). That commit changes only apps/web/, and nothing under pipeline/, fixtures/, paper/, packages/, pyproject.toml, uv.lock or Makefile differs from aaec3d2, so the dcbce75 simulation still holds; I did not rerun it. Updated the iteration number and the T0 tip SHA in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifty-six author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 4a873c9 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:54Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. ralph/t0-bootstrap is unchanged at 4a873c9 and main at 8e3e5a9, so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifty-seven author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 4a873c9 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:55Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. ralph/t0-bootstrap is unchanged at 4a873c9 and main at 8e3e5a9, so the dcbce75 simulation still holds and I did not rerun it. Updated the iteration number in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifty-eight author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 4a873c9 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:55Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. New since iteration 58: ralph/t0-bootstrap moved from 4a873c9 to d3faad4 (test(t0-05): require the smoke page check to refuse any text beyond the shell). That commit changes only apps/web/tests/page-check.test.ts, and nothing under pipeline/, fixtures/, paper/, packages/, pyproject.toml, uv.lock or Makefile differs from aaec3d2, so the dcbce75 simulation still holds; I did not rerun it. main is unchanged at 8e3e5a9. Updated the iteration number and the T0 tip SHA in the T16-01 notes; prd.json with that notes field removed hashes the same before and after.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Fifty-nine author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip d3faad4 also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T18:56Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. New since iteration 59: ralph/t0-bootstrap moved from d3faad4 to 6df0e8f (4a61be9 and 6df0e8f, T0-05 page and smoke test). Those commits change only apps/web/ (layout.tsx, page.tsx, lib/shell.ts, scripts/page-check.ts, scripts/smoke.ts). Nothing under pipeline/, fixtures/, paper/, packages/, pyproject.toml, uv.lock or Makefile differs from aaec3d2, so the dcbce75 simulation still holds; I did not rerun it. main is unchanged at 8e3e5a9. Updated the iteration number and the T0 tip SHA in the T16-01 notes; prd.json with that notes field set to null hashes the same before and after (8c57f5a2…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 6df0e8f also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:00Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. New since iteration 60: ralph/t0-bootstrap moved from 6df0e8f to 012135b (fix(t0-05): resolve modules for the web app as a bundler does), which changes only apps/web/tsconfig.json. Nothing under pipeline/, fixtures/, paper/, packages/, pyproject.toml, uv.lock or Makefile differs from aaec3d2, so the dcbce75 simulation still holds; I did not rerun it. main is unchanged at 8e3e5a9. Updated the iteration number and the T0 tip SHA in the T16-01 notes; prd.json with that notes field set to null hashes the same before and after (403cbb92…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ImportError in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty-one author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 012135b also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:05Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has changed since iteration 61. ralph/t16-paper still has merge base 3073be6 with ralph/t0-bootstrap. The T0 tip is still 012135b and main is still 8e3e5a9. pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml, uv.lock and Makefile is empty, so the dcbce75 simulation still holds. In the T16-01 notes I changed only the iteration number. prd.json hashes the same before and after with that notes field set to null (403cbb92…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty-two author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 012135b also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:10Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. New since iteration 62: ralph/t0-bootstrap moved from 012135b to bdf385f (fix(t0-05): hash and pass bundle selection into the turbo web build), which changes only turbo.json. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml, uv.lock and Makefile is empty, so the dcbce75 simulation still holds; I did not rerun it. main is unchanged at 8e3e5a9. In the T16-01 notes I changed only the iteration number and the T0 tip SHA. prd.json hashes the same before and after with that notes field set to null (8c57f5a2…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty-three author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip bdf385f also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:00Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has changed since iteration 63. ralph/t16-paper still has merge base 3073be6 with ralph/t0-bootstrap. The T0 tip is still bdf385f and main is still 8e3e5a9. pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml, uv.lock and Makefile is empty, so the dcbce75 simulation still holds; I did not rerun it. In the T16-01 notes I changed only the iteration number. prd.json hashes the same before and after with that notes field set to null (8c57f5a2…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty-four author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip bdf385f also works, but it brings in the unfinished T0-05 web package. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:02Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has been merged into ralph/t16-paper: the merge base with ralph/t0-bootstrap is still 3073be6, pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. New since iteration 64: ralph/t0-bootstrap moved from bdf385f to 57f8282 (dc5511a, 8adca46, 57f8282: T0-05 web make targets and docs). Under pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock nothing differs from aaec3d2. The root Makefile now differs: it adds web-build, web-smoke and web-dev targets and sets NEXT_TELEMETRY_DISABLED. `make -C paper` never reads the root Makefile, so the dcbce75 simulation still holds; I did not rerun it. main is unchanged at 8e3e5a9. In the T16-01 notes I changed only the iteration number and the T0 tip description. prd.json hashes the same before and after with that notes field set to null (8c57f5a2…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty-five author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 57f8282 also works, but it brings in the unfinished T0-05 web package and its root Makefile targets. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:15Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has changed since iteration 65. ralph/t16-paper still has merge base 3073be6 with ralph/t0-bootstrap. The T0 tip is still 57f8282 and main is still 8e3e5a9. pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is empty, so the dcbce75 simulation still holds; I did not rerun it. In the T16-01 notes I changed only the iteration number. prd.json hashes the same before and after with that notes field set to null.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty-six author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 57f8282 also works, but it brings in the unfinished T0-05 web package and its root Makefile targets. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:04Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Nothing has changed since iteration 66. ralph/t16-paper still has merge base 3073be6 with ralph/t0-bootstrap. The T0 tip is still 57f8282 and main is still 8e3e5a9. pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is empty, so the dcbce75 simulation still holds; I did not rerun it. In the T16-01 notes I changed only the iteration number. prd.json hashes the same before and after with that notes field set to null (a6206c47…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty-seven author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 57f8282 also works, but it brings in the unfinished T0-05 web package and its root Makefile targets. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:05Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. ralph/t16-paper still has merge base 3073be6 with ralph/t0-bootstrap, and main is still 8e3e5a9. The T0 tip moved from 57f8282 to 8ae6865, but only through the loop bookkeeping commits 43744da (request review for t0-05) and 8ae6865 (return t0-05 to the author). `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty, so the dcbce75 simulation still holds; I did not rerun it. In the T16-01 notes I changed only the iteration number and the T0 tip. prd.json hashes the same before and after with that notes field removed (f9a1ce9e…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty-eight author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 8ae6865 also works, but it brings in the unfinished T0-05 web package and its root Makefile targets. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:20Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. ralph/t16-paper still has merge base 3073be6 with ralph/t0-bootstrap, and main is still 8e3e5a9. pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. The T0 tip moved from 8ae6865 to a16bb75 (build(t0-05): ignore the local .vscode editor settings), which changes only .gitignore. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty, so the dcbce75 simulation still holds; I did not rerun it. In the T16-01 notes I changed only the iteration number and the T0 tip. prd.json hashes the same before and after with that notes field removed (a78b70a9…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Sixty-nine author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip a16bb75 also works, but it brings in the unfinished T0-05 web package and its root Makefile targets. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:35Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. ralph/t16-paper still has merge base 3073be6 with ralph/t0-bootstrap, and main is still 8e3e5a9. pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. The T0 tip moved from a16bb75 to 420ac3f, but only through the loop bookkeeping commits 6ee5af8 (request review for t0-05) and 420ac3f (codebase patterns), which touch only scripts/ralph/prd.json and scripts/ralph/progress.txt. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty, so the dcbce75 simulation still holds; I did not rerun it. In the T16-01 notes I changed only the iteration number and the T0 tip. prd.json hashes the same before and after with that notes field removed (f9a1ce9e…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: 1 collection error, ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new. Seventy author iterations have confirmed the block.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. Merging the tip 420ac3f also works, but it brings in the unfinished T0-05 web package and its root Makefile targets. This merge is the only thing blocking T16-01. Please pause this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:08Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. ralph/t16-paper still has merge base 3073be6 with ralph/t0-bootstrap, main is still 8e3e5a9, and the T0 tip is still 420ac3f. pipeline/src/terraluna_pipeline/ has only schema.py, and fixtures/ does not exist. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty, so the dcbce75 simulation still holds. In the T16-01 notes I changed only the iteration number. prd.json hashes the same before and after with that notes field removed (f9a1ce9e…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: the UTC times in the last few entries ran ahead of the clock. `date -u` gives 19:08Z for this one, while the commit times are 20:0x +0100. Seventy-one author iterations have confirmed the block, and the loop now runs about once a minute without making progress.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge: author iterations cannot unblock it, and each one adds only a bookkeeping commit.
+---
+
+## 2026-11-14T19:09Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. The merge base with ralph/t0-bootstrap is still 3073be6, main is still 8e3e5a9 and the T0 tip is still 420ac3f. pipeline/src/terraluna_pipeline/ still has only schema.py, and fixtures/ does not exist. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty. In the T16-01 notes I changed only the iteration number, from 71 to 72.
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: collection error in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:10Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. The merge base with ralph/t0-bootstrap is still 3073be6, main is still 8e3e5a9 and the T0 tip is still 420ac3f. pipeline/src/terraluna_pipeline/ still has only schema.py, and fixtures/ does not exist. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty. In the T16-01 notes I changed only the iteration number, from 72 to 73. prd.json hashes the same before and after with that notes field removed (a78b70a9…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:12Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. The merge base with ralph/t0-bootstrap is still 3073be6 and main is still 8e3e5a9. The T0 tip moved from 420ac3f to bff1e37, which adds only the T0-05 round 1 review files, agent logs and scripts/ralph/prd.json. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty, and fixtures/ does not exist on this branch. In the T16-01 notes I changed the iteration number from 73 to 74 and the T0 tip to bff1e37. prd.json hashes the same before and after with that notes field removed (a78b70a9…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:12Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. The merge base with ralph/t0-bootstrap is still 3073be6, main is still 8e3e5a9 and the T0 tip is still bff1e37. pipeline/src/terraluna_pipeline/ still has only schema.py, and fixtures/ does not exist on this branch. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty. In the T16-01 notes I changed only the iteration number, from 74 to 75. prd.json hashes the same before and after with that notes field removed (f9a1ce9e…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:14Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. The merge base with ralph/t0-bootstrap is still 3073be6 and main is still 8e3e5a9. The T0 tip moved from bff1e37 to be79891 through f15ddbc (resolve review findings for t0-05) and be79891 (mark t0-05 as passed). Those commits change only logs/agents/, reviews/T0-05-claude.json and scripts/ralph/. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty. pipeline/src/terraluna_pipeline/ still has only schema.py, and fixtures/ does not exist on this branch. In the T16-01 notes I changed the iteration number from 75 to 76, the T0 tip to be79891 and the T0-05 status to passed. prd.json hashes the same before and after with that notes field removed (f9a1ce9e…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export in test_numbers.py). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. The current tip be79891, where T0-05 has also passed, is equally safe for paper/. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:15Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Main is still 8e3e5a9, the T0 tip is still be79891 and the merge base is still 3073be6. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty. pipeline/src/terraluna_pipeline/ still has only schema.py, and fixtures/ does not exist on this branch. In the T16-01 notes I changed only the iteration number, from 76 to 77. prd.json hashes the same before and after with that notes field removed (f9a1ce9e…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. The current tip be79891 is equally safe for paper/. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:16Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Main is still 8e3e5a9, the T0 tip is still be79891 and the merge base is still 3073be6. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty. pipeline/src/terraluna_pipeline/ still has only schema.py, and fixtures/ does not exist on this branch. In the T16-01 notes I changed only the iteration number, from 77 to 78. prd.json hashes the same before and after with that notes field removed (f9a1ce9e…).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: ruff passes; mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. The current tip be79891 is equally safe for paper/. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:18Z · T16-01 · implement
+- Done: No paper/ change. The story is still blocked and stays `pending`. Main is still 8e3e5a9, the T0 tip is still be79891 and the merge base is still 3073be6. `git diff aaec3d2 ralph/t0-bootstrap` over pipeline/, fixtures/, paper/, packages/, pyproject.toml and uv.lock is still empty. pipeline/src/terraluna_pipeline/ still has only schema.py, and fixtures/ does not exist on this branch. In the T16-01 notes I changed only the iteration number, from 78 to 79. prd.json hashes the same before and after with that notes field removed (a78b70a9…, jq -S).
+- Commits: chore(ralph): record that t16-01 is still blocked before t0 merge
+- Checks on this branch: `make -C paper check` FAIL (exit 2: mypy import-not-found terraluna_pipeline.export at numbers.py:129 and test_numbers.py:21). `make -C paper numbers-check` PASS. `make -C paper test` FAIL (exit 2: ModuleNotFoundError terraluna_pipeline.export). `make -C paper` FAIL (exit 2 at test).
+- Docs used: none new.
+- Learnings: none new.
+
+### Proposed instruction changes
+- Batch setup (human): merge ralph/t0-bootstrap into ralph/t16-paper at aaec3d2, where T0-01 to T0-04 have passed. The current tip be79891 is equally safe for paper/. This merge is the only thing blocking T16-01. Please stop this batch's loop until the merge, because author iterations cannot unblock it.
+---
+
+## 2026-11-14T19:40Z · T16-01 · implement
+- Done: The T0 merge (c2eac70, then 7db32cc for ralph/tooling) landed on this branch, so T16-01 is no longer blocked. The merge did not touch paper/. `uv sync --locked` succeeded. All four checks pass with no paper/ code change. `make -C paper numbers` and `make -C paper pdf` also ran directly, and so did `make -C paper pdf TECTONIC=tectonic-absent-xyz`, which prints the required 'tectonic not found' message and exits 2. paper/README.md now lists `make -C paper`, `check` and `test` as well, because they pass now. The tree is clean after the build: main.pdf and main.log are ignored by the root .gitignore (lines 46 and 48). review.state is now `requested`. prd.json hashes the same with review.state removed before and after (b8d3ecda…, jq -S). The stale blocked text in the T16-01 notes was left alone, because section 2 says to change only review.state.
+- Commits: 0f3e4ad docs(t16-01): list the check, test and default paper targets now that they pass; chore(ralph): request review for t16-01
+- Checks: `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 6 files). `make -C paper numbers-check` PASS. `make -C paper test` PASS (179 passed). `make -C paper` PASS (179 passed; Tectonic 0.17.0; check_log.py: main.log clean).
+- Docs used: none new. Tectonic 0.17.0 and the pinned bundle are as in earlier entries.
+- Learnings: Once a dependency merge lands, rerun every check and recheck every README command, because README lines were limited to the commands that passed before the merge.
+
+### Proposed instruction changes
+- Root README, build section (human to apply; outside this story's files): "Paper: `make -C paper` builds `paper/main.pdf`; it needs Tectonic 0.17.0 (`brew install tectonic`) and network access on the first build. See paper/README.md."
+---
+
+## 2026-11-14T19:48Z · T16-01 · resolve
+- Done: Resolved the 3 round 1 findings. codex-r1-1 fixed: I reproduced it first on a scratch copy of HEAD with a temporary test bundle at release/test-0, where `make -C paper BUNDLE_VERSION=test-0` failed at test_committed_numbers_tex_is_the_header_only_file. That test is replaced by numbers_tex_problems in test_numbers.py, which accepts either numbers.py output for the current MACROS: the exact no-bundle file, or a release source line followed by one \newcommand per macro. New tests run it on strings, on CLI output from a temporary bundle (as the Makefile runs it), and on a two-macro spec. codex-r1-2 fixed: disallowed_graphics in test_manuscript.py now reads the starred and two-bounding-box \includegraphics forms and reports any command whose path it cannot read (fail closed). The failing tests were committed first. claude-r1-1 rebutted: the python -P guard is deliberate, documented and used by every Makefile target, and the reviewer did not count it as a defect. Each resolution edit was checked by hashing the review file with `jq -S 'del(.findings[].resolution)'` before and after, and prd.json with only T16-01 review.state removed (e929750a…). The stale "Blocked on merging T0" text in the T16-01 notes is still there, because this job changes only review.state; it no longer applies, since the merge landed at c2eac70.
+- Commits: 8c8dcef test(t16-01): add failing starred and unreadable includegraphics cases (codex-r1-2); 82cf58a fix(t16-01): check starred and unreadable includegraphics forms (codex-r1-2); 6f0ddeb fix(t16-01): accept a bundle source line in the generated numbers test (codex-r1-1); chore(ralph): resolve review findings for t16-01
+- Checks: `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 6 files). `make -C paper numbers-check` PASS. `make -C paper test` PASS (217 passed). `make -C paper` PASS (217 passed; Tectonic 0.17.0; check_log.py: main.log clean). On the scratch copy after the fix: `make -C paper BUNDLE_VERSION=test-0` PASS, `make -C paper numbers-check BUNDLE_VERSION=test-0` PASS, and `make -C paper numbers-check` with a bundle-written file FAIL (exit 2), as intended. The scratch copy was then deleted.
+- Docs used: none new (pytest 9.2.0, Tectonic 0.17.0 as installed; graphicx syntax for \includegraphics* and the [llx,lly][urx,ury] form is from the graphicx package documentation already in use).
+- Learnings: A test that compares a build-written working-tree file with its committed bytes breaks any build that regenerates that file with other inputs. Pin committed bytes with the drift check (numbers-check), and make the test accept every valid generator output. A regex allowlist over LaTeX commands should find each command name and fail closed on any form it cannot read.
+---
+
+## 2026-11-14T19:53Z · T16-01 · resolve
+- Done: Resolved round 2. claude-r2-1 (low) rebutted: it restates the round-1 python -P note (claude-r1-1), and the reviewer agrees with that rebuttal. The file name numbers.py is fixed by the story, the guard is at numbers.py:203-205, and every Makefile target runs python -P (Makefile:16-17). codex-r2 has no findings, so its file is unchanged. With resolutions removed, the claude-r2 file hashes the same as the digest the loop recorded (816e6ed7…). prd.json hashes the same with T16-01 review.state removed, before and after (6423fa10…, jq -S). No paper/ change. The stale "Blocked on merging T0" text in the T16-01 notes is still there, because this job changes only review.state. It no longer applies, since the merge landed at c2eac70; the orchestrator may clear it.
+- Commits: chore(ralph): resolve review findings for t16-01
+- Checks: `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 6 files). `make -C paper numbers-check` PASS. `make -C paper test` PASS (217 passed). `make -C paper` PASS (217 passed; Tectonic 0.17.0; check_log.py: main.log clean).
+- Docs used: none new.
+- Learnings: none new.
+---
+
+## 2026-11-14T20:15Z · T16-02 · implement
+- Done: Added paper/scripts/tex_prose.py, the shared LaTeX-to-prose extraction. Pass 1 blanks comments, \verb and verbatim, $..$, $$..$$, \(..\), \[..\] and the math environments (starred too), the arguments of the \cite family, \ref, \eqref, \label, \input, \include, \url, the URL of \href (read verbatim, so % and ~ in URLs are text) and a few setup commands, and the code of tikzpicture environments. Pass 2 removes commands, environment names and braces, keeps the text of \emph/\textit/\textbf and other formatting commands, reads ~ as a space and folds accent commands to base letters. Both passes keep every line break; an unclosed construct raises TexSyntaxError with its opening line. Added lint_prose.py with the six rules (dash, banned-word, important-to-note, question-mark, bullet-list, bold), printing `file:line: rule: text` and exiting 1 on any finding; banned-word and important-to-note also read TikZ node text (extract(keep_tikz=True)). Added overlap_check.py: NFKC, LaTeX accent and diacritic folding, casefold, [a-z0-9] runs; each maximal run of MIN_RUN = 12 or more tokens shared with one abstract is reported once with file, line, key and words; a missing, unparsable or malformed record fails, including duplicate JSON keys; null abstracts are skipped and counted. Created paper/reference-verification.json as {"references": {}}. The Makefile has lint and overlap targets, and all runs numbers, lint, overlap, test and pdf in that order. The README has a line for each new command. Interpretations, documented in the docstrings: (1) an en dash directly between two digits passes like 9--11, because the rule's second sentence exempts "-- or an en dash" there; \textendash fails anywhere. (2) Every Unicode Pd character other than the ASCII hyphen fails, including U+2010 and U+2011, plus U+2212 and U+2053. (3) Bullet lists fail in every checked file except appendix-*.tex at the top of paper/, a superset of main.tex, abstract.tex and the ten section files. (4) Banned words include their adverb and noun forms (seamlessly, robustness, empowerment), and "it is important to note" also matches across a blank line. (5) An empty or blank abstract string fails; null is the way to record a missing abstract. The prd.json `base` field for T16-02 was already set by the loop (uncommitted at the start of this iteration) and is committed with the state change.
+- Commits: fbf3c38 test(t16-02): add failing tests for the prose extraction, linter and overlap check; 115acb9 feat(t16-02): add the shared latex-to-prose extraction; 9172072 feat(t16-02): add the prose linter with the six rules of prd 22.6; 4f32c82 test(t16-02): write the non-ascii overlap test inputs as escapes; b446dd5 feat(t16-02): add the 12-word overlap check against cited abstracts; 3a2d5de feat(t16-02): create the empty reference-verification record; 3090287 build(t16-02): add the lint and overlap targets to the paper build; 5d9102b docs(t16-02): list the lint and overlap commands in the paper readme; 451a006 refactor(t16-02): reuse one argument scanner per file in the prose pass; chore(ralph): request review for t16-02
+- Checks: the new tests first failed at collection (ModuleNotFoundError for scripts.tex_prose, scripts.lint_prose and scripts.overlap_check). `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 12 files). `make -C paper lint` PASS (no findings in 15 .tex files). `make -C paper overlap` PASS (15 .tex files, 0 abstracts, 0 skipped). `make -C paper test` PASS (528 passed). `make -C paper` PASS (numbers, lint, overlap, test, pdf in that order; Tectonic 0.17.0; check_log.py: main.log clean). On a scratch copy (git archive HEAD, uv sync --locked) with a background.tex holding a dash, a banned word, a question mark and a 15-word run of a test abstract: `make -C paper lint` and `make -C paper overlap` both exit 2 with the expected file:line findings. The scratch copy was deleted.
+- Docs used: Python 3.12 command line docs (docs.python.org/3.12/using/cmdline.html: -P for -m and for scripts; PYTHONPATH still applies) and unicodedata docs (docs.python.org/3.12/library/unicodedata.html: normalize, category, combining; UCD 15.0.0, which matches the installed interpreter). Python 3.12.13 standard library only (re, unicodedata, json, argparse, fnmatch, bisect); pytest 9.2.0; ruff and mypy as locked.
+- Learnings: Keep code (blanked, offset-preserving) and prose (markup-free, line-preserving) as separate views. Rules about commands (\textemdash, list environments, \textbf in tabular) read the code; rules about words read the prose. A rule that runs on both views must not count one match twice.
+---
+
+## 2026-11-14T20:52Z · T16-02 · resolve
+- Done: Resolved the 4 round 1 findings. codex-r1-1 (blocker) fixed: reproduced "\cite% note\n{key}" giving the prose words "note" and "key". `_CodeScanner.space_end` now skips spaces, comments and single line breaks before an argument, records the comments, and stops at a blank line. Pass 1 uses it for key-command arguments, \begin/\end names (and blanks the gap before the brace), the closing \end of math and TikZ, environment layout arguments (moved from pass 2) and the length of \\. A missing environment name after \end is now a syntax finding too. hyperref's \url takes % and the end of a line as URL characters (\hyper@normalise, hyperref.sty:4749 in the pinned bundle), so a comment or line break before its argument is a syntax finding. \href reads its { first (hyperref.sty:4660-4667) and accepts comments. lint_prose.py finds lists and tables through `tex_prose.environment_boundary`. codex-r1-2 (blocker) fixed: with keep_tikz a tikzpicture stays raw in the code, and only its comments are blanked and recorded. Every argument (\tikzset, \pgfplotsset, \textcolor, \ref), option, style name and math reaches banned-word and important-to-note. Pass 2 reads `}{` as a word break, so \textcolor{seamless}{x} gives two words; this also holds outside TikZ for unknown two-argument macros. claude-r1-1 (low) rebutted: prd.json and progress.txt are the batch story list and progress log, which the author prompt allows. claude-r1-2 (low) rebutted: a bare \bf makes bold text to the end of its group, which rule f forbids. A group-only match would let it through. Each review file hashes the same with resolutions removed, before and after (7b36286d…, 10aa1cfc…, the loop's digests). prd.json hashes the same with T16-02 review.state removed (b158ac9f…, jq -S).
+- Commits: b42a6ec test(t16-02): add failing cases for comments before command arguments (codex-r1-1); 234d208 fix(t16-02): skip comments between commands and arguments as tex does (codex-r1-1); ca45bf2 test(t16-02): add failing cases for command arguments inside tikz (codex-r1-2); f07044c fix(t16-02): read the raw tikz text for the word rules (codex-r1-2); chore(ralph): resolve review findings for t16-02
+- Checks: the new tests failed first (33 cases at b42a6ec, 9 at ca45bf2). `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 12 files). `make -C paper lint` PASS (no findings in 15 .tex files). `make -C paper overlap` PASS (15 .tex files, 0 abstracts, 0 skipped). `make -C paper test` PASS (582 passed). `make -C paper` PASS (numbers, lint, overlap, test, pdf; Tectonic 0.17.0; check_log.py: main.log clean). A probe on a realistic snippet (a table with a column spec, \\[2pt] and \\*, a commented \cref, a figure* with a tikzpicture, align, \href, \url, minipage) gave the expected prose in both modes and no lint findings.
+- Docs used: hyperref.sty from the pinned Tectonic bundle v33 (cache digest 6ffe0558…): \url at line 4749, \href at 4660, \hyper@normalise at 4553. TeX's rules for blanks, comments and \par before an undelimited argument (The TeXbook, chapters 8 and 20) were applied from knowledge and not looked up in this iteration; only the hyperref behaviour was checked at the source. Python 3.12.13 standard library only; pytest 9.2.0; ruff and mypy as locked.
+- Learnings: see the two new Codebase Patterns lines. A reader that blanks comments for later passes must also locate arguments while the comments are still there. In the blanked view a comment line looks like a blank line, so later passes cannot tell a \par from a comment.
+---
+
+## 2026-11-14T20:53Z · T16-02 · resolve
+- Done: Resolved round 2. codex-r2-1 (blocker) fixed. The round 1 TikZ fix read every `}{` in pass 2 as a word break, so `\emph{{seam}{less}}` gave "seam less". That escaped banned-word, and `\emph{{lu}{nar}}` hid a 12-word overlap run. Pass 2 now joins adjacent groups as TeX prints them. `_CodeScanner.argument_breaks(code)` marks a break only between two arguments of one command, counted with `argument_count()`: one for formatting commands, the one-letter accents and begin/end; none for font and size declarations, \item, \par and similar; for key commands, their key count plus TEXT_ARGUMENTS_AFTER_KEYS (\textcolor 2, \href 2, \multirow 3); every following group for an unknown command. Before each argument it skips what TeX skips, using space_end on the source, where a comment line is not \par, and optional [..] arguments. Also fixed before committing: `name in ACCENT_LETTERS` was a substring test on a str, so it is now a frozenset. claude-r2 has no findings, so its file is unchanged. With resolutions removed, the codex-r2 file hashes the same as the loop's digest (697c8ed7…). prd.json hashes the same with T16-02 review.state removed, before and after (b922dceb…, jq -S).
+- Commits: b4fdff0 test(t16-02): add failing cases for adjacent groups that are not arguments (codex-r2-1); 2d9f03f fix(t16-02): join adjacent groups unless they are arguments of one command (codex-r2-1); chore(ralph): resolve review findings for t16-02
+- Checks: 23 new cases failed at b4fdff0. Three regression guards, `\textcolor[rgb]{1,0,0}{pivotal}` in TikZ, `\newterm{a}{b}` and `\newterm{a} {b}{c}`, passed before and after. `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 12 files). `make -C paper lint` PASS (no findings in 15 .tex files). `make -C paper overlap` PASS (15 .tex files, 0 abstracts, 0 skipped). `make -C paper test` PASS (609 passed). `make -C paper` PASS (numbers, lint, overlap, test, pdf; Tectonic 0.17.0; check_log.py: main.log clean).
+- Docs used: none new. Python 3.12.13 standard library (re); pytest 9.2.0; ruff and mypy as locked. TeX's handling of adjacent groups and undelimited arguments is applied from knowledge, as in round 1.
+- Learnings: A word-break rule in the prose view must follow TeX's grouping. A group boundary separates words only where the macro's arguments end, and grouping alone never does. Known limits, left as the AC defines them: a comment runs from % to the end of the line and the line break stays, so `sea%` + newline + `mless`, which TeX prints as seamless, reads as two words. The arguments of an unknown macro are read as separate words, because its definition is not known.
+---
+
+## 2026-11-14T21:17Z · T16-02 · resolve
+- Done: Resolved round 3. codex-r3-1 (blocker) fixed. Reproduced seam\emph {less} giving "seam less" and lu\emph {nar} hiding a 12-word run. Pass 1 now records what TeX prints nothing for (`_CodeScanner.unprinted`): the spaces, comments and single line break after every control word and before the letter of an accent control symbol; each comment with its line break and the next line's indent; and each key command in the new UNPRINTED_KEY_COMMANDS (\label, \nocite, \color, \vspace, the colour of \textcolor, the URL of \href, setup commands). Pass 2 drops these. Formatting commands, the new DECLARATIONS set (font and size declarations, \relax, \noindent, \centering, split out of NO_ARGUMENT_COMMANDS) and accents add no word break. `_ProseWriter` holds a skipped line break until the word ends, so the prose keeps every line break. Blank lines (\par), unknown commands, \quad, \newline, \hspace, citations, references, URLs and files still break a word. This also removes the round 2 known limit for `sea%` followed by a line break and `mless`. codex-r3-2 (blocker) fixed. An unbraced \input now reads its file name as TeX does (input_argument_end): up to the first space or line break, with double quotes allowed (XeTeX), and a comment, brace or control sequence ending it too. Malformed names raise TexSyntaxError. claude-r3-1 (low) rebutted: splitting the groups after an unknown macro is deliberate, because joining them could hide a copied 12-word run from the overlap check, and macros the manuscript defines belong in the tables. With resolutions removed, each review file hashes to the loop's digest (63902412…, 6b7bddfc…). prd.json hashes the same with T16-02 review.state removed, before and after (f9fa40c2…, jq -S).
+- Commits: f22803b test(t16-02): add failing cases for skipped spaces and unbraced input (codex-r3-1, codex-r3-2); 24efbc6 fix(t16-02): read an unbraced input file name as tex does (codex-r3-2); 58b4e9a fix(t16-02): drop the space tex skips after commands and in comments (codex-r3-1); cfa60ff test(t16-02): add failing cases for key commands that print nothing (codex-r3-1); f228753 fix(t16-02): join the text around key commands that print nothing (codex-r3-1); chore(ralph): resolve review findings for t16-02
+- Checks: 44 new cases failed at f22803b (only the `\input}` guard already passed), and 11 at cfa60ff. `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 12 files). `make -C paper lint` PASS (no findings in 15 .tex files). `make -C paper overlap` PASS (15 .tex files, 0 abstracts, 0 skipped). `make -C paper test` PASS (682 passed). `make -C paper` PASS (numbers, lint, overlap, test, pdf; Tectonic 0.17.0; check_log.py: main.log clean). Also ran a fuzz over 40,000 random inputs made of the new constructs, plus every manuscript file in both modes. The prose line count and the code length always matched the source.
+- Docs used: none new. Python 3.12.13 standard library; pytest 9.2.0; ruff and mypy as locked. TeX's rules applied from knowledge and not looked up in this iteration: spaces and one end of line are skipped after a control word (state S), a comment drops its end of line, a new line starts in state N, \input's file name ends at a space, and XeTeX lets quotes hold spaces.
+- Learnings: see the new Codebase Patterns line. A word-boundary rule should follow what TeX prints, not the markup. Whatever TeX prints nothing for (skipped space, comments, silent commands) must not break a word, and whatever prints something unknown must. Moving a skipped line break to the end of its word keeps both the word and the line count.
+---
+
+## 2026-11-14T21:58Z · T16-02 · resolve
+- Done: Resolved round 4. All four codex-r4 findings fixed after reproducing each one. codex-r4-1: the gap between the keys of \href, \textcolor, \multicolumn, \multirow or \newcommand and their text argument is now blanked and dropped (drop_text_argument_gaps), with the options \newcommand and \multirow take before the text, so seam\href{url} {less} reads seamless; a blank line or } keeps it. Checked against hyperref.sty (\href@split reads the text as an undelimited argument after \hyper@@normalise ends its group) and xcolor.sty:758-759. codex-r4-2: an unbraced \input file name goes on past a comment, its line break and the next indent; a blank line there ends it. codex-r4-3: extract() records the source line of each prose character (Source.prose_lines, prose_line()); lint_prose.py reports prose findings and reads the robust allow comment on that line, and overlap_check.py locates tokens the same way (located_tokens, normalising one character at a time, tested equal to tokens(prose)). The held line break is unchanged, so joined words, 9--11 and the line count are unchanged. codex-r4-4: tex_prose.find_commands() matches a pattern only at control sequences read from the start of the code, and lint_prose.py finds lists, tables, bold and dash commands through it, so \\begin{tabular} no longer makes a table. claude-r4 has no findings, so its file is unchanged. With resolutions removed, the codex-r4 file hashes to the loop's digest (60c2ab69..., jq -S). prd.json hashes the same with T16-02 review.state removed, before and after (bdb2c97f..., jq -S).
+- Commits: 0d77612 test(t16-02): add failing cases for round 4 findings (codex-r4-1 to codex-r4-4); d397838 fix(t16-02): drop the gap before a text argument after keys (codex-r4-1); a340479 fix(t16-02): read an unbraced input file name on past a comment (codex-r4-2); 18883a2 fix(t16-02): report prose findings on the line where their text starts (codex-r4-3); 7367879 fix(t16-02): match list, table, bold and dash commands at control sequences (codex-r4-4); chore(ralph): resolve review findings for t16-02
+- Checks: 45 new cases failed at 0d77612; the others are guards that passed before and after. Two new lint assertions were too literal about the quoted source line ({robust} estimator.) and now check that the quoted line is line 2; the line numbers they test did not change. `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 12 files). `make -C paper lint` PASS (no findings in 15 .tex files). `make -C paper overlap` PASS (15 .tex files, 0 abstracts, 0 skipped). `make -C paper test` PASS (742 passed). `make -C paper` PASS (numbers, lint, overlap, test, pdf; Tectonic 0.17.0; check_log.py: main.log clean). A fuzz over 80,000 random inputs built from the new constructs, in both modes, and over every manuscript file: the code length, the prose line count, len(prose_lines) == len(prose), non-decreasing lines, and located tokens equal to tokens(prose) all held. The fuzz script lived in /tmp and is not committed.
+- Docs used: hyperref.sty and xcolor.sty from the pinned Tectonic bundle v33 (cache digest 6ffe0558...): \href at hyperref.sty:4660, \href@ and \href@split at 4671-4672, \hyper@@normalise at 4592; \textcolor and \@textcolor at xcolor.sty:758-759. TeX's tokenizer rules (a comment drops its end of line, a new line starts in state N, spaces are skipped before an undelimited argument, scan_file_name ends at a non-character token) are applied from knowledge, not looked up in this iteration. Python 3.12.13 standard library (functools.cache, unicodedata); pytest 9.2.0; ruff and mypy as locked.
+- Learnings: see the three new Codebase Patterns lines. A view that moves text to keep words whole needs a separate offset or line map for reporting; the two needs cannot share one string.
+---
+
+## 2026-11-14T21:59Z · T16-02 · resolve
+- Done: Resolved round 5. codex-r5-1 (blocker) fixed after reproducing it: caf\' with e on the next line gave cafe in the prose of a .tex file but "caf e" in an abstract, so the reviewer's 13-word run went unreported. e580b15: one ACCENT pattern, shared by pass 2 and fold_latex, now allows ACCENT_GAP (spaces and at most one line break; a blank line is \par) before the letter or its brace, inside the braces and after \i. That is where TeX skips blanks: an accent reads its letter as an undelimited argument, and latex.ltx's \@text@composite takes the first token of the group and drops the rest. SPECIAL_LETTER allows the gap after the control word. Pass 2 holds the line breaks inside a match (_write_letter), so the line count and line map are unchanged. fold_latex reads \r\n and \r as line breaks. A fuzz then found a one-line way the two sides differed: fold_latex folded every accent before any special letter, so in Bia\l{}o\l\k{e}ka the folded e ended the name of \l ("bialo leka" against "bialoleka"). b42b10f: fold_latex reads left to right through _letter_at, the helper pass 2 uses, and drops an accent with no letter (\'{}) and its gap, as pass 2 does. claude-r5 has no findings, so its file is unchanged. With resolutions removed, the codex-r5 file hashes to the loop's digest (fec1e611..., jq -S). prd.json hashes the same with T16-02 review.state removed, before and after (1e1a2575..., jq -S).
+- Commits: 02f5229 test(t16-02): add failing cases for accents split across a line break (codex-r5-1); e580b15 fix(t16-02): read an accent across one line break in abstracts too (codex-r5-1); 716cb8e test(t16-02): add failing cases for the order of accent folding (codex-r5-1); b42b10f fix(t16-02): fold abstract accents from left to right as the prose pass does (codex-r5-1); chore(ralph): resolve review findings for t16-02
+- Checks: 34 new cases failed at 02f5229 and 11 at 716cb8e. The prose halves of the 716cb8e cases already passed and are guards. `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 12 files). `make -C paper lint` PASS (no findings in 15 .tex files). `make -C paper overlap` PASS (15 .tex files, 0 abstracts, 0 skipped). `make -C paper test` PASS (805 passed). `make -C paper` PASS (numbers, lint, overlap, test, pdf; Tectonic 0.17.0; check_log.py: main.log clean). A fuzz over 183,736 parsed random inputs (accents, special letters, gaps, blank lines, comments, \emph, \label) kept the code length, the line count, len(prose_lines) == len(prose), non-decreasing lines and located tokens == tokens(prose). On accent-only text the manuscript and abstract tokens always agreed. Inputs with unknown control words were left out, because an abstract keeps those as text by design. The fuzz script lived in /tmp and is not committed.
+- Docs used: latex.ltx from the pinned Tectonic bundle v33 (cache digest 6ffe0558...): \add@accent at 7017, \@text@composite and \@text@composite@x at 7049-7058; tuenc.def has the TU composites. TeX's rules for blanks before an undelimited argument and after a control word are applied from knowledge, as in earlier rounds. Python 3.12.13 standard library (re); pytest 9.2.0; ruff and mypy as locked.
+- Learnings: see the new Codebase Patterns line. Two readers that must agree should share one matcher and read in the same order. A fuzz that compares them on a shared alphabet finds the gaps that single cases miss.
+---
+
+## 2026-11-14T22:20Z · T16-02 · resolve
+- Done: Resolved round 6. codex-r6-1 (blocker) fixed after reproducing it: "\citep *{other}" left "other" in the prose, so the reviewer's 13-word example (six abstract words, the citation, six more) gave no overlap. TeX skips the spaces after a control word, and \@ifstar (latex.ltx:1621, bundle v33) finds the * with \@ifnextchar, which skips space tokens (latex.ltx:1602-1619), so the star after a space, a comment or one line break belongs to the command. New `_CodeScanner.star_end` looks past space_end before the *; a blank line is \par and ends the search; \url keeps its same-line rule (spaces only). key_arguments_end and line_break_end use it, so \citep *{key}, \ref *{x}, \vspace *{2pt} (seam\vspace *{2pt}less is one word) and \\ *[2pt] no longer leak keys or lengths into the prose. claude-r6 has no findings, so its file is unchanged. With resolutions removed, the codex-r6 file hashes to the loop's digest (1797c102..., jq -S). prd.json hashes the same with T16-02 review.state removed, before and after (1fdf02b7..., jq -S).
+- Commits: aa8f02b test(t16-02): add failing cases for a star after a gap (codex-r6-1); 4a947c0 fix(t16-02): read the star of a key command or line break after a gap (codex-r6-1); chore(ralph): resolve review findings for t16-02
+- Checks: 15 of the 16 new cases failed at aa8f02b; the blank-line case is a guard and passed before and after. `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 12 files). `make -C paper lint` PASS (no findings in 15 .tex files). `make -C paper overlap` PASS (15 .tex files, 0 abstracts, 0 skipped). `make -C paper test` PASS (821 passed). `make -C paper` PASS (numbers, lint, overlap, test, pdf; Tectonic 0.17.0; check_log.py: main.log clean). A fuzz over 128,986 parsed random inputs (key commands, \\, \url, gaps, comments, blank lines, stars, options, groups) kept the code length, the line counts of code and prose, len(prose_lines) == len(prose), non-decreasing lines and located tokens == tokens(prose), and no key or length after a starred \cite, \ref, \autoref or \\ reached the prose for six gap spellings. The fuzz script lived in /tmp and is not committed.
+- Docs used: latex.ltx from the pinned Tectonic bundle v33 (cache digest 6ffe0558...): \@ifnextchar and \@ifnch at 1602-1619, \@ifstar at 1621; natbib.sty \citep at 691 (\@ifstar). TeX's skipping of spaces after a control word is applied from knowledge. Python 3.12.13 standard library (re); pytest 9.2.0; ruff and mypy as locked.
+- Learnings: see the new Codebase Patterns line. Every reader that recognises a token after a command (a star, an option, an argument) must skip the same gap TeX skips there.
+---
+
+## 2026-11-14T22:25Z · T16-02 · resolve
+- Done: round 7 finding codex-r7-1 fixed. key_arguments_end read a * after every key command, so seam\label *less extracted as seamess and lu\label *nar as luar, hiding a banned word and a 12-word run. tex_prose.py now has STARRED_KEY_COMMANDS: newcommand, renewcommand, providecommand, vspace, hspace (latex.ltx), ref, pageref, autoref, nameref (hyperref/nameref), includegraphics (graphics.sty), cref, Cref (cleveref) and natbib's cite, citet, citep, citealt, citealp, citeauthor with their capitalised forms. Only those (and \\) read a star; any other command reads the * as its argument, as TeX does. star_end lost its same_line case (\url has no starred form). claude-r7 had no findings.
+- Commits: a21a617 test(t16-02): add failing cases for a star after an unstarred command (codex-r7-1); ef84417 fix(t16-02): read a star only after commands with a starred form (codex-r7-1)
+- Checks: make -C paper check exit 0 (ruff, format, mypy strict: 12 files); make -C paper lint exit 0 (no findings in 15 .tex files); make -C paper overlap exit 0 (15 files, 0 abstracts, 0 skipped); make -C paper test exit 0 (833 passed); make -C paper exit 0 (numbers, lint, overlap, test, pdf; check_log clean).
+- Docs used: package sources in Tectonic bundle v33: latex.ltx (newcommand 1179, vspace 6571, hspace 6627, label 10850, cite 13283), hyperref.sty (ref/pageref 4514-4519, autoref 8146, href 4660, url 4749), nameref.sty 377, graphics.sty 120, natbib.sty 685-739, amsmath.sty 1134 (eqref), multirow.sty 134; cleveref.sty 2176-2179 via `tectonic -X bundle cat cleveref.sty` (not in the local cache until then).
+- Learnings: `tectonic -X bundle cat <file>` prints any file of the pinned bundle, including packages that are not cached yet. natbib's \citeyear, \citeyearpar and \citenum have no star, and \citetext prints its argument (it is still in the cite family here; nobody has raised it).
+---
+
+## 2026-11-14T23:43Z · T16-02 · resolve
+- Done: Resolved round 8. codex-r8-1 (blocker) fixed after reproducing it: \label[seamless]{} gave the prose "a  b", and \label[lunar]{} dropped lunar from the reviewer's 12-word run; \nocite[x]{y} and \eqref [x]{y} behaved the same. optional_arguments_end read any number of [..] before every argument of every key command and layout environment. It now takes an explicit limit. KEY_OPTIONS gives the options per key as bundle v33 defines them: \documentclass, \usepackage and \RequirePackage 1 (\@fileswithoptions), \bibitem 1, \includegraphics 2 (graphics.sty and graphicx.sty \Gin@ii), \href 1 (hyperref \href[1][]), \definecolor (1, 1, 0), \color 1, \textcolor 1 (xcolor.sty), \multirow (1, 1). The \cite family reads 2 (natbib \NAT@citetp), except \citenum and \citetext, which read none. ENVIRONMENT_ARGUMENTS gives one count per layout argument (tabular and array [pos]{cols}; tabular*, tabularx and tabulary {width}[pos]{cols}; minipage 3; wrapfigure (1, 1); longtable 1; multicols and thebibliography none). Floats read one placement, and TEXT_OPTIONS (renamed from OPTIONS_BEFORE_TEXT) bounds \newcommand to 2 and \multirow to 1 before the text. claude-r8 has no findings, so its file is unchanged. With resolutions removed, the codex-r8 file hashes to the loop's digest (efcbce68..., jq -S). prd.json hashes the same with T16-02 review.state removed, before and after (dff6ed31..., jq -S).
+- Commits: c6eefdd test(t16-02): add failing cases for a bracket after a command without options (codex-r8-1); 9647950 fix(t16-02): read only the optional arguments each command defines (codex-r8-1); chore(ralph): resolve review findings for t16-02
+- Checks: at c6eefdd, 10 extraction cases, the KEY_OPTIONS table test, 2 lint cases and 2 overlap cases failed (test_tex_prose.py failed at import, so its cases were run on a scratch copy without the new import); the 15 guards for options that commands do read passed before and after. `make -C paper check` PASS (ruff check, ruff format --check, mypy --strict: no issues in 12 files). `make -C paper lint` PASS (no findings in 15 .tex files). `make -C paper overlap` PASS (15 .tex files, 0 abstracts, 0 skipped). `make -C paper test` PASS (863 passed). `make -C paper` PASS (numbers, lint, overlap, test, pdf; Tectonic 0.17.0; check_log.py: main.log clean). A fuzz over 56,487 parsed random inputs (key commands, environments, brackets, braces, gaps, comments, stars) and every manuscript file, in both modes, kept the code length, the line counts of code and prose, len(prose_lines) == len(prose), non-decreasing lines and located tokens == tokens(prose). The fuzz script lived in /tmp and is not committed.
+- Docs used: package sources from Tectonic 0.17.0's default bundle (v33) via `tectonic -X bundle cat`: latex.ltx (\ref and \pageref 10837-10838, \label 10850, \minipage 11841-11853, \tabular and \@tabarray 12091-12099, \@float 12942, \bibitem 13274, \cite 13283, \nocite 13310, \documentclass and \RequirePackage 13625-13634), natbib.sty 685-749 (\NAT@citetp; \citenum reads \NAT@citexnum[][]) and 750 (\nocite[1]), hyperref.sty 4660 (\href[1][]) and 4749 (\url), amsmath.sty 1134 (\eqref[1]), xcolor.sty 473-476 and 711-759, graphics.sty 120-133, graphicx.sty 195-200, multirow.sty 134-137, tabularx.sty 52, tabulary.sty 26-30, longtable.sty 89-104, multicol.sty 142-168, wrapfig.sty 40-55, article.cls 565 (thebibliography[1]). Python 3.12.13 standard library; pytest 9.2.0; ruff and mypy as locked.
+- Learnings: see the new Codebase Patterns line. A reader that removes optional arguments must know, per command and position, how many the command reads. An unbounded "skip every [..]" helper removes printed text after any command that reads none.
+---
+
+## 2026-11-15T00:05Z · T16-02 · resolve
+- Done: Round 9. codex-r9-1 fixed: mandatory_argument_end drops the gap after an unbraced control-word argument, so seam\label\empty less prints seamless and lu\label\empty nar gives lunar; a control symbol (\%) and a blank line still separate words. Regressions for extraction (with line count), the banned-word rule and the overlap run. claude-r9-1 rebutted: the scripts/ralph/ralph.sh lines in the diff come from the ralph/tooling merge bb93a4a (151ee09), not from a story commit.
+- Commits: 09ccd2f test(t16-02): add failing cases for the gap after a control word argument (codex-r9-1); 6aa8fe7 fix(t16-02): drop the gap after a control word argument (codex-r9-1); chore(ralph): resolve review findings for t16-02
+- Checks: make -C paper check PASS; make -C paper lint PASS (15 .tex files, no findings); make -C paper overlap PASS; make -C paper test PASS (874 passed); make -C paper PASS (main.log clean).
+- Docs used: none new (TeX tokenizer behaviour as already recorded in Codebase Patterns).
+- Learnings: \ref prints a reference, so lu\ref\empty nar stays two words; only UNPRINTED_KEY_COMMANDS join across. New Codebase Patterns line on control-word arguments.
+---
+
+## 2026-11-15T00:35Z · T16-02 · resolve
+- Done: Round 10. codex-r10-1 (blocker) fixed after reproducing it: lunar\textit*and gave the prose lunarand (11 tokens of the reviewer's 12-word run) and seam\textit*less gave seamless. Pass 2 (_prose_command) and argument_breaks dropped an adjacent * after every command. New `reads_star(name)` in tex_prose.py: a * is part of the command only for STARRED_KEY_COMMANDS and for commands whose definition is not known here (argument_count is None, such as \section), which write a word break anyway. Formatting commands, declarations, accents and no-argument commands keep the * as printed text, as TeX does. claude-r10 has no findings, so its file is unchanged. With resolutions removed, the codex-r10 file hashes to the loop's digest (3361bd80..., jq -S). prd.json hashes the same with T16-02 review.state removed, before and after (52eb1e93..., jq -S).
+- Commits: e1f78e9 test(t16-02): add failing cases for a star after a formatting command (codex-r10-1); b4ce6b6 fix(t16-02): keep a star after a command without a starred form (codex-r10-1); chore(ralph): resolve review findings for t16-02
+- Checks: 8 new cases failed at e1f78e9 (6 extraction, 1 banned-word pass, 1 overlap run); "seam\emph *less" and "seam\emph\n*less" passed before and after (the gap already separated them) and stay as guards. `make -C paper check` PASS (mypy --strict: no issues in 12 files). `make -C paper lint` PASS (no findings in 15 .tex files). `make -C paper overlap` PASS (15 .tex files, 0 abstracts, 0 skipped). `make -C paper test` PASS (886 passed). `make -C paper` PASS (check_log.py: main.log clean). A fuzz over 160,846 parsed random inputs (formatting commands, declarations, accents, \section, key commands, stars, groups, gaps, comments) and every manuscript file kept the code length, the line counts of code and prose, len(prose_lines) == len(prose), non-decreasing lines and located tokens == tokens(prose). The fuzz script lived in /tmp and is not committed.
+- Docs used: none new (\@ifstar in latex.ltx, bundle v33, as recorded in round 6 and 7).
+- Learnings: a star check belongs to the command's definition, not to the position. Any reader that skips a * after a control word must ask reads_star(name).
+---
+
+## 2026-11-15T01:05Z · T16-02 · resolve
+- Done: Round 11. codex-r11-1 (blocker) fixed after reproducing it: \verb |x y| took the space as the delimiter and left y| in the prose, so it split the reviewer's 12-word run and \verb |x seamless| raised a banned-word finding. verb_end skips tabs before the star and spaces and tabs before the delimiter, as latex.ltx \verb and \@sverb do. claude-r11 has no findings, so its file is unchanged. With resolutions removed, the codex-r11 file hashes to the loop's digest (5aeb34a5..., jq -S) before and after.
+- Commits: 1c888fc test(t16-02): add failing cases for spaces before a verb delimiter (codex-r11-1); a9094e5 fix(t16-02): skip spaces before a verb delimiter (codex-r11-1); chore(ralph): resolve review findings for t16-02
+- Checks: 12 new cases failed at 1c888fc (7 extraction, 1 line-count, 3 lint, 1 overlap run); the unclosed cases passed before and after. `make -C paper check` PASS (mypy --strict: no issues in 12 files). `make -C paper lint` PASS (no findings in 15 .tex files). `make -C paper overlap` PASS (15 .tex files, 0 abstracts, 0 skipped). `make -C paper test` PASS (902 passed). `make -C paper` PASS (check_log.py: main.log clean).
+- Docs used: latex.ltx from Tectonic 0.17.0 bundle v33 (`tectonic -X bundle cat latex.ltx`, lines 11086-11112).
+- Learnings: new Codebase Patterns line on \verb delimiters.
+---
