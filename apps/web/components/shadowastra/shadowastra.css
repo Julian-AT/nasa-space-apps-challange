@@ -128,7 +128,7 @@ input[type="range"].range:active::-webkit-slider-thumb {
   font-family: var(--font-sans);
 }
 .leaflet-control-attribution {
-  background: rgb(7 8 10 / 0.75) !important;
+  background: color-mix(in oklab, var(--card) 80%, transparent) !important;
   color: var(--color-dim) !important;
   font-size: 10px !important;
 }
@@ -136,7 +136,7 @@ input[type="range"].range:active::-webkit-slider-thumb {
   color: var(--color-chrome) !important;
 }
 .leaflet-bar a {
-  background: rgb(16 17 20 / 0.92) !important;
+  background: color-mix(in oklab, var(--card) 92%, transparent) !important;
   color: var(--color-platinum) !important;
   border-color: var(--color-line) !important;
 }
@@ -144,7 +144,7 @@ input[type="range"].range:active::-webkit-slider-thumb {
   border: 1px solid var(--color-line) !important;
 }
 .leaflet-tooltip.sa-tip {
-  background: rgb(11 12 15 / 0.94);
+  background: color-mix(in oklab, var(--popover) 94%, transparent);
   color: var(--color-platinum);
   border: 1px solid var(--color-line-2);
   border-radius: 6px;
@@ -167,7 +167,7 @@ input[type="range"].range:active::-webkit-slider-thumb {
   inset: 5px;
   border-radius: 999px;
   background: var(--pin);
-  box-shadow: 0 0 0 2px rgb(7 8 10 / 0.9);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--background) 90%, transparent);
 }
 .sa-pin .ring {
   position: absolute;
@@ -181,7 +181,7 @@ input[type="range"].range:active::-webkit-slider-thumb {
 }
 .sa-pin.active .core {
   inset: 4px;
-  background: #fff;
+  background: var(--foreground);
 }
 .sa-pin.active .ring {
   animation: pin-breathe 2.8s var(--ease-out-quint) infinite;

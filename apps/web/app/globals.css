@@ -8,7 +8,7 @@
 /*
  ---break---
  */
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark *, [data-theme="dark"] *));
 
 /*
  * Terraluna design tokens (PRD 8.2, 8.10, D35). Dark "observatory" theme, adapted from the
@@ -25,20 +25,12 @@
 @source "../lib/shadowastra-atlas";
 
 :root {
-  color-scheme: dark;
-  /* ShadowAstra "observatory" palette (void to platinum); the shadcn tokens below point at it. */
-  --void: #07080a;
-  --ink: #0b0c0f;
-  --panel: #101114;
-  --panel-2: #16171b;
-  --line-2: #2f3035;
-  --platinum: #edeae4;
-  --chrome: #a8a59e;
-  --dim: #8a8882;
-  --flare: #f2c879;
-  --moon: #c9c5bc;
-  --mars: #e08a5f;
-  --earth: #8fb4ea;
+  color-scheme: light;
+  /* World accents (light theme values; .dark overrides). Legacy void/panel/line/platinum/chrome/
+     flare follow the shadcn variables, see the mapping block at the end of this file. */
+  --moon: #6d685d;
+  --mars: #9c4523;
+  --earth: #2d62ad;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -55,32 +47,30 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  /* Decorative hairlines only (card chrome, dividers); never the sole boundary of a control. */
-  --line: #2a2b31;
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: #07080a;
+  --destructive-foreground: oklch(0.985 0 0);
   /* Mock-bundle banner (PRD 8.4, 8.6): shown only when manifest.mock is true. */
   --mock: #b91c1c;
   --mock-foreground: #ffffff;
 
   /* Evidence labels (PRD 3): text colour on a 15% tint of itself over the card. */
-  --evidence-observed: #8fb4ea;
-  --evidence-derived: #7cc8a0;
-  --evidence-predicted: #b7aee3;
-  --evidence-assumed: #e3b35e;
-  --evidence-unavailable: #a8a59e;
+  --evidence-observed: #2d62ad;
+  --evidence-derived: #22694a;
+  --evidence-predicted: #6858a6;
+  --evidence-assumed: #7d540c;
+  --evidence-unavailable: #55514a;
 
   /* Gate statuses (PRD 9): always shown with their literal text. */
-  --status-pass: #7cc8a0;
-  --status-fail: #f08a74;
-  --status-partial: #e3b35e;
-  --status-not-run: #a8a59e;
-  --status-not-applicable: #8fb4ea;
+  --status-pass: #22694a;
+  --status-fail: #9e3520;
+  --status-partial: #7d540c;
+  --status-not-run: #55514a;
+  --status-not-applicable: #2d62ad;
 
   /* Worlds, used for map and card accents only. */
-  --world-moon: #c9c5bc;
-  --world-mars: #e08a5f;
-  --world-earth: #8fb4ea;
+  --world-moon: #6d685d;
+  --world-mars: #9c4523;
+  --world-earth: #2d62ad;
 
   --radius: 0.625rem;
 
@@ -115,88 +105,6 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-/*
- * Light theme, ported from ShadowAstra_Atlas's warm-paper palette (styles.css [data-theme="light"]).
- * Dark stays the default; the header toggle sets html[data-theme="light"] and remembers it in
- * localStorage ("sa-theme"). Same token names, so every existing class keeps working.
- */
-[data-theme="light"] {
-  color-scheme: light;
-  --void: #f3efe6;
-  --ink: #ebe5d9;
-  --panel: #fbf8f2;
-  --panel-2: #f2ede3;
-  --line-2: #c9c0ae;
-  --platinum: #1c1a16;
-  --chrome: #55514a;
-  --dim: #6a665e;
-  --flare: #8f5414;
-  --moon: #6d685d;
-  --mars: #9c4523;
-  --earth: #2d62ad;
-
-  --background: #f3efe6;
-  --foreground: #1c1a16;
-  --card: #fbf8f2;
-  --card-foreground: #1c1a16;
-  --popover: #fbf8f2;
-  --popover-foreground: #1c1a16;
-  --primary: #8f5414;
-  --primary-foreground: #fbf8f2;
-  --secondary: #f2ede3;
-  --secondary-foreground: #1c1a16;
-  --muted: #ebe5d9;
-  --muted-foreground: #55514a;
-  --accent: #e4ddcf;
-  --accent-foreground: #1c1a16;
-  --border: #857f72;
-  --input: #857f72;
-  --ring: #8f5414;
-  --line: #dcd5c7;
-  --destructive: #9e3520;
-  --destructive-foreground: #fbf8f2;
-
-  --evidence-observed: #2d62ad;
-  --evidence-derived: #22694a;
-  --evidence-predicted: #6858a6;
-  --evidence-assumed: #7d540c;
-  --evidence-unavailable: #55514a;
-
-  --status-pass: #22694a;
-  --status-fail: #9e3520;
-  --status-partial: #7d540c;
-  --status-not-run: #55514a;
-  --status-not-applicable: #2d62ad;
-
-  --world-moon: #6d685d;
-  --world-mars: #9c4523;
-  --world-earth: #2d62ad;
-}
-/* Space scenes (full-bleed globe and map views) and the splash keep the dark palette, as in
-   ShadowAstra, where space scenes are wrapped in data-theme="dark". */
-[data-theme="light"] [data-theme="dark"],
-[data-theme="light"] [data-full-bleed] {
-  color-scheme: dark;
-  --void: #07080a;
-  --ink: #0b0c0f;
-  --panel: #101114;
-  --panel-2: #16171b;
-  --line-2: #2f3035;
-  --platinum: #edeae4;
-  --chrome: #a8a59e;
-  --dim: #8a8882;
-  --flare: #f2c879;
-  --background: #07080a;
-  --foreground: #edeae4;
-  --line: #2a2b31;
-  --muted-foreground: #a8a59e;
-  --border: #6b6962;
-  color: var(--foreground);
-}
-html[data-theme="light"] body::before {
-  opacity: 0.07;
-  mix-blend-mode: multiply;
-}
 html {
   transition: background-color 0.4s ease;
 }
@@ -319,8 +227,8 @@ html {
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--flare) 35%, transparent);
-    color: #fff;
+    background: color-mix(in oklab, var(--primary) 30%, transparent);
+    color: var(--foreground);
   }
 
   /* One visible focus indicator for every focusable element; components must not hide it. */
@@ -432,7 +340,7 @@ html {
       var(--panel);
     box-shadow:
       inset 0 1px 0 color-mix(in oklab, var(--platinum) 5%, transparent),
-      0 26px 44px -34px rgb(0 0 0 / 0.75);
+      0 26px 44px -34px color-mix(in oklab, var(--foreground) 30%, transparent);
     transition:
       border-color 0.4s var(--ease-out-quint),
       transform 0.5s var(--ease-out-quint);
@@ -531,7 +439,28 @@ html {
 /*
  ---break---
  */
-.dark:not([data-theme="light"]) {
+/* Dark theme: html.dark (set by the theme script in app/layout.tsx), and nested
+   data-theme="dark" scopes for the intentionally dark space scenes (heroes, splash). */
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --moon: #c9c5bc;
+  --mars: #e08a5f;
+  --earth: #8fb4ea;
+  --destructive-foreground: oklch(0.145 0 0);
+  --evidence-observed: #8fb4ea;
+  --evidence-derived: #7cc8a0;
+  --evidence-predicted: #b7aee3;
+  --evidence-assumed: #e3b35e;
+  --evidence-unavailable: #a8a59e;
+  --status-pass: #7cc8a0;
+  --status-fail: #f08a74;
+  --status-partial: #e3b35e;
+  --status-not-run: #a8a59e;
+  --status-not-applicable: #8fb4ea;
+  --world-moon: #c9c5bc;
+  --world-mars: #e08a5f;
+  --world-earth: #8fb4ea;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -568,7 +497,8 @@ html {
  * shadcn preset b2W4NKwNs: the Terraluna and ShadowAstra tokens follow the preset's semantic
  * variables, so every page (including the ported ShadowAstra pages) uses one palette.
  */
-:root {
+:root,
+[data-theme] {
   --void: var(--background);
   --ink: var(--background);
   --panel: var(--card);
@@ -580,7 +510,21 @@ html {
   --dim: var(--muted-foreground);
   --flare: var(--primary);
 }
+/* Accent text: the preset primary is too dark for text on dark surfaces, so use its light tint. */
+.dark,
+[data-theme="dark"] {
+  --flare: oklch(0.74 0.19 322);
+}
+[data-theme="dark"] {
+  color: var(--foreground);
+}
 
 /* Clean shadcn surface: no film grain, no decorative page gradients. */
 body::before { display: none !important; }
 .bg-observatory { background-image: none !important; background-color: var(--background); }
+
+/* The preset's dark primary is a fill colour (buttons, badges); as text on a dark surface it is
+   too dim, so primary-coloured text uses the light accent tint in dark scopes. */
+:is(.dark, [data-theme="dark"]) .text-primary {
+  color: var(--flare);
+}

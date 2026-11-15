@@ -364,7 +364,7 @@ export default function Find({ probe }: { probe: TerralunaProbeProps }) {
 function StartScreen({ onPreset, onBuild }: { onPreset: (p: (typeof PRESETS)[number]) => void; onBuild: () => void }) {
   const still = useMotionReduced(); // Motion's own reduced mode leaves background loops running
   return (
-    <section data-theme="dark" className="relative overflow-hidden bg-void">
+    <section className="relative overflow-hidden bg-void">
       <div className="relative mx-auto max-w-[1180px] px-4 pt-20 pb-24 sm:px-6 md:pt-28">
         <div className="flex flex-col items-center text-center">
           <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: EASE, delay: 0.1 }} className="mt-6 text-4xl sm:text-5xl leading-[0.98] font-medium tracking-[-0.045em] text-platinum">

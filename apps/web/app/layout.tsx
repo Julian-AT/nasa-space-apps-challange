@@ -15,6 +15,7 @@ import { SiteChrome } from '../components/shadowastra/chrome/SiteChrome.tsx';
 import { MockBanner } from '../components/mock-banner.tsx';
 import { SiteFooter } from '../components/site-footer.tsx';
 import { SiteHeader } from '../components/site-header.tsx';
+import { THEME_SCRIPT } from '../components/theme-toggle.tsx';
 import { MAIN_ID, SkipLink } from '../components/skip-link.tsx';
 import { loadBundle } from '../lib/bundle.ts';
 import { SITE_TITLE } from '../lib/shell.ts';
@@ -49,8 +50,12 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     <html
       lang="en"
       suppressHydrationWarning
-      className={`dark ${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}
+      className={`${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}
     >
+      <head>
+        {/* Applies the stored or system theme before first paint (components/theme-toggle.tsx). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-dvh bg-background text-foreground antialiased">
         <SkipLink />
         <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">

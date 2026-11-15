@@ -14,6 +14,7 @@ import { type ComponentProps, useState } from 'react';
 import { openPalette } from '@/components/shadowastra/chrome/CommandPalette';
 import { Button } from '@/components/ui/button';
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from '@/components/ui/navigation-menu';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
@@ -161,6 +162,7 @@ function HeaderActions() {
         <span className="hidden sm:inline">Search</span>
         <kbd className="hidden rounded border bg-muted px-1.5 font-mono text-[10px] sm:inline">Ctrl K</kbd>
       </Button>
+      <ThemeToggle />
       <Button variant="ghost" size="icon" asChild>
         <a href={REPO_URL} target="_blank" rel="noreferrer" aria-label="Terraluna on GitHub" title="GitHub">
           <HugeiconsIcon icon={GithubIcon} strokeWidth={2} />

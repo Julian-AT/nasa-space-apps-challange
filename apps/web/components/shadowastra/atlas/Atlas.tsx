@@ -759,7 +759,7 @@ function Panel({ side, open, onToggle, label, children }: { side: "left" | "righ
       <aside
         style={{ ["--px" as string]: left ? "-24px" : "24px" }}
         className={clsx(
-          "scrollbar-thin relative z-[700] border-line bg-void transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:absolute lg:top-4 lg:bottom-4 lg:overflow-y-auto lg:rounded-3xl lg:border lg:bg-panel/80 lg:shadow-[0_40px_120px_-40px_rgba(0,0,0,0.85)] lg:backdrop-blur-xl",
+          "scrollbar-thin relative z-[700] border-line bg-void transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:absolute lg:top-4 lg:bottom-4 lg:overflow-y-auto lg:rounded-3xl lg:border lg:bg-card lg:shadow-2xl",
           left ? "lg:left-4 lg:w-[304px]" : "lg:right-4 lg:w-[384px]",
           !open && "lg:pointer-events-none lg:translate-x-[var(--px)] lg:opacity-0",
         )}
