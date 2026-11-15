@@ -388,7 +388,7 @@ export function Toaster() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.35, ease: EASE }}
-            className="glass pointer-events-auto flex items-center gap-2 rounded-full px-4 py-2 text-[13px] text-platinum"
+            className="pointer-events-auto flex items-center gap-2 rounded-lg border bg-popover px-4 py-2 text-[13px] text-popover-foreground shadow-md"
           >
             {t.tone === "ok" ? <Check size={14} className="text-strong" /> : <Info size={14} className="text-flare" />}
             {t.text}
@@ -430,7 +430,7 @@ export function BackToTop() {
           transition={{ duration: 0.3, ease: EASE }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="Back to top"
-          className="glass fixed right-5 bottom-24 z-[800] grid size-11 place-items-center rounded-full text-platinum max-md:bottom-24"
+          className="fixed right-5 bottom-24 z-[800] grid size-11 place-items-center rounded-full border bg-background text-foreground shadow-md max-md:bottom-24"
         >
           <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90" aria-hidden>
             <circle cx="22" cy="22" r="19" fill="none" style={{ stroke: "var(--color-flare)" }} strokeWidth="1.5" strokeDasharray={C} strokeDashoffset={C * (1 - p)} strokeLinecap="round" />

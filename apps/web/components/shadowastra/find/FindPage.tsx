@@ -548,7 +548,7 @@ function CityPicker({ grid, value, onChange }: { grid: Grid | null; value: strin
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="glass absolute top-full left-0 z-30 mt-2 w-[280px] rounded-2xl p-2">
+          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute top-full left-0 z-30 mt-2 w-[280px] rounded-xl border bg-popover p-2 text-popover-foreground shadow-md">
             <div className="flex items-center gap-2 rounded-xl border border-line-2 bg-ink px-3 py-1.5">
               <Search size={13} className="text-dim" />
               <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={grid ? "Type a city" : "Loading places…"} className="min-w-0 flex-1 bg-transparent py-1 text-[13px] text-platinum outline-none placeholder:text-dim" aria-label="Home city" />
@@ -605,7 +605,7 @@ function NeedsStep({ m, update, grid, screening, onSearch, onBack }: { m: Missio
     : [];
   return (
     <div>
-      <StepTitle kicker="Step 3 of 3" title="What does your team need?" text="Change the orange words." />
+      <StepTitle kicker="Step 3 of 3" title="What does your team need?" text="Tap a highlighted word to change it." />
       <div className="surface mt-5 rounded-2xl p-6 text-[15.5px] leading-[2.1] text-platinum">
         My team is based in <CityPicker grid={grid} value={m.home.name} onChange={(home) => update({ home })} /> and can travel{" "}
         <Pick label="Maximum distance" value={m.maxKm} options={DISTANCES.map((d) => ({ v: d.km, label: d.km === null ? d.label : `up to ${d.label}` }))} onChange={(v) => update({ maxKm: v })} />. We plan to go in{" "}
@@ -765,7 +765,7 @@ function PanelLoading({ progress }: { progress: number }) {
 function StageLegend({ step, range, m }: { step: StepId; range: { lo: number; hi: number } | null; m: Mission }) {
   return (
     <div className="pointer-events-none absolute top-4 right-4 z-10 hidden w-[250px] xl:block">
-      <div className="glass rounded-xl p-3 text-[11px] text-chrome">
+      <div className="rounded-xl border bg-card/95 p-4 text-xs text-card-foreground shadow-xs backdrop-blur-md">
         {step === "needs" ? (
           <>
             <div className="flex items-center gap-2">
@@ -773,17 +773,17 @@ function StageLegend({ step, range, m }: { step: StepId; range: { lo: number; hi
             </div>
             <div className="mt-1.5 flex items-center gap-2">
               <span className="size-2.5 rounded-full border-2 border-flare" /> {m.home.name}
-              {m.maxKm !== null && <span className="text-dim">· dashed ring = {m.maxKm.toLocaleString()} km</span>}
+              {m.maxKm !== null && <span className="text-muted-foreground">· dashed ring = {m.maxKm.toLocaleString()} km</span>}
             </div>
           </>
         ) : (
           <>
             <div className="flex justify-between">
               <span>Match score</span>
-              <span className="font-mono text-dim">grey = ruled out</span>
+              <span className="text-muted-foreground">grey = ruled out</span>
             </div>
             <div className="mt-2 h-2 rounded-full" style={{ background: RAMP_CSS }} />
-            <div className="mt-1 flex justify-between font-mono text-[10px] text-dim">
+            <div className="mt-1 flex justify-between text-[11px] text-muted-foreground tabular-nums">
               <span>{range ? range.lo.toFixed(2) : "…"}</span>
               <span>{range ? `${range.hi.toFixed(2)} and above` : "…"}</span>
             </div>
@@ -803,13 +803,13 @@ function ScanCounters({ total, pass, found }: { total: number; pass: number; fou
   ];
   return (
     <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.4, ease: EASE }} className="pointer-events-none absolute inset-x-0 top-6 z-20 flex justify-center xl:top-auto xl:bottom-10 xl:left-[480px]">
-      <div className="glass flex items-center gap-6 rounded-2xl px-6 py-4">
+      <div className="flex items-center gap-6 rounded-xl border bg-card/95 px-6 py-4 text-card-foreground shadow-md backdrop-blur-md">
         {items.map((it, i) => (
           <motion.div key={it.l} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.7, duration: 0.5, ease: EASE }} className="text-center">
-            <div className="font-mono text-[28px] leading-none font-light text-platinum">
+            <div className="text-[28px] leading-none font-semibold tracking-tight tabular-nums text-foreground">
               <Counter value={it.n} duration={0.9} />
             </div>
-            <div className="mt-1 text-[11px] text-chrome">{it.l}</div>
+            <div className="mt-1 text-xs text-muted-foreground">{it.l}</div>
           </motion.div>
         ))}
       </div>
