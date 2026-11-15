@@ -754,6 +754,340 @@ def run_g4(root: Path, target_id: str, argv: Sequence[str]) -> int:
     return EXIT_OK
 
 
+# --- Appendix A II (T6-08): Mars QA, Earth groups, cross-body overlap ------------------------
+
+QA_SD_THRESHOLDS_M: Final = (5.0, 8.0, 10.0, 20.0)
+"""CTX-MOLA standard-deviation thresholds tried (choice); the pipeline uses 10 m (G0-06)."""
+PIPELINE_QA_SD_M: Final = 10.0
+VALID_FRACTION_THRESHOLDS: Final = (0.8, 0.9, 0.95)
+OVERLAP_BINS: Final = 20
+"""Overlap coefficient bins: 20 equal-width bins over the pooled range of the pair, with
+under- and overflow bins (holuhraun.overlap_coefficient); an engineering choice."""
+_DESCRIPTORS_MAIN: Final = (
+    "relief.nu_m@270",
+    "relief.nu_m@1080",
+    "texture.nu_m@270",
+    "texture.nu_m@1080",
+    "relief.H",
+    "texture.H",
+)
+
+
+def window_rows(entries: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    """One row per window: id, status, group, grid position and descriptors (None = missing)."""
+    rows = []
+    for entry in entries:
+        window = entry["window"]
+        terrain = (entry.get("terrain") or {}).get("terrain")
+        descriptors: dict[str, float | None] = {}
+        if terrain is not None:
+            for key, name in (("relief", "relief"), ("texture", "texture")):
+                variant = terrain[key]
+                for lag, nu in variant["nu_m"].items():
+                    descriptors[f"{name}.nu_m@{float(lag):g}"] = nu
+                descriptors[f"{name}.H"] = variant["hurst"]
+            descriptors["valid_fraction"] = terrain.get("valid_fraction")
+        flags = window.get("environment_flags") or {}
+        group = flags.get("search_region_id") or str(window["product_ids"][0]).split("/")[2]
+        rows.append(
+            {
+                "window_id": window["window_id"],
+                "status": entry["status"],
+                "reasons": list(entry["reasons"]),
+                "group": group,
+                "position": tuple(entry.get("grid_index") or (0, 0)),
+                "fractions": window.get("valid_fraction_by_observable") or {},
+                "descriptors": descriptors,
+            }
+        )
+    return rows
+
+
+def _layout(rows: Sequence[Mapping[str, Any]], gap: int) -> list[tuple[int, int]]:
+    """Grid positions with each group placed in its own block of the grid, ``gap`` apart, so the
+    block bootstrap never joins windows of different groups into one block."""
+    out: list[tuple[int, int]] = []
+    offsets: dict[str, int] = {}
+    mins: dict[str, tuple[int, int]] = {}
+    for row in rows:
+        g = row["group"]
+        x, y = row["position"]
+        mx, my = mins.get(g, (x, y))
+        mins[g] = (min(mx, x), min(my, y))
+    cursor = 0
+    for g in sorted(mins):
+        offsets[g] = cursor
+        width = max(r["position"][0] - mins[g][0] for r in rows if r["group"] == g) + 1
+        cursor += width + gap
+    for row in rows:
+        g = row["group"]
+        x, y = row["position"]
+        out.append((y - mins[g][1], x - mins[g][0] + offsets[g]))
+    return out
+
+
+def rows_distribution(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """body_distribution over eligible rows, groups kept apart for the block bootstrap."""
+    eligible = [r for r in rows if r["status"] == "eligible"]
+    if not eligible:
+        return {"status": "unavailable", "reason": "no_eligible_window"}
+    positions = _layout(eligible, gap=BOOTSTRAP_BLOCK)
+    return {
+        "status": "available",
+        "n_windows": len(eligible),
+        "groups": sorted({r["group"] for r in eligible}),
+        "descriptors": body_distribution(
+            [r["descriptors"] for r in eligible],
+            positions,
+            block=BOOTSTRAP_BLOCK,
+            replicates=BOOTSTRAP_REPLICATES,
+            seed=BOOTSTRAP_SEED,
+        ),
+    }
+
+
+def _values(rows: Sequence[Mapping[str, Any]], name: str) -> list[float]:
+    transform = math.log if ".nu_m@" in name else float
+    return [
+        transform(v)
+        for r in rows
+        if r["status"] == "eligible" and (v := r["descriptors"].get(name)) is not None
+    ]
+
+
+def cross_body_overlap(samples: Mapping[str, Sequence[Mapping[str, Any]]]) -> dict[str, Any]:
+    """Overlap coefficient per terrain descriptor for each pair of bodies (T6-05 definition)."""
+    from terraluna_pipeline.holuhraun import overlap_coefficient
+
+    bodies = sorted(samples)
+    names = sorted(
+        {
+            n
+            for rows in samples.values()
+            for r in rows
+            for n in r["descriptors"]
+            if n != "valid_fraction"
+        }
+    )
+    pairs: dict[str, Any] = {}
+    for i, a in enumerate(bodies):
+        for b in bodies[i + 1 :]:
+            entry: dict[str, Any] = {}
+            for name in names:
+                va, vb = _values(samples[a], name), _values(samples[b], name)
+                key = f"log_{name}" if ".nu_m@" in name else name
+                if not va or not vb:
+                    entry[key] = {
+                        "status": "unavailable",
+                        "reason": "no_values",
+                        "n": [len(va), len(vb)],
+                    }
+                    continue
+                lo, hi = min(min(va), min(vb)), max(max(va), max(vb))
+                if hi == lo:
+                    hi = lo + 1.0
+                edges = np.linspace(lo, hi, OVERLAP_BINS + 1)
+                entry[key] = {
+                    "status": "available",
+                    "overlap_coefficient": overlap_coefficient(va, vb, edges=edges),
+                    "n": [len(va), len(vb)],
+                    "median": [float(np.median(va)), float(np.median(vb))],
+                }
+            pairs[f"{a}|{b}"] = entry
+    return pairs
+
+
+def _qa_sd(path: Path) -> float | None:
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if line.strip().startswith("StdDev of difference:"):
+            return float(line.split(":", 1)[1].split()[0])
+    return None
+
+
+def qa_threshold_scan(
+    rows: Sequence[Mapping[str, Any]],
+    sd_by_group: Mapping[str, float | None],
+    thresholds: Sequence[float],
+) -> list[dict[str, Any]]:
+    """Distributions after dropping every DTM whose CTX-MOLA SD exceeds each threshold."""
+    out = []
+    eligible = [r for r in rows if r["status"] == "eligible"]
+    for threshold in thresholds:
+        kept = [
+            r
+            for r in eligible
+            if (sd := sd_by_group.get(r["group"])) is not None and sd <= threshold
+        ]
+        entry: dict[str, Any] = {
+            "threshold_m": threshold,
+            "n_windows": len(kept),
+            "n_lost": len(eligible) - len(kept),
+        }
+        if not kept:
+            entry.update(status="unavailable", reason="threshold_removes_all_windows")
+        else:
+            entry["status"] = "available"
+            entry["descriptors"] = {
+                (f"log_{n}" if ".nu_m@" in n else n): (
+                    _summary(v) | {"n": len(v)} if (v := _values(kept, n)) else None
+                )
+                for n in _DESCRIPTORS_MAIN
+            }
+        out.append(entry)
+    return out
+
+
+def valid_fraction_scan(rows: Sequence[Mapping[str, Any]], key: str) -> list[dict[str, Any]]:
+    """Distributions for each valid-fraction threshold over all generated windows."""
+    out = []
+    measured = [r for r in rows if r["descriptors"]]
+    # A window below the T3 valid-fraction minimum has no measured values at all.
+    for threshold in VALID_FRACTION_THRESHOLDS:
+        kept = [
+            dict(r, status="eligible")
+            for r in measured
+            if (r["fractions"].get(key) or 0.0) >= threshold
+            and any(v is not None for v in r["descriptors"].values())
+        ]
+        out.append(
+            {
+                "valid_fraction_min": threshold,
+                "n_windows": len(kept),
+                "n_lost": len(measured) - len(kept),
+                "descriptors": {
+                    (f"log_{n}" if ".nu_m@" in n else n): (
+                        _summary(v) | {"n": len(v)} if (v := _values(kept, n)) else None
+                    )
+                    for n in _DESCRIPTORS_MAIN
+                },
+            }
+        )
+    return out
+
+
+def run_bodies(root: Path, windows_dir: Path, ctx_dir: Path | None, argv: Sequence[str]) -> int:
+    """analysis/a2_*.json: Mars QA, Earth groups and cross-body overlap from real windows."""
+    from terraluna_pipeline.provenance import command_line, config_version
+
+    config_path = root / "config" / "run.yaml"
+    files = {b: windows_dir / f"{b}.json" for b in ("moon", "mars", "earth")}
+    present = {b: p for b, p in files.items() if p.is_file()}
+    if not present:
+        print(f"blocked: no windows/<body>.json under {windows_dir}")
+        return EXIT_BLOCKED
+    rows = {b: window_rows(json.loads(p.read_text(encoding="utf-8"))) for b, p in present.items()}
+    uncommitted = {f"{windows_dir.name}/{p.name}": _sha256(p) for p in present.values()}
+    common = {
+        "command": command_line("terraluna_pipeline.checks", argv),
+        "config_version": config_version(config_path),
+        "input_hashes": _hash_entries(root, [config_path]),
+        "uncommitted_inputs_sha256": uncommitted,
+        "windows_source": "T5 search windows/<body>.json (data/processed, not committed); "
+        "sha256 recorded",
+        "log_base": LOG_BASE,
+        "evidence_label": "Derived",
+    }
+    # Cross-body overlap.
+    _write(
+        root / "analysis" / "a2_cross_body_overlap.json",
+        {
+            **common,
+            "record_type": "terraluna appendix A cross-body overlap in fingerprint space",
+            "definition": "overlap coefficient sum_i min(p_i, q_i) of histograms on common bins "
+            "(holuhraun.overlap_coefficient, the T6-05 definition); "
+            f"{OVERLAP_BINS} equal-width bins over the pooled range of each pair",
+            "families": "terrain only; radar_cpr Unavailable (Mode C: no pair passes "
+            "qualify_pair); distances in different bodies' frames are never mixed in a metric",
+            "terrain": cross_body_overlap(rows),
+            "radar_cpr": {"status": "unavailable", "reason": "shipping_mode_c_radar_not_completed"},
+            "embedding_space": {
+                "with_gradient_reversal": {"status": "unavailable", "reason": "T12 not run"},
+                "without_gradient_reversal": {"status": "unavailable", "reason": "T12 not run"},
+            },
+            "sample_note": "Moon: 25 overlapping Site01 windows; Mars: windows of the CTX DTMs "
+            "the search read; Earth: the configured search regions. Small, non-independent "
+            "samples; overlap describes these samples only.",
+            "bodies": {b: rows_distribution(r) | {"n_generated": len(r)} for b, r in rows.items()},
+        },
+    )
+    # Mars QA.
+    mars: dict[str, Any] = {"status": "not_run", "reason": "no mars windows"}
+    if "mars" in rows:
+        groups = sorted({r["group"] for r in rows["mars"]})
+        sd: dict[str, float | None] = {}
+        raw: dict[str, str] = {}
+        for g in groups:
+            path = None if ctx_dir is None else ctx_dir / g / "qa_metrics.txt"
+            if path is not None and path.is_file():
+                sd[g] = _qa_sd(path)
+                raw[f"ctx_dtm/{g}/qa_metrics.txt"] = _sha256(path)
+            else:
+                sd[g] = None
+        mars = {
+            "dtm_ctx_mola_sd_m": sd,
+            "raw_inputs_sha256": raw,
+            "pipeline_threshold_m": PIPELINE_QA_SD_M,
+            "threshold_list_m": list(QA_SD_THRESHOLDS_M),
+            "qa_threshold_scan": qa_threshold_scan(rows["mars"], sd, QA_SD_THRESHOLDS_M),
+            "valid_fraction_scan": valid_fraction_scan(rows["mars"], "dem_90m"),
+            "rejected_by_reason": _reason_counts(rows["mars"]),
+            "kreslavsky_head_2000": {
+                "status": "unavailable",
+                "reason": "published values not yet read",
+            },
+        }
+    _write(
+        root / "analysis" / "a2_mars_ctx_qa.json",
+        {**common, "record_type": "terraluna appendix A Mars CTX QA effect", "mars": mars},
+    )
+    earth: dict[str, Any] = {"status": "not_run", "reason": "no earth windows"}
+    if "earth" in rows:
+        by_region = {
+            g: rows_distribution([r for r in rows["earth"] if r["group"] == g])
+            for g in sorted({r["group"] for r in rows["earth"]})
+        }
+        snow = [r for r in rows["earth"] if (r["fractions"].get("worldcover_snow_ice") or 0.0) > 0]
+        earth = {
+            "by_declared_region": by_region,
+            "by_worldcover_class": {
+                "status": "unavailable",
+                "reason": "per-window dominant WorldCover class not recorded in windows/earth.json "
+                "(only allowed, snow_ice and water fractions)",
+            },
+            "windows_with_snow_ice": {"n": len(snow)},
+            "by_climate_zone": {
+                "status": "unavailable",
+                "reason": "no climate-zone product pinned",
+            },
+            "surface_model_mask_effect": {
+                "status": "unavailable",
+                "reason": "no surface-model (DSM vegetation and building) mask is defined",
+            },
+            "regions_vs_global_background": {
+                "status": "unavailable",
+                "reason": "the global background sample (T5, ANA-02 n = 1000) is not in the "
+                "search outputs read; an empirical background comparison, not a physical truth "
+                "test, once it exists",
+            },
+            "rejected_by_reason": _reason_counts(rows["earth"]),
+            "pilot_label": "each declared region is one contiguous area of overlapping windows, "
+            "so it is a pilot sample, not independent groups (PRD 9)",
+        }
+    _write(
+        root / "analysis" / "a2_earth_groups.json",
+        {**common, "record_type": "terraluna appendix A Earth groups", "earth": earth},
+    )
+    return EXIT_OK
+
+
+def _reason_counts(rows: Sequence[Mapping[str, Any]]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        for reason in row["reasons"]:
+            counts[reason] = counts.get(reason, 0) + 1
+    return dict(sorted(counts.items()))
+
+
 # --- verify-records ----------------------------------------------------------------------------
 
 
@@ -846,7 +1180,7 @@ def _clone_records(root: Path) -> list[tuple[Path, dict[str, Any]]]:
     return records
 
 
-def run_moon_distributions(root: Path, argv: Sequence[str]) -> int:
+def run_moon_distributions(root: Path, argv: Sequence[str], windows_dir: Path | None = None) -> int:
     """analysis/a1_body_distributions.json and a1_target_percentiles.json from real artifacts."""
     from terraluna_pipeline.config import load_run_config
     from terraluna_pipeline.provenance import command_line, config_version
@@ -873,6 +1207,20 @@ def run_moon_distributions(root: Path, argv: Sequence[str]) -> int:
         rows.append(row)
         positions.append(position[window_id])
         per_window[window_id] = spread
+    other_bodies: dict[str, Any] = {}
+    other_hashes: dict[str, str] = {}
+    for body in ("earth", "mars"):
+        path = None if windows_dir is None else windows_dir / f"{body}.json"
+        if path is None or not path.is_file():
+            other_bodies[body] = {"status": "not_run", "reason": "t5_search_outputs_not_available"}
+            continue
+        body_rows = window_rows(json.loads(path.read_text(encoding="utf-8")))
+        other_bodies[body] = rows_distribution(body_rows) | {
+            "n_generated": len(body_rows),
+            "rejected_by_reason": _reason_counts(body_rows),
+            "scope": "windows of the T5 search for this body (not committed; sha256 recorded)",
+        }
+        other_hashes[f"{path.parent.name}/{path.name}"] = _sha256(path)
     moon = body_distribution(
         rows, positions, block=BOOTSTRAP_BLOCK, replicates=BOOTSTRAP_REPLICATES, seed=BOOTSTRAP_SEED
     )
@@ -895,6 +1243,7 @@ def run_moon_distributions(root: Path, argv: Sequence[str]) -> int:
         {
             **common,
             "record_type": "terraluna appendix A per-body fingerprint distributions",
+            "uncommitted_inputs_sha256": other_hashes,
             "evidence_label": "Derived",
             "bodies": {
                 "moon": {
@@ -906,8 +1255,7 @@ def run_moon_distributions(root: Path, argv: Sequence[str]) -> int:
                     ),
                     "descriptors": moon,
                 },
-                "earth": {"status": "not_run", "reason": "t5_search_outputs_not_available"},
-                "mars": {"status": "not_run", "reason": "t5_search_outputs_not_available"},
+                **other_bodies,
             },
             "bootstrap": {
                 "block_windows": BOOTSTRAP_BLOCK,
@@ -1071,7 +1419,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     g4.add_argument("--target-id", default="moon-cr-site01-w000")
     g4.add_argument("--root", default=".")
     analysis = sub.add_parser("analysis", help="Appendix A analyses")
-    analysis.add_argument("part", choices=["moon-distributions", "scale-behaviour"])
+    analysis.add_argument("part", choices=["moon-distributions", "scale-behaviour", "bodies"])
+    analysis.add_argument("--windows-dir", default="data/processed/windows")
+    analysis.add_argument("--ctx-dir", default=None)
     analysis.add_argument("--pgda-dir", default=None)
     analysis.add_argument("--root", default=".")
     args = parser.parse_args(arguments)
@@ -1083,8 +1433,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     root = Path(args.root)
     if args.command == "g4":
         return run_g4(root, args.target_id, arguments)
+    if args.part == "bodies":
+        ctx = Path(args.ctx_dir) if args.ctx_dir else None
+        return run_bodies(root, Path(args.windows_dir), ctx, arguments)
     if args.part == "moon-distributions":
-        return run_moon_distributions(root, arguments)
+        return run_moon_distributions(root, arguments, Path(args.windows_dir))
     pgda = Path(args.pgda_dir) if args.pgda_dir else root / "data" / "raw" / "pgda78"
     return run_scale_behaviour(root, pgda, arguments)
 
