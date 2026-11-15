@@ -50,6 +50,7 @@ export const LAYOUT_LABELS: readonly string[] = [
   'Learn',
   'Paper',
   'API docs',
+  'About',
   SITE_TITLE,
 ];
 
