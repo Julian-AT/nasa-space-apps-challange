@@ -948,7 +948,12 @@ class _CodeScanner:
             return self.group_end(i, verbatim=verbatim)
         if text[i] == "\\":
             word = LETTERS.match(text, i + 1)
-            return i + 2 if word is None else word.end()
+            if word is None:
+                return i + 2
+            # TeX skips the gap after a control word wherever it stands, so seam\label\empty
+            # less prints seamless. The argument is blanked, so unprinted() cannot see it.
+            self.unprinted_offsets.update(range(word.end(), self.space_end(word.end())))
+            return word.end()
         return i + 1
 
 
