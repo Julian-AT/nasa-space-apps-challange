@@ -377,14 +377,14 @@
       "priority": 7,
       "passes": false,
       "review": {
-        "state": "pending",
+        "state": "requested",
         "round": 0,
-        "base": null,
+        "base": "4b3029a44eaae91a7feabd9759677589d35ace35",
         "head": null,
         "files": [],
         "digests": {}
       },
-      "notes": ""
+      "notes": "Failing run (192f98f, before the implementation): uv run pytest pipeline/tests/test_terrain_parity.py gave 46 failed, 3 errors (FileNotFoundError for fixtures/parity/*.json; AttributeError for terrain.DEFAULT_PARITY_DIR, ParityFixtureError, producing_commit, splitmix64). Flag for another owner: the `make parity` target (PRD 12 Commands) is not added; the Makefile is outside this story. It should run `uv run --locked python -m terraluna_pipeline.terrain` and then the TypeScript suite (T10). Decisions for a human or T10: (1) The fractal is a seeded Weierstrass-Mandelbrot sum (SplitMix64, integer arithmetic) rather than the T3-06 numpy fBm. test_terrain_structure.py forbids random number libraries in terrain.py (T3-04), so the T3-06 proposal to move that generator here was not followed and T3-06 is unchanged. The array is stored exactly either way. (2) producing_commit is the last commit to config.py, geometry.py and terrain.py, and the writer refuses to run while they are modified. A shallow CI clone (depth 1) would report HEAD instead, so CI needs fetch-depth 0 or the test fails. (3) Byte identity holds on one platform and numpy build: AEQD and sin go through numpy/libm, which may differ by an ulp on another OS or CPU. numpy_version is recorded; CI on Linux may need fixtures regenerated there, or a decision. (4) Tolerance fields: inverse lat/lon are compared as sphere distances against distance_m 1e-9. Half an ulp of a longitude near pi is already 1.4e-9 m on the Earth sphere, so T10 must allow that float64 floor or compare through the forward map. (5) Both isotropic rules are written, because the rule is still open (T3-04 decision 2). (6) terrain_synthetic.json is 940,875 bytes, under the 1,000,000-byte limit with 6% headroom; adding cases needs a smaller source or a second file."
     }
   ]
 }
