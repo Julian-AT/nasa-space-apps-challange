@@ -1,9 +1,12 @@
-// Behaviour tests for the terrain distance and the background percentile (T10-08). Parity
-// against fixtures/parity/matching_synthetic.json is added when t4-logic T4L-03 lands it; the
-// coverage report in behaviour.test.ts fails once the file appears without a parity test.
+// Behaviour tests for the terrain distance and the background percentile (T10-08), and parity
+// against the Python reference outputs in fixtures/parity/matching_synthetic.json (T4L-03).
+
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { PARITY_DIR } from './fixtures.ts';
 import { backgroundPercentile, familyPercentile, terrainDistance } from '../src/index.ts';
 
 const v = (lags: number[], nus: (number | null)[]) => ({
@@ -50,5 +53,37 @@ describe('backgroundPercentile (linear_within_bin_v1)', () => {
     const bg = { family: 'terrain_texture' as const, bin_edges: edges, counts, percentile_definition: 'linear_within_bin_v1' as const, direction: 'smaller_is_closer' as const };
     expect(familyPercentile(1, 'terrain_relief', bg)).toMatchObject({ value: null, reason: 'family_mismatch' });
     expect(familyPercentile(1, 'terrain_texture', bg).value).toBeCloseTo(25, 12);
+  });
+});
+
+interface Expected { value: number | null; reason: string | null; shared_lags_m?: number[] }
+interface DistanceCase { name: string; a: Parameters<typeof terrainDistance>[0]; b: Parameters<typeof terrainDistance>[1]; expected: Expected }
+interface PercentileCase { name: string; d: number; bin_edges: number[]; counts: number[]; expected: Expected }
+const matching = JSON.parse(readFileSync(join(PARITY_DIR, 'matching_synthetic.json'), 'utf8')) as {
+  tolerance: { atol: number; rtol: number };
+  terrain_distance: DistanceCase[];
+  background_percentile: PercentileCase[];
+};
+
+function expectSame(got: ReturnType<typeof terrainDistance>, want: Expected, tol: { atol: number; rtol: number }) {
+  expect(got.reason).toBe(want.reason);
+  if (want.value === null) expect(got.value).toBeNull();
+  else expect(Math.abs((got.value ?? Number.NaN) - want.value)).toBeLessThanOrEqual(tol.atol + tol.rtol * Math.abs(want.value));
+}
+
+describe('parity with fixtures/parity/matching_synthetic.json', () => {
+  it('terrainDistance reproduces every Python case', () => {
+    expect(matching.terrain_distance.length).toBeGreaterThan(0);
+    for (const c of matching.terrain_distance) {
+      const got = terrainDistance(c.a, c.b);
+      expectSame(got, c.expected, matching.tolerance);
+      if (c.expected.shared_lags_m !== undefined) expect(got.lags_m, c.name).toEqual(c.expected.shared_lags_m);
+    }
+  });
+  it('backgroundPercentile reproduces every Python case', () => {
+    expect(matching.background_percentile.length).toBeGreaterThan(0);
+    for (const c of matching.background_percentile) {
+      expectSame(backgroundPercentile(c.d, c.bin_edges, c.counts), c.expected, matching.tolerance);
+    }
   });
 });

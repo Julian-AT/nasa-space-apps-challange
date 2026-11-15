@@ -142,10 +142,9 @@ describe('determinism and worker safety', () => {
 describe('coverage report (T10-06)', () => {
   it('lists fixtures that are not yet covered by name, never as passed', () => {
     const files = parityFiles();
-    const covered = new Set(['terrain_synthetic.json', 'geometry_synthetic.json']);
+    const covered = new Set(['terrain_synthetic.json', 'geometry_synthetic.json', 'matching_synthetic.json']);
     const pending: Record<string, string> = {
       'encoder_channels.json': 'not covered (waiting on t11-dataset T11-06)',
-      'matching_synthetic.json': 'not covered (waiting on t4-logic T4L-03)',
     };
     const unknown = files.filter((f) => !covered.has(f) && !(f in pending) && !/^terrain_real_/.test(f));
     expect(unknown, `fixtures without a TypeScript counterpart: ${unknown.join(', ')}`).toEqual([]);
