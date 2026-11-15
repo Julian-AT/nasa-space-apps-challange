@@ -629,7 +629,7 @@ def test_2_onnx_sha256_null_parses_and_stays_null_after_a_json_round_trip(
     dumped = json.loads(record.model_dump_json())
     assert "onnx_sha256" in dumped
     assert dumped["onnx_sha256"] is None
-    assert getattr(model.model_validate_json(record.model_dump_json()), "onnx_sha256") is None
+    assert model.model_validate_json(record.model_dump_json()) == record
 
 
 @pytest.mark.parametrize("model", [ModelRecord, EmbeddingsIndex], ids=lambda m: m.__name__)
