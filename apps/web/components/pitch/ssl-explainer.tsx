@@ -144,7 +144,8 @@ export function SslExplainer({ step }: { step: number }) {
   const ew = 220;
   const stageX = (k: number) => ex + 28 + k * 46;
 
-  const chart = { x: 1010, y: 44, w: 230, h: 130 };
+  const chart = { x: 1010, y: 34, w: 230, h: 104 };
+  const fy = (f: number) => chart.y + f * chart.h;
   const box = { x: 1000, y: L2 - 30, w: 120, h: 60 };
   const sc = { x: 1150, y: L2 - 66, w: 110, h: 110 };
 
@@ -252,12 +253,12 @@ export function SslExplainer({ step }: { step: number }) {
               animate={s >= 3 && !reduce ? { y: [0, -8, 0] } : { y: 0 }}
               transition={{ duration: 1.8, repeat: s >= 3 && !reduce ? Infinity : 0, ease: 'easeInOut' }}
             >
-              <Arrow d={`M${zx + 72} ${L2 - 30} L ${zx + 72} ${MID + 18}`} />
+              <Arrow d={`M${zx + 72} ${L2 - 30} L ${zx + 72} ${MID + 30}`} />
             </motion.g>
-            <Label x={zx + 72} y={MID + 4} mono color={INK}>invariance</Label>
-            <Label x={zx + 160} y={MID - 6} anchor="start" size={13.5} color={SUB}>views must agree</Label>
+            <Label x={zx + 72} y={MID - 2} mono color={INK}>invariance</Label>
+            <Label x={zx + 72} y={MID + 16} size={13.5} color={SUB}>views must agree</Label>
 
-            <g transform={`translate(${zx + 168} ${MID + 22})`}>
+            <g transform={`translate(${zx + 168} ${MID - 36})`}>
               {COV.map((v, k) => {
                 const i = Math.floor(k / 8);
                 const j = k % 8;
@@ -277,11 +278,11 @@ export function SslExplainer({ step }: { step: number }) {
                 );
               })}
               <rect x={-1} y={-1} width={73} height={73} fill="none" stroke={RULE} strokeWidth={1} />
-              <Label x={84} y={14} anchor="start" mono color={MUTE}>covariance</Label>
-              <Label x={84} y={30} anchor="start" mono color={MUTE}>8 x 8 slice</Label>
+              <Label x={0} y={-10} anchor="start" mono color={MUTE}>covariance, 8 x 8</Label>
+              <Label x={86} y={22} anchor="start" size={13.5} color={SUB}>variance and covariance</Label>
+              <Label x={86} y={40} anchor="start" size={13.5} color={SUB}>keep features spread</Label>
+              <Label x={86} y={58} anchor="start" size={13.5} color={SUB}>and independent</Label>
             </g>
-            <Label x={zx + 168} y={MID + 116} anchor="start" size={13.5} color={SUB}>variance and covariance keep</Label>
-            <Label x={zx + 168} y={MID + 134} anchor="start" size={13.5} color={SUB}>features spread and independent</Label>
           </Layer>
 
           {/* 4 Physics head */}
@@ -294,13 +295,13 @@ export function SslExplainer({ step }: { step: number }) {
             <Label x={chart.x + 6} y={chart.y + 4} anchor="start" mono color={MUTE}>nu(L)</Label>
             <Label x={chart.x + chart.w} y={chart.y + 4} anchor="end" mono color={HI}>schematic</Label>
             <path
-              d={`M${chart.x + 10} ${chart.y + 112} C ${chart.x + 70} ${chart.y + 96}, ${chart.x + 130} ${chart.y + 62}, ${chart.x + 220} ${chart.y + 30}`}
+              d={`M${chart.x + 10} ${fy(0.86)} C ${chart.x + 70} ${fy(0.74)}, ${chart.x + 130} ${fy(0.48)}, ${chart.x + 220} ${fy(0.23)}`}
               fill="none"
               stroke={INK}
               strokeWidth={1.2}
             />
             <motion.path
-              d={`M${chart.x + 10} ${chart.y + 106} C ${chart.x + 74} ${chart.y + 94}, ${chart.x + 128} ${chart.y + 66}, ${chart.x + 220} ${chart.y + 36}`}
+              d={`M${chart.x + 10} ${fy(0.82)} C ${chart.x + 74} ${fy(0.72)}, ${chart.x + 128} ${fy(0.51)}, ${chart.x + 220} ${fy(0.28)}`}
               fill="none"
               stroke={BLUE}
               strokeWidth={1.6}
@@ -309,12 +310,12 @@ export function SslExplainer({ step }: { step: number }) {
               animate={{ pathLength: s >= 4 ? 1 : 0 }}
               transition={{ duration: reduce ? 0 : 1.4, delay: reduce ? 0 : 0.4, ease: EASE }}
             />
-            <line x1={chart.x + 120} y1={chart.y + 112} x2={chart.x + 138} y2={chart.y + 112} stroke={INK} strokeWidth={1.2} />
-            <Label x={chart.x + 144} y={chart.y + 116} anchor="start" mono size={11} color={SUB}>measured</Label>
-            <line x1={chart.x + 120} y1={chart.y + 96} x2={chart.x + 138} y2={chart.y + 96} stroke={BLUE} strokeWidth={1.6} strokeDasharray="5 4" />
-            <Label x={chart.x + 144} y={chart.y + 100} anchor="start" mono size={11} color={SUB}>predicted</Label>
-            <Label x={chart.x} y={chart.y + chart.h + 40} anchor="start" size={13.5} color={SUB}>predicts the fingerprint,</Label>
-            <Label x={chart.x} y={chart.y + chart.h + 58} anchor="start" size={13.5} color={SUB}>11 targets, masked MSE</Label>
+            <line x1={chart.x + 120} y1={fy(0.88)} x2={chart.x + 138} y2={fy(0.88)} stroke={INK} strokeWidth={1.2} />
+            <Label x={chart.x + 144} y={fy(0.88) + 4} anchor="start" mono size={11} color={SUB}>measured</Label>
+            <line x1={chart.x + 120} y1={fy(0.72)} x2={chart.x + 138} y2={fy(0.72)} stroke={BLUE} strokeWidth={1.6} strokeDasharray="5 4" />
+            <Label x={chart.x + 144} y={fy(0.72) + 4} anchor="start" mono size={11} color={SUB}>predicted</Label>
+            <Label x={chart.x} y={chart.y + chart.h + 38} anchor="start" size={13.5} color={SUB}>predicts the fingerprint,</Label>
+            <Label x={chart.x} y={chart.y + chart.h + 56} anchor="start" size={13.5} color={SUB}>11 targets, masked MSE</Label>
           </Layer>
 
           {/* 5 Body adversary with gradient reversal */}
