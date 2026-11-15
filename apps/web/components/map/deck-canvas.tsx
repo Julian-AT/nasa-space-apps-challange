@@ -71,7 +71,7 @@ export default function DeckCanvas(props: DeckCanvasProps) {
             return createImageBitmap(await response.blob());
           },
           renderSubLayers: (sub) => {
-            const box = sub.tile.boundingBox as [number[], number[]];
+            const box = sub.tile.boundingBox;
             const [left, top, right, bottom] = [box[0][0], box[0][1], box[1][0], box[1][1]] as [number, number, number, number];
             if (!sub.data) return null;
             return new BitmapLayer({
