@@ -1,6 +1,27 @@
 [
   {
     "acquisition_time": "unknown",
+    "body": "earth",
+    "calibration_type": null,
+    "checksum": "2f8ad7cfcb8f6cf96597bad3ecd0d25f6a448710b7cb705bd93c706faf9b49a5",
+    "crs_and_frame": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST],AUTHORITY[\"EPSG\",\"4326\"]]",
+    "effective_resolution": "unknown",
+    "frequency_or_wavelength": null,
+    "incidence_source": null,
+    "license_or_attribution": "licence as the Copernicus DEM collection description states: 'The GLO-30 and GLO-90 datasets are available worldwide with a free license.'; required notice for GLO-30, as it states: '© DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved' (source: https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM, the page the AWS registry entry links as the licence)",
+    "local_path": "data/raw/cop30/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif.ranges",
+    "native_grid": "width=1800 height=3600 transform=(0.0005555555555555556, 0.0, -17.00027777777778, 0.0, -0.0002777777777777778, 65.00013888888888)",
+    "product_id": "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+    "provider": "Copernicus DEM GLO-30 Public (source dataset COP-DEM_GLO-30-DGED, as the bucket readme states); AWS Open Data bucket s3://copernicus-dem-30m (eu-central-1)",
+    "qa_definition": "the COG declares no nodata value, so only non-finite values are masked (quality.validity_mask); no WorldCover or other bare-ground mask is applied (D31) and the Copernicus DEM quality layers are not read",
+    "source_url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+    "transmit_receive_convention": null,
+    "units": "meters, as the Copernicus DEM collection description states ('Vertical Unit: meters'); the COG states no band units",
+    "verification_status": "PARTIAL",
+    "version": "Copernicus DEM 2021 release, as the AWS registry entry states"
+  },
+  {
+    "acquisition_time": "unknown",
     "body": "mars",
     "calibration_type": null,
     "checksum": "48da86cb5bb5e8c734c4b080213a2ce35cca088328620bcd9130a2661bed583c",
