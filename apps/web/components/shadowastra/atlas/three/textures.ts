@@ -1,0 +1,71 @@
+// Copied from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
+// @ts-nocheck -- vendored as-is; upstream type-checks it under its own strict tsconfig, which does not
+// enable noUncheckedIndexedAccess / exactOptionalPropertyTypes. Terraluna glue lives in terraluna-*.ts(x).
+import { useEffect, useState } from "react";
+import { useLoader } from "@react-three/fiber";
+import * as THREE from "three";
+import type { Body } from "@/lib/shadowastra-atlas/data/sites";
+
+/**
+ * NASA mosaics in three sizes (scripts/build_textures.py). We paint the 1K version
+ * immediately (~60 to 150 KB) and swap in the sharper one once it has streamed in.
+ */
+type Lod = "1k" | "2k" | "4k";
+
+const NAME: Record<Body | "night", string> = {
+  earth: "earth_day",
+  night: "earth_night",
+  moon: "moon_lroc",
+  mars: "mars_viking",
+};
+
+export function textureUrl(kind: Body | "night", lod: Lod) {
+  return `/shadowastra/textures/${NAME[kind]}_${kind === "night" && lod === "4k" ? "2k" : lod}.webp`;
+}
+
+export function bestLod(): Lod {
+  if (typeof window === "undefined") return "2k";
+  const px = Math.max(window.innerWidth, window.innerHeight) * Math.min(window.devicePixelRatio || 1, 2);
+  const slow = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  if (slow?.saveData || /2g|3g/.test(slow?.effectiveType ?? "")) return "1k";
+  return px > 2200 ? "4k" : "2k";
+}
+
+function prep(t: THREE.Texture) {
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
+const loader = new THREE.TextureLoader();
+
+/**
+ * Suspends on the tiny texture, then upgrades in the background.
+ *
+ * The 1K texture is cached by useLoader for the whole visit, and every renderer that draws it adds
+ * a "dispose" listener to it that points back at that renderer, its canvas and the page around it.
+ * So when the scene unmounts we release the GPU copy (three.js then drops those listeners); the
+ * image stays cached and uploads again next time. Without this, each visit to a page with a globe
+ * kept the previous page alive (measured with heap snapshots, docs/ENGINEERING.md).
+ */
+export function useProgressiveTexture(kind: Body | "night", target: Lod) {
+  const low = useLoader(THREE.TextureLoader, textureUrl(kind, "1k"));
+  const [tex, setTex] = useState<THREE.Texture>(() => prep(low));
+
+  useEffect(() => {
+    if (target === "1k") return;
+    let alive = true;
+    loader.loadAsync(textureUrl(kind, target)).then((hi) => {
+      if (alive) setTex(prep(hi));
+      else hi.dispose();
+    });
+    return () => {
+      alive = false;
+    };
+  }, [kind, target]);
+
+  useEffect(() => () => low.dispose(), [low]);
+  useEffect(() => () => void (tex !== low && tex.dispose()), [tex, low]);
+
+  return tex;
+}

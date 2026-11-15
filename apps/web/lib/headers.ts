@@ -1,6 +1,6 @@
 // Security headers of the web app (PRD 8.10, 8.5, 8.6): a strict Content-Security-Policy on every
 // route, and cross-origin isolation (COOP same-origin, COEP require-corp) on the two routes that
-// need SharedArrayBuffer-grade isolation for the browser worker: /probe and /explore/earth.
+// need SharedArrayBuffer-grade isolation for the browser worker: /probe.
 // next.config.ts builds headers() from these constants, and the live-probe code (T13-06) imports
 // the same values, so a header and the code that depends on it cannot drift apart.
 //
@@ -30,7 +30,9 @@ export const COPERNICUS_DEM_ORIGIN = 'https://copernicus-dem-30m.s3.amazonaws.co
 export const ASSET_HOSTS_PENDING = ['worldcover', 'basemap'] as const;
 
 /** Routes that are cross-origin isolated (Next source patterns). */
-export const ISOLATED_ROUTES = ['/probe', '/explore/earth'] as const;
+// /explore/earth is not isolated: the ported ShadowAstra Atlas loads layer previews and tiles from
+// NASA/ESA hosts that do not all send CORP/CORS headers. The probe worker runs on /probe and /find.
+export const ISOLATED_ROUTES = ['/probe'] as const;
 
 export const COOP_HEADER = { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' } as const;
 export const COEP_HEADER = { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' } as const;

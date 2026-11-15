@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   // @terraluna/schema exports its TypeScript source (packages/schema/src/index.ts).
   transpilePackages: ['@terraluna/schema', '@terraluna/core'],
   poweredByHeader: false,
-  // CSP on every route; COOP and COEP on /probe and /explore/earth only (lib/headers.ts).
+  // CSP on every route; COOP and COEP on /probe only (lib/headers.ts).
   headers: () => Promise.resolve(securityHeaders(process.env)),
   reactStrictMode: true,
   // next dev otherwise writes apps/web/AGENTS.md when it detects a coding agent. The repository's
