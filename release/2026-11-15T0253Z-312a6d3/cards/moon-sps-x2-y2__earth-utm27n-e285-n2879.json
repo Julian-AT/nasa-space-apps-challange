@@ -1,0 +1,473 @@
+{
+  "card_id": "moon-sps-x2-y2__earth-utm27n-e285-n2879",
+  "claim_limits": [
+    "candidate window identified by this search; not a proven analog",
+    "Copernicus GLO-30 heights are a digital surface model including vegetation and buildings, referenced to EGM2008 (PRD 5)",
+    "terrain distances only; radar comparison not completed (shipping mode C)",
+    "the encoder is EXPERIMENTAL and not used in any ranking",
+    "WorldCover v200 2021 land-cover mask, nearest class at 90 m centres (ANA-05 default)",
+    "PGDA78 clone measurement error is propagated for the lunar target window only (clone counts in uncertainty_components); no Earth DEM error model is applied. Terrain ties use matching.tie_groups with each candidate's clone spread (half the 2.5-97.5 percentile range of its distance), measurement error only.",
+    "Mode C: radar comparison not completed. The radar inputs were not qualified within the pilot, so no radar distance or radar signature is part of this card.",
+    "The encoder is EXPERIMENTAL (G5 NOT_RUN); its distance, if shown, is Predicted and takes no part in any ranking.",
+    "Field confirmation is future work; similarity here does not establish block sizes, soil strength, buried structure or low-gravity mobility (PRD 3)."
+  ],
+  "comparison_ref": {
+    "earth_window_id": "earth-utm27n-e285-n2879",
+    "path": "comparisons/moon-cr-site01-w000.json",
+    "target_window_id": "moon-sps-x2-y2"
+  },
+  "distances_by_family": {
+    "model_embedding": {
+      "background_percentile": null,
+      "background_percentile_reason": "encoder_not_evaluated",
+      "evidence_label": "Unavailable",
+      "reason": "encoder_not_evaluated",
+      "reference_spread": null,
+      "reference_spread_reason": "encoder_not_evaluated",
+      "status": "unavailable",
+      "tie_group": null,
+      "tie_reason": null,
+      "tied": null,
+      "unit": "cosine distance",
+      "value": null
+    },
+    "radar_cpr": {
+      "background_percentile": null,
+      "background_percentile_reason": "earth_radar_fingerprint_not_built",
+      "evidence_label": "Unavailable",
+      "reason": "earth_radar_fingerprint_not_built",
+      "reference_spread": null,
+      "reference_spread_reason": "earth_radar_fingerprint_not_built",
+      "status": "unavailable",
+      "tie_group": null,
+      "tie_reason": null,
+      "tied": null,
+      "unit": "CPR Wasserstein-1",
+      "value": null
+    },
+    "terrain_relief": {
+      "background_percentile": 3.1347240376085996,
+      "background_percentile_reason": null,
+      "evidence_label": "Derived",
+      "reason": null,
+      "reference_spread": {
+        "max": 0.4365571057469057,
+        "median": 0.16957927134396467,
+        "min": 0.02121068035527006,
+        "n": 24
+      },
+      "reference_spread_reason": null,
+      "status": "available",
+      "tie_group": null,
+      "tie_reason": null,
+      "tied": false,
+      "unit": "RMS of log nu",
+      "value": 0.6785492291449825
+    },
+    "terrain_texture": {
+      "background_percentile": 2.8583296738119075,
+      "background_percentile_reason": null,
+      "evidence_label": "Derived",
+      "reason": null,
+      "reference_spread": {
+        "max": 1.0554162118538175,
+        "median": 0.3661141583777035,
+        "min": 0.01952413627627068,
+        "n": 24
+      },
+      "reference_spread_reason": null,
+      "status": "available",
+      "tie_group": null,
+      "tie_reason": null,
+      "tied": false,
+      "unit": "RMS of log nu",
+      "value": 0.6584769659702211
+    }
+  },
+  "earth": {
+    "earth_window_id": "earth-utm27n-e285-n2879",
+    "polygon": {
+      "crs": "EPSG:32627",
+      "epsg": 32627,
+      "frame": "utm",
+      "ring_lonlat": [
+        [
+          -16.51857035548819,
+          64.83416824814086
+        ],
+        [
+          -16.41352969625264,
+          64.83095835663259
+        ],
+        [
+          -16.405890245808106,
+          64.87567927639535
+        ],
+        [
+          -16.511104415894064,
+          64.87889566255157
+        ],
+        [
+          -16.51857035548819,
+          64.83416824814086
+        ]
+      ],
+      "ring_m": [
+        [
+          712500.0,
+          7197500.0
+        ],
+        [
+          717500.0,
+          7197500.0
+        ],
+        [
+          717500.0,
+          7202500.0
+        ],
+        [
+          712500.0,
+          7202500.0
+        ],
+        [
+          712500.0,
+          7197500.0
+        ]
+      ],
+      "utm_zone": "27N"
+    },
+    "product_ids": [
+      "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif"
+    ],
+    "search_region_id": "holuhraun"
+  },
+  "figures": [
+    {
+      "alt": "Location maps: the Earth polygon and the lunar target window, each with a scale bar",
+      "figure": "A",
+      "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_A.svg",
+      "reason": null
+    },
+    {
+      "alt": "nu(L) on log-log axes for the target and the Earth window, relief and texture",
+      "figure": "B",
+      "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_B.svg",
+      "reason": null
+    },
+    {
+      "alt": "Radar block distributions with band labels, or the reason they are unavailable",
+      "figure": "C",
+      "path": "figures/moon-sps-x2-y2__earth-utm27n-e285-n2879_C.svg",
+      "reason": null
+    }
+  ],
+  "g5_status": "NOT_RUN",
+  "mock": false,
+  "q1_compared": "Earth window earth-utm27n-e285-n2879 (holuhraun; EPSG:32627, UTM zone 27N) compared with the lunar target window moon-sps-x2-y2 of Connecting Ridge (PGDA78 Site01) (south polar stereographic (product CRS)), each a 5000 m window on a 90 m analysis grid. Mode C.",
+  "q2_interpretation": {
+    "evidence_label": "Assumed",
+    "text": "Assumed: this Earth window could help investigate how surfaces with comparable supported descriptors (terrain_relief, terrain_texture) behave, as a candidate window identified by this search for the lunar target. It is an interpretation to test, not a measured result."
+  },
+  "q3_measurements": [
+    {
+      "band": null,
+      "evidence_label": "Derived",
+      "geometry": "polar_stereographic target window; utm Earth",
+      "observable": "terrain_relief distance",
+      "product_id": null,
+      "reason": null,
+      "support": "90 m analysis grid in 5000 m windows",
+      "unit": "RMS of log nu",
+      "value": 0.6785492291449825
+    },
+    {
+      "band": null,
+      "evidence_label": "Derived",
+      "geometry": "polar_stereographic target window; utm Earth",
+      "observable": "terrain_texture distance",
+      "product_id": null,
+      "reason": null,
+      "support": "90 m analysis grid in 5000 m windows",
+      "unit": "RMS of log nu",
+      "value": 0.6584769659702211
+    },
+    {
+      "band": null,
+      "evidence_label": "Unavailable",
+      "geometry": null,
+      "observable": "radar_cpr distance",
+      "product_id": null,
+      "reason": "earth_radar_fingerprint_not_built",
+      "support": "no qualified radar pair",
+      "unit": "CPR Wasserstein-1",
+      "value": null
+    },
+    {
+      "band": null,
+      "evidence_label": "Unavailable",
+      "geometry": null,
+      "observable": "model_embedding distance",
+      "product_id": null,
+      "reason": "encoder_not_evaluated",
+      "support": "encoder embedding of each window (experimental)",
+      "unit": "cosine distance",
+      "value": null
+    }
+  ],
+  "q4_differences": {
+    "ambiguous": [],
+    "differing": [],
+    "limits": [
+      "Gravity: about one-sixth of Earth's on the Moon.",
+      "Atmosphere: wind, rain, weathering and erosion shape Earth surfaces; none act on the Moon.",
+      "Water and life: Earth ground carries moisture and biology; lunar regolith is dry apart from possible polar volatiles.",
+      "Radiation and space weathering act directly on the lunar surface.",
+      "Temperature: permanently shadowed lunar ground is far colder than any Earth surface.",
+      "Illumination: the Sun stays near the horizon at the lunar pole.",
+      "Regolith origin: lunar soil is made by impacts, with sharp, unweathered grains unlike most Earth sediments."
+    ],
+    "not_observed": [
+      "radar_cpr: earth_radar_fingerprint_not_built",
+      "model_embedding: encoder_not_evaluated",
+      "radar_cpr: unavailable (earth_radar_fingerprint_not_built)",
+      "model_embedding: unavailable (encoder_not_evaluated)"
+    ]
+  },
+  "q5_stability": {
+    "tie_group_by_family": {
+      "model_embedding": null,
+      "radar_cpr": null,
+      "terrain_relief": null,
+      "terrain_texture": null
+    },
+    "tied_by_family": {
+      "model_embedding": null,
+      "radar_cpr": null,
+      "terrain_relief": false,
+      "terrain_texture": false
+    },
+    "uncertainty_components": {
+      "heterogeneity": {
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "Within-window spread of the distance is not computed for this slice.",
+        "rank_frequency": null,
+        "reason": "heterogeneity_not_computed",
+        "scenarios": null,
+        "status": "unavailable"
+      },
+      "measurement_error": {
+        "by_family": {
+          "terrain_relief": {
+            "n": 100,
+            "spread_max": 0.6783643661419763,
+            "spread_median": 0.678241510688132,
+            "spread_min": 0.6781454182650212
+          },
+          "terrain_texture": {
+            "n": 100,
+            "spread_max": 0.6582819479124687,
+            "spread_median": 0.6581463947346909,
+            "spread_min": 0.6580480586051708
+          }
+        },
+        "evidence_label": "Derived",
+        "n_requested": 100,
+        "n_used": 100,
+        "note": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6). Spread of this candidate's distance when the target is replaced by each clone.",
+        "rank_frequency": null,
+        "reason": null,
+        "scenarios": null,
+        "status": "available"
+      },
+      "scenario_sensitivity": {
+        "by_family": null,
+        "evidence_label": "Derived",
+        "n_requested": null,
+        "n_used": null,
+        "note": "Named mask and region scenarios with the rank by family in each; rank_frequency is how often this candidate ranked first by that family over the PGDA78 clone runs (none without a clone set), a frequency and never a probability (PRD 6.6). Mode C: no radar scenario.",
+        "rank_frequency": {
+          "terrain_relief": {
+            "count": 100,
+            "frequency": 1.0,
+            "n": 100
+          },
+          "terrain_texture": {
+            "count": 100,
+            "frequency": 1.0,
+            "n": 100
+          }
+        },
+        "reason": null,
+        "scenarios": [
+          {
+            "change": "WorldCover allowed fraction >= 0.9 (config), both regions",
+            "name": "pipeline",
+            "rank_by_family": {
+              "terrain_relief": 1,
+              "terrain_texture": 1
+            },
+            "values_by_family": {
+              "terrain_relief": 0.6785492291449825,
+              "terrain_texture": 0.6584769659702211
+            }
+          },
+          {
+            "change": "WorldCover allowed fraction >= 0.95 instead of 0.9",
+            "name": "worldcover_allowed_ge_0.95",
+            "rank_by_family": {
+              "terrain_relief": 1,
+              "terrain_texture": 1
+            },
+            "values_by_family": {
+              "terrain_relief": 0.6785492291449825,
+              "terrain_texture": 0.6584769659702211
+            }
+          },
+          {
+            "change": "WorldCover allowed fraction >= 1 instead of 0.9",
+            "name": "worldcover_allowed_ge_1",
+            "rank_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            },
+            "values_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            }
+          },
+          {
+            "change": "search only the holuhraun region",
+            "name": "region_holuhraun_only",
+            "rank_by_family": {
+              "terrain_relief": 1,
+              "terrain_texture": 1
+            },
+            "values_by_family": {
+              "terrain_relief": 0.6785492291449825,
+              "terrain_texture": 0.6584769659702211
+            }
+          },
+          {
+            "change": "search only the rosamond-dry-lake region",
+            "name": "region_rosamond-dry-lake_only",
+            "rank_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            },
+            "values_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            }
+          }
+        ],
+        "status": "available"
+      },
+      "statistical_prediction_error": {
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "no predictor evaluated",
+        "rank_frequency": null,
+        "reason": "no_predictor_evaluated",
+        "scenarios": null,
+        "status": "unavailable"
+      }
+    }
+  },
+  "q6_campaign": {
+    "access": {
+      "source": null,
+      "value": "unknown"
+    },
+    "land_status": {
+      "source": null,
+      "value": "unknown"
+    },
+    "logistics": {
+      "source": null,
+      "value": "unknown"
+    },
+    "permits": {
+      "source": null,
+      "value": "unknown"
+    },
+    "season": {
+      "source": null,
+      "value": "unknown"
+    }
+  },
+  "q7_field_experiment": {
+    "evidence_label": "Assumed",
+    "status": "proposed",
+    "text": "Proposed, not yet carried out: survey a surface patch in this Earth window with a clast-size and coverage distribution, material and moisture notes, and calibrated radar observations under controlled geometry. Dimensions and sampling would be chosen for the sensor and site; none of these measurements has been made."
+  },
+  "radar_context": [],
+  "run_id": "sha256:7d36a81e9e101696f0cea5ab51569b03e03872f877b720a3f5c288ad10d67324",
+  "shipping_mode": "C",
+  "target": {
+    "body": "moon",
+    "polygon": {
+      "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+      "epsg": null,
+      "frame": "polar_stereographic",
+      "ring_lonlat": [
+        [
+          -136.97493401088198,
+          -89.32335821167513
+        ],
+        [
+          -149.03624346792648,
+          -89.42312746886464
+        ],
+        [
+          -138.01278750418336,
+          -89.55633013392185
+        ],
+        [
+          -125.53767779197437,
+          -89.43263162860389
+        ],
+        [
+          -136.97493401088198,
+          -89.32335821167513
+        ]
+      ],
+      "ring_m": [
+        [
+          -14000.0,
+          -15000.0
+        ],
+        [
+          -9000.0,
+          -15000.0
+        ],
+        [
+          -9000.0,
+          -10000.0
+        ],
+        [
+          -14000.0,
+          -10000.0
+        ],
+        [
+          -14000.0,
+          -15000.0
+        ]
+      ],
+      "utm_zone": null
+    },
+    "product_ids": [
+      "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
+      "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+    ],
+    "target_id": "moon-cr-site01-w000",
+    "target_window_id": "moon-sps-x2-y2"
+  },
+  "title": "Terrain analog pilot for Connecting Ridge; radar comparison not completed",
+  "wording": "candidate window identified by this search"
+}

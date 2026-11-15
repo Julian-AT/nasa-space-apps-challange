@@ -1,56 +1,56 @@
 {
-  "bundle_version": "2026-11-15T0206Z-a4d9f0c",
-  "created_utc": "2026-11-15T02:06:00Z",
+  "bundle_version": "2026-11-15T0253Z-312a6d3",
+  "created_utc": "2026-11-15T02:53:00Z",
   "files": [
     {
-      "bytes": 12453,
+      "bytes": 14836,
       "path": "cards/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878.json",
-      "sha256": "cd5aaef103690a139c18a3e23c9f24b46865d1c92ef477e2bfcfe085315f0a25"
+      "sha256": "6cdb7f012af1d9447d1da617deed312e0e38513596252a0f98424445b9be7d45"
     },
     {
-      "bytes": 12451,
+      "bytes": 14828,
       "path": "cards/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879.json",
-      "sha256": "b12f51c8f63e149ba350f5fc4df775f058eb2743163be8614659481f1382f8f2"
+      "sha256": "77a65b1419d653a81014d9322e3dada3bee0d3ff82a80da3bec28e25abac6fa1"
     },
     {
-      "bytes": 12449,
+      "bytes": 14823,
       "path": "cards/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546.json",
-      "sha256": "6c0275a3fb042b11fdc95bb9fa67689770c2d6f5422def5ef6c380bd6a50599e"
+      "sha256": "a0cff6b19ce6021bbafca44b0df661a6f0e2ce5a93ae909cafeb11ba92bb2e01"
     },
     {
-      "bytes": 12430,
+      "bytes": 14834,
       "path": "cards/mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882.json",
-      "sha256": "7fe78092bced8f880ed446e39657b7c763a13e2d2dbba6fb792ae949031622fa"
+      "sha256": "e8a358c6a1d09057c486aa76df1954afb177bbaa4aec87bd716574802b9507cd"
     },
     {
-      "bytes": 12435,
+      "bytes": 14818,
       "path": "cards/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877.json",
-      "sha256": "f89ee6cd1afd9decf83d46558bb299d06c9fe5332f3211fc96ce14d91e6190da"
+      "sha256": "690374e8cfa142b87fc7ad43f15981163f5349b001ee7a4c5208417f024e2c5b"
     },
     {
-      "bytes": 16013,
+      "bytes": 15973,
       "path": "cards/moon-sps-x2-y2__earth-utm27n-e280-n2880.json",
-      "sha256": "e5dd8702229d71b4e6fc9b5c56921139947bbde8c5f9f419418c668c4dd5171a"
+      "sha256": "cb87fabf1018e742a8d91cb29964d047562d5e0fe2c0fc922643f4b41d6f02f0"
     },
     {
-      "bytes": 15997,
+      "bytes": 15961,
       "path": "cards/moon-sps-x2-y2__earth-utm27n-e285-n2879.json",
-      "sha256": "98cbfce9b88c94e269231c3ced6ed510af78eb0cfe2fe1a91d25f9cd762d713d"
+      "sha256": "51908a45880fba4378ca5047f9398ab52ba2eb314defcea204d7378b71c4e7c1"
     },
     {
-      "bytes": 391702,
+      "bytes": 560994,
       "path": "comparisons/mars-arcadia-w000.json",
-      "sha256": "401c9ef6a6d9af693da026a3ae21dfba1bd916cfaf84621ed4733959b2159ebe"
+      "sha256": "4afc130415346154178b596aa77b337ac985ca9587d6e4569a2c12eaa7df905e"
     },
     {
-      "bytes": 391426,
+      "bytes": 560745,
       "path": "comparisons/mars-jezero-w000.json",
-      "sha256": "a750d3900da10395a54b15364094bb534b3ca54c626313855455b85bf434ea52"
+      "sha256": "431c2b0dd842a8fc8aec48548e67c9e47cbf9b64aed5a96228ffff515a97beee"
     },
     {
-      "bytes": 610385,
+      "bytes": 607772,
       "path": "comparisons/moon-cr-site01-w000.json",
-      "sha256": "1ba3d0bb527229d8d8f459165cf792e98bde8c624b9a4c918b5462d45adf7b9d"
+      "sha256": "e252bcdba17bb38f0ad739c36ba7088d0af48ab217f2ff6c6c28780a4c6daf90"
     },
     {
       "bytes": 8799,
@@ -58,9 +58,9 @@
       "sha256": "cd40fd79956a9f3d555502de8b143c2d32d424909f099aa2de373427ce2aebfc"
     },
     {
-      "bytes": 9006,
+      "bytes": 9000,
       "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_B.svg",
-      "sha256": "cae85609e61459db6208b5766f44b108cbffcc1e531daeb93c21cd66cecc2a67"
+      "sha256": "acfacd433be6cdb5bc3562f3124a552a674eaeb885a54b890ec80a5ecfeba43b"
     },
     {
       "bytes": 1295,
@@ -73,9 +73,9 @@
       "sha256": "fd036240f07f01110f9e93ff867a8486b1ac41eb7a239617cef62778ab2aff78"
     },
     {
-      "bytes": 9299,
+      "bytes": 9293,
       "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e283-n2879_B.svg",
-      "sha256": "9f8c8ae839a7659414760ba8166d9d9a9921af2a6fe0c5798392609af3bde899"
+      "sha256": "ec15c85160bffa6ccc4c84368b95f05cfb9e73d954e18fbd10043e57b9d2d742"
     },
     {
       "bytes": 1295,
@@ -88,9 +88,9 @@
       "sha256": "9eace154dbab17646548845680d13d5c5d27f978db0210f224176722a58023df"
     },
     {
-      "bytes": 9283,
+      "bytes": 9277,
       "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_B.svg",
-      "sha256": "0dda5a06007ebfbad57a6fdab1f5e99c69e7be2d00d597b0032410f10b87d896"
+      "sha256": "63848710ff122cf84893e6ef0c956d03a962a8fb11b04b0ddbc076ced24eb7b8"
     },
     {
       "bytes": 1290,
@@ -103,9 +103,9 @@
       "sha256": "5a6f6a7ada441d5d767b248629dcfddb7d22d9d7a3a7c379a310af9b7c27afb0"
     },
     {
-      "bytes": 9431,
+      "bytes": 9425,
       "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e280-n2882_B.svg",
-      "sha256": "9d667997d94f39faac97012fa694919c2e8f9a3a076223e390ac4ab7b117f0eb"
+      "sha256": "6d848a3649807bfc25273381be3c96d7f260d22a557134781c9d4c2a8c6927d4"
     },
     {
       "bytes": 1290,
@@ -118,9 +118,9 @@
       "sha256": "aa4b425f8baca38b330e8bb03511e78125535fda1ce5e619e28c0c3642f1eac0"
     },
     {
-      "bytes": 9433,
+      "bytes": 9427,
       "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_B.svg",
-      "sha256": "e1f66c351fcc26c3a5d42bb1540a005f05fc313970f3396f788d45e25b4bd2fc"
+      "sha256": "daae3afbe43135e0324be9cf1f1d1a00163ba178f99385ff337feb1b3620123c"
     },
     {
       "bytes": 1290,
@@ -523,9 +523,9 @@
       "sha256": "ab1eba630609c216ec337dd4e2c491560cbbb319fcc492163f957e8999f39e61"
     },
     {
-      "bytes": 10876,
+      "bytes": 11670,
       "path": "validation.json",
-      "sha256": "560d64c9d7f5bb5d51e250519a2a4666a0e3af50bdb02f94c7a783ed6e0782ac"
+      "sha256": "c17b8714ede1ae4ad7a2a46a924a04f65092daaa3bc9344bb56da7a1c78e2be7"
     },
     {
       "bytes": 464119,
@@ -543,7 +543,7 @@
       "sha256": "9882b84b2c204eefd8aee80f1441fd9ca54227fe4e43acac5d1a9479cb80e132"
     }
   ],
-  "git_sha": "a4d9f0c424907b8cc17a880ff556ff532db30891",
+  "git_sha": "312a6d3df38f608ee858c4d91133ba938ed477a3",
   "mock": false,
   "model": null,
   "run_id": "sha256:1f5351609269b3b381f003d82c08187889a05b0d055da89abad88303fd50d470",

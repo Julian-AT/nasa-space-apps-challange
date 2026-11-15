@@ -1,18 +1,19 @@
 {
-  "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546",
+  "card_id": "mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877",
   "claim_limits": [
     "candidate window identified by this search; not a proven analog",
     "Copernicus GLO-30 heights are a digital surface model including vegetation and buildings, referenced to EGM2008 (PRD 5)",
     "Mars target: terrain only, radar unavailable for this body",
     "the encoder is EXPERIMENTAL and not used in any ranking",
     "WorldCover v200 2021 land-cover mask, nearest class at 90 m centres (ANA-05 default)",
+    "No published elevation-error clone set exists for this target's DTM, so measurement error is Unavailable and no tie is claimed; scenario ranks come from mask and region filters only.",
     "Mars targets are compared on terrain only; no radar product is used.",
     "Mode C: radar comparison not completed. The radar inputs were not qualified within the pilot, so no radar distance or radar signature is part of this card.",
     "The encoder is EXPERIMENTAL (G5 NOT_RUN); its distance, if shown, is Predicted and takes no part in any ranking.",
     "Field confirmation is future work; similarity here does not establish block sizes, soil strength, buried structure or low-gravity mobility (PRD 3)."
   ],
   "comparison_ref": {
-    "earth_window_id": "earth-utm11n-e157-n1546",
+    "earth_window_id": "earth-utm27n-e282-n2877",
     "path": "comparisons/mars-jezero-w000.json",
     "target_window_id": "mars-jezero-d12-031871-x2-y9"
   },
@@ -46,7 +47,7 @@
       "value": null
     },
     "terrain_relief": {
-      "background_percentile": 8.677494012000267,
+      "background_percentile": 6.48115110534626,
       "background_percentile_reason": null,
       "evidence_label": "Derived",
       "reason": null,
@@ -62,10 +63,10 @@
       "tie_reason": "spread_unavailable",
       "tied": null,
       "unit": "RMS of log nu",
-      "value": 0.0938909774915462
+      "value": 0.07012642264112653
     },
     "terrain_texture": {
-      "background_percentile": 1.9915540533122074,
+      "background_percentile": 2.731761001473602,
       "background_percentile_reason": null,
       "evidence_label": "Derived",
       "reason": null,
@@ -81,90 +82,90 @@
       "tie_reason": "spread_unavailable",
       "tied": null,
       "unit": "RMS of log nu",
-      "value": 0.0400617620151637
+      "value": 0.054951638867812534
     }
   },
   "earth": {
-    "earth_window_id": "earth-utm11n-e157-n1546",
+    "earth_window_id": "earth-utm27n-e282-n2877",
     "polygon": {
-      "crs": "EPSG:32611",
-      "epsg": 32611,
+      "crs": "EPSG:32627",
+      "epsg": 32627,
       "frame": "utm",
       "ring_lonlat": [
         [
-          -118.17691304883455,
-          34.92177178642802
+          -16.683361529393256,
+          64.79410647852258
         ],
         [
-          -118.12218244880505,
-          34.92228960845435
+          -16.57845300256015,
+          64.79101406899085
         ],
         [
-          -118.12279686651115,
-          34.967368548600284
+          -16.571101024749545,
+          64.83574539172723
         ],
         [
-          -118.17755741617577,
-          34.96684986327083
+          -16.676182647699118,
+          64.83884405233508
         ],
         [
-          -118.17691304883455,
-          34.92177178642802
+          -16.683361529393256,
+          64.79410647852258
         ]
       ],
       "ring_m": [
         [
-          392500.0,
-          3865000.0
+          705000.0,
+          7192500.0
         ],
         [
-          397500.0,
-          3865000.0
+          710000.0,
+          7192500.0
         ],
         [
-          397500.0,
-          3870000.0
+          710000.0,
+          7197500.0
         ],
         [
-          392500.0,
-          3870000.0
+          705000.0,
+          7197500.0
         ],
         [
-          392500.0,
-          3865000.0
+          705000.0,
+          7192500.0
         ]
       ],
-      "utm_zone": "11N"
+      "utm_zone": "27N"
     },
     "product_ids": [
-      "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N34_00_W119_00_DEM/Copernicus_DSM_COG_10_N34_00_W119_00_DEM.tif",
-      "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N33W120_Map.tif"
+      "COP30/copernicus-dem-30m/Copernicus_DSM_COG_10_N64_00_W017_00_DEM/Copernicus_DSM_COG_10_N64_00_W017_00_DEM.tif",
+      "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif"
     ],
-    "search_region_id": "rosamond-dry-lake"
+    "search_region_id": "holuhraun"
   },
   "figures": [
     {
       "alt": "Location maps: the Earth polygon and the Mars target window, each with a scale bar",
       "figure": "A",
-      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_A.svg",
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_A.svg",
       "reason": null
     },
     {
       "alt": "nu(L) on log-log axes for the target and the Earth window, relief and texture",
       "figure": "B",
-      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_B.svg",
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_B.svg",
       "reason": null
     },
     {
       "alt": "Radar block distributions with band labels, or the reason they are unavailable",
       "figure": "C",
-      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm11n-e157-n1546_C.svg",
+      "path": "figures/mars-jezero-d12-031871-x2-y9__earth-utm27n-e282-n2877_C.svg",
       "reason": null
     }
   ],
   "g5_status": "NOT_RUN",
   "mock": false,
-  "q1_compared": "Earth window earth-utm11n-e157-n1546 (rosamond-dry-lake; EPSG:32611, UTM zone 11N) compared with the Mars target window mars-jezero-d12-031871-x2-y9 of Jezero crater (azimuthal equidistant on the Mars sphere (product CRS)), each a 5000 m window on a 90 m analysis grid. Mode C.",
+  "q1_compared": "Earth window earth-utm27n-e282-n2877 (holuhraun; EPSG:32627, UTM zone 27N) compared with the Mars target window mars-jezero-d12-031871-x2-y9 of Jezero crater (azimuthal equidistant on the Mars sphere (product CRS)), each a 5000 m window on a 90 m analysis grid. Mode C.",
   "q2_interpretation": {
     "evidence_label": "Assumed",
     "text": "Assumed: this Earth window could help investigate how surfaces with comparable supported descriptors (terrain_relief, terrain_texture) behave, as a candidate window identified by this search for the Mars target. It is an interpretation to test, not a measured result."
@@ -179,7 +180,7 @@
       "reason": null,
       "support": "90 m analysis grid in 5000 m windows",
       "unit": "RMS of log nu",
-      "value": 0.0938909774915462
+      "value": 0.07012642264112653
     },
     {
       "band": null,
@@ -190,7 +191,7 @@
       "reason": null,
       "support": "90 m analysis grid in 5000 m windows",
       "unit": "RMS of log nu",
-      "value": 0.0400617620151637
+      "value": 0.054951638867812534
     },
     {
       "band": null,
@@ -251,9 +252,9 @@
         "evidence_label": "Unavailable",
         "n_requested": null,
         "n_used": null,
-        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "note": "Within-window spread of the distance is not computed for this slice.",
         "rank_frequency": null,
-        "reason": "uncertainty_not_annotated",
+        "reason": "heterogeneity_not_computed",
         "scenarios": null,
         "status": "unavailable"
       },
@@ -262,31 +263,92 @@
         "evidence_label": "Unavailable",
         "n_requested": null,
         "n_used": null,
-        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "note": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6).",
         "rank_frequency": null,
-        "reason": "uncertainty_not_annotated",
+        "reason": "no_published_clone_set",
         "scenarios": null,
         "status": "unavailable"
       },
       "scenario_sensitivity": {
         "by_family": null,
-        "evidence_label": "Unavailable",
+        "evidence_label": "Derived",
         "n_requested": null,
         "n_used": null,
-        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "note": "Named mask and region scenarios with the rank by family in each; rank_frequency is how often this candidate ranked first by that family over the PGDA78 clone runs (none without a clone set), a frequency and never a probability (PRD 6.6). Mode C: no radar scenario.",
         "rank_frequency": null,
-        "reason": "uncertainty_not_annotated",
-        "scenarios": null,
-        "status": "unavailable"
+        "reason": null,
+        "scenarios": [
+          {
+            "change": "WorldCover allowed fraction >= 0.9 (config), both regions",
+            "name": "pipeline",
+            "rank_by_family": {
+              "terrain_relief": 3,
+              "terrain_texture": 2
+            },
+            "values_by_family": {
+              "terrain_relief": 0.07012642264112652,
+              "terrain_texture": 0.054951638867812534
+            }
+          },
+          {
+            "change": "WorldCover allowed fraction >= 0.95 instead of 0.9",
+            "name": "worldcover_allowed_ge_0.95",
+            "rank_by_family": {
+              "terrain_relief": 3,
+              "terrain_texture": 2
+            },
+            "values_by_family": {
+              "terrain_relief": 0.07012642264112652,
+              "terrain_texture": 0.054951638867812534
+            }
+          },
+          {
+            "change": "WorldCover allowed fraction >= 1 instead of 0.9",
+            "name": "worldcover_allowed_ge_1",
+            "rank_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            },
+            "values_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            }
+          },
+          {
+            "change": "search only the holuhraun region",
+            "name": "region_holuhraun_only",
+            "rank_by_family": {
+              "terrain_relief": 3,
+              "terrain_texture": 1
+            },
+            "values_by_family": {
+              "terrain_relief": 0.07012642264112652,
+              "terrain_texture": 0.054951638867812534
+            }
+          },
+          {
+            "change": "search only the rosamond-dry-lake region",
+            "name": "region_rosamond-dry-lake_only",
+            "rank_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            },
+            "values_by_family": {
+              "terrain_relief": null,
+              "terrain_texture": null
+            }
+          }
+        ],
+        "status": "available"
       },
       "statistical_prediction_error": {
         "by_family": null,
         "evidence_label": "Unavailable",
         "n_requested": null,
         "n_used": null,
-        "note": "uncertainty is annotated by T6 (uncertainty annotate); not computed by search",
+        "note": "no predictor evaluated",
         "rank_frequency": null,
-        "reason": "uncertainty_not_annotated",
+        "reason": "no_predictor_evaluated",
         "scenarios": null,
         "status": "unavailable"
       }
@@ -320,7 +382,7 @@
     "text": "Proposed, not yet carried out: survey a surface patch in this Earth window with a clast-size and coverage distribution, material and moisture notes, and calibrated radar observations under controlled geometry. Dimensions and sampling would be chosen for the sensor and site; none of these measurements has been made."
   },
   "radar_context": [],
-  "run_id": "sha256:97b11d8002fa12c1f0368614c73d8ac96018a7da26ae45805ce774477fd740d6",
+  "run_id": "sha256:e7ff626c8c2dbd68a7e72d1fe59f567ff44e4efcc3b040802ef92f223a785b01",
   "shipping_mode": "C",
   "target": {
     "body": "mars",

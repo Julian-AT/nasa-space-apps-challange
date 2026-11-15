@@ -1,20 +1,21 @@
 {
-  "card_id": "moon-sps-x2-y2__earth-utm27n-e280-n2880",
+  "card_id": "mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878",
   "claim_limits": [
     "candidate window identified by this search; not a proven analog",
     "Copernicus GLO-30 heights are a digital surface model including vegetation and buildings, referenced to EGM2008 (PRD 5)",
-    "terrain distances only; radar comparison not completed (shipping mode C)",
+    "Mars target: terrain only, radar unavailable for this body",
     "the encoder is EXPERIMENTAL and not used in any ranking",
     "WorldCover v200 2021 land-cover mask, nearest class at 90 m centres (ANA-05 default)",
-    "PGDA78 clone measurement error is propagated for the lunar target window only (clone counts in uncertainty_components); no Earth DEM error model is applied, and ties are not set in distances_by_family because the target has no reference set (schema: tied needs a reference spread); clone-based ties are listed in analysis/g4_candidates.json.",
+    "No published elevation-error clone set exists for this target's DTM, so measurement error is Unavailable and no tie is claimed; scenario ranks come from mask and region filters only.",
+    "Mars targets are compared on terrain only; no radar product is used.",
     "Mode C: radar comparison not completed. The radar inputs were not qualified within the pilot, so no radar distance or radar signature is part of this card.",
     "The encoder is EXPERIMENTAL (G5 NOT_RUN); its distance, if shown, is Predicted and takes no part in any ranking.",
     "Field confirmation is future work; similarity here does not establish block sizes, soil strength, buried structure or low-gravity mobility (PRD 3)."
   ],
   "comparison_ref": {
-    "earth_window_id": "earth-utm27n-e280-n2880",
-    "path": "comparisons/moon-cr-site01-w000.json",
-    "target_window_id": "moon-sps-x2-y2"
+    "earth_window_id": "earth-utm27n-e280-n2878",
+    "path": "comparisons/mars-arcadia-w000.json",
+    "target_window_id": "mars-arcadia-d16-033291-x6-y9"
   },
   "distances_by_family": {
     "model_embedding": {
@@ -33,11 +34,11 @@
     },
     "radar_cpr": {
       "background_percentile": null,
-      "background_percentile_reason": "earth_radar_fingerprint_not_built",
+      "background_percentile_reason": "radar_unavailable_for_body",
       "evidence_label": "Unavailable",
-      "reason": "earth_radar_fingerprint_not_built",
+      "reason": "radar_unavailable_for_body",
       "reference_spread": null,
-      "reference_spread_reason": "earth_radar_fingerprint_not_built",
+      "reference_spread_reason": "radar_unavailable_for_body",
       "status": "unavailable",
       "tie_group": null,
       "tie_reason": null,
@@ -46,15 +47,15 @@
       "value": null
     },
     "terrain_relief": {
-      "background_percentile": 89.80346655033546,
+      "background_percentile": 9.274214281430405,
       "background_percentile_reason": null,
       "evidence_label": "Derived",
       "reason": null,
       "reference_spread": {
-        "max": 0.4365571057469057,
-        "median": 0.16957927134396467,
-        "min": 0.02121068035527006,
-        "n": 24
+        "max": 1.3342523018945294,
+        "median": 0.38994250100337113,
+        "min": 0.022044011256831603,
+        "n": 163
       },
       "reference_spread_reason": null,
       "status": "available",
@@ -62,18 +63,18 @@
       "tie_reason": "spread_unavailable",
       "tied": null,
       "unit": "RMS of log nu",
-      "value": 3.3722848971248722
+      "value": 0.28854934861205206
     },
     "terrain_texture": {
-      "background_percentile": 90.8004778766863,
+      "background_percentile": 0.7285540682504543,
       "background_percentile_reason": null,
       "evidence_label": "Derived",
       "reason": null,
       "reference_spread": {
-        "max": 1.0554162118538175,
-        "median": 0.3661141583777035,
-        "min": 0.01952413627627068,
-        "n": 24
+        "max": 1.3376495268431123,
+        "median": 0.34931308455559834,
+        "min": 0.020110811866996196,
+        "n": 163
       },
       "reference_spread_reason": null,
       "status": "available",
@@ -81,57 +82,57 @@
       "tie_reason": "spread_unavailable",
       "tied": null,
       "unit": "RMS of log nu",
-      "value": 3.810780065678957
+      "value": 0.05931653833563583
     }
   },
   "earth": {
-    "earth_window_id": "earth-utm27n-e280-n2880",
+    "earth_window_id": "earth-utm27n-e280-n2878",
     "polygon": {
       "crs": "EPSG:32627",
       "epsg": 32627,
       "frame": "utm",
       "ring_lonlat": [
         [
-          -16.777778268171225,
-          64.86424010016455
+          -16.78479683917855,
+          64.8194967612042
+        ],
+        [
+          -16.679775394624603,
+          64.81647535230421
         ],
         [
           -16.672583271077063,
           64.86121257837709
         ],
         [
-          -16.665364558272866,
-          64.90594910753703
-        ],
-        [
-          -16.770733743102788,
-          64.908982762511
-        ],
-        [
           -16.777778268171225,
           64.86424010016455
+        ],
+        [
+          -16.78479683917855,
+          64.8194967612042
         ]
       ],
       "ring_m": [
         [
           700000.0,
-          7200000.0
+          7195000.0
+        ],
+        [
+          705000.0,
+          7195000.0
         ],
         [
           705000.0,
           7200000.0
         ],
         [
-          705000.0,
-          7205000.0
-        ],
-        [
-          700000.0,
-          7205000.0
-        ],
-        [
           700000.0,
           7200000.0
+        ],
+        [
+          700000.0,
+          7195000.0
         ]
       ],
       "utm_zone": "27N"
@@ -144,53 +145,53 @@
   },
   "figures": [
     {
-      "alt": "Location maps: the Earth polygon and the lunar target window, each with a scale bar",
+      "alt": "Location maps: the Earth polygon and the Mars target window, each with a scale bar",
       "figure": "A",
-      "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_A.svg",
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_A.svg",
       "reason": null
     },
     {
       "alt": "nu(L) on log-log axes for the target and the Earth window, relief and texture",
       "figure": "B",
-      "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_B.svg",
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_B.svg",
       "reason": null
     },
     {
       "alt": "Radar block distributions with band labels, or the reason they are unavailable",
       "figure": "C",
-      "path": "figures/moon-sps-x2-y2__earth-utm27n-e280-n2880_C.svg",
+      "path": "figures/mars-arcadia-d16-033291-x6-y9__earth-utm27n-e280-n2878_C.svg",
       "reason": null
     }
   ],
   "g5_status": "NOT_RUN",
   "mock": false,
-  "q1_compared": "Earth window earth-utm27n-e280-n2880 (holuhraun; EPSG:32627, UTM zone 27N) compared with the lunar target window moon-sps-x2-y2 of Connecting Ridge (PGDA78 Site01) (south polar stereographic (product CRS)), each a 5000 m window on a 90 m analysis grid. Mode C.",
+  "q1_compared": "Earth window earth-utm27n-e280-n2878 (holuhraun; EPSG:32627, UTM zone 27N) compared with the Mars target window mars-arcadia-d16-033291-x6-y9 of Arcadia Planitia (azimuthal equidistant on the Mars sphere (product CRS)), each a 5000 m window on a 90 m analysis grid. Mode C.",
   "q2_interpretation": {
     "evidence_label": "Assumed",
-    "text": "Assumed: this Earth window could help investigate how surfaces with comparable supported descriptors (terrain_relief, terrain_texture) behave, as a candidate window identified by this search for the lunar target. It is an interpretation to test, not a measured result."
+    "text": "Assumed: this Earth window could help investigate how surfaces with comparable supported descriptors (terrain_relief, terrain_texture) behave, as a candidate window identified by this search for the Mars target. It is an interpretation to test, not a measured result."
   },
   "q3_measurements": [
     {
       "band": null,
       "evidence_label": "Derived",
-      "geometry": "polar_stereographic target window; utm Earth",
+      "geometry": "aeqd_sphere target window; utm Earth",
       "observable": "terrain_relief distance",
       "product_id": null,
       "reason": null,
       "support": "90 m analysis grid in 5000 m windows",
       "unit": "RMS of log nu",
-      "value": 3.3722848971248722
+      "value": 0.28854934861205206
     },
     {
       "band": null,
       "evidence_label": "Derived",
-      "geometry": "polar_stereographic target window; utm Earth",
+      "geometry": "aeqd_sphere target window; utm Earth",
       "observable": "terrain_texture distance",
       "product_id": null,
       "reason": null,
       "support": "90 m analysis grid in 5000 m windows",
       "unit": "RMS of log nu",
-      "value": 3.810780065678957
+      "value": 0.05931653833563583
     },
     {
       "band": null,
@@ -198,7 +199,7 @@
       "geometry": null,
       "observable": "radar_cpr distance",
       "product_id": null,
-      "reason": "earth_radar_fingerprint_not_built",
+      "reason": "radar_unavailable_for_body",
       "support": "no qualified radar pair",
       "unit": "CPR Wasserstein-1",
       "value": null
@@ -219,18 +220,16 @@
     "ambiguous": [],
     "differing": [],
     "limits": [
-      "Gravity: about one-sixth of Earth's on the Moon.",
-      "Atmosphere: wind, rain, weathering and erosion shape Earth surfaces; none act on the Moon.",
-      "Water and life: Earth ground carries moisture and biology; lunar regolith is dry apart from possible polar volatiles.",
-      "Radiation and space weathering act directly on the lunar surface.",
-      "Temperature: permanently shadowed lunar ground is far colder than any Earth surface.",
-      "Illumination: the Sun stays near the horizon at the lunar pole.",
-      "Regolith origin: lunar soil is made by impacts, with sharp, unweathered grains unlike most Earth sediments."
+      "Gravity: about 0.38 of Earth's on Mars.",
+      "Atmosphere: a thin CO₂ atmosphere in which wind and dust act but rain does not.",
+      "Water and life: no liquid surface water or biology today.",
+      "Temperature and radiation: lower temperatures and higher surface radiation than on Earth.",
+      "Resolution: CTX DTMs resolve only features of roughly 100 m and larger, so finer roughness is not compared."
     ],
     "not_observed": [
-      "radar_cpr: earth_radar_fingerprint_not_built",
+      "radar_cpr: radar_unavailable_for_body",
       "model_embedding: encoder_not_evaluated",
-      "radar_cpr: unavailable (earth_radar_fingerprint_not_built)",
+      "radar_cpr: unavailable (radar_unavailable_for_body)",
       "model_embedding: unavailable (encoder_not_evaluated)"
     ]
   },
@@ -260,95 +259,71 @@
         "status": "unavailable"
       },
       "measurement_error": {
-        "by_family": {
-          "terrain_relief": {
-            "n": 100,
-            "spread_max": 3.372024998708099,
-            "spread_median": 3.3718861713272705,
-            "spread_min": 3.371776857334297
-          },
-          "terrain_texture": {
-            "n": 100,
-            "spread_max": 3.8105094923555,
-            "spread_median": 3.810355600423584,
-            "spread_min": 3.810242298244613
-          }
-        },
-        "evidence_label": "Derived",
-        "n_requested": 100,
-        "n_used": 100,
-        "note": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6). Spread of this candidate's distance when the target is replaced by each clone.",
+        "by_family": null,
+        "evidence_label": "Unavailable",
+        "n_requested": null,
+        "n_used": null,
+        "note": "The PGDA78 clones cover the published topographic error model only. They say nothing about radar calibration, sub-pixel rocks or Earth field truth (PRD 6.6).",
         "rank_frequency": null,
-        "reason": null,
+        "reason": "no_published_clone_set",
         "scenarios": null,
-        "status": "available"
+        "status": "unavailable"
       },
       "scenario_sensitivity": {
         "by_family": null,
         "evidence_label": "Derived",
         "n_requested": null,
         "n_used": null,
-        "note": "Named mask and region scenarios with the rank by family in each; rank_frequency is how often this candidate ranked first by that family over the PGDA78 clone runs, a frequency and never a probability (PRD 6.6). Mode C: no radar scenario.",
-        "rank_frequency": {
-          "terrain_relief": {
-            "count": 0,
-            "frequency": 0.0,
-            "n": 100
-          },
-          "terrain_texture": {
-            "count": 0,
-            "frequency": 0.0,
-            "n": 100
-          }
-        },
+        "note": "Named mask and region scenarios with the rank by family in each; rank_frequency is how often this candidate ranked first by that family over the PGDA78 clone runs (none without a clone set), a frequency and never a probability (PRD 6.6). Mode C: no radar scenario.",
+        "rank_frequency": null,
         "reason": null,
         "scenarios": [
           {
             "change": "WorldCover allowed fraction >= 0.9 (config), both regions",
             "name": "pipeline",
             "rank_by_family": {
-              "terrain_relief": 66,
-              "terrain_texture": 66
+              "terrain_relief": 6,
+              "terrain_texture": 1
             },
             "values_by_family": {
-              "terrain_relief": 3.3722848971248363,
-              "terrain_texture": 3.8107800656789257
+              "terrain_relief": 0.28854934861205206,
+              "terrain_texture": 0.059316538335635834
             }
           },
           {
             "change": "WorldCover allowed fraction >= 0.95 instead of 0.9",
             "name": "worldcover_allowed_ge_0.95",
             "rank_by_family": {
-              "terrain_relief": 62,
-              "terrain_texture": 62
+              "terrain_relief": 6,
+              "terrain_texture": 1
             },
             "values_by_family": {
-              "terrain_relief": 3.3722848971248363,
-              "terrain_texture": 3.8107800656789257
+              "terrain_relief": 0.28854934861205206,
+              "terrain_texture": 0.059316538335635834
             }
           },
           {
             "change": "WorldCover allowed fraction >= 1 instead of 0.9",
             "name": "worldcover_allowed_ge_1",
             "rank_by_family": {
-              "terrain_relief": 16,
-              "terrain_texture": 16
+              "terrain_relief": null,
+              "terrain_texture": null
             },
             "values_by_family": {
-              "terrain_relief": 3.3722848971248363,
-              "terrain_texture": 3.8107800656789257
+              "terrain_relief": null,
+              "terrain_texture": null
             }
           },
           {
             "change": "search only the holuhraun region",
             "name": "region_holuhraun_only",
             "rank_by_family": {
-              "terrain_relief": 42,
-              "terrain_texture": 42
+              "terrain_relief": 6,
+              "terrain_texture": 1
             },
             "values_by_family": {
-              "terrain_relief": 3.3722848971248363,
-              "terrain_texture": 3.8107800656789257
+              "terrain_relief": 0.28854934861205206,
+              "terrain_texture": 0.059316538335635834
             }
           },
           {
@@ -407,67 +382,67 @@
     "text": "Proposed, not yet carried out: survey a surface patch in this Earth window with a clast-size and coverage distribution, material and moisture notes, and calibrated radar observations under controlled geometry. Dimensions and sampling would be chosen for the sensor and site; none of these measurements has been made."
   },
   "radar_context": [],
-  "run_id": "sha256:9cd9c77307063ffed4d80118aa1f6f11083f71201e1b93ba23a38e6784246ed3",
+  "run_id": "sha256:6f8a744305d7f9dcf488863acfbb7ff8dd8d51f20af46cb05d2279bdd2c18179",
   "shipping_mode": "C",
   "target": {
-    "body": "moon",
+    "body": "mars",
     "polygon": {
-      "crs": "PROJCS[\"unnamed\",GEOGCS[\"unnamed ellipse\",DATUM[\"unknown\",SPHEROID[\"unnamed\",1737400,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Polar_Stereographic\"],PARAMETER[\"latitude_of_origin\",-90],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",NORTH],AXIS[\"Northing\",NORTH]]",
+      "crs": "+proj=aeqd +lat_0=44.590090596630276 +lon_0=-174.38415051679638 +R=3396190.0",
       "epsg": null,
-      "frame": "polar_stereographic",
+      "frame": "aeqd_sphere",
       "ring_lonlat": [
         [
-          -136.97493401088198,
-          -89.32335821167513
+          -174.44333197887235,
+          44.54789879646586
         ],
         [
-          -149.03624346792648,
-          -89.42312746886464
+          -174.3249690547204,
+          44.54789879646586
         ],
         [
-          -138.01278750418336,
-          -89.55633013392185
+          -174.32488310103608,
+          44.63225179092888
         ],
         [
-          -125.53767779197437,
-          -89.43263162860389
+          -174.44341793255668,
+          44.63225179092888
         ],
         [
-          -136.97493401088198,
-          -89.32335821167513
+          -174.44333197887235,
+          44.54789879646586
         ]
       ],
       "ring_m": [
         [
-          -14000.0,
-          -15000.0
+          -2500.0,
+          -2500.0
         ],
         [
-          -9000.0,
-          -15000.0
+          2500.0,
+          -2500.0
         ],
         [
-          -9000.0,
-          -10000.0
+          2500.0,
+          2500.0
         ],
         [
-          -14000.0,
-          -10000.0
+          -2500.0,
+          2500.0
         ],
         [
-          -14000.0,
-          -15000.0
+          -2500.0,
+          -2500.0
         ]
       ],
       "utm_zone": null
     },
     "product_ids": [
-      "PGDA78/Site01/Site01_final_adj_5mpp_ldec.tif",
-      "PGDA78/Site01/Site01_final_adj_5mpp_surf.tif"
+      "CTX/mro_ctx_controlled_usgs_dtms/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W_dtm.tif",
+      "CTX/mro_ctx_controlled_usgs_dtms/D16_033291_2253_XN_45N174W__D18_034359_2249_XN_44N174W/qa_metrics.txt"
     ],
-    "target_id": "moon-cr-site01-w000",
-    "target_window_id": "moon-sps-x2-y2"
+    "target_id": "mars-arcadia-w000",
+    "target_window_id": "mars-arcadia-d16-033291-x6-y9"
   },
-  "title": "Terrain analog pilot for Connecting Ridge; radar comparison not completed",
+  "title": "Terrain analog pilot for Arcadia Planitia; radar comparison not completed",
   "wording": "candidate window identified by this search"
 }

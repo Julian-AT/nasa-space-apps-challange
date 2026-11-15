@@ -44,7 +44,7 @@
 <rect x="183.60" y="530.00" width="214.58" height="8.00" fill="#3b528b" stroke="none"/>
 <line x1="243.76" y1="527.00" x2="243.76" y2="541.00" stroke="#1a1a1a" stroke-width="1.50"/>
 <text x="180.00" y="554.00" class="muted">0.022044 to 1.33425, median 0.389943, n 163</text>
-<text x="180.00" y="572.00">Unavailable: uncertainty_not_annotated</text>
+<text x="180.00" y="572.00">Unavailable: no_published_clone_set</text>
 <path d="M227.18 520.00L222.18 512.00L232.18 512.00Z" fill="#440154"/>
 <line x1="227.18" y1="520.00" x2="227.18" y2="574.00" stroke="#440154" stroke-width="1.00"/>
 <line x1="180.00" y1="602.00" x2="420.00" y2="602.00" stroke="#1a1a1a" stroke-width="1.00"/>
@@ -90,7 +90,7 @@
 <rect x="663.28" y="530.00" width="214.90" height="8.00" fill="#3b528b" stroke="none"/>
 <line x1="716.98" y1="527.00" x2="716.98" y2="541.00" stroke="#1a1a1a" stroke-width="1.50"/>
 <text x="660.00" y="554.00" class="muted">0.0201108 to 1.33765, median 0.349313, n 163</text>
-<text x="660.00" y="572.00">Unavailable: uncertainty_not_annotated</text>
+<text x="660.00" y="572.00">Unavailable: no_published_clone_set</text>
 <path d="M669.68 520.00L664.68 512.00L674.68 512.00Z" fill="#440154"/>
 <line x1="669.68" y1="520.00" x2="669.68" y2="574.00" stroke="#440154" stroke-width="1.00"/>
 <line x1="660.00" y1="602.00" x2="900.00" y2="602.00" stroke="#1a1a1a" stroke-width="1.00"/>
