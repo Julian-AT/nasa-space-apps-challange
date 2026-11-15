@@ -13,7 +13,7 @@ import { Globe } from '@/components/globe';
 
 import { ArchDiagram, ARCH_STEPS } from './arch';
 import { ACCENT, EASE, FAINT, HillTile, INK, LINE, MUTED, PAPER } from './bits';
-import { BarFigure, C, FigureCard, LineFigure, type LineSeries } from './figure';
+import { C, FigureCard, LineFigure, type LineSeries } from './figure';
 import { mmss, NOTES, TOTAL_S } from './notes';
 import type { PitchData } from './pitch-data';
 
@@ -63,16 +63,6 @@ function Key({ value, label }: { value: ReactNode; label: string }) {
   );
 }
 
-const TERM: Record<string, { label: string; color: string }> = {
-  total: { label: 'Total', color: C.orange },
-  vicreg: { label: 'VICReg', color: C.blue },
-  phys: { label: 'Physics head', color: C.green },
-  body: { label: 'Body adversary', color: C.grey },
-};
-
-const pow10 = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, k) => 10 ** (a + k));
-const fmtPow = (v: number) => (v >= 1 ? String(v) : String(Number(v.toPrecision(1))));
-
 interface Slide {
   readonly id: string;
   readonly steps: number;
@@ -98,15 +88,6 @@ function slides(d: PitchData, qr: string | null): Slide[] {
     const step = Math.max(5, Math.round((hi - lo) / 4 / 5) * 5);
     return Array.from({ length: Math.floor((hi - lo) / step) + 1 }, (_, k) => lo + k * step).filter((v) => v > 0);
   })() : [];
-  const lossSeries: LineSeries[] = (d.training?.terms ?? [])
-    .filter((t) => TERM[t.term] !== undefined)
-    .map((t) => ({ id: t.term, label: TERM[t.term]!.label, color: TERM[t.term]!.color, points: t.points.map((p) => ({ x: p.epoch + 1, y: p.mean })) }));
-  const lossYs = lossSeries.flatMap((s) => s.points.map((p) => p.y));
-  const lossTicks = lossYs.length ? pow10(Math.floor(Math.log10(Math.min(...lossYs))), Math.ceil(Math.log10(Math.max(...lossYs)))) : [];
-  const epochs = [...new Set(lossSeries.flatMap((s) => s.points.map((p) => p.x)))].sort((a, b) => a - b);
-  const bestPer = d.ranges.filter((r) => r.min !== null);
-  const bestMax = Math.max(0.05, ...bestPer.map((r) => r.min ?? 0));
-  const reliefTop = Math.ceil(bestMax * 1.25 * 20) / 20;
   return [
     {
       id: 'title',
@@ -247,30 +228,9 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       id: 'training',
       steps: 1,
       body: () => (
-        <Frame title="Training" sub={<>Self-supervised on Moon, Mars and Earth windows, {d.training?.mock ? 'mock curves' : 'losses read from the release bundle'}.</>}>
-          <In d={0.12} className="h-full">
-            <FigureCard
-              title="Training losses"
-              sub="Lower is better, log scale, mean over seeds"
-              caption="Figure 2. Training losses per epoch, main arm, mean over seeds."
-            >
-              {lossSeries.length ? (
-                <LineFigure
-                  series={lossSeries}
-                  xTicks={epochs}
-                  yTicks={lossTicks}
-                  yLog
-                  xLabel="Epoch"
-                  yLabel="Loss"
-                  fmtX={(x) => String(x)}
-                  fmtY={(y) => (y >= 1 ? y.toFixed(y >= 10 ? 1 : 2) : y.toFixed(3)).replace(/\.?0+$/, '') || fmtPow(y)}
-                  ariaLabel="Training loss terms per epoch, log scale"
-                  width={1080}
-                  height={360}
-                />
-              ) : <Unavailable reason="report/curves.json has no loss terms" />}
-            </FigureCard>
-          </In>
+        <Frame title="Training" sub="Self-supervised on Moon, Mars and Earth windows, losses read from the release bundle.">
+          {/* figure area: components/pitch/fig-training.tsx is wired in here */}
+          <div className="h-full w-full" data-figure="training" />
         </Frame>
       ),
     },
@@ -279,63 +239,8 @@ function slides(d: PitchData, qr: string | null): Slide[] {
       steps: 1,
       body: () => (
         <Frame title="Benchmarks" sub="Experimental learned similarity, evidence label Predicted, a second opinion beside the physics.">
-          <div className="flex h-full flex-col gap-6">
-            <div className="grid min-h-0 flex-1 grid-cols-3 gap-6">
-              <In d={0.1} className="h-full">
-                <FigureCard title="Training throughput" sub="Windows per second, higher is better" caption="Figure 3. Median throughput from the run records.">
-                  {m.mpsMedian !== null && m.cpuMedian !== null ? (
-                    <BarFigure
-                      bars={[
-                        { label: 'CPU server', value: m.cpuMedian, color: C.blue, text: String(m.cpuMedian) },
-                        { label: 'Apple laptop GPU', value: m.mpsMedian, color: C.orange, text: String(m.mpsMedian) },
-                      ]}
-                      yMax={Math.ceil((m.mpsMedian * 1.15) / 250) * 250}
-                      yTicks={Array.from({ length: Math.ceil((m.mpsMedian * 1.15) / 250) + 1 }, (_, k) => k * 250).filter((_, k) => k % 2 === 0)}
-                      fmtY={(y) => y.toLocaleString('en-US')}
-                      yLabel="Windows per second"
-                      ariaLabel={`Training throughput: CPU server ${m.cpuMedian}, Apple laptop GPU ${m.mpsMedian} windows per second`}
-                    />
-                  ) : <Unavailable reason="run records" />}
-                </FigureCard>
-              </In>
-              <In d={0.18} className="h-full">
-                <FigureCard title="Browser parity" sub="Cosine to the training model, higher is better" caption="Figure 4. ONNX in WebAssembly, minimum over test windows.">
-                  {m.wasmMinCosine !== null ? (
-                    <BarFigure
-                      bars={[{ label: 'ONNX WebAssembly', value: m.wasmMinCosine, color: C.green, text: m.wasmMinCosine.toFixed(6) }]}
-                      yMin={0.998}
-                      yMax={1}
-                      yTicks={[0.998, 0.999, 1]}
-                      fmtY={(y) => y.toFixed(3)}
-                      yLabel="Min cosine"
-                      refLine={{ value: 0.999, label: 'tolerance 0.999' }}
-                      ariaLabel={`Browser parity: minimum cosine ${m.wasmMinCosine} against a tolerance of 0.999`}
-                    />
-                  ) : <Unavailable reason="numbers.tex" />}
-                </FigureCard>
-              </In>
-              <In d={0.26} className="h-full">
-                <FigureCard title="Relief distance to target" sub="Best Earth match per target, lower is better" caption="Figure 5. Closest evidence card per target site.">
-                  {bestPer.length ? (
-                    <BarFigure
-                      bars={bestPer.map((r) => ({ label: r.targetName.replace(' crater', '').replace(' Planitia', ''), value: r.min ?? 0, color: r.targetId.startsWith('moon') ? C.green : r.targetId.includes('jezero') ? C.orange : C.blue, text: (r.min ?? 0).toFixed(3) }))}
-                      yMax={reliefTop}
-                      yTicks={Array.from({ length: Math.round(reliefTop / 0.05) + 1 }, (_, k) => Number((k * 0.05).toFixed(2))).filter((_, k, a) => a.length <= 6 || k % 2 === 0)}
-                      fmtY={(y) => y.toFixed(2)}
-                      yLabel="Relief distance"
-                      ariaLabel={`Best relief distance per target: ${bestPer.map((r) => `${r.targetName} ${(r.min ?? 0).toFixed(3)}`).join(', ')}`}
-                    />
-                  ) : <Unavailable reason="no evidence cards" />}
-                </FigureCard>
-              </In>
-            </div>
-            <In d={0.34} className="grid grid-cols-4 gap-6">
-              <Key value={m.parameters === null ? <Unavailable reason="model card" /> : `${(m.parameters / 1e6).toFixed(1)}M`} label="parameters" />
-              <Key value={m.trainWindows === null ? <Unavailable reason="model card" /> : m.trainWindows.toLocaleString('en-US')} label="training windows" />
-              <Key value={m.mpsMedian !== null && m.cpuMedian ? `${Math.round(m.mpsMedian / m.cpuMedian)}x` : <Unavailable reason="run records" />} label="faster on the laptop GPU" />
-              <Key value={m.probeR2Low === null ? <Unavailable reason="model card" /> : m.probeR2Low.toFixed(3)} label="physics probe R2, lower bound" />
-            </In>
-          </div>
+          {/* figure area: components/pitch/fig-benchmarks.tsx is wired in here */}
+          <div className="h-full w-full" data-figure="benchmarks" />
         </Frame>
       ),
     },
