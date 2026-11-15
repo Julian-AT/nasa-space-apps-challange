@@ -29,12 +29,9 @@ export const ROUTES = [
   { to: "/explore/mars", label: "Maps: Mars" },
   { to: "/lab", label: "Lab" },
   { to: "/report", label: "Report" },
-  { to: "/learn", label: "Learn" },
   { to: "/model", label: "Model" },
-  { to: "/methods", label: "Methods" },
   { to: "/paper", label: "Paper" },
   { to: "/paper/terraluna-paper.pdf", label: "Paper PDF", hard: true },
-  { to: "/api/docs", label: "API docs", hard: true },
 ] as const;
 
 interface Item {

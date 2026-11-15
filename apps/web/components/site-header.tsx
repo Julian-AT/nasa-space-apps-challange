@@ -27,11 +27,7 @@ export const NAV_ITEMS = [
   { label: 'Find', href: '/find' },
   { label: 'Maps', href: '/explore/earth' },
   { label: 'Model', href: '/model' },
-  { label: 'Methods', href: '/methods' },
-  { label: 'Learn', href: '/learn' },
   { label: 'Paper', href: '/paper' },
-  { label: 'API docs', href: '/api/docs' },
-  { label: 'About', href: '/about' },
 ] as const;
 
 function isCurrentRoute(href: string, pathname: string | null): boolean {
