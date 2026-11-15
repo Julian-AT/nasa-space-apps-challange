@@ -72,7 +72,7 @@ describe('evidence card page', () => {
   it('gives the encoder the Predicted label, EXPERIMENTAL and no rank while G5 is not PASS', () => {
     const card = synthCard({ available: ['model_embedding'], g5: 'NOT_RUN' });
     const html = render(card);
-    const row = /<tr[^>]*data-family="model_embedding"[\s\S]*?<\/tr>/.exec(html)?.[0] ?? '';
+    const row = /<li[^>]*data-family="model_embedding"[\s\S]*?<\/li>/.exec(html)?.[0] ?? '';
     expect(row).toContain('Predicted');
     expect(row).toContain('EXPERIMENTAL');
     expect(textOf(row).toLowerCase()).not.toMatch(/rank \d|#\d|rank:/);

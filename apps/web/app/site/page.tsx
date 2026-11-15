@@ -29,17 +29,18 @@ export default function SiteIndex() {
           This bundle contains no evidence cards.
         </p>
       ) : (
-        <ul className="mt-8 grid gap-4 md:grid-cols-2">
-          {cards.map((card) => (
+        <ul className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {cards.map((card, i) => (
             <li key={card.card_id}>
               <Link href={`/site/${card.card_id}`} className="block rounded-xl focus-visible:ring-2 focus-visible:ring-ring">
                 <Card className="h-full transition-colors hover:border-primary">
                   <CardHeader>
                     <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm text-primary">{String(i + 1).padStart(2, '0')}</span>
                       <Badge>Mode {card.shipping_mode}</Badge>
                       {card.mock ? <Badge variant="outline">MOCK</Badge> : null}
                     </div>
-                    <CardTitle>{card.title}</CardTitle>
+                    <CardTitle className="font-serif text-2xl font-normal">{card.title}</CardTitle>
                     <CardDescription>
                       {card.target.target_id} · {card.earth.earth_window_id}
                     </CardDescription>

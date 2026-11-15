@@ -12,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -56,10 +55,20 @@ function Q({ n, children }: { readonly n: number; readonly children: ReactNode }
   return (
     <Card data-question={`q${String(n)}`} className="h-full">
       <CardHeader>
-        <CardDescription className="text-xs font-semibold tracking-widest uppercase">
-          Question {n}
-        </CardDescription>
-        <CardTitle>{QUESTIONS[n - 1]}</CardTitle>
+        <div className="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="flex size-8 items-center justify-center rounded-full border border-line font-mono text-sm text-primary"
+          >
+            {String(n).padStart(2, '0')}
+          </span>
+          <div>
+            <CardDescription className="font-mono text-[10px] tracking-[0.22em] uppercase">
+              Question {n}
+            </CardDescription>
+            <CardTitle className="font-serif text-2xl font-normal">{QUESTIONS[n - 1]}</CardTitle>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">{children}</CardContent>
     </Card>
@@ -101,73 +110,52 @@ function Polygon({ title, frame, crs, ring }: { title: string; frame: string; cr
 
 function Distances({ card, g5Passed }: { readonly card: CardRecord; readonly g5Passed: boolean }) {
   return (
-    <Table data-slot="distances">
-      <TableCaption>
-        Four distance families, each in its own units. They are never summed, averaged or ranked together.
-      </TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Family</TableHead>
-          <TableHead>Distance</TableHead>
-          <TableHead>Evidence</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Rank</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {FAMILY_ORDER.map((family) => {
-          const d = card.distances_by_family[family];
-          const encoder = family === 'model_embedding';
-          const experimental = encoder && !g5Passed;
-          return (
-            <TableRow key={family} data-family={family} data-status={d.status}>
-              <TableCell>
-                <span className="font-semibold">{FAMILY_NAMES[family]}</span>{' '}
-                <code className="text-xs text-muted-foreground">{family}</code>
-                {experimental ? (
-                  <>
-                    {' '}
-                    <Badge variant="outline">EXPERIMENTAL</Badge>
-                  </>
-                ) : null}
-              </TableCell>
-              <TableCell>
-                {d.status === 'available' && d.value !== null ? (
-                  <>
-                    <span data-slot="value" className="font-mono">
-                      {String(d.value)}
-                    </span>{' '}
-                    <span data-slot="unit">{d.unit}</span>
-                  </>
-                ) : (
-                  <span>
-                    Unavailable <Reason reason={d.reason} />
-                  </span>
-                )}
-              </TableCell>
-              <TableCell>
-                <Label_ label={d.evidence_label} />
-              </TableCell>
-              <TableCell>
-                {d.status === 'not_comparable' ? 'not comparable' : d.status}
-                {d.reason !== null && d.status === 'available' ? <Reason reason={d.reason} /> : null}
-              </TableCell>
-              <TableCell>
-                {encoder ? (
-                  <span data-rank="none" className="text-muted-foreground">
-                    {experimental ? 'none (G5 not passed)' : 'none on this card'}
-                  </span>
-                ) : (
-                  <span data-rank="none" className="text-muted-foreground">
-                    none on this card
-                  </span>
-                )}
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+    <ul data-slot="distances" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {FAMILY_ORDER.map((family) => {
+        const d = card.distances_by_family[family];
+        const encoder = family === 'model_embedding';
+        const experimental = encoder && !g5Passed;
+        const has = d.status === 'available' && d.value !== null;
+        return (
+          <li
+            key={family}
+            data-family={family}
+            data-status={d.status}
+            className="flex flex-col gap-3 rounded-2xl border border-line bg-card p-4"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
+                {FAMILY_NAMES[family]}
+              </span>
+              {experimental ? <Badge variant="outline">EXPERIMENTAL</Badge> : null}
+            </div>
+            {has ? (
+              <p className="font-mono text-3xl leading-none">
+                <span data-slot="value">{String(d.value)}</span>{' '}
+                <span data-slot="unit" className="text-sm text-muted-foreground">
+                  {d.unit}
+                </span>
+              </p>
+            ) : (
+              <p className="text-lg leading-snug">
+                {family === 'radar_cpr' && card.shipping_mode === 'C'
+                  ? 'Unavailable: not completed (Mode C)'
+                  : 'Unavailable'}
+              </p>
+            )}
+            <div className="mt-auto flex flex-col gap-1.5 text-sm">
+              <Label_ label={d.evidence_label} />
+              <span className="text-muted-foreground">
+                {d.status === 'not_comparable' ? 'not comparable' : d.status} <Reason reason={d.reason} />
+              </span>
+              <span data-rank="none" className="text-xs text-muted-foreground">
+                {experimental ? 'unranked (G5 not passed)' : 'unranked: no single score'}
+              </span>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -284,18 +272,26 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
           MOCK PREVIEW: synthetic data, not production evidence
         </p>
       ) : null}
-      <header className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge data-slot="mode-pill">Mode {card.shipping_mode}</Badge>
-          <span className="text-sm text-muted-foreground">Bundle version {bundleVersion}</span>
-          <span className="text-sm text-muted-foreground">· G5 {g5Gate}</span>
+      <header className="flex flex-col gap-5 rounded-3xl border border-line bg-card p-6 text-card-foreground sm:p-10">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="font-mono text-[11px] tracking-[0.24em] text-muted-foreground uppercase">
+            Evidence card
+          </span>
+          <Badge data-slot="mode-pill">
+            Mode {card.shipping_mode}: {MODE_TITLES[card.shipping_mode]}
+          </Badge>
         </div>
-        <h1 className="text-balance sm:text-4xl">{card.title}</h1>
-        <p className="text-lg text-muted-foreground">
-          Mode {card.shipping_mode}: {MODE_TITLES[card.shipping_mode]}
-        </p>
-        <p className="text-sm">
-          <strong>Target</strong> {t.target_id} ({t.body}) · <strong>Earth window</strong> {card.earth.earth_window_id}
+        <h1 className="font-serif text-4xl leading-tight font-normal text-balance sm:text-6xl">{card.title}</h1>
+        <div className="flex flex-wrap gap-2 text-sm">
+          <span className="rounded-full border border-line px-3 py-1">
+            <span className="text-muted-foreground">Target</span> {t.target_id} ({t.body})
+          </span>
+          <span className="rounded-full border border-line px-3 py-1">
+            <span className="text-muted-foreground">Earth window</span> {card.earth.earth_window_id}
+          </span>
+        </div>
+        <p className="font-mono text-[11px] tracking-wider text-muted-foreground uppercase">
+          Bundle version {bundleVersion} · G5 {g5Gate}
         </p>
         <p className="text-sm italic text-muted-foreground">{card.wording}</p>
       </header>
@@ -349,7 +345,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
       </div>
 
       <section aria-labelledby="q3" className="flex flex-col gap-3">
-        <h2 id="q3">Question 3: Supporting measurements (table D)</h2>
+        <h2 id="q3" className="font-serif text-3xl font-normal">Question 3: Supporting measurements (table D)</h2>
         <div className="overflow-x-auto rounded-xl border border-border bg-card">
           <Table data-slot="table-d">
             <TableHeader>
@@ -394,10 +390,11 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
       </section>
 
       <section aria-labelledby="distances" className="flex flex-col gap-3">
-        <h2 id="distances">Distances by family</h2>
-        <div className="overflow-x-auto rounded-xl border border-border bg-card">
-          <Distances card={card} g5Passed={g5Passed} />
-        </div>
+        <h2 id="distances" className="font-serif text-3xl font-normal">Distances by family</h2>
+        <Distances card={card} g5Passed={g5Passed} />
+        <p className="text-sm text-muted-foreground">
+          Four families, each in its own units: never summed, averaged or ranked together.
+        </p>
         {card.shipping_mode === 'C' ? (
           <p className="text-sm text-muted-foreground">
             Mode C: the radar comparison was not completed. The radar_cpr row above carries its Unavailable
@@ -408,7 +405,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
 
       {card.radar_context.length === 0 ? null : (
         <section aria-labelledby="radar-context" className="flex flex-col gap-3">
-          <h2 id="radar-context">Observed radar context</h2>
+          <h2 id="radar-context" className="font-serif text-3xl font-normal">Observed radar context</h2>
           <ul className="space-y-1 text-sm">
             {card.radar_context.map((r) => (
               <li key={`${r.product_id}-${r.band}-${r.observable}-${r.statistic}`}>
@@ -431,17 +428,17 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
       )}
 
       <section aria-labelledby="q5" className="flex flex-col gap-3">
-        <h2 id="q5">Question 5: Stability under uncertainty</h2>
+        <h2 id="q5" className="font-serif text-3xl font-normal">Question 5: Stability under uncertainty</h2>
         <Stability card={card} g5Passed={g5Passed} />
       </section>
 
       <section aria-labelledby="figures" className="flex flex-col gap-3">
-        <h2 id="figures">Figures A to C</h2>
+        <h2 id="figures" className="font-serif text-3xl font-normal">Figures A to C</h2>
         <Figures card={card} figures={figures} />
       </section>
 
       <section aria-labelledby="q7" className="flex flex-col gap-3">
-        <h2 id="q7">Question 7: Field experiment</h2>
+        <h2 id="q7" className="font-serif text-3xl font-normal">Question 7: Field experiment</h2>
         <Card data-question="q7">
           <CardContent className="flex flex-col gap-2">
             <p className="flex flex-wrap items-center gap-2">
@@ -455,7 +452,7 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
       </section>
 
       <section aria-labelledby="claim-limits" className="flex flex-col gap-3">
-        <h2 id="claim-limits">Claim limits</h2>
+        <h2 id="claim-limits" className="font-serif text-3xl font-normal">Claim limits</h2>
         <List items={card.claim_limits} empty="The record lists no claim limits." />
       </section>
 
