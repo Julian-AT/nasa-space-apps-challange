@@ -155,11 +155,11 @@
       "name": "empty_histogram"
     }
   ],
-  "config_sha256": "e8aba47dbef48c4911e7b707c183ef978629ad264c28a61a9f8da3112c78752e",
+  "config_sha256": "9fcb0191c70dc2aca1e463978278e1882a1bf8e60d0e5fd7ae2988bdb2c4b675",
   "data_kind": "synthetic",
   "description": "Python reference outputs of matching.terrain_distance (RMS of log nu over the shared supported lags, relief and texture separately) and matching.background_percentile (linear_within_bin_v1, smaller_is_closer). Null marks an unavailable value with its reason, never 0.",
   "generator": "python -m terraluna_pipeline.matching parity",
-  "git_commit": "bba3b58ab82a84c50623aa113a3ad1532187d5bf",
+  "git_commit": "5a4eb05bc23b362aef48c988dee87e528bb7aaee",
   "producing_source": "pipeline/src/terraluna_pipeline/matching.py",
   "schema_version": 1,
   "terrain_distance": [

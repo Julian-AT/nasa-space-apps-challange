@@ -116,7 +116,7 @@
   },
   "mock": false,
   "requested_n": 1000,
-  "run_id": "sha256:4bba3c3aa8dca8ca2c43f4d37dcc59944961d79651b45235a7173c172377212b",
+  "run_id": "sha256:7fcf3ff040058911bb3650f7380ed467132154d4b369b31761ea6797a8fbe581",
   "sample_window_ids": [
     "earth-utm11n-e157-n1541",
     "earth-utm11n-e157-n1544",
@@ -200,6 +200,5 @@
     "WorldCover/esa-worldcover/v200/2021/map/ESA_WorldCover_10m_2021_v200_N63W018_Map.tif"
   ],
   "statement": "empirical background comparison, not a physical truth test",
-  "target_id": "moon-cr-site01-w000",
-  "target_window_id": "moon-sps-x2-y2"
+  "target_id": "moon-cr-site01-w000"
 }
