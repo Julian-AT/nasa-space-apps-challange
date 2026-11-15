@@ -206,7 +206,7 @@ export default function Lab() {
   const earthName = earth.name.split(",")[0];
 
   return (
-    <div className="isolate bg-void">
+    <div className="sa-ui isolate bg-void">
       <LabProvenance />
       <CompareStage
         earthId={earthId}

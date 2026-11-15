@@ -7,6 +7,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { Menu, Moon, Pause, Play, Search, Sun, X } from "lucide-react";
 import { setMotionPaused, useMotionPaused, useMotionReduced } from "@/lib/shadowastra/motionPref";
 import clsx from "clsx";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Fit } from "@/lib/shadowastra/data/sites";
 import { FIT_LABEL } from "@/lib/shadowastra/data/sites";
 
@@ -75,11 +77,13 @@ export function useTheme() {
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, toggle } = useTheme();
   return (
-    <button
+    <Button
+      variant="outline"
+      size="icon"
       onClick={toggle}
       aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
       title={theme === "dark" ? "Light mode" : "Dark mode"}
-      className={clsx("relative grid size-9 place-items-center overflow-hidden rounded-full border border-line-2 text-chrome transition-colors hover:border-chrome hover:text-platinum", className)}
+      className={clsx("relative size-9 overflow-hidden rounded-md text-muted-foreground", className)}
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
@@ -92,7 +96,7 @@ export function ThemeToggle({ className }: { className?: string }) {
           {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
         </motion.span>
       </AnimatePresence>
-    </button>
+    </Button>
   );
 }
 
@@ -112,23 +116,23 @@ const FIT_STYLE: Record<Fit, string> = {
   strong: "text-strong border-strong/40 bg-strong/10",
   partial: "text-partial border-partial/40 bg-partial/10",
   weak: "text-weak border-weak/40 bg-weak/10",
-  unknown: "text-chrome border-dashed border-line-2 bg-transparent",
+  unknown: "text-muted-foreground border-dashed border-border bg-transparent",
 };
 const FIT_GLYPH: Record<Fit, string> = { strong: "●", partial: "◐", weak: "○", unknown: "?" };
 
 export function FitBadge({ fit }: { fit: Fit }) {
   return (
-    <span className={clsx("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium", FIT_STYLE[fit])}>
+    <Badge variant="outline" className={clsx("h-5 gap-1.5 px-2 text-[11px] font-medium", FIT_STYLE[fit])}>
       <span aria-hidden>{FIT_GLYPH[fit]}</span>
       {FIT_LABEL[fit]}
-    </span>
+    </Badge>
   );
 }
 
 export function Eyebrow({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={clsx("flex items-center gap-3 font-mono text-[11px] tracking-[0.22em] text-chrome uppercase", className)}>
-      <span className="h-px w-8 bg-chrome/50" />
+    <div className={clsx("flex items-center gap-3 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase", className)}>
+      <span className="h-px w-8 bg-border" />
       {children}
     </div>
   );
@@ -139,7 +143,7 @@ export const WORLD_COLOR = { earth: "#8fb4ea", moon: "#c9c5bc", mars: "#e08a5f" 
 export function WorldDot({ world, className }: { world: keyof typeof WORLD_COLOR; className?: string }) {
   return (
     <span
-      className={clsx("inline-block size-2 rounded-full", className)}
+      className={clsx("inline-block size-2 shrink-0 rounded-full ring-2 ring-background", className)}
       style={{ background: `var(--color-${world})` }}
     />
   );

@@ -111,7 +111,6 @@ function Hero({ grid, values, progress, v }: { grid: Grid | null; values: Float3
   useEffect(() => setWebgl(hasWebGL()), []);
   return (
     <section ref={ref} data-theme="dark" className="relative isolate flex min-h-[90dvh] flex-col overflow-hidden bg-void text-platinum">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_72%_42%,rgba(242,200,121,0.10),transparent_65%),radial-gradient(40%_50%_at_10%_90%,rgba(143,180,234,0.08),transparent_70%)]" />
       <motion.div style={{ y, opacity: fade }} className="absolute inset-y-0 right-[-18vw] w-[100vw] sm:right-[-10vw] lg:right-[-6vw] lg:w-[64vw]">
         <Suspense fallback={null}>
           <DotGlobe grid={grid} values={values} tint="#f2c879" startLon={30} className="h-full w-full" size={2.3} stillNote={false} />
@@ -957,7 +956,6 @@ function Closing() {
   const glow = useSpring(useTransform(scrollYProgress, [0, 1], [0, 1]), { stiffness: 80, damping: 20 });
   return (
     <section ref={ref} className="relative overflow-hidden px-4 py-32 sm:px-6">
-      <motion.div style={{ opacity: glow }} className="absolute inset-0 bg-[radial-gradient(50%_70%_at_50%_120%,rgba(242,200,121,0.16),transparent_70%)]" />
       <div className="relative mx-auto flex max-w-[1400px] flex-col items-center text-center">
         <Astronaut size={96} mood="happy" action="wave" />
         <h2 className="mt-6 text-[clamp(32px,4.6vw,68px)] leading-[1] font-medium tracking-[-0.04em]">
