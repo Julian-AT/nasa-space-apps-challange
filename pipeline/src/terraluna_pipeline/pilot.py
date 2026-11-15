@@ -6525,6 +6525,7 @@ _CORS_ORIGIN_REASONS: Final = {
         "a local development origin, as a browser on a developer's machine would send it"
     ),
 }
+_XML_ERROR_MESSAGE: Final = re.compile(r"<Error>.*?<Message>([^<]*)</Message>", re.DOTALL)
 _CORS_TARGETS: Final = (
     ("glo30", "outputs/pilot/cop30_range_read.json", ("dem", "range_read", "url")),
     ("worldcover", "outputs/pilot/worldcover_window.json", ("range_read", "url")),
@@ -6755,14 +6756,24 @@ class CorsSource:
     def build(self, raw_dir: Path, root: Path) -> Build:
         fetched = _load_fetch(raw_dir, self.name)
         try:
-            return self._build(root, fetched)
+            return self._build(raw_dir, root, fetched)
         except (KeyError, TypeError) as error:
             raise PilotError(
                 f"data/raw/{self.name}/{FETCH_METADATA} lacks an expected entry ({error!r}); "
                 f"run: {COMMAND} fetch {self.name}"
             ) from error
 
-    def _build(self, root: Path, fetched: Mapping[str, Any]) -> Build:
+    @staticmethod
+    def _error_message(body: bytes) -> str | None:
+        """The ``<Message>`` of an XML error body, such as S3 sends; None for any other body."""
+        try:
+            text = body.decode("utf-8")
+        except UnicodeDecodeError:
+            return None
+        match = _XML_ERROR_MESSAGE.search(text)
+        return None if match is None else unescape(match[1])
+
+    def _build(self, raw_dir: Path, root: Path, fetched: Mapping[str, Any]) -> Build:
         refetch = f"; run: {COMMAND} fetch {self.name}"
         urls = self._urls(root)
         stated = [(item["key"], item["url"], item["from"]) for item in fetched["urls"]]
@@ -6819,6 +6830,9 @@ class CorsSource:
                             "bytes": entry["bytes_received"],
                             "sha256": entry["sha256"],
                             "truncated": entry["body_truncated"],
+                            "error_message": self._error_message(
+                                (raw_dir / entry["file_name"]).read_bytes()
+                            ),
                         },
                         "requested_at": entry["requested_at"],
                         "retrieved_at": entry["retrieved_at"],
@@ -6871,6 +6885,10 @@ class CorsSource:
                 "absent_header": (
                     "a header the response does not carry is recorded with state absent and no "
                     "values, and never counts as allowing"
+                ),
+                "error_message": (
+                    "body.error_message quotes the <Message> of an XML <Error> body as the "
+                    "server sent it, else null; the body itself is at body.local_path"
                 ),
             },
             "cors_evidence_supports": glo30["cors_evidence_supports"],
