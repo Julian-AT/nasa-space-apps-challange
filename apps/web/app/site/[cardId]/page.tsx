@@ -4,6 +4,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { buildCardVisual } from '../../../components/cards/card-visual.ts';
 import { EvidenceCardView } from '../../../components/card/evidence-card.tsx';
 import { loadBundle } from '../../../lib/bundle.ts';
 import { SITE_TITLE } from '../../../lib/shell.ts';
@@ -37,6 +38,7 @@ export default async function CardPage({ params }: Props) {
       bundleVersion={bundle.manifest.bundle_version}
       g5Gate={g5?.status ?? null}
       figures={bundle.records.figures}
+      visual={buildCardVisual(bundle, card)}
     />
   );
 }
