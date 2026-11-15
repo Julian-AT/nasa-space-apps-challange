@@ -15,7 +15,13 @@ export const CardRecordSchema = z
     run_id: z.string().regex(new RegExp('^sha256:[0-9a-f]{64}$')),
     shipping_mode: z.enum(['A', 'B', 'C']),
     title: z.string().min(1),
-    wording: z.literal('candidate window identified by this search'),
+    wording: z
+      .string()
+      .regex(
+        new RegExp(
+          '^(candidate window identified by this search|Pilot pairing \\(G0-05\\); not shortlisted( \\(relief rank [0-9]+ of [0-9]+\\))?)$',
+        ),
+      ),
     target: z
       .object({
         target_id: z.string().regex(new RegExp('^(moon|mars|earth)-[a-z0-9][a-z0-9-]*$')),

@@ -9,7 +9,7 @@
     "No published elevation-error clone set exists for this target's DTM, so measurement error is Unavailable and no tie is claimed; scenario ranks come from mask and region filters only.",
     "Mars targets are compared on terrain only; no radar product is used.",
     "Mode C: radar comparison not completed. The radar inputs were not qualified within the pilot, so no radar distance or radar signature is part of this card.",
-    "The encoder is EXPERIMENTAL (G5 NOT_RUN); its distance, if shown, is Predicted and takes no part in any ranking.",
+    "The encoder is EXPERIMENTAL (G5 FAIL) and takes no part in any ranking; its distance, if shown, is Predicted.",
     "Field confirmation is future work; similarity here does not establish block sizes, soil strength, buried structure or low-gravity mobility (PRD 3)."
   ],
   "comparison_ref": {
@@ -163,7 +163,7 @@
       "reason": null
     }
   ],
-  "g5_status": "NOT_RUN",
+  "g5_status": "FAIL",
   "mock": false,
   "q1_compared": "Earth window earth-utm11n-e157-n1546 (rosamond-dry-lake; EPSG:32611, UTM zone 11N) compared with the Mars target window mars-jezero-d12-031871-x2-y9 of Jezero crater (azimuthal equidistant on the Mars sphere (product CRS)), each a 5000 m window on a 90 m analysis grid. Mode C.",
   "q2_interpretation": {

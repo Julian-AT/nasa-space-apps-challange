@@ -8,8 +8,9 @@
     "WorldCover v200 2021 land-cover mask, nearest class at 90 m centres (ANA-05 default)",
     "PGDA78 clone measurement error is propagated for the lunar target window only (clone counts in uncertainty_components); no Earth DEM error model is applied. Terrain ties use matching.tie_groups with each candidate's clone spread (half the 2.5-97.5 percentile range of its distance), measurement error only.",
     "Mode C: radar comparison not completed. The radar inputs were not qualified within the pilot, so no radar distance or radar signature is part of this card.",
-    "The encoder is EXPERIMENTAL (G5 NOT_RUN); its distance, if shown, is Predicted and takes no part in any ranking.",
-    "Field confirmation is future work; similarity here does not establish block sizes, soil strength, buried structure or low-gravity mobility (PRD 3)."
+    "The encoder is EXPERIMENTAL (G5 FAIL) and takes no part in any ranking; its distance, if shown, is Predicted.",
+    "Field confirmation is future work; similarity here does not establish block sizes, soil strength, buried structure or low-gravity mobility (PRD 3).",
+    "Its terrain relief distance (0.6785) exceeds the target's distance to every other window of its own site (max 0.4366), so it is not a close neighbour in this metric."
   ],
   "comparison_ref": {
     "earth_window_id": "earth-utm27n-e285-n2879",
@@ -162,12 +163,12 @@
       "reason": null
     }
   ],
-  "g5_status": "NOT_RUN",
+  "g5_status": "FAIL",
   "mock": false,
   "q1_compared": "Earth window earth-utm27n-e285-n2879 (holuhraun; EPSG:32627, UTM zone 27N) compared with the lunar target window moon-sps-x2-y2 of Connecting Ridge (PGDA78 Site01) (south polar stereographic (product CRS)), each a 5000 m window on a 90 m analysis grid. Mode C.",
   "q2_interpretation": {
     "evidence_label": "Assumed",
-    "text": "Assumed: this Earth window could help investigate how surfaces with comparable supported descriptors (terrain_relief, terrain_texture) behave, as a candidate window identified by this search for the lunar target. It is an interpretation to test, not a measured result."
+    "text": "Assumed: candidate window identified by this search. Its terrain relief distance (0.6785) exceeds the target's distance to every other window of its own site (max 0.4366), so it is not a close neighbour in this metric. It is not a close neighbour of the lunar target on the supported descriptors (terrain_relief, terrain_texture); this is an interpretation to test, not a measured result."
   },
   "q3_measurements": [
     {

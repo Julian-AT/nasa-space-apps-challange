@@ -1742,7 +1742,7 @@
       "type": "string"
     },
     "wording": {
-      "const": "candidate window identified by this search",
+      "pattern": "^(candidate window identified by this search|Pilot pairing \\(G0-05\\); not shortlisted( \\(relief rank [0-9]+ of [0-9]+\\))?)$",
       "title": "Wording",
       "type": "string"
     },
