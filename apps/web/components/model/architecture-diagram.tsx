@@ -15,11 +15,11 @@ export function ArchitectureDiagram({ facts }: { readonly facts: ModelFacts }) {
         <span className="text-sm font-semibold">Encoder architecture</span>
         <span className="text-xs text-muted-foreground">paper Figure 2, drawn from the model code</span>
       </figcaption>
-      <div className="rounded-lg border bg-white p-3 sm:p-5">
+      <div className="mx-auto w-full max-w-3xl rounded-lg bg-white p-3 sm:p-5">
         <img
           src="/figures/encoder-architecture.svg"
           alt={`Encoder architecture from input window at the bottom to the training loss at the top: a stride 2 convolution stem, a repeated BasicBlock (two per stage, four stages, widths 32 to 256) with a residual skip, global average pooling to a ${dim === null ? '' : `${String(dim)}-value `}embedding that is L2 normalised for retrieval and exported to ONNX, and three training heads: a projector with the VICReg loss, a physics head with a masked loss and a body head behind gradient reversal.`}
-          className="mx-auto block h-auto w-full max-w-[640px]"
+          className="mx-auto block h-auto w-full max-w-[520px]"
           width={406}
           height={455}
         />
