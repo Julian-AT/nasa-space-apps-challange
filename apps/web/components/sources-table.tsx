@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // The tables of /data (PRD 5, 8.4, 8.6, 8.12). SourcesTable shows ProductRecords from the bundle's
 // sources.json, already validated by the reader in app/data/sources.ts. Its columns are PRD 8.12
 // ProductRecord fields headed by their names, and every cell is the record's own text: a field the

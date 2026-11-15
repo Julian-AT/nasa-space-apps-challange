@@ -231,7 +231,8 @@ describe('compiled Tailwind CSS', () => {
       fontFaces += 1;
     });
     expect(fontFaces).toBe(0);
-    expect(css).not.toMatch(/url\(/i);
+    // No image file is requested: the only url() allowed is the inline SVG data URI of the film grain.
+    expect(css.replace(/url\("data:image\/svg\+xml;utf8,[^"]*"\)/g, '')).not.toMatch(/url\(/i);
     expect(css).not.toMatch(/prefers-color-scheme/);
     expect(css).not.toMatch(/\.dark\b/);
   });

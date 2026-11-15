@@ -1,7 +1,8 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // The shipping-mode banner on every page (PRD 3, 4, 8.6, D08). While no mode is chosen it gives
 // the G0 status from validation.json; once G0 has chosen A, B or C it adds that mode's PRD 4 title
-// wording, so a screenshot states the claim the mode permits and no stronger one. It is a compact
-// status pill in the header; the bundle version sits beside the text, never inside it.
+// wording, so a screenshot states the claim the mode permits and no stronger one. It is a slim hairline
+// strip above the navigation; the bundle version sits beside the text, never inside it.
 import type { Bundle } from '../lib/bundle.ts';
 import { shellText } from '../lib/shell.ts';
 
@@ -23,12 +24,16 @@ export function modeBannerText(bundle: Bundle): string {
 
 export function ModeBanner({ bundle }: Readonly<{ bundle: Bundle }>) {
   return (
-    <div className="order-3 flex w-fit max-w-full items-center gap-2 rounded-3xl border border-line-2 bg-panel px-3 py-1">
-      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-flare" />
-      <p className="text-xs leading-snug font-semibold text-foreground">{modeBannerText(bundle)}</p>
-      <p className="hidden shrink-0 border-l border-line-2 pl-2 font-mono text-[11px] text-chrome sm:block">
-        {`Bundle ${bundle.manifest.bundle_version}`}
-      </p>
+    <div className="border-b border-line bg-ink">
+      <div className="mx-auto flex w-full max-w-[1400px] items-center gap-3 px-4 py-1.5 sm:px-6">
+        <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-flare" />
+        <p className="min-w-0 flex-1 font-mono text-[10.5px] leading-snug font-semibold tracking-[0.04em] text-chrome sm:text-[11px]">
+          {modeBannerText(bundle)}
+        </p>
+        <p className="hidden shrink-0 border-l border-line-2 pl-3 font-mono text-[10.5px] tracking-[0.04em] text-dim md:block">
+          {`Bundle ${bundle.manifest.bundle_version}`}
+        </p>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-// Adapted from ShadowAstra_Atlas (MIT, (c) 2026 Team ShadowAstra), https://github.com/ABRUBAB/ShadowAstra_Atlas
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // shadcn-style Card (PRD 8.2, 8.10). Server components, no client JS.
 import type { ComponentProps } from 'react';
 

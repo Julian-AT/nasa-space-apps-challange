@@ -1,5 +1,5 @@
 /*
- * Adapted from ShadowAstra_Atlas (MIT, (c) 2026 Team ShadowAstra), https://github.com/ABRUBAB/ShadowAstra_Atlas
+ * Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
  */
 @import "tailwindcss" source(none);
 
@@ -179,6 +179,31 @@
     outline-offset: 2px;
   }
 
+  /* Film grain over the whole page removes the flat "digital black" look (decorative, no image file). */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-2) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-2);
+    border-radius: 999px;
+    border: 2px solid var(--background);
+  }
+
   /* Preflight removes link underlines; links must not be told apart by colour alone. */
   a {
     text-decoration-line: underline;
@@ -307,6 +332,49 @@
   @media (prefers-reduced-motion: reduce) {
     .btn-primary::after {
       transition: none;
+    }
+  }
+}
+
+@layer utilities {
+  /* Mono uppercase tracked eyebrow, used above titles and in panel headers. */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--chrome);
+  }
+
+  /* Stat tile: hairline panel with a mono label and a large figure. */
+  .tile {
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    background: var(--panel);
+    padding: 1rem 1.1rem;
+  }
+
+  /* Reveal on load: fade and rise once; staggered with --d. Reduced motion shows the final state. */
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .reveal {
+    animation: rise 0.9s var(--ease-out-quint) both;
+    animation-delay: var(--d, 0ms);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      animation: none;
+    }
+    html {
+      scroll-behavior: auto;
     }
   }
 }

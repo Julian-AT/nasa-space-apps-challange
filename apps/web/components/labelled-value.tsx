@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // A quantity shown with its evidence label, unit and source (PRD 3, 8.6, 10, D08). The value is
 // rendered only for Observed, Derived, Predicted and Assumed. Missing evidence is labelled
 // Unavailable with the reason it is absent, and is never shown as zero, a blank or a dash. The

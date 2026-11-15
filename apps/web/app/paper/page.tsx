@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // /paper (PRD 8.6, D35): static page; reads apps/web/public/paper/ at build time.
 import type { Metadata } from 'next';
 import { join } from 'node:path';

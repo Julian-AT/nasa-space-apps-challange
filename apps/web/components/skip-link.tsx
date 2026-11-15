@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // The first focusable element of every page (WCAG 2.2 SC 2.4.1, PRD 8.10): it moves keyboard
 // focus past the banners and navigation to the main landmark. It stays in the accessibility tree
 // but is drawn only while focused. Then it takes its own row above the banners, on the page
