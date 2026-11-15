@@ -8,12 +8,322 @@ export const GateRecordSchema = z
   .object({
     gate_id: z.enum(['G0', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6']),
     status: z.enum(['NOT_RUN', 'PASS', 'FAIL', 'PARTIAL', 'NOT_APPLICABLE']),
-    evidence_path: z.union([z.string().min(1), z.null()]),
-    run_id: z.union([z.string().min(1), z.null()]),
+    evidence_path: z
+      .union([
+        z
+          .string()
+          .regex(new RegExp('^[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*)*$')),
+        z.null(),
+      ])
+      .describe('The committed evidence file.'),
+    run_id: z
+      .union([z.string().regex(new RegExp('^sha256:[0-9a-f]{64}$')), z.null()])
+      .describe('PRD 8.13 run_id; required for PASS.'),
     scope: z.union([z.string().min(1), z.null()]),
     result: z.union([z.string().min(1), z.null()]),
     consequence: z.union([z.string().min(1), z.null()]),
+    command: z
+      .union([z.string().min(1), z.null()])
+      .describe('The shlex-joined argv of the command that produced the record.'),
+    config_version: z
+      .union([z.string().regex(new RegExp('^[0-9a-f]{64}$')), z.null()])
+      .describe('SHA-256 of config/run.yaml as read.'),
+    input_hashes: z
+      .array(
+        z
+          .object({
+            path: z
+              .string()
+              .regex(new RegExp('^[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*)*$')),
+            sha256: z.string().regex(new RegExp('^[0-9a-f]{64}$')),
+          })
+          .strict()
+          .describe("The SHA-256 of one file a gate's producer read, by its repository path."),
+      )
+      .describe('Every file the producer read, sorted by path, each path once.'),
   })
   .strict()
-  .describe("One release gate's state in validation.json (PRD 8.12, section 9).");
+  .superRefine((value, ctx) => {
+    if (Object.hasOwn(value, 'status') && value['status'] === 'PASS') {
+      if (Object.hasOwn(value, 'command')) {
+        for (const issue of z.string().safeParse(value['command']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['command', ...issue.path],
+            input: value['command'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'config_version')) {
+        for (const issue of z.string().safeParse(value['config_version']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['config_version', ...issue.path],
+            input: value['config_version'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'evidence_path')) {
+        for (const issue of z.string().safeParse(value['evidence_path']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['evidence_path', ...issue.path],
+            input: value['evidence_path'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'scope')) {
+        for (const issue of z.string().safeParse(value['scope']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['scope', ...issue.path],
+            input: value['scope'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'input_hashes')) {
+        for (const issue of z
+          .array(z.object({ path: z.string(), sha256: z.string() }).strict())
+          .min(1)
+          .safeParse(value['input_hashes']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['input_hashes', ...issue.path],
+            input: value['input_hashes'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'run_id')) {
+        for (const issue of z.string().safeParse(value['run_id']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['run_id', ...issue.path],
+            input: value['run_id'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+    }
+  })
+  .superRefine((value, ctx) => {
+    if (Object.hasOwn(value, 'status') && value['status'] === 'FAIL') {
+      if (Object.hasOwn(value, 'command')) {
+        for (const issue of z.string().safeParse(value['command']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['command', ...issue.path],
+            input: value['command'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'config_version')) {
+        for (const issue of z.string().safeParse(value['config_version']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['config_version', ...issue.path],
+            input: value['config_version'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'evidence_path')) {
+        for (const issue of z.string().safeParse(value['evidence_path']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['evidence_path', ...issue.path],
+            input: value['evidence_path'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'scope')) {
+        for (const issue of z.string().safeParse(value['scope']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['scope', ...issue.path],
+            input: value['scope'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'input_hashes')) {
+        for (const issue of z
+          .array(z.object({ path: z.string(), sha256: z.string() }).strict())
+          .min(1)
+          .safeParse(value['input_hashes']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['input_hashes', ...issue.path],
+            input: value['input_hashes'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+    }
+  })
+  .superRefine((value, ctx) => {
+    if (Object.hasOwn(value, 'status') && value['status'] === 'PARTIAL') {
+      if (Object.hasOwn(value, 'command')) {
+        for (const issue of z.string().safeParse(value['command']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['command', ...issue.path],
+            input: value['command'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'config_version')) {
+        for (const issue of z.string().safeParse(value['config_version']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['config_version', ...issue.path],
+            input: value['config_version'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'evidence_path')) {
+        for (const issue of z.string().safeParse(value['evidence_path']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['evidence_path', ...issue.path],
+            input: value['evidence_path'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'scope')) {
+        for (const issue of z.string().safeParse(value['scope']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['scope', ...issue.path],
+            input: value['scope'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'input_hashes')) {
+        for (const issue of z
+          .array(z.object({ path: z.string(), sha256: z.string() }).strict())
+          .min(1)
+          .safeParse(value['input_hashes']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['input_hashes', ...issue.path],
+            input: value['input_hashes'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+    }
+  })
+  .superRefine((value, ctx) => {
+    if (Object.hasOwn(value, 'status') && value['status'] === 'NOT_APPLICABLE') {
+      if (Object.hasOwn(value, 'command')) {
+        for (const issue of z.string().safeParse(value['command']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['command', ...issue.path],
+            input: value['command'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'config_version')) {
+        for (const issue of z.string().safeParse(value['config_version']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['config_version', ...issue.path],
+            input: value['config_version'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'evidence_path')) {
+        for (const issue of z.string().safeParse(value['evidence_path']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['evidence_path', ...issue.path],
+            input: value['evidence_path'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'scope')) {
+        for (const issue of z.string().safeParse(value['scope']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['scope', ...issue.path],
+            input: value['scope'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+      if (Object.hasOwn(value, 'input_hashes')) {
+        for (const issue of z
+          .array(z.object({ path: z.string(), sha256: z.string() }).strict())
+          .min(1)
+          .safeParse(value['input_hashes']).error?.issues ?? []) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['input_hashes', ...issue.path],
+            input: value['input_hashes'],
+            message:
+              'Invalid input: must match the "then" schema when the "if" schema holds: ' +
+              issue.message,
+          });
+        }
+      }
+    }
+  })
+  .describe(
+    "One release gate's state in validation.json (PRD 8.12, section 9).\n\nA gate that was run (PASS, FAIL, PARTIAL or NOT_APPLICABLE) names its ``command``,\n``config_version``, ``evidence_path`` and ``scope`` and lists at least one input; PASS also\nneeds the PRD 8.13 ``run_id``. NOT_RUN may leave every nullable field null with no inputs.\n``input_hashes`` is sorted by path with no path twice, so `gates verify` can re-hash it.\nThere are no wall-clock fields, so re-recording a gate is byte-identical.",
+  );
 export type GateRecord = z.infer<typeof GateRecordSchema>;

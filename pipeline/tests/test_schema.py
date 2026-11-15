@@ -99,9 +99,28 @@ def gate(**overrides: Any) -> dict[str, Any]:
         "scope": None,
         "result": None,
         "consequence": None,
+        "command": None,
+        "config_version": None,
+        "input_hashes": [],
     }
     record.update(overrides)
     return record
+
+
+def executed_gate(status: str, **overrides: Any) -> dict[str, Any]:
+    """A gate that was run, with the provenance PASS, FAIL, PARTIAL and NOT_APPLICABLE need."""
+    return gate(
+        **{
+            "status": status,
+            "evidence_path": "outputs/test/evidence.json",
+            "run_id": "sha256:" + HEX64,
+            "scope": "synthetic test scope",
+            "command": "python -m terraluna_pipeline.synthetic record",
+            "config_version": HEX64,
+            "input_hashes": [{"path": "config/run.yaml", "sha256": HEX64}],
+            **overrides,
+        }
+    )
 
 
 def manifest(**overrides: Any) -> dict[str, Any]:
@@ -391,7 +410,8 @@ def test_gate_id_rejects_anything_else(gate_id: object) -> None:
 
 @pytest.mark.parametrize("status", ["NOT_RUN", "PASS", "FAIL", "PARTIAL", "NOT_APPLICABLE"])
 def test_gate_status_accepts_prd_statuses(status: str) -> None:
-    assert_accepted(GateRecord, gate(status=status))
+    value = gate() if status == "NOT_RUN" else executed_gate(status)
+    assert_accepted(GateRecord, value)
 
 
 @pytest.mark.parametrize("status", ["PASSED", "not_run", "", 0, None])
@@ -423,23 +443,24 @@ def test_gate_result_null_stays_null_after_json_round_trip() -> None:
     restored = GateRecord.model_validate_json(dumped)
     assert restored.result is None
     assert restored == record
-    for field in ("evidence_path", "run_id", "scope", "consequence"):
+    for field in ("evidence_path", "run_id", "scope", "consequence", "command", "config_version"):
         assert json.loads(dumped)[field] is None
+    assert json.loads(dumped)["input_hashes"] == []
 
 
-@pytest.mark.parametrize("field", ["evidence_path", "run_id", "scope", "result", "consequence"])
+@pytest.mark.parametrize(
+    "field",
+    ["evidence_path", "run_id", "scope", "result", "consequence", "command", "config_version"],
+)
 @pytest.mark.parametrize("missing", ["", 0])
 def test_gate_optional_fields_reject_empty_or_zero_stand_ins(field: str, missing: object) -> None:
     assert_rejected(GateRecord, gate(**{field: missing}), (field,))
 
 
 def test_executed_gate_record_round_trips() -> None:
-    value = gate(
+    value = executed_gate(
+        "PARTIAL",
         gate_id="G1",
-        status="PARTIAL",
-        evidence_path="outputs/test/evidence.json",
-        run_id="sha256:" + HEX64,
-        scope="synthetic test scope",
         result="synthetic test result",
         consequence="synthetic test consequence",
     )
