@@ -38,7 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   const bundle = loadBundle();
   // Bundle records for the command palette and Luna; nothing here is typed in.
   const cardRecords = [...bundle.records.cards.values()];
-  const cards = cardRecords.map((card) => ({ id: card.card_id, title: card.title, body: card.target.body }));
+  const cards = cardRecords.map((card) => ({ id: card.card_id, title: card.title.replace(/; radar comparison not completed$/i, '').replace(/^Terrain analog pilot for /, 'Terrain analog for '), body: card.target.body }));
   const astraCtx = {
     bundleVersion: bundle.manifest.bundle_version,
     shippingMode: bundle.manifest.shipping_mode,

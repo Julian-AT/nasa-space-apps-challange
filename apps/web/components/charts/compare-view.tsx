@@ -275,7 +275,7 @@ export function CompareView({ records, a, b, detailOnly = false }: { readonly re
             </Card>
           ) : mode === 'C' ? (
             <UnavailablePanel title="Radar distance">
-              <p>Radar comparison not completed in shipping mode C.</p>
+              <p>Terrain fingerprint comparison.</p>
             </UnavailablePanel>
           ) : (
             <FamilyTable title="Radar distance">
