@@ -10,7 +10,7 @@ import type { PulledBundle } from '../../lib/bundle.ts';
 import { earthRegionName, layerForRegion, layerForTarget, pickTile, type TilePick, type TileLayerGeo } from './card-geo.ts';
 
 export interface TileView {
-  readonly src: string;
+  readonly tiles: readonly { readonly src: string; readonly x: number; readonly y: number }[];
   readonly pick: TilePick;
   readonly caption: string;
 }
@@ -56,7 +56,10 @@ export function buildCardVisual(bundle: PulledBundle, card: CardRecord): CardVis
     const pick = pickTile(layer, ring, exists);
     if (pick === null) return null;
     return {
-      src: `${assetBase()}/${version}/tiles/${layer.layer}/${String(pick.z)}/${String(pick.x)}/${String(pick.y)}.webp`,
+      tiles: pick.tiles.map((t) => ({
+        ...t,
+        src: `${assetBase()}/${version}/tiles/${layer.layer}/${String(pick.z)}/${String(t.x)}/${String(t.y)}.webp`,
+      })),
       pick,
       caption,
     };

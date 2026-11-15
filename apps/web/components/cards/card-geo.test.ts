@@ -32,12 +32,14 @@ describe('card-geo', () => {
     expect(q?.[1]).toBeLessThan(-4000);
   });
 
-  it('puts a window inside the picked tile', () => {
+  it('puts the window inside its square view and lists overlapping tiles', () => {
     const ring = [[-16.78, 64.86], [-16.67, 64.86], [-16.67, 64.9], [-16.78, 64.9]];
     const pick = pickTile(earth, ring, () => true);
     expect(pick).not.toBeNull();
-    expect(pick?.box.left).toBeGreaterThanOrEqual(0);
-    expect((pick?.box.left ?? 0) + (pick?.box.width ?? 0)).toBeLessThanOrEqual(1);
+    expect(pick?.box.left).toBeGreaterThan(0);
+    expect((pick?.box.left ?? 0) + (pick?.box.width ?? 0)).toBeLessThan(1);
+    expect(pick?.tiles.length).toBeGreaterThan(0);
+    expect(pickTile(earth, ring, () => false)).toBeNull();
   });
 
   it('names Earth regions and falls back to the id', () => {

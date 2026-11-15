@@ -1,3 +1,4 @@
+// Adapted in part from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // The evidence card (PRD 10, D08): the seven answers, table D, the four distance families side by
 // side, figures A to C and the claim limits, drawn from one CardRecord. A server component with no
 // client JS. Every number is String() of the parsed JSON number; nothing is rounded or computed.
@@ -8,7 +9,6 @@ import type { ReactNode } from 'react';
 
 import { EvidenceLabel, isEvidenceLabel } from '@/components/evidence-label';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -18,6 +18,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { CardPair } from '../cards/card-pair.tsx';
+import type { CardVisual } from '../cards/card-visual.ts';
 import { MODE_TITLES } from '../mode-banner.tsx';
 import { FAMILY_ORDER } from './og-text.ts';
 
@@ -46,6 +48,8 @@ export interface EvidenceCardViewProps {
   readonly g5Gate: GateStatus | null;
   /** bundle.records.figures: 'figures/<name>.svg' to allowlisted SVG text. */
   readonly figures: ReadonlyMap<string, string>;
+  /** Hillshade pair and display names, from the bundle's tile layers. Optional: the card renders without images. */
+  readonly visual?: CardVisual;
 }
 
 const FAMILY_NAMES: Readonly<Record<Family, string>> = {
@@ -67,25 +71,27 @@ const QUESTIONS = [
 
 function Q({ n, children }: { readonly n: number; readonly children: ReactNode }) {
   return (
-    <Card data-question={`q${String(n)}`} className="h-full">
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <span
-            aria-hidden="true"
-            className="flex size-8 items-center justify-center rounded-full border border-line font-mono text-sm text-primary"
-          >
-            {String(n).padStart(2, '0')}
-          </span>
-          <div>
-            <CardDescription className="font-mono text-[10px] tracking-[0.22em] uppercase">
-              Question {n}
-            </CardDescription>
-            <CardTitle className="font-serif text-2xl font-normal">{QUESTIONS[n - 1]}</CardTitle>
-          </div>
+    <section
+      data-question={`q${String(n)}`}
+      aria-labelledby={`q${String(n)}-title`}
+      className="flex flex-col gap-4 rounded-3xl border border-line bg-card p-5 text-card-foreground sm:p-7"
+    >
+      <div className="flex items-center gap-4">
+        <span
+          aria-hidden="true"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full border border-flare/60 font-mono text-sm text-flare"
+        >
+          {String(n).padStart(2, '0')}
+        </span>
+        <div className="min-w-0">
+          <p className="font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">Question {n}</p>
+          <h2 id={`q${String(n)}-title`} className="font-serif text-2xl leading-tight font-normal">
+            {QUESTIONS[n - 1]}
+          </h2>
         </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">{children}</CardContent>
-    </Card>
+      </div>
+      <div className="flex min-w-0 flex-col gap-3">{children}</div>
+    </section>
   );
 }
 
@@ -261,10 +267,13 @@ function Figures({ card, figures }: Pick<EvidenceCardViewProps, 'card' | 'figure
       {card.figures.map((f) => {
         const svg = f.path === null ? undefined : figures.get(f.path);
         return (
-          <figure key={f.figure} data-figure={f.figure} className="rounded-xl border border-border bg-card p-3">
-            <figcaption className="mb-2 text-sm font-semibold">Figure {f.figure}</figcaption>
+          <figure key={f.figure} data-figure={f.figure} className="m-0 flex min-w-0 flex-col gap-3 rounded-2xl border border-line bg-card p-4">
+            <figcaption className="font-mono text-[11px] tracking-[0.22em] text-flare uppercase">Figure {f.figure}</figcaption>
             {svg !== undefined && f.path !== null ? (
-              <img src={dataUri(svg)} alt={f.alt} className="w-full rounded bg-white" />
+              <>
+                <img src={dataUri(svg)} alt={f.alt} className="w-full rounded-lg bg-white" />
+                <p className="text-xs text-muted-foreground">{f.alt}</p>
+              </>
             ) : (
               <div role="img" aria-label={f.alt} className="rounded border border-dashed border-border p-4 text-sm">
                 <p>
@@ -291,7 +300,16 @@ function Figures({ card, figures }: Pick<EvidenceCardViewProps, 'card' | 'figure
   );
 }
 
-export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: EvidenceCardViewProps) {
+function SectionTitle({ id, eyebrow, children }: { readonly id: string; readonly eyebrow: string; readonly children: ReactNode }) {
+  return (
+    <div>
+      <p className="font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">{eyebrow}</p>
+      <h2 id={id} className="font-serif text-3xl font-normal">{children}</h2>
+    </div>
+  );
+}
+
+export function EvidenceCardView({ card, bundleVersion, g5Gate, figures, visual }: EvidenceCardViewProps) {
   // The encoder is out of rankings until G5 passes, both on the card's build and in validation.json.
   const g5Passed = g5Gate === 'PASS' && card.g5_status === 'PASS';
   const marsLimits = card.target.body === 'mars';
@@ -303,33 +321,75 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
           MOCK PREVIEW: synthetic data, not production evidence
         </p>
       ) : null}
-      <header className="flex flex-col gap-5 rounded-3xl border border-line bg-card p-6 text-card-foreground sm:p-10">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="font-mono text-[11px] tracking-[0.24em] text-muted-foreground uppercase">
-            Evidence card
-          </span>
-          <Badge data-slot="mode-pill" className="h-auto max-w-full py-1 whitespace-normal">
-            {t.body === 'mars' && card.shipping_mode === 'C'
-              ? 'Mode C: terrain only; radar comparison not completed'
-              : `Mode ${card.shipping_mode}: ${MODE_TITLES[card.shipping_mode]}`}
-          </Badge>
+      <header className="grid gap-8 rounded-3xl border border-line bg-card p-6 text-card-foreground sm:p-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-mono text-[11px] tracking-[0.24em] text-muted-foreground uppercase">
+              Evidence card
+            </span>
+            <Badge data-slot="mode-pill" className="h-auto max-w-full py-1 whitespace-normal">
+              {t.body === 'mars' && card.shipping_mode === 'C'
+                ? 'Mode C: terrain only; radar comparison not completed'
+                : `Mode ${card.shipping_mode}: ${MODE_TITLES[card.shipping_mode]}`}
+            </Badge>
+          </div>
+          {visual === undefined ? null : (
+            <p className="font-serif text-xl text-flare">{visual.headline}</p>
+          )}
+          <h1 className="font-serif text-4xl leading-tight font-normal text-balance sm:text-5xl">{card.title}</h1>
+          <div className="flex flex-wrap gap-2 text-sm">
+            <span className="rounded-full border border-line px-3 py-1">
+              <span className="text-muted-foreground">Target</span> {t.target_id} ({t.body})
+            </span>
+            <span className="rounded-full border border-line px-3 py-1">
+              <span className="text-muted-foreground">Earth window</span> {card.earth.earth_window_id}
+            </span>
+          </div>
+          <p className="text-sm italic text-muted-foreground">{card.wording}</p>
+          <p className="mt-auto font-mono text-[11px] tracking-wider text-muted-foreground uppercase">
+            Bundle version {bundleVersion} · {g5Gate === null ? 'G5 not recorded' : `G5 ${g5Gate}`}
+          </p>
         </div>
-        <h1 className="font-serif text-4xl leading-tight font-normal text-balance sm:text-6xl">{card.title}</h1>
-        <div className="flex flex-wrap gap-2 text-sm">
-          <span className="rounded-full border border-line px-3 py-1">
-            <span className="text-muted-foreground">Target</span> {t.target_id} ({t.body})
-          </span>
-          <span className="rounded-full border border-line px-3 py-1">
-            <span className="text-muted-foreground">Earth window</span> {card.earth.earth_window_id}
-          </span>
-        </div>
-        <p className="font-mono text-[11px] tracking-wider text-muted-foreground uppercase">
-          Bundle version {bundleVersion} · {g5Gate === null ? 'G5 not recorded' : `G5 ${g5Gate}`}
-        </p>
-        <p className="text-sm italic text-muted-foreground">{card.wording}</p>
+        {visual === undefined ? null : (
+          <div className="min-w-0">
+            <CardPair visual={visual} big />
+            <p className="mt-3 text-xs text-muted-foreground">
+              <EvidenceLabel label="Derived" /> Bundle hillshade tiles (45° altitude, 315° azimuth); the outline marks each
+              5 km analysis window.
+            </p>
+          </div>
+        )}
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <section aria-labelledby="distances" className="flex flex-col gap-4">
+        <SectionTitle id="distances" eyebrow="Four families">Distances by family</SectionTitle>
+        <Distances card={card} g5Passed={g5Passed} />
+        <p className="text-sm text-muted-foreground">
+          Four families, each in its own units: never summed, averaged or ranked together.
+        </p>
+        {card.shipping_mode === 'C' ? (
+          <p className="text-sm text-muted-foreground">
+            Mode C: the radar comparison was not completed. The radar_cpr row above carries its Unavailable
+            reason.
+          </p>
+        ) : null}
+      </section>
+
+      <section
+        aria-labelledby="claim-limits"
+        data-slot="limits"
+        className="flex flex-col gap-3 rounded-3xl border border-flare/50 bg-flare/5 p-5 sm:p-7"
+      >
+        <SectionTitle id="claim-limits" eyebrow="What this card does not claim">Claim limits</SectionTitle>
+        <List items={card.claim_limits} empty="The record lists no claim limits." />
+      </section>
+
+      <section aria-labelledby="figures" className="flex flex-col gap-4">
+        <SectionTitle id="figures" eyebrow="Generated from the bundle">Figures A to C</SectionTitle>
+        <Figures card={card} figures={figures} />
+      </section>
+
+      <div className="flex flex-col gap-5">
         <Q n={1}>
           <p>{card.q1_compared}</p>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -341,23 +401,94 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
           <p>{card.q2_interpretation.text}</p>
           <EvidenceLabel label={card.q2_interpretation.evidence_label} />
         </Q>
+        <Q n={3}>
+          <div className="overflow-x-auto rounded-xl border border-border bg-background/40">
+            <Table data-slot="table-d">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Observable</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>Evidence</TableHead>
+                  <TableHead>Support</TableHead>
+                  <TableHead>Product, band, geometry</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {card.q3_measurements.map((m, i) => (
+                  <TableRow key={`${m.observable}-${String(i)}`}>
+                    <TableCell>{m.observable}</TableCell>
+                    <TableCell>
+                      {m.value === null ? (
+                        <span>
+                          Unavailable <Reason reason={m.reason} />
+                        </span>
+                      ) : (
+                        <>
+                          <span data-slot="value" className="font-mono">
+                            {show(m.value)}
+                          </span>
+                          {m.unit === null ? null : <> {m.unit}</>}
+                        </>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Label_ label={m.evidence_label} />
+                    </TableCell>
+                    <TableCell>{m.support}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {[m.product_id, m.band, m.geometry].filter((x) => x !== null).join(' · ') || 'not recorded'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          {card.radar_context.length === 0 ? null : (
+            <div data-slot="radar-context" className="flex flex-col gap-2">
+              <h3 className="text-sm font-semibold">Observed radar context</h3>
+              <ul className="space-y-1 text-sm">
+                {card.radar_context.map((r) => (
+                  <li key={`${r.product_id}-${r.band}-${r.observable}-${r.statistic}`}>
+                    {r.observable} ({r.statistic}, {r.band}):{' '}
+                    {r.value === null ? (
+                      <>
+                        Unavailable <Reason reason={r.reason} />
+                      </>
+                    ) : (
+                      <>
+                        {show(r.value)}
+                        {r.unit === null ? '' : ` ${r.unit}`}
+                      </>
+                    )}{' '}
+                    <Label_ label={r.evidence_label} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Q>
         <Q n={4}>
-          <div>
-            <h4 className="text-sm font-semibold">{marsLimits ? 'Mars limits' : "Earth's limits"}</h4>
-            <List items={card.q4_differences.limits} empty="No limits listed in the record." />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <h3 className="text-sm font-semibold">{marsLimits ? 'Mars limits' : "Earth's limits"}</h3>
+              <List items={card.q4_differences.limits} empty="No limits listed in the record." />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold">Differ</h3>
+              <List items={card.q4_differences.differing} empty="None listed." />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold">Ambiguous</h3>
+              <List items={card.q4_differences.ambiguous} empty="None listed." />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold">Not observed</h3>
+              <List items={dedupeByObservable(card.q4_differences.not_observed)} empty="None listed." />
+            </div>
           </div>
-          <div>
-            <h4 className="text-sm font-semibold">Differ</h4>
-            <List items={card.q4_differences.differing} empty="None listed." />
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold">Ambiguous</h4>
-            <List items={card.q4_differences.ambiguous} empty="None listed." />
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold">Not observed</h4>
-            <List items={dedupeByObservable(card.q4_differences.not_observed)} empty="None listed." />
-          </div>
+        </Q>
+        <Q n={5}>
+          <Stability card={card} g5Passed={g5Passed} />
         </Q>
         <Q n={6}>
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
@@ -375,121 +506,19 @@ export function EvidenceCardView({ card, bundleVersion, g5Gate, figures }: Evide
             })}
           </dl>
         </Q>
-      </div>
-
-      <section aria-labelledby="q3" className="flex flex-col gap-3">
-        <h2 id="q3" className="font-serif text-3xl font-normal">Question 3: Supporting measurements (table D)</h2>
-        <div className="overflow-x-auto rounded-xl border border-border bg-card">
-          <Table data-slot="table-d">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Observable</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Evidence</TableHead>
-                <TableHead>Support</TableHead>
-                <TableHead>Product, band, geometry</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {card.q3_measurements.map((m, i) => (
-                <TableRow key={`${m.observable}-${String(i)}`}>
-                  <TableCell>{m.observable}</TableCell>
-                  <TableCell>
-                    {m.value === null ? (
-                      <span>
-                        Unavailable <Reason reason={m.reason} />
-                      </span>
-                    ) : (
-                      <>
-                        <span data-slot="value" className="font-mono">
-                          {show(m.value)}
-                        </span>
-                        {m.unit === null ? null : <> {m.unit}</>}
-                      </>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Label_ label={m.evidence_label} />
-                  </TableCell>
-                  <TableCell>{m.support}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {[m.product_id, m.band, m.geometry].filter((x) => x !== null).join(' · ') || 'not recorded'}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </section>
-
-      <section aria-labelledby="distances" className="flex flex-col gap-3">
-        <h2 id="distances" className="font-serif text-3xl font-normal">Distances by family</h2>
-        <Distances card={card} g5Passed={g5Passed} />
-        <p className="text-sm text-muted-foreground">
-          Four families, each in its own units: never summed, averaged or ranked together.
-        </p>
-        {card.shipping_mode === 'C' ? (
-          <p className="text-sm text-muted-foreground">
-            Mode C: the radar comparison was not completed. The radar_cpr row above carries its Unavailable
-            reason.
-          </p>
-        ) : null}
-      </section>
-
-      {card.radar_context.length === 0 ? null : (
-        <section aria-labelledby="radar-context" className="flex flex-col gap-3">
-          <h2 id="radar-context" className="font-serif text-3xl font-normal">Observed radar context</h2>
-          <ul className="space-y-1 text-sm">
-            {card.radar_context.map((r) => (
-              <li key={`${r.product_id}-${r.band}-${r.observable}-${r.statistic}`}>
-                {r.observable} ({r.statistic}, {r.band}):{' '}
-                {r.value === null ? (
-                  <>
-                    Unavailable <Reason reason={r.reason} />
-                  </>
-                ) : (
-                  <>
-                    {show(r.value)}
-                    {r.unit === null ? '' : ` ${r.unit}`}
-                  </>
-                )}{' '}
-                <Label_ label={r.evidence_label} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section aria-labelledby="q5" className="flex flex-col gap-3">
-        <h2 id="q5" className="font-serif text-3xl font-normal">Question 5: Stability under uncertainty</h2>
-        <Stability card={card} g5Passed={g5Passed} />
-      </section>
-
-      <section aria-labelledby="figures" className="flex flex-col gap-3">
-        <h2 id="figures" className="font-serif text-3xl font-normal">Figures A to C</h2>
-        <Figures card={card} figures={figures} />
-      </section>
-
-      <section aria-labelledby="q7" className="flex flex-col gap-3">
-        <h2 id="q7" className="font-serif text-3xl font-normal">Question 7: Field experiment</h2>
-        <Card data-question="q7">
-          <CardContent className="flex flex-col gap-2">
+        <Q n={7}>
+          <div data-question-body="q7" className="flex flex-col gap-2">
             <p className="flex flex-wrap items-center gap-2">
               <Badge variant="outline">Proposed</Badge>
               <EvidenceLabel label={card.q7_field_experiment.evidence_label} />
               <span className="text-sm text-muted-foreground">A proposal, not a completed measurement.</span>
             </p>
             <p>{card.q7_field_experiment.text}</p>
-          </CardContent>
-        </Card>
-      </section>
+          </div>
+        </Q>
+      </div>
 
-      <section aria-labelledby="claim-limits" className="flex flex-col gap-3">
-        <h2 id="claim-limits" className="font-serif text-3xl font-normal">Claim limits</h2>
-        <List items={card.claim_limits} empty="The record lists no claim limits." />
-      </section>
-
-      <footer className="border-t border-border pt-4 text-xs text-muted-foreground">
+      <footer className="border-t border-border pt-4 font-mono text-xs break-all text-muted-foreground">
         Mode {card.shipping_mode} · bundle {bundleVersion} · run {card.run_id}
       </footer>
     </article>

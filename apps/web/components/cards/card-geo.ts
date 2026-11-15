@@ -62,15 +62,18 @@ export function projectorFor(crs: string): Project | null {
 export interface TilePick {
   readonly layer: string;
   readonly z: number;
-  readonly x: number;
-  readonly y: number;
-  /** The window's bounding box inside the tile, as fractions 0..1 of its width and height. */
+  /** The square view, in tile units of zoom z (1 = one tile edge): its top-left corner and side. */
+  readonly view: { readonly x0: number; readonly y0: number; readonly side: number };
+  /** The existing tiles that overlap the view. */
+  readonly tiles: readonly { readonly x: number; readonly y: number }[];
+  /** The window's bounding box as fractions 0..1 of the view. */
   readonly box: { readonly left: number; readonly top: number; readonly width: number; readonly height: number };
 }
 
 /**
- * The deepest tile (largest zoom) that holds the whole window bounding box with room around it
- * (tile at least 3 times the window), among tiles `exists` reports. Null when no frame fits.
+ * A square view around the window, about three window widths wide, drawn from the tiles of the
+ * deepest zoom whose tile is at least that wide (else the widest zoom). Tiles that do not exist
+ * are left out (the frame stays dark there). Null when no tile overlaps the view.
  */
 export function pickTile(
   layer: TileLayerGeo,
@@ -84,51 +87,39 @@ export function pickTile(
   const xs = pts.map((p) => p?.[0] ?? 0);
   const ys = pts.map((p) => p?.[1] ?? 0);
   const [minX, maxX, minY, maxY] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-  const span = Math.max(maxX - minX, maxY - minY);
-  let fallback: TilePick | null = null;
-  for (let z = layer.zoom_max; z >= layer.zoom_min; z -= 1) {
-    const mpp = layer.metres_per_pixel_by_zoom[z - layer.zoom_min];
-    if (mpp === undefined) continue;
-    const size = layer.tile_px * mpp;
-    const x0 = Math.floor((minX - layer.origin_x_m) / size);
-    const x1 = Math.floor((maxX - layer.origin_x_m) / size);
-    const y0 = Math.floor((layer.origin_y_m - maxY) / size);
-    const y1 = Math.floor((layer.origin_y_m - minY) / size);
-    if (x0 !== x1 || y0 !== y1 || !exists(layer.layer, z, x0, y0)) continue;
-    const pick: TilePick = {
-      layer: layer.layer,
-      z,
-      x: x0,
-      y: y0,
-      box: {
-        left: (minX - layer.origin_x_m - x0 * size) / size,
-        top: (layer.origin_y_m - maxY - y0 * size) / size,
-        width: (maxX - minX) / size,
-        height: (maxY - minY) / size,
-      },
-    };
-    fallback ??= pick;
-    if (size >= 3 * span) return pick;
+  const want = 3 * Math.max(maxX - minX, maxY - minY);
+  let z = layer.zoom_min;
+  for (let k = layer.zoom_max; k >= layer.zoom_min; k -= 1) {
+    const mpp = layer.metres_per_pixel_by_zoom[k - layer.zoom_min];
+    if (mpp !== undefined && layer.tile_px * mpp >= want) {
+      z = k;
+      break;
+    }
   }
-  if (fallback !== null) return fallback;
-  // No single tile holds the whole box (window on a tile seam): use the centroid's tile; the
-  // outline is clipped by the frame.
-  const cx = (minX + maxX) / 2;
-  const cy = (minY + maxY) / 2;
-  for (let z = layer.zoom_min; z <= layer.zoom_max; z += 1) {
-    const mpp = layer.metres_per_pixel_by_zoom[z - layer.zoom_min];
-    if (mpp === undefined) continue;
-    const size = layer.tile_px * mpp;
-    const x = Math.floor((cx - layer.origin_x_m) / size);
-    const y = Math.floor((layer.origin_y_m - cy) / size);
-    if (!exists(layer.layer, z, x, y)) continue;
-    fallback = {
-      layer: layer.layer, z, x, y,
-      box: { left: (minX - layer.origin_x_m - x * size) / size, top: (layer.origin_y_m - maxY - y * size) / size, width: (maxX - minX) / size, height: (maxY - minY) / size },
-    };
-    if (size >= 3 * span) break;
+  const mpp = layer.metres_per_pixel_by_zoom[z - layer.zoom_min];
+  if (mpp === undefined) return null;
+  const size = layer.tile_px * mpp;
+  const side = want / size;
+  const gx = (minX - layer.origin_x_m) / size;
+  const gy = (layer.origin_y_m - maxY) / size;
+  const gw = (maxX - minX) / size;
+  const gh = (maxY - minY) / size;
+  const x0 = gx + gw / 2 - side / 2;
+  const y0 = gy + gh / 2 - side / 2;
+  const tiles: { x: number; y: number }[] = [];
+  for (let x = Math.floor(x0); x < x0 + side; x += 1) {
+    for (let y = Math.floor(y0); y < y0 + side; y += 1) {
+      if (x >= 0 && y >= 0 && exists(layer.layer, z, x, y)) tiles.push({ x, y });
+    }
   }
-  return fallback;
+  if (tiles.length === 0) return null;
+  return {
+    layer: layer.layer,
+    z,
+    view: { x0, y0, side },
+    tiles,
+    box: { left: (gx - x0) / side, top: (gy - y0) / side, width: gw / side, height: gh / side },
+  };
 }
 
 const EARTH_REGIONS: Readonly<Record<string, string>> = {

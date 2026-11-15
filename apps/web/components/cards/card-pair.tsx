@@ -14,17 +14,36 @@ function Frame({ tile, body, label, name, big }: { readonly tile: TileView | nul
           </div>
         ) : (
           <>
-            <img src={tile.src} alt={`${tile.caption}, ${String(tile.pick.z)}/${String(tile.pick.x)}/${String(tile.pick.y)}, window outlined`} loading="lazy" decoding="async" className="size-full object-cover" />
-            <span
-              aria-hidden="true"
-              className="absolute rounded-[2px] border border-flare shadow-[0_0_0_1px_rgba(0,0,0,0.6)]"
-              style={{
-                left: `${String(tile.pick.box.left * 100)}%`,
-                top: `${String(tile.pick.box.top * 100)}%`,
-                width: `${String(tile.pick.box.width * 100)}%`,
-                height: `${String(tile.pick.box.height * 100)}%`,
-              }}
-            />
+            {(() => {
+              const { box, view, z } = tile.pick;
+              const pct = (n: number): string => `${String(n * 100)}%`;
+              return (
+                <>
+                  {tile.tiles.map((t) => (
+                    <img
+                      key={`${String(t.x)}/${String(t.y)}`}
+                      src={t.src}
+                      alt={`${tile.caption}, tile ${String(z)}/${String(t.x)}/${String(t.y)}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute max-w-none"
+                      style={{
+                        width: pct(1 / view.side),
+                        height: pct(1 / view.side),
+                        left: pct((t.x - view.x0) / view.side),
+                        top: pct((t.y - view.y0) / view.side),
+                      }}
+                    />
+                  ))}
+                  <span
+                    role="img"
+                    aria-label="5 km analysis window outline"
+                    className="absolute rounded-[2px] border border-flare shadow-[0_0_0_1px_rgba(0,0,0,0.6)]"
+                    style={{ left: pct(box.left), top: pct(box.top), width: pct(box.width), height: pct(box.height) }}
+                  />
+                </>
+              );
+            })()}
           </>
         )}
       </div>
