@@ -34,18 +34,6 @@ export function visibleFamilies(modelInBundle: boolean, candidates: readonly Can
     : ['terrain_relief', 'terrain_texture', 'radar_cpr'];
 }
 
-/**
- * Rows ordered by one family's own serialized value, smallest first, with unavailable entries
- * after the available ones in their serialized order. An unranked family keeps the serialized order.
- */
-export function orderBy(candidates: readonly Candidate[], family: Family, g5: string | null): Candidate[] {
-  if (family === 'model_embedding' && !modelIsRanked(g5)) return [...candidates];
-  const available = candidates.filter((c) => c.distances[family].status === 'available' && c.distances[family].value !== null);
-  const rest = candidates.filter((c) => !available.includes(c));
-  available.sort((a, b) => (a.distances[family].value as number) - (b.distances[family].value as number));
-  return [...available, ...rest];
-}
-
 function percentile(entry: DistanceEntry) {
   if (entry.background_percentile === null) {
     return (
@@ -115,15 +103,16 @@ export interface CandidateTableProps {
 export function CandidateTable({ targetName, candidates, family, g5, modelInBundle }: CandidateTableProps) {
   const families = visibleFamilies(modelInBundle, candidates);
   const ranked = modelIsRanked(g5);
-  const ordered = orderBy(candidates, family, g5);
+  const ordered = candidates;
+  const sortRule = candidates.find((c) => c.sortRule !== null)?.sortRule ?? null;
   const unrankedFamily = family === 'model_embedding' && !ranked;
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm" data-slot="candidate-count">
-        <span className="font-semibold">{String(candidates.length)}</span> comparison records for {targetName}. Rows are ordered
-        {unrankedFamily
-          ? ' as serialized, because the model family is unranked while G5 is not PASS.'
-          : ` by ${FAMILY_TITLES[family]} distance only; other families are shown, not combined.`}{' '}
+        <span className="font-semibold">{String(candidates.length)}</span> comparison records for {targetName}. Rows are in the order of
+        the comparisons file{sortRule === null ? ' (no sort_rule is stored)' : <> (sort_rule: <code>{sortRule}</code>)</>}; the
+        selected family ({FAMILY_TITLES[family]}
+        {unrankedFamily ? ', Predicted and unranked while G5 is not PASS' : ''}) only colours the map. Families are never combined.{' '}
         <EvidenceLabel label="Derived" />
       </p>
       {candidates.length === 0 ? null : (

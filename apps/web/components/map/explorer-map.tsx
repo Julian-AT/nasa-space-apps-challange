@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 
 import { DeckCanvas } from './deck-loader.tsx';
 import type { BodyData, MapTarget } from './explore-data.ts';
+import { Chip, ResultsPanel } from './results-panel.tsx';
 import { LayersPanel, NuPanel, ProductsPanel, TargetInfo, WindowsPanel } from './target-panels.tsx';
 import {
   extentToWorld,
@@ -175,7 +176,22 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]" data-slot="explorer">
+    <div className="grid gap-4 lg:grid-cols-[26rem_minmax(0,1fr)]" data-slot="explorer">
+      <ResultsPanel
+        label="Target details"
+        title={target.windowsFilePresent ? `${String(target.windows.length)} ${target.windows.length === 1 ? 'window' : 'windows'}` : target.name}
+        chips={[
+          <Chip key="t">{target.name}</Chip>,
+          <Chip key="p">{target.projectionKind.replaceAll('_', ' ')}</Chip>,
+          ...(target.shippingMode === null ? [] : [<Chip key="m">Mode {target.shippingMode}</Chip>]),
+        ]}
+      >
+        <TargetInfo target={target} />
+        <NuPanel nu={target.nu} />
+        <WindowsPanel target={target} />
+        <LayersPanel body={body} target={target} active={active} onToggle={toggleLayer} />
+        <ProductsPanel target={target} />
+      </ResultsPanel>
       <div className="flex min-w-0 flex-col gap-3">
         {data.targets.length > 1 ? (
           <div className="flex items-center gap-2 text-sm">
@@ -209,7 +225,7 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
               apply(e.key);
             }
           }}
-          className="relative h-[34rem] min-h-80 overflow-hidden rounded-xl border border-border bg-black/60 shadow-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
+          className="relative h-[34rem] min-h-80 lg:h-[calc(100dvh-9rem)] overflow-hidden rounded-2xl border border-border bg-black/70 shadow-sm outline-offset-2 focus-visible:outline-2 focus-visible:outline-ring"
           data-slot="map-stage"
         >
           {assetBase !== null && frame !== null && camera !== null && activeLayers.length > 0 ? (
@@ -266,16 +282,6 @@ export function ExplorerMap({ data, body, assetBase }: ExplorerMapProps) {
         ) : null}
       </div>
 
-      <aside
-        aria-label="Target details"
-        className="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card p-4 text-card-foreground"
-      >
-        <TargetInfo target={target} />
-        <NuPanel nu={target.nu} />
-        <WindowsPanel target={target} />
-        <LayersPanel body={body} target={target} active={active} onToggle={toggleLayer} />
-        <ProductsPanel target={target} />
-      </aside>
     </div>
   );
 }

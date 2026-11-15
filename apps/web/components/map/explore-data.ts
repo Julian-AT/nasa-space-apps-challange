@@ -23,6 +23,7 @@ export interface ExplorerBundle {
     readonly comparisons: ReadonlyMap<string, Comparisons>;
     readonly cards: ReadonlyMap<string, CardRecord>;
     readonly modelCard: unknown;
+    readonly figures?: ReadonlyMap<string, string>;
   };
 }
 
@@ -254,6 +255,12 @@ export interface Candidate {
   readonly windowReasons: readonly string[];
   readonly ringLonLat: readonly (readonly [number, number])[] | null;
   readonly regionId: string | null;
+  readonly shippingMode: string | null;
+  /** A bundle figure (figures/*.svg) whose path names this window, as an SVG data URL; null when none. */
+  readonly figureDataUrl: string | null;
+  readonly figurePath: string | null;
+  /** Centroid of the footprint in degrees [lon, lat]. */
+  readonly centroidLonLat: readonly [number, number] | null;
 }
 
 export interface EarthTarget {
@@ -272,6 +279,20 @@ export interface EarthData {
   readonly g5: string | null;
   readonly modelInBundle: boolean;
   readonly targets: readonly EarthTarget[];
+}
+
+const MAX_FIGURE_CHARS = 30_000;
+
+function figureFor(
+  figures: ReadonlyMap<string, string> | undefined,
+  windowId: string,
+): { figureDataUrl: string | null; figurePath: string | null } {
+  for (const [path, svg] of figures ?? []) {
+    if (path.includes(windowId) && svg.length <= MAX_FIGURE_CHARS) {
+      return { figureDataUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`, figurePath: path };
+    }
+  }
+  return { figureDataUrl: null, figurePath: null };
 }
 
 export function buildEarthData(bundle: ExplorerBundle): EarthData {
@@ -310,6 +331,9 @@ export function buildEarthData(bundle: ExplorerBundle): EarthData {
           windowReasons: entry?.reasons ?? [],
           ringLonLat: entry === undefined ? null : toPairs(entry.window.polygon.ring_lonlat),
           regionId: entry?.window.environment_flags.search_region_id ?? null,
+          shippingMode: record.shipping_mode,
+          ...figureFor(bundle.records.figures, record.earth_window_id),
+          centroidLonLat: entry === undefined ? null : centroid(entry.window.polygon.ring_lonlat),
         };
       });
       return {

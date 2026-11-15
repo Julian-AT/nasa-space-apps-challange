@@ -94,9 +94,9 @@ describe('Earth candidate table', () => {
       <CandidateTable targetName={t.name} candidates={t.candidates} family={family} g5={d.g5} modelInBundle={d.modelInBundle} />,
     );
   };
-  it('keeps families in separate columns, orders by one family, shows ties and percentiles as serialized', () => {
+  it('keeps families in separate columns, in comparisons-file order, shows ties and percentiles as serialized', () => {
     const html = render('terrain_relief');
-    expect(html.indexOf('earth-test-b')).toBeLessThan(html.indexOf('earth-test-a'));
+    expect(html.indexOf('earth-test-a')).toBeLessThan(html.indexOf('earth-test-b'));
     expect(html).toContain('data-family="terrain_texture"');
     expect(html).toContain('Tied (group g1)');
     expect(html).toContain('>40<');
@@ -119,5 +119,24 @@ describe('Earth candidate table', () => {
   });
   it('shows the actual candidate count', () => {
     expect(render('radar_cpr')).toMatch(/data-slot="candidate-count"[^>]*><span[^>]*>2</);
+  });
+});
+
+describe('Earth result cards', () => {
+  it('number cards, show radar as not completed in Mode C, and render no thumbnail without a bundle figure', async () => {
+    const { EarthCards } = await import('../components/map/earth-cards.tsx');
+    const d = buildEarthData(
+      testBundle({
+        targets: testTarget(),
+        comparisons: new Map([['moon-test-target', [testComparison('earth-test-a', { terrain_relief: testDistance() })]]]),
+      }),
+    );
+    const html = renderToStaticMarkup(
+      <EarthCards candidates={d.targets[0]?.candidates ?? []} selected={null} onSelect={() => undefined} modelInBundle={false} />,
+    );
+    expect(html).toContain('not completed (Mode C)');
+    expect(html).not.toContain('<img');
+    expect(html).not.toContain('data-family="model_embedding"');
+    expect(html).toContain('>1<');
   });
 });
