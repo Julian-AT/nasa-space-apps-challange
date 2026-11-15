@@ -4,7 +4,8 @@
 // lights (public domain), one directional sun from the upper left, a soft terminator, an ocean
 // glint and a faint white limb. Transparent canvas, so the slide colour shows through. No
 // atmosphere glow. One turn in ~90 s, paused under prefers-reduced-motion. Optional `focus` eases a
-// point to face the camera and stops the spin; optional `pin` marks a surface point.
+// point to face the camera and stops the spin; optional `pin` marks a surface point; optional
+// `scan` sweeps one light band across the disc and `zoom` dollies the camera towards the focus.
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -45,6 +46,7 @@ const fragment = /* glsl */ `
   uniform sampler2D uDay;
   uniform sampler2D uNight;
   uniform vec3 uSun;
+  uniform float uScan;
   varying vec2 vUv;
   varying vec3 vN;
   varying vec3 vP;
@@ -100,6 +102,21 @@ const fragment = /* glsl */ `
     float rim = pow(1.0 - ndv, 6.0) * 0.12;
     col += vec3(rim);
 
+    // Scan sweep (finder slide): a soft bright band crossing the disc left to right in view space,
+    // with a faint lat/lon dot grid lighting up on land just behind it. Off when uScan is 0 or 1.
+    if (uScan > 0.0 && uScan < 1.0) {
+      vec3 vp = (viewMatrix * vec4(vP, 1.0)).xyz;
+      float x0 = mix(-1.35, 1.35, uScan);
+      float d = vp.x - x0;
+      float band = exp(-d * d / 0.010);
+      float trail = exp(-max(-d, 0.0) * 5.0) * step(d, 0.0) * 0.5;
+      float fade = smoothstep(0.0, 0.12, uScan) * (1.0 - smoothstep(0.85, 1.0, uScan));
+      vec2 cell = fract(vUv * vec2(180.0, 90.0)) - 0.5;
+      float dots = smoothstep(0.22, 0.08, length(cell)) * (1.0 - ocean);
+      col += vec3(1.0, 0.95, 0.88) * band * 0.34 * fade * smoothstep(0.0, 0.25, ndv);
+      col += vec3(1.0, 0.62, 0.25) * dots * (band + trail) * 0.55 * fade;
+    }
+
     gl_FragColor = vec4(col, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
@@ -110,6 +127,12 @@ export type LatLon = { lat: number; lon: number };
 
 const D2R = Math.PI / 180;
 const FOCUS_S = 1.2;
+/** Scan sweep and camera dolly durations, seconds. */
+const SCAN_S = 1.3;
+const ZOOM_S = 1.2;
+/** Camera distance at rest and when zoomed (~1,900 km of surface across the view). */
+const CAM_Z = 4.6;
+const ZOOM_Z = 1.6;
 /** Default spin (rotation.y): Africa and Europe facing the viewer. */
 const AFRICA_Y = -1.75;
 const ACCENT = new Color('#CC5800');
@@ -156,7 +179,21 @@ function Pin({ at }: { at: LatLon }) {
   );
 }
 
-function Planet({ reduced, focus, pin, startLon }: { reduced: boolean; focus: LatLon | null; pin: LatLon | null; startLon: number | null }) {
+function Planet({
+  reduced,
+  focus,
+  pin,
+  startLon,
+  scan,
+  zoom,
+}: {
+  reduced: boolean;
+  focus: LatLon | null;
+  pin: LatLon | null;
+  startLon: number | null;
+  scan: boolean;
+  zoom: boolean;
+}) {
   const day = useLoader(TextureLoader, DAY);
   const night = useLoader(TextureLoader, NIGHT);
   const gl = useThree((s) => s.gl);
@@ -175,7 +212,7 @@ function Planet({ reduced, focus, pin, startLon }: { reduced: boolean; focus: La
       t.needsUpdate = true;
     }
     return new ShaderMaterial({
-      uniforms: { uDay: { value: day }, uNight: { value: night }, uSun: { value: SUN } },
+      uniforms: { uDay: { value: day }, uNight: { value: night }, uSun: { value: SUN }, uScan: { value: 0 } },
       vertexShader: vertex,
       fragmentShader: fragment,
     });
@@ -190,18 +227,45 @@ function Planet({ reduced, focus, pin, startLon }: { reduced: boolean; focus: La
     const sp = spin.current;
     if (!tg || !sp) return;
     if (fLat === undefined || fLon === undefined) {
-      // Back to the free tilted spin from wherever the globe is.
-      anim.current = { from: [tg.rotation.x, tg.rotation.z, sp.rotation.y], to: [0, TILT, sp.rotation.y], t: 0 };
+      // Back to the free tilted spin; with a start longitude, also back to the opening view.
+      const home = startLon === null ? sp.rotation.y : spinFor(startLon);
+      const y = home + Math.round((sp.rotation.y - home) / (Math.PI * 2)) * Math.PI * 2;
+      anim.current = { from: [tg.rotation.x, tg.rotation.z, sp.rotation.y], to: [0, TILT, y], t: reduced ? FOCUS_S : 0 };
       return;
     }
     // Nearest equivalent spin angle, so the globe takes the short way round.
     const raw = spinFor(fLon);
     const y = raw + Math.round((sp.rotation.y - raw) / (Math.PI * 2)) * Math.PI * 2;
     anim.current = { from: [tg.rotation.x, tg.rotation.z, sp.rotation.y], to: [fLat * D2R, 0, y], t: reduced ? FOCUS_S : 0 };
+    // startLon is a mount-time choice
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fLat, fLon, reduced]);
 
-  useFrame((_, delta) => {
+  // Scan sweep progress (0..1, seconds-driven) and camera dolly progress (0 rest, 1 zoomed).
+  const scanT = useRef(1);
+  const zoomK = useRef(0);
+  useEffect(() => {
+    scanT.current = scan && !reduced ? 0 : 1;
+  }, [scan, reduced]);
+  useEffect(() => {
+    if (reduced) zoomK.current = zoom ? 1 : 0;
+  }, [zoom, reduced]);
+
+  useFrame(({ camera }, delta) => {
     const dt = Math.min(delta, 0.1);
+    if (scanT.current < 1) scanT.current = Math.min(1, scanT.current + dt / SCAN_S);
+    const u = material.uniforms.uScan;
+    if (u) u.value = scanT.current < 1 ? scanT.current : 0;
+    const goal = zoom ? 1 : 0;
+    if (zoomK.current !== goal) {
+      const stepK = dt / ZOOM_S;
+      zoomK.current = goal > zoomK.current ? Math.min(goal, zoomK.current + stepK) : Math.max(goal, zoomK.current - stepK);
+    }
+    const z = CAM_Z + (ZOOM_Z - CAM_Z) * ease(zoomK.current);
+    if (camera.position.z !== z) {
+      camera.position.set(0, 0, z);
+      camera.lookAt(0, 0, 0);
+    }
     const tg = tilt.current;
     const sp = spin.current;
     if (!tg || !sp) return;
@@ -236,6 +300,8 @@ export function EarthHero({
   pin = null,
   startLon = null,
   shadow = true,
+  scan = false,
+  zoom = false,
 }: {
   className?: string;
   /** When set, the globe eases (~1.2 s) to face this point and stops auto-rotating. */
@@ -246,6 +312,10 @@ export function EarthHero({
   startLon?: number | null;
   /** Soft contact shadow under the planet. */
   shadow?: boolean;
+  /** When it turns true, one bright scan band sweeps across the disc (~1.3 s). */
+  scan?: boolean;
+  /** Dolly the camera in (~1.2 s) towards the point facing the viewer. */
+  zoom?: boolean;
 }) {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -276,12 +346,12 @@ export function EarthHero({
       <Canvas
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
         dpr={[1, 2]}
-        camera={{ fov: 28, position: [0, 0, 4.6], near: 0.1, far: 20 }}
+        camera={{ fov: 28, position: [0, 0, CAM_Z], near: 0.01, far: 20 }}
         gl={{ alpha: true, antialias: true, toneMapping: ACESFilmicToneMapping, outputColorSpace: SRGBColorSpace, toneMappingExposure: 1.05 }}
         onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       >
         <Suspense fallback={null}>
-          <Planet reduced={reduced} focus={focus} pin={pin} startLon={startLon} />
+          <Planet reduced={reduced} focus={focus} pin={pin} startLon={startLon} scan={scan} zoom={zoom} />
         </Suspense>
       </Canvas>
     </div>

@@ -4,7 +4,7 @@
 // (workers/probe.worker.ts, unchanged) measures the fingerprint there against the card's target,
 // in the browser. Shown values are the probe's own output, labelled "measured live"; until it
 // answers (or if it cannot run) the card's stored values are shown, labelled "from the evidence card".
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 
 import { COP30_MODE } from '@/lib/probe/mode';
@@ -15,6 +15,11 @@ import { EarthHero } from './earth-hero';
 import type { PitchData } from './pitch-data';
 
 type Finder = NonNullable<PitchData['finder']>;
+
+/** The → sequence: scan sweep while turning, camera dolly, then the target marker and the card. */
+type Phase = 'idle' | 'scan' | 'zoom' | 'mark';
+const SCAN_MS = 1300;
+const ZOOM_MS = 1250;
 
 const f3 = (v: number | null | undefined) => (v === null || v === undefined ? 'n/a' : v.toFixed(3));
 
@@ -54,8 +59,31 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
   const closerFromCard = !(isLive && typeof livePct === 'number');
   const why = error ?? (result !== null && result.kind !== 'result' ? (result.kind === 'stop' ? 'too few valid cells' : result.reason) : null);
 
+  // The → sequence; ← resets. Reduced motion skips straight to the final state.
+  const reduce = useReducedMotion() ?? false;
+  const [phase, setPhase] = useState<Phase>('idle');
+  useEffect(() => {
+    if (step < 1) {
+      setPhase('idle');
+      return;
+    }
+    if (reduce) {
+      setPhase('mark');
+      return;
+    }
+    setPhase('scan');
+    const a = window.setTimeout(() => setPhase('zoom'), SCAN_MS);
+    const b = window.setTimeout(() => setPhase('mark'), SCAN_MS + ZOOM_MS);
+    return () => {
+      window.clearTimeout(a);
+      window.clearTimeout(b);
+    };
+  }, [step, reduce]);
+
   // the card's Earth window centroid; the globe opens on the Americas and turns to it on →
-  const at = step >= 1 ? { lat: finder.lat, lon: finder.lon } : null;
+  const at = phase !== 'idle' ? { lat: finder.lat, lon: finder.lon } : null;
+  const zoomed = phase === 'zoom' || phase === 'mark';
+  const place = finder.earthName.split(',')[0] ?? finder.earthName;
 
   return (
     <div className="grid h-full grid-cols-[1.05fr_1fr] items-center gap-12">
@@ -72,13 +100,51 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
             />
           ))}
         </div>
-        <EarthHero className="absolute inset-0" focus={at} pin={at} startLon={-65} shadow={false} />
+        {/* clipped to a disc so the zoomed surface reads as a round lens */}
+        <div className="absolute inset-0 overflow-hidden rounded-full">
+          <EarthHero className="absolute inset-0" focus={at} startLon={-65} shadow={false} scan={phase === 'scan'} zoom={zoomed} />
+        </div>
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-full"
+          initial={false}
+          animate={{ boxShadow: zoomed ? 'inset 0 0 0 1px rgba(26,22,19,0.12), inset 0 0 48px rgba(0,0,0,0.22)' : 'inset 0 0 0 0px rgba(26,22,19,0), inset 0 0 0px rgba(0,0,0,0)' }}
+          transition={{ duration: 0.8, ease: EASE }}
+        />
+        {/* target marker at the disc centre, where the focused point faces the camera (not to scale) */}
+        <AnimatePresence>
+          {phase === 'mark' ? (
+            <motion.div
+              key="mark"
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-1/2"
+              initial={{ opacity: 0, scale: 1.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduce ? 0 : 0.45, ease: EASE }}
+            >
+              <motion.span
+                className="absolute left-0 top-0 block size-8 rounded-full border-[1.5px] border-[#CC5800]"
+                style={{ x: '-50%', y: '-50%' }}
+                animate={reduce ? { opacity: 0.6 } : { scale: [1, 2.6], opacity: [0.8, 0] }}
+                transition={reduce ? { duration: 0 } : { duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
+              />
+              <span
+                className="absolute left-0 top-0 block size-[22px] -translate-x-1/2 -translate-y-1/2 rounded-[2px] border-[1.5px] border-[#CC5800]"
+                style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.55), 0 0 10px 1px rgba(255,138,42,0.7)' }}
+              />
+              <span className="absolute left-5 top-4 whitespace-nowrap rounded-md bg-white/92 px-2 py-0.5 text-sm font-medium text-[#1A1613] shadow-[0_1px_2px_rgba(0,0,0,0.12)]">
+                {place}
+              </span>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </div>
       <div className="flex flex-col gap-6">
         <AnimatePresence mode="wait">
-          {step === 0 ? (
+          {phase !== 'mark' ? (
             <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-[1.75rem] leading-snug tracking-[-0.01em] text-[#4D4843]">
-              Click any spot on Earth.
+              {phase === 'idle' ? 'Click any spot on Earth.' : phase === 'scan' ? 'Finding the card’s Earth window…' : `Zooming to ${place}…`}
               <br />
               <span className="text-[#1A1613]">Real elevation to fingerprint, in seconds.</span>
             </motion.p>
@@ -87,7 +153,7 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
               key="card"
               initial={{ opacity: 0, x: 40, filter: 'blur(6px)' }}
               animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.7, delay: 0.6, ease: EASE }}
+              transition={{ duration: reduce ? 0 : 0.7, delay: reduce ? 0 : 0.45, ease: EASE }}
               className="flex flex-col gap-6 rounded-xl border border-[rgba(26,22,19,0.1)] bg-white p-7"
             >
               <div className="flex items-center justify-between gap-4">
@@ -133,9 +199,13 @@ export default function FinderDemo({ finder, step }: { readonly finder: Finder; 
         <a
           href="/find"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex w-fit items-center gap-2 rounded-lg border border-[rgba(26,22,19,0.1)] bg-white px-4 py-2 text-base font-medium text-[#1A1613] transition-colors hover:border-[#CC5800] hover:text-[#CC5800]"
+          className="group inline-flex h-10 w-fit items-center gap-2 rounded-lg border border-[rgba(26,22,19,0.12)] bg-white px-4 text-[0.9375rem] font-medium text-[#1A1613] no-underline shadow-[0_1px_2px_rgba(26,22,19,0.04)] transition-colors hover:bg-[#F1EFEA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CC5800]"
+          style={{ textDecoration: 'none' }}
         >
           Try it on /find
+          <svg aria-hidden viewBox="0 0 16 16" className="size-4 text-[#4D4843] transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 8h10M9 4l4 4-4 4" />
+          </svg>
         </a>
       </div>
     </div>
