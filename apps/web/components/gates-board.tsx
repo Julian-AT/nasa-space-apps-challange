@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // The validation board (PRD 8.4, 8.6, 8.12, 9, 10 "Validation board"): the GateRecords of the
 // bundle's validation.json as one panel per gate, G0 to G6 in schema order. Each panel shows the
 // gate id, the status as a badge whose text is the status itself (so nothing depends on colour),

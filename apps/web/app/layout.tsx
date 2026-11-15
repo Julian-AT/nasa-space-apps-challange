@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // Root layout (PRD 3, 8.6, 8.10, D08). Every route shows, in this order: the skip link; in the
 // page header, the mock banner for a mock bundle, the shipping-mode banner and the primary
 // navigation; the page inside the one main landmark; and the footer with the bundle and schema
@@ -40,14 +41,12 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable} ${wide.variable}`}>
       <body className="bg-observatory min-h-dvh antialiased">
         <SkipLink />
-        <header className="sticky top-0 z-40 border-b border-line bg-void/90 backdrop-blur-md">
+        <header className="sticky top-0 z-40 border-b border-line bg-void">
           <MockBanner bundle={bundle} />
-          {/* The mode pill comes before the navigation in the DOM (read first) but is drawn on its own row below it. */}
-          <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
-            <ModeBanner bundle={bundle} />
+          {/* Slim hairline strip first in the DOM (read first), drawn above the navigation row. */}
+          <ModeBanner bundle={bundle} />
+          <div className="relative">
             <SiteHeader />
-            {/* A zero-height flex break, so the mode pill (order-3) always starts its own row. */}
-            <div aria-hidden="true" className="order-2 h-0 basis-full" />
           </div>
         </header>
         {/* tabIndex -1 lets the skip link move focus here in every browser. */}

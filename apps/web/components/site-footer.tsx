@@ -1,4 +1,4 @@
-// Adapted from ShadowAstra_Atlas (MIT, (c) 2026 Team ShadowAstra), https://github.com/ABRUBAB/ShadowAstra_Atlas
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // The footer on every page (PRD 8.4, 8.6): T0's "Bundle version: <bundle_version>", which
 // web-smoke asserts, followed by the bundle's schema version, as one text node in its own
 // paragraph, then the team and links to the data sources and methods.
@@ -15,7 +15,7 @@ export function SiteFooter({ bundle }: Readonly<{ bundle: Bundle }>) {
           <p className="font-mono text-[11px] tracking-wide">{`${shellText(bundle).footer} · Schema ${bundle.manifest.schema_version}`}</p>
           <p className="font-wide text-[11px] tracking-[0.18em] uppercase">Gradient Descent</p>
         </div>
-        <ul className="flex gap-4">
+        <ul className="flex flex-wrap gap-x-5 gap-y-2 font-mono text-[11px] tracking-[0.18em] uppercase">
           <li>
             <Link href="/data" className="text-foreground">
               Data sources

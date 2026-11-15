@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // A titled page section (PRD 8.6): a landmark region labelled by its h2, with consistent spacing.
 import { useId, type ReactNode } from 'react';
 
@@ -15,8 +16,8 @@ export function Section({ title, description, id, className, children }: Section
   const generated = useId();
   const headingId = id ?? generated;
   return (
-    <section aria-labelledby={headingId} className={cn('mt-16 flex flex-col gap-5 border-t border-line pt-12', className)}>
-      <div className="flex flex-col gap-1">
+    <section aria-labelledby={headingId} className={cn('mt-20 flex flex-col gap-6 border-t border-line pt-12 sm:mt-24', className)}>
+      <div className="flex flex-col gap-2">
         <h2 id={headingId}>{title}</h2>
         {description === undefined ? null : <p className="max-w-3xl text-muted-foreground">{description}</p>}
       </div>

@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // The five evidence labels of PRD 3 (also 8.6, 10, D08): every displayed or exported quantity
 // carries one. The labels and meanings are copied verbatim from PRD.md section 3, and the tests
 // compare them with it. A server component; useId works in synchronous server components.

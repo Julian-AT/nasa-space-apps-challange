@@ -1,15 +1,16 @@
-'use client';
-
-// Adapted from ShadowAstra_Atlas (MIT, (c) 2026 Team ShadowAstra), https://github.com/ABRUBAB/ShadowAstra_Atlas
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // Primary navigation on every page (PRD 8.6, 8.10). The app's only shell client module: a root
 // layout cannot read the pathname, so this reads it with usePathname to mark the current route with
-// aria-current="page". It holds the links only: no bundle data and no provider. Links are plain
-// anchors in DOM order and keep the global focus indicator. The current route is a filled pill
-// with bold text, never colour alone. On narrow screens the row wraps onto a second line instead of hiding
-// behind a toggle, so every link stays visible and reachable by keyboard. The wordmark and nav are flex items
-// of the header row in app/layout.tsx; the mode pill (components/mode-banner.tsx) wraps to its own row.
+// aria-current="page", and holds the open state of the compact menu. It holds the links only: no
+// bundle data and no provider. Links are plain anchors in DOM order and keep the global focus
+// indicator. The ten links are visually grouped in one hairline pill (home | worlds | tools |
+// reference); the current route is a filled pill with bold text, never colour alone. Below the lg
+// breakpoint the pill collapses behind a menu button (aria-expanded) and opens as a panel.
+'use client';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -26,23 +27,27 @@ export const NAV_ITEMS = [
   { label: 'API docs', href: '/api/docs' },
 ] as const;
 
-const LINK = 'inline-block rounded-full px-3.5 py-1.5 text-[13px] whitespace-nowrap no-underline transition-colors';
+/** Index in NAV_ITEMS after which a group divider is drawn: Home | Moon Mars Earth | Probe Model | Methods Data Paper API docs. */
+const GROUP_ENDS: ReadonlySet<number> = new Set([0, 3, 5]);
+
+const LINK =
+  'block rounded-full px-3.5 py-2 text-[13px] whitespace-nowrap no-underline transition-colors duration-200 lg:inline-block lg:py-1.5';
 
 /** The navigation for a given pathname; a link is current only on its own route. */
-export function SiteNav({ pathname }: Readonly<{ pathname: string | null }>) {
+export function SiteNav({ pathname, className }: Readonly<{ pathname: string | null; className?: string }>) {
   return (
-    <nav aria-label="Primary" className="order-2 -mx-1 w-full min-w-0 xl:w-auto xl:flex-1">
-      <ul className="flex flex-wrap items-center gap-0.5 px-1 py-1 xl:justify-center">
-        {NAV_ITEMS.map(({ label, href }) => {
+    <nav aria-label="Primary" className={cn('min-w-0', className)}>
+      <ul className="flex flex-col gap-0.5 lg:flex-row lg:items-center lg:gap-0.5 lg:rounded-full lg:border lg:border-line-2 lg:bg-panel lg:p-1">
+        {NAV_ITEMS.map(({ label, href }, index) => {
           const isCurrent = pathname === href;
           const className = cn(
             LINK,
             isCurrent
-              ? 'bg-platinum/10 font-bold text-foreground'
+              ? 'bg-platinum/10 font-bold text-foreground lg:bg-platinum lg:text-void'
               : 'text-muted-foreground hover:bg-platinum/5 hover:text-foreground',
           );
           return (
-            <li key={href}>
+            <li key={href} className="contents">
               {href === '/api/docs' ? (
                 <a href={href} aria-current={isCurrent ? 'page' : undefined} className={className}>
                   {label}
@@ -52,6 +57,7 @@ export function SiteNav({ pathname }: Readonly<{ pathname: string | null }>) {
                   {label}
                 </Link>
               )}
+              {GROUP_ENDS.has(index) ? <span aria-hidden="true" className="mx-1 hidden h-4 w-px bg-line-2 lg:block" /> : null}
             </li>
           );
         })}
@@ -64,7 +70,7 @@ function Wordmark() {
   return (
     <Link
       href="/"
-      className="order-1 flex shrink-0 items-center gap-2.5 font-wide text-[13px] tracking-[0.18em] text-platinum uppercase no-underline"
+      className="flex shrink-0 items-center gap-2.5 font-wide text-[13px] tracking-[0.18em] text-platinum uppercase no-underline"
     >
       <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" className="text-flare">
         <circle cx="12" cy="12" r="5.5" fill="currentColor" />
@@ -78,10 +84,37 @@ function Wordmark() {
 }
 
 export function SiteHeader() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
   return (
-    <>
+    <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
       <Wordmark />
-      <SiteNav pathname={usePathname()} />
-    </>
+      <SiteNav pathname={pathname} className="hidden lg:block" />
+      <button
+        type="button"
+        aria-label={open ? 'Close menu' : 'Open menu'}
+        aria-expanded={open}
+        aria-controls="site-menu"
+        onClick={() => {
+          setOpen((value) => !value);
+        }}
+        className="inline-flex size-10 items-center justify-center rounded-full border border-line-2 text-chrome transition-colors hover:text-foreground lg:hidden"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+          {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 8h16M4 16h16" />}
+        </svg>
+      </button>
+      {open ? (
+        <div
+          id="site-menu"
+          onClick={() => {
+            setOpen(false);
+          }}
+          className="absolute inset-x-0 top-full border-b border-line bg-void px-4 pt-2 pb-4 sm:px-6 lg:hidden"
+        >
+          <SiteNav pathname={pathname} />
+        </div>
+      ) : null}
+    </div>
   );
 }

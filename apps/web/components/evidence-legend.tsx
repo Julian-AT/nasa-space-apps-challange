@@ -1,3 +1,4 @@
+// Adapted from ShadowAstra_Atlas (MIT, Team ShadowAstra), see THIRD_PARTY_NOTICES.md.
 // The legend of the five evidence labels with their PRD 3 meanings (PRD 3, 8.6, 10, D08), shown
 // as visible text. A server component. The heading and sentence are PRD 3's own words.
 import { useId } from 'react';
