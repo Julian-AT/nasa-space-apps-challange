@@ -276,6 +276,17 @@ describe('gates-board.tsx source', () => {
     expect(source).not.toMatch(/encoder|model|embedding|onnx/i);
   });
 
+  it('writes each class it renders as a whole word, so the Tailwind scanner finds it', () => {
+    // Tailwind reads candidates from the source text; a class glued to `${` in a template is missed.
+    const html = render([fullRecord('G0', 'PASS')]);
+    const classes = new Set([...html.matchAll(/class="([^"]*)"/g)].flatMap((match) => (match[1] ?? '').split(' ')));
+    expect(classes.size).toBeGreaterThan(0);
+    for (const name of classes) {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      expect(source, name).toMatch(new RegExp(`['"\\s]${escaped}['"\\s]`));
+    }
+  });
+
   it('is a server component', () => {
     expect(source).not.toMatch(/['"]use client['"]/);
   });
