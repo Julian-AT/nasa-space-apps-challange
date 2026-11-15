@@ -29,7 +29,7 @@ export function PaperView({ paper }: { readonly paper: PaperFiles }) {
       <PageHeader eyebrow="Paper" title="Paper" lead="The released paper, built from the same bundle artifacts as this site." />
       <p className="mt-6">
         <Button asChild>
-          <a href={paper.pdfHref} download>
+          <a href={paper.pdfHref} download className="no-underline">
             Download the paper (PDF{paper.pdfBytes === null ? '' : `, ${String(Math.round(paper.pdfBytes / 1024))} KiB`})
           </a>
         </Button>
@@ -42,7 +42,7 @@ export function PaperView({ paper }: { readonly paper: PaperFiles }) {
             </p>
           </UnavailablePanel>
         ) : (
-          <p className="max-w-3xl whitespace-pre-line">{paper.abstract}</p>
+          <p className="max-w-3xl leading-relaxed whitespace-pre-line text-muted-foreground">{paper.abstract}</p>
         )}
       </Section>
       <Section title="BibTeX">
@@ -53,7 +53,7 @@ export function PaperView({ paper }: { readonly paper: PaperFiles }) {
             </p>
           </UnavailablePanel>
         ) : (
-          <pre tabIndex={0} aria-label="BibTeX entry" className="overflow-x-auto rounded-lg border border-line bg-card p-4 text-sm">
+          <pre tabIndex={0} aria-label="BibTeX entry" className="overflow-x-auto rounded-xl border bg-muted/40 p-4 font-mono text-xs leading-relaxed">
             <code>{paper.bibtex}</code>
           </pre>
         )}
