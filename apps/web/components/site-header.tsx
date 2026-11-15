@@ -5,11 +5,11 @@
 // in a Sheet. The current route is a filled item with bold text, never colour alone.
 'use client';
 
-import { GithubIcon, Menu01Icon, Moon02Icon, Search01Icon, Sun03Icon } from '@hugeicons/core-free-icons';
+import { GithubIcon, Menu01Icon, EarthIcon, Search01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { type ComponentProps, useEffect, useState } from 'react';
+import { type ComponentProps, useState } from 'react';
 
 import { openPalette } from '@/components/shadowastra/chrome/CommandPalette';
 import { Button } from '@/components/ui/button';
@@ -127,60 +127,27 @@ function MobileNav({ pathname }: Readonly<{ pathname: string | null }>) {
   );
 }
 
-function Wordmark() {
+/** The Terraluna mark: an Earth icon in a primary square, then the plain name. Shared with the footer. */
+export function LogoMark({ size = 'sm' }: Readonly<{ size?: 'sm' | 'xs' }>) {
   return (
-    <Link href="/" className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground no-underline">
-      <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" className="text-primary">
-        <circle cx="12" cy="12" r="5.5" fill="currentColor" />
-        <ellipse cx="12" cy="12" rx="11" ry="4" fill="none" stroke="currentColor" strokeWidth="1.2" transform="rotate(-25 12 12)" />
-      </svg>
-      <span>Terraluna</span>
-    </Link>
+    <span
+      aria-hidden="true"
+      className={cn(
+        'inline-flex shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground',
+        size === 'sm' ? 'size-7' : 'size-6',
+      )}
+    >
+      <HugeiconsIcon icon={EarthIcon} strokeWidth={2} className={size === 'sm' ? 'size-4' : 'size-3.5'} />
+    </span>
   );
 }
 
-type Theme = 'dark' | 'light';
-
-function readTheme(): Theme {
-  if (typeof document === 'undefined') return 'dark';
-  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
-}
-
-/** Toggles both data-theme (site tokens) and the `dark` class (shadcn variables). */
-function ThemeButton() {
-  const [theme, setTheme] = useState<Theme>('dark');
-  useEffect(() => {
-    setTheme(readTheme());
-    const on = () => {
-      setTheme(readTheme());
-    };
-    window.addEventListener('sa-theme', on);
-    return () => {
-      window.removeEventListener('sa-theme', on);
-    };
-  }, []);
-  const toggle = () => {
-    const next: Theme = readTheme() === 'dark' ? 'light' : 'dark';
-    const root = document.documentElement;
-    root.dataset.theme = next;
-    root.classList.toggle('dark', next === 'dark');
-    try {
-      localStorage.setItem('sa-theme', next);
-    } catch {
-      /* private mode */
-    }
-    window.dispatchEvent(new Event('sa-theme'));
-  };
+function Wordmark() {
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggle}
-      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-    >
-      <HugeiconsIcon icon={theme === 'dark' ? Sun03Icon : Moon02Icon} strokeWidth={2} />
-    </Button>
+    <Link href="/" className="flex shrink-0 items-center gap-2 font-sans text-[15px] font-semibold tracking-tight text-foreground no-underline">
+      <LogoMark />
+      <span>Terraluna</span>
+    </Link>
   );
 }
 
@@ -203,7 +170,6 @@ function HeaderActions() {
           <HugeiconsIcon icon={GithubIcon} strokeWidth={2} />
         </a>
       </Button>
-      <ThemeButton />
     </div>
   );
 }
