@@ -172,7 +172,11 @@
       "claim": "I did not reproduce the initial-JS gzip -9 figure of 177,190 B.",
       "evidence": "The measurement needs a loop or pipe, which the review permissions forbid. The build shows / as static and site-header.tsx is the only client module I found. The author's figure is within the 250 kB budget.",
       "id": "claude-r8-1",
-      "resolution": null
+      "resolution": {
+        "action": "rebutted",
+        "commit": null,
+        "reason": "Reproduced after make web-build at a389efd: the six <script src> files of apps/web/.next/server/app/index.html at gzip -9 are 48,186 + 71,595 + 3,936 + 6,629 + 39,390 + 7,454 = 177,190 B, which is +3,216 B over the T0 baseline of 173,974 B and within the PRD 8.10 budget of 250 kB, the same figure as in the story notes. The client reference manifest for /page has 9 modules, and the only one outside node_modules is apps/web/components/site-header.tsx. Command: grep -o \"<script src=...\" index.html | sort -u | while read -r f; do gzip -9 -c .next/$f | wc -c; done | awk sum. No code change is needed."
+      }
     }
   ]
 }

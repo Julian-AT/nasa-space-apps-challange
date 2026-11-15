@@ -288,3 +288,11 @@ Append-only. Each iteration adds one entry at the end. Keep general, reusable fa
 - Docs used: none new. parse5 behaviour (noscript in head is raw text when scripting is enabled) was confirmed by the failing test.
 - Learnings: zsh does not word-split $var in for loops. Measure the initial JS with grep | sort -u | while read -r f; do gzip -9 -c ...; done | awk.
 ---
+
+## 2026-11-15T00:25Z · T7-03 · resolve
+- Done: round 8. Codex reported no findings. claude-r8-1 (low, the reviewer could not reproduce the gzip -9 initial-JS figure) rebutted with a fresh measurement after make web-build: 6 scripts, 177,190 B (48,186 + 71,595 + 3,936 + 6,629 + 39,390 + 7,454). That is +3,216 B over the 173,974 B baseline and within 250 kB. There are 9 client modules on /, and the only one outside node_modules is components/site-header.tsx. No code changed.
+- Commits: this resolution commit only.
+- Checks: in story order, make check exit 0; make test exit 0; pnpm --filter @terraluna/web exec vitest run components/mode-banner.test.tsx exit 0 (14 passed); make web-build exit 0 (/ static); make web-smoke exit 0. Also TURBO_FORCE=true make test exit 0 (pytest 404, web 325, schema 157). The review digest is unchanged (jq -S 'del(.findings[].resolution)' | shasum -a 256).
+- Docs used: none. No library or CLI interface changed.
+- Learnings: the Claude reviewer cannot run shell loops, so it will keep marking the gzip figure NOT_RUN. A single-script measurement (for example a node script owned by a later T15/T7-07 story) would let it reproduce the figure.
+---
