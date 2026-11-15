@@ -222,7 +222,12 @@ def compute_g5(tests: Sequence[MetricRecord], thresholds: G5Thresholds) -> list[
     )
     present = [b for b in ("moon", "mars") if _find(tests, "morphology_probe", body=b) is not None]
     comps2 = [
-        _component(f"{b}:morph_gain", _find(tests, "morphology_probe", body=b), "", morph_test)
+        _component(
+            f"{b}:morph_gain",
+            _find(tests, "morphology_probe", body=b) or _find(tests, "morphology_probe", body=None),
+            f"no {b} morphology probe result",
+            morph_test,
+        )
         for b in (present or ["moon", "mars"])
     ]
     any2: bool | None
@@ -239,7 +244,10 @@ def compute_g5(tests: Sequence[MetricRecord], thresholds: G5Thresholds) -> list[
         threshold=thresholds.morph_gain_min,
         observed=None,
         passed=any2,
-        reason=None if any2 is not None else "; ".join(c.reason or "" for c in comps2).strip("; "),
+        reason=None
+        if any2 is not None
+        else "; ".join(dict.fromkeys(c.reason for c in comps2 if c.reason))
+        or "no morphology result",
         components=comps2,
     )
 
