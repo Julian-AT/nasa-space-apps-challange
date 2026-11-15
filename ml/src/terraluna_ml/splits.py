@@ -91,7 +91,7 @@ class SplitMap:
 
 def moon_sector(lon_deg: float) -> int:
     lon = (lon_deg + 180.0) % 360.0 - 180.0
-    return int(math.floor((lon + 180.0) / 90.0)) % 4
+    return math.floor((lon + 180.0) / 90.0) % 4
 
 
 def moon_block(lon_deg: float) -> str:
@@ -99,13 +99,13 @@ def moon_block(lon_deg: float) -> str:
 
 
 def earth_block(lat_deg: float, lon_deg: float, size: float = 2.0) -> str:
-    i = int(math.floor(lat_deg / size))
-    j = int(math.floor(((lon_deg + 180.0) % 360.0 - 180.0) / size))
+    i = math.floor(lat_deg / size)
+    j = math.floor(((lon_deg + 180.0) % 360.0 - 180.0) / size)
     return f"earth:{i * size:+.0f}:{j * size:+.0f}"
 
 
 def tile_key(lat_deg: float, lon_deg: float, size: float) -> tuple[int, int]:
-    return int(math.floor(lat_deg / size)), int(math.floor(((lon_deg + 180.0) % 360.0) / size))
+    return math.floor(lat_deg / size), math.floor(((lon_deg + 180.0) % 360.0) / size)
 
 
 def _tiles_touch(a: tuple[int, int], b: tuple[int, int], n_lon: int) -> bool:
@@ -116,8 +116,8 @@ def _tiles_touch(a: tuple[int, int], b: tuple[int, int], n_lon: int) -> bool:
 
 
 def _counts(n: int, config: SplitConfig) -> tuple[int, int]:
-    n_test = max(1, int(round(config.test_fraction * n)))
-    n_val = max(1, int(round(config.val_fraction * n)))
+    n_test = max(1, round(config.test_fraction * n))
+    n_val = max(1, round(config.val_fraction * n))
     if n_test + n_val >= n:
         raise EmptySplitError(f"{n} blocks cannot hold {n_test} test and {n_val} validation")
     return n_test, n_val
@@ -227,16 +227,16 @@ def build_split_map(
         mars_blocks[name] = tiles
         for d in members:
             dtm_block[d] = name
-    n_lon_mars = int(round(360.0 / config.mars_tile_deg))
+    n_lon_mars = round(360.0 / config.mars_tile_deg)
     _assign_tiled("mars", mars_blocks, n_lon_mars, config, split, rng)
 
     # Earth: 2 x 2 degree blocks.
     earth: dict[str, list[tuple[int, int]]] = {}
     for b in sorted(set(earth_blocks)):
         _, lat_s, lon_s = b.split(":")
-        i = int(round(float(lat_s) / config.earth_block_deg))
-        j = int(round((float(lon_s) + 180.0) / config.earth_block_deg))
+        i = round(float(lat_s) / config.earth_block_deg)
+        j = round((float(lon_s) + 180.0) / config.earth_block_deg)
         earth[b] = [(i, j)]
-    n_lon_earth = int(round(360.0 / config.earth_block_deg))
+    n_lon_earth = round(360.0 / config.earth_block_deg)
     _assign_tiled("earth", earth, n_lon_earth, config, split, rng)
     return split, dtm_block

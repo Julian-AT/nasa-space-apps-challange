@@ -3,8 +3,10 @@
 Backbone: ResNet-18 layout (BasicBlock, [2, 2, 2, 2]) at half width (32, 64, 128, 256), a 3 x 3
 stem without max-pooling and global average pooling to a 256-value embedding
 (``ml.embedding_dim``). PRD 11.3 specifies a stride-1 stem; ``stem_stride`` keeps that default
-and allows 2, which quarters the compute. The reduced-scope CPU run (team rule: no GPU) records
-the stem stride it used as a deviation; the parameter count does not depend on it.
+and allows 2 (stride-2 stem conv, a quarter of the compute) or 4 (stride-2 stem conv plus a
+2 x 2 max-pool, as the standard ResNet stem downsamples; a sixteenth of the compute). The
+reduced-scope CPU run (team rule: no GPU) records the stem stride it used as a deviation; the
+parameter count does not depend on it.
 
 Heads: a VICReg projector (3-layer MLP, 2048 wide), a physics head (2-layer MLP, 11 outputs)
 and a body head (2-layer MLP, 3 logits) behind a gradient-reversal function whose lambda is set
@@ -67,14 +69,17 @@ class Encoder(nn.Module):
 
     def __init__(self, stem_stride: int = 1) -> None:
         super().__init__()
-        if stem_stride not in (1, 2):
-            raise ValueError("stem_stride must be 1 (PRD 11.3) or 2 (recorded deviation)")
+        if stem_stride not in (1, 2, 4):
+            raise ValueError("stem_stride must be 1 (PRD 11.3), or 2 or 4 (recorded deviations)")
         self.stem_stride = stem_stride
-        self.stem = nn.Sequential(
-            nn.Conv2d(3, WIDTHS[0], 3, stem_stride, 1, bias=False),
+        stem: list[nn.Module] = [
+            nn.Conv2d(3, WIDTHS[0], 3, min(stem_stride, 2), 1, bias=False),
             nn.BatchNorm2d(WIDTHS[0]),
             nn.ReLU(inplace=True),
-        )
+        ]
+        if stem_stride == 4:
+            stem.append(nn.MaxPool2d(2))
+        self.stem = nn.Sequential(*stem)
         layers: list[nn.Module] = []
         cin = WIDTHS[0]
         for i, w in enumerate(WIDTHS):
